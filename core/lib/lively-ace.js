@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -141,7 +141,7 @@ var lookup = function(parentId, moduleName) {
 function exportAce(ns) {
     var require = function(module, callback) {
         return _require("", module, callback);
-    };    
+    };
 
     var root = global;
     if (ns) {
@@ -229,7 +229,7 @@ require("./regexp");
 require("./es5-shim");
 
 });
- 
+
 ace.define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
 
     var real = {
@@ -368,7 +368,7 @@ if ([1,2].splice(0).length != 2) {
             return a;
         }
         var array = [], lengthBefore;
-        
+
         array.splice.apply(array, makeArray(20));
         array.splice.apply(array, makeArray(26));
 
@@ -409,7 +409,7 @@ if ([1,2].splice(0).length != 2) {
 
             var removed = this.slice(pos, pos+removeCount);
             var insert = slice.call(arguments, 2);
-            var add = insert.length;            
+            var add = insert.length;
             if (pos === length) {
                 if (add) {
                     this.push.apply(this, insert);
@@ -1105,9 +1105,9 @@ exports.importCssString = function importCssString(cssText, id, doc) {
     doc = doc || document;
     if (id && exports.hasCssString(id, doc))
         return null;
-    
+
     var style;
-    
+
     if (doc.createStyleSheet) {
         style = doc.createStyleSheet();
         style.cssText = cssText;
@@ -1143,7 +1143,7 @@ exports.importCssStylsheet = function(uri, doc) {
 exports.getInnerWidth = function(element) {
     return (
         parseInt(exports.computedStyle(element, "paddingLeft"), 10) +
-        parseInt(exports.computedStyle(element, "paddingRight"), 10) + 
+        parseInt(exports.computedStyle(element, "paddingRight"), 10) +
         element.clientWidth
     );
 };
@@ -1659,10 +1659,10 @@ var ua = navigator.userAgent;
 exports.isWin = (os == "win");
 exports.isMac = (os == "mac");
 exports.isLinux = (os == "linux");
-exports.isIE = 
+exports.isIE =
     (navigator.appName == "Microsoft Internet Explorer" || navigator.appName.indexOf("MSAppHost") >= 0)
     && parseFloat(navigator.userAgent.match(/MSIE ([0-9]+[\.0-9]+)/)[1]);
-    
+
 exports.isOldIE = exports.isIE && exports.isIE < 9;
 exports.isGecko = exports.isMozilla = window.controllers && window.navigator.product === "Gecko";
 exports.isOldGecko = exports.isGecko && parseInt((navigator.userAgent.match(/rv\:(\d+)/)||[])[1], 10) < 4;
@@ -1956,7 +1956,7 @@ var Editor = function(renderer, session) {
     this.onScrollTopChange = function() {
         this.renderer.scrollToY(this.session.getScrollTop());
     };
-    
+
     this.onScrollLeftChange = function() {
         this.renderer.scrollToX(this.session.getScrollLeft());
     };
@@ -2011,7 +2011,7 @@ var Editor = function(renderer, session) {
 
         var re = this.$highlightSelectedWord && this.$getSelectionHighLightRegexp()
         this.session.highlight(re);
-        
+
         this._emit("changeSelection");
     };
 
@@ -2098,7 +2098,7 @@ var Editor = function(renderer, session) {
         this.commands.exec("cut", this);
     };
     this.onPaste = function(text) {
-        if (this.$readOnly) 
+        if (this.$readOnly)
             return;
         this._emit("paste", text);
         this.insert(text);
@@ -2547,14 +2547,14 @@ var Editor = function(renderer, session) {
 
                 var t = parseFloat(nr.value);
                 t *= Math.pow(10, decimals);
-                
+
 
                 if(fp !== nr.end && column < fp){
                     amount *= Math.pow(10, nr.end - column - 1);
                 } else {
                     amount *= Math.pow(10, nr.end - column);
                 }
-                
+
                 t += amount;
                 t /= Math.pow(10, decimals);
                 var nnr = t.toFixed(decimals);
@@ -2592,7 +2592,7 @@ var Editor = function(renderer, session) {
             var endPoint = doc.insert(point, doc.getTextRange(range), false);
             range.start = point;
             range.end = endPoint;
-            
+
             sel.setSelectionRange(range, reverse)
         }
     };
@@ -2776,7 +2776,7 @@ var Editor = function(renderer, session) {
             if (pos.row == cursor.row && Math.abs(pos.column - cursor.column) < 2)
                 range = this.session.getBracketRange(pos);
         }
-        
+
         pos = range && range.cursor || pos;
         if (pos) {
             if (select) {
@@ -3049,7 +3049,7 @@ exports.copyArray = function(array){
     for (var i=0, l=array.length; i<l; i++) {
         if (array[i] && typeof array[i] == "object")
             copy[i] = this.copyObject( array[i] );
-        else 
+        else
             copy[i] = array[i];
     }
     return copy;
@@ -3059,7 +3059,7 @@ exports.deepCopy = function (obj) {
     if (typeof obj != "object") {
         return obj;
     }
-    
+
     var copy = obj.constructor();
     for (var key in obj) {
         if (typeof obj[key] == "object") {
@@ -3215,7 +3215,7 @@ var TextInput = function(parentNode, host) {
     var tempStyle = '';
     var isSelectionEmpty = true;
     try { var isFocused = document.activeElement === text; } catch(e) {}
-    
+
     event.addListener(text, "blur", function() {
         host.onBlur();
         isFocused = false;
@@ -3351,7 +3351,7 @@ var TextInput = function(parentNode, host) {
                 data = data.slice(0, -1);
             if (data[data.length - 1] == PLACEHOLDER[0])
                 data = data.slice(0, -1);
-            
+
             if (data)
                 host.onTextInput(data);
         }
@@ -3631,7 +3631,7 @@ var MouseHandler = function(editor) {
 
         this.x = ev.x;
         this.y = ev.y;
-        
+
         this.isMousePressed = true;
         var renderer = this.editor.renderer;
         if (renderer.$keepTextAreaAtCursor)
@@ -3657,7 +3657,7 @@ var MouseHandler = function(editor) {
         var onCaptureInterval = function() {
             self[self.state] && self[self.state]();
         }
-        
+
         if (useragent.isOldIE && ev.domEvent.type == "dblclick") {
             setTimeout(function() {
                 onCaptureInterval();
@@ -4121,29 +4121,29 @@ var useragent = require("../lib/useragent");
 var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
     this.domEvent = domEvent;
     this.editor = editor;
-    
+
     this.x = this.clientX = domEvent.clientX;
     this.y = this.clientY = domEvent.clientY;
 
     this.$pos = null;
     this.$inSelection = null;
-    
+
     this.propagationStopped = false;
     this.defaultPrevented = false;
 };
 
-(function() {  
-    
+(function() {
+
     this.stopPropagation = function() {
         event.stopPropagation(this.domEvent);
         this.propagationStopped = true;
     };
-    
+
     this.preventDefault = function() {
         event.preventDefault(this.domEvent);
         this.defaultPrevented = true;
     };
-    
+
     this.stop = function() {
         this.stopPropagation();
         this.preventDefault();
@@ -4151,16 +4151,16 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
     this.getDocumentPosition = function() {
         if (this.$pos)
             return this.$pos;
-        
+
         this.$pos = this.editor.renderer.screenToTextCoordinates(this.clientX, this.clientY);
         return this.$pos;
     };
     this.inSelection = function() {
         if (this.$inSelection !== null)
             return this.$inSelection;
-            
+
         var editor = this.editor;
-        
+
         if (editor.getReadOnly()) {
             this.$inSelection = false;
         }
@@ -4181,11 +4181,11 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
     this.getShiftKey = function() {
         return this.domEvent.shiftKey;
     };
-    
+
     this.getAccelKey = useragent.isMac
         ? function() { return this.domEvent.metaKey; }
         : function() { return this.domEvent.ctrlKey; };
-    
+
 }).call(MouseEvent.prototype);
 
 });
@@ -4225,13 +4225,13 @@ var DragdropHandler = function(mouseHandler) {
         y = e.clientY;
         return event.preventDefault(e);
     });
-    
+
     var onDragInterval =  function() {
         dragCursor = editor.renderer.screenToTextCoordinates(x, y);
         editor.moveCursorToPosition(dragCursor);
         editor.renderer.scrollCursorIntoView();
     };
-    
+
     event.addListener(mouseTarget, "dragleave", function(e) {
         if (editor.getReadOnly())
             return;
@@ -4244,7 +4244,7 @@ var DragdropHandler = function(mouseHandler) {
         editor.selection.setSelectionRange(range, isBackwards);
         return event.preventDefault(e);
     });
-    
+
     event.addListener(mouseTarget, "drop", function(e) {
         if (editor.getReadOnly())
             return;
@@ -4420,7 +4420,7 @@ var KeyBinding = function(editor) {
             if (toExecute.command == "null") {
                 success = toExecute.passEvent != true;
             } else {
-                success = commands.exec(toExecute.command, this.$editor, toExecute.args, e);                
+                success = commands.exec(toExecute.command, this.$editor, toExecute.args, e);
             }
             if (success && e && hashId != -1)
                 event.stopEvent(e);
@@ -4468,7 +4468,7 @@ var EditSession = function(text, mode) {
     this.$backMarkers = {};
     this.$markerId = 1;
     this.$undoSelect = true;
-    
+
     this.$foldData = [];
     this.$foldData.toString = function() {
         var str = "";
@@ -4479,7 +4479,7 @@ var EditSession = function(text, mode) {
     }
     this.on("changeFold", this.onChangeFold.bind(this));
     this.$onChange = this.onChange.bind(this);
-    
+
     if (typeof text != "object" || !text.getLine)
         text = new Document(text);
 
@@ -4826,9 +4826,9 @@ var EditSession = function(text, mode) {
         }
         if (!clazz)
             clazz = "ace_step";
-        
+
         var range = new Range(startRow, 0, endRow, Infinity);
-        
+
         var id = this.addMarker(range, clazz, "fullLine", inFront);
         range.id = id;
         return range;
@@ -4861,7 +4861,7 @@ var EditSession = function(text, mode) {
 
         if (!inToken)
             inToken = !!line.charAt(column).match(this.tokenRe);
-        
+
         if (inToken)
             var re = this.tokenRe;
         else if (/^\s+$/.test(line.slice(column-1, column+1)))
@@ -5791,7 +5791,7 @@ var EditSession = function(text, mode) {
                     foldStart = foldLine ? foldLine.start.row : Infinity;
                 }
             }
-            
+
             if (doCache) {
                 this.$docRowCache.push(docRow);
                 this.$screenRowCache.push(row);
@@ -6208,13 +6208,13 @@ EventEmitter._dispatchEvent = function(eventName, e) {
 
     if (!e.type)
         e.type = eventName;
-    
+
     if (!e.stopPropagation) {
         e.stopPropagation = function() {
             this.propagationStopped = true;
         };
     }
-    
+
     if (!e.preventDefault) {
         e.preventDefault = function() {
             this.defaultPrevented = true;
@@ -6226,17 +6226,17 @@ EventEmitter._dispatchEvent = function(eventName, e) {
         if (e.propagationStopped)
             break;
     }
-    
+
     if (defaultHandler && !e.defaultPrevented)
         return defaultHandler(e);
 };
 
 EventEmitter.setDefaultHandler = function(eventName, callback) {
     this._defaultHandlers = this._defaultHandlers || {};
-    
+
     if (this._defaultHandlers[eventName])
         throw new Error("The default handler for '" + eventName + "' is already set");
-        
+
     this._defaultHandlers[eventName] = callback;
 };
 
@@ -6685,11 +6685,11 @@ var Selection = function(session) {
 
         if (column == line.length) {
             var l = this.doc.getLength();
-            do {    
+            do {
                 row++;
                 rightOfCursor = this.doc.getLine(row)
             } while (row < l && /^\s*$/.test(rightOfCursor))
-            
+
             if (!/^\s+/.test(rightOfCursor))
                 rightOfCursor = ""
             column = 0;
@@ -6710,11 +6710,11 @@ var Selection = function(session) {
 
         var line = this.session.getLine(row).substring(0, column);
         if (column == 0) {
-            do {    
+            do {
                 row--;
                 line = this.doc.getLine(row);
             } while (row > 0 && /^\s*$/.test(line))
-            
+
             column = line.length;
             if (!/\s+$/.test(line))
                 line = ""
@@ -6821,21 +6821,21 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
 };
 
-(function() { 
+(function() {
     this.isEqual = function(range) {
         return this.start.row == range.start.row &&
             this.end.row == range.end.row &&
             this.start.column == range.start.column &&
             this.end.column == range.end.column
-    }; 
+    };
     this.toString = function() {
         return ("Range: [" + this.start.row + "/" + this.start.column +
             "] -> [" + this.end.row + "/" + this.end.column + "]");
-    }; 
+    };
 
     this.contains = function(row, column) {
         return this.compare(row, column) == 0;
-    }; 
+    };
     this.compareRange = function(range) {
         var cmp,
             end = range.end,
@@ -6863,10 +6863,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
                 return 0;
             }
         }
-    }; 
+    };
     this.comparePoint = function(p) {
         return this.compare(p.row, p.column);
-    }; 
+    };
     this.containsRange = function(range) {
         return this.comparePoint(range.start) == 0 && this.comparePoint(range.end) == 0;
     };
@@ -6876,10 +6876,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
     this.isEnd = function(row, column) {
         return this.end.row == row && this.end.column == column;
-    }; 
+    };
     this.isStart = function(row, column) {
         return this.start.row == row && this.start.column == column;
-    }; 
+    };
     this.setStart = function(row, column) {
         if (typeof row == "object") {
             this.start.column = row.column;
@@ -6888,7 +6888,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.start.row = row;
             this.start.column = column;
         }
-    }; 
+    };
     this.setEnd = function(row, column) {
         if (typeof row == "object") {
             this.end.column = row.column;
@@ -6897,7 +6897,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.end.row = row;
             this.end.column = column;
         }
-    }; 
+    };
     this.inside = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column) || this.isStart(row, column)) {
@@ -6907,7 +6907,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideStart = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column)) {
@@ -6917,7 +6917,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideEnd = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isStart(row, column)) {
@@ -7071,7 +7071,7 @@ var Mode = function() {
         + unicode.packages.Nd
         + unicode.packages.Pc + "\\$_]+", "g"
     );
-    
+
     this.nonTokenRe = new RegExp("^(?:[^"
         + unicode.packages.L
         + unicode.packages.Mn + unicode.packages.Mc
@@ -7105,7 +7105,7 @@ var Mode = function() {
 
         return "";
     };
-    
+
     this.createWorker = function(session) {
         return null;
     };
@@ -7120,7 +7120,7 @@ var Mode = function() {
                 this.$modes[this.$embeds[i]] = new mapping[this.$embeds[i]]();
             }
         }
-        
+
         var delegations = ['toggleCommentLines', 'getNextLineIndent', 'checkOutdent', 'autoOutdent', 'transformAction'];
 
         for (var i = 0; i < delegations.length; i++) {
@@ -7133,13 +7133,13 @@ var Mode = function() {
             } (this));
         }
     }
-    
+
     this.$delegator = function(method, args, defaultHandler) {
         var state = args[0];
-        
+
         for (var i = 0; i < this.$embeds.length; i++) {
             if (!this.$modes[this.$embeds[i]]) continue;
-            
+
             var split = state.split(this.$embeds[i]);
             if (!split[0] && split[1]) {
                 args[0] = split[1];
@@ -7150,7 +7150,7 @@ var Mode = function() {
         var ret = defaultHandler.apply(this, args);
         return defaultHandler ? ret : undefined;
     };
-    
+
     this.transformAction = function(state, action, editor, session, param) {
         if (this.$behaviour) {
             var behaviours = this.$behaviour.getBehaviours();
@@ -7164,7 +7164,7 @@ var Mode = function() {
             }
         }
     }
-    
+
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -7247,7 +7247,7 @@ var Tokenizer = function(rules, flag) {
         }
         return tokens;
     };
-    
+
     this.removeCapturingGroups = function(src) {
         var r = src.replace(
             /\[(?:\\.|[^\]])*?\]|\\.|\(\?[:=!]|(\()/g,
@@ -7255,7 +7255,7 @@ var Tokenizer = function(rules, flag) {
         );
         return r;
     };
-    
+
     this.createSplitterRegexp = function(src, flag) {
         src = src.replace(/\(\?=([^()]|\\.)*?\)$/, "");
         return new RegExp(src, flag);
@@ -7405,7 +7405,7 @@ var TextHighlightRules = function() {
             for (var key in embedRules)
                 states.push(prefix + key);
         }
-        
+
         this.addRules(embedRules, prefix);
 
         if (escapeRules) {
@@ -7422,7 +7422,7 @@ var TextHighlightRules = function() {
     this.getEmbeds = function() {
         return this.$embeds;
     };
-    
+
     this.normalizeRules = function() {
         var id = 0;
         for (var key in this.$rules) {
@@ -7497,7 +7497,7 @@ var Behaviour = function() {
         }
         this.$behaviours[name][action] = callback;
     }
-    
+
     this.addBehaviours = function (behaviours) {
         for (var key in behaviours) {
             for (var action in behaviours[key]) {
@@ -7505,13 +7505,13 @@ var Behaviour = function() {
             }
         }
     }
-    
+
     this.remove = function (name) {
         if (this.$behaviours && this.$behaviours[name]) {
             delete this.$behaviours[name];
         }
     }
-    
+
     this.inherit = function (mode, filter) {
         if (typeof mode === "function") {
             var behaviours = new mode().getBehaviours(filter);
@@ -7520,7 +7520,7 @@ var Behaviour = function() {
         }
         this.addBehaviours(behaviours);
     }
-    
+
     this.getBehaviours = function (filter) {
         if (!filter) {
             return this.$behaviours;
@@ -7633,7 +7633,7 @@ var Document = function(text) {
         };
 
 
- 
+
     this.$detectNewLine = function(text) {
         var match = text.match(/^.*?(\r\n|\r|\n)/m);
         if (match) {
@@ -7945,7 +7945,7 @@ var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var Anchor = exports.Anchor = function(doc, row, column) {
     this.document = doc;
-    
+
     if (typeof column == "undefined")
         this.setPosition(row.row, row.column);
     else
@@ -7962,7 +7962,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.getPosition = function() {
         return this.$clipPositionToDocument(this.row, this.column);
     };
-        
+
     this.getDocument = function() {
         return this.document;
     };
@@ -7970,19 +7970,19 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.onChange = function(e) {
         var delta = e.data;
         var range = delta.range;
-            
+
         if (range.start.row == range.end.row && range.start.row != this.row)
             return;
-            
+
         if (range.start.row > this.row)
             return;
-            
+
         if (range.start.row == this.row && range.start.column > this.column)
             return;
-    
+
         var row = this.row;
         var column = this.column;
-        
+
         if (delta.action === "insertText") {
             if (range.start.row === row && range.start.column <= column) {
                 if (range.start.row === range.end.row) {
@@ -8007,7 +8007,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
                     column = range.start.column;
                 else
                     column = Math.max(0, column - (range.end.column - range.start.column));
-                
+
             } else if (range.start.row !== range.end.row && range.start.row < row) {
                 if (range.end.row == row) {
                     column = Math.max(0, column - range.end.column) + range.start.column;
@@ -8043,15 +8043,15 @@ var Anchor = exports.Anchor = function(doc, row, column) {
         else {
             pos = this.$clipPositionToDocument(row, column);
         }
-        
+
         if (this.row == pos.row && this.column == pos.column)
             return;
-            
+
         var old = {
             row: this.row,
             column: this.column
         };
-        
+
         this.row = pos.row;
         this.column = pos.column;
         this._emit("change", {
@@ -8065,7 +8065,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     };
     this.$clipPositionToDocument = function(row, column) {
         var pos = {};
-    
+
         if (row >= this.document.getLength()) {
             pos.row = Math.max(0, this.document.getLength() - 1);
             pos.column = this.document.getLine(pos.row).length;
@@ -8078,13 +8078,13 @@ var Anchor = exports.Anchor = function(doc, row, column) {
             pos.row = row;
             pos.column = Math.min(this.document.getLine(pos.row).length, Math.max(0, column));
         }
-        
+
         if (column < 0)
             pos.column = 0;
-            
+
         return pos;
     };
-    
+
 }).call(Anchor.prototype);
 
 });
@@ -8248,7 +8248,7 @@ var SearchHighlight = function(regExp, clazz, type) {
 
 (function() {
     this.MAX_RANGES = 500;
-    
+
     this.setRegexp = function(regExp) {
         if (this.regExp+"" == regExp+"")
             return;
@@ -8353,16 +8353,16 @@ function Folding() {
     this.getAllFolds = function() {
         var folds = [];
         var foldLines = this.$foldData;
-        
+
         function addFold(fold) {
             folds.push(fold);
             if (!fold.subFolds)
                 return;
-                
+
             for (var i = 0; i < fold.subFolds.length; i++)
                 addFold(fold.subFolds[i]);
         }
-        
+
         for (var i = 0; i < foldLines.length; i++)
             for (var j = 0; j < foldLines[i].folds.length; j++)
                 addFold(foldLines[i].folds[j]);
@@ -8471,7 +8471,7 @@ function Folding() {
         var foldData = this.$foldData;
         var added = false;
         var fold;
-        
+
         if (placeholder instanceof Fold)
             fold = placeholder;
         else
@@ -8714,7 +8714,7 @@ function Folding() {
             else if (bracketPos = this.findMatchingBracket(cursor)) {
                 if (range.comparePoint(bracketPos) == 1) {
                     range.end = bracketPos;
-                } 
+                }
                 else {
                     range.start = bracketPos;
                     range.start.column++;
@@ -8737,7 +8737,7 @@ function Folding() {
             if (tryToUnfold && folds.length) {
                 this.expandFolds(folds);
                 return;
-            } 
+            }
             else if (folds.length == 1 ) {
                 fold = folds[0];
             }
@@ -8774,12 +8774,12 @@ function Folding() {
                 } while(token && re.test(token.type));
                 iterator.stepForward();
             }
-            
+
             range.start.row = iterator.getCurrentTokenRow();
             range.start.column = iterator.getCurrentTokenColumn() + 2;
 
             iterator = new TokenIterator(this, row, column);
-            
+
             if (dir != -1) {
                 do {
                     token = iterator.stepForward();
@@ -8809,7 +8809,7 @@ function Folding() {
             } catch(e) {}
         }
     };
-    
+
     this.$foldStyles = {
         "manual": 1,
         "markbegin": 1,
@@ -8819,12 +8819,12 @@ function Folding() {
     this.setFoldStyle = function(style) {
         if (!this.$foldStyles[style])
             throw new Error("invalid fold style: " + style + "[" + Object.keys(this.$foldStyles).join(", ") + "]");
-        
+
         if (this.$foldStyle == style)
             return;
 
         this.$foldStyle = style;
-        
+
         if (style == "manual")
             this.unfold();
         var mode = this.$foldMode;
@@ -8834,24 +8834,24 @@ function Folding() {
     this.$setFolding = function(foldMode) {
         if (this.$foldMode == foldMode)
             return;
-            
+
         this.$foldMode = foldMode;
-        
+
         this.removeListener('change', this.$updateFoldWidgets);
         this._emit("changeAnnotation");
-        
+
         if (!foldMode || this.$foldStyle == "manual") {
             this.foldWidgets = null;
             return;
         }
-        
+
         this.foldWidgets = [];
         this.getFoldWidget = foldMode.getFoldWidget.bind(foldMode, this, this.$foldStyle);
         this.getFoldWidgetRange = foldMode.getFoldWidgetRange.bind(foldMode, this, this.$foldStyle);
-        
+
         this.$updateFoldWidgets = this.updateFoldWidgets.bind(this);
         this.on('change', this.$updateFoldWidgets);
-        
+
     };
 
     this.onFoldWidgetClick = function(row, e) {
@@ -8884,7 +8884,7 @@ function Folding() {
                     return;
                 }
             }
-            
+
             if (!onlySubfolds)
                 this.addFold("...", range);
 
@@ -8896,7 +8896,7 @@ function Folding() {
             (e.target || e.srcElement).className += " ace_invalid"
         }
     };
-    
+
     this.updateFoldWidgets = function(e) {
         var delta = e.data;
         var range = delta.range;
@@ -9220,27 +9220,27 @@ var TokenIterator = function(session, initialRow, initialColumn) {
     this.$tokenIndex = token ? token.index : -1;
 };
 
-(function() { 
+(function() {
     this.stepBackward = function() {
         this.$tokenIndex -= 1;
-        
+
         while (this.$tokenIndex < 0) {
             this.$row -= 1;
             if (this.$row < 0) {
                 this.$row = 0;
                 return null;
             }
-                
+
             this.$rowTokens = this.$session.getTokens(this.$row);
             this.$tokenIndex = this.$rowTokens.length - 1;
         }
-            
+
         return this.$rowTokens[this.$tokenIndex];
-    };   
+    };
     this.stepForward = function() {
         var rowCount = this.$session.getLength();
         this.$tokenIndex += 1;
-        
+
         while (this.$tokenIndex >= this.$rowTokens.length) {
             this.$row += 1;
             if (this.$row >= rowCount) {
@@ -9251,31 +9251,31 @@ var TokenIterator = function(session, initialRow, initialColumn) {
             this.$rowTokens = this.$session.getTokens(this.$row);
             this.$tokenIndex = 0;
         }
-            
+
         return this.$rowTokens[this.$tokenIndex];
-    };      
+    };
     this.getCurrentToken = function () {
         return this.$rowTokens[this.$tokenIndex];
-    };      
+    };
     this.getCurrentTokenRow = function () {
         return this.$row;
-    };     
+    };
     this.getCurrentTokenColumn = function() {
         var rowTokens = this.$rowTokens;
         var tokenIndex = this.$tokenIndex;
         var column = rowTokens[tokenIndex].start;
         if (column !== undefined)
             return column;
-            
+
         column = 0;
         while (tokenIndex > 0) {
             tokenIndex -= 1;
             column += rowTokens[tokenIndex].value.length;
         }
-        
-        return column;  
+
+        return column;
     };
-            
+
 }).call(TokenIterator.prototype);
 
 exports.TokenIterator = TokenIterator;
@@ -9305,7 +9305,7 @@ function BracketMatch() {
         else
             return this.$findOpeningBracket(match[2], position);
     };
-    
+
     this.getBracketRange = function(pos) {
         var line = this.getLine(pos.row);
         var before = true, range;
@@ -9342,7 +9342,7 @@ function BracketMatch() {
             }
             range.cursor = range.start;
         }
-        
+
         return range;
     };
 
@@ -9365,7 +9365,7 @@ function BracketMatch() {
             token = iterator.stepForward();
         if (!token)
             return;
-        
+
          if (!typeRe){
             typeRe = new RegExp(
                 "(\\.?" +
@@ -9375,9 +9375,9 @@ function BracketMatch() {
         }
         var valueIndex = position.column - iterator.getCurrentTokenColumn() - 2;
         var value = token.value;
-        
+
         while (true) {
-        
+
             while (valueIndex >= 0) {
                 var chr = value.charAt(valueIndex);
                 if (chr == openBracket) {
@@ -9398,11 +9398,11 @@ function BracketMatch() {
 
             if (token == null)
                 break;
-                
+
             value = token.value;
             valueIndex = value.length - 1;
         }
-        
+
         return null;
     };
 
@@ -9453,7 +9453,7 @@ function BracketMatch() {
 
             valueIndex = 0;
         }
-        
+
         return null;
     };
 }
@@ -9521,7 +9521,7 @@ var Search = function() {
                 for (var j = 0; j < len; j++)
                     if (lines[row + j].search(re[j]) == -1)
                         break;
-                
+
                 var startLine = lines[row];
                 var line = lines[row + len - 1];
                 var startIndex = startLine.match(re[0])[0].length;
@@ -9569,7 +9569,7 @@ var Search = function() {
         var match = re.exec(input);
         if (!match || match[0].length != input.length)
             return null;
-        
+
         replacement = input.replace(re, replacement);
         if (options.preserveCase) {
             replacement = replacement.split("");
@@ -9582,7 +9582,7 @@ var Search = function() {
             }
             replacement = replacement.join("");
         }
-        
+
         return replacement;
     };
 
@@ -9695,7 +9695,7 @@ var Search = function() {
         var start = options.start;
         if (!start)
             start = range ? range[backwards ? "end" : "start"] : session.selection.getRange();
-         
+
         if (start.start)
             start = start[skipCurrent != backwards ? "end" : "start"];
 
@@ -9737,7 +9737,7 @@ var Search = function() {
                     if (callback(session.getLine(row), row))
                         return;
             };
-        
+
         return {forEach: forEach};
     };
 
@@ -9758,7 +9758,7 @@ var CommandManager = function(platform, commands) {
     this.commmandKeyBinding = {};
 
     this.addCommands(commands);
-    
+
     this.setDefaultHandler("exec", function(e) {
         return e.command.exec(e.editor, e.args || {});
     });
@@ -10247,7 +10247,7 @@ exports.commands = [{
     bindKey: bindKey("Ctrl-Shift-P", null),
     exec: function(editor) { editor.jumpToMatching(true); },
     readOnly: true
-}, 
+},
 {
     name: "cut",
     exec: function(editor) {
@@ -10913,29 +10913,29 @@ var VirtualRenderer = function(container, theme) {
     this.CHANGE_H_SCROLL = 1024;
 
     oop.implement(this, EventEmitter);
-    
+
     this.updateCharacterSize = function() {
         if (this.$textLayer.allowBoldFonts != this.$allowBoldFonts) {
             this.$allowBoldFonts = this.$textLayer.allowBoldFonts;
             this.setStyle("ace_nobold", !this.$allowBoldFonts);
         }
-        
+
         this.characterWidth = this.$textLayer.getCharacterWidth();
         this.lineHeight = this.$textLayer.getLineHeight();
         this.$updatePrintMargin();
     };
     this.setSession = function(session) {
         this.session = session;
-        
+
         this.scroller.className = "ace_scroller";
-        
+
         this.$cursorLayer.setSession(session);
         this.$markerBack.setSession(session);
         this.$markerFront.setSession(session);
         this.$gutterLayer.setSession(session);
         this.$textLayer.setSession(session);
         this.$loop.schedule(this.CHANGE_FULL);
-        
+
     };
     this.updateLines = function(firstRow, lastRow) {
         if (lastRow === undefined)
@@ -10954,7 +10954,7 @@ var VirtualRenderer = function(container, theme) {
             if (this.$changedLines.lastRow < lastRow)
                 this.$changedLines.lastRow = lastRow;
         }
-        
+
         if (this.$changedLines.firstRow > this.layerConfig.lastRow ||
             this.$changedLines.lastRow < this.layerConfig.firstRow)
             return;
@@ -11023,7 +11023,7 @@ var VirtualRenderer = function(container, theme) {
             this.$renderChanges(changes, true);
         else
             this.$loop.schedule(changes);
-        
+
         if (force)
             delete this.resizing;
     };
@@ -11059,12 +11059,12 @@ var VirtualRenderer = function(container, theme) {
     this.getDisplayIndentGuides = function() {
         return this.$textLayer.displayIndentGuides;
     };
-    
+
     this.setDisplayIndentGuides = function(display) {
         if (this.$textLayer.setDisplayIndentGuides(display))
             this.$loop.schedule(this.CHANGE_TEXT);
     };
-    
+
     this.$showPrintMargin = true;
     this.setShowPrintMargin = function(showPrintMargin) {
         this.$showPrintMargin = showPrintMargin;
@@ -11130,7 +11130,7 @@ var VirtualRenderer = function(container, theme) {
         this.$gutterLineHighlight.style.top = this.$cursorLayer.$pixelPos.top - this.layerConfig.offset + "px";
         this.$gutterLineHighlight.style.height = this.layerConfig.lineHeight + "px";
     };
-    
+
     this.$updatePrintMargin = function() {
         if (!this.$showPrintMargin && !this.$printMarginEl)
             return;
@@ -11627,13 +11627,13 @@ var VirtualRenderer = function(container, theme) {
     };
 
     this._loadTheme = function(name, callback) {
-        
+
     };
     this.setTheme = function(theme) {
         var _self = this;
         this.$themeValue = theme;
         _self._dispatchEvent('themeChange',{theme:theme});
-        
+
         if (!theme || typeof theme == "string") {
             var moduleName = theme || "ace/theme/textmate";
             config.loadModule(["theme", moduleName], afterLoad);
@@ -11663,7 +11663,7 @@ var VirtualRenderer = function(container, theme) {
                 _self.$size.width = 0;
                 _self.onResize();
             }
-            
+
             _self._dispatchEvent('themeLoaded',{theme:theme});
         }
     };
@@ -11699,7 +11699,7 @@ var Gutter = function(parentEl) {
     this.element.className = "ace_layer ace_gutter-layer";
     parentEl.appendChild(this.element);
     this.setShowFoldWidgets(this.$showFoldWidgets);
-    
+
     this.gutterWidth = 0;
 
     this.$annotations = [];
@@ -11738,7 +11738,7 @@ var Gutter = function(parentEl) {
             var rowInfo = this.$annotations[row];
             if (!rowInfo)
                 rowInfo = this.$annotations[row] = {text: []};
-           
+
             var annoText = annotation.text;
             annoText = annoText ? lang.escapeHTML(annoText) : annotation.html || "";
 
@@ -11797,7 +11797,7 @@ var Gutter = function(parentEl) {
             html.push(
                 "<div class='ace_gutter-cell ",
                 breakpoints[i] || "", decorations[i] || "", annotation.className,
-                "' style='height:", this.session.getRowLength(i) * config.lineHeight, "px;'>", 
+                "' style='height:", this.session.getRowLength(i) * config.lineHeight, "px;'>",
                 lastLineNumber = i + 1
             );
 
@@ -11821,10 +11821,10 @@ var Gutter = function(parentEl) {
 
         this.element = dom.setInnerHtml(this.element, html.join(""));
         this.element.style.height = config.minHeight + "px";
-        
+
         if (this.session.$useWrapMode)
             lastLineNumber = this.session.getLength();
-        
+
         var gutterWidth = ("" + lastLineNumber).length * config.characterWidth;
         var padding = this.$padding || this.$computePadding();
         gutterWidth += padding.left + padding.right;
@@ -11845,7 +11845,7 @@ var Gutter = function(parentEl) {
         this.$showFoldWidgets = show;
         this.$padding = null;
     };
-    
+
     this.getShowFoldWidgets = function() {
         return this.$showFoldWidgets;
     };
@@ -11856,7 +11856,7 @@ var Gutter = function(parentEl) {
         var style = dom.computedStyle(this.element.firstChild);
         this.$padding = {}
         this.$padding.left = parseInt(style.paddingLeft) + 1;
-        this.$padding.right = parseInt(style.paddingRight);  
+        this.$padding.right = parseInt(style.paddingRight);
         return this.$padding;
     };
 
@@ -11897,7 +11897,7 @@ var Marker = function(parentEl) {
     this.setSession = function(session) {
         this.session = session;
     };
-    
+
     this.setMarkers = function(markers) {
         this.markers = markers;
     };
@@ -13059,7 +13059,7 @@ var EditSession = require("./edit_session").EditSession;
                     var start = range.end, end = range.start;
                 else
                     var start = range.start, end = range.end;
-                
+
                 this.addRange(Range.fromPoints(end, end));
                 this.addRange(Range.fromPoints(start, start));
                 return;
@@ -13257,10 +13257,9 @@ var Editor = require("./editor").Editor;
             command.multiSelectAction(editor, e.args || {});
         }
         e.preventDefault();
-    }; 
+    };
     this.forEachSelection = function(cmd, args) {
-        if (this.inVirtualSelectionMode)
-            return;
+        if (this.inVirtualSelectionMode) return;
 
         var session = this.session;
         var selection = this.selection;
@@ -13845,7 +13844,7 @@ function onMouseDown(e) {
         e.editor.textInput.onContextMenu(e.domEvent);
         return;
     }
-    
+
     if (!ctrl && !alt) {
         if (button == 0 && e.editor.inMultiSelectMode)
             e.editor.exitMultiSelectMode();
@@ -13884,12 +13883,12 @@ function onMouseDown(e) {
         rectSel.forEach(editor.addSelectionMarker, editor);
         editor.updateSelectionMarkers();
     };
-    
+
     var session = editor.session;
     var screenAnchor = editor.renderer.pixelToScreenCoordinates(mouseX, mouseY);
     var screenCursor = screenAnchor;
 
-    
+
 
     if (ctrl && !shift && !alt && button == 0) {
         if (!isMultiSelect && inSelection)
@@ -14212,13 +14211,13 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
     this.$onUpdate = this.onUpdate.bind(this);
     this.doc.on("change", this.$onUpdate);
     this.$others = others;
-    
+
     this.$onCursorChange = function() {
         setTimeout(function() {
             _self.onCursorChange();
         });
     };
-    
+
     this.$pos = pos;
     var undoStack = session.getUndoManager().$undoStack || session.getUndoManager().$undostack || {length: -1};
     this.$undoStackDepth =  undoStack.length;
@@ -14277,7 +14276,7 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         if (this.$updating) return;
         this.$updating = true;
         var lengthDiff = delta.action === "insertText" ? range.end.column - range.start.column : range.start.column - range.end.column;
-        
+
         if(range.start.column >= this.pos.column && range.start.column <= this.pos.column + this.length + 1) {
             var distanceFromStart = range.start.column - this.pos.column;
             this.length += lengthDiff;
@@ -14340,7 +14339,7 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
             this.hideOtherMarkers();
             this._emit("cursorLeave", event);
         }
-    };    
+    };
     this.detach = function() {
         this.session.removeMarker(this.markerId);
         this.hideOtherMarkers();
@@ -14470,7 +14469,7 @@ var FoldMode = exports.FoldMode = function() {};
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14481,7 +14480,7 @@ var FoldMode = exports.FoldMode = function() {};
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -14554,9 +14553,9 @@ exports.handler.attach = function(editor) {
     editor.session.$selectLongWords = true;
     $formerLineStart = editor.session.$useEmacsStyleLineStart;
     editor.session.$useEmacsStyleLineStart = true;
-    
+
     editor.session.$emacsMark = null;
-    
+
     exports.markMode = function() {
         return editor.session.$emacsMark;
     }
@@ -14594,7 +14593,7 @@ var $kbSessionChange = function(e) {
         e.oldSession.$selectLongWords = $formerLongWords;
         e.oldSession.$useEmacsStyleLineStart = $formerLineStart;
     }
-    
+
     $formerLongWords = e.session.$selectLongWords;
     e.session.$selectLongWords = true;
     $formerLineStart = e.session.$useEmacsStyleLineStart;
@@ -14602,7 +14601,7 @@ var $kbSessionChange = function(e) {
 
     if (!e.session.hasOwnProperty('$emacsMark'))
         e.session.$emacsMark = null;
-}    
+}
 
 var $resetMarkMode = function(e) {
     e.editor.session.$emacsMark = null;
@@ -14636,6 +14635,8 @@ exports.handler.bindKey = function(key, command) {
 
 
 exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
+
+    // insertstring data.count times
     if (hashId == -1) {
         exports.setMarkMode(null);
         if (data.count) {
@@ -14645,10 +14646,11 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         }
     }
 
-    if (key == "\x00")
-        return;
+    if (key == "\x00") return;
 
     var modifier = eMods[hashId];
+
+    // CTRL + number / universalArgument for setting data.count
     if (modifier == "c-" || data.universalArgument) {
         var count = parseInt(key[key.length - 1]);
         if (count) {
@@ -14658,49 +14660,53 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     }
     data.universalArgument = false;
 
-    if (modifier)
-        key = modifier + key;
+    // this.commandKeyBinding maps key specs like "c-p" (for CTRL + P) to
+    // command objects, for lookup key needs to include the modifier
+    if (modifier) key = modifier + key;
 
-    if (data.keyChain)
-        key = data.keyChain += " " + key;
+    // Key combos like CTRL+X H build up the data.keyChain
+    if (data.keyChain) key = data.keyChain += " " + key;
 
+    // Key combo prefixes get stored as "null" (String!) in this
+    // this.commmandKeyBinding. When encountered no command is invoked but we
+    // buld up data.keyChain
     var command = this.commmandKeyBinding[key];
     data.keyChain = command == "null" ? key : "";
 
-    if (!command)
-        return;
+    // there really is no command
+    if (!command) return;
 
-    if (command == "null")
-        return {command: "null"};
+    // we pass b/c of key combo or universalArgument
+    if (command === "null") return {command: "null"};
 
-    if (command == "universalArgument") {
+    if (command === "universalArgument") {
         data.universalArgument = true;
         return {command: "null"};
     }
 
-    if (typeof command != "string") {
-        var args = command.args;
-        command = command.command;
-        if (command == "goorselect") {
-            command = args[0];
-            if (exports.markMode()) {
-                command = args[1];
-            }
+    // lookup command
+    // TODO extract special handling of markmode
+    // TODO special case command.command is really unnecessary, remove
+    var args;
+    if (typeof command !== "string") {
+        args = command.args;
+        if (command.command) command = command.command;
+        if (command === "goorselect") {
+            command = exports.markMode() ? args[1] : args[0];
             args = null;
         }
     }
 
-    if (typeof command == "string") {
-        if (command == "insertstring" ||
-           command == "splitline" ||
-           command == "togglecomment") {
+    if (typeof command === "string") {
+        if (command === "insertstring" ||
+            command === "splitline" ||
+            command === "togglecomment") {
             exports.setMarkMode(null);
         }
         command = this.commands[command] || data.editor.commands.commands[command];
     }
 
-    if (!command.readonly && !command.isYank)
-        data.lastCommand = null;
+    if (!command.readonly && !command.isYank) data.lastCommand = null;
 
     if (data.count) {
         var count = data.count;
@@ -14720,11 +14726,11 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
 };
 
 exports.emacsKeys = {
-    "Up|C-p"      : {command: "goorselect", args: ["golineup","selectup"]},         
-    "Down|C-n"    : {command: "goorselect", args: ["golinedown","selectdown"]},       
+    "Up|C-p"      : {command: "goorselect", args: ["golineup","selectup"]},
+    "Down|C-n"    : {command: "goorselect", args: ["golinedown","selectdown"]},
     "Left|C-b"    : {command: "goorselect", args: ["gotoleft","selectleft"]},
     "Right|C-f"   : {command: "goorselect", args: ["gotoright","selectright"]},
-    "C-Left|M-b"  : {command: "goorselect", args: ["gotowordleft","selectwordleft"]}, 
+    "C-Left|M-b"  : {command: "goorselect", args: ["gotowordleft","selectwordleft"]},
     "C-Right|M-f" : {command: "goorselect", args: ["gotowordright","selectwordright"]},
     "Home|C-a"    : {command: "goorselect", args: ["gotolinestart","selecttolinestart"]},
     "End|C-e"     : {command: "goorselect", args: ["gotolineend","selecttolineend"]},
@@ -14778,7 +14784,7 @@ exports.emacsKeys = {
     "M-u": "touppercase",    // Doesn't work
     "M-l": "tolowercase",
     "M-/": "autocomplete",   // Doesn't work
-    "C-u": "universalArgument",  
+    "C-u": "universalArgument",
 
     "M-;": "togglecomment",
 
@@ -14794,7 +14800,7 @@ exports.handler.addCommands({
     recenterTopBottom: function(editor) {
         var renderer = editor.renderer;
         var pos = renderer.$cursorLayer.getPixelPosition();
-        var h = renderer.$size.scrollerHeight - renderer.lineHeight;       
+        var h = renderer.$size.scrollerHeight - renderer.lineHeight;
         var scrollTop = renderer.scrollTop;
         if (Math.abs(pos.top - scrollTop) < 2) {
             scrollTop = pos.top - h;
@@ -14823,7 +14829,7 @@ exports.handler.addCommands({
         markMode = editor.getCursorPosition();
         exports.setMarkMode(markMode);
         editor.selection.setSelectionAnchor(markMode.row, markMode.column);
-        
+
     },
     exchangePointAndMark: {
         exec: function(editor) {
@@ -14923,7 +14929,7 @@ exports.killRing = {
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14934,7 +14940,7 @@ exports.killRing = {
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -15001,7 +15007,7 @@ exports.handler = {
 
         if (hashId == 1)
             key = "ctrl-" + key;
-        
+
         if ((key == "esc" && hashId == 0) || key == "ctrl-[") {
             return {command: coreCommands.stop};
         } else if (data.state == "start") {
@@ -15009,13 +15015,13 @@ exports.handler = {
                 hashId = -1;
                 key = data.inputChar;
             }
-            
+
             if (hashId == -1 || hashId == 1 || hashId == 0 && key.length > 1) {
                 if (cmds.inputBuffer.idle && startCommands[key])
                     return startCommands[key];
                 return {
                     command: {
-                        exec: function(editor) { 
+                        exec: function(editor) {
                             return cmds.inputBuffer.push(editor, key);
                         }
                     }
@@ -15063,7 +15069,7 @@ exports.onCursorMove = function(e) {
 };
 
 });
- 
+
 ace.define('ace/keyboard/vim/commands', ['require', 'exports', 'module' , 'ace/keyboard/vim/maps/util', 'ace/keyboard/vim/maps/motions', 'ace/keyboard/vim/maps/operators', 'ace/keyboard/vim/maps/aliases', 'ace/keyboard/vim/registers'], function(require, exports, module) {
 
 "never use strict";
@@ -15421,7 +15427,7 @@ var inputBuffer = exports.inputBuffer = {
             isKeyHandled = ch.length == 1;
             this.reset();
         }
-        
+
         if (this.waitingForParam || this.motion || this.operator) {
             this.status += ch;
         } else if (this.currentCount) {
@@ -16317,7 +16323,7 @@ module.exports = {
             var marker = s.vimMarkers && s.vimMarkers[param];
             if (marker) {
                 var pos = marker.getPosition();
-                var line = editor.session.getLine(pos.row);                
+                var line = editor.session.getLine(pos.row);
                 pos.column = line.search(/\S/);
                 if (pos.column == -1)
                     pos.column = line.length;
@@ -16335,7 +16341,7 @@ module.exports.pagedown = module.exports["ctrl-d"];
 module.exports.pageup = module.exports["ctrl-u"];
 
 });
- 
+
 ace.define('ace/keyboard/vim/maps/operators', ['require', 'exports', 'module' , 'ace/keyboard/vim/maps/util', 'ace/keyboard/vim/registers'], function(require, exports, module) {
 
 "never use strict";
@@ -16499,7 +16505,7 @@ module.exports = {
     }
 };
 });
- 
+
 "use strict"
 
 ace.define('ace/keyboard/vim/maps/aliases', ['require', 'exports', 'module' ], function(require, exports, module) {
@@ -16569,7 +16575,7 @@ module.exports = {
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -16580,7 +16586,7 @@ module.exports = {
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -16612,30 +16618,30 @@ function Mode() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
         return indent;
     };
-    
+
     this.toggleCommentLines = function(state, doc, startRow, endRow){
         var range = new Range(0, 0, 0, 0);
         for (var i = startRow; i <= endRow; ++i) {
             var line = doc.getLine(i);
             if (hereComment.test(line))
                 continue;
-                
+
             if (commentLine.test(line))
                 line = line.replace(commentLine, '$1');
             else
                 line = line.replace(indentation, '$&#');
-    
+
             range.end.row = range.start.row = i;
             range.end.column = line.length + 1;
             doc.replace(range, line);
         }
     };
-    
+
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -16652,7 +16658,7 @@ var AbapHighlightRules = function() {
 
     var keywordMapper = this.createKeywordMapper({
         "variable.language": "this",
-        "keyword": 
+        "keyword":
             "ADD ALIAS ALIASES ASSERT ASSIGN ASSIGNING AT BACK" +
             " CALL CASE CATCH CHECK CLASS CLEAR CLOSE CNT COLLECT COMMIT COMMUNICATION COMPUTE CONCATENATE CONDENSE CONSTANTS CONTINUE CONTROLS CONVERT CREATE CURRENCY" +
             " DATA DEFINE DEFINITION DEFERRED DELETE DESCRIBE DETAIL DIVIDE DO" +
@@ -16679,14 +16685,14 @@ var AbapHighlightRules = function() {
             " APPENDING CORRESPONDING FIELDS OF TABLE" +
             " LEFT RIGHT OUTER INNER JOIN AS CLIENT SPECIFIED BYPASSING BUFFER UP TO ROWS CONNECTING" +
             " EQ NE LT LE GT GE NOT AND OR XOR IN LIKE BETWEEN",
-        "constant.language": 
+        "constant.language":
             "TRUE FALSE NULL SPACE",
-        "support.type": 
+        "support.type":
             "c n i p f d t x string xstring decfloat16 decfloat34",
         "keyword.operator":
             "abs sign ceil floor trunc frac acos asin atan cos sin tan" +
             " abapOperator cosh sinh tanh exp log log10 sqrt" +
-            " strlen xstrlen charlen numofchar dbmaxlen lines" 
+            " strlen xstrlen charlen numofchar dbmaxlen lines"
     }, "text", true, " ");
 
     var compoundKeywords = "WITH\\W+(?:HEADER\\W+LINE|FRAME|KEY)|NO\\W+STANDARD\\W+PAGE\\W+HEADING|"+
@@ -16703,7 +16709,7 @@ var AbapHighlightRules = function() {
         "START-OF-SELECTION|SUBTRACT-CORRESPONDING|SYNTAX-CHECK|SYNTAX-TRACE|TOP-OF-PAGE|TYPE-POOL|"+
         "TYPE-POOLS|LINE-SIZE|LINE-COUNT|MESSAGE-ID|DISPLAY-MODE|READ(?:-ONLY)?|"+
         "IS\\W+(?:NOT\\W+)?(?:ASSIGNED|BOUND|INITIAL|SUPPLIED)";
-     
+
     this.$rules = {
         "start" : [
             {token : "string", regex : "`", next  : "string"},
@@ -16715,10 +16721,10 @@ var AbapHighlightRules = function() {
             {token : "paren.lparen", regex : "[\\[({]"},
             {token : "paren.rparen", regex : "[\\])}]"},
             {token : "constant.numeric", regex: "[+-]?\\d+\\b"},
-            {token : "variable.parameter", regex : /sy|pa?\d\d\d\d\|t\d\d\d\.|innnn/}, 
-            {token : "keyword", regex : compoundKeywords}, 
-            {token : "variable.parameter", regex : /\w+-\w+(?:-\w+)*/}, 
-            {token : keywordMapper, regex : "\\b\\w+\\b"}, 
+            {token : "variable.parameter", regex : /sy|pa?\d\d\d\d\|t\d\d\d\.|innnn/},
+            {token : "keyword", regex : compoundKeywords},
+            {token : "variable.parameter", regex : /\w+-\w+(?:-\w+)*/},
+            {token : keywordMapper, regex : "\\b\\w+\\b"},
         ],
         "qstring" : [
             {token : "constant.language.escape",   regex : "''"},
@@ -16828,7 +16834,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -16839,7 +16845,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -16908,7 +16914,7 @@ oop.inherits(Mode, TextMode);
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;
         }
-        
+
         if (state == "start") {
             var match = line.match(/[\(\[]/);
             if (match) {
@@ -17085,10 +17091,10 @@ var ClojureHighlightRules = function() {
         ],
         "string" : [
             {
-                token : "constant.language.escape",                
+                token : "constant.language.escape",
                 regex : "\\\\.|\\\\$"
             }, {
-                token : "string",                
+                token : "string",
                 regex : '[^"\\\\]+'
             }, {
                 token : "string",
@@ -17153,7 +17159,7 @@ exports.MatchingParensOutdent = MatchingParensOutdent;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -17164,7 +17170,7 @@ exports.MatchingParensOutdent = MatchingParensOutdent;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -17199,22 +17205,22 @@ function Mode() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     var indenter = /(?:[({[=:]|[-=]>|\b(?:else|switch|try|catch(?:\s*[$A-Za-z_\x7f-\uffff][$\w\x7f-\uffff]*)?|finally))\s*$/;
     var commentLine = /^(\s*)#/;
     var hereComment = /^\s*###(?!#)/;
     var indentation = /^\s*/;
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
         var tokens = this.$tokenizer.getLineTokens(line, state).tokens;
-    
+
         if (!(tokens.length && tokens[tokens.length - 1].type === 'comment') &&
             state === 'start' && indenter.test(line))
             indent += tab;
         return indent;
     };
-    
+
     this.toggleCommentLines = function(state, doc, startRow, endRow){
         console.log("toggle");
         var range = new Range(0, 0, 0, 0);
@@ -17222,38 +17228,38 @@ oop.inherits(Mode, TextMode);
             var line = doc.getLine(i);
             if (hereComment.test(line))
                 continue;
-                
+
             if (commentLine.test(line))
                 line = line.replace(commentLine, '$1');
             else
                 line = line.replace(indentation, '$&#');
-    
+
             range.end.row = range.start.row = i;
             range.end.column = line.length + 1;
             doc.replace(range, line);
         }
     };
-    
+
     this.checkOutdent = function(state, line, input) {
         return this.$outdent.checkOutdent(line, input);
     };
-    
+
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    
+
     this.createWorker = function(session) {
         var worker = new WorkerClient(["ace"], "ace/mode/coffee_worker", "Worker");
         worker.attachToDocument(session.getDocument());
-        
+
         worker.on("error", function(e) {
             session.setAnnotations([e.data]);
         });
-        
+
         worker.on("ok", function(e) {
             session.clearAnnotations();
         });
-        
+
         return worker;
     };
 
@@ -17393,8 +17399,8 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                 }, {
                     token : ["entity.name.function", "text", "keyword.operator", "text"].concat(functionRule.token),
                     regex : "(" + identifier + ")(\\s*)([=:])(\\s*)" + functionRule.regex
-                }, 
-                functionRule, 
+                },
+                functionRule,
                 {
                     token : "variable",
                     regex : "@(?:" + identifier + ")?"
@@ -17584,7 +17590,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -17595,7 +17601,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -17986,7 +17992,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -17999,11 +18005,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -18013,7 +18019,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -18024,26 +18030,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -18335,7 +18341,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -18346,7 +18352,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -18360,7 +18366,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  *
  * Contributor(s):
- * 
+ *
  *
  *
  * ***** END LICENSE BLOCK ***** */
@@ -18418,7 +18424,7 @@ var DartHighlightRules = function() {
         regex : ".+"
     };
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -18478,22 +18484,22 @@ var DartHighlightRules = function() {
             token : "string",
             regex : "'''",
             next : "qdoc"
-        }, 
+        },
         {
             token : "string",
             regex : '"""',
             next : "qqdoc"
-        }, 
+        },
         {
             token : "string",
             regex : "'",
             next : "qstring"
-        }, 
+        },
         {
             token : "string",
             regex : '"',
             next : "qqstring"
-        }, 
+        },
         {
             regex: "(\\-\\-|\\+\\+)",
             token: ["keyword.operator.increment-decrement.dart"]
@@ -18509,11 +18515,11 @@ var DartHighlightRules = function() {
         {
             token : "constant.numeric", // hex
             regex : "0[xX][0-9a-fA-F]+\\b"
-        }, 
+        },
         {
             token : "constant.numeric", // float
             regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?\\b"
-        }, 
+        },
         {
             token : keywordMapper,
             regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
@@ -18614,7 +18620,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -18625,7 +18631,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -18779,7 +18785,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -18790,7 +18796,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -18908,20 +18914,20 @@ var Mode = function() {
     var highlighter = new HtmlHighlightRules();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$behaviour = new HtmlBehaviour();
-    
+
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode,
         "css-": CssMode
     });
-    
+
     this.foldingRules = new HtmlFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
 
-    
+
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         return 0;
     };
@@ -19001,7 +19007,7 @@ oop.inherits(Mode, TextMode);
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;
         }
-        
+
         if (state == "start" || state == "regex_allowed") {
             var match = line.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
             if (match) {
@@ -19030,7 +19036,7 @@ oop.inherits(Mode, TextMode);
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    
+
     this.createWorker = function(session) {
         var worker = new WorkerClient(["ace"], "ace/mode/javascript_worker", "JavaScriptWorker");
         worker.attachToDocument(session.getDocument());
@@ -19038,11 +19044,11 @@ oop.inherits(Mode, TextMode);
         worker.on("jslint", function(results) {
             session.setAnnotations(results.data);
         });
-        
+
         worker.on("terminate", function() {
             session.clearAnnotations();
         });
-        
+
         return worker;
     };
 
@@ -19461,7 +19467,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -19474,11 +19480,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -19488,7 +19494,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -19499,26 +19505,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -20179,7 +20185,7 @@ var HtmlHighlightRules = function() {
             token : "constant.character.entity",
             regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         }],
-    
+
         cdata : [ {
             token : "text",
             regex : "\\]\\]>",
@@ -20194,11 +20200,11 @@ var HtmlHighlightRules = function() {
             defaultToken : "comment"
         } ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start", tagMap);
     xmlUtil.tag(this.$rules, "style", "css-start", tagMap);
     xmlUtil.tag(this.$rules, "script", "js-start", tagMap);
-    
+
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -20208,7 +20214,7 @@ var HtmlHighlightRules = function() {
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
-    
+
     this.embedRules(CssHighlightRules, "css-", [{
         token: "meta.tag",
         regex: "<\\/(?=style)",
@@ -20241,7 +20247,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -20252,7 +20258,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -20260,7 +20266,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -20269,7 +20275,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -20316,7 +20322,7 @@ function hasType(token, type) {
 var HtmlBehaviour = function () {
 
     this.inherit(XmlBehaviour); // Get xml behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -20374,9 +20380,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -20421,7 +20427,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -20497,7 +20503,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-    
+
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -20513,13 +20519,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-        
+
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -20561,7 +20567,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -20572,13 +20578,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = this.tagRe.exec(tag);
         var column = this.tagRe.lastIndex || 0;
         this.tagRe.lastIndex = 0;
@@ -20596,10 +20602,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -20621,15 +20627,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -20654,13 +20660,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -20676,17 +20682,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -20702,7 +20708,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -20719,7 +20725,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -20729,7 +20735,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -20742,7 +20748,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -20753,7 +20759,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -20764,7 +20770,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -20778,7 +20784,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  *
  * Contributor(s):
- * 
+ *
  * Garen J. Torikian < gjtorikian AT gmail DOT com >
  *
  * ***** END LICENSE BLOCK ***** */
@@ -20794,8 +20800,8 @@ var FoldMode = require("./folding/coffee").FoldMode;
 
 var Mode = function() {
     var highlighter = new HamlHighlightRules();
-    this.foldingRules = new FoldMode();    
-    
+    this.foldingRules = new FoldMode();
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
@@ -20814,7 +20820,7 @@ var RubyHighlightRules = RubyExports.RubyHighlightRules;
 
 var HamlHighlightRules = function() {
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -20847,7 +20853,7 @@ var HamlHighlightRules = function() {
         },
         RubyExports.constantNumericHex,
         RubyExports.constantNumericFloat,
-        
+
         RubyExports.constantOtherSymbol,
         {
             token: "text",
@@ -20869,9 +20875,9 @@ var HamlHighlightRules = function() {
             regex: "\\{",
             next: "section"
         },
-        
+
         RubyExports.constantOtherSymbol,
-        
+
         {
             token: "text",
             regex: /\s/,
@@ -20885,26 +20891,26 @@ var HamlHighlightRules = function() {
     ],
     "section": [
         RubyExports.constantOtherSymbol,
-        
+
         RubyExports.qString,
         RubyExports.qqString,
         RubyExports.tString,
-        
+
         RubyExports.constantNumericHex,
         RubyExports.constantNumericFloat,
         {
             token: "punctuation.section",
             regex: "\\}",
             next: "start"
-        } 
+        }
     ],
-    "embedded_ruby": [ 
+    "embedded_ruby": [
         RubyExports.constantNumericHex,
         RubyExports.constantNumericFloat,
         {
                 token : "support.class", // class name
                 regex : "[A-Z][a-zA-Z_\\d]+"
-        },    
+        },
         {
             token : new RubyHighlightRules().getKeywords(),
             regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
@@ -20913,12 +20919,12 @@ var HamlHighlightRules = function() {
             token : ["keyword", "text", "text"],
             regex : "(?:do|\\{)(?: \\|[^|]+\\|)?$",
             next  : "start"
-        }, 
+        },
         {
             token : ["text"],
             regex : "^$",
             next  : "start"
-        }, 
+        },
         {
             token : ["text"],
             regex : "^(?!.*\\|\\s*$)",
@@ -21238,7 +21244,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -21249,7 +21255,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21279,20 +21285,20 @@ var Mode = function() {
     var highlighter = new HtmlHighlightRules();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$behaviour = new HtmlBehaviour();
-    
+
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode,
         "css-": CssMode
     });
-    
+
     this.foldingRules = new HtmlFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
 
-    
+
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         return 0;
     };
@@ -21372,7 +21378,7 @@ oop.inherits(Mode, TextMode);
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;
         }
-        
+
         if (state == "start" || state == "regex_allowed") {
             var match = line.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
             if (match) {
@@ -21401,7 +21407,7 @@ oop.inherits(Mode, TextMode);
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    
+
     this.createWorker = function(session) {
         var worker = new WorkerClient(["ace"], "ace/mode/javascript_worker", "JavaScriptWorker");
         worker.attachToDocument(session.getDocument());
@@ -21409,11 +21415,11 @@ oop.inherits(Mode, TextMode);
         worker.on("jslint", function(results) {
             session.setAnnotations(results.data);
         });
-        
+
         worker.on("terminate", function() {
             session.clearAnnotations();
         });
-        
+
         return worker;
     };
 
@@ -21832,7 +21838,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -21845,11 +21851,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -21859,7 +21865,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -21870,26 +21876,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -22550,7 +22556,7 @@ var HtmlHighlightRules = function() {
             token : "constant.character.entity",
             regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         }],
-    
+
         cdata : [ {
             token : "text",
             regex : "\\]\\]>",
@@ -22565,11 +22571,11 @@ var HtmlHighlightRules = function() {
             defaultToken : "comment"
         } ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start", tagMap);
     xmlUtil.tag(this.$rules, "style", "css-start", tagMap);
     xmlUtil.tag(this.$rules, "script", "js-start", tagMap);
-    
+
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -22579,7 +22585,7 @@ var HtmlHighlightRules = function() {
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
-    
+
     this.embedRules(CssHighlightRules, "css-", [{
         token: "meta.tag",
         regex: "<\\/(?=style)",
@@ -22612,7 +22618,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -22623,7 +22629,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -22631,7 +22637,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -22640,7 +22646,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -22687,7 +22693,7 @@ function hasType(token, type) {
 var HtmlBehaviour = function () {
 
     this.inherit(XmlBehaviour); // Get xml behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -22745,9 +22751,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -22792,7 +22798,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -22868,7 +22874,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-    
+
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -22884,13 +22890,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-        
+
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -22932,7 +22938,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -22943,13 +22949,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = this.tagRe.exec(tag);
         var column = this.tagRe.lastIndex || 0;
         this.tagRe.lastIndex = 0;
@@ -22967,10 +22973,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -22992,15 +22998,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -23025,13 +23031,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -23047,17 +23053,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -23073,7 +23079,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -23090,7 +23096,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -23100,7 +23106,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -23113,7 +23119,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -23124,7 +23130,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -23135,7 +23141,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23149,11 +23155,11 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  *
  * Contributor(s):
- * 
+ *
  * Garen J. Torikian <gjtorikian @ gmail DOT com>
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 ace.define('ace/mode/jade', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/jade_highlight_rules', 'ace/mode/folding/coffee'], function(require, exports, module) {
 
 
@@ -23165,7 +23171,7 @@ var FoldMode = require("./folding/coffee").FoldMode;
 
 var Mode = function() {
     var highlighter = new JadeHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.foldingRules = new FoldMode();
 };
@@ -23189,7 +23195,7 @@ var CoffeeHighlightRules = require("./coffee_highlight_rules").CoffeeHighlightRu
 var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
 
 function mixin_embed(tag, prefix) {
-    return { 
+    return {
         token : "entity.name.function.jade",
         regex : "^\\s*\\:" + tag,
         next  : prefix + "start"
@@ -23206,7 +23212,7 @@ var JadeHighlightRules = function() {
         "[4-7][0-7]?|" + //oct
         ".)";
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -23278,7 +23284,7 @@ var JadeHighlightRules = function() {
             token: function(text) {
                 return "text";
             },
-            regex: "^(\\1\\S|$)", 
+            regex: "^(\\1\\S|$)",
             "captures": "1",
             next: "start"
         },
@@ -23302,12 +23308,12 @@ var JadeHighlightRules = function() {
             next: "start"
         }
     ],
-    "tag_attributes": [ 
+    "tag_attributes": [
         {
             token : "string",
             regex : "'(?=.)",
             next  : "qstring"
-        }, 
+        },
         {
             token : "string",
             regex : '"(?=.)',
@@ -23333,7 +23339,7 @@ var JadeHighlightRules = function() {
             token : "string",
             regex : "'(?=.)",
             next  : "qstring"
-        }, 
+        },
         {
             token : "string",
             regex : '"(?=.)',
@@ -23922,11 +23928,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity", 
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+                token : "constant.character.entity",
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
             }
         ],
-        
+
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -23938,7 +23944,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -23967,7 +23973,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -23978,7 +23984,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -23986,7 +23992,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -23995,7 +24001,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -24081,7 +24087,7 @@ var HtmlHighlightRules = function() {
             token : "constant.character.entity",
             regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         }],
-    
+
         cdata : [ {
             token : "text",
             regex : "\\]\\]>",
@@ -24096,11 +24102,11 @@ var HtmlHighlightRules = function() {
             defaultToken : "comment"
         } ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start", tagMap);
     xmlUtil.tag(this.$rules, "style", "css-start", tagMap);
     xmlUtil.tag(this.$rules, "script", "js-start", tagMap);
-    
+
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -24110,7 +24116,7 @@ var HtmlHighlightRules = function() {
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
-    
+
     this.embedRules(CssHighlightRules, "css-", [{
         token: "meta.tag",
         regex: "<\\/(?=style)",
@@ -24301,30 +24307,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ScssHighlightRules = function() {
-    
+
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-        
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
-             "background-size|binding|border-bottom-colors|border-left-colors|" + 
-             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
-             "border-end-style|border-end-width|border-image|border-start|" + 
-             "border-start-color|border-start-style|border-start-width|box-align|" + 
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
-             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
-             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
-             "text-decoration-style|transform|transform-origin|transition|" + 
-             "transition-delay|transition-duration|transition-property|" + 
+
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
+             "background-size|binding|border-bottom-colors|border-left-colors|" +
+             "border-right-colors|border-top-colors|border-end|border-end-color|" +
+             "border-end-style|border-end-width|border-image|border-start|" +
+             "border-start-color|border-start-style|border-start-width|box-align|" +
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
+             "font-feature-settings|font-language-override|force-broken-image-icon|" +
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
+             "outline-offset|outline-radius|outline-radius-bottomleft|" +
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
+             "text-decoration-style|transform|transform-origin|transition|" +
+             "transition-delay|transition-duration|transition-property|" +
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-        
+
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -24358,17 +24364,17 @@ var ScssHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-        
+
         return ret;
-        
+
     })() );
-    
+
 
 
     var functions = lang.arrayToMap(
         ("hsl|hsla|rgb|rgba|url|attr|counter|counters|abs|adjust_color|adjust_hue|" +
-         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" + 
-         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" + 
+         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" +
+         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" +
          "nth|opacify|opacity|percentage|quote|red|round|saturate|saturation|" +
          "scale_color|transparentize|type_of|unit|unitless|unqoute").split("|")
     );
@@ -24401,20 +24407,20 @@ var ScssHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-    
+
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|def|end|declare").split("|")
     )
-    
+
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -24550,30 +24556,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var LessHighlightRules = function() {
-    
+
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-        
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
-             "background-size|binding|border-bottom-colors|border-left-colors|" + 
-             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
-             "border-end-style|border-end-width|border-image|border-start|" + 
-             "border-start-color|border-start-style|border-start-width|box-align|" + 
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
-             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
-             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
-             "text-decoration-style|transform|transform-origin|transition|" + 
-             "transition-delay|transition-duration|transition-property|" + 
+
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
+             "background-size|binding|border-bottom-colors|border-left-colors|" +
+             "border-right-colors|border-top-colors|border-end|border-end-color|" +
+             "border-end-style|border-end-width|border-image|border-start|" +
+             "border-start-color|border-start-style|border-start-width|box-align|" +
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
+             "font-feature-settings|font-language-override|force-broken-image-icon|" +
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
+             "outline-offset|outline-radius|outline-radius-bottomleft|" +
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
+             "text-decoration-style|transform|transform-origin|transition|" +
+             "transition-delay|transition-duration|transition-property|" +
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-        
+
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -24607,11 +24613,11 @@ var LessHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-        
+
         return ret;
-        
+
     })() );
-    
+
 
 
     var functions = lang.arrayToMap(
@@ -24649,22 +24655,22 @@ var LessHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-    
+
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|" +
         "@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|" +
         "def|end|declare|when|not|and").split("|")
     );
-    
+
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -24899,8 +24905,8 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                 }, {
                     token : ["entity.name.function", "text", "keyword.operator", "text"].concat(functionRule.token),
                     regex : "(" + identifier + ")(\\s*)([=:])(\\s*)" + functionRule.regex
-                }, 
-                functionRule, 
+                },
+                functionRule,
                 {
                     token : "variable",
                     regex : "@(?:" + identifier + ")?"
@@ -25050,13 +25056,13 @@ var JavaHighlightRules = require("./java_highlight_rules").JavaHighlightRules;
 
 var Mode = function() {
     JavaScriptMode.call(this);
-    
+
     this.$tokenizer = new Tokenizer(new JavaHighlightRules().getRules());
 };
 oop.inherits(Mode, JavaScriptMode);
 
 (function() {
-    
+
     this.createWorker = function(session) {
         return null;
     };
@@ -25128,7 +25134,7 @@ oop.inherits(Mode, TextMode);
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;
         }
-        
+
         if (state == "start" || state == "regex_allowed") {
             var match = line.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
             if (match) {
@@ -25157,7 +25163,7 @@ oop.inherits(Mode, TextMode);
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    
+
     this.createWorker = function(session) {
         var worker = new WorkerClient(["ace"], "ace/mode/javascript_worker", "JavaScriptWorker");
         worker.attachToDocument(session.getDocument());
@@ -25165,11 +25171,11 @@ oop.inherits(Mode, TextMode);
         worker.on("jslint", function(results) {
             session.setAnnotations(results.data);
         });
-        
+
         worker.on("terminate", function() {
             session.clearAnnotations();
         });
-        
+
         return worker;
     };
 
@@ -25588,7 +25594,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -25601,11 +25607,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -25615,7 +25621,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -25626,26 +25632,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -26061,7 +26067,7 @@ exports.JavaHighlightRules = JavaHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -26072,7 +26078,7 @@ exports.JavaHighlightRules = JavaHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -26148,7 +26154,7 @@ oop.inherits(Mode, TextMode);
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;
         }
-        
+
         if (state == "start" || state == "regex_allowed") {
             var match = line.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
             if (match) {
@@ -26177,7 +26183,7 @@ oop.inherits(Mode, TextMode);
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    
+
     this.createWorker = function(session) {
         var worker = new WorkerClient(["ace"], "ace/mode/javascript_worker", "JavaScriptWorker");
         worker.attachToDocument(session.getDocument());
@@ -26185,11 +26191,11 @@ oop.inherits(Mode, TextMode);
         worker.on("jslint", function(results) {
             session.setAnnotations(results.data);
         });
-        
+
         worker.on("terminate", function() {
             session.clearAnnotations();
         });
-        
+
         return worker;
     };
 
@@ -26608,7 +26614,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -26621,11 +26627,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -26635,7 +26641,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -26646,26 +26652,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -26957,7 +26963,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -26968,7 +26974,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27106,7 +27112,7 @@ var JsonHighlightRules = function() {
             }
         ]
     };
-    
+
 };
 
 oop.inherits(JsonHighlightRules, TextHighlightRules);
@@ -27182,7 +27188,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -27195,11 +27201,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -27209,7 +27215,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -27220,26 +27226,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -27572,7 +27578,7 @@ oop.inherits(Mode, TextMode);
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
-    
+
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -27584,7 +27590,7 @@ ace.define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , '
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LatexHighlightRules = function() {   
+var LatexHighlightRules = function() {
     this.$rules = {
         "start" : [{
             token : "keyword",
@@ -27748,7 +27754,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -27759,7 +27765,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27793,7 +27799,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
         var tokens = this.$tokenizer.getLineTokens(line, state).tokens;
@@ -27831,30 +27837,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var LessHighlightRules = function() {
-    
+
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-        
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
-             "background-size|binding|border-bottom-colors|border-left-colors|" + 
-             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
-             "border-end-style|border-end-width|border-image|border-start|" + 
-             "border-start-color|border-start-style|border-start-width|box-align|" + 
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
-             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
-             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
-             "text-decoration-style|transform|transform-origin|transition|" + 
-             "transition-delay|transition-duration|transition-property|" + 
+
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
+             "background-size|binding|border-bottom-colors|border-left-colors|" +
+             "border-right-colors|border-top-colors|border-end|border-end-color|" +
+             "border-end-style|border-end-width|border-image|border-start|" +
+             "border-start-color|border-start-style|border-start-width|box-align|" +
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
+             "font-feature-settings|font-language-override|force-broken-image-icon|" +
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
+             "outline-offset|outline-radius|outline-radius-bottomleft|" +
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
+             "text-decoration-style|transform|transform-origin|transition|" +
+             "transition-delay|transition-duration|transition-property|" +
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-        
+
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -27888,11 +27894,11 @@ var LessHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-        
+
         return ret;
-        
+
     })() );
-    
+
 
 
     var functions = lang.arrayToMap(
@@ -27930,22 +27936,22 @@ var LessHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-    
+
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|" +
         "@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|" +
         "def|end|declare|when|not|and").split("|")
     );
-    
+
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -28189,7 +28195,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -28202,11 +28208,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -28216,7 +28222,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -28227,26 +28233,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -28538,7 +28544,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -28549,7 +28555,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28563,7 +28569,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  *
  * Contributor(s):
- * 
+ *
  *
  *
  * ***** END LICENSE BLOCK ***** */
@@ -28578,7 +28584,7 @@ var LispHighlightRules = require("./lisp_highlight_rules").LispHighlightRules;
 
 var Mode = function() {
     var highlighter = new LispHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
@@ -28609,7 +28615,7 @@ var LispHighlightRules = function() {
         "support.function": supportFunctions
     }, "identifier", true);
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -28631,7 +28637,7 @@ var LispHighlightRules = function() {
         {
             token : "constant.numeric", // hex
             regex : "0[xX][0-9a-fA-F]+(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
-        }, 
+        },
         {
             token : "constant.numeric", // float
             regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
@@ -28970,7 +28976,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -28981,7 +28987,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28995,7 +29001,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  *
  * Contributor(s):
- * 
+ *
  *
  *
  * ***** END LICENSE BLOCK ***** */
@@ -29012,7 +29018,7 @@ var FoldMode = require("./folding/coffee").FoldMode;
 var Mode = function() {
     var highlighter = new MakefileHighlightRules();
     this.foldingRules = new FoldMode();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
@@ -29037,7 +29043,7 @@ var MakefileHighlightRules = function() {
         "invalid.deprecated": "debugger"
     }, "string");
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -29074,11 +29080,11 @@ var MakefileHighlightRules = function() {
         {
             token: keywordMapper,
             regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
-        }, 
+        },
         {
             token: "string",
             regex : "\\w+"
-        }, 
+        },
         {
             token : "string.interpolated.backtick.makefile",
             regex : "`",
@@ -29281,7 +29287,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -29292,7 +29298,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29320,7 +29326,7 @@ var MarkdownFoldMode = require("./folding/markdown").FoldMode;
 
 var Mode = function() {
     var highlighter = new MarkdownHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
@@ -29328,7 +29334,7 @@ var Mode = function() {
       "xml-": XmlMode,
       "html-": HtmlMode
     });
-    
+
     this.foldingRules = new MarkdownFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -29414,7 +29420,7 @@ oop.inherits(Mode, TextMode);
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;
         }
-        
+
         if (state == "start" || state == "regex_allowed") {
             var match = line.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
             if (match) {
@@ -29443,7 +29449,7 @@ oop.inherits(Mode, TextMode);
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    
+
     this.createWorker = function(session) {
         var worker = new WorkerClient(["ace"], "ace/mode/javascript_worker", "JavaScriptWorker");
         worker.attachToDocument(session.getDocument());
@@ -29451,11 +29457,11 @@ oop.inherits(Mode, TextMode);
         worker.on("jslint", function(results) {
             session.setAnnotations(results.data);
         });
-        
+
         worker.on("terminate", function() {
             session.clearAnnotations();
         });
-        
+
         return worker;
     };
 
@@ -29874,7 +29880,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -29887,11 +29893,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -29901,7 +29907,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -29912,26 +29918,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -30238,7 +30244,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
@@ -30265,11 +30271,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity", 
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+                token : "constant.character.entity",
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
             }
         ],
-        
+
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -30281,7 +30287,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -30310,7 +30316,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -30321,7 +30327,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -30329,7 +30335,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -30338,7 +30344,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -30382,9 +30388,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -30429,7 +30435,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -30470,7 +30476,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -30481,13 +30487,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = this.tagRe.exec(tag);
         var column = this.tagRe.lastIndex || 0;
         this.tagRe.lastIndex = 0;
@@ -30505,10 +30511,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -30530,15 +30536,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -30563,13 +30569,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -30585,17 +30591,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -30611,7 +30617,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -30628,7 +30634,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -30638,7 +30644,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -30651,7 +30657,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -30674,20 +30680,20 @@ var Mode = function() {
     var highlighter = new HtmlHighlightRules();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$behaviour = new HtmlBehaviour();
-    
+
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode,
         "css-": CssMode
     });
-    
+
     this.foldingRules = new HtmlFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
 
-    
+
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         return 0;
     };
@@ -31078,7 +31084,7 @@ var HtmlHighlightRules = function() {
             token : "constant.character.entity",
             regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         }],
-    
+
         cdata : [ {
             token : "text",
             regex : "\\]\\]>",
@@ -31093,11 +31099,11 @@ var HtmlHighlightRules = function() {
             defaultToken : "comment"
         } ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start", tagMap);
     xmlUtil.tag(this.$rules, "style", "css-start", tagMap);
     xmlUtil.tag(this.$rules, "script", "js-start", tagMap);
-    
+
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -31107,7 +31113,7 @@ var HtmlHighlightRules = function() {
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
-    
+
     this.embedRules(CssHighlightRules, "css-", [{
         token: "meta.tag",
         regex: "<\\/(?=style)",
@@ -31145,7 +31151,7 @@ function hasType(token, type) {
 var HtmlBehaviour = function () {
 
     this.inherit(XmlBehaviour); // Get xml behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -31250,7 +31256,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-    
+
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -31266,13 +31272,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-        
+
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -31555,7 +31561,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -31566,7 +31572,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -31580,7 +31586,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  *
  * Contributor(s):
- * 
+ *
  *
  *
  * ***** END LICENSE BLOCK ***** */
@@ -31616,7 +31622,7 @@ var CHighlightRules = C_Highlight_File.c_cppHighlightRules;
 
 var ObjectiveCHighlightRules = function() {
 
-    var escapedConstRe = "\\\\(?:[abefnrtv'\"?\\\\]|" + 
+    var escapedConstRe = "\\\\(?:[abefnrtv'\"?\\\\]|" +
                          "[0-3]\\d{1,2}|" +
                          "[4-7]\\d?|" +
                          "222|" +
@@ -31635,7 +31641,7 @@ var ObjectiveCHighlightRules = function() {
     var cRules = cObj.getRules();
 
     this.$rules = {
-    "start": [ 
+    "start": [
         {
             token : "comment",
             regex : "\\/\\/.*$"
@@ -31645,9 +31651,9 @@ var ObjectiveCHighlightRules = function() {
             token : "comment", // multi line comment
             regex : "\\/\\*",
             next : "comment"
-        }, 
+        },
         {
-            token: [ "storage.type.objc", "punctuation.definition.storage.type.objc", 
+            token: [ "storage.type.objc", "punctuation.definition.storage.type.objc",
                        "entity.name.type.objc", "text", "entity.other.inherited-class.objc"
                      ],
             regex: "(@)(interface|protocol)(?!.+;)(\\s+[A-Za-z_][A-Za-z0-9_]*)(\\s*:\\s*)([A-Za-z]+)"
@@ -31657,7 +31663,7 @@ var ObjectiveCHighlightRules = function() {
             regex: "(@end)"
         },
         {
-            token: [ "storage.type.objc", "entity.name.type.objc", 
+            token: [ "storage.type.objc", "entity.name.type.objc",
                         "entity.other.inherited-class.objc"
                      ],
             regex: "(@implementation)(\\s+[A-Za-z_][A-Za-z0-9_]*)(\\s*?::\\s*(?:[A-Za-z][A-Za-z0-9]*))?"
@@ -31919,7 +31925,7 @@ var ObjectiveCHighlightRules = function() {
             this.$rules[r] = cRules[r];
         }
     }
-    
+
     this.$rules.bracketed_content = this.$rules.bracketed_content.concat(
         this.$rules.start, specialVariables
     );
@@ -31990,7 +31996,7 @@ var c_cppHighlightRules = function() {
         "break|case|continue|default|do|else|for|goto|if|_Pragma|" +
         "return|switch|while|catch|operator|try|throw|using"
     );
-    
+
     var storageType = (
         "asm|__asm__|auto|bool|_Bool|char|_Complex|double|enum|float|" +
         "_Imaginary|int|long|short|signed|struct|typedef|union|unsigned|void|" +
@@ -32131,7 +32137,7 @@ var c_cppHighlightRules = function() {
                 token : "constant.other", // single line
                 regex : '\\s*["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]',
                 next : "start"
-            }, 
+            },
             {
                 token : "constant.other", // single line
                 regex : "\\s*['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']",
@@ -32203,7 +32209,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -32214,7 +32220,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -32301,27 +32307,27 @@ oop.inherits(Mode, TextMode);
         "break": 1,
         "continue": 1
     };
-    
+
     this.checkOutdent = function(state, line, input) {
         if (input !== "\r\n" && input !== "\r" && input !== "\n")
             return false;
 
         var tokens = this.$tokenizer.getLineTokens(line.trim(), state).tokens;
-        
+
         if (!tokens)
             return false;
         do {
             var last = tokens.pop();
         } while (last && (last.type == "comment" || (last.type == "text" && last.value.match(/^\s+$/))));
-        
+
         if (!last)
             return false;
-        
+
         return (last.type == "keyword" && outdents[last.value]);
     };
 
     this.autoOutdent = function(state, doc, row) {
-        
+
         row += 1;
         var indent = this.$getIndent(doc.getLine(row));
         var tab = doc.getTabString();
@@ -32506,7 +32512,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  */
 ace.define('ace/mode/r', ['require', 'exports', 'module' , 'ace/range', 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/text_highlight_rules', 'ace/mode/r_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/unicode'], function(require, exports, module) {
-   
+
 
    var Range = require("../range").Range;
    var oop = require("../lib/oop");
@@ -33016,7 +33022,7 @@ ace.define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , '
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LatexHighlightRules = function() {   
+var LatexHighlightRules = function() {
     this.$rules = {
         "start" : [{
             token : "keyword",
@@ -33092,7 +33098,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33103,7 +33109,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33117,7 +33123,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  *
  * Contributor(s):
- * 
+ *
  * NalaGinrut@gmail.com
  *
  * ***** END LICENSE BLOCK ***** */
@@ -33132,7 +33138,7 @@ var SchemeHighlightRules = require("./scheme_highlight_rules").SchemeHighlightRu
 
 var Mode = function() {
     var highlighter = new SchemeHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
@@ -33162,7 +33168,7 @@ var SchemeHighlightRules = function() {
         "support.function": supportFunctions
     }, "identifier", true);
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -33184,7 +33190,7 @@ var SchemeHighlightRules = function() {
         {
             "token" : "constant.numeric", // hex
             "regex" : "#[xXoObB][0-9a-fA-F]+"
-        }, 
+        },
         {
             "token" : "constant.numeric", // float
             "regex" : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?"
@@ -33233,7 +33239,7 @@ exports.SchemeHighlightRules = SchemeHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33244,7 +33250,7 @@ exports.SchemeHighlightRules = SchemeHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33462,7 +33468,7 @@ exports.ShHighlightRules = ShHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33473,7 +33479,7 @@ exports.ShHighlightRules = ShHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33607,7 +33613,7 @@ exports.SqlHighlightRules = SqlHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33618,7 +33624,7 @@ exports.SqlHighlightRules = SqlHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33646,15 +33652,15 @@ var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
     XmlMode.call(this);
-    
+
     this.highlighter = new SvgHighlightRules();
     this.$tokenizer = new Tokenizer(this.highlighter.getRules());
-    
+
     this.$embeds = this.highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode
     });
-    
+
     this.foldingRules = new MixedFoldMode(new XmlFoldMode({}), {
         "js-": new CStyleFoldMode()
     });
@@ -33667,7 +33673,7 @@ oop.inherits(Mode, XmlMode);
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
-    
+
 
 }).call(Mode.prototype);
 
@@ -33693,7 +33699,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
@@ -33720,11 +33726,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity", 
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+                token : "constant.character.entity",
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
             }
         ],
-        
+
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -33736,7 +33742,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -33765,7 +33771,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -33776,7 +33782,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -33784,7 +33790,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -33793,7 +33799,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -33837,9 +33843,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -33884,7 +33890,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -33914,7 +33920,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -33927,11 +33933,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -33941,7 +33947,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -33952,26 +33958,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -34248,7 +34254,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -34259,13 +34265,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = this.tagRe.exec(tag);
         var column = this.tagRe.lastIndex || 0;
         this.tagRe.lastIndex = 0;
@@ -34283,10 +34289,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -34308,15 +34314,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -34341,13 +34347,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -34363,17 +34369,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -34389,7 +34395,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -34406,7 +34412,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -34416,7 +34422,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -34429,7 +34435,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -34498,7 +34504,7 @@ oop.inherits(Mode, TextMode);
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;
         }
-        
+
         if (state == "start" || state == "regex_allowed") {
             var match = line.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
             if (match) {
@@ -34527,7 +34533,7 @@ oop.inherits(Mode, TextMode);
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    
+
     this.createWorker = function(session) {
         var worker = new WorkerClient(["ace"], "ace/mode/javascript_worker", "JavaScriptWorker");
         worker.attachToDocument(session.getDocument());
@@ -34535,11 +34541,11 @@ oop.inherits(Mode, TextMode);
         worker.on("jslint", function(results) {
             session.setAnnotations(results.data);
         });
-        
+
         worker.on("terminate", function() {
             session.clearAnnotations();
         });
-        
+
         return worker;
     };
 
@@ -34996,9 +35002,9 @@ var SvgHighlightRules = function() {
         regex : "<(?=script)",
         next : "script"
     });
-    
+
     xmlUtil.tag(this.$rules, "script", "js-start");
-    
+
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -35037,7 +35043,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-    
+
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -35053,13 +35059,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-        
+
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -35155,7 +35161,7 @@ exports.Mode = Mode;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -35166,7 +35172,7 @@ exports.Mode = Mode;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -35199,7 +35205,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
@@ -35226,11 +35232,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity", 
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+                token : "constant.character.entity",
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
             }
         ],
-        
+
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -35242,7 +35248,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -35271,7 +35277,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -35282,7 +35288,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -35290,7 +35296,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -35299,7 +35305,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -35343,9 +35349,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -35390,7 +35396,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -35420,7 +35426,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -35433,11 +35439,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -35447,7 +35453,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -35458,26 +35464,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -35754,7 +35760,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -35765,13 +35771,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = this.tagRe.exec(tag);
         var column = this.tagRe.lastIndex || 0;
         this.tagRe.lastIndex = 0;
@@ -35789,10 +35795,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -35814,15 +35820,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -35847,13 +35853,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -35869,17 +35875,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -35895,7 +35901,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -35912,7 +35918,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -35922,7 +35928,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -35935,7 +35941,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -35943,7 +35949,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 });
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
- * 
+ *
  * Copyright 2011 Irakli Gozalishvili. All rights reserved.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -36148,7 +36154,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36159,7 +36165,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36309,7 +36315,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36320,7 +36326,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36431,7 +36437,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36442,7 +36448,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36571,7 +36577,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36582,7 +36588,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36719,7 +36725,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36730,7 +36736,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36847,7 +36853,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36858,7 +36864,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37010,7 +37016,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -37021,7 +37027,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37157,7 +37163,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -37168,7 +37174,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37304,7 +37310,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -37315,7 +37321,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37475,13 +37481,13 @@ var normalizeModule = function(parentId, moduleName) {
     if (moduleName.charAt(0) == ".") {
         var base = parentId.split("/").slice(0, -1).join("/");
         moduleName = base + "/" + moduleName;
-        
+
         while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
             var previous = moduleName;
             moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
         }
     }
-    
+
     return moduleName;
 };
 
@@ -37499,14 +37505,14 @@ var require = function(parentId, id) {
         }
         return module.exports;
     }
-    
+
     var chunks = id.split("/");
     chunks[0] = require.tlns[chunks[0]] || chunks[0];
     var path = chunks.join("/") + ".js";
-    
+
     require.id = id;
     importScripts(path);
-    return require(parentId, id);    
+    return require(parentId, id);
 };
 
 require.modules = {};
@@ -37524,9 +37530,9 @@ var define = function(id, deps, factory) {
         id = require.id;
     }
 
-    if (id.indexOf("text!") === 0) 
+    if (id.indexOf("text!") === 0)
         return;
-    
+
     var req = function(deps, factory) {
         return require(id, deps, factory);
     };
@@ -37552,13 +37558,13 @@ function initSender() {
 
     var EventEmitter = require(null, "ace/lib/event_emitter").EventEmitter;
     var oop = require(null, "ace/lib/oop");
-    
+
     var Sender = function() {};
-    
+
     (function() {
-        
+
         oop.implement(this, EventEmitter);
-                
+
         this.callback = function(data, callbackId) {
             postMessage({
                 type: "call",
@@ -37566,7 +37572,7 @@ function initSender() {
                 data: data
             });
         };
-    
+
         this.emit = function(name, data) {
             postMessage({
                 type: "event",
@@ -37574,9 +37580,9 @@ function initSender() {
                 data: data
             });
         };
-        
+
     }).call(Sender.prototype);
-    
+
     return new Sender();
 }
 
@@ -37591,13 +37597,13 @@ onmessage = function(e) {
         else
             throw new Error("Unknown command:" + msg.command);
     }
-    else if (msg.init) {        
+    else if (msg.init) {
         initBaseUrls(msg.tlns);
         require(null, "ace/lib/fixoldbrowsers");
         sender = initSender();
         var clazz = require(null, msg.module)[msg.classname];
         main = new clazz(sender);
-    } 
+    }
     else if (msg.event && sender) {
         sender._emit(msg.event, msg.data);
     }
@@ -37611,7 +37617,7 @@ require("./regexp");
 require("./es5-shim");
 
 });
- 
+
 define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
 
     var real = {
@@ -37750,7 +37756,7 @@ if ([1,2].splice(0).length != 2) {
             return a;
         }
         var array = [], lengthBefore;
-        
+
         array.splice.apply(array, makeArray(20));
         array.splice.apply(array, makeArray(26));
 
@@ -37791,7 +37797,7 @@ if ([1,2].splice(0).length != 2) {
 
             var removed = this.slice(pos, pos+removeCount);
             var insert = slice.call(arguments, 2);
-            var add = insert.length;            
+            var add = insert.length;
             if (pos === length) {
                 if (add) {
                     this.push.apply(this, insert);
@@ -38423,13 +38429,13 @@ EventEmitter._dispatchEvent = function(eventName, e) {
 
     if (!e.type)
         e.type = eventName;
-    
+
     if (!e.stopPropagation) {
         e.stopPropagation = function() {
             this.propagationStopped = true;
         };
     }
-    
+
     if (!e.preventDefault) {
         e.preventDefault = function() {
             this.defaultPrevented = true;
@@ -38441,17 +38447,17 @@ EventEmitter._dispatchEvent = function(eventName, e) {
         if (e.propagationStopped)
             break;
     }
-    
+
     if (defaultHandler && !e.defaultPrevented)
         return defaultHandler(e);
 };
 
 EventEmitter.setDefaultHandler = function(eventName, callback) {
     this._defaultHandlers = this._defaultHandlers || {};
-    
+
     if (this._defaultHandlers[eventName])
         throw new Error("The default handler for '" + eventName + "' is already set");
-        
+
     this._defaultHandlers[eventName] = callback;
 };
 
@@ -38573,40 +38579,40 @@ define('ace/worker/mirror', ['require', 'exports', 'module' , 'ace/document', 'a
 
 var Document = require("../document").Document;
 var lang = require("../lib/lang");
-    
+
 var Mirror = exports.Mirror = function(sender) {
     this.sender = sender;
     var doc = this.doc = new Document("");
-    
+
     var deferredUpdate = this.deferredUpdate = lang.deferredCall(this.onUpdate.bind(this));
-    
+
     var _self = this;
     sender.on("change", function(e) {
-        doc.applyDeltas([e.data]);        
+        doc.applyDeltas([e.data]);
         deferredUpdate.schedule(_self.$timeout);
     });
 };
 
 (function() {
-    
+
     this.$timeout = 500;
-    
+
     this.setTimeout = function(timeout) {
         this.$timeout = timeout;
     };
-    
+
     this.setValue = function(value) {
         this.doc.setValue(value);
         this.deferredUpdate.schedule(this.$timeout);
     };
-    
+
     this.getValue = function(callbackId) {
         this.sender.callback(this.doc.getValue(), callbackId);
     };
-    
+
     this.onUpdate = function() {
     };
-    
+
 }).call(Mirror.prototype);
 
 });
@@ -38654,7 +38660,7 @@ var Document = function(text) {
         };
 
 
- 
+
     this.$detectNewLine = function(text) {
         var match = text.match(/^.*?(\r\n|\r|\n)/m);
         if (match) {
@@ -38971,21 +38977,21 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
 };
 
-(function() { 
+(function() {
     this.isEqual = function(range) {
         return this.start.row == range.start.row &&
             this.end.row == range.end.row &&
             this.start.column == range.start.column &&
             this.end.column == range.end.column
-    }; 
+    };
     this.toString = function() {
         return ("Range: [" + this.start.row + "/" + this.start.column +
             "] -> [" + this.end.row + "/" + this.end.column + "]");
-    }; 
+    };
 
     this.contains = function(row, column) {
         return this.compare(row, column) == 0;
-    }; 
+    };
     this.compareRange = function(range) {
         var cmp,
             end = range.end,
@@ -39013,10 +39019,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
                 return 0;
             }
         }
-    }; 
+    };
     this.comparePoint = function(p) {
         return this.compare(p.row, p.column);
-    }; 
+    };
     this.containsRange = function(range) {
         return this.comparePoint(range.start) == 0 && this.comparePoint(range.end) == 0;
     };
@@ -39026,10 +39032,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
     this.isEnd = function(row, column) {
         return this.end.row == row && this.end.column == column;
-    }; 
+    };
     this.isStart = function(row, column) {
         return this.start.row == row && this.start.column == column;
-    }; 
+    };
     this.setStart = function(row, column) {
         if (typeof row == "object") {
             this.start.column = row.column;
@@ -39038,7 +39044,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.start.row = row;
             this.start.column = column;
         }
-    }; 
+    };
     this.setEnd = function(row, column) {
         if (typeof row == "object") {
             this.end.column = row.column;
@@ -39047,7 +39053,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.end.row = row;
             this.end.column = column;
         }
-    }; 
+    };
     this.inside = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column) || this.isStart(row, column)) {
@@ -39057,7 +39063,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideStart = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column)) {
@@ -39067,7 +39073,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideEnd = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isStart(row, column)) {
@@ -39208,7 +39214,7 @@ var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var Anchor = exports.Anchor = function(doc, row, column) {
     this.document = doc;
-    
+
     if (typeof column == "undefined")
         this.setPosition(row.row, row.column);
     else
@@ -39225,7 +39231,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.getPosition = function() {
         return this.$clipPositionToDocument(this.row, this.column);
     };
-        
+
     this.getDocument = function() {
         return this.document;
     };
@@ -39233,19 +39239,19 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.onChange = function(e) {
         var delta = e.data;
         var range = delta.range;
-            
+
         if (range.start.row == range.end.row && range.start.row != this.row)
             return;
-            
+
         if (range.start.row > this.row)
             return;
-            
+
         if (range.start.row == this.row && range.start.column > this.column)
             return;
-    
+
         var row = this.row;
         var column = this.column;
-        
+
         if (delta.action === "insertText") {
             if (range.start.row === row && range.start.column <= column) {
                 if (range.start.row === range.end.row) {
@@ -39270,7 +39276,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
                     column = range.start.column;
                 else
                     column = Math.max(0, column - (range.end.column - range.start.column));
-                
+
             } else if (range.start.row !== range.end.row && range.start.row < row) {
                 if (range.end.row == row) {
                     column = Math.max(0, column - range.end.column) + range.start.column;
@@ -39306,15 +39312,15 @@ var Anchor = exports.Anchor = function(doc, row, column) {
         else {
             pos = this.$clipPositionToDocument(row, column);
         }
-        
+
         if (this.row == pos.row && this.column == pos.column)
             return;
-            
+
         var old = {
             row: this.row,
             column: this.column
         };
-        
+
         this.row = pos.row;
         this.column = pos.column;
         this._emit("change", {
@@ -39328,7 +39334,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     };
     this.$clipPositionToDocument = function(row, column) {
         var pos = {};
-    
+
         if (row >= this.document.getLength()) {
             pos.row = Math.max(0, this.document.getLength() - 1);
             pos.column = this.document.getLine(pos.row).length;
@@ -39341,13 +39347,13 @@ var Anchor = exports.Anchor = function(doc, row, column) {
             pos.row = row;
             pos.column = Math.min(this.document.getLine(pos.row).length, Math.max(0, column));
         }
-        
+
         if (column < 0)
             pos.column = 0;
-            
+
         return pos;
     };
-    
+
 }).call(Anchor.prototype);
 
 });
@@ -39395,7 +39401,7 @@ exports.copyArray = function(array){
     for (var i=0, l=array.length; i<l; i++) {
         if (array[i] && typeof array[i] == "object")
             copy[i] = this.copyObject( array[i] );
-        else 
+        else
             copy[i] = array[i];
     }
     return copy;
@@ -39405,7 +39411,7 @@ exports.deepCopy = function (obj) {
     if (typeof obj != "object") {
         return obj;
     }
-    
+
     var copy = obj.constructor();
     for (var key in obj) {
         if (typeof obj[key] == "object") {
@@ -39528,9 +39534,9 @@ exports.delayedCall = function(fcn, defaultTimeout) {
     return _self;
 };
 });
- 
+
 define('ace/mode/coffee/coffee-script', ['require', 'exports', 'module' , 'ace/mode/coffee/lexer', 'ace/mode/coffee/parser', 'ace/mode/coffee/nodes'], function(require, exports, module) {
-    
+
     var Lexer = require("./lexer").Lexer;
     var parser = require("./parser");
 
@@ -39550,7 +39556,7 @@ define('ace/mode/coffee/coffee-script', ['require', 'exports', 'module' , 'ace/m
         }
     };
     parser.yy = require('./nodes');
-    
+
     exports.parse = function(code) {
         return parser.parse(lexer.tokenize(code));
     };
@@ -44577,13 +44583,13 @@ var normalizeModule = function(parentId, moduleName) {
     if (moduleName.charAt(0) == ".") {
         var base = parentId.split("/").slice(0, -1).join("/");
         moduleName = base + "/" + moduleName;
-        
+
         while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
             var previous = moduleName;
             moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
         }
     }
-    
+
     return moduleName;
 };
 
@@ -44601,14 +44607,14 @@ var require = function(parentId, id) {
         }
         return module.exports;
     }
-    
+
     var chunks = id.split("/");
     chunks[0] = require.tlns[chunks[0]] || chunks[0];
     var path = chunks.join("/") + ".js";
-    
+
     require.id = id;
     importScripts(path);
-    return require(parentId, id);    
+    return require(parentId, id);
 };
 
 require.modules = {};
@@ -44626,9 +44632,9 @@ var define = function(id, deps, factory) {
         id = require.id;
     }
 
-    if (id.indexOf("text!") === 0) 
+    if (id.indexOf("text!") === 0)
         return;
-    
+
     var req = function(deps, factory) {
         return require(id, deps, factory);
     };
@@ -44654,13 +44660,13 @@ function initSender() {
 
     var EventEmitter = require(null, "ace/lib/event_emitter").EventEmitter;
     var oop = require(null, "ace/lib/oop");
-    
+
     var Sender = function() {};
-    
+
     (function() {
-        
+
         oop.implement(this, EventEmitter);
-                
+
         this.callback = function(data, callbackId) {
             postMessage({
                 type: "call",
@@ -44668,7 +44674,7 @@ function initSender() {
                 data: data
             });
         };
-    
+
         this.emit = function(name, data) {
             postMessage({
                 type: "event",
@@ -44676,9 +44682,9 @@ function initSender() {
                 data: data
             });
         };
-        
+
     }).call(Sender.prototype);
-    
+
     return new Sender();
 }
 
@@ -44693,13 +44699,13 @@ onmessage = function(e) {
         else
             throw new Error("Unknown command:" + msg.command);
     }
-    else if (msg.init) {        
+    else if (msg.init) {
         initBaseUrls(msg.tlns);
         require(null, "ace/lib/fixoldbrowsers");
         sender = initSender();
         var clazz = require(null, msg.module)[msg.classname];
         main = new clazz(sender);
-    } 
+    }
     else if (msg.event && sender) {
         sender._emit(msg.event, msg.data);
     }
@@ -44713,7 +44719,7 @@ require("./regexp");
 require("./es5-shim");
 
 });
- 
+
 define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
 
     var real = {
@@ -44852,7 +44858,7 @@ if ([1,2].splice(0).length != 2) {
             return a;
         }
         var array = [], lengthBefore;
-        
+
         array.splice.apply(array, makeArray(20));
         array.splice.apply(array, makeArray(26));
 
@@ -44893,7 +44899,7 @@ if ([1,2].splice(0).length != 2) {
 
             var removed = this.slice(pos, pos+removeCount);
             var insert = slice.call(arguments, 2);
-            var add = insert.length;            
+            var add = insert.length;
             if (pos === length) {
                 if (add) {
                     this.push.apply(this, insert);
@@ -45525,13 +45531,13 @@ EventEmitter._dispatchEvent = function(eventName, e) {
 
     if (!e.type)
         e.type = eventName;
-    
+
     if (!e.stopPropagation) {
         e.stopPropagation = function() {
             this.propagationStopped = true;
         };
     }
-    
+
     if (!e.preventDefault) {
         e.preventDefault = function() {
             this.defaultPrevented = true;
@@ -45543,17 +45549,17 @@ EventEmitter._dispatchEvent = function(eventName, e) {
         if (e.propagationStopped)
             break;
     }
-    
+
     if (defaultHandler && !e.defaultPrevented)
         return defaultHandler(e);
 };
 
 EventEmitter.setDefaultHandler = function(eventName, callback) {
     this._defaultHandlers = this._defaultHandlers || {};
-    
+
     if (this._defaultHandlers[eventName])
         throw new Error("The default handler for '" + eventName + "' is already set");
-        
+
     this._defaultHandlers[eventName] = callback;
 };
 
@@ -45655,7 +45661,7 @@ oop.inherits(Worker, Mirror);
             ruleNames.forEach(function(x) {
                 delete all[x];
             });
-            
+
             this.ruleset = all;
         }
         this.doc.getValue() && this.deferredUpdate.schedule(100);
@@ -45723,7 +45729,7 @@ exports.copyArray = function(array){
     for (var i=0, l=array.length; i<l; i++) {
         if (array[i] && typeof array[i] == "object")
             copy[i] = this.copyObject( array[i] );
-        else 
+        else
             copy[i] = array[i];
     }
     return copy;
@@ -45733,7 +45739,7 @@ exports.deepCopy = function (obj) {
     if (typeof obj != "object") {
         return obj;
     }
-    
+
     var copy = obj.constructor();
     for (var key in obj) {
         if (typeof obj[key] == "object") {
@@ -45861,40 +45867,40 @@ define('ace/worker/mirror', ['require', 'exports', 'module' , 'ace/document', 'a
 
 var Document = require("../document").Document;
 var lang = require("../lib/lang");
-    
+
 var Mirror = exports.Mirror = function(sender) {
     this.sender = sender;
     var doc = this.doc = new Document("");
-    
+
     var deferredUpdate = this.deferredUpdate = lang.deferredCall(this.onUpdate.bind(this));
-    
+
     var _self = this;
     sender.on("change", function(e) {
-        doc.applyDeltas([e.data]);        
+        doc.applyDeltas([e.data]);
         deferredUpdate.schedule(_self.$timeout);
     });
 };
 
 (function() {
-    
+
     this.$timeout = 500;
-    
+
     this.setTimeout = function(timeout) {
         this.$timeout = timeout;
     };
-    
+
     this.setValue = function(value) {
         this.doc.setValue(value);
         this.deferredUpdate.schedule(this.$timeout);
     };
-    
+
     this.getValue = function(callbackId) {
         this.sender.callback(this.doc.getValue(), callbackId);
     };
-    
+
     this.onUpdate = function() {
     };
-    
+
 }).call(Mirror.prototype);
 
 });
@@ -45942,7 +45948,7 @@ var Document = function(text) {
         };
 
 
- 
+
     this.$detectNewLine = function(text) {
         var match = text.match(/^.*?(\r\n|\r|\n)/m);
         if (match) {
@@ -46259,21 +46265,21 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
 };
 
-(function() { 
+(function() {
     this.isEqual = function(range) {
         return this.start.row == range.start.row &&
             this.end.row == range.end.row &&
             this.start.column == range.start.column &&
             this.end.column == range.end.column
-    }; 
+    };
     this.toString = function() {
         return ("Range: [" + this.start.row + "/" + this.start.column +
             "] -> [" + this.end.row + "/" + this.end.column + "]");
-    }; 
+    };
 
     this.contains = function(row, column) {
         return this.compare(row, column) == 0;
-    }; 
+    };
     this.compareRange = function(range) {
         var cmp,
             end = range.end,
@@ -46301,10 +46307,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
                 return 0;
             }
         }
-    }; 
+    };
     this.comparePoint = function(p) {
         return this.compare(p.row, p.column);
-    }; 
+    };
     this.containsRange = function(range) {
         return this.comparePoint(range.start) == 0 && this.comparePoint(range.end) == 0;
     };
@@ -46314,10 +46320,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
     this.isEnd = function(row, column) {
         return this.end.row == row && this.end.column == column;
-    }; 
+    };
     this.isStart = function(row, column) {
         return this.start.row == row && this.start.column == column;
-    }; 
+    };
     this.setStart = function(row, column) {
         if (typeof row == "object") {
             this.start.column = row.column;
@@ -46326,7 +46332,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.start.row = row;
             this.start.column = column;
         }
-    }; 
+    };
     this.setEnd = function(row, column) {
         if (typeof row == "object") {
             this.end.column = row.column;
@@ -46335,7 +46341,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.end.row = row;
             this.end.column = column;
         }
-    }; 
+    };
     this.inside = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column) || this.isStart(row, column)) {
@@ -46345,7 +46351,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideStart = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column)) {
@@ -46355,7 +46361,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideEnd = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isStart(row, column)) {
@@ -46496,7 +46502,7 @@ var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var Anchor = exports.Anchor = function(doc, row, column) {
     this.document = doc;
-    
+
     if (typeof column == "undefined")
         this.setPosition(row.row, row.column);
     else
@@ -46513,7 +46519,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.getPosition = function() {
         return this.$clipPositionToDocument(this.row, this.column);
     };
-        
+
     this.getDocument = function() {
         return this.document;
     };
@@ -46521,19 +46527,19 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.onChange = function(e) {
         var delta = e.data;
         var range = delta.range;
-            
+
         if (range.start.row == range.end.row && range.start.row != this.row)
             return;
-            
+
         if (range.start.row > this.row)
             return;
-            
+
         if (range.start.row == this.row && range.start.column > this.column)
             return;
-    
+
         var row = this.row;
         var column = this.column;
-        
+
         if (delta.action === "insertText") {
             if (range.start.row === row && range.start.column <= column) {
                 if (range.start.row === range.end.row) {
@@ -46558,7 +46564,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
                     column = range.start.column;
                 else
                     column = Math.max(0, column - (range.end.column - range.start.column));
-                
+
             } else if (range.start.row !== range.end.row && range.start.row < row) {
                 if (range.end.row == row) {
                     column = Math.max(0, column - range.end.column) + range.start.column;
@@ -46594,15 +46600,15 @@ var Anchor = exports.Anchor = function(doc, row, column) {
         else {
             pos = this.$clipPositionToDocument(row, column);
         }
-        
+
         if (this.row == pos.row && this.column == pos.column)
             return;
-            
+
         var old = {
             row: this.row,
             column: this.column
         };
-        
+
         this.row = pos.row;
         this.column = pos.column;
         this._emit("change", {
@@ -46616,7 +46622,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     };
     this.$clipPositionToDocument = function(row, column) {
         var pos = {};
-    
+
         if (row >= this.document.getLength()) {
             pos.row = Math.max(0, this.document.getLength() - 1);
             pos.column = this.document.getLine(pos.row).length;
@@ -46629,13 +46635,13 @@ var Anchor = exports.Anchor = function(doc, row, column) {
             pos.row = row;
             pos.column = Math.min(this.document.getLine(pos.row).length, Math.max(0, column));
         }
-        
+
         if (column < 0)
             pos.column = 0;
-            
+
         return pos;
     };
-    
+
 }).call(Anchor.prototype);
 
 });
@@ -46643,7 +46649,7 @@ define('ace/mode/css/csslint', ['require', 'exports', 'module' ], function(requi
 var parserlib = {};
 (function(){
 function EventTarget(){
-    this._listeners = {};    
+    this._listeners = {};
 }
 
 EventTarget.prototype = {
@@ -46654,7 +46660,7 @@ EventTarget.prototype = {
         }
 
         this._listeners[type].push(listener);
-    },    
+    },
     fire: function(event){
         if (typeof event == "string"){
             event = { type: event };
@@ -46662,17 +46668,17 @@ EventTarget.prototype = {
         if (typeof event.target != "undefined"){
             event.target = this;
         }
-        
+
         if (typeof event.type == "undefined"){
             throw new Error("Event object missing 'type' property.");
         }
-        
+
         if (this._listeners[event.type]){
             var listeners = this._listeners[event.type].concat();
             for (var i=0, len=listeners.length; i < len; i++){
                 listeners[i].call(this, event);
             }
-        }            
+        }
     },
     removeListener: function(type, listener){
         if (this._listeners[type]){
@@ -46683,9 +46689,9 @@ EventTarget.prototype = {
                     break;
                 }
             }
-            
-            
-        }            
+
+
+        }
     }
 };
 function StringReader(text){
@@ -46834,7 +46840,7 @@ function TokenStreamBase(input, tokenData){
     this._tokenData = tokenData;
     this._lt = [];
     this._ltIndex = 0;
-    
+
     this._ltIndexCache = [];
 }
 TokenStreamBase.createTokenData = function(tokens){
@@ -46844,7 +46850,7 @@ TokenStreamBase.createTokenData = function(tokens){
         tokenData     = tokens.concat([]),
         i            = 0,
         len            = tokenData.length+1;
-    
+
     tokenData.UNKNOWN = -1;
     tokenData.unshift({name:"EOF"});
 
@@ -46855,29 +46861,29 @@ TokenStreamBase.createTokenData = function(tokens){
             typeMap[tokenData[i].text] = i;
         }
     }
-    
+
     tokenData.name = function(tt){
         return nameMap[tt];
     };
-    
+
     tokenData.type = function(c){
         return typeMap[c];
     };
-    
+
     return tokenData;
 };
 
 TokenStreamBase.prototype = {
-    constructor: TokenStreamBase,    
+    constructor: TokenStreamBase,
     match: function(tokenTypes, channel){
         if (!(tokenTypes instanceof Array)){
             tokenTypes = [tokenTypes];
         }
-                
+
         var tt  = this.get(channel),
             i   = 0,
             len = tokenTypes.length;
-            
+
         while(i < len){
             if (tt == tokenTypes[i++]){
                 return true;
@@ -46885,7 +46891,7 @@ TokenStreamBase.prototype = {
         }
         this.unget();
         return false;
-    },        
+    },
     mustMatch: function(tokenTypes, channel){
 
         var token;
@@ -46893,22 +46899,22 @@ TokenStreamBase.prototype = {
             tokenTypes = [tokenTypes];
         }
 
-        if (!this.match.apply(this, arguments)){    
+        if (!this.match.apply(this, arguments)){
             token = this.LT(1);
-            throw new SyntaxError("Expected " + this._tokenData[tokenTypes[0]].name + 
+            throw new SyntaxError("Expected " + this._tokenData[tokenTypes[0]].name +
                 " at line " + token.startLine + ", col " + token.startCol + ".", token.startLine, token.startCol);
         }
     },
     advance: function(tokenTypes, channel){
-        
+
         while(this.LA(0) !== 0 && !this.match(tokenTypes, channel)){
             this.get();
         }
 
-        return this.LA(0);    
-    },      
+        return this.LA(0);
+    },
     get: function(channel){
-    
+
         var tokenInfo   = this._tokenData,
             reader      = this._reader,
             value,
@@ -46917,8 +46923,8 @@ TokenStreamBase.prototype = {
             found       = false,
             token,
             info;
-        if (this._lt.length && this._ltIndex >= 0 && this._ltIndex < this._lt.length){  
-                           
+        if (this._lt.length && this._ltIndex >= 0 && this._ltIndex < this._lt.length){
+
             i++;
             this._token = this._lt[this._ltIndex++];
             info = tokenInfo[this._token.type];
@@ -46939,9 +46945,9 @@ TokenStreamBase.prototype = {
             token.channel = tokenInfo[token.type].channel;
             this._token = token;
             this._lt.push(token);
-            this._ltIndexCache.push(this._lt.length - this._ltIndex + i);  
+            this._ltIndexCache.push(this._lt.length - this._ltIndex + i);
             if (this._lt.length > 5){
-                this._lt.shift();                
+                this._lt.shift();
             }
             if (this._ltIndexCache.length > 5){
                 this._ltIndexCache.shift();
@@ -46949,8 +46955,8 @@ TokenStreamBase.prototype = {
             this._ltIndex = this._lt.length;
         }
         info = tokenInfo[token.type];
-        if (info && 
-                (info.hide || 
+        if (info &&
+                (info.hide ||
                 (info.channel !== undefined && channel !== info.channel))){
             return this.get(channel);
         } else {
@@ -46965,31 +46971,31 @@ TokenStreamBase.prototype = {
                 throw new Error("Too much lookahead.");
             }
             while(total){
-                tt = this.get();   
-                total--;                            
+                tt = this.get();
+                total--;
             }
             while(total < index){
                 this.unget();
                 total++;
             }
         } else if (index < 0){
-        
+
             if(this._lt[this._ltIndex+index]){
                 tt = this._lt[this._ltIndex+index].type;
             } else {
                 throw new Error("Too much lookbehind.");
             }
-        
+
         } else {
             tt = this._token.type;
         }
-        
+
         return tt;
-    
-    },    
+
+    },
     LT: function(index){
         this.LA(index);
-        return this._lt[this._ltIndex+index-1];    
+        return this._lt[this._ltIndex+index-1];
     },
     peek: function(){
         return this.LA(1);
@@ -47003,10 +47009,10 @@ TokenStreamBase.prototype = {
         } else {
             return this._tokenData[tokenType].name;
         }
-    },    
+    },
     tokenType: function(tokenName){
         return this._tokenData[tokenName] || -1;
-    },      
+    },
     unget: function(){
         if (this._ltIndexCache.length){
             this._ltIndex -= this._ltIndexCache.pop();//--;
@@ -47180,7 +47186,7 @@ var Colors = {
     yellowgreen     :"#9acd32"
 };
 function Combinator(text, line, col){
-    
+
     SyntaxUnit.call(this, text, line, col, Parser.COMBINATOR_TYPE);
     this.type = "unknown";
     if (/^\s+$/.test(text)){
@@ -47198,7 +47204,7 @@ function Combinator(text, line, col){
 Combinator.prototype = new SyntaxUnit();
 Combinator.prototype.constructor = Combinator;
 function MediaFeature(name, value){
-    
+
     SyntaxUnit.call(this, "(" + name + (value !== null ? ":" + value : "") + ")", name.startLine, name.startCol, Parser.MEDIA_FEATURE_TYPE);
     this.name = name;
     this.value = value;
@@ -47207,7 +47213,7 @@ function MediaFeature(name, value){
 MediaFeature.prototype = new SyntaxUnit();
 MediaFeature.prototype.constructor = MediaFeature;
 function MediaQuery(modifier, mediaType, features, line, col){
-    
+
     SyntaxUnit.call(this, (modifier ? modifier + " ": "") + (mediaType ? mediaType + " " : "") + features.join(" and "), line, col, Parser.MEDIA_QUERY_TYPE);
     this.modifier = modifier;
     this.mediaType = mediaType;
@@ -47251,19 +47257,19 @@ Parser.prototype = function(){
             PROPERTY_VALUE_PART_TYPE : 6,
             SELECTOR_TYPE : 7,
             SELECTOR_PART_TYPE : 8,
-            SELECTOR_SUB_PART_TYPE : 9,            
-        
-            _stylesheet: function(){ 
-               
+            SELECTOR_SUB_PART_TYPE : 9,
+
+            _stylesheet: function(){
+
                 var tokenStream = this._tokenStream,
                     charset     = null,
                     count,
                     token,
                     tt;
-                    
+
                 this.fire("startstylesheet");
                 this._charset();
-                
+
                 this._skipCruft();
                 while (tokenStream.peek() == Tokens.IMPORT_SYM){
                     this._import();
@@ -47275,26 +47281,26 @@ Parser.prototype = function(){
                 }
                 tt = tokenStream.peek();
                 while(tt > Tokens.EOF){
-                
+
                     try {
-                
+
                         switch(tt){
                             case Tokens.MEDIA_SYM:
                                 this._media();
                                 this._skipCruft();
                                 break;
                             case Tokens.PAGE_SYM:
-                                this._page(); 
+                                this._page();
                                 this._skipCruft();
-                                break;                   
+                                break;
                             case Tokens.FONT_FACE_SYM:
-                                this._font_face(); 
+                                this._font_face();
                                 this._skipCruft();
-                                break;  
+                                break;
                             case Tokens.KEYFRAMES_SYM:
-                                this._keyframes(); 
+                                this._keyframes();
                                 this._skipCruft();
-                                break;                                
+                                break;
                             case Tokens.UNKNOWN_SYM:  //unknown @ rule
                                 tokenStream.get();
                                 if (!this.options.strict){
@@ -47304,25 +47310,25 @@ Parser.prototype = function(){
                                         message:    "Unknown @ rule: " + tokenStream.LT(0).value + ".",
                                         line:       tokenStream.LT(0).startLine,
                                         col:        tokenStream.LT(0).startCol
-                                    });                          
+                                    });
                                     count=0;
                                     while (tokenStream.advance([Tokens.LBRACE, Tokens.RBRACE]) == Tokens.LBRACE){
                                         count++;    //keep track of nesting depth
                                     }
-                                    
+
                                     while(count){
                                         tokenStream.advance([Tokens.RBRACE]);
                                         count--;
                                     }
-                                    
+
                                 } else {
                                     throw new SyntaxError("Unknown @ rule.", tokenStream.LT(0).startLine, tokenStream.LT(0).startCol);
-                                }                                
+                                }
                                 break;
                             case Tokens.S:
                                 this._readWhitespace();
                                 break;
-                            default:                            
+                            default:
                                 if(!this._ruleset()){
                                     switch(tt){
                                         case Tokens.CHARSET_SYM:
@@ -47341,7 +47347,7 @@ Parser.prototype = function(){
                                             tokenStream.get();  //get the last token
                                             this._unexpectedToken(tokenStream.token());
                                     }
-                                
+
                                 }
                         }
                     } catch(ex) {
@@ -47352,55 +47358,55 @@ Parser.prototype = function(){
                                 message:    ex.message,
                                 line:       ex.line,
                                 col:        ex.col
-                            });                     
+                            });
                         } else {
                             throw ex;
                         }
                     }
-                    
+
                     tt = tokenStream.peek();
                 }
-                
+
                 if (tt != Tokens.EOF){
                     this._unexpectedToken(tokenStream.token());
                 }
-            
+
                 this.fire("endstylesheet");
             },
-            
+
             _charset: function(emit){
                 var tokenStream = this._tokenStream,
                     charset,
                     token,
                     line,
                     col;
-                    
+
                 if (tokenStream.match(Tokens.CHARSET_SYM)){
                     line = tokenStream.token().startLine;
                     col = tokenStream.token().startCol;
-                
+
                     this._readWhitespace();
                     tokenStream.mustMatch(Tokens.STRING);
-                    
+
                     token = tokenStream.token();
                     charset = token.value;
-                    
+
                     this._readWhitespace();
                     tokenStream.mustMatch(Tokens.SEMICOLON);
-                    
+
                     if (emit !== false){
-                        this.fire({ 
+                        this.fire({
                             type:   "charset",
                             charset:charset,
                             line:   line,
                             col:    col
                         });
                     }
-                }            
+                }
             },
-            
-            _import: function(emit){    
-            
+
+            _import: function(emit){
+
                 var tokenStream = this._tokenStream,
                     tt,
                     uri,
@@ -47409,16 +47415,16 @@ Parser.prototype = function(){
                 tokenStream.mustMatch(Tokens.IMPORT_SYM);
                 importToken = tokenStream.token();
                 this._readWhitespace();
-                
+
                 tokenStream.mustMatch([Tokens.STRING, Tokens.URI]);
-                uri = tokenStream.token().value.replace(/(?:url\()?["']([^"']+)["']\)?/, "$1");                
+                uri = tokenStream.token().value.replace(/(?:url\()?["']([^"']+)["']\)?/, "$1");
 
                 this._readWhitespace();
-                
+
                 mediaList = this._media_query_list();
                 tokenStream.mustMatch(Tokens.SEMICOLON);
                 this._readWhitespace();
-                
+
                 if (emit !== false){
                     this.fire({
                         type:   "import",
@@ -47428,11 +47434,11 @@ Parser.prototype = function(){
                         col:    importToken.startCol
                     });
                 }
-        
+
             },
-            
-            _namespace: function(emit){    
-            
+
+            _namespace: function(emit){
+
                 var tokenStream = this._tokenStream,
                     line,
                     col,
@@ -47446,14 +47452,14 @@ Parser.prototype = function(){
                     prefix = tokenStream.token().value;
                     this._readWhitespace();
                 }
-                
+
                 tokenStream.mustMatch([Tokens.STRING, Tokens.URI]);
-                uri = tokenStream.token().value.replace(/(?:url\()?["']([^"']+)["']\)?/, "$1");                
+                uri = tokenStream.token().value.replace(/(?:url\()?["']([^"']+)["']\)?/, "$1");
 
                 this._readWhitespace();
                 tokenStream.mustMatch(Tokens.SEMICOLON);
                 this._readWhitespace();
-                
+
                 if (emit !== false){
                     this.fire({
                         type:   "namespace",
@@ -47463,9 +47469,9 @@ Parser.prototype = function(){
                         col:    col
                     });
                 }
-        
-            },            
-                       
+
+            },
+
             _media: function(){
                 var tokenStream     = this._tokenStream,
                     line,
@@ -47474,55 +47480,55 @@ Parser.prototype = function(){
                 tokenStream.mustMatch(Tokens.MEDIA_SYM);
                 line = tokenStream.token().startLine;
                 col = tokenStream.token().startCol;
-                
-                this._readWhitespace();               
+
+                this._readWhitespace();
 
                 mediaList = this._media_query_list();
 
                 tokenStream.mustMatch(Tokens.LBRACE);
                 this._readWhitespace();
-                
+
                 this.fire({
                     type:   "startmedia",
                     media:  mediaList,
                     line:   line,
                     col:    col
                 });
-                
+
                 while(true) {
                     if (tokenStream.peek() == Tokens.PAGE_SYM){
                         this._page();
                     } else if (!this._ruleset()){
                         break;
-                    }                
+                    }
                 }
-                
+
                 tokenStream.mustMatch(Tokens.RBRACE);
                 this._readWhitespace();
-        
+
                 this.fire({
                     type:   "endmedia",
                     media:  mediaList,
                     line:   line,
                     col:    col
                 });
-            },                           
+            },
             _media_query_list: function(){
                 var tokenStream = this._tokenStream,
                     mediaList   = [];
-                
-                
+
+
                 this._readWhitespace();
-                
+
                 if (tokenStream.peek() == Tokens.IDENT || tokenStream.peek() == Tokens.LPAREN){
                     mediaList.push(this._media_query());
                 }
-                
+
                 while(tokenStream.match(Tokens.COMMA)){
                     this._readWhitespace();
                     mediaList.push(this._media_query());
                 }
-                
+
                 return mediaList;
             },
             _media_query: function(){
@@ -47531,7 +47537,7 @@ Parser.prototype = function(){
                     ident       = null,
                     token       = null,
                     expressions = [];
-                    
+
                 if (tokenStream.match(Tokens.IDENT)){
                     ident = tokenStream.token().value.toLowerCase();
                     if (ident != "only" && ident != "not"){
@@ -47541,9 +47547,9 @@ Parser.prototype = function(){
                         token = tokenStream.token();
                     }
                 }
-                                
+
                 this._readWhitespace();
-                
+
                 if (tokenStream.peek() == Tokens.IDENT){
                     type = this._media_type();
                     if (token === null){
@@ -47554,17 +47560,17 @@ Parser.prototype = function(){
                         token = tokenStream.LT(1);
                     }
                     expressions.push(this._media_expression());
-                }                               
-                
+                }
+
                 if (type === null && expressions.length === 0){
                     return null;
-                } else {                
+                } else {
                     this._readWhitespace();
                     while (tokenStream.match(Tokens.IDENT)){
                         if (tokenStream.token().value.toLowerCase() != "and"){
                             this._unexpectedToken(tokenStream.token());
                         }
-                        
+
                         this._readWhitespace();
                         expressions.push(this._media_expression());
                     }
@@ -47573,38 +47579,38 @@ Parser.prototype = function(){
                 return new MediaQuery(ident, type, expressions, token.startLine, token.startCol);
             },
             _media_type: function(){
-                return this._media_feature();           
+                return this._media_feature();
             },
             _media_expression: function(){
                 var tokenStream = this._tokenStream,
                     feature     = null,
                     token,
                     expression  = null;
-                
+
                 tokenStream.mustMatch(Tokens.LPAREN);
-                
+
                 feature = this._media_feature();
                 this._readWhitespace();
-                
+
                 if (tokenStream.match(Tokens.COLON)){
                     this._readWhitespace();
                     token = tokenStream.LT(1);
                     expression = this._expression();
                 }
-                
+
                 tokenStream.mustMatch(Tokens.RPAREN);
                 this._readWhitespace();
 
-                return new MediaFeature(feature, (expression ? new SyntaxUnit(expression, token.startLine, token.startCol) : null));            
+                return new MediaFeature(feature, (expression ? new SyntaxUnit(expression, token.startLine, token.startCol) : null));
             },
             _media_feature: function(){
                 var tokenStream = this._tokenStream;
-                    
+
                 tokenStream.mustMatch(Tokens.IDENT);
-                
-                return SyntaxUnit.fromToken(tokenStream.token());            
+
+                return SyntaxUnit.fromToken(tokenStream.token());
             },
-            _page: function(){            
+            _page: function(){
                 var tokenStream = this._tokenStream,
                     line,
                     col,
@@ -47613,39 +47619,39 @@ Parser.prototype = function(){
                 tokenStream.mustMatch(Tokens.PAGE_SYM);
                 line = tokenStream.token().startLine;
                 col = tokenStream.token().startCol;
-                
+
                 this._readWhitespace();
-                
+
                 if (tokenStream.match(Tokens.IDENT)){
                     identifier = tokenStream.token().value;
                     if (identifier.toLowerCase() === "auto"){
                         this._unexpectedToken(tokenStream.token());
                     }
-                }                
+                }
                 if (tokenStream.peek() == Tokens.COLON){
                     pseudoPage = this._pseudo_page();
                 }
-            
+
                 this._readWhitespace();
-                
+
                 this.fire({
                     type:   "startpage",
                     id:     identifier,
                     pseudo: pseudoPage,
                     line:   line,
                     col:    col
-                });                   
+                });
 
-                this._readDeclarations(true, true);                
-                
+                this._readDeclarations(true, true);
+
                 this.fire({
                     type:   "endpage",
                     id:     identifier,
                     pseudo: pseudoPage,
                     line:   line,
                     col:    col
-                });             
-            
+                });
+
             },
             _margin: function(){
                 var tokenStream = this._tokenStream,
@@ -47656,14 +47662,14 @@ Parser.prototype = function(){
                 if (marginSym){
                     line = tokenStream.token().startLine;
                     col = tokenStream.token().startCol;
-                
+
                     this.fire({
                         type: "startpagemargin",
                         margin: marginSym,
                         line:   line,
                         col:    col
-                    });    
-                    
+                    });
+
                     this._readDeclarations(true);
 
                     this.fire({
@@ -47671,107 +47677,107 @@ Parser.prototype = function(){
                         margin: marginSym,
                         line:   line,
                         col:    col
-                    });    
+                    });
                     return true;
                 } else {
                     return false;
                 }
             },
             _margin_sym: function(){
-            
+
                 var tokenStream = this._tokenStream;
-            
+
                 if(tokenStream.match([Tokens.TOPLEFTCORNER_SYM, Tokens.TOPLEFT_SYM,
                         Tokens.TOPCENTER_SYM, Tokens.TOPRIGHT_SYM, Tokens.TOPRIGHTCORNER_SYM,
-                        Tokens.BOTTOMLEFTCORNER_SYM, Tokens.BOTTOMLEFT_SYM, 
+                        Tokens.BOTTOMLEFTCORNER_SYM, Tokens.BOTTOMLEFT_SYM,
                         Tokens.BOTTOMCENTER_SYM, Tokens.BOTTOMRIGHT_SYM,
-                        Tokens.BOTTOMRIGHTCORNER_SYM, Tokens.LEFTTOP_SYM, 
+                        Tokens.BOTTOMRIGHTCORNER_SYM, Tokens.LEFTTOP_SYM,
                         Tokens.LEFTMIDDLE_SYM, Tokens.LEFTBOTTOM_SYM, Tokens.RIGHTTOP_SYM,
                         Tokens.RIGHTMIDDLE_SYM, Tokens.RIGHTBOTTOM_SYM]))
                 {
-                    return SyntaxUnit.fromToken(tokenStream.token());                
+                    return SyntaxUnit.fromToken(tokenStream.token());
                 } else {
                     return null;
                 }
-            
+
             },
-            
+
             _pseudo_page: function(){
-        
+
                 var tokenStream = this._tokenStream;
-                
+
                 tokenStream.mustMatch(Tokens.COLON);
                 tokenStream.mustMatch(Tokens.IDENT);
-                
+
                 return tokenStream.token().value;
             },
-            
-            _font_face: function(){     
+
+            _font_face: function(){
                 var tokenStream = this._tokenStream,
                     line,
                     col;
                 tokenStream.mustMatch(Tokens.FONT_FACE_SYM);
                 line = tokenStream.token().startLine;
                 col = tokenStream.token().startCol;
-                
+
                 this._readWhitespace();
 
                 this.fire({
                     type:   "startfontface",
                     line:   line,
                     col:    col
-                });                    
-                
+                });
+
                 this._readDeclarations(true);
-                
+
                 this.fire({
                     type:   "endfontface",
                     line:   line,
                     col:    col
-                });              
+                });
             },
 
-            _operator: function(){    
-                 
+            _operator: function(){
+
                 var tokenStream = this._tokenStream,
                     token       = null;
-                
+
                 if (tokenStream.match([Tokens.SLASH, Tokens.COMMA])){
                     token =  tokenStream.token();
                     this._readWhitespace();
-                } 
+                }
                 return token ? PropertyValuePart.fromToken(token) : null;
-                
+
             },
-            
-            _combinator: function(){    
-                 
+
+            _combinator: function(){
+
                 var tokenStream = this._tokenStream,
                     value       = null,
                     token;
-                
-                if(tokenStream.match([Tokens.PLUS, Tokens.GREATER, Tokens.TILDE])){                
+
+                if(tokenStream.match([Tokens.PLUS, Tokens.GREATER, Tokens.TILDE])){
                     token = tokenStream.token();
                     value = new Combinator(token.value, token.startLine, token.startCol);
                     this._readWhitespace();
                 }
-                
+
                 return value;
             },
-            
+
             _unary_operator: function(){
-                 
+
                 var tokenStream = this._tokenStream;
-                
+
                 if (tokenStream.match([Tokens.MINUS, Tokens.PLUS])){
                     return tokenStream.token().value;
                 } else {
                     return null;
-                }         
+                }
             },
-            
+
             _property: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     value       = null,
                     hack        = null,
@@ -47786,7 +47792,7 @@ Parser.prototype = function(){
                     line = token.startLine;
                     col = token.startCol;
                 }
-                
+
                 if(tokenStream.match(Tokens.IDENT)){
                     token = tokenStream.token();
                     tokenValue = token.value;
@@ -47794,15 +47800,15 @@ Parser.prototype = function(){
                         hack = "_";
                         tokenValue = tokenValue.substring(1);
                     }
-                    
+
                     value = new PropertyName(tokenValue, hack, (line||token.startLine), (col||token.startCol));
                     this._readWhitespace();
                 }
-                
+
                 return value;
             },
-            _ruleset: function(){    
-                 
+            _ruleset: function(){
+
                 var tokenStream = this._tokenStream,
                     tt,
                     selectors;
@@ -47816,49 +47822,49 @@ Parser.prototype = function(){
                             message:    ex.message,
                             line:       ex.line,
                             col:        ex.col
-                        });                          
+                        });
                         tt = tokenStream.advance([Tokens.RBRACE]);
                         if (tt == Tokens.RBRACE){
                         } else {
                             throw ex;
-                        }                        
-                        
+                        }
+
                     } else {
                         throw ex;
-                    }                
+                    }
                     return true;
                 }
-                if (selectors){ 
-                                    
+                if (selectors){
+
                     this.fire({
                         type:       "startrule",
                         selectors:  selectors,
                         line:       selectors[0].line,
                         col:        selectors[0].col
-                    });                
-                    
-                    this._readDeclarations(true);                
-                    
+                    });
+
+                    this._readDeclarations(true);
+
                     this.fire({
                         type:       "endrule",
                         selectors:  selectors,
                         line:       selectors[0].line,
                         col:        selectors[0].col
-                    });  
-                    
+                    });
+
                 }
-                
+
                 return selectors;
-                
+
             },
-            _selectors_group: function(){           
+            _selectors_group: function(){
                 var tokenStream = this._tokenStream,
                     selectors   = [],
                     selector;
-                    
+
                 selector = this._selector();
                 if (selector !== null){
-                
+
                     selectors.push(selector);
                     while(tokenStream.match(Tokens.COMMA)){
                         this._readWhitespace();
@@ -47874,7 +47880,7 @@ Parser.prototype = function(){
                 return selectors.length ? selectors : null;
             },
             _selector: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     selector    = [],
                     nextSelector = null,
@@ -47884,12 +47890,12 @@ Parser.prototype = function(){
                 if (nextSelector === null){
                     return null;
                 }
-                
+
                 selector.push(nextSelector);
-                
+
                 do {
                     combinator = this._combinator();
-                    
+
                     if (combinator !== null){
                         selector.push(combinator);
                         nextSelector = this._simple_selector_sequence();
@@ -47899,35 +47905,35 @@ Parser.prototype = function(){
                             selector.push(nextSelector);
                         }
                     } else {
-                        if (this._readWhitespace()){           
+                        if (this._readWhitespace()){
                             ws = new Combinator(tokenStream.token().value, tokenStream.token().startLine, tokenStream.token().startCol);
                             combinator = this._combinator();
                             nextSelector = this._simple_selector_sequence();
-                            if (nextSelector === null){                        
+                            if (nextSelector === null){
                                 if (combinator !== null){
                                     this._unexpectedToken(tokenStream.LT(1));
                                 }
                             } else {
-                                
+
                                 if (combinator !== null){
                                     selector.push(combinator);
                                 } else {
                                     selector.push(ws);
                                 }
-                                
+
                                 selector.push(nextSelector);
-                            }     
+                            }
                         } else {
                             break;
-                        }               
-                    
+                        }
+
                     }
                 } while(true);
-                
+
                 return new Selector(selector, selector[0].line, selector[0].col);
             },
             _simple_selector_sequence: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     elementName = null,
                     modifiers   = [],
@@ -47951,16 +47957,16 @@ Parser.prototype = function(){
                     col;
                 line = tokenStream.LT(1).startLine;
                 col = tokenStream.LT(1).startCol;
-                                        
+
                 elementName = this._type_selector();
                 if (!elementName){
                     elementName = this._universal();
                 }
-                
+
                 if (elementName !== null){
                     selectorText += elementName;
-                }                
-                
+                }
+
                 while(true){
                     if (tokenStream.peek() === Tokens.S){
                         break;
@@ -47968,7 +47974,7 @@ Parser.prototype = function(){
                     while(i < len && component === null){
                         component = components[i++].call(this);
                     }
-        
+
                     if (component === null){
                         if (selectorText === ""){
                             return null;
@@ -47978,32 +47984,32 @@ Parser.prototype = function(){
                     } else {
                         i = 0;
                         modifiers.push(component);
-                        selectorText += component.toString(); 
+                        selectorText += component.toString();
                         component = null;
                     }
                 }
 
-                 
+
                 return selectorText !== "" ?
                         new SelectorPart(elementName, modifiers, selectorText, line, col) :
                         null;
-            },            
+            },
             _type_selector: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     ns          = this._namespace_prefix(),
                     elementName = this._element_name();
-                    
-                if (!elementName){                    
+
+                if (!elementName){
                     if (ns){
                         tokenStream.unget();
                         if (ns.length > 1){
                             tokenStream.unget();
                         }
                     }
-                
+
                     return null;
-                } else {     
+                } else {
                     if (ns){
                         elementName.text = ns + elementName.text;
                         elementName.col -= ns.length;
@@ -48011,29 +48017,29 @@ Parser.prototype = function(){
                     return elementName;
                 }
             },
-            _class: function(){    
-                 
+            _class: function(){
+
                 var tokenStream = this._tokenStream,
                     token;
-                
+
                 if (tokenStream.match(Tokens.DOT)){
-                    tokenStream.mustMatch(Tokens.IDENT);    
+                    tokenStream.mustMatch(Tokens.IDENT);
                     token = tokenStream.token();
-                    return new SelectorSubPart("." + token.value, "class", token.startLine, token.startCol - 1);        
+                    return new SelectorSubPart("." + token.value, "class", token.startLine, token.startCol - 1);
                 } else {
                     return null;
                 }
-        
+
             },
-            _element_name: function(){    
-                
+            _element_name: function(){
+
                 var tokenStream = this._tokenStream,
                     token;
-                
+
                 if (tokenStream.match(Tokens.IDENT)){
                     token = tokenStream.token();
-                    return new SelectorSubPart(token.value, "elementName", token.startLine, token.startCol);        
-                
+                    return new SelectorSubPart(token.value, "elementName", token.startLine, token.startCol);
+
                 } else {
                     return null;
                 }
@@ -48042,89 +48048,89 @@ Parser.prototype = function(){
                 var tokenStream = this._tokenStream,
                     value       = "";
                 if (tokenStream.LA(1) === Tokens.PIPE || tokenStream.LA(2) === Tokens.PIPE){
-                        
+
                     if(tokenStream.match([Tokens.IDENT, Tokens.STAR])){
                         value += tokenStream.token().value;
                     }
-                    
+
                     tokenStream.mustMatch(Tokens.PIPE);
                     value += "|";
-                    
+
                 }
-                
-                return value.length ? value : null;                
+
+                return value.length ? value : null;
             },
             _universal: function(){
                 var tokenStream = this._tokenStream,
                     value       = "",
                     ns;
-                    
+
                 ns = this._namespace_prefix();
                 if(ns){
                     value += ns;
                 }
-                
+
                 if(tokenStream.match(Tokens.STAR)){
                     value += "*";
                 }
-                
+
                 return value.length ? value : null;
-                
+
            },
             _attrib: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     value       = null,
                     ns,
                     token;
-                
+
                 if (tokenStream.match(Tokens.LBRACKET)){
                     token = tokenStream.token();
                     value = token.value;
                     value += this._readWhitespace();
-                    
+
                     ns = this._namespace_prefix();
-                    
+
                     if (ns){
                         value += ns;
                     }
-                                        
+
                     tokenStream.mustMatch(Tokens.IDENT);
-                    value += tokenStream.token().value;                    
+                    value += tokenStream.token().value;
                     value += this._readWhitespace();
-                    
+
                     if(tokenStream.match([Tokens.PREFIXMATCH, Tokens.SUFFIXMATCH, Tokens.SUBSTRINGMATCH,
                             Tokens.EQUALS, Tokens.INCLUDES, Tokens.DASHMATCH])){
-                    
-                        value += tokenStream.token().value;                    
+
+                        value += tokenStream.token().value;
                         value += this._readWhitespace();
-                        
+
                         tokenStream.mustMatch([Tokens.IDENT, Tokens.STRING]);
-                        value += tokenStream.token().value;                    
+                        value += tokenStream.token().value;
                         value += this._readWhitespace();
                     }
-                    
+
                     tokenStream.mustMatch(Tokens.RBRACKET);
-                                        
+
                     return new SelectorSubPart(value + "]", "attribute", token.startLine, token.startCol);
                 } else {
                     return null;
                 }
             },
-            _pseudo: function(){   
-            
+            _pseudo: function(){
+
                 var tokenStream = this._tokenStream,
                     pseudo      = null,
                     colons      = ":",
                     line,
                     col;
-                
+
                 if (tokenStream.match(Tokens.COLON)){
-                
+
                     if (tokenStream.match(Tokens.COLON)){
                         colons += ":";
                     }
-                
+
                     if (tokenStream.match(Tokens.IDENT)){
                         pseudo = tokenStream.token().value;
                         line = tokenStream.token().startLine;
@@ -48134,19 +48140,19 @@ Parser.prototype = function(){
                         col = tokenStream.LT(1).startCol - colons.length;
                         pseudo = this._functional_pseudo();
                     }
-                    
+
                     if (pseudo){
                         pseudo = new SelectorSubPart(colons + pseudo, "pseudo", line, col);
                     }
                 }
-        
+
                 return pseudo;
             },
-            _functional_pseudo: function(){            
-                
+            _functional_pseudo: function(){
+
                 var tokenStream = this._tokenStream,
                     value = null;
-                
+
                 if(tokenStream.match(Tokens.FUNCTION)){
                     value = tokenStream.token().value;
                     value += this._readWhitespace();
@@ -48154,25 +48160,25 @@ Parser.prototype = function(){
                     tokenStream.mustMatch(Tokens.RPAREN);
                     value += ")";
                 }
-                
+
                 return value;
             },
             _expression: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     value       = "";
-                    
+
                 while(tokenStream.match([Tokens.PLUS, Tokens.MINUS, Tokens.DIMENSION,
                         Tokens.NUMBER, Tokens.STRING, Tokens.IDENT, Tokens.LENGTH,
                         Tokens.FREQ, Tokens.ANGLE, Tokens.TIME,
                         Tokens.RESOLUTION])){
-                    
+
                     value += tokenStream.token().value;
-                    value += this._readWhitespace();                        
+                    value += this._readWhitespace();
                 }
-                
+
                 return value.length ? value : null;
-                
+
             },
             _negation: function(){
 
@@ -48182,7 +48188,7 @@ Parser.prototype = function(){
                     value       = "",
                     arg,
                     subpart     = null;
-                    
+
                 if (tokenStream.match(Tokens.NOT)){
                     value = tokenStream.token().value;
                     line = tokenStream.token().startLine;
@@ -48193,15 +48199,15 @@ Parser.prototype = function(){
                     value += this._readWhitespace();
                     tokenStream.match(Tokens.RPAREN);
                     value += tokenStream.token().value;
-                    
+
                     subpart = new SelectorSubPart(value, "not", line, col);
                     subpart.args.push(arg);
                 }
-                
+
                 return subpart;
             },
-            _negation_arg: function(){                       
-                 
+            _negation_arg: function(){
+
                 var tokenStream = this._tokenStream,
                     args        = [
                         this._type_selector,
@@ -48209,11 +48215,11 @@ Parser.prototype = function(){
                         function(){
                             return tokenStream.match(Tokens.HASH) ?
                                     new SelectorSubPart(tokenStream.token().value, "id", tokenStream.token().startLine, tokenStream.token().startCol) :
-                                    null;                        
+                                    null;
                         },
                         this._class,
                         this._attrib,
-                        this._pseudo                    
+                        this._pseudo
                     ],
                     arg         = null,
                     i           = 0,
@@ -48222,12 +48228,12 @@ Parser.prototype = function(){
                     line,
                     col,
                     part;
-                    
+
                 line = tokenStream.LT(1).startLine;
                 col = tokenStream.LT(1).startCol;
-                
+
                 while(i < len && arg === null){
-                    
+
                     arg = args[i].call(this);
                     i++;
                 }
@@ -48239,12 +48245,12 @@ Parser.prototype = function(){
                 } else {
                     part = new SelectorPart(null, [arg], arg.toString(), line, col);
                 }
-                
-                return part;                
+
+                return part;
             },
-            
-            _declaration: function(){    
-            
+
+            _declaration: function(){
+
                 var tokenStream = this._tokenStream,
                     property    = null,
                     expr        = null,
@@ -48252,32 +48258,32 @@ Parser.prototype = function(){
                     error       = null,
                     invalid     = null,
                     propertyName= "";
-                
+
                 property = this._property();
                 if (property !== null){
 
                     tokenStream.mustMatch(Tokens.COLON);
                     this._readWhitespace();
-                    
+
                     expr = this._expr();
                     if (!expr || expr.length === 0){
                         this._unexpectedToken(tokenStream.LT(1));
                     }
-                    
+
                     prio = this._prio();
                     propertyName = property.toString();
                     if (this.options.starHack && property.hack == "*" ||
                             this.options.underscoreHack && property.hack == "_") {
-                         
+
                         propertyName = property.text;
                     }
-                    
+
                     try {
                         this._validateProperty(propertyName, expr);
                     } catch (ex) {
                         invalid = ex;
                     }
-                    
+
                     this.fire({
                         type:       "property",
                         property:   property,
@@ -48286,35 +48292,35 @@ Parser.prototype = function(){
                         line:       property.line,
                         col:        property.col,
                         invalid:    invalid
-                    });                      
-                    
+                    });
+
                     return true;
                 } else {
                     return false;
                 }
             },
-            
+
             _prio: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     result      = tokenStream.match(Tokens.IMPORTANT_SYM);
-                    
+
                 this._readWhitespace();
                 return result;
             },
-            
+
             _expr: function(){
-        
+
                 var tokenStream = this._tokenStream,
                     values      = [],
                     value       = null,
                     operator    = null;
-                    
+
                 value = this._term();
                 if (value !== null){
-                
+
                     values.push(value);
-                    
+
                     do {
                         operator = this._operator();
                         if (operator){
@@ -48323,9 +48329,9 @@ Parser.prototype = function(){
 							values.push(new PropertyValue(valueParts, valueParts[0].line, valueParts[0].col));
 							valueParts = [];
 						}*/
-                        
+
                         value = this._term();
-                        
+
                         if (value === null){
                             break;
                         } else {
@@ -48333,12 +48339,12 @@ Parser.prototype = function(){
                         }
                     } while(true);
                 }
-        
+
                 return values.length > 0 ? new PropertyValue(values, values[0].line, values[0].col) : null;
             },
-            
-            _term: function(){                           
-        
+
+            _term: function(){
+
                 var tokenStream = this._tokenStream,
                     unary       = null,
                     value       = null,
@@ -48349,9 +48355,9 @@ Parser.prototype = function(){
                 if (unary !== null){
                     line = tokenStream.token().startLine;
                     col = tokenStream.token().startCol;
-                }                
+                }
                 if (tokenStream.peek() == Tokens.IE_FUNCTION && this.options.ieFilters){
-                
+
                     value = this._ie_function();
                     if (unary === null){
                         line = tokenStream.token().startLine;
@@ -48360,7 +48366,7 @@ Parser.prototype = function(){
                 } else if (tokenStream.match([Tokens.NUMBER, Tokens.PERCENTAGE, Tokens.LENGTH,
                         Tokens.ANGLE, Tokens.TIME,
                         Tokens.FREQ, Tokens.STRING, Tokens.IDENT, Tokens.URI, Tokens.UNICODE_RANGE])){
-                 
+
                     value = tokenStream.token().value;
                     if (unary === null){
                         line = tokenStream.token().startLine;
@@ -48373,7 +48379,7 @@ Parser.prototype = function(){
                         if (unary === null){
                             line = tokenStream.LT(1).startLine;
                             col = tokenStream.LT(1).startCol;
-                        }                    
+                        }
                         if (value === null){
                             if (tokenStream.LA(3) == Tokens.EQUALS && this.options.ieFilters){
                                 value = this._ie_function();
@@ -48381,30 +48387,30 @@ Parser.prototype = function(){
                                 value = this._function();
                             }
                         }
-                    
+
                     } else {
                         value = token.value;
                         if (unary === null){
                             line = token.startLine;
                             col = token.startCol;
-                        }                    
+                        }
                     }
-                
-                }                
-                
+
+                }
+
                 return value !== null ?
                         new PropertyValuePart(unary !== null ? unary + value : value, line, col) :
                         null;
-        
+
             },
-            
+
             _function: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     functionText = null,
                     expr        = null,
                     lt;
-                    
+
                 if (tokenStream.match(Tokens.FUNCTION)){
                     functionText = tokenStream.token().value;
                     this._readWhitespace();
@@ -48412,17 +48418,17 @@ Parser.prototype = function(){
                     functionText += expr;
                     if (this.options.ieFilters && tokenStream.peek() == Tokens.EQUALS){
                         do {
-                        
+
                             if (this._readWhitespace()){
                                 functionText += tokenStream.token().value;
                             }
                             if (tokenStream.LA(0) == Tokens.COMMA){
                                 functionText += tokenStream.token().value;
                             }
-                        
+
                             tokenStream.match(Tokens.IDENT);
                             functionText += tokenStream.token().value;
-                            
+
                             tokenStream.match(Tokens.EQUALS);
                             functionText += tokenStream.token().value;
                             lt = tokenStream.peek();
@@ -48433,36 +48439,36 @@ Parser.prototype = function(){
                             }
                         } while(tokenStream.match([Tokens.COMMA, Tokens.S]));
                     }
-                    
-                    tokenStream.match(Tokens.RPAREN);    
+
+                    tokenStream.match(Tokens.RPAREN);
                     functionText += ")";
                     this._readWhitespace();
-                }                
-                
+                }
+
                 return functionText;
-            }, 
-            
+            },
+
             _ie_function: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     functionText = null,
                     expr        = null,
                     lt;
                 if (tokenStream.match([Tokens.IE_FUNCTION, Tokens.FUNCTION])){
                     functionText = tokenStream.token().value;
-                    
+
                     do {
-                    
+
                         if (this._readWhitespace()){
                             functionText += tokenStream.token().value;
                         }
                         if (tokenStream.LA(0) == Tokens.COMMA){
                             functionText += tokenStream.token().value;
                         }
-                    
+
                         tokenStream.match(Tokens.IDENT);
                         functionText += tokenStream.token().value;
-                        
+
                         tokenStream.match(Tokens.EQUALS);
                         functionText += tokenStream.token().value;
                         lt = tokenStream.peek();
@@ -48471,24 +48477,24 @@ Parser.prototype = function(){
                             functionText += tokenStream.token().value;
                             lt = tokenStream.peek();
                         }
-                    } while(tokenStream.match([Tokens.COMMA, Tokens.S]));                    
-                    
-                    tokenStream.match(Tokens.RPAREN);    
+                    } while(tokenStream.match([Tokens.COMMA, Tokens.S]));
+
+                    tokenStream.match(Tokens.RPAREN);
                     functionText += ")";
                     this._readWhitespace();
-                }                
-                
+                }
+
                 return functionText;
-            }, 
-            
+            },
+
             _hexcolor: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     token = null,
                     color;
-                    
+
                 if(tokenStream.match(Tokens.HASH)){
-                    
+
                     token = tokenStream.token();
                     color = token.value;
                     if (!/#[a-f0-9]{3,6}/i.test(color)){
@@ -48496,98 +48502,98 @@ Parser.prototype = function(){
                     }
                     this._readWhitespace();
                 }
-                
+
                 return token;
             },
-            
+
             _keyframes: function(){
                 var tokenStream = this._tokenStream,
                     token,
                     tt,
                     name,
-                    prefix = "";            
-                    
+                    prefix = "";
+
                 tokenStream.mustMatch(Tokens.KEYFRAMES_SYM);
                 token = tokenStream.token();
                 if (/^@\-([^\-]+)\-/.test(token.value)) {
                     prefix = RegExp.$1;
                 }
-                
+
                 this._readWhitespace();
                 name = this._keyframe_name();
-                
+
                 this._readWhitespace();
                 tokenStream.mustMatch(Tokens.LBRACE);
-                    
+
                 this.fire({
                     type:   "startkeyframes",
                     name:   name,
                     prefix: prefix,
                     line:   token.startLine,
                     col:    token.startCol
-                });                
-                
+                });
+
                 this._readWhitespace();
                 tt = tokenStream.peek();
                 while(tt == Tokens.IDENT || tt == Tokens.PERCENTAGE) {
                     this._keyframe_rule();
                     this._readWhitespace();
                     tt = tokenStream.peek();
-                }           
-                
+                }
+
                 this.fire({
                     type:   "endkeyframes",
                     name:   name,
                     prefix: prefix,
                     line:   token.startLine,
                     col:    token.startCol
-                });                      
-                    
+                });
+
                 this._readWhitespace();
-                tokenStream.mustMatch(Tokens.RBRACE);                    
-                
+                tokenStream.mustMatch(Tokens.RBRACE);
+
             },
-            
+
             _keyframe_name: function(){
                 var tokenStream = this._tokenStream,
                     token;
 
                 tokenStream.mustMatch([Tokens.IDENT, Tokens.STRING]);
-                return SyntaxUnit.fromToken(tokenStream.token());            
+                return SyntaxUnit.fromToken(tokenStream.token());
             },
-            
+
             _keyframe_rule: function(){
                 var tokenStream = this._tokenStream,
                     token,
                     keyList = this._key_list();
-                                    
+
                 this.fire({
                     type:   "startkeyframerule",
                     keys:   keyList,
                     line:   keyList[0].line,
                     col:    keyList[0].col
-                });                
-                
-                this._readDeclarations(true);                
-                
+                });
+
+                this._readDeclarations(true);
+
                 this.fire({
                     type:   "endkeyframerule",
                     keys:   keyList,
                     line:   keyList[0].line,
                     col:    keyList[0].col
-                });  
-                
+                });
+
             },
-            
+
             _key_list: function(){
                 var tokenStream = this._tokenStream,
                     token,
                     key,
                     keyList = [];
                 keyList.push(this._key());
-                    
+
                 this._readWhitespace();
-                    
+
                 while(tokenStream.match(Tokens.COMMA)){
                     this._readWhitespace();
                     keyList.push(this._key());
@@ -48596,21 +48602,21 @@ Parser.prototype = function(){
 
                 return keyList;
             },
-                        
+
             _key: function(){
-                 
+
                 var tokenStream = this._tokenStream,
                     token;
-                    
+
                 if (tokenStream.match(Tokens.PERCENTAGE)){
                     return SyntaxUnit.fromToken(tokenStream.token());
                 } else if (tokenStream.match(Tokens.IDENT)){
-                    token = tokenStream.token();                    
-                    
+                    token = tokenStream.token();
+
                     if (/from|to/i.test(token.value)){
                         return SyntaxUnit.fromToken(token);
                     }
-                    
+
                     tokenStream.unget();
                 }
                 this._unexpectedToken(tokenStream.LT(1));
@@ -48622,20 +48628,20 @@ Parser.prototype = function(){
             _readDeclarations: function(checkStart, readMargins){
                 var tokenStream = this._tokenStream,
                     tt;
-                       
+
 
                 this._readWhitespace();
-                
+
                 if (checkStart){
-                    tokenStream.mustMatch(Tokens.LBRACE);            
+                    tokenStream.mustMatch(Tokens.LBRACE);
                 }
-                
+
                 this._readWhitespace();
 
                 try {
-                    
+
                     while(true){
-                    
+
                         if (tokenStream.match(Tokens.SEMICOLON) || (readMargins && this._margin())){
                         } else if (this._declaration()){
                             if (!tokenStream.match(Tokens.SEMICOLON)){
@@ -48646,10 +48652,10 @@ Parser.prototype = function(){
                         }
                         this._readWhitespace();
                     }
-                    
+
                     tokenStream.mustMatch(Tokens.RBRACE);
                     this._readWhitespace();
-                    
+
                 } catch (ex) {
                     if (ex instanceof SyntaxError && !this.options.strict){
                         this.fire({
@@ -48658,29 +48664,29 @@ Parser.prototype = function(){
                             message:    ex.message,
                             line:       ex.line,
                             col:        ex.col
-                        });                          
+                        });
                         tt = tokenStream.advance([Tokens.SEMICOLON, Tokens.RBRACE]);
                         if (tt == Tokens.SEMICOLON){
-                            this._readDeclarations(false, readMargins);                            
+                            this._readDeclarations(false, readMargins);
                         } else if (tt != Tokens.RBRACE){
                             throw ex;
-                        }                        
-                        
+                        }
+
                     } else {
                         throw ex;
                     }
-                }    
-            
-            },      
+                }
+
+            },
             _readWhitespace: function(){
-            
+
                 var tokenStream = this._tokenStream,
                     ws = "";
-                    
+
                 while(tokenStream.match(Tokens.S)){
                     ws += tokenStream.token().value;
                 }
-                
+
                 return ws;
             },
             _unexpectedToken: function(token){
@@ -48689,32 +48695,32 @@ Parser.prototype = function(){
             _verifyEnd: function(){
                 if (this._tokenStream.LA(1) != Tokens.EOF){
                     this._unexpectedToken(this._tokenStream.LT(1));
-                }            
+                }
             },
             _validateProperty: function(property, value){
                 Validation.validate(property, value);
             },
-            
-            parse: function(input){    
+
+            parse: function(input){
                 this._tokenStream = new TokenStream(input, Tokens);
                 this._stylesheet();
             },
-            
+
             parseStyleSheet: function(input){
                 return this.parse(input);
             },
-            
+
             parseMediaQuery: function(input){
                 this._tokenStream = new TokenStream(input, Tokens);
                 var result = this._media_query();
                 this._verifyEnd();
-                return result;            
-            },             
+                return result;
+            },
             parsePropertyValue: function(input){
-            
+
                 this._tokenStream = new TokenStream(input, Tokens);
                 this._readWhitespace();
-                
+
                 var result = this._expr();
                 this._readWhitespace();
                 this._verifyEnd();
@@ -48723,17 +48729,17 @@ Parser.prototype = function(){
             parseRule: function(input){
                 this._tokenStream = new TokenStream(input, Tokens);
                 this._readWhitespace();
-                
+
                 var result = this._ruleset();
                 this._readWhitespace();
                 this._verifyEnd();
-                return result;            
+                return result;
             },
             parseSelector: function(input){
-            
+
                 this._tokenStream = new TokenStream(input, Tokens);
                 this._readWhitespace();
-                
+
                 var result = this._selector();
                 this._readWhitespace();
                 this._verifyEnd();
@@ -48749,8 +48755,8 @@ Parser.prototype = function(){
         if (additions.hasOwnProperty(prop)){
             proto[prop] = additions[prop];
         }
-    }   
-    
+    }
+
     return proto;
 }();
 var Properties = {
@@ -48770,28 +48776,28 @@ var Properties = {
     "-moz-animation-iteration-count"     : { multi: "<number> | infinite", comma: true },
     "-moz-animation-name"                : { multi: "none | <ident>", comma: true },
     "-moz-animation-play-state"          : { multi: "running | paused", comma: true },
-    
+
     "-ms-animation-delay"               : { multi: "<time>", comma: true },
     "-ms-animation-direction"           : { multi: "normal | alternate", comma: true },
     "-ms-animation-duration"            : { multi: "<time>", comma: true },
     "-ms-animation-iteration-count"     : { multi: "<number> | infinite", comma: true },
     "-ms-animation-name"                : { multi: "none | <ident>", comma: true },
     "-ms-animation-play-state"          : { multi: "running | paused", comma: true },
-    
+
     "-webkit-animation-delay"               : { multi: "<time>", comma: true },
     "-webkit-animation-direction"           : { multi: "normal | alternate", comma: true },
     "-webkit-animation-duration"            : { multi: "<time>", comma: true },
     "-webkit-animation-iteration-count"     : { multi: "<number> | infinite", comma: true },
     "-webkit-animation-name"                : { multi: "none | <ident>", comma: true },
     "-webkit-animation-play-state"          : { multi: "running | paused", comma: true },
-    
+
     "-o-animation-delay"               : { multi: "<time>", comma: true },
     "-o-animation-direction"           : { multi: "normal | alternate", comma: true },
     "-o-animation-duration"            : { multi: "<time>", comma: true },
     "-o-animation-iteration-count"     : { multi: "<number> | infinite", comma: true },
     "-o-animation-name"                : { multi: "none | <ident>", comma: true },
-    "-o-animation-play-state"          : { multi: "running | paused", comma: true },        
-    
+    "-o-animation-play-state"          : { multi: "running | paused", comma: true },
+
     "appearance"                    : "icon | window | desktop | workspace | document | tooltip | dialog | button | push-button | hyperlink | radio-button | checkbox | menu-item | tab | menu | menubar | pull-down-menu | pop-up-menu | list-menu | radio-group | checkbox-group | outline-tree | range | field | combo-box | signature | password | normal | inherit",
     "azimuth"                       : function (expression) {
         var simple      = "<angle> | leftwards | rightwards | inherit",
@@ -48799,13 +48805,13 @@ var Properties = {
             behind      = false,
             valid       = false,
             part;
-        
+
         if (!ValidationTypes.isAny(expression, simple)) {
             if (ValidationTypes.isAny(expression, "behind")) {
                 behind = true;
                 valid = true;
             }
-            
+
             if (ValidationTypes.isAny(expression, direction)) {
                 valid = true;
                 if (!behind) {
@@ -48813,7 +48819,7 @@ var Properties = {
                 }
             }
         }
-        
+
         if (expression.hasNext()) {
             part = expression.next();
             if (valid) {
@@ -48821,7 +48827,7 @@ var Properties = {
             } else {
                 throw new ValidationError("Expected (<'azimuth'>) but found '" + part + "'.", part.line, part.col);
             }
-        }        
+        }
     },
     "backface-visibility"           : "visible | hidden",
     "background"                    : 1,
@@ -48854,19 +48860,19 @@ var Properties = {
     "border-image-outset"           : { multi: "<length> | <number>", max: 4 },
     "border-image-repeat"           : { multi: "stretch | repeat | round", max: 2 },
     "border-image-slice"            : function(expression) {
-        
+
         var valid   = false,
             numeric = "<number> | <percentage>",
             fill    = false,
             count   = 0,
             max     = 4,
             part;
-        
+
         if (ValidationTypes.isAny(expression, "fill")) {
             fill = true;
             valid = true;
         }
-        
+
         while (expression.hasNext() && count < max) {
             valid = ValidationTypes.isAny(expression, numeric);
             if (!valid) {
@@ -48874,14 +48880,14 @@ var Properties = {
             }
             count++;
         }
-        
-        
+
+
         if (!fill) {
             ValidationTypes.isAny(expression, "fill");
         } else {
             valid = true;
         }
-        
+
         if (expression.hasNext()) {
             part = expression.next();
             if (valid) {
@@ -48889,7 +48895,7 @@ var Properties = {
             } else {
                 throw new ValidationError("Expected ([<number> | <percentage>]{1,4} && fill?) but found '" + part + "'.", part.line, part.col);
             }
-        }         
+        }
     },
     "border-image-source"           : "<image> | none",
     "border-image-width"            : { multi: "<length> | <percentage> | <number> | auto", max: 4 },
@@ -48898,7 +48904,7 @@ var Properties = {
     "border-left-style"             : "<border-style>",
     "border-left-width"             : "<border-width>",
     "border-radius"                 : function(expression) {
-        
+
         var valid   = false,
             numeric = "<length> | <percentage>",
             slash   = false,
@@ -48910,7 +48916,7 @@ var Properties = {
         while (expression.hasNext() && count < max) {
             valid = ValidationTypes.isAny(expression, numeric);
             if (!valid) {
-            
+
                 if (expression.peek() == "/" && count > 1 && !slash) {
                     slash = true;
                     max = count + 5;
@@ -48921,7 +48927,7 @@ var Properties = {
             }
             count++;
         }
-        
+
         if (expression.hasNext()) {
             part = expression.next();
             if (valid) {
@@ -48929,7 +48935,7 @@ var Properties = {
             } else {
                 throw new ValidationError("Expected (<'border-radius'>) but found '" + part + "'.", part.line, part.col);
             }
-        }         
+        }
     },
     "border-right"                  : "<border-width> || <border-style> || <color>",
     "border-right-color"            : "<color> | inherit",
@@ -48944,7 +48950,7 @@ var Properties = {
     "border-top-style"              : "<border-style>",
     "border-top-width"              : "<border-width>",
     "border-width"                  : { multi: "<border-width>", max: 4 },
-    "bottom"                        : "<margin-width> | inherit", 
+    "bottom"                        : "<margin-width> | inherit",
     "box-align"                     : "start | end | center | baseline | stretch",        //http://www.w3.org/TR/2009/WD-css3-flexbox-20090723/
     "box-decoration-break"          : "slice |clone",
     "box-direction"                 : "normal | reverse | inherit",
@@ -48959,12 +48965,12 @@ var Properties = {
             part;
 
         if (!ValidationTypes.isAny(expression, "none")) {
-            Validation.multiProperty("<shadow>", expression, true, Infinity);                       
+            Validation.multiProperty("<shadow>", expression, true, Infinity);
         } else {
             if (expression.hasNext()) {
                 part = expression.next();
                 throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col);
-            }   
+            }
         }
     },
     "box-sizing"                    : "content-box | border-box | inherit",
@@ -49008,7 +49014,7 @@ var Properties = {
     "filter"                        : 1,
     "fit"                           : "fill | hidden | meet | slice",
     "fit-position"                  : 1,
-    "float"                         : "left | right | none | inherit",    
+    "float"                         : "left | right | none | inherit",
     "float-offset"                  : 1,
     "font"                          : 1,
     "font-family"                   : 1,
@@ -49136,7 +49142,7 @@ var Properties = {
     "src"                           : 1,
     "stress"                        : 1,
     "string-set"                    : 1,
-    
+
     "table-layout"                  : "auto | fixed | inherit",
     "tab-size"                      : "<integer> | <length>",
     "target"                        : 1,
@@ -49190,7 +49196,7 @@ var Properties = {
     "zoom"                          : "<number> | <percentage> | normal"
 };
 function PropertyName(text, hack, line, col){
-    
+
     SyntaxUnit.call(this, text, line, col, Parser.PROPERTY_NAME_TYPE);
     this.hack = hack;
 
@@ -49205,7 +49211,7 @@ function PropertyValue(parts, line, col){
 
     SyntaxUnit.call(this, parts.join(" "), line, col, Parser.PROPERTY_VALUE_TYPE);
     this.parts = parts;
-    
+
 }
 
 PropertyValue.prototype = new SyntaxUnit();
@@ -49215,7 +49221,7 @@ function PropertyValueIterator(value){
     this._parts = value.parts;
     this._marks = [];
     this.value = value;
-    
+
 }
 PropertyValueIterator.prototype.count = function(){
     return this._parts.length;
@@ -49247,14 +49253,14 @@ function PropertyValuePart(text, line, col){
 
     SyntaxUnit.call(this, text, line, col, Parser.PROPERTY_VALUE_PART_TYPE);
     this.type = "unknown";
-    
+
     var temp;
     if (/^([+\-]?[\d\.]+)([a-z]+)$/i.test(text)){  //dimension
         this.type = "dimension";
         this.value = +RegExp.$1;
         this.units = RegExp.$2;
         switch(this.units.toLowerCase()){
-        
+
             case "em":
             case "rem":
             case "ex":
@@ -49267,30 +49273,30 @@ function PropertyValuePart(text, line, col){
             case "ch":
                 this.type = "length";
                 break;
-                
+
             case "deg":
             case "rad":
             case "grad":
                 this.type = "angle";
                 break;
-            
+
             case "ms":
             case "s":
                 this.type = "time";
                 break;
-            
+
             case "hz":
             case "khz":
                 this.type = "frequency";
                 break;
-            
+
             case "dpi":
             case "dpcm":
                 this.type = "resolution";
                 break;
-                
+
         }
-        
+
     } else if (/^([+\-]?[\d\.]+)%$/i.test(text)){  //percentage
         this.type = "percentage";
         this.value = +RegExp.$1;
@@ -49303,18 +49309,18 @@ function PropertyValuePart(text, line, col){
     } else if (/^([+\-]?[\d\.]+)$/i.test(text)){  //number
         this.type = "number";
         this.value = +RegExp.$1;
-    
+
     } else if (/^#([a-f0-9]{3,6})/i.test(text)){  //hexcolor
         this.type = "color";
         temp = RegExp.$1;
         if (temp.length == 3){
             this.red    = parseInt(temp.charAt(0)+temp.charAt(0),16);
             this.green  = parseInt(temp.charAt(1)+temp.charAt(1),16);
-            this.blue   = parseInt(temp.charAt(2)+temp.charAt(2),16);            
+            this.blue   = parseInt(temp.charAt(2)+temp.charAt(2),16);
         } else {
             this.red    = parseInt(temp.substring(0,2),16);
             this.green  = parseInt(temp.substring(2,4),16);
-            this.blue   = parseInt(temp.substring(4,6),16);            
+            this.blue   = parseInt(temp.substring(4,6),16);
         }
     } else if (/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i.test(text)){ //rgb() color with absolute numbers
         this.type   = "color";
@@ -49337,18 +49343,18 @@ function PropertyValuePart(text, line, col){
         this.red    = +RegExp.$1 * 255 / 100;
         this.green  = +RegExp.$2 * 255 / 100;
         this.blue   = +RegExp.$3 * 255 / 100;
-        this.alpha  = +RegExp.$4;        
+        this.alpha  = +RegExp.$4;
     } else if (/^hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)/i.test(text)){ //hsl()
         this.type   = "color";
         this.hue    = +RegExp.$1;
         this.saturation = +RegExp.$2 / 100;
-        this.lightness  = +RegExp.$3 / 100;        
+        this.lightness  = +RegExp.$3 / 100;
     } else if (/^hsla\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*([\d\.]+)\s*\)/i.test(text)){ //hsla() color with percentages
         this.type   = "color";
         this.hue    = +RegExp.$1;
         this.saturation = +RegExp.$2 / 100;
-        this.lightness  = +RegExp.$3 / 100;        
-        this.alpha  = +RegExp.$4;        
+        this.lightness  = +RegExp.$3 / 100;
+        this.alpha  = +RegExp.$4;
     } else if (/^url\(["']?([^\)"']+)["']?\)/i.test(text)){ //URI
         this.type   = "uri";
         this.uri    = RegExp.$1;
@@ -49364,7 +49370,7 @@ function PropertyValuePart(text, line, col){
         temp        = Colors[text.toLowerCase()].substring(1);
         this.red    = parseInt(temp.substring(0,2),16);
         this.green  = parseInt(temp.substring(2,4),16);
-        this.blue   = parseInt(temp.substring(4,6),16);         
+        this.blue   = parseInt(temp.substring(4,6),16);
     } else if (/^[\,\/]$/.test(text)){
         this.type   = "operator";
         this.value  = text;
@@ -49394,7 +49400,7 @@ Pseudos.isElement = function(pseudo){
     return pseudo.indexOf("::") === 0 || Pseudos[pseudo.toLowerCase()] == Pseudos.ELEMENT;
 };
 function Selector(parts, line, col){
-    
+
     SyntaxUnit.call(this, parts.join(" "), line, col, Parser.SELECTOR_TYPE);
     this.parts = parts;
     this.specificity = Specificity.calculate(this);
@@ -49404,7 +49410,7 @@ function Selector(parts, line, col){
 Selector.prototype = new SyntaxUnit();
 Selector.prototype.constructor = Selector;
 function SelectorPart(elementName, modifiers, text, line, col){
-    
+
     SyntaxUnit.call(this, text, line, col, Parser.SELECTOR_PART_TYPE);
     this.elementName = elementName;
     this.modifiers = modifiers;
@@ -49414,7 +49420,7 @@ function SelectorPart(elementName, modifiers, text, line, col){
 SelectorPart.prototype = new SyntaxUnit();
 SelectorPart.prototype.constructor = SelectorPart;
 function SelectorSubPart(text, type, line, col){
-    
+
     SyntaxUnit.call(this, text, line, col, Parser.SELECTOR_SUB_PART_TYPE);
     this.type = type;
     this.args = [];
@@ -49435,7 +49441,7 @@ Specificity.prototype = {
     compare: function(other){
         var comps = ["a", "b", "c", "d"],
             i, len;
-            
+
         for (i=0, len=comps.length; i < len; i++){
             if (this[comps[i]] < other[comps[i]]){
                 return -1;
@@ -49443,7 +49449,7 @@ Specificity.prototype = {
                 return 1;
             }
         }
-        
+
         return 0;
     },
     valueOf: function(){
@@ -49459,17 +49465,17 @@ Specificity.calculate = function(selector){
     var i, len,
         part,
         b=0, c=0, d=0;
-        
+
     function updateValues(part){
-    
+
         var i, j, len, num,
             elementName = part.elementName ? part.elementName.text : "",
             modifier;
-    
+
         if (elementName && elementName.charAt(elementName.length-1) != "*") {
             d++;
-        }    
-    
+        }
+
         for (i=0, len=part.modifiers.length; i < len; i++){
             modifier = part.modifiers[i];
             switch(modifier.type){
@@ -49477,35 +49483,35 @@ Specificity.calculate = function(selector){
                 case "attribute":
                     c++;
                     break;
-                    
+
                 case "id":
                     b++;
                     break;
-                    
+
                 case "pseudo":
                     if (Pseudos.isElement(modifier.text)){
                         d++;
                     } else {
                         c++;
-                    }                    
+                    }
                     break;
-                    
+
                 case "not":
                     for (j=0, num=modifier.args.length; j < num; j++){
                         updateValues(modifier.args[j]);
                     }
-            }    
+            }
          }
     }
-    
+
     for (i=0, len=selector.parts.length; i < len; i++){
         part = selector.parts[i];
-        
+
         if (part instanceof SelectorPart){
-            updateValues(part);                
+            updateValues(part);
         }
     }
-    
+
     return new Specificity(0, b, c, d);
 };
 
@@ -49689,7 +49695,7 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
         tt = Tokens.type(rule.toLowerCase());
         if (tt == Tokens.CHAR || tt == Tokens.UNKNOWN){
             if (rule.length > 1){
-                tt = Tokens.UNKNOWN_SYM;                
+                tt = Tokens.UNKNOWN_SYM;
             } else {
                 tt = Tokens.CHAR;
                 rule = first;
@@ -50084,30 +50090,30 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
 
         return ident;
     },
-    
+
     readEscape: function(first){
         var reader  = this._reader,
             cssEscape = first || "",
             i       = 0,
-            c       = reader.peek();    
-    
+            c       = reader.peek();
+
         if (isHexDigit(c)){
             do {
                 cssEscape += reader.read();
                 c = reader.peek();
             } while(c && isHexDigit(c) && ++i < 6);
         }
-        
+
         if (cssEscape.length == 3 && /\s/.test(c) ||
             cssEscape.length == 7 || cssEscape.length == 1){
                 reader.read();
         } else {
             c = "";
         }
-        
+
         return cssEscape + c;
     },
-    
+
     readComment: function(first){
         var reader  = this._reader,
             comment = first || "",
@@ -50143,7 +50149,7 @@ var Tokens  = [
     { name: "PREFIXMATCH", text: "^="},
     { name: "SUFFIXMATCH", text: "$="},
     { name: "SUBSTRINGMATCH", text: "*="},
-    { name: "STRING"},     
+    { name: "STRING"},
     { name: "IDENT"},
     { name: "HASH"},
     { name: "IMPORT_SYM", text: "@import"},
@@ -50164,13 +50170,13 @@ var Tokens  = [
     { name: "NUMBER"},
     { name: "URI"},
     { name: "FUNCTION"},
-    { name: "UNICODE_RANGE"},    
+    { name: "UNICODE_RANGE"},
     { name: "INVALID"},
     { name: "PLUS", text: "+" },
     { name: "GREATER", text: ">"},
     { name: "COMMA", text: ","},
     { name: "TILDE", text: "~"},
-    { name: "NOT"},        
+    { name: "NOT"},
     { name: "TOPLEFTCORNER_SYM", text: "@top-left-corner"},
     { name: "TOPLEFT_SYM", text: "@top-left"},
     { name: "TOPCENTER_SYM", text: "@top-center"},
@@ -50210,19 +50216,19 @@ var Tokens  = [
     {
         name: "LBRACE",
         text: "{"
-    },   
+    },
     {
         name: "RBRACE",
         text: "}"
-    },      
+    },
     {
         name: "LBRACKET",
         text: "["
-    },   
+    },
     {
         name: "RBRACKET",
         text: "]"
-    },    
+    },
     {
         name: "EQUALS",
         text: "="
@@ -50230,20 +50236,20 @@ var Tokens  = [
     {
         name: "COLON",
         text: ":"
-    },    
+    },
     {
         name: "SEMICOLON",
         text: ";"
-    },    
- 
+    },
+
     {
         name: "LPAREN",
         text: "("
-    },   
+    },
     {
         name: "RPAREN",
         text: ")"
-    },     
+    },
     {
         name: "DOT",
         text: "."
@@ -50254,7 +50260,7 @@ var Tokens  = [
 
     var nameMap = [],
         typeMap = {};
-    
+
     Tokens.UNKNOWN = -1;
     Tokens.unshift({name:"EOF"});
     for (var i=0, len = Tokens.length; i < len; i++){
@@ -50270,11 +50276,11 @@ var Tokens  = [
             }
         }
     }
-    
+
     Tokens.name = function(tt){
         return nameMap[tt];
     };
-    
+
     Tokens.type = function(c){
         return typeMap[c] || -1;
     };
@@ -50288,14 +50294,14 @@ var Validation = {
             expression  = new PropertyValueIterator(value),
             spec        = Properties[name],
             part,
-            valid,            
+            valid,
             j, count,
             msg,
             types,
             last,
             literals,
             max, multi, group;
-            
+
         if (!spec) {
             if (name.indexOf("-") !== 0){    //vendor prefixed are ok
                 throw new ValidationError("Unknown property '" + property + "'.", property.line, property.col);
@@ -50317,14 +50323,14 @@ var Validation = {
         }
 
     },
-    
+
     singleProperty: function(types, expression, max, partial) {
 
         var result      = false,
             value       = expression.value,
             count       = 0,
             part;
-         
+
         while (expression.hasNext() && count < max) {
             result = ValidationTypes.isAny(expression, types);
             if (!result) {
@@ -50332,21 +50338,21 @@ var Validation = {
             }
             count++;
         }
-        
+
         if (!result) {
             if (expression.hasNext() && !expression.isFirst()) {
                 part = expression.peek();
                 throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col);
             } else {
                  throw new ValidationError("Expected (" + types + ") but found '" + value + "'.", value.line, value.col);
-            }        
+            }
         } else if (expression.hasNext()) {
             part = expression.next();
             throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col);
-        }          
-                 
-    },    
-    
+        }
+
+    },
+
     multiProperty: function (types, expression, comma, max) {
 
         var result      = false,
@@ -50354,7 +50360,7 @@ var Validation = {
             count       = 0,
             sep         = false,
             part;
-            
+
         while(expression.hasNext() && !result && count < max) {
             if (ValidationTypes.isAny(expression, types)) {
                 count++;
@@ -50373,7 +50379,7 @@ var Validation = {
 
             }
         }
-        
+
         if (!result) {
             if (expression.hasNext() && !expression.isFirst()) {
                 part = expression.peek();
@@ -50381,19 +50387,19 @@ var Validation = {
             } else {
                 part = expression.previous();
                 if (comma && part == ",") {
-                    throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col); 
+                    throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col);
                 } else {
                     throw new ValidationError("Expected (" + types + ") but found '" + value + "'.", value.line, value.col);
                 }
             }
-        
+
         } else if (expression.hasNext()) {
             part = expression.next();
             throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col);
-        }  
+        }
 
     },
-    
+
     groupProperty: function (types, expression, comma) {
 
         var result      = false,
@@ -50403,7 +50409,7 @@ var Validation = {
             partial     = false,
             name,
             part;
-            
+
         while(expression.hasNext() && !result) {
             name = ValidationTypes.isAnyOfGroup(expression, types);
             if (name) {
@@ -50413,7 +50419,7 @@ var Validation = {
                     groups[name] = 1;
                     groups.count++;
                     partial = true;
-                    
+
                     if (groups.count == typeCount || !expression.hasNext()) {
                         result = true;
                     }
@@ -50422,8 +50428,8 @@ var Validation = {
                 break;
             }
         }
-        
-        if (!result) {        
+
+        if (!result) {
             if (partial && expression.hasNext()) {
                     part = expression.peek();
                     throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col);
@@ -50433,10 +50439,10 @@ var Validation = {
         } else if (expression.hasNext()) {
             part = expression.next();
             throw new ValidationError("Expected end of value but found '" + part + "'.", part.line, part.col);
-        }           
+        }
     }
 
-    
+
 
 };
 function ValidationError(message, line, col){
@@ -50452,47 +50458,47 @@ var ValidationTypes = {
         var text = part.text.toString().toLowerCase(),
             args = literals.split(" | "),
             i, len, found = false;
-        
+
         for (i=0,len=args.length; i < len && !found; i++){
             if (text == args[i].toLowerCase()){
                 found = true;
             }
         }
-        
-        return found;    
+
+        return found;
     },
-    
+
     isSimple: function(type) {
         return !!this.simple[type];
     },
-    
+
     isComplex: function(type) {
         return !!this.complex[type];
     },
     isAny: function (expression, types) {
         var args = types.split(" | "),
             i, len, found = false;
-        
+
         for (i=0,len=args.length; i < len && !found && expression.hasNext(); i++){
             found = this.isType(expression, args[i]);
         }
-        
-        return found;    
+
+        return found;
     },
     isAnyOfGroup: function(expression, types) {
         var args = types.split(" || "),
             i, len, found = false;
-        
+
         for (i=0,len=args.length; i < len && !found; i++){
             found = this.isType(expression, args[i]);
         }
-        
+
         return found ? args[i-1] : false;
     },
     isType: function (expression, type) {
         var part = expression.peek(),
             result = false;
-            
+
         if (type.charAt(0) != "<") {
             result = this.isLiteral(part, type);
             if (result) {
@@ -50506,81 +50512,81 @@ var ValidationTypes = {
         } else {
             result = this.complex[type](expression);
         }
-        
+
         return result;
     },
-    
-    
-    
+
+
+
     simple: {
 
         "<absolute-size>": function(part){
             return ValidationTypes.isLiteral(part, "xx-small | x-small | small | medium | large | x-large | xx-large");
         },
-        
+
         "<attachment>": function(part){
             return ValidationTypes.isLiteral(part, "scroll | fixed | local");
         },
-        
+
         "<attr>": function(part){
             return part.type == "function" && part.name == "attr";
         },
-                
+
         "<bg-image>": function(part){
             return this["<image>"](part) || this["<gradient>"](part) ||  part == "none";
-        },        
-        
+        },
+
         "<gradient>": function(part) {
             return part.type == "function" && /^(?:\-(?:ms|moz|o|webkit)\-)?(?:repeating\-)?(?:radial\-|linear\-)?gradient/i.test(part);
         },
-        
+
         "<box>": function(part){
             return ValidationTypes.isLiteral(part, "padding-box | border-box | content-box");
         },
-        
+
         "<content>": function(part){
             return part.type == "function" && part.name == "content";
-        },        
-        
+        },
+
         "<relative-size>": function(part){
             return ValidationTypes.isLiteral(part, "smaller | larger");
         },
         "<ident>": function(part){
             return part.type == "identifier";
         },
-        
+
         "<length>": function(part){
             return part.type == "length" || part.type == "number" || part.type == "integer" || part == "0";
         },
-        
+
         "<color>": function(part){
             return part.type == "color" || part == "transparent";
         },
-        
+
         "<number>": function(part){
             return part.type == "number" || this["<integer>"](part);
         },
-        
+
         "<integer>": function(part){
             return part.type == "integer";
         },
-        
+
         "<line>": function(part){
             return part.type == "integer";
         },
-        
+
         "<angle>": function(part){
             return part.type == "angle";
-        },        
-        
+        },
+
         "<uri>": function(part){
             return part.type == "uri";
         },
-        
+
         "<image>": function(part){
             return this["<uri>"](part);
         },
-        
+
         "<percentage>": function(part){
             return part.type == "percentage" || part == "0";
         },
@@ -50588,28 +50594,28 @@ var ValidationTypes = {
         "<border-width>": function(part){
             return this["<length>"](part) || ValidationTypes.isLiteral(part, "thin | medium | thick");
         },
-        
+
         "<border-style>": function(part){
             return ValidationTypes.isLiteral(part, "none | hidden | dotted | dashed | solid | double | groove | ridge | inset | outset");
         },
-        
+
         "<margin-width>": function(part){
             return this["<length>"](part) || this["<percentage>"](part) || ValidationTypes.isLiteral(part, "auto");
         },
-        
+
         "<padding-width>": function(part){
             return this["<length>"](part) || this["<percentage>"](part);
         },
-        
+
         "<shape>": function(part){
             return part.type == "function" && (part.name == "rect" || part.name == "inset-rect");
         },
-        
+
         "<time>": function(part) {
             return part.type == "time";
         }
     },
-    
+
     complex: {
 
         "<bg-position>": function(expression){
@@ -50619,8 +50625,8 @@ var ValidationTypes = {
                 xDir    = "left | center | right",
                 yDir    = "top | center | bottom",
                 part,
-                i, len;            
-                
+                i, len;
+
             if (ValidationTypes.isAny(expression, "top | bottom")) {
                 result = true;
             } else {
@@ -50632,21 +50638,21 @@ var ValidationTypes = {
                     if (expression.hasNext()){
                         if (ValidationTypes.isAny(expression, yDir)){
                             result = true;
-                      
+
                             ValidationTypes.isAny(expression, numeric);
-                            
+
                         } else if (ValidationTypes.isAny(expression, numeric)){
-                            if (ValidationTypes.isAny(expression, yDir)){                                    
-                                ValidationTypes.isAny(expression, numeric);                               
+                            if (ValidationTypes.isAny(expression, yDir)){
+                                ValidationTypes.isAny(expression, numeric);
                             }
-                            
+
                             result = true;
                         }
                     }
-                }                                 
-            }            
+                }
+            }
 
-            
+
             return result;
         },
 
@@ -50655,28 +50661,28 @@ var ValidationTypes = {
                 result  = false,
                 numeric = "<percentage> | <length> | auto",
                 part,
-                i, len;      
-      
+                i, len;
+
             if (ValidationTypes.isAny(expression, "cover | contain")) {
                 result = true;
             } else if (ValidationTypes.isAny(expression, numeric)) {
-                result = true;                
+                result = true;
                 ValidationTypes.isAny(expression, numeric);
             }
-            
+
             return result;
         },
-        
+
         "<repeat-style>": function(expression){
             var result  = false,
                 values  = "repeat | space | round | no-repeat",
                 part;
-            
+
             if (expression.hasNext()){
                 part = expression.next();
-                
+
                 if (ValidationTypes.isLiteral(part, "repeat-x | repeat-y")) {
-                    result = true;                    
+                    result = true;
                 } else if (ValidationTypes.isLiteral(part, values)) {
                     result = true;
 
@@ -50685,63 +50691,63 @@ var ValidationTypes = {
                     }
                 }
             }
-            
+
             return result;
-            
+
         },
-        
+
         "<shadow>": function(expression) {
             var result  = false,
                 count   = 0,
                 inset   = false,
                 color   = false,
                 part;
-                
-            if (expression.hasNext()) {            
-                
+
+            if (expression.hasNext()) {
+
                 if (ValidationTypes.isAny(expression, "inset")){
                     inset = true;
                 }
-                
+
                 if (ValidationTypes.isAny(expression, "<color>")) {
                     color = true;
-                }                
-                
+                }
+
                 while (ValidationTypes.isAny(expression, "<length>") && count < 4) {
                     count++;
                 }
-                
-                
+
+
                 if (expression.hasNext()) {
                     if (!color) {
                         ValidationTypes.isAny(expression, "<color>");
                     }
-                    
+
                     if (!inset) {
                         ValidationTypes.isAny(expression, "inset");
                     }
 
                 }
-                
+
                 result = (count >= 2 && count <= 4);
-            
+
             }
-            
+
             return result;
         },
-        
+
         "<x-one-radius>": function(expression) {
             var result  = false,
                 count   = 0,
                 numeric = "<length> | <percentage>",
                 part;
-                
+
             if (ValidationTypes.isAny(expression, numeric)){
                 result = true;
-                
+
                 ValidationTypes.isAny(expression, numeric);
-            }                
-            
+            }
+
             return result;
         }
     }
@@ -50749,8 +50755,8 @@ var ValidationTypes = {
 
 
 parserlib.css = {
-Colors              :Colors,    
-Combinator          :Combinator,                
+Colors              :Colors,
+Combinator          :Combinator,
 Parser              :Parser,
 PropertyName        :PropertyName,
 PropertyValue       :PropertyValue,
@@ -50771,7 +50777,7 @@ var CSSLint = (function(){
     var rules      = [],
         formatters = [],
         api        = new parserlib.util.EventTarget();
-        
+
     api.version = "0.9.9";
     api.addRule = function(rule){
         rules.push(rule);
@@ -50781,7 +50787,7 @@ var CSSLint = (function(){
         rules = [];
     };
     api.getRules = function(){
-        return [].concat(rules).sort(function(a,b){ 
+        return [].concat(rules).sort(function(a,b){
             return a.id > b.id ? 1 : 0;
         });
     };
@@ -50789,11 +50795,11 @@ var CSSLint = (function(){
         var ruleset = {},
             i = 0,
             len = rules.length;
-        
+
         while (i < len){
             ruleset[rules[i++].id] = 1;    //by default, everything is a warning
         }
-        
+
         return ruleset;
     };
     api.addFormatter = function(formatter) {
@@ -50805,13 +50811,13 @@ var CSSLint = (function(){
     api.format = function(results, filename, formatId, options) {
         var formatter = this.getFormatter(formatId),
             result = null;
-            
+
         if (formatter){
             result = formatter.startFormat();
             result += formatter.formatResults(results, filename, options || {});
             result += formatter.endFormat();
         }
-        
+
         return result;
     };
     api.hasFormat = function(formatId){
@@ -50827,13 +50833,13 @@ var CSSLint = (function(){
             parser = new parserlib.css.Parser({ starHack: true, ieFilters: true,
                                                 underscoreHack: true, strict: false });
         lines = text.replace(/\n\r?/g, "$split$").split('$split$');
-        
+
         if (!ruleset){
             ruleset = this.getRuleset();
         }
-        
+
         reporter = new Reporter(lines, ruleset);
-        
+
         ruleset.errors = 2;       //always report parsing errors as errors
         for (i in ruleset){
             if(ruleset.hasOwnProperty(i)){
@@ -50860,8 +50866,8 @@ var CSSLint = (function(){
             } else {
                 return a.line - b.line;
             }
-        });        
-        
+        });
+
         return report;
     };
 
@@ -51035,7 +51041,7 @@ CSSLint.addRule({
 
         function endRule(){
             var prop, value;
-            
+
             if (!boxSizing) {
                 if (properties.height){
                     for (prop in heightProperties){
@@ -51052,25 +51058,25 @@ CSSLint.addRule({
                     for (prop in widthProperties){
                         if (widthProperties.hasOwnProperty(prop) && properties[prop]){
                             value = properties[prop].value;
-                            
+
                             if (!(prop == "padding" && value.parts.length === 2 && value.parts[1].value === 0)){
                                 reporter.report("Using width with " + prop + " can sometimes make elements larger than you expect.", properties[prop].line, properties[prop].col, rule);
                             }
                         }
                     }
-                }   
-            }     
+                }
+            }
         }
 
         parser.addListener("startrule", startRule);
         parser.addListener("startfontface", startRule);
         parser.addListener("startpage", startRule);
         parser.addListener("startpagemargin", startRule);
-        parser.addListener("startkeyframerule", startRule); 
+        parser.addListener("startkeyframerule", startRule);
 
         parser.addListener("property", function(event){
             var name = event.property.text.toLowerCase();
-            
+
             if (heightProperties[name] || widthProperties[name]){
                 if (!/^0\S*$/.test(event.value) && !(name == "border" && event.value == "none")){
                     properties[name] = { line: event.property.line, col: event.property.col, value: event.value };
@@ -51082,14 +51088,14 @@ CSSLint.addRule({
                     boxSizing = true;
                 }
             }
-            
+
         });
 
         parser.addListener("endrule", endRule);
         parser.addListener("endfontface", endRule);
         parser.addListener("endpage", endRule);
         parser.addListener("endpagemargin", endRule);
-        parser.addListener("endkeyframerule", endRule);         
+        parser.addListener("endkeyframerule", endRule);
     }
 
 });
@@ -51104,14 +51110,14 @@ CSSLint.addRule({
 
         parser.addListener("property", function(event){
             var name = event.property.text.toLowerCase();
-   
+
             if (name == "box-sizing"){
                 reporter.report("The box-sizing property isn't supported in IE6 and IE7.", event.line, event.col, rule);
             }
-        });       
+        });
     }
 
-}); 
+});
 CSSLint.addRule({
     id: "compatible-vendor-prefixes",
     name: "Require compatible vendor prefixes",
@@ -51201,7 +51207,7 @@ CSSLint.addRule({
                 arrayPush.apply(applyTo, variations);
             }
         }
-                
+
         parser.addListener("startrule", function () {
             properties = [];
         });
@@ -51217,7 +51223,7 @@ CSSLint.addRule({
         parser.addListener("property", function (event) {
             var name = event.property;
             if (CSSLint.Util.indexOf(applyTo, name.text) > -1) {
-                if (!inKeyFrame || typeof inKeyFrame != "string" || 
+                if (!inKeyFrame || typeof inKeyFrame != "string" ||
                         name.text.indexOf("-" + inKeyFrame + "-") !== 0) {
                     properties.push(name);
                 }
@@ -51275,7 +51281,7 @@ CSSLint.addRule({
                             item = full[i];
                             if (CSSLint.Util.indexOf(actual, item) === -1) {
                                 propertiesSpecified = (actual.length === 1) ? actual[0] : (actual.length == 2) ? actual.join(" and ") : actual.join(", ");
-                                reporter.report("The property " + item + " is compatible with " + propertiesSpecified + " and should be included as well.", value.actualNodes[0].line, value.actualNodes[0].col, rule); 
+                                reporter.report("The property " + item + " is compatible with " + propertiesSpecified + " and should be included as well.", value.actualNodes[0].line, value.actualNodes[0].col, rule);
                             }
                         }
 
@@ -51319,7 +51325,7 @@ CSSLint.addRule({
                 }
             }
         }
-        
+
         function startRule(){
             properties = {};
         }
@@ -51335,7 +51341,7 @@ CSSLint.addRule({
                         reportProperty("width", display);
                         reportProperty("margin", display);
                         reportProperty("margin-top", display);
-                        reportProperty("margin-bottom", display);              
+                        reportProperty("margin-bottom", display);
                         reportProperty("float", display, "display:inline has no effect on floated elements (but may be used to fix the IE6 double-margin bug).");
                         break;
 
@@ -51358,7 +51364,7 @@ CSSLint.addRule({
                         }
                 }
             }
-          
+
         }
 
         parser.addListener("startrule", startRule);
@@ -51371,7 +51377,7 @@ CSSLint.addRule({
             var name = event.property.text.toLowerCase();
 
             if (propertiesToCheck[name]){
-                properties[name] = { value: event.value.text, line: event.property.line, col: event.property.col };                    
+                properties[name] = { value: event.value.text, line: event.property.line, col: event.property.col };
             }
         });
 
@@ -51421,32 +51427,32 @@ CSSLint.addRule({
     init: function(parser, reporter){
         var rule = this,
             properties,
-            lastProperty;            
-            
+            lastProperty;
+
         function startRule(event){
-            properties = {};        
+            properties = {};
         }
-        
+
         parser.addListener("startrule", startRule);
         parser.addListener("startfontface", startRule);
         parser.addListener("startpage", startRule);
         parser.addListener("startpagemargin", startRule);
-        parser.addListener("startkeyframerule", startRule);        
-        
+        parser.addListener("startkeyframerule", startRule);
+
         parser.addListener("property", function(event){
             var property = event.property,
                 name = property.text.toLowerCase();
-            
+
             if (properties[name] && (lastProperty != name || properties[name] == event.value.text)){
                 reporter.report("Duplicate property '" + event.property + "' found.", event.line, event.col, rule);
             }
-            
+
             properties[name] = event.value.text;
             lastProperty = name;
-                        
+
         });
-            
-        
+
+
     }
 
 });
@@ -51502,38 +51508,38 @@ CSSLint.addRule({
             propertiesToCheck = {
                 color: 1,
                 background: 1,
-                "background-color": 1                
+                "background-color": 1
             },
             properties;
-        
+
         function startRule(event){
-            properties = {};    
-            lastProperty = null;    
+            properties = {};
+            lastProperty = null;
         }
-        
+
         parser.addListener("startrule", startRule);
         parser.addListener("startfontface", startRule);
         parser.addListener("startpage", startRule);
         parser.addListener("startpagemargin", startRule);
-        parser.addListener("startkeyframerule", startRule);        
-        
+        parser.addListener("startkeyframerule", startRule);
+
         parser.addListener("property", function(event){
             var property = event.property,
                 name = property.text.toLowerCase(),
                 parts = event.value.parts,
-                i = 0, 
+                i = 0,
                 colorType = "",
-                len = parts.length;                
-                        
+                len = parts.length;
+
             if(propertiesToCheck[name]){
                 while(i < len){
                     if (parts[i].type == "color"){
                         if ("alpha" in parts[i] || "hue" in parts[i]){
-                            
+
                             if (/([^\)]+)\(/.test(parts[i])){
                                 colorType = RegExp.$1.toUpperCase();
                             }
-                            
+
                             if (!lastProperty || (lastProperty.property.text.toLowerCase() != name || lastProperty.colorType != "compat")){
                                 reporter.report("Fallback " + name + " (hex or RGB) should precede " + colorType + " " + name + ".", event.line, event.col, rule);
                             }
@@ -51541,14 +51547,14 @@ CSSLint.addRule({
                             event.colorType = "compat";
                         }
                     }
-                    
+
                     i++;
                 }
             }
 
             lastProperty = event;
-        });        
-         
+        });
+
     }
 
 });
@@ -51658,7 +51664,7 @@ CSSLint.addRule({
             if (!gradients.webkit){
                 missing.push("Webkit (Safari 5+, Chrome)");
             }
-            
+
             if (!gradients.oldWebkit){
                 missing.push("Old Webkit (Safari 4+, Chrome)");
             }
@@ -51671,8 +51677,8 @@ CSSLint.addRule({
                 missing.push("Opera 11.1+");
             }
 
-            if (missing.length && missing.length < 5){            
-                reporter.report("Missing vendor-prefixed CSS gradients for " + missing.join(", ") + ".", event.selectors[0].line, event.selectors[0].col, rule); 
+            if (missing.length && missing.length < 5){
+                reporter.report("Missing vendor-prefixed CSS gradients for " + missing.join(", ") + ".", event.selectors[0].line, event.selectors[0].col, rule);
             }
 
         });
@@ -51729,8 +51735,8 @@ CSSLint.addRule({
     browsers: "All",
     init: function(parser, reporter){
         var rule = this;
-        
-        parser.addListener("import", function(event){        
+
+        parser.addListener("import", function(event){
             reporter.report("@import prevents parallel downloads, use <link> instead.", event.line, event.col, rule);
         });
 
@@ -51801,14 +51807,14 @@ CSSLint.addRule({
                 lastRule = null;
             }
         }
-        
+
         function endRule(event){
             if (lastRule){
                 if (lastRule.outline){
                     if (lastRule.selectors.toString().toLowerCase().indexOf(":focus") == -1){
                         reporter.report("Outlines should only be modified using :focus.", lastRule.line, lastRule.col, rule);
                     } else if (lastRule.propCount == 1) {
-                        reporter.report("Outlines shouldn't be hidden unless other visual changes are made.", lastRule.line, lastRule.col, rule);                        
+                        reporter.report("Outlines shouldn't be hidden unless other visual changes are made.", lastRule.line, lastRule.col, rule);
                     }
                 }
             }
@@ -51818,26 +51824,26 @@ CSSLint.addRule({
         parser.addListener("startfontface", startRule);
         parser.addListener("startpage", startRule);
         parser.addListener("startpagemargin", startRule);
-        parser.addListener("startkeyframerule", startRule); 
+        parser.addListener("startkeyframerule", startRule);
 
         parser.addListener("property", function(event){
             var name = event.property.text.toLowerCase(),
-                value = event.value;                
-                
+                value = event.value;
+
             if (lastRule){
                 lastRule.propCount++;
                 if (name == "outline" && (value == "none" || value == "0")){
                     lastRule.outline = true;
-                }            
+                }
             }
-            
+
         });
-        
+
         parser.addListener("endrule", endRule);
         parser.addListener("endfontface", endRule);
         parser.addListener("endpage", endRule);
         parser.addListener("endpagemargin", endRule);
-        parser.addListener("endkeyframerule", endRule); 
+        parser.addListener("endkeyframerule", endRule);
 
     }
 
@@ -51850,7 +51856,7 @@ CSSLint.addRule({
     init: function(parser, reporter){
         var rule = this,
             classes = {};
-            
+
         parser.addListener("startrule", function(event){
             var selectors = event.selectors,
                 selector,
@@ -51869,7 +51875,7 @@ CSSLint.addRule({
                             if (part.elementName && modifier.type == "id"){
                                 reporter.report("Element (" + part + ") is overqualified, just use " + modifier + " without element name.", part.line, part.col, rule);
                             } else if (modifier.type == "class"){
-                                
+
                                 if (!classes[modifier]){
                                     classes[modifier] = [];
                                 }
@@ -51880,9 +51886,9 @@ CSSLint.addRule({
                 }
             }
         });
-        
+
         parser.addListener("endstylesheet", function(){
-        
+
             var prop;
             for (prop in classes){
                 if (classes.hasOwnProperty(prop)){
@@ -51890,7 +51896,7 @@ CSSLint.addRule({
                         reporter.report("Element (" + classes[prop][0].part + ") is overqualified, just use " + classes[prop][0].modifier + " without element name.", classes[prop][0].part.line, classes[prop][0].part.col, rule);
                     }
                 }
-            }        
+            }
         });
     }
 
@@ -52001,7 +52007,7 @@ CSSLint.addRule({
                     "padding-bottom",
                     "padding-left",
                     "padding-right"
-                ]              
+                ]
             };
         for (prop in mapping){
             if (mapping.hasOwnProperty(prop)){
@@ -52010,28 +52016,28 @@ CSSLint.addRule({
                 }
             }
         }
-            
+
         function startRule(event){
             properties = {};
         }
         function endRule(event){
-            
+
             var prop, i, len, total;
             for (prop in mapping){
                 if (mapping.hasOwnProperty(prop)){
                     total=0;
-                    
+
                     for (i=0, len=mapping[prop].length; i < len; i++){
                         total += properties[mapping[prop][i]] ? 1 : 0;
                     }
-                    
+
                     if (total == mapping[prop].length){
                         reporter.report("The properties " + mapping[prop].join(", ") + " can be replaced by " + prop + ".", event.line, event.col, rule);
                     }
                 }
             }
-        }        
-        
+        }
+
         parser.addListener("startrule", startRule);
         parser.addListener("startfontface", startRule);
         parser.addListener("property", function(event){
@@ -52044,7 +52050,7 @@ CSSLint.addRule({
         });
 
         parser.addListener("endrule", endRule);
-        parser.addListener("endfontface", endRule);     
+        parser.addListener("endfontface", endRule);
 
     }
 
@@ -52150,14 +52156,14 @@ CSSLint.addRule({
                 part = selector.parts[selector.parts.length-1];
 
                 if (part.elementName && /(h[1-6])/i.test(part.elementName.toString())){
-                    
+
                     for (j=0; j < part.modifiers.length; j++){
                         if (part.modifiers[j].type == "pseudo"){
                             pseudo = true;
                             break;
                         }
                     }
-                
+
                     if (!pseudo){
                         headings[RegExp.$1]++;
                         if (headings[RegExp.$1] > 1) {
@@ -52167,11 +52173,11 @@ CSSLint.addRule({
                 }
             }
         });
-        
+
         parser.addListener("endstylesheet", function(event){
             var prop,
                 messages = [];
-                
+
             for (prop in headings){
                 if (headings.hasOwnProperty(prop)){
                     if (headings[prop] > 1){
@@ -52179,11 +52185,11 @@ CSSLint.addRule({
                     }
                 }
             }
-            
+
             if (messages.length){
                 reporter.rollupWarn("You have " + messages.join(", ") + " defined in this stylesheet.", rule);
             }
-        });        
+        });
     }
 
 });
@@ -52204,7 +52210,7 @@ CSSLint.addRule({
 
             for (i=0; i < selectors.length; i++){
                 selector = selectors[i];
-                
+
                 part = selector.parts[selector.parts.length-1];
                 if (part.elementName == "*"){
                     reporter.report(rule.desc, part.line, part.col, rule);
@@ -52223,7 +52229,7 @@ CSSLint.addRule({
         var rule = this;
 
         parser.addListener("startrule", function(event){
-            
+
             var selectors = event.selectors,
                 selector,
                 part,
@@ -52232,18 +52238,18 @@ CSSLint.addRule({
 
             for (i=0; i < selectors.length; i++){
                 selector = selectors[i];
-                
+
                 part = selector.parts[selector.parts.length-1];
                 if (part.type == parser.SELECTOR_PART_TYPE){
                     for (k=0; k < part.modifiers.length; k++){
                         modifier = part.modifiers[k];
                         if (modifier.type == "attribute" && (!part.elementName || part.elementName == "*")){
-                            reporter.report(rule.desc, part.line, part.col, rule);                               
+                            reporter.report(rule.desc, part.line, part.col, rule);
                         }
                     }
                 }
-                
-            }            
+
+            }
         });
     }
 
@@ -52263,66 +52269,66 @@ CSSLint.addRule({
                 "-webkit-border-top-right-radius": "border-top-right-radius",
                 "-webkit-border-bottom-left-radius": "border-bottom-left-radius",
                 "-webkit-border-bottom-right-radius": "border-bottom-right-radius",
-                
+
                 "-o-border-radius": "border-radius",
                 "-o-border-top-left-radius": "border-top-left-radius",
                 "-o-border-top-right-radius": "border-top-right-radius",
                 "-o-border-bottom-left-radius": "border-bottom-left-radius",
                 "-o-border-bottom-right-radius": "border-bottom-right-radius",
-                
+
                 "-moz-border-radius": "border-radius",
                 "-moz-border-radius-topleft": "border-top-left-radius",
                 "-moz-border-radius-topright": "border-top-right-radius",
                 "-moz-border-radius-bottomleft": "border-bottom-left-radius",
-                "-moz-border-radius-bottomright": "border-bottom-right-radius",                
-                
+                "-moz-border-radius-bottomright": "border-bottom-right-radius",
+
                 "-moz-column-count": "column-count",
                 "-webkit-column-count": "column-count",
-                
+
                 "-moz-column-gap": "column-gap",
                 "-webkit-column-gap": "column-gap",
-                
+
                 "-moz-column-rule": "column-rule",
                 "-webkit-column-rule": "column-rule",
-                
+
                 "-moz-column-rule-style": "column-rule-style",
                 "-webkit-column-rule-style": "column-rule-style",
-                
+
                 "-moz-column-rule-color": "column-rule-color",
                 "-webkit-column-rule-color": "column-rule-color",
-                
+
                 "-moz-column-rule-width": "column-rule-width",
                 "-webkit-column-rule-width": "column-rule-width",
-                
+
                 "-moz-column-width": "column-width",
                 "-webkit-column-width": "column-width",
-                
+
                 "-webkit-column-span": "column-span",
                 "-webkit-columns": "columns",
-                
+
                 "-moz-box-shadow": "box-shadow",
                 "-webkit-box-shadow": "box-shadow",
-                
+
                 "-moz-transform" : "transform",
                 "-webkit-transform" : "transform",
                 "-o-transform" : "transform",
                 "-ms-transform" : "transform",
-                
+
                 "-moz-transform-origin" : "transform-origin",
                 "-webkit-transform-origin" : "transform-origin",
                 "-o-transform-origin" : "transform-origin",
                 "-ms-transform-origin" : "transform-origin",
-                
+
                 "-moz-box-sizing" : "box-sizing",
                 "-webkit-box-sizing" : "box-sizing",
-                
+
                 "-moz-user-select" : "user-select",
                 "-khtml-user-select" : "user-select",
-                "-webkit-user-select" : "user-select"                
+                "-webkit-user-select" : "user-select"
             };
         function startRule(){
             properties = {};
-            num=1;        
+            num=1;
         }
         function endRule(event){
             var prop,
@@ -52342,7 +52348,7 @@ CSSLint.addRule({
                 needed = needsStandard[i].needed;
                 actual = needsStandard[i].actual;
 
-                if (!properties[needed]){               
+                if (!properties[needed]){
                     reporter.report("Missing standard property '" + needed + "' to go along with '" + actual + "'.", properties[actual][0].name.line, properties[actual][0].name.col, rule);
                 } else {
                     if (properties[needed][0].pos < properties[actual][0].pos){
@@ -52351,13 +52357,13 @@ CSSLint.addRule({
                 }
             }
 
-        }        
-        
+        }
+
         parser.addListener("startrule", startRule);
         parser.addListener("startfontface", startRule);
         parser.addListener("startpage", startRule);
         parser.addListener("startpagemargin", startRule);
-        parser.addListener("startkeyframerule", startRule);         
+        parser.addListener("startkeyframerule", startRule);
 
         parser.addListener("property", function(event){
             var name = event.property.text.toLowerCase();
@@ -52373,7 +52379,7 @@ CSSLint.addRule({
         parser.addListener("endfontface", endRule);
         parser.addListener("endpage", endRule);
         parser.addListener("endpagemargin", endRule);
-        parser.addListener("endkeyframerule", endRule);         
+        parser.addListener("endkeyframerule", endRule);
     }
 
 });
@@ -52386,7 +52392,7 @@ CSSLint.addRule({
         var rule = this;
         parser.addListener("property", function(event){
             var parts = event.value.parts,
-                i = 0, 
+                i = 0,
                 len = parts.length;
 
             while(i < len){
@@ -52436,13 +52442,13 @@ var normalizeModule = function(parentId, moduleName) {
     if (moduleName.charAt(0) == ".") {
         var base = parentId.split("/").slice(0, -1).join("/");
         moduleName = base + "/" + moduleName;
-        
+
         while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
             var previous = moduleName;
             moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
         }
     }
-    
+
     return moduleName;
 };
 
@@ -52460,14 +52466,14 @@ var require = function(parentId, id) {
         }
         return module.exports;
     }
-    
+
     var chunks = id.split("/");
     chunks[0] = require.tlns[chunks[0]] || chunks[0];
     var path = chunks.join("/") + ".js";
-    
+
     require.id = id;
     importScripts(path);
-    return require(parentId, id);    
+    return require(parentId, id);
 };
 
 require.modules = {};
@@ -52485,9 +52491,9 @@ var define = function(id, deps, factory) {
         id = require.id;
     }
 
-    if (id.indexOf("text!") === 0) 
+    if (id.indexOf("text!") === 0)
         return;
-    
+
     var req = function(deps, factory) {
         return require(id, deps, factory);
     };
@@ -52513,13 +52519,13 @@ function initSender() {
 
     var EventEmitter = require(null, "ace/lib/event_emitter").EventEmitter;
     var oop = require(null, "ace/lib/oop");
-    
+
     var Sender = function() {};
-    
+
     (function() {
-        
+
         oop.implement(this, EventEmitter);
-                
+
         this.callback = function(data, callbackId) {
             postMessage({
                 type: "call",
@@ -52527,7 +52533,7 @@ function initSender() {
                 data: data
             });
         };
-    
+
         this.emit = function(name, data) {
             postMessage({
                 type: "event",
@@ -52535,9 +52541,9 @@ function initSender() {
                 data: data
             });
         };
-        
+
     }).call(Sender.prototype);
-    
+
     return new Sender();
 }
 
@@ -52552,13 +52558,13 @@ onmessage = function(e) {
         else
             throw new Error("Unknown command:" + msg.command);
     }
-    else if (msg.init) {        
+    else if (msg.init) {
         initBaseUrls(msg.tlns);
         require(null, "ace/lib/fixoldbrowsers");
         sender = initSender();
         var clazz = require(null, msg.module)[msg.classname];
         main = new clazz(sender);
-    } 
+    }
     else if (msg.event && sender) {
         sender._emit(msg.event, msg.data);
     }
@@ -52572,7 +52578,7 @@ require("./regexp");
 require("./es5-shim");
 
 });
- 
+
 define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
 
     var real = {
@@ -52711,7 +52717,7 @@ if ([1,2].splice(0).length != 2) {
             return a;
         }
         var array = [], lengthBefore;
-        
+
         array.splice.apply(array, makeArray(20));
         array.splice.apply(array, makeArray(26));
 
@@ -52752,7 +52758,7 @@ if ([1,2].splice(0).length != 2) {
 
             var removed = this.slice(pos, pos+removeCount);
             var insert = slice.call(arguments, 2);
-            var add = insert.length;            
+            var add = insert.length;
             if (pos === length) {
                 if (add) {
                     this.push.apply(this, insert);
@@ -53384,13 +53390,13 @@ EventEmitter._dispatchEvent = function(eventName, e) {
 
     if (!e.type)
         e.type = eventName;
-    
+
     if (!e.stopPropagation) {
         e.stopPropagation = function() {
             this.propagationStopped = true;
         };
     }
-    
+
     if (!e.preventDefault) {
         e.preventDefault = function() {
             this.defaultPrevented = true;
@@ -53402,17 +53408,17 @@ EventEmitter._dispatchEvent = function(eventName, e) {
         if (e.propagationStopped)
             break;
     }
-    
+
     if (defaultHandler && !e.defaultPrevented)
         return defaultHandler(e);
 };
 
 EventEmitter.setDefaultHandler = function(eventName, callback) {
     this._defaultHandlers = this._defaultHandlers || {};
-    
+
     if (this._defaultHandlers[eventName])
         throw new Error("The default handler for '" + eventName + "' is already set");
-        
+
     this._defaultHandlers[eventName] = callback;
 };
 
@@ -53626,40 +53632,40 @@ define('ace/worker/mirror', ['require', 'exports', 'module' , 'ace/document', 'a
 
 var Document = require("../document").Document;
 var lang = require("../lib/lang");
-    
+
 var Mirror = exports.Mirror = function(sender) {
     this.sender = sender;
     var doc = this.doc = new Document("");
-    
+
     var deferredUpdate = this.deferredUpdate = lang.deferredCall(this.onUpdate.bind(this));
-    
+
     var _self = this;
     sender.on("change", function(e) {
-        doc.applyDeltas([e.data]);        
+        doc.applyDeltas([e.data]);
         deferredUpdate.schedule(_self.$timeout);
     });
 };
 
 (function() {
-    
+
     this.$timeout = 500;
-    
+
     this.setTimeout = function(timeout) {
         this.$timeout = timeout;
     };
-    
+
     this.setValue = function(value) {
         this.doc.setValue(value);
         this.deferredUpdate.schedule(this.$timeout);
     };
-    
+
     this.getValue = function(callbackId) {
         this.sender.callback(this.doc.getValue(), callbackId);
     };
-    
+
     this.onUpdate = function() {
     };
-    
+
 }).call(Mirror.prototype);
 
 });
@@ -53707,7 +53713,7 @@ var Document = function(text) {
         };
 
 
- 
+
     this.$detectNewLine = function(text) {
         var match = text.match(/^.*?(\r\n|\r|\n)/m);
         if (match) {
@@ -54024,21 +54030,21 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
 };
 
-(function() { 
+(function() {
     this.isEqual = function(range) {
         return this.start.row == range.start.row &&
             this.end.row == range.end.row &&
             this.start.column == range.start.column &&
             this.end.column == range.end.column
-    }; 
+    };
     this.toString = function() {
         return ("Range: [" + this.start.row + "/" + this.start.column +
             "] -> [" + this.end.row + "/" + this.end.column + "]");
-    }; 
+    };
 
     this.contains = function(row, column) {
         return this.compare(row, column) == 0;
-    }; 
+    };
     this.compareRange = function(range) {
         var cmp,
             end = range.end,
@@ -54066,10 +54072,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
                 return 0;
             }
         }
-    }; 
+    };
     this.comparePoint = function(p) {
         return this.compare(p.row, p.column);
-    }; 
+    };
     this.containsRange = function(range) {
         return this.comparePoint(range.start) == 0 && this.comparePoint(range.end) == 0;
     };
@@ -54079,10 +54085,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
     this.isEnd = function(row, column) {
         return this.end.row == row && this.end.column == column;
-    }; 
+    };
     this.isStart = function(row, column) {
         return this.start.row == row && this.start.column == column;
-    }; 
+    };
     this.setStart = function(row, column) {
         if (typeof row == "object") {
             this.start.column = row.column;
@@ -54091,7 +54097,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.start.row = row;
             this.start.column = column;
         }
-    }; 
+    };
     this.setEnd = function(row, column) {
         if (typeof row == "object") {
             this.end.column = row.column;
@@ -54100,7 +54106,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.end.row = row;
             this.end.column = column;
         }
-    }; 
+    };
     this.inside = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column) || this.isStart(row, column)) {
@@ -54110,7 +54116,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideStart = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column)) {
@@ -54120,7 +54126,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideEnd = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isStart(row, column)) {
@@ -54261,7 +54267,7 @@ var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var Anchor = exports.Anchor = function(doc, row, column) {
     this.document = doc;
-    
+
     if (typeof column == "undefined")
         this.setPosition(row.row, row.column);
     else
@@ -54278,7 +54284,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.getPosition = function() {
         return this.$clipPositionToDocument(this.row, this.column);
     };
-        
+
     this.getDocument = function() {
         return this.document;
     };
@@ -54286,19 +54292,19 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.onChange = function(e) {
         var delta = e.data;
         var range = delta.range;
-            
+
         if (range.start.row == range.end.row && range.start.row != this.row)
             return;
-            
+
         if (range.start.row > this.row)
             return;
-            
+
         if (range.start.row == this.row && range.start.column > this.column)
             return;
-    
+
         var row = this.row;
         var column = this.column;
-        
+
         if (delta.action === "insertText") {
             if (range.start.row === row && range.start.column <= column) {
                 if (range.start.row === range.end.row) {
@@ -54323,7 +54329,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
                     column = range.start.column;
                 else
                     column = Math.max(0, column - (range.end.column - range.start.column));
-                
+
             } else if (range.start.row !== range.end.row && range.start.row < row) {
                 if (range.end.row == row) {
                     column = Math.max(0, column - range.end.column) + range.start.column;
@@ -54359,15 +54365,15 @@ var Anchor = exports.Anchor = function(doc, row, column) {
         else {
             pos = this.$clipPositionToDocument(row, column);
         }
-        
+
         if (this.row == pos.row && this.column == pos.column)
             return;
-            
+
         var old = {
             row: this.row,
             column: this.column
         };
-        
+
         this.row = pos.row;
         this.column = pos.column;
         this._emit("change", {
@@ -54381,7 +54387,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     };
     this.$clipPositionToDocument = function(row, column) {
         var pos = {};
-    
+
         if (row >= this.document.getLength()) {
             pos.row = Math.max(0, this.document.getLength() - 1);
             pos.column = this.document.getLine(pos.row).length;
@@ -54394,13 +54400,13 @@ var Anchor = exports.Anchor = function(doc, row, column) {
             pos.row = row;
             pos.column = Math.min(this.document.getLine(pos.row).length, Math.max(0, column));
         }
-        
+
         if (column < 0)
             pos.column = 0;
-            
+
         return pos;
     };
-    
+
 }).call(Anchor.prototype);
 
 });
@@ -54448,7 +54454,7 @@ exports.copyArray = function(array){
     for (var i=0, l=array.length; i<l; i++) {
         if (array[i] && typeof array[i] == "object")
             copy[i] = this.copyObject( array[i] );
-        else 
+        else
             copy[i] = array[i];
     }
     return copy;
@@ -54458,7 +54464,7 @@ exports.deepCopy = function (obj) {
     if (typeof obj != "object") {
         return obj;
     }
-    
+
     var copy = obj.constructor();
     for (var key in obj) {
         if (typeof obj[key] == "object") {
@@ -54584,7 +54590,7 @@ exports.delayedCall = function(fcn, defaultTimeout) {
 define('ace/mode/javascript/jshint', ['require', 'exports', 'module' ], function(require, exports, module) {
 
 var JSHINT = (function () {
-	
+
 
 	var anonname,		// The guessed name for anonymous functions.
 
@@ -58940,13 +58946,13 @@ var normalizeModule = function(parentId, moduleName) {
     if (moduleName.charAt(0) == ".") {
         var base = parentId.split("/").slice(0, -1).join("/");
         moduleName = base + "/" + moduleName;
-        
+
         while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
             var previous = moduleName;
             moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
         }
     }
-    
+
     return moduleName;
 };
 
@@ -58964,14 +58970,14 @@ var require = function(parentId, id) {
         }
         return module.exports;
     }
-    
+
     var chunks = id.split("/");
     chunks[0] = require.tlns[chunks[0]] || chunks[0];
     var path = chunks.join("/") + ".js";
-    
+
     require.id = id;
     importScripts(path);
-    return require(parentId, id);    
+    return require(parentId, id);
 };
 
 require.modules = {};
@@ -58989,9 +58995,9 @@ var define = function(id, deps, factory) {
         id = require.id;
     }
 
-    if (id.indexOf("text!") === 0) 
+    if (id.indexOf("text!") === 0)
         return;
-    
+
     var req = function(deps, factory) {
         return require(id, deps, factory);
     };
@@ -59017,13 +59023,13 @@ function initSender() {
 
     var EventEmitter = require(null, "ace/lib/event_emitter").EventEmitter;
     var oop = require(null, "ace/lib/oop");
-    
+
     var Sender = function() {};
-    
+
     (function() {
-        
+
         oop.implement(this, EventEmitter);
-                
+
         this.callback = function(data, callbackId) {
             postMessage({
                 type: "call",
@@ -59031,7 +59037,7 @@ function initSender() {
                 data: data
             });
         };
-    
+
         this.emit = function(name, data) {
             postMessage({
                 type: "event",
@@ -59039,9 +59045,9 @@ function initSender() {
                 data: data
             });
         };
-        
+
     }).call(Sender.prototype);
-    
+
     return new Sender();
 }
 
@@ -59056,13 +59062,13 @@ onmessage = function(e) {
         else
             throw new Error("Unknown command:" + msg.command);
     }
-    else if (msg.init) {        
+    else if (msg.init) {
         initBaseUrls(msg.tlns);
         require(null, "ace/lib/fixoldbrowsers");
         sender = initSender();
         var clazz = require(null, msg.module)[msg.classname];
         main = new clazz(sender);
-    } 
+    }
     else if (msg.event && sender) {
         sender._emit(msg.event, msg.data);
     }
@@ -59076,7 +59082,7 @@ require("./regexp");
 require("./es5-shim");
 
 });
- 
+
 define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
 
     var real = {
@@ -59215,7 +59221,7 @@ if ([1,2].splice(0).length != 2) {
             return a;
         }
         var array = [], lengthBefore;
-        
+
         array.splice.apply(array, makeArray(20));
         array.splice.apply(array, makeArray(26));
 
@@ -59256,7 +59262,7 @@ if ([1,2].splice(0).length != 2) {
 
             var removed = this.slice(pos, pos+removeCount);
             var insert = slice.call(arguments, 2);
-            var add = insert.length;            
+            var add = insert.length;
             if (pos === length) {
                 if (add) {
                     this.push.apply(this, insert);
@@ -59888,13 +59894,13 @@ EventEmitter._dispatchEvent = function(eventName, e) {
 
     if (!e.type)
         e.type = eventName;
-    
+
     if (!e.stopPropagation) {
         e.stopPropagation = function() {
             this.propagationStopped = true;
         };
     }
-    
+
     if (!e.preventDefault) {
         e.preventDefault = function() {
             this.defaultPrevented = true;
@@ -59906,17 +59912,17 @@ EventEmitter._dispatchEvent = function(eventName, e) {
         if (e.propagationStopped)
             break;
     }
-    
+
     if (defaultHandler && !e.defaultPrevented)
         return defaultHandler(e);
 };
 
 EventEmitter.setDefaultHandler = function(eventName, callback) {
     this._defaultHandlers = this._defaultHandlers || {};
-    
+
     if (this._defaultHandlers[eventName])
         throw new Error("The default handler for '" + eventName + "' is already set");
-        
+
     this._defaultHandlers[eventName] = callback;
 };
 
@@ -60020,40 +60026,40 @@ define('ace/worker/mirror', ['require', 'exports', 'module' , 'ace/document', 'a
 
 var Document = require("../document").Document;
 var lang = require("../lib/lang");
-    
+
 var Mirror = exports.Mirror = function(sender) {
     this.sender = sender;
     var doc = this.doc = new Document("");
-    
+
     var deferredUpdate = this.deferredUpdate = lang.deferredCall(this.onUpdate.bind(this));
-    
+
     var _self = this;
     sender.on("change", function(e) {
-        doc.applyDeltas([e.data]);        
+        doc.applyDeltas([e.data]);
         deferredUpdate.schedule(_self.$timeout);
     });
 };
 
 (function() {
-    
+
     this.$timeout = 500;
-    
+
     this.setTimeout = function(timeout) {
         this.$timeout = timeout;
     };
-    
+
     this.setValue = function(value) {
         this.doc.setValue(value);
         this.deferredUpdate.schedule(this.$timeout);
     };
-    
+
     this.getValue = function(callbackId) {
         this.sender.callback(this.doc.getValue(), callbackId);
     };
-    
+
     this.onUpdate = function() {
     };
-    
+
 }).call(Mirror.prototype);
 
 });
@@ -60101,7 +60107,7 @@ var Document = function(text) {
         };
 
 
- 
+
     this.$detectNewLine = function(text) {
         var match = text.match(/^.*?(\r\n|\r|\n)/m);
         if (match) {
@@ -60418,21 +60424,21 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
 };
 
-(function() { 
+(function() {
     this.isEqual = function(range) {
         return this.start.row == range.start.row &&
             this.end.row == range.end.row &&
             this.start.column == range.start.column &&
             this.end.column == range.end.column
-    }; 
+    };
     this.toString = function() {
         return ("Range: [" + this.start.row + "/" + this.start.column +
             "] -> [" + this.end.row + "/" + this.end.column + "]");
-    }; 
+    };
 
     this.contains = function(row, column) {
         return this.compare(row, column) == 0;
-    }; 
+    };
     this.compareRange = function(range) {
         var cmp,
             end = range.end,
@@ -60460,10 +60466,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
                 return 0;
             }
         }
-    }; 
+    };
     this.comparePoint = function(p) {
         return this.compare(p.row, p.column);
-    }; 
+    };
     this.containsRange = function(range) {
         return this.comparePoint(range.start) == 0 && this.comparePoint(range.end) == 0;
     };
@@ -60473,10 +60479,10 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
     };
     this.isEnd = function(row, column) {
         return this.end.row == row && this.end.column == column;
-    }; 
+    };
     this.isStart = function(row, column) {
         return this.start.row == row && this.start.column == column;
-    }; 
+    };
     this.setStart = function(row, column) {
         if (typeof row == "object") {
             this.start.column = row.column;
@@ -60485,7 +60491,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.start.row = row;
             this.start.column = column;
         }
-    }; 
+    };
     this.setEnd = function(row, column) {
         if (typeof row == "object") {
             this.end.column = row.column;
@@ -60494,7 +60500,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             this.end.row = row;
             this.end.column = column;
         }
-    }; 
+    };
     this.inside = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column) || this.isStart(row, column)) {
@@ -60504,7 +60510,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideStart = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isEnd(row, column)) {
@@ -60514,7 +60520,7 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
             }
         }
         return false;
-    }; 
+    };
     this.insideEnd = function(row, column) {
         if (this.compare(row, column) == 0) {
             if (this.isStart(row, column)) {
@@ -60655,7 +60661,7 @@ var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var Anchor = exports.Anchor = function(doc, row, column) {
     this.document = doc;
-    
+
     if (typeof column == "undefined")
         this.setPosition(row.row, row.column);
     else
@@ -60672,7 +60678,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.getPosition = function() {
         return this.$clipPositionToDocument(this.row, this.column);
     };
-        
+
     this.getDocument = function() {
         return this.document;
     };
@@ -60680,19 +60686,19 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     this.onChange = function(e) {
         var delta = e.data;
         var range = delta.range;
-            
+
         if (range.start.row == range.end.row && range.start.row != this.row)
             return;
-            
+
         if (range.start.row > this.row)
             return;
-            
+
         if (range.start.row == this.row && range.start.column > this.column)
             return;
-    
+
         var row = this.row;
         var column = this.column;
-        
+
         if (delta.action === "insertText") {
             if (range.start.row === row && range.start.column <= column) {
                 if (range.start.row === range.end.row) {
@@ -60717,7 +60723,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
                     column = range.start.column;
                 else
                     column = Math.max(0, column - (range.end.column - range.start.column));
-                
+
             } else if (range.start.row !== range.end.row && range.start.row < row) {
                 if (range.end.row == row) {
                     column = Math.max(0, column - range.end.column) + range.start.column;
@@ -60753,15 +60759,15 @@ var Anchor = exports.Anchor = function(doc, row, column) {
         else {
             pos = this.$clipPositionToDocument(row, column);
         }
-        
+
         if (this.row == pos.row && this.column == pos.column)
             return;
-            
+
         var old = {
             row: this.row,
             column: this.column
         };
-        
+
         this.row = pos.row;
         this.column = pos.column;
         this._emit("change", {
@@ -60775,7 +60781,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
     };
     this.$clipPositionToDocument = function(row, column) {
         var pos = {};
-    
+
         if (row >= this.document.getLength()) {
             pos.row = Math.max(0, this.document.getLength() - 1);
             pos.column = this.document.getLine(pos.row).length;
@@ -60788,13 +60794,13 @@ var Anchor = exports.Anchor = function(doc, row, column) {
             pos.row = row;
             pos.column = Math.min(this.document.getLine(pos.row).length, Math.max(0, column));
         }
-        
+
         if (column < 0)
             pos.column = 0;
-            
+
         return pos;
     };
-    
+
 }).call(Anchor.prototype);
 
 });
@@ -60842,7 +60848,7 @@ exports.copyArray = function(array){
     for (var i=0, l=array.length; i<l; i++) {
         if (array[i] && typeof array[i] == "object")
             copy[i] = this.copyObject( array[i] );
-        else 
+        else
             copy[i] = array[i];
     }
     return copy;
@@ -60852,7 +60858,7 @@ exports.deepCopy = function (obj) {
     if (typeof obj != "object") {
         return obj;
     }
-    
+
     var copy = obj.constructor();
     for (var key in obj) {
         if (typeof obj[key] == "object") {

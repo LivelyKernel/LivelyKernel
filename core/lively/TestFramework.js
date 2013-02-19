@@ -183,7 +183,7 @@ Object.subclass('TestCase',
 
         if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
 
-        if (a instanceof Date & b instanceof Date && a.valueOf() === b.valueOf()) return;
+        if (a instanceof Date & b instanceof Date && a.equals(b)) return;
 
         if (a == b) return;
 
@@ -204,6 +204,9 @@ Object.subclass('TestCase',
         if (a instanceof Color && b instanceof Color && a.equals(b)) return;
 
         if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
+
+        if (a instanceof Date && b instanceof Date &&
+            Math.abs(a.getTime() - b.getTime()) <= eps) return;
 
         if (a == b) return;
 

@@ -140,3 +140,11 @@ Date.prototype.format = function(mask, utc) {
 };
 
 })(); // ed of setupDateFormat
+
+Object.extend(Date.prototype, {
+    equals: function(otherDate) {
+        return otherDate
+            && otherDate instanceof Date
+            && otherDate.getTime() === this.getTime();
+    }
+});

@@ -481,7 +481,6 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
         var borderSizeLeft = this.getBorderSize("left");
 
         submorphs.reduce(function (y, morph) {
-            morph.setPositionTopLeft(pt(borderSizeLeft, y));
             var newHeight = morph.getExtent().y;
             var newWidth = (morph.layout && morph.layout.resizeWidth == true) ?
                 childWidth :
@@ -489,6 +488,11 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
             if (morph.layout && morph.layout.resizeHeight) {
                 newHeight = varChildHeight;
             }
+            var leftMargin = borderSizeLeft;
+            if (morph.layout && morph.layout.centeredHorizontal) {
+                leftMargin += (childWidth - morph.getExtent().x) / 2;
+            }
+            morph.setPositionTopLeft(pt(leftMargin, y));
             morph.setExtent(pt(newWidth, newHeight));
             return y + morph.getExtent().y + spacing;
         }, this.getBorderSize("top"));

@@ -14607,11 +14607,13 @@ var $resetMarkMode = function(e) {
     e.editor.session.$emacsMark = null;
 }
 
-var keys = require("../lib/keys").KEY_MODS;
-var eMods = {
-    C: "ctrl", S: "shift", M: "alt"
-};
-["S-C-M", "S-C", "S-M", "C-M", "S", "C", "M"].forEach(function(c) {
+var keys = require("../lib/keys").KEY_MODS,
+    eMods = {C: "ctrl", S: "shift", M: "alt", CMD: "command"},
+    combinations = ["C-S-M-CMD",
+                    "S-M-CMD", "C-M-CMD", "C-S-CMD", "C-S-M",
+                    "M-CMD", "S-CMD", "S-M", "C-CMD", "C-M", "C-S",
+                    "CMD", "M", "S", "C"];
+combinations.forEach(function(c) {
     var hashId = 0;
     c.split("-").forEach(function(c){
         hashId = hashId | keys[eMods[c]];
@@ -14715,8 +14717,9 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
             args: args,
             command: {
                 exec: function(editor, args) {
-                    for (var i = 0; i < count; i++)
+                    for (var i = 0; i < count; i++) {
                         command.exec(editor, args);
+                    }
                 }
             }
         };

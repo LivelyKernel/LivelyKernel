@@ -101,6 +101,35 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
         this.assert(false, 'State of objects are not equal!');
     },
 
+    testAssertEqualsDate: function() {
+        var a = new Date(1990, 10, 3, 9, 13, 38),
+            b = new Date(1990, 10, 3, 9, 13, 38),
+            c = new Date(1990, 10, 3, 9, 13, 39);
+        this.epsilon = 1000;
+        this.assertEquals(a, b);
+        this.assertEqualsEpsilon(a, b);
+        this.assertEqualsEpsilon(a, c);
+    },
+
+    testAssertEqualsDateFails: function() {
+        var a = new Date(1990, 10, 3, 9, 13, 37),
+            b = new Date(1990, 10, 3, 9, 13, 38),
+            c = new Date(1990, 10, 3, 9, 13, 39);
+        this.epsilon = 1000;
+        try {
+            this.assertEquals(a, b);
+        } catch(e) {
+            if (!e.isAssertion) this.assert(false);
+            try {
+                this.assertEqualsEpsilon(a, c);
+            } catch(e) {
+                if (e.isAssertion) return;
+            }
+            this.assert(false);
+        }
+        this.assert(false);
+    },
+
     testTearDown: function() {
         var counter = 0;
         // Use a existing DummyClass...!

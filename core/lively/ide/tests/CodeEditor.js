@@ -99,6 +99,19 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         this.assertEquals(pt(4,0), e.getCursorPosition(), "ab| { c } -> ab {| c }");
         e.moveForwardToMatching(false, true);
         this.assertEquals(pt(7,0), e.getCursorPosition(), "ab {| c } -> ab { c |}");
+    },
+
+    testMultiSelectionEval: function() {
+        var e = this.editor,
+            Range = ace.require("ace/range").Range;
+        e.textString = "1+1\n1+2\n";
+        e.focus();
+        var range1 = Range.fromPoints({row: 0, column: 0}, {row: 0, column: 3});
+        e.aceEditor.selection.addRange(range1);
+        var range2 = Range.fromPoints({row: 1, column: 0}, {row: 1, column: 3});
+        e.aceEditor.selection.addRange(range2);
+        e.aceEditor.execCommand('printit');
+        this.assertHasText(e, '1+12\n1+23\n');
     }
 
 });

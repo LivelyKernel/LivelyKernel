@@ -13312,7 +13312,7 @@ var Editor = require("./editor").Editor;
             return;
 
         this._emit("paste", text);
-        if (!this.inMultiSelectMode)
+        if (!this.inMultiSelectMode || this.inVirtualSelectionMode)
             return this.insert(text);
 
         var lines = text.split(/\r\n|\r|\n/);

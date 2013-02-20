@@ -4,4 +4,8 @@ if (Config.get("advancedSyntaxHighlighting")) {
     module("lively.ast.IDESupport").load();
 }
 
+if (Config.get("useAceEditor")) {
+    module("lively.ide.CodeEditor").load();
+}
+
 }); // end of module

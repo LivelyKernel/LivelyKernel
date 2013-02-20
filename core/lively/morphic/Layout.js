@@ -195,6 +195,20 @@ lively.morphic.Morph.addMethods(
         }
         return this.layout && this.layout.resizeWidth && this.layout.resizeHeight
     },
+    getInheritedClipMode: function() {
+        var clipMode = lively.morphic.Layout.translateClipMode(this.getClipMode()),
+            x = clipMode.x,
+            y = clipMode.y;
+        if (clipMode.x === 'inherit') {
+            x = (this.owner) ? this.owner.getInheritedClipMode() : undefined;
+        }
+        if (clipMode.y === 'inherit') {
+            y = (this.owner) ? this.owner.getInheritedClipMode() : undefined;
+        }
+        if (x === y) return x
+        else return ({x: x, y: y})
+    }
+
 });
 
 Object.subclass('lively.morphic.Layout.Layout',
@@ -218,25 +232,16 @@ Object.subclass('lively.morphic.Layout.Layout',
             minWidth = this.getMinWidth(container, submorphs),
             minHeight = this.getMinHeight(container, submorphs);
         if (width < minWidth || height < minHeight) {
-            var clipPolicy = this.translateClipMode(container.getClipMode());
-            width = this.calcActualLength(width, minWidth, clipPolicy.x);
-            height = this.calcActualLength(height, minHeight, clipPolicy.y);
+            var clipPolicy = lively.morphic.Layout.translateClipMode(container.getInheritedClipMode());
+            width = lively.morphic.Layout.calcActualLength(width, minWidth, clipPolicy.x);
+            height = lively.morphic.Layout.calcActualLength(height, minHeight, clipPolicy.y);
             container.setExtent(pt(width, height));
         }
     },
 
-    translateClipMode: function(clipMode) {
-        if (typeof(clipMode) === 'string') clipMode = {x: clipMode, y: clipMode};
-        return clipMode
-    },
-    isHiddenClipMode: function(string) {
-        return ['hidden', 'scroll', 'auto'].include(string.y)
-    },
-    calcActualLength: function(length, minimumLength, clipPolicy) {
-        if (!this.isHiddenClipMode(clipPolicy) && (length < minimumLength))
-            length = minimumLength;
-        return length;
-    },
+
+
+
     verticalBorderSpace: function() {
         return this.getBorderSize("top") + this.getBorderSize("bottom");
     },
@@ -375,6 +380,29 @@ Object.subclass('lively.morphic.Layout.Layout',
         if (!this.container) { return; }
         this.container.submorphs.select(function(ea) { return ea.isPlaceholder; }).
             forEach(function(ea) { ea.remove(); });
+    },
+
+});
+Object.extend(lively.morphic.Layout, {
+    translateClipMode: function(clipMode) {
+        if (typeof(clipMode) === 'string') clipMode = {x: clipMode, y: clipMode};
+        return clipMode
+    },
+    isHiddenClipMode: function(string) {
+        return ['hidden', 'scroll', 'auto'].include(string)
+    },
+    calcActualLength: function(length, minimumLength, clipPolicy) {
+        if (!lively.morphic.Layout.isHiddenClipMode(clipPolicy) && (length < minimumLength))
+            length = minimumLength;
+        return length;
+    },
+    widthClipHidden: function(morph) {
+        var clipPolicy = lively.morphic.Layout.translateClipMode(morph.getInheritedClipMode());
+        return this.isHiddenClipMode(clipPolicy.x)
+    },
+    heightClipHidden: function(morph) {
+        var clipPolicy = lively.morphic.Layout.translateClipMode(morph.getInheritedClipMode());
+        return this.isHiddenClipMode(clipPolicy.y)
     },
 
 });

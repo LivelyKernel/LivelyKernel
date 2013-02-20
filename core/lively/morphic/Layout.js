@@ -329,61 +329,7 @@ Object.subclass('lively.morphic.Layout.Layout',
 lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
 'default category', {
 
-    basicLayout_save: function(container, submorphs) {
-        var extent = container.getExtent(),
-            width = extent.x,
-            height = extent.y,
-            spacing = this.getSpacing(),
-            // determine the minimum width required by submorphs
-            childHeight = height - this.getBorderSize("top") - this.getBorderSize("bottom"),
-            fixedChildrenWidth = submorphs.reduce(function (s, e) {
-                return (!e.layout || !e.layout.resizeWidth) ? s + e.getExtent().x : s }, 0),
-            varChildren = submorphs.select(function(e) {
-                return e.layout && e.layout.resizeWidth; }),
-            varChildrenCount = varChildren.size(),
-            varChildrenWidth = extent.x - fixedChildrenWidth
-                             - (submorphs.size() - 1) * spacing
-                             - this.getBorderSize("left") - this.getBorderSize("right"),
-            varChildWidth = varChildrenWidth / varChildrenCount;
-        
-        // consider flexible submorphs with minimum size higher than the calculated average size for flexible submorphs as fixed with their minimum size
-        varChildren.forEach(function (each) {
-            if (each.getMinWidth() > varChildWidth) {
-                varChildrenWidth -= each.getMinWidth();
-                varChildrenCount -= 1;
-            }
-        });
 
-        varChildWidth = varChildrenWidth / varChildrenCount;
-        
-        // determine the own minimum extensions based on submorphs configurations
-        var minWidth = this.getMinWidth(container, submorphs),
-            minHeight = this.getMinHeight(container, submorphs);
-        // resize if the morph would be smaller than the calculated minimum, regarding the clip mode
-        if (width < minWidth || height < minHeight) {
-            if (typeof(container.getClipMode()) === 'string') {
-                var clipPolicy = {x: container.getClipMode(), y: container.getClipMode()};
-            }
-            else clipPolicy = container.getClipMode();
-            if (width < minWidth) width = minWidth;
-            if (['hidden', 'scroll', 'auto'].include(clipPolicy.x)) width = container.getExtent().x
-            if (extent.y < minHeight) height = minHeight;
-            if (['hidden', 'scroll', 'auto'].include(clipPolicy.y)) height = container.getExtent().y
-            container.setExtent(pt(width, height));
-        }
-        var borderSizeTop = this.getBorderSize("top");
-        // resize all submorphs that have the resizeHeight/resizeWidth flag set
-        submorphs.reduce(function (x, morph) {
-            morph.setPositionTopLeft(pt(x, borderSizeTop ));
-            var newWidth = morph.getExtent().x,
-                newHeight = (morph.layout != undefined && morph.layout.resizeHeight == true) ?
-                childHeight :
-                morph.getExtent().y;
-            if (morph.layout && morph.layout.resizeWidth) newWidth = varChildWidth;
-            morph.setExtent(pt(newWidth, newHeight));
-            return x + morph.getExtent().x + spacing;
-        }, this.getBorderSize("left"));
-    },
     basicLayout: function(container, submorphs) {
         this.keepContainerAtMinimumSize(container, submorphs);
         this.resizeFlexibleChildren(submorphs, container.getExtent());

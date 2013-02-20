@@ -72,7 +72,11 @@ lively.morphic.Morph.addMethods(
             return this.getExtent().x;
         }
         if (this.getLayouter()) {
-            return this.getLayouter().getMinWidth(this, this.getLayoutableSubmorphs());
+            if (lively.morphic.Layout.widthClipHidden(this)) {
+                return 0;
+            } else {
+                return this.getLayouter().getMinWidth(this, this.getLayoutableSubmorphs());
+            }
         }
         return 0;
     },
@@ -81,7 +85,10 @@ lively.morphic.Morph.addMethods(
             return this.getExtent().y;
         }
         if (this.getLayouter()) {
-            return this.getLayouter().getMinHeight(this, this.getLayoutableSubmorphs());
+            if (lively.morphic.Layout.heightClipHidden(this))
+                return 0
+            else
+                return this.getLayouter().getMinHeight(this, this.getLayoutableSubmorphs());
         }
         return 0;
     },

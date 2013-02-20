@@ -68,24 +68,22 @@ lively.morphic.Morph.addMethods(
         return this.layout.layouter;
     },
     getMinWidth: function() {
-        if (!this.layout || this.layout.resizeWidth == false || this.layout.resizeWidth == undefined) {
+        if (!this.doesResize('width')) {
             return this.getExtent().x;
         }
         if (this.getLayouter()) {
             return this.getLayouter().getMinWidth(this, this.getLayoutableSubmorphs());
-        } else {
-            return 0;
         }
+        return 0;
     },
     getMinHeight: function() {
-        if (!this.layout || this.layout.resizeHeight == false || this.layout.resizeHeight == undefined) {
+        if (!this.doesResize('height')) {
             return this.getExtent().y;
         }
         if (this.getLayouter()) {
             return this.getLayouter().getMinHeight(this, this.getLayoutableSubmorphs());
-        } else {
-            return 0;
         }
+        return 0;
     },
     submorphResized: function(aSubmorph) {
         // my submorph aSubmorph has changed its size
@@ -477,13 +475,16 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
         return borderSpace + spacingSpace + submorphSpace
     },
     getMinHeight: function(container, submorphs) {
-            return this.getBorderSize("top") + this.getBorderSize("bottom") +
-                submorphs.reduce(function(h, morph)
-            {if (morph.getMinHeight() > h)
-            {return morph.getMinHeight();}
-            else
-            {return h;}}, 0);
-        },
+        var borderSpace = this.getBorderSize("top") + this.getBorderSize("bottom"),
+            submorphSpace = submorphs.reduce(function(h, morph) {
+                if (morph.getMinHeight() > h) {
+                    return morph.getMinHeight();
+                } else {
+                    return h;
+                }
+            }, 0);
+        return borderSpace + submorphSpace
+    },
     handlesSubmorphResized: function() {
         return false;
     },

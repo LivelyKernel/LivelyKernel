@@ -14522,7 +14522,6 @@ var $formerLineStart;
 exports.handler.attach = function(editor) {
     if (!initialized) {
         initialized = true;
-
         dom.importCssString('\
             .emacs-mode .ace_cursor{\
                 border: 2px rgba(50,250,50,0.8) solid!important;\
@@ -14549,8 +14548,10 @@ exports.handler.attach = function(editor) {
             }', 'emacsMode'
         );
     }
+    // in emacs, gotowordleft/right should not count a space as a word..
     $formerLongWords = editor.session.$selectLongWords;
     editor.session.$selectLongWords = true;
+    // CTRL-A should go to actual beginning of line
     $formerLineStart = editor.session.$useEmacsStyleLineStart;
     editor.session.$useEmacsStyleLineStart = true;
 
@@ -14565,27 +14566,28 @@ exports.handler.attach = function(editor) {
     }
 
     editor.on("click",$resetMarkMode);
-
     editor.on("changeSession",$kbSessionChange);
-
     editor.renderer.screenToTextCoordinates = screenToTextBlockCoordinates;
-
     editor.setStyle("emacs-mode");
-
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    var cmdsWithoutKeys = {};
+    Object.keys(commands).forEach(function(cmdName) {
+        var cmd = commands[cmdName], copy = {};
+        for (var name in cmd) { if (name !== 'bindKey') copy[name] = cmd[name]; }
+        cmdsWithoutKeys[cmdName] = copy;
+    });
+    editor.commands.addCommands(cmdsWithoutKeys);
+    exports.handler.platform = editor.commands.platform;
 };
 
 exports.handler.detach = function(editor) {
-
     delete editor.renderer.screenToTextCoordinates;
-
     editor.session.$selectLongWords = $formerLongWords;
     editor.session.$useEmacsStyleLineStart = $formerLineStart;
-
-
     editor.removeEventListener("click",$resetMarkMode);
     editor.removeEventListener("changeSession",$kbSessionChange);
-
     editor.unsetStyle("emacs-mode");
+    editor.commands.removeCommands(commands);
 };
 
 var $kbSessionChange = function(e) {
@@ -14615,7 +14617,7 @@ var keys = require("../lib/keys").KEY_MODS,
                     "CMD", "M", "S", "C"];
 combinations.forEach(function(c) {
     var hashId = 0;
-    c.split("-").forEach(function(c){
+    c.split("-").forEach(function(c) {
         hashId = hashId | keys[eMods[c]];
     });
     eMods[hashId] = c.toLowerCase() + "-";
@@ -14637,7 +14639,6 @@ exports.handler.bindKey = function(key, command) {
 
 
 exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
-
     // insertstring data.count times
     if (hashId == -1) {
         exports.setMarkMode(null);
@@ -14648,7 +14649,8 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         }
     }
 
-    if (key == "\x00") return;
+    if (key == "\x00")
+        return;
 
     var modifier = eMods[hashId];
 
@@ -14708,7 +14710,8 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         command = this.commands[command] || data.editor.commands.commands[command];
     }
 
-    if (!command.readonly && !command.isYank) data.lastCommand = null;
+    if (!command.readonly && !command.isYank)
+        data.lastCommand = null;
 
     if (data.count) {
         var count = data.count;
@@ -14717,9 +14720,8 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
             args: args,
             command: {
                 exec: function(editor, args) {
-                    for (var i = 0; i < count; i++) {
+                    for (var i = 0; i < count; i++)
                         command.exec(editor, args);
-                    }
                 }
             }
         };
@@ -14729,6 +14731,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
 };
 
 exports.emacsKeys = {
+    // movement
     "Up|C-p"      : {command: "goorselect", args: ["golineup","selectup"]},
     "Down|C-n"    : {command: "goorselect", args: ["golinedown","selectdown"]},
     "Left|C-b"    : {command: "goorselect", args: ["gotoleft","selectleft"]},
@@ -14739,6 +14742,8 @@ exports.emacsKeys = {
     "End|C-e"     : {command: "goorselect", args: ["gotolineend","selecttolineend"]},
     "C-Home|S-M-,": {command: "goorselect", args: ["gotostart","selecttostart"]},
     "C-End|S-M-." : {command: "goorselect", args: ["gotoend","selecttoend"]},
+
+    // selection
     "S-Up|S-C-p"      : "selectup",
     "S-Down|S-C-n"    : "selectdown",
     "S-Left|S-C-b"    : "selectleft",
@@ -14754,6 +14759,8 @@ exports.emacsKeys = {
     "M-s" : "centerselection",
     "M-g": "gotoline",
     "C-x C-p": "selectall",
+
+    // todo fix these
     "C-Down": {command: "goorselect", args: ["gotopagedown","selectpagedown"]},
     "C-Up": {command: "goorselect", args: ["gotopageup","selectpageup"]},
     "PageDown|C-v": {command: "goorselect", args: ["gotopagedown","selectpagedown"]},
@@ -14765,6 +14772,8 @@ exports.emacsKeys = {
     "M-C-s": "findnext",
     "M-C-r": "findprevious",
     "S-M-5": "replace",
+
+    // basic editing
     "Backspace": "backspace",
     "Delete|C-d": "del",
     "Return|C-m": {command: "insertstring", args: "\n"}, // "newline"
@@ -14793,7 +14802,11 @@ exports.emacsKeys = {
 
     "C-/|C-x u|S-C--|C-z": "undo",
     "S-C-/|S-C-x u|C--|S-C-z": "redo", //infinite undo?
+    // vertical editing
     "C-x r":  "selectRectangularRegion"
+
+    // todo
+    // "M-x" "C-x C-t" "M-t" "M-c" "F11" "C-M- "M-q"
 };
 
 
@@ -14818,17 +14831,24 @@ exports.handler.addCommands({
         editor.multiSelect.toggleBlockSelection();
     },
     setMark:  function(editor) {
+        // Emulate emacs highlighting behaviour in transient-mark-mode.
+        // Sets mark-mode and clears current selection.
+        // When mark is set, keyboard cursor movement commands become
+        // selection modification commands. That is,
+        // "goto" commands become "select" commands.
+        // Any insertion or mouse click resets mark-mode.
+        // setMark twice in a row at the same place resets markmode
         var markMode = exports.markMode();
-
         if (markMode) {
-
-            cp = editor.getCursorPosition();
+            var cp = editor.getCursorPosition();
             if (editor.selection.isEmpty() &&
                markMode.row == cp.row && markMode.column == cp.column) {
                 exports.setMarkMode(null);
+                // console.log("Mark mode off");
                 return;
             }
         }
+        // turn on mark mode
         markMode = editor.getCursorPosition();
         exports.setMarkMode(markMode);
         editor.selection.setSelectionAnchor(markMode.row, markMode.column);
@@ -14837,7 +14857,6 @@ exports.handler.addCommands({
     exchangePointAndMark: {
         exec: function(editor) {
             var range = editor.selection.getRange();
-
             editor.selection.setSelectionRange(range, !editor.selection.isBackwards());
         },
         readonly: true,
@@ -14863,14 +14882,17 @@ exports.handler.addCommands({
     killLine: function(editor) {
         exports.setMarkMode(null);
         var pos = editor.getCursorPosition();
-
         if (pos.column == 0 &&
             editor.session.doc.getLine(pos.row).length == 0) {
+            // If an already empty line is killed, remove
+            // the line entirely
             editor.selection.selectLine();
         } else {
+            // otherwise just remove from the current cursor position
+            // to the end (but don't delete the selection if it's before
+            // the cursor)
             editor.clearSelection();
             editor.selection.selectLineEnd();
-
         }
         var range = editor.getSelectionRange();
         var text = editor.session.getTextRange(range);
@@ -14886,7 +14908,6 @@ exports.handler.addCommands({
     yankRotate: function(editor) {
         if (editor.keyBinding.$data.lastCommand != "yank")
             return;
-
         editor.undo();
         editor.onPaste(exports.killRing.rotate());
         editor.keyBinding.$data.lastCommand = "yank";
@@ -14897,6 +14918,10 @@ exports.handler.addCommands({
     },
     killRingSave: function(editor) {
         exports.killRing.add(editor.getCopyText());
+    },
+    keyboardQuit: function(editor) {
+        editor.selection.clearSelection();
+        exports.setMarkMode(null);
     }
 });
 

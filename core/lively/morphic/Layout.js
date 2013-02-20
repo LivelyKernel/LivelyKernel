@@ -121,12 +121,9 @@ lively.morphic.Morph.addMethods(
 
     getLayoutableSubmorphs: function() {
         // reject is damn slow..., optimize it!
-        var morphs = new Array(this.submorphs.length);
-        for (var i = 0; i < this.submorphs.length; i++) {
-            var m = this.submorphs[i];
-            if (!m.isEpiMorph && !m.isBeingDragged && m.isLayoutable) { morphs.push(m); }
-        }
-        return morphs;
+        return this.submorphs.select(function (m) {
+            return !m.isEpiMorph && !m.isBeingDragged && m.isLayoutable
+        })
     },
 
     getPositionInWorld: function() {

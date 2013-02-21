@@ -1015,16 +1015,21 @@ lively.morphic.Morph.addMethods(
                     default        : return "transitionend";
                 }
             })(),
-            node = this.renderContext().morphNode,
+            morphNode = this.renderContext().morphNode,
+            shapeNode = this.renderContext().shapeNode,
             remover = (function(evt) {
-                node.style[transitionProp] = "";
-                node.style[durationProp] = "";
-                node.removeEventListener(endEvent, remover, false);
+                morphNode.style[transitionProp] = "";
+                morphNode.style[durationProp] = "";
+                shapeNode.style[transitionProp] = "";
+                shapeNode.style[durationProp] = "";
+                morphNode.removeEventListener(endEvent, remover, false);
                 whenDone && whenDone.call(this);
             }).bind(this);
-        node.addEventListener(endEvent, remover, false);
-        node.style[transitionProp] = "top, left";
-        node.style[durationProp] = duration + "ms";
+        morphNode.addEventListener(endEvent, remover, false);
+        morphNode.style[transitionProp] = "all";
+        shapeNode.style[transitionProp] = "all";
+        morphNode.style[durationProp] = duration + "ms";
+        shapeNode.style[durationProp] = duration + "ms";
         morphModifyFunc.call(this);
     },
 

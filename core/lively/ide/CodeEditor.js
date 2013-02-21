@@ -1,36 +1,56 @@
 module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/lively-ace.min.js' : 'lib/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 lively.ide.ace = {
-    // currently supported: see availableTextModes
+
+    modules: function(optPrefix, shorten) {
+        // return ace modules, optionally filtered by optPrefix. If shorten is
+        // true remove optPrefix from name
+        var moduleNames = Object.keys(ace.define.modules);
+        if (!optPrefix) return moduleNames;
+        moduleNames = moduleNames.select(function(ea) {
+            return ea.startsWith(optPrefix); });
+        if (!shorten) return moduleNames;
+        return moduleNames.map(function(ea) {
+            return ea.substring(optPrefix.length); })
+    },
+
+    // currently supported:
+    // "abap", "clojure", "coffee", "css", "dart", "diff", "haml", "html",
+    // "jade", "java", "javascript", "json", "latex", "less", "lisp",
+    // "makefile", "markdown", "objectivec", "python", "r", "rdoc", "sh",
+    // "sql", "svg", "text", "xml"
     // available but not loaded by default are:
     // "asciidoc", "c9search", "c_cpp", "coldfusion", "csharp", "curly",
     // "dot", "glsl", "golang", "groovy", "haxe", "jsp", "jsx", "liquid",
     // "lua", "luapage", "lucene", "ocaml", "perl", "pgsql", "php",
     // "powershell", "rhtml", "ruby", "scad", "scala", "scss", "stylus",
     // "tcl", "tex", "textile", "typescript", "vbscript", "xquery", "yaml"
-    availableTextModes: ["abap", "clojure", "coffee", "css", "dart", "diff", "haml", "html",
-                         "jade", "java", "javascript", "json", "latex", "less", "lisp",
-                         "makefile", "markdown", "objectivec", "python", "r", "rdoc", "sh",
-                         "sql", "svg", "text", "xml"],
 
-    moduleNameForTextMode: function(textModeName) {
-        return this.availableTextModes.include(textModeName) ?
-            "ace/mode/" + textModeName : null;
+    availableTextModes: function() {
+        return lively.ide.ace.modules('ace/mode/', false)
+            .select(function(moduleName) { return !!ace.require(moduleName).Mode })
+            .map(function(name) { return name.substring('ace/mode/'.length); });
     },
 
-    // supported: see availableThemes
+    moduleNameForTextMode: function(textModeName) {
+        return this.availableTextModes().include(textModeName) ?
+            'ace/mode/' + textModeName : null;
+    },
+
+    // supported:
+    // "ambiance", "monokai", "chrome", "pastel_on_dark", "textmate",
+    // "solarized_dark", "twilight", "tomorrow", "tomorrow_night",
+    // "tomorrow_night_blue", "tomorrow_night_bright", "eclipse"
     // not loaded by default are:
     // "xcode", "vibrant_ink", "tomorrow_night_eighties",
     // "tomorrow_night_bright", "tomorrow_night_blue", "solarized_light",
     // "mono_industrial", "merbivore_soft", "merbivore", "kr", "idle_fingers",
     // "github", "dreamweaver", "dawn", "crimson_editor", "cobalt",
     // "clouds_midnight", "clouds", "chaos"
-    availableThemes: ["ambiance", "monokai", "chrome", "pastel_on_dark", "textmate",
-                      "solarized_dark", "twilight", "tomorrow", "tomorrow_night",
-                      "tomorrow_night_blue", "tomorrow_night_bright", "eclipse"],
+    availableThemes: function() { return this.modules('ace/theme/', true) },
 
     moduleNameForTheme: function(themeName) {
-        return this.availableThemes.include(themeName) ?
+        return this.availableThemes().include(themeName) ?
             "ace/theme/" + themeName : null
     }
 }
@@ -744,6 +764,27 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'rendering', {
     setClipMode: Functions.Null
+},
+'morph menu', {
+    morphMenuItems: function($super) {
+        var items = $super(), editor = this;
+
+        var themeItems = lively.ide.ace.availableThemes().map(function(theme) {
+            return [theme, function(evt) { editor.setTheme(theme); }] });
+
+        var modeItems = lively.ide.ace.availableTextModes().map(function(mode) {
+            return [mode, function(evt) { editor.setTextMode(mode); }] });
+
+        items.push(["themes", themeItems]);
+        items.push(["modes", modeItems]);
+
+        var usesWrap = editor.aceEditor.session.getUseWrapMode();
+        items.push(["line wrapping " + (usesWrap ? 'off' : 'on'), function() {
+            editor.aceEditor.session.setUseWrapMode(!usesWrap);
+        }]);
+
+        return items;
+    }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

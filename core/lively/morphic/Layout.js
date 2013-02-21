@@ -436,9 +436,13 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
             borderSizeTop = this.getBorderSize("top"),
             childHeight = containerExtent.y - this.verticalBorderSpace();
         submorphs.reduce(function (x, morph) {
-            morph.setPositionTopLeft(pt(x, borderSizeTop));
             var newWidth = morph.doesResize('width') ? flexChildWidth : morph.getExtent().x,
-                newHeight = morph.doesResize('height') ? childHeight : morph.getExtent().y;
+                newHeight = morph.doesResize('height') ? childHeight : morph.getExtent().y,
+                topMargin = borderSizeTop;
+            if (morph.layout && morph.layout.centeredVertical) {
+                topMargin += (childHeight - morph.getExtent().y) / 2;
+            }
+            morph.setPositionTopLeft(pt(x, topMargin));
             morph.setExtent(pt(newWidth, newHeight));
             return x + morph.getExtent().x + spacing;
         }, this.getBorderSize("left"));
@@ -544,9 +548,13 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
             borderSizeLeft = this.getBorderSize("left"),
             childWidth = containerExtent.x - this.horizontalBorderSpace();
         submorphs.reduce(function (y, morph) {
-            morph.setPositionTopLeft(pt(borderSizeLeft, y));
             var newHeight = morph.doesResize('height') ? flexChildHeight : morph.getExtent().y,
-                newWidth = morph.doesResize('width') ? childWidth : morph.getExtent().x;
+                newWidth = morph.doesResize('width') ? childWidth : morph.getExtent().x,
+                leftMargin = borderSizeLeft;
+            if (morph.layout && morph.layout.centeredHorizontal) {
+                leftMargin += (childWidth - morph.getExtent().x) / 2;
+            }
+            morph.setPositionTopLeft(pt(leftMargin, y));
             morph.setExtent(pt(newWidth, newHeight));
             return y + morph.getExtent().y + spacing;
         }, this.getBorderSize("top"));

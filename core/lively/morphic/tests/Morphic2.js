@@ -422,4 +422,39 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
 
 });
 
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AccordionTests',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.accordion = new lively.morphic.Accordion();
+        this.accordion.openInWorld();
+    },
+    tearDown: function($super) {
+        $super();
+        this.accordion.remove();
+    },
+},
+'testing', {
+    testAddSection: function() {
+        var foo = this.accordion.addSection('Foo');
+        this.assertEquals(2, this.accordion.submorphs.length);
+        this.assert(this.accordion.submorphs[0] instanceof lively.morphic.Text);
+        this.assertEquals('▼ Foo', this.accordion.submorphs[0].textString);
+        this.assertIdentity(foo, this.accordion.submorphs[1]);
+        this.assertIdentity(this.accordion.activeSection, this.accordion.submorphs[0]);
+    },
+    testSwitchSections: function() {
+        this.accordion.addSection('Foo');
+        this.accordion.addSection('Bar');
+        var foo = this.accordion.submorphs[0];
+        var bar = this.accordion.submorphs[2];
+        this.assertEquals(4, this.accordion.submorphs.length);
+        this.assertEquals('▼ Foo', foo.textString);
+        this.assertEquals('► Bar', bar.textString);
+        this.assertIdentity(foo, this.accordion.activeSection);
+        this.accordion.activateSection(bar);
+        this.assertIdentity(bar, this.accordion.activeSection);
+    }
+});
+
 }) // end of module

@@ -917,7 +917,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         });
     },
 
-
     modifySelectedLines: function(modifyFunc) {
         // this function calls modifyFunc on each line that is selected
         // modifyFunc can somehow change the line
@@ -929,6 +928,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var replacement = lines.join('\n');
         this.insertAtCursor(replacement, true, true);
     },
+
     splitText: function() {
         var selRange = this.getSelectionRange(),
             from = Math.max(selRange[0], selRange[1]),
@@ -1120,7 +1120,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
            evt.stop();
             return true;
         }*/
-        if (this.mergeText()) {
+        if (this.getCursorPos() === 0 && this.mergeText()) {
             evt.stop(); return true;
         }
         if (this.isTabBeforeCursor(true)) {
@@ -1585,6 +1585,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var range = this.getSelectionRange();
         return range && range[0] === range[1]
     },
+    getCursorPos: function() {
+        if (!this.hasNullSelection()) return null;
+        var range = this.getSelectionRange();
+        return range && range[0];
+    },
+
 
     setNullSelectionAt: function(idx) { this.setSelectionRange(idx, idx) },
 

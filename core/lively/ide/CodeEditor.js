@@ -1,5 +1,9 @@
 module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
+(function configureAce() {
+    ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
+})();
+
 lively.ide.ace = {
 
     modules: function(optPrefix, shorten) {

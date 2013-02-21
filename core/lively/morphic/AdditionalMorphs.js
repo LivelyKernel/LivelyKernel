@@ -1887,4 +1887,108 @@ lively.morphic.Box.subclass('lively.morphic.FlapHandle',
     }
 });
 
+lively.morphic.Text.subclass('lively.morphic.AccordionSection',
+'settings', {
+    defaultHeight: 20,
+    animation: {
+        delay: 25,
+        steps: 10
+    }
+},
+'initialization', {
+    initialize: function($super, title, pane) {
+        var bounds = lively.rect(0, 0, 10, this.defaultHeight);
+        $super(bounds, "► " + title);
+        this.setBorderStylingMode(true);
+        this.setAppearanceStylingMode(true);
+        this.addStyleClassName('AccordionHeader');
+        this.disableGrabbing();
+        this.setFixedWidth(true);
+        this.setFixedHeight(true);
+        this.setInputAllowed(false);
+        this.layout = {resizeWidth: true};
+        this.pane = pane;
+        this.pane.layout = {resizeWidth: true, resizeHeight: false};
+        this.pane.setExtent(this.getExtent().withY(0));
+        this.pane.disableGrabbing();
+    }
+},
+'events', {
+    onMouseUp: function(evt) {
+        if (evt.isLeftMouseButtonDown()) {
+            this.owner.activateSection(this);
+        }
+    },
+    open: function() {
+        this.textString = "▼ " + this.textString.substring(2);
+        this.stopStepping();
+        delete this.animation;
+        this.pane.layout.resizeHeight = true;
+        this.pane.setExtent(this.getExtent().withY(1));
+        this.addStyleClassName('active');
+    },
+    close: function() {
+        this.textString = "► " + this.textString.substring(2);
+        this.pane.layout.resizeHeight = false;
+        // unfortunately, 'setExtentAnimated' does not work because it
+        // does not animate the 'extent' property of the morph
+        // so using a custom animation instead
+        // this.pane.setExtentAnimated(this.getExtent().withY(0), 1000);
+        this.animationRate = Math.floor(this.pane.getExtent().y / this.animation.steps);
+        this.startStepping(this.animation.delay, 'animateClose');
+        this.removeStyleClassName('active');
+    },
+    animateClose: function() {
+        var currentHeight = this.pane.getExtent().y;
+        if (currentHeight <= 0) return this.stopStepping();
+        this.pane.setExtent(this.pane.getExtent().withY(currentHeight - this.animationRate));
+    }
+});
+
+lively.morphic.Box.subclass('lively.morphic.Accordion',
+'documentation', {
+    exampleUsage: function() {
+        var a = new lively.morphic.Accordion();
+        a.addSection('Foo').setFill(Color.red);
+        a.addSection('Bar').setFill(Color.green);
+        a.addSection('Baz').setFill(Color.blue);
+        a.openInWorld();
+    }
+},
+'initialization', {
+    initialize: function($super, bounds) {
+        $super(bounds || lively.rect(0,0,200,100));
+        this.setBorderWidth(0);
+        this.setBorderColor(Color.black);
+        this.setLayouter(new lively.morphic.Layout.AccordionLayout(this));
+        this.activeSection = null;
+    }
+},
+'sections', {
+    addSection: function(title, optMorph) {
+        if (!optMorph) {
+            optMorph = new lively.morphic.Box(lively.rect(0,0,10,10));
+        }
+        var section = new lively.morphic.AccordionSection(title, optMorph);
+        this.addMorph(section);
+        this.addMorph(optMorph);
+        if (!this.activeSection) this.activateSection(section);
+        this.applyLayout();
+        return optMorph;
+    },
+    activateSection: function(section) {
+        if (section == this.activeSection) return;
+        if (this.activeSection) this.activeSection.close();
+        this.activeSection = section;
+        if (this.activeSection) this.activeSection.open();
+    },
+    removeSection: function(section) {
+        section.pane.remove();
+        section.remove();
+        if (section == this.activeSection) {
+            this.activeSection = null;
+        }
+    }
+});
+
 }); // end of module

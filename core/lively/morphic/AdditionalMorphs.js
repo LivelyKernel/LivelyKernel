@@ -1911,6 +1911,8 @@ lively.morphic.Text.subclass('lively.morphic.AccordionSection',
         this.pane.layout = {resizeWidth: true, resizeHeight: false};
         this.pane.setExtent(this.getExtent().withY(0));
         this.pane.disableGrabbing();
+        this.closeScript = new lively.morphic.FunctionScript(this.animateClose);
+        this.closeScript.pane = pane;
     }
 },
 'events', {
@@ -1921,8 +1923,7 @@ lively.morphic.Text.subclass('lively.morphic.AccordionSection',
     },
     open: function() {
         this.textString = "▼ " + this.textString.substring(2);
-        this.stopStepping();
-        delete this.animation;
+        this.closeScript.stop();
         this.pane.layout.resizeHeight = true;
         this.pane.setExtent(this.getExtent().withY(1));
         this.addStyleClassName('active');
@@ -1930,18 +1931,14 @@ lively.morphic.Text.subclass('lively.morphic.AccordionSection',
     close: function() {
         this.textString = "► " + this.textString.substring(2);
         this.pane.layout.resizeHeight = false;
-        // unfortunately, 'setExtentAnimated' does not work because it
-        // does not animate the 'extent' property of the morph
-        // so using a custom animation instead
-        // this.pane.setExtentAnimated(this.getExtent().withY(0), 1000);
-        this.animationRate = Math.floor(this.pane.getExtent().y / this.animation.steps);
-        this.startStepping(this.animation.delay, 'animateClose');
+        this.closeScript.rate = Math.floor(this.pane.getExtent().y / this.animation.steps);
+        this.closeScript.startTicking(this.animation.delay);
         this.removeStyleClassName('active');
     },
     animateClose: function() {
         var currentHeight = this.pane.getExtent().y;
-        if (currentHeight <= 0) return this.stopStepping();
-        this.pane.setExtent(this.pane.getExtent().withY(currentHeight - this.animationRate));
+        if (currentHeight <= 0) return this.stop();
+        this.pane.setExtent(this.pane.getExtent().withY(currentHeight - this.rate));
     }
 });
 

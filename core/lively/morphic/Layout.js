@@ -301,15 +301,18 @@ Object.subclass('lively.morphic.Layout.Layout',
     },
 
     onSubmorphResized: function(aMorph, aSubmorph, allSubmorphs) {
-        if (this.handlesSubmorphResized())
+        if (this.handlesSubmorphResized()) {
             this.adjustExtent(aMorph, allSubmorphs);
+        }
     },
     adjustExtent: function(container, submorphs) {
-        var height = Math.max(this.getMinHeight(container, submorphs), container.getExtent().y),
-            width = Math.max(this.getMinWidth(container, submorphs), container.getExtent().x);
-        // Following could be done to activate reacting on decreasing the size of a non-flexibla submorph
-        // height = Math.min(this.getEffectiveExtent(submorphs).y, height),
-        // width = Math.min(this.getEffectiveExtent(submorphs).x, width);
+        var clipmode = container.getClipMode(),
+            height = lively.morphic.Layout.heightClipHidden(container) ?
+                container.getExtent().y
+                :Math.max(this.getMinHeight(container, submorphs), container.getExtent().y),
+            width = lively.morphic.Layout.widthClipHidden(container) ?
+                container.getExtent().x
+                :Math.max(this.getMinWidth(container, submorphs), container.getExtent().x);
         container.setExtent(pt(width, height))
     },
     getEffectiveExtent: function() {

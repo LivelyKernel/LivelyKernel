@@ -513,7 +513,11 @@ lively.morphic.Layout.HorizontalLayout.subclass('lively.morphic.Layout.TightHori
     },
 
     basicLayout: function($super, container, submorphs) {
-        // this type of layout does not allow Texts to be dynamically resized
+        this.preventTextsFromResizing(submorphs)
+        $super(container, submorphs);
+        this.adjustExtent(container, submorphs);
+    },
+    preventTextsFromResizing: function(submorphs) {
         submorphs.forEach(function(each) {
                 if (typeof each["growOrShrinkToFit"] == 'function') {
                     if (each.layout && each.layout.resizeHeight) {
@@ -522,10 +526,8 @@ lively.morphic.Layout.HorizontalLayout.subclass('lively.morphic.Layout.TightHori
                     each.growOrShrinkToFit();
                 }
             });
-
-        $super(container, submorphs);
-        this.adjustExtent(container, submorphs);
     },
+
     adjustExtent: function(aMorph, allSubmorphs) {
         var minHeight = this.getMinHeight(aMorph, allSubmorphs);
         if (aMorph.getExtent().y != minHeight) {
@@ -608,7 +610,6 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
             v_spacingSpace = (submorphs.size()-1) * this.getSpacing(),
             v_submorphSpace = submorphs.reduce(function (s, e) {
                     return s + e.getExtent().y;}, 0);
-        debugger
         return pt(h_submorphSpace + h_borderSpace, v_borderSpace + v_spacingSpace + v_submorphSpace)
     },
 
@@ -621,55 +622,10 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
 
 lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.VerticalScrollerLayout',
 'default category', {
-    basicLayout: function(container, submorphs) {
-        // omitting container resize
-        var extent = container.getExtent(),
-            width = extent.x,
-            height = extent.y,
-            spacing = this.getSpacing(),
-            childWidth = width - this.getBorderSize("left") - this.getBorderSize("right");
-
-        var fixedChildrenHeight = submorphs.reduce(function(s, e) {
-            return !e.layout || !e.layout.resizeHeight ?
-                s + e.getExtent().y : s;
-        }, 0);
-
-        var varChildren = submorphs.select(function(e) {
-                return e.layout && e.layout.resizeHeight; }),
-            varChildrenCount = varChildren.size();
-
-        var varChildrenHeight = extent.y -
-            fixedChildrenHeight -
-            (submorphs.size() - 1) * spacing -
-            this.getBorderSize("top") -
-            this.getBorderSize("bottom");
-
-        var varChildHeight = varChildrenHeight / varChildrenCount;
-        varChildren.forEach(function (each) {
-            if (each.getMinHeight() > varChildHeight) {
-                varChildrenHeight -= each.getMinHeight();
-                varChildrenCount -= 1;
-            }
-        });
-        varChildHeight = varChildrenHeight / varChildrenCount;
-
-
-        var borderSizeLeft = this.getBorderSize("left");
-
-        submorphs.reduce(function (y, morph) {
-            morph.setPositionTopLeft(pt(borderSizeLeft, y));
-            var newHeight = morph.getExtent().y;
-            var newWidth = (morph.layout && morph.layout.resizeWidth == true) ?
-                childWidth :
-                morph.getExtent().x;
-            if (morph.layout && morph.layout.resizeHeight) {
-                newHeight = varChildHeight;
-            }
-            morph.setExtent(pt(newWidth, newHeight));
-            return y + morph.getExtent().y + spacing;
-        }, this.getBorderSize("top"));
-
+    keepContainerAtMinimumSize: function() {
+        // The VerticalScrollerLayout does not keep the container at a minimum size.
     }
+
 });
 
 lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayout',
@@ -677,7 +633,11 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
 
     basicLayout: function($super, container, submorphs) {
         if (!container.isRendered()) return;
-        // only fixed sized submorphs are allowed in this layout
+        this.ensureOnlyFixedSubmorphs(submorphs);
+        $super(container, submorphs);
+        this.adjustExtent(container, submorphs);
+    },
+    ensureOnlyFixedSubmorphs: function(submorphs) {
         submorphs.forEach(function(each) {
             if (each.layout && each.layout.resizeHeight) {
                 each.layout.resizeHeight = false;
@@ -686,9 +646,8 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
                 each.growOrShrinkToFit();
             }
         });
-        $super(container, submorphs);
-        this.adjustExtent(container, submorphs);
     },
+
 
     isJournalLayout: function () {
         return true;

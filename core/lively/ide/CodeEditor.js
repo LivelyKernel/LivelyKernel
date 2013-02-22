@@ -330,6 +330,20 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 bindKey: "Ctrl-Shift-,",
                 exec: this.multiSelectPrev.bind(this),
                 readOnly: true
+            },
+            // insertion
+            {
+                name: 'insertLineAbove',
+                bindKey: "Shift-Return",
+                exec: function(ed) { ed.navigateUp(); ed.navigateLineEnd(); ed.insert('\n'); },
+                multiSelectAction: 'forEach',
+                readOnly: false
+            }, {
+                name: 'insertLineBelow',
+                bindKey: "Command-Return",
+                exec: function(ed) { ed.navigateLineEnd(); ed.insert('\n'); },
+                multiSelectAction: 'forEach',
+                readOnly: false
             }]);
 
         if (Object.isFunction(Config.codeEditorUserKeySetup)) {

@@ -580,8 +580,7 @@ lively.morphic.Text.addMethods(
     createTextNodeHTML: function() {
         var node = XHTMLNS.create('div');
         node.className = 'visibleSelection';
-        node.style.cssText = 'position: absolute;' // needed for text extent calculation
-                           + 'word-wrap: break-word;';
+        node.style.cssText = 'word-wrap: break-word;';
         return node;
     }
 });

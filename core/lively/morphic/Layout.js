@@ -1010,4 +1010,23 @@ lively.morphic.Layout.JournalLayout.subclass("lively.morphic.Layout.TreeLayout",
     }
 });
 
+lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.AccordionLayout', {
+    initialize: function($super, container) {
+        $super(container);
+        this.setBorderSize(1);
+        this.setSpacing(0);
+    },
+    handlesSubmorphResized: function() {
+        return true;
+    },
+    onSubmorphResized: function(container, submorph, submorphs) {
+        this.layout(container, submorphs);
+    },
+    orderedSubmorphs: function(submorphs) {
+        return submorphs.reject(function(ea) {
+            return ea.isEpiMorp;
+        });
+    }
+});
+
 }); // end of module

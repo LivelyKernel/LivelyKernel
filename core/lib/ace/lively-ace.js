@@ -4023,6 +4023,7 @@ function GutterHandler(mouseHandler) {
         tooltip = dom.createElement("div");
         tooltip.className = "ace_gutter-tooltip";
         tooltip.style.display = "none";
+        tooltip.style.position = "absolute";
         editor.container.appendChild(tooltip);
     }
 
@@ -4065,14 +4066,16 @@ function GutterHandler(mouseHandler) {
     }
 
     function moveTooltip(e) {
-        var rect = editor.renderer.$gutter.getBoundingClientRect();
-        tooltip.style.left = e.x + 15 + "px";
-        if (e.y + 3 * editor.renderer.lineHeight + 15 < rect.bottom) {
+        var rect = editor.renderer.$gutter.getBoundingClientRect(),
+            containerBounds = editor.renderer.getContainerElement().getBoundingClientRect(),
+            x  = e.x - containerBounds.left, y = e.y - containerBounds.top;
+        tooltip.style.left = x + 15 + "px";
+        if (y + 3 * editor.renderer.lineHeight + 15 < rect.bottom) {
             tooltip.style.bottom =  "";
-            tooltip.style.top =  e.y + 15 + "px";
+            tooltip.style.top =  y + 15 + "px";
         } else {
             tooltip.style.top =  "";
-            tooltip.style.bottom = rect.bottom - e.y + 5 + "px";
+            tooltip.style.bottom = rect.bottom - y + 5 + "px";
         }
     }
 

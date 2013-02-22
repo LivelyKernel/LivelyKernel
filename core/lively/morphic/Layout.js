@@ -112,18 +112,8 @@ lively.morphic.Morph.addMethods(
         layouter.layout(this, this.getLayoutableSubmorphs());
     },
 
-
     setPositionTopLeft: function(pos) {
-        var topLeft = this.getBounds().topLeft(),
-            nx, ny,
-            cx, cy;
-          nx = pos.x;
-          ny = pos.y;
-          cx = this.getPosition().x;
-          cy = this.getPosition().y;
-          this.setPosition(pt(
-              nx + cx - topLeft.x,
-            ny + cy - topLeft.y));
+          this.setPosition(this.getOrigin().addPt(pos));
     },
 
     getLayoutableSubmorphs: function() {

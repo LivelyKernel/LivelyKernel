@@ -514,7 +514,7 @@ lively.morphic.Morph.addMethods(
         this.isFixed = fixed;
         if(fixed) {
             this.fixedScale = this.getScale() * lively.morphic.World.current().getZoomLevel();
-            this.startStepping(0, "updateZoomScale");
+            this.startStepping(100, "updateZoomScale");
         }
         else {
             this.stopSteppingScriptNamed("updateZoomLevel");

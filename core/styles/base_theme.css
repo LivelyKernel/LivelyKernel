@@ -122,3 +122,17 @@
 .FlapHandle {
 	border: 1px solid black;
 }
+
+.AccordionHeader {
+	background-image: -webkit-linear-gradient(top, #eee, #ccc);
+	background-image: -moz-linear-gradient(top, #eee, #ccc);
+	border-radius: 3px;
+	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
+	cursor: pointer;
+	border: 1px solid #888;
+}
+
+.AccordionHeader.active {
+	background-image: -webkit-linear-gradient(top, #fff, #eee);
+	background-image: -moz-linear-gradient(top, #fff, #eee);
+}

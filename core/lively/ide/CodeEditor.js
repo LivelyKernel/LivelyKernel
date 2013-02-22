@@ -193,6 +193,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     setupKeyBindings: function() {
+        var codeEditor = this;
         this.addCommands([
             // evaluation
             {
@@ -249,6 +250,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 name: 'clearSelection',
                 bindKey: 'Escape',
                 exec: this.clearSelection.bind(this),
+                readOnly: true
+            }, {
+                name: 'selectLine',
+                bindKey: {win: "Ctrl-L", mac: "Command-L"},
+                exec: function(ed) { codeEditor.selectCurrentLine(); },
+                multiSelectAction: 'forEach',
                 readOnly: true
             }, {
                 name: 'moveForwardToMatching',
@@ -666,9 +673,23 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getSelectionOrLineString: function() {
         var editor = this.aceEditor, sel = editor.selection;
         if (!sel) return "";
-        var range = sel.isEmpty() ? sel.getLineRange() : editor.getSelectionRange();
+        if (sel.isEmpty()) this.selectCurrentLine();
+        var range =  editor.getSelectionRange();
         return editor.session.getTextRange(range);
     },
+    selectCurrentLine: function() {
+        this.withAceDo(function(ed) {
+            var selStart = ed.selection.getSelectionAnchor();
+            ed.navigateLineStart();
+            var lineStartPos = ed.getCursorPosition();
+            if (selStart.column === lineStartPos.column && selStart.row == lineStartPos.row) {
+                // for switching between real line start and pos after spaces
+                ed.navigateLineStart();
+            }
+            ed.selection.selectLineEnd();
+        });
+    },
+
 
     multiSelectNext: function() {
         this.multiSelect({backwards: false});

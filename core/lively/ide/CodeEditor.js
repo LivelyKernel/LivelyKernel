@@ -628,17 +628,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             if (typeof(optStartLetters) !== 'undefined') {
                 replacer = signature.substring(optStartLetters.size());
             }
-            // if (textMorph.getTextString().indexOf('.') < 0) {
-            //     replacer = '.' + replacer;
-            // }
             return [signature, function() {
-                // FIXME not sure if this has to be delayed
-                (function() {
-                    textMorph.focus();
-                    textMorph.insertAtCursor(replacer, true);
-                    textMorph.focus();
-                }).delay(0)
-            }]
+                textMorph.focus();
+                textMorph.clearSelection();
+                textMorph.insertAtCursor(replacer, true);
+            }];
         }
         pl.evalSelectionAndOpenListForProtocol();
     },

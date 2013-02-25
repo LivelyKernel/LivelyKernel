@@ -1584,9 +1584,7 @@ lively.morphic.World.addMethods(
 },
 'windows', {
     addFramedMorph: function(morph, title, optLoc, optSuppressControls, suppressReframeHandle) {
-        var w = this.addMorph(
-            new lively.morphic.Window(morph, title || 'Window',
-                                      optSuppressControls, suppressReframeHandle));
+        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls, suppressReframeHandle));
         w.setPosition(optLoc || this.positionForNewMorph(morph));
         return w;
     },
@@ -2212,6 +2210,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     },
 
     alignAllHandles: function() {
+        if (this.isCollapsed()) return;
         var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
         handles.invoke('alignWithWindow');
     }
@@ -2290,12 +2289,12 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         });
         this.owner.addMorphFront(this); // come forward
         this.alignAllHandles();
+        var inner = this.targetMorph,
+            callGetsFocus = inner && !!inner.onWindowGetsFocus;
         (function() {
             textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
-            if (this.targetMorph && this.targetMorph.onWindowGetsFocus) {
-                this.targetMorph.onWindowGetsFocus();
-            }
-        }).delay(0);
+            if (callGetsFocus) { inner.onWindowGetsFocus(this); }
+        }).bind(this).delay(0);
     },
 
     onMouseDown: function(evt) {

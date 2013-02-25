@@ -662,8 +662,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'text morph event interface', {
     focus: function() { this.aceEditor.focus(); },
-    isFocused: function() { return this._isFocused },
-    requestKeyboardFocus: function(hand) { this.focus(); }
+    isFocused: function() { return this._isFocused; },
+    requestKeyboardFocus: function(hand) { this.focus(); },
+    onWindowGetsFocus: function(window) { this.focus(); }
 },
 'text morph selection interface', {
     setSelectionRange: function(startIdx, endIdx) {
@@ -836,7 +837,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 lively.morphic.World.addMethods(
 'tools', {
     addCodeEditor: function(options) {
-        options = Object.isString(options) ? {content: options} : {}; // convenience
+        options = Object.isString(options) ? {content: options} : (options || {}); // convenience
         var bounds = (options.extent || lively.pt(500, 200)).extentAsRectangle(),
             title = options.title || 'Code editor',
             editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
@@ -898,6 +899,10 @@ lively.morphic.World.addMethods(
             this.statusMorph.setTextColor(color || Color.black);
             this.addMorph(this.statusMorph);
             (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
+        });
+
+        objectEditor.addScript(function onWindowGetsFocus() {
+            this.get('ObjectEditorScriptPane').focus();
         });
 
         owner.addMorphBack(codeMorph);

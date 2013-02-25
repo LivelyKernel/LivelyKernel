@@ -136,9 +136,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         // if (panel.commentPane.clipMorph) panel.commentPane.clipMorph.setFill(null);
 
         panel.ownerWidget = this;
-
         this.start();
-
         return panel;
     },
 
@@ -772,6 +770,10 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
         for (var paneName in selectionSpec)
             widget.inPaneSelectNodeNamed(paneName, selectionSpec[paneName]);
     },
+    onWindowGetsFocus: function() {
+        this.sourcePane && this.sourcePane.focus();
+    },
+
 
     shutdown: function($super) {
         $super();

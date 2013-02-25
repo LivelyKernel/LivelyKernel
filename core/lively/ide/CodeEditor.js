@@ -159,7 +159,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setTextMode(this.getTextMode() || "");
         this.setTheme(this.getTheme() || '');
 
-        // 2) run after setup callbacks
+        // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
         if (!cbs) return;
         delete this.aceEditorAfterSetupCallbacks;
@@ -195,8 +195,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     setupKeyBindings: function() {
         var codeEditor = this;
         this.addCommands([
-            // evaluation
-            {
+            { // evaluation
                 name: 'doit',
                 bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
                 exec: this.doit.bind(this, false),
@@ -244,9 +243,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 bindKey: {win: "Ctrl-]", mac: "Command-]"},
                 exec: function(editor) { editor.blockIndent(); },
                 multiSelectAction: "forEach"
-            },
-            // selection / movement
-            {
+            },{ // selection / movement
                 name: 'clearSelection',
                 bindKey: 'Escape',
                 exec: this.clearSelection.bind(this),
@@ -305,7 +302,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 exec: function(editor) { editor.navigateLineEnd(); },
                 multiSelectAction: "forEach",
                 readOnly: true
-            }, {
+            },
+            // search & find
+            {
                 name: "searchWithPrompt",
                 bindKey: {win: "Ctrl-F", mac: "Command-F"},
                 exec: this.searchWithPrompt.bind(this),
@@ -329,6 +328,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 name: "multiSelectPrev",
                 bindKey: "Ctrl-Shift-,",
                 exec: this.multiSelectPrev.bind(this),
+                readOnly: true
+            }, {
+                name: 'doBrowseImplementors',
+                bindKey: {win: 'Ctrl-Shift-F', mac: 'Command-Shift-F'},
+                exec: this.doBrowseImplementors.bind(this),
                 readOnly: true
             },
             // insertion
@@ -511,7 +515,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.withAceDo(function(ed) {
             ed.find({skipCurrent: true, backwards: true, needle: ed.$search.$options.needle});
         });
+    },
+
+    doBrowseImplementors: function(ed) {
+        this.world().openMethodFinderFor(this.getSelectionOrLineString());
     }
+
 },
 'event handling', {
     onMouseDown: function($super, evt) {

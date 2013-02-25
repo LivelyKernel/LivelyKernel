@@ -59,6 +59,43 @@ lively.ide.ace = {
     }
 }
 
+lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
+'settings', {
+    // for now we do have a couple of optimizations in place that need the
+    // shape to reference the aceEditor
+    doNotSerialize: ["aceEditor"]
+},
+'intializing', {
+    initialize: function($super) {
+        var node = document.createElement('div');
+        $super(node);
+    }
+},
+'serialization', {
+
+    onstore: function() {
+        var node = this.shapeNode;
+        if (!node) return;
+        this.extent = this.getExtent();
+    },
+
+    onrestore: function() {
+        this.shapeNode = document.createElement('div');
+        this.shapeNode.style.width = this.extent.x + 'px';
+        this.shapeNode.style.height = this.extent.y + 'px';
+        this.setExtent(this.extent);
+    }
+},
+'HTML rendering', {
+    getExtentHTML: function($super, ctx) {
+        if (!this.aceEditor) return $super(ctx);
+        var borderW = this.getBorderWidth(),
+            aceSize = this.aceEditor.renderer.$size;
+        return lively.pt(aceSize.width + borderW, aceSize.height + borderW);
+    }
+});
+
+
 lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'settings', {
     style: {
@@ -71,21 +108,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'initializing', {
     initialize: function($super, bounds, string) {
         bounds = bounds || lively.rect(0,0,400,300);
-        var shape = new lively.morphic.Shapes.External(document.createElement('div'));
-
-        // FIXME those functions should go somewhere else...
-        (function onstore() {
-            var node = this.shapeNode;
-            if (!node) return;
-            this.extent = this.getExtent();
-        }).asScriptOf(shape);
-
-        (function onrestore() {
-            this.shapeNode = document.createElement('div');
-            this.shapeNode.style.width = this.extent.x + 'px';
-            this.shapeNode.style.height = this.extent.y + 'px';
-            this.setExtent(this.extent);
-        }).asScriptOf(shape);
+        var shape = new lively.morphic.CodeEditorShape();
 
         $super(shape);
         this.setBounds(bounds);
@@ -147,7 +170,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         e.on('blur', function() { morph._isFocused = false; });
         node.setAttribute('id', 'ace-editor');
         e.session.setUseSoftTabs(true);
-        // 2) set modes / themes
+
+        // 2) let the shape know about the editor, this let's us do some optimizations
+        this.getShape().aceEditor = e;
+
+        // 3) set modes / themes
         this.setStyleSheet('#ace-editor {'
                           + ' position:absolute;'
                           + ' top:0;'
@@ -983,7 +1010,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         ]
     }
 });
-
 
 
 }); // end of module

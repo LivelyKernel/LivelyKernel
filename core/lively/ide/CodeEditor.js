@@ -231,6 +231,29 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 exec: this.doInspect.bind(this),
                 multiSelectAction: "forEach",
                 readOnly: true
+            }, { // text manipulation
+                name: 'removeSelectionOrLine',
+                bindKey: {win: 'Ctrl-X', mac: 'Command-X'},
+                exec: function(ed) {
+                    var sel = ed.selection;
+                    if (sel.isEmpty()) { sel.selectLine(); }
+                    // let a normal "cut" to the clipboard happen
+                    return false;
+                },
+                multiSelectAction: function(ed) {
+                    var sel = ed.selection;
+                    // for all cursors: if range is empty select line
+                    sel.getAllRanges().forEach(function(range) {
+                        if (!range.isEmpty())  return;
+                        var row = range.start.row,
+                            lineRange = sel.getLineRange(row, true);
+                        sel.addRange(lineRange);
+                    });
+                    // let a normal "cut" to the clipboard happen
+                    ed.execCommand('cut');
+                    return false;
+                },
+                readOnly: false
             },
             // code manipulation
             {

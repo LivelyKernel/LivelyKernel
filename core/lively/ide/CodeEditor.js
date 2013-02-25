@@ -375,6 +375,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
         if (Object.isFunction(Config.codeEditorUserKeySetup)) {
             Config.codeEditorUserKeySetup(this);
+            // update existing editors when #codeEditorUserKeySetup changes:
+            lively.bindings.connect(Config, 'codeEditorUserKeySetup', this, 'setupKeyBindings', {
+                  forceAttributeConnection: true})
         }
     },
 

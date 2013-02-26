@@ -436,7 +436,10 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
                 topMargin += (childHeight - morph.getExtent().y) / 2;
             }
             morph.setPositionTopLeft(pt(x, topMargin));
-            morph.setExtent(pt(newWidth, newHeight));
+            var newExtent = lively.pt(newWidth, newHeight);
+            if (!morph.getExtent().equals(newExtent)) {
+                morph.setExtent(newExtent);
+            }
             return x + morph.getExtent().x + spacing;
         }, this.getBorderSize("left"));
     },
@@ -550,8 +553,9 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
                 leftMargin += (childWidth - morph.getExtent().x) / 2;
             }
             morph.setPositionTopLeft(pt(leftMargin, y));
-            if (!morph.getExtent().equals(pt(newWidth, newHeight))) {
-                morph.setExtent(pt(newWidth, newHeight));
+            var newExtent = lively.pt(newWidth, newHeight);
+            if (!morph.getExtent().equals(newExtent)) {
+                morph.setExtent(newExtent);
             }
             return y + morph.getExtent().y + spacing;
         }, this.getBorderSize("top"));

@@ -55,7 +55,34 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
         container.addMorph(m);
 
         this.assertEquals(m.getPosition(), pt(l.getSpacing(), l.getSpacing()), 'TileLayout did not set correct position of first submorph');
+    },
+    test04CalcActualLength: function() {
+        var length = 100,
+            minimumLength = 150,
+            clipPolicy = {hidden: 'scroll', visible: 'visible'};
+        this.assertEquals(
+            lively.morphic.Layout.calcActualLength(length, minimumLength, clipPolicy.hidden),
+            100,
+            'a morph with hidden clip policy was kept at a minimum size')
+        this.assertEquals(
+            lively.morphic.Layout.calcActualLength(length, minimumLength, clipPolicy.visible),
+            150,
+            'a morph with visible clip policy was resized under its minimum size')
+    },
+    test05GetInheritedClipMode: function() {
+        var m = new lively.morphic.Morph(),
+            n = m.copy(),
+            policy_hidden = 'hidden',
+            policy_complex = {x:'visible', y:'hidden'};
+        m.addMorph(n);
+        m.setClipMode(policy_hidden);
+        n.setClipMode('inherit');
+        this.assertEquals(n.getInheritedClipMode(),policy_hidden, 'wrong simple inherited clip mode found')
+        n.setClipMode({x: 'visible', y: 'inherit'}),
+        this.assertEquals(n.getInheritedClipMode().y,policy_complex.y, 'wrong complex inherited clip mode found')
     }
+
+
 });
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Layout.BasicTest',

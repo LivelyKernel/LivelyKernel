@@ -136,7 +136,7 @@ lively.morphic.Morph.addMethods(
     },
 
     createPlaceholder: function() {
-        this.placeholder = this.copy();
+        this.placeholder = this.getGrabShadow();
         this.placeholder.isBeingDragged = false;
         this.placeholder.isPlaceholder = true;
         this.placeholder.ignoreEvents();

@@ -80,9 +80,17 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
         this.assertEquals(n.getInheritedClipMode(),policy_hidden, 'wrong simple inherited clip mode found')
         n.setClipMode({x: 'visible', y: 'inherit'}),
         this.assertEquals(n.getInheritedClipMode().y,policy_complex.y, 'wrong complex inherited clip mode found')
+    },
+    test06Placeholder: function() {
+        var m = new lively.morphic.Morph();
+        m.setFill(Color.red);
+        m.addScript(function foo() { return false; });
+        var placeholder = m.createPlaceholder();
+        this.assert(placeholder.isPlaceholder);
+        this.assert(!placeholder.isBeingDragged);
+        this.assertEquals(Color.gray, placeholder.getFill());
+        this.assert(!placeholder.hasOwnProperty('foo'), 'placeholder is full copy');
     }
-
-
 });
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Layout.BasicTest',

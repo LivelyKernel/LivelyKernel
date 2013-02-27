@@ -136,7 +136,8 @@ lively.morphic.Morph.addMethods(
     },
 
     createPlaceholder: function() {
-        this.placeholder = this.copy();
+        // use grab shadow as placeholder; or fall back to normal morphic copy
+        this.placeholder = this.getGrabShadow() || this.copy();
         this.placeholder.isBeingDragged = false;
         this.placeholder.isPlaceholder = true;
         this.placeholder.ignoreEvents();

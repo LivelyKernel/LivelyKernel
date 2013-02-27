@@ -1052,6 +1052,8 @@ lively.morphic.Morph.addMethods(
 
 lively.morphic.Morph.addMethods({
     openInFlap: function(alignment) {
+        if (!this.owner)
+            this.openInWorld()
         var world = lively.morphic.World.current(),
             owner = this.owner || lively.morphic.World.current(),
             offset = 5,

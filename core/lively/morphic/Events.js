@@ -190,7 +190,7 @@ Object.subclass('lively.morphic.EventHandler',
                 return evt.ctrlKey;
             if (UserAgent.isOpera) // Opera recognizes cmd as ctrl!!?
                 return evt.ctrlKey;
-            return evt.metaKey;
+            return evt.metaKey || evt.keyIdentifier === 'Meta';
         };
 
         evt.isShiftDown = function() { return !!evt.shiftKey };

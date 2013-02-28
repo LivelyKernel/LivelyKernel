@@ -700,7 +700,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     printInspect: function() {
         this.withAceDo(function(ed) {
             var obj = this.evalSelection();
-            this.printObject(ed, Objects.inspect(obj, this.printInspectMaxDepth));
+            this.printObject(ed, Objects.inspect(obj, {maxDepth: this.printInspectMaxDepth}));
         });
     },
 

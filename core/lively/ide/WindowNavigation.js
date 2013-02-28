@@ -11,6 +11,7 @@ module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively
             winSwitcher.open({invokingEvent: evt});
             return true;
         }
+        return false;
     });
 })();
 
@@ -31,10 +32,10 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
         if (!morphOrTitleOrName) return;
         var win = morphOrTitleOrName.isMorph && morphOrTitleOrName;
         if (!win) {
-            win = this.findWindow(function(ea) { ea.getTitle() === morphOrTitleOrName; });
+            win = this.findWindow(function(ea) { return ea.getTitle() === morphOrTitleOrName; });
         }
         if (!win) {
-            win = this.findWindow(function(ea) { ea.getName === morphOrTitleOrName; });
+            win = this.findWindow(function(ea) { return ea.getName === morphOrTitleOrName; });
         }
         if (!win) return;
         win.comeForward();
@@ -234,7 +235,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
           sourceModule: "lively.morphic.Core",
           submorphs: []
         };
-        
+
         var switcher = lively.morphic.Morph.fromSpec(spec);
         return switcher;
     }

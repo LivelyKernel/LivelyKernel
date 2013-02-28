@@ -954,7 +954,7 @@ lively.morphic.World.addMethods(
             (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
         });
 
-        objectEditor.addScript(function onWindowGetsFocus() {
+        objectEditor.targetMorph.addScript(function onWindowGetsFocus() {
             this.get('ObjectEditorScriptPane').focus();
         });
 

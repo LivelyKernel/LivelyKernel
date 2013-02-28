@@ -121,10 +121,12 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
         }",
           name: "WindowSwitcher",
           noWindows: "<function>function noWindows() {\n\
-            text = lively.morphic.Text.makeLabel(title, {\n\
+            text = lively.morphic.Text.makeLabel('no windows', {\n\
                 extent: this.getExtent().withY(20),\n\
                 fixedHeight: false\n\
             });\n\
+            text.addStyleClassName(\'tab-list-item\');\n\
+            text.addStyleClassName(\'selected\');\n\
             this.addMorph(text);\n\
             (function() {\n\
                 this.removeAllMorphs();\n\
@@ -179,9 +181,9 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
             }\n\
         \n\
             w.addMorphFront(this);\n\
-            if (windows.length === 0) { this.noWindows(); return; }\n\
-            this.listWindows(windows);\n\
             this.align(this.bounds().center(), w.visibleBounds().center());\n\
+            if (windows.length === 0 || windows.length === 1) { this.noWindows(); return; }\n\
+            this.listWindows(windows);\n\
             this.selectN(this.initialSelection || 0);\n\
         }",
           reset: "<function>function reset() {\n\

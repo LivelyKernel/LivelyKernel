@@ -92,6 +92,16 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
         var borderW = this.getBorderWidth(),
             aceSize = this.aceEditor.renderer.$size;
         return lively.pt(aceSize.width + borderW, aceSize.height + borderW);
+    },
+
+    setExtentHTML: function (ctx, value) {
+        if (!ctx.shapeNode) return undefined;
+        var borderWidth = Math.floor(this.getBorderWidth()),
+            realExtent = value.addXY(-1 * borderWidth, -1 * borderWidth);
+        realExtent = realExtent.maxPt(pt(0,0));
+        ctx.domInterface.setExtent(ctx.shapeNode, realExtent);
+        if (this.aceEditor) this.aceEditor.resize(true);
+        return realExtent;
     }
 });
 
@@ -153,12 +163,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'accessing', {
-    getGrabShadow: function() { return null; },
-    setExtent: function($super, extent) {
-        $super(extent);
-        this.withAceDo(function(ed) { ed.resize(); });
-        return extent;
-    }
+    getGrabShadow: function() { return null; }
 },
 'ace', {
     initializeAce: function() {

@@ -644,8 +644,8 @@ Object.extend(lively.morphic.Morph, {
         var bounds = pt(-radius, -radius).extent(pt(radius*2, radius*2));
         var morph = new lively.morphic.Morph(new lively.morphic.Shapes.Ellipse(bounds));
         morph.moveBy(location);
-        morph.setBorderWidth(lineWidth);
-        morph.setBorderColor(lineColor);
+        morph.setBorderWidth(lineWidth || 0);
+        morph.setBorderColor(lineColor || Color.black);
         morph.setFill(fill || Color.blue);
         return morph;
     },

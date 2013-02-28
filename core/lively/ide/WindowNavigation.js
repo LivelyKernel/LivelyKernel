@@ -1,7 +1,7 @@
 module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively.persistence.BuildSpec', 'lively.morphic.tests.Helper').toRun(function() {
 
 (function installKeyEventHandler() {
-    $("body").off('keydown');
+    // $("body").off('keydown');
     var winSwitcher;
     $("body").bind('keydown', function(evt) {
         if (evt.keyCode === 116 // F5
@@ -11,7 +11,7 @@ module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively
             winSwitcher.open({invokingEvent: evt});
             return true;
         }
-        return false;
+        return undefined;
     });
 })();
 

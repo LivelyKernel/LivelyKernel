@@ -149,38 +149,27 @@ Object.subclass('lively.morphic.EventHandler',
 },
 'handle events', {
     handleEvent: function(evt) {
+        // eventSpec maps morphs and morphic event handlers to events
         var eventSpec = this.dispatchTable[evt.type];
-
         if (!eventSpec) return false;
-
-        var target = eventSpec.target;
-
+        var target = eventSpec.target; // the morph
         if (target.eventsAreDisabled) return false;
-
         if (Global.LastEventWasHandled && evt === Global.LastEvent) return false;
-
+        // add convenience methods to the event
         this.patchEvent(evt);
-
-        // if (evt.isKeyboardEvent && !target.isFocusable()) { return false };
-
-        if (false && evt.isMouseEvent) {
-            var morph = target;
-            var globalBounds = morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds())
-            if (!globalBounds.containsPoint(evt.getPosition())) return false;
-        }
-
         Global.LastEvent = evt;
         Global.LastEventWasHandled = false;
-
+        // invoke event handler methods
         var wasHandled;
         try {
             wasHandled = target[eventSpec.targetMethodName](evt);
         } catch(e) {
             this.handleError(e, target, eventSpec);
         }
-
+        // when an event handler returns true it means that the event was
+        // handled and no other morphs should deal with it anymore
+        // note: this is not the same as evt.stop() !!!
         Global.LastEventWasHandled = Global.LastEventWasHandled || wasHandled;
-
         return true;
     },
     patchEvent: function(evt) {
@@ -201,7 +190,7 @@ Object.subclass('lively.morphic.EventHandler',
                 return evt.ctrlKey;
             if (UserAgent.isOpera) // Opera recognizes cmd as ctrl!!?
                 return evt.ctrlKey;
-            return evt.metaKey;
+            return evt.metaKey || evt.keyIdentifier === 'Meta';
         };
 
         evt.isShiftDown = function() { return !!evt.shiftKey };
@@ -457,11 +446,7 @@ Trait('ScrollableTrait',
 },
 'scroll event handling', {
     onMouseWheel: function(evt) {
-        //if (evt.hand.scrollFocusMorph === this) {
         this.stopScrollWhenBordersAreReached(evt);
-        //} else {
-         //   this.undoScroll(evt); // browser scrolled me automatically, need to restore
-        //}
         return true;
     },
 
@@ -481,26 +466,18 @@ Trait('ScrollableTrait',
     stopScrollWhenBordersAreReached: function(evt) {
         // FIXME HTML specfic! Move to HTML module
         var div = this.getScrollableNode(evt);
-        //var div = evt.hand.clickedOnMorph.getScrollableNode(evt);
         if (evt.wheelDeltaX) {
             var maxHorizontalScroll = div.scrollWidth - div.clientWidth,
                 currentHorizontalScroll = div.scrollLeft;
-            //alertOK('hscroll: ' + currentHorizontalScroll);
-            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxHorizontalScroll)
-                evt.stop();
-            if (evt.wheelDeltaX > 0 && currentHorizontalScroll <= 0)
-                evt.stop();
+            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxHorizontalScroll) { evt.stop(); }
+            if (evt.wheelDeltaX > 0 && currentHorizontalScroll <= 0) { evt.stop(); }
         }
         if (evt.wheelDeltaY) {
             var maxVerticalScroll = div.scrollHeight - div.clientHeight,
                 currentVerticalScroll = div.scrollTop;
-            //alertOK('vscroll: ' + currentVerticalScroll);
-            if (evt. wheelDeltaY < 0 && currentVerticalScroll >= maxVerticalScroll)
-                evt.stop();
-            if (evt. wheelDeltaY > 0 && currentVerticalScroll <= 0)
-                evt.stop();
+            if (evt. wheelDeltaY < 0 && currentVerticalScroll >= maxVerticalScroll) { evt.stop(); }
+            if (evt. wheelDeltaY > 0 && currentVerticalScroll <= 0) { evt.stop(); }
         }
-
         return true;
     },
     getMaxScrollExtent: function() {
@@ -544,14 +521,14 @@ lively.morphic.Morph.addMethods(
         if (!this.eventHandler) this.addEventHandler();
         var existing = this.eventHandler.dispatchTable[type];
         if (existing) {
-            console.warn(Strings.format('Warning! Event %s already handled: %s.%s. Overwriting with %s.%s!',
-                type, existing.target, existing.targetMethodName, target, targetMethodName));
+            console.warn('Warning! Event %s already handled: %s.%s. Overwriting with %s.%s!',
+                type, existing.target, existing.targetMethodName, target, targetMethodName);
         }
         var eventSpec = {
             type: type,
             target: target,
             targetMethodName: targetMethodName,
-            handleOnCapture: handleOnCapture ? true : false // some browsers need t/f
+            handleOnCapture: !!handleOnCapture // some browsers need t/f
         };
         this.renderContext().registerHandlerForEvent(this.eventHandler, eventSpec);
     },

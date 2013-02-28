@@ -1591,9 +1591,7 @@ lively.morphic.World.addMethods(
 },
 'windows', {
     addFramedMorph: function(morph, title, optLoc, optSuppressControls, suppressReframeHandle) {
-        var w = this.addMorph(
-            new lively.morphic.Window(morph, title || 'Window',
-                                      optSuppressControls, suppressReframeHandle));
+        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls, suppressReframeHandle));
         w.setPosition(optLoc || this.positionForNewMorph(morph));
         return w;
     },
@@ -2122,48 +2120,49 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Window',
-'appearance', {
+'documentation', {
+    documentation: "Full-fledged windows with title bar, menus, etc"
+},
+'settings and state', {
+    state: 'expanded',
     spacing: 4, // window border
     minWidth: 200,
     minHeight: 100,
     debugMode: false,
-    style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
-},
-'documentation', {
-    documentation: "Full-fledged windows with title bar, menus, etc",
-},
-'settings and state', {
-    state: 'expanded',
-    style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
+    style: {
+        borderWidth: false,
+        fill: null,
+        borderRadius: false,
+        strokeOpacity: false,
+        adjustForNewBounds: true,
+        enableDragging: true
+    },
     isWindow: true,
-    isCollapsed: function() { return this.state === 'collapsed' },
-
+    isCollapsed: function() { return this.state === 'collapsed'; }
 },
 'initializing', {
     initialize: function($super, targetMorph, titleString, optSuppressControls) {
         $super(new lively.morphic.Shapes.Rectangle());
         this.LK2 = true; // to enable workaround in WindowMorph trait.expand
 
-        var bounds      = targetMorph.bounds();
-        bounds.width += 2 * this.spacing;
-        bounds.height += 1 * this.spacing;
-        var titleBar    = this.makeTitleBar(titleString, bounds.width, optSuppressControls),
+        var bounds = targetMorph.bounds(),
+            spacing = this.spacing;
+        bounds.width += 2 * spacing;
+        bounds.height += 1 * spacing;
+        var titleBar = this.makeTitleBar(titleString, bounds.width, optSuppressControls),
             titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
 
         // create three reframe handles (bottom, right, and bottom-right) and align them to the window
-        this.reframeHandle = this.addMorph(this.makeReframeHandle());
-        this.alignReframeHandle();
-
-        this.bottomReframeHandle = this.addMorph(this.makeBottomReframeHandle());
-        this.alignBottomReframeHandle();
-
-        this.rightReframeHandle = this.addMorph(this.makeRightReframeHandle());
-        this.alignRightReframeHandle();
+        var e = this.getExtent();
+        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+        this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(spacing)));
+        this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(spacing)));
+        this.alignAllHandles();
 
         this.titleBar = this.addMorph(titleBar);
-        this.contentOffset = pt(this.spacing, titleHeight);
+        this.contentOffset = pt(spacing, titleHeight);
         targetMorph.setPosition(this.contentOffset);
         // this.closeAllToDnD();
 
@@ -2176,147 +2175,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
-
-        return this;
     },
 
-},
-'window behavior', {
     makeTitleBar: function(titleString, width, optSuppressControls) {
         // Overridden in TabbedPanelMorph
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
-    },
-    removeHalos: function($super, optWorld) {
-        // Sadly, this doesn't get called when click away from halo
-        // Need to patch World.removeHalosFor, or refactor so it calls this
-        if (this.reframeHandle) {
-            this.addMorphFront(this.reframeHandle);
-            this.alignReframeHandle();
-        }
-        $super(optWorld);
-    },
-    showHalos: function($super) {
-        // Hide the reframe handle in case of menu reframe
-        if (this.reframeHandle) {
-            this.reframeHandle.remove();
-        }
-        $super();
-    },
-
-    makeReframeHandle: function() {
-        var handle = new lively.morphic.Box(new Rectangle(0, 0, 14, 14));
-        handle.addScript(function onDragStart(evt) {
-            this.dragStartPoint = evt.mousePoint;
-            this.originalTargetExtent = this.owner.getExtent();
-        });
-        handle.addScript(function onDrag(evt) {
-            var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
-            var newExtent = this.originalTargetExtent.addPt(moveDelta);
-            if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
-            if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
-            this.owner.setExtent(newExtent);
-            //console.log("WindowExtent: "+this.owner.getExtent().x+" ,  "+this.owner.getExtent().y);
-            this.align(this.bounds().bottomRight(), this.owner.getExtent());
-        });
-        handle.addScript(function onDragEnd (evt) {
-            this.dragStartPoint = null;
-            this.originalTargetExtent = null;
-            this.owner.alignBottomReframeHandle();
-            this.owner.alignRightReframeHandle();
-        });
-        handle.addStyleClassName('reframe-handle corner');
-        return handle;
-    },
-
-    alignReframeHandle: function() {
-        if (this.reframeHandle) {
-            this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
-            this.reframeHandle.bringToFront();
-        }
-    },
-
-    makeBottomReframeHandle: function() {
-        var theExtent = this.getExtent(),
-            handle = new lively.morphic.Box(new Rectangle(0, 0, theExtent.x, this.spacing));
-        handle.addScript(function onDragStart(evt) {
-            this.dragStartPoint = evt.mousePoint;
-            this.originalTargetExtent = this.owner.getExtent();
-        });
-        handle.addScript(function onDrag(evt) {
-            var moveDelta = pt(0,evt.mousePoint.subPt(this.dragStartPoint).y);
-            var newExtent = this.originalTargetExtent.addPt(moveDelta);
-            if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
-            this.owner.setExtent(newExtent);
-
-            this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
-        });
-        handle.addScript(function onDragEnd (evt) {
-            this.dragStartPoint = null;
-            this.originalTargetExtent = null;
-            this.owner.alignReframeHandle();
-            this.owner.alignRightReframeHandle();
-        });
-        handle.addStyleClassName('reframe-handle bottom');
-        return handle;
-    },
-
-    alignBottomReframeHandle: function() {
-        if (this.bottomReframeHandle) {
-            this.bottomReframeHandle.bringToFront();
-            this.bottomReframeHandle.setExtent(this.bottomReframeHandle.getExtent().withX(this.getExtent().x  - this.reframeHandle.getExtent().x));
-            this.bottomReframeHandle.align(this.bottomReframeHandle.bounds().bottomLeft(), pt(0,this.getExtent().y));
-
-
-        }
-    },
-
-    makeRightReframeHandle: function() {
-        var theExtent = this.getExtent(),
-            handle = new lively.morphic.Box(new Rectangle(0, 0, this.spacing, theExtent.y));
-
-        handle.addScript(function onDragStart(evt) {
-            this.dragStartPoint = evt.mousePoint;
-            this.originalTargetExtent = this.owner.getExtent();
-        });
-        handle.addScript(function onDrag(evt) {
-            var moveDelta = pt(evt.mousePoint.subPt(this.dragStartPoint).x,0);
-            var newExtent = this.originalTargetExtent.addPt(moveDelta);
-            if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
-
-            this.owner.setExtent(newExtent);
-            this.align(this.bounds().topRight(), pt(this.owner.getExtent().x,0));
-        });
-        handle.addScript(function onDragEnd (evt) {
-            this.dragStartPoint = null;
-            this.originalTargetExtent = null;
-            this.owner.alignReframeHandle();
-            this.owner.alignBottomReframeHandle();
-        });
-        handle.addStyleClassName('reframe-handle right');
-
-        return handle;
-    },
-
-    alignRightReframeHandle: function() {
-        if (this.rightReframeHandle) {
-            this.rightReframeHandle.setExtent(this.rightReframeHandle.getExtent().withY(this.getExtent().y - this.reframeHandle.getExtent().y));
-            this.rightReframeHandle.align(this.rightReframeHandle.bounds().topRight(), this.getExtent().withY(0));
-        }
-    },
-    getBounds: function($super) {
-        if (this.titleBar && this.isCollapsed()) {
-            var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
-            return this.titleBar.bounds().translatedBy(titleBarTranslation);
-        }
-        return $super();
-    },
-
-    initiateShutdown: function() {
-        if (this.isShutdown()) return null;
-        if (this.onShutdown) this.onShutdown();
-        this.remove();
-        this.state = 'shutdown'; // no one will ever know...
-        return true;
     },
 
     resetTitleBar: function() {
@@ -2326,11 +2189,43 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.addMorph(this.titleBar);
     },
 
+    initiateShutdown: function() {
+        if (this.isShutdown()) return null;
+        if (this.onShutdown) this.onShutdown();
+        this.remove();
+        this.state = 'shutdown'; // no one will ever know...
+        return true;
+    }
+
+},
+'accessing', {
+    getBounds: function($super) {
+        if (this.titleBar && this.isCollapsed()) {
+            var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
+            return this.titleBar.bounds().translatedBy(titleBarTranslation);
+        }
+        return $super();
+    }
+},
+'reframe handles', {
+
+    removeHalos: function($super, optWorld) {
+        // Sadly, this doesn't get called when click away from halo
+        // Need to patch World.removeHalosFor, or refactor so it calls this
+        this.alignAllHandles();
+        $super(optWorld);
+    },
+
+    alignAllHandles: function() {
+        if (this.isCollapsed()) return;
+        var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
+        handles.invoke('alignWithWindow');
+    }
+
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target = this.targetMorph || this,
-            itemFilter;
+        var target = this.targetMorph || this, itemFilter;
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
@@ -2364,18 +2259,15 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);
     },
     morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items[0] = [
-            'Publish window', function(evt) {
-                self.copyToPartsBinWithUserRequest();
-            }];
+        var self = this, world = this.world(), items = $super();
+        items[0] = ['Publish window', function(evt) { self.copyToPartsBinWithUserRequest(); }];
         items.push([
             'Set title', function(evt) {
-                $world.prompt('Enter new title', function(input) {
+                world.prompt('Enter new title', function(input) {
                     if (input || input == '') self.setTitle(input);
                 }, self.getTitle()); }]);
         return items;
-    },
+    }
 },
 'mouse event handling', {
     highlight: function(trueForLight) {
@@ -2403,16 +2295,13 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             scrolls.push(ea.getScroll());
         });
         this.owner.addMorphFront(this); // come forward
-        if (this.reframeHandle) {
-            this.addMorphFront(this.reframeHandle);
-            this.alignReframeHandle();
-        }
+        this.alignAllHandles();
+        var inner = this.targetMorph,
+            callGetsFocus = inner && !!inner.onWindowGetsFocus;
         (function() {
             textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
-            if (this.targetMorph && this.targetMorph.onWindowGetsFocus) {
-                this.targetMorph.onWindowGetsFocus();
-            }
-        }).delay(0);
+            if (callGetsFocus) { inner.onWindowGetsFocus(this); }
+        }).bind(this).delay(0);
     },
 
     onMouseDown: function(evt) {
@@ -2462,14 +2351,14 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 'debugging', {
     toString: function($super) {
         return $super() + ' ' + (this.titleBar ? this.titleBar.getTitle() : '');
-    },
+    }
 },
 'removing', {
     remove: function($super) {
         // should trigger remove of submorphs but remove is also usedelsewhere (grab)
         // this.targetMorph && this.targetMorph.remove();
         return $super();
-    },
+    }
 },
 'collapsing', {
     collapse: function() {
@@ -2493,6 +2382,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.animatedInterpolateTo(this.collapsedPosition, 5, 50, finCollapse);
         else finCollapse();
     },
+
     expand: function() {
         if (!this.isCollapsed()) return;
         this.collapsedTransform = this.getTransform();
@@ -2523,8 +2413,63 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.animatedInterpolateTo(this.expandedPosition, 5, 50, finExpand);
         else finExpand();
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
+    }
+
+});
+
+lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
+'initializing', {
+    initialize: function($super, type, extent) {
+        // type is either "bottom" or "right" or "corner"
+        // FIXME refactor this into subclasses?
+        $super(extent.extentAsRectangle());
+        this.type = type;
+        this.addStyleClassName('reframe-handle ' + type);
+    }
+},
+'event handling', {
+    onDragStart: function(evt) {
+        this.dragStartPoint = evt.mousePoint;
+        this.originalTargetExtent = this.owner.getExtent();
     },
 
+    onDrag: function(evt) {
+        var moveDelta = evt.mousePoint.subPt(this.dragStartPoint);
+        if (this.type === 'bottom') { moveDelta.x = 0; }
+        if (this.type === 'right') { moveDelta.y = 0; }
+        var newExtent = this.originalTargetExtent.addPt(moveDelta);
+        if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
+        if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
+        this.owner.setExtent(newExtent);
+    },
+
+    onDragEnd: function(evt) {
+        this.dragStartPoint = null;
+        this.originalTargetExtent = null;
+        this.owner.alignAllHandles();
+    }
+},
+'alignment', {
+    alignWithWindow: function() {
+        this.bringToFront();
+        var window = this.owner,
+            windowExtent = window.getExtent(),
+            handleExtent = this.getExtent(),
+            handleBounds = this.bounds();
+        if (this.type === 'corner') {
+            this.align(handleBounds.bottomRight(), windowExtent);
+        }
+        if (this.type === 'bottom') {
+            var newExtent = handleExtent.withX(windowExtent.x - window.reframeHandle.getExtent().x);
+            this.setExtent(newExtent);
+            this.align(handleBounds.bottomLeft(), windowExtent.withX(0));
+        }
+        if (this.type === 'right') {
+            var newExtent = handleExtent.withY(windowExtent.y - window.reframeHandle.getExtent().y);
+            this.setExtent(newExtent);
+            this.align(handleBounds.topRight(), windowExtent.withY(0));
+        }
+    }
 });
 
 (function applyWindowTrait() {

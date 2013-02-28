@@ -180,7 +180,7 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
             for (var property in object)
             if (object.hasOwnProperty(property)) values.push(object[property]);
             return values;
-        },
+        }
     })
 };
 
@@ -190,6 +190,66 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 ///////////////////////////////////////////////////////////////////////////////
 
 Global.Objects = {
+
+    inspect: function(obj, options, depth) {
+        options = options || {};
+        depth = depth || 0;
+        if (!obj) { return Strings.print(obj); }
+
+        // print function
+        if (Object.isFunction(obj)) {
+            return 'function'
+                 + (obj.name ? ' ' + obj.name : '')
+                 + '('
+                 + obj.argumentNames().join(',')
+                 + ') {/*...*/}';
+        }
+
+        // print "primitive"
+        switch (obj.constructor) {
+            case String:
+            case Boolean:
+            case Boolean:
+            case RegExp:
+            case Number: return Strings.print(obj);
+        };
+
+        var isArray = Object.isArray(obj),
+            openBr = isArray ? '[' : '{', closeBr = isArray ? ']' : '}';
+        if (options.maxDepth && depth >= options.maxDepth) return openBr + '/*...*/' + closeBr;
+
+        var printedProps = [];
+        if (isArray) {
+            printedProps = obj.map(function(ea) { return Objects.inspect(ea, options, depth + 1); });
+        } else {
+            printedProps = Object.keys(obj)
+               // .select(function(key) { return obj.hasOwnProperty(key); })
+                .sort(function(a, b) {
+                    var aIsFunc = Object.isFunction(obj[a]), bIsFunc = Object.isFunction(obj[b]);
+                    if (aIsFunc === bIsFunc) {
+                        if (a < b)  return -1;
+                        if (a > b) return 1;
+                        return 0;
+                    };
+                    return aIsFunc ? 1 : -1;
+                })
+                .map(function(key, i) {
+                    if (isArray) Objects.inspect(obj[key], options, depth + 1);
+                    var printedVal = Objects.inspect(obj[key], options, depth + 1);
+                    return Strings.format('%s: %s',
+                        options.escapeKeys ? Strings.print(key) : key, printedVal);
+                });
+        }
+
+        if (printedProps.length === 0) { return openBr + closeBr; }
+
+        var indent = Strings.indent('', '  ', depth),
+            propIndent = Strings.indent('', '  ', depth + 1);
+        return openBr + '\n'
+             + propIndent
+             + printedProps.join(',\n' + propIndent)
+             + '\n' + indent + closeBr;
+    },
 
     typeStringOf: function(obj) {
         if (obj === null) { return "null" }

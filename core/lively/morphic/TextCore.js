@@ -325,27 +325,19 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     get textString() {
         // when the prototype property is accessed
         if (this === this.constructor.prototype) return undefined;
-        if (!this.cachedTextString)
+        if (!this.cachedTextString) {
             this.cachedTextString = this.renderContextDispatch('getTextString');
+        }
         return this.cachedTextString;
     },
 
     set textString(string) {
         string = String(string);
-
         // setting the textString removes all the content in the text morph
         this.removeTextChunks();
-
         this.renderContextDispatch('updateText', string);
-
         this.cachedTextString = string;
-
-        // bindings wrapper trigger already a change in textString
-        // if (this.attributeConnections)
-            // lively.bindings.signal(this, 'textString', string);
-
         delete this.priorSelectionRange;
-
         return string;
     },
 
@@ -925,7 +917,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         });
     },
 
-
     modifySelectedLines: function(modifyFunc) {
         // this function calls modifyFunc on each line that is selected
         // modifyFunc can somehow change the line
@@ -937,6 +928,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var replacement = lines.join('\n');
         this.insertAtCursor(replacement, true, true);
     },
+
     splitText: function() {
         var selRange = this.getSelectionRange(),
             from = Math.max(selRange[0], selRange[1]),
@@ -1128,7 +1120,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
            evt.stop();
             return true;
         }*/
-        if (this.mergeText()) {
+        if (this.getCursorPos() === 0 && this.mergeText()) {
             evt.stop(); return true;
         }
         if (this.isTabBeforeCursor(true)) {
@@ -1593,6 +1585,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var range = this.getSelectionRange();
         return range && range[0] === range[1]
     },
+    getCursorPos: function() {
+        if (!this.hasNullSelection()) return null;
+        var range = this.getSelectionRange();
+        return range && range[0];
+    },
+
 
     setNullSelectionAt: function(idx) { this.setSelectionRange(idx, idx) },
 

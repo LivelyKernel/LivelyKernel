@@ -207,16 +207,16 @@ Global.Strings = {
 
     print: function(obj) {
         if (obj && obj.constructor && obj.constructor === Array) {
-            return '[' + obj.map(function(ea) { return Strings.print(ea) }) + ']';
+            return '[' + obj.map(function(ea) { return Strings.print(ea); }) + ']';
         }
         if (typeof obj !== "string") {
             return String(obj);
         }
         var result = String(obj);
-        result = result.replace(/\n/g, '\\n\\\n')
-        result = result.replace(/("|')/g, '\\$1')
-        result = '\'' + result + '\'';
-        return result
+        result = result.replace(/\n/g, '\\n\\\n');
+        result = result.replace(/("|')/g, '\\$1');
+        result = '\"' + result + '\"';
+        return result;
     },
 
     lines: function(str) {

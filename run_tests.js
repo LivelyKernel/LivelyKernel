@@ -76,6 +76,7 @@ var testList = [
     'lively.persistence.tests.TraitPersistenceTests',
 
     // ide / SCB
+    "lively.ide.tests.CodeEditor",
     "lively.ide.tests.FileParserTests",
     "lively.ide.tests.ModuleLookup",
     'lively.ide.tests.SCBTests',

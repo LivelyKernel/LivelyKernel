@@ -8,4 +8,8 @@ if (lively.Config.get("useWindowSwitcher")) {
     module('lively.ide.WindowNavigation').load();
 }
 
+if (Config.get("useAceEditor")) {
+    module("lively.ide.CodeEditor").load();
+}
+
 }); // end of module

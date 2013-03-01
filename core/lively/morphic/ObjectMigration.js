@@ -81,6 +81,7 @@ Migration Level History:
 5 - ???
 6 - renderContextTables are no longer props of shapes/morphs, don't deserialize them
 7 - No more changesets
+8 - Reframe handles for windows
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 if (false && LivelyMigrationSupport.documentMigrationLevel < 1) {
@@ -164,6 +165,21 @@ if (LivelyMigrationSupport.documentMigrationLevel < 7) {
               && this.changeSet.isChangeSetReplacement) {
                 delete this.changeSet;
             }
+        })
+    });
+};
+
+if (LivelyMigrationSupport.documentMigrationLevel < 8) {
+    // 8 - reframe handles are class instances now
+    lively.morphic.Window.addMethods({
+        onrestore: lively.morphic.Window.prototype.onrestore.wrap(function($proceed) {
+            $proceed();
+            [this.rightReframeHandle, this.bottomReframeHandle, this.reframeHandle].compact().invoke('remove');
+            var e = this.getExtent();
+            this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+            this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(this.spacing)));
+            this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(this.spacing)));
+            this.alignAllHandles();
         })
     });
 };

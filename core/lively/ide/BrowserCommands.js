@@ -143,7 +143,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
         }
         var webR = new WebResource(url).beSync();
         if (webR.exists()) {
-            this.world().notify('File ' + url + ' already exists!');
+            this.world().alert('File ' + url + ' already exists!');
             return null
         }
         webR.put(content);
@@ -184,7 +184,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
             command.world().prompt('Enter filename (something like foo or foo.js or foo.ometa or foo/)',
                 command.createFileOrDir.bind(command));
         });
-    },
+    }
 
 });
 

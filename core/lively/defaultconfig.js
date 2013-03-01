@@ -486,6 +486,9 @@ Global.Config = {
 
         "lively.PartsBin", [
             ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
+        ],
+        "lively.morphic.Windows", [
+            ["useWindowSwitcher", true, "Use the window switcher (F5/CMD+`/CTRL+`)."]
         ]);
 
 })(Global.Config, Global.UserAgent, Global.ExistingConfig);

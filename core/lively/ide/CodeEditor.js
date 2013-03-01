@@ -74,8 +74,6 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 'serialization', {
 
     onstore: function() {
-        var node = this.shapeNode;
-        if (!node) return;
         this.extent = this.getExtent();
     },
 
@@ -98,7 +96,7 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
         if (!ctx.shapeNode) return undefined;
         var borderWidth = Math.floor(this.getBorderWidth()),
             realExtent = value.addXY(-1 * borderWidth, -1 * borderWidth);
-        realExtent = realExtent.maxPt(pt(0,0));
+        realExtent = realExtent.maxPt(lively.pt(0,0));
         ctx.domInterface.setExtent(ctx.shapeNode, realExtent);
         if (this.aceEditor) this.aceEditor.resize(true);
         return realExtent;
@@ -195,7 +193,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var cbs = this.aceEditorAfterSetupCallbacks;
         if (!cbs) return;
         delete this.aceEditorAfterSetupCallbacks;
-        for (var cb; cb = cbs.shift(); !!cb) { cb.call(this, e); }
+        cbs.invoke('call', this, e);
     },
 
     addCommands: function(commands) {
@@ -204,24 +202,20 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             platform = handler.platform; // mac or win
 
         function lookupCommand(keySpec) {
-            keySpec.split('|').detect(function(keys) {
+            return keySpec.split('|').detect(function(keys) {
                 var binding = e.commands.parseKeys(keys),
                     command = e.commands.findKeyCommand(binding.hashId, binding.key);
                 return command && command.name;
             });
         }
 
-        function addCommands(commandList) {
-            // first remove a keybinding if one already exists
-            commandList.forEach(function(cmd) {
-                var keys = cmd.bindKey && (cmd.bindKey[platform] || cmd.bindKey),
-                    existing = keys && lookupCommand(keys);
-                if (existing) handler.removeCommand(existing);
-            });
-            handler.addCommands(commandList);
-        }
-
-        addCommands(commands);
+        // first remove a keybinding if one already exists
+        commands.forEach(function(cmd) {
+            var keys = cmd.bindKey && (cmd.bindKey[platform] || cmd.bindKey),
+                existing = keys && lookupCommand(keys);
+            if (existing) handler.removeCommand(existing);
+        });
+        handler.addCommands(commands);
     },
 
     setupKeyBindings: function() {
@@ -306,7 +300,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             }, {
                 name: 'selectLine',
                 bindKey: {win: "Ctrl-L", mac: "Command-L"},
-                exec: function(ed) { codeEditor.selectCurrentLine(); },
+                exec: this.selectCurrentLine.bind(this),
                 multiSelectAction: 'forEach',
                 readOnly: true
             }, {
@@ -341,7 +335,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 readOnly: true
             }, {
                 name: "gotolinestart",
-                bindKey: "Home|Ctrl-A",
+                bindKey: {win: "Home", mac: "Home|Ctrl-A"},
                 exec: function(editor) { editor.navigateLineStart(); },
                 multiSelectAction: "forEach",
                 readOnly: true
@@ -411,19 +405,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             lively.bindings.connect(Config, 'codeEditorUserKeySetup', this, 'setupKeyBindings', {
                   forceAttributeConnection: true})
         }
-    },
-
-    setupRobertsKeyBindings: function() {
-        // that.setupKeyBindings()
-        var e = this.aceEditor, lkKeys = this;
-        this.loadAceModule(["keybinding", 'ace/keyboard/emacs'], function(emacsKeys) {
-            e.setKeyboardHandler(emacsKeys.handler);
-            var kbd = e.getKeyboardHandler();
-            kbd.addCommand({name: 'doit', exec: lkKeys.doit.bind(lkKeys, false) });
-            kbd.addCommand({name: 'printit', exec: lkKeys.doit.bind(lkKeys, true)});
-            kbd.addCommand({name: 'doListProtocol', exec: lkKeys.doListProtocol.bind(lkKeys)});
-            kbd.bindKeys({"s-d": 'doit', "s-p": 'printit', "S-s-p": 'doListProtocol'});
-        });
     },
 
     lookupCommand: function(keySpec) {
@@ -649,8 +630,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     evalAll: function() {
-        var str = this.textString, result = this.tryBoundEval(str);
-        return result;
+        return this.tryBoundEval(this.textString);
     },
 
     printObject: function(editor, obj) {

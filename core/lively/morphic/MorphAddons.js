@@ -512,13 +512,12 @@ lively.morphic.Morph.addMethods(
         this.isFixed = fixed;
         if(fixed) {
             this.fixedScale = this.getScale() * world.getZoomLevel();
-            this.fixedPosition = this.getPosition().subPt(world.visibleBounds().topLeft()).scaleBy(world.getZoomLevel());
-
+            this.fixedPosition = this.getPosition().subPt(world.visibleBounds().topLeft());
             this.startStepping(100, "updateZoomScale");
-            this.startStepping(100, "updateScrollPosition");
+            this.setFixedInPosition(true);
         } else {
             this.stopSteppingScriptNamed("updateZoomScale");
-            this.stopSteppingScriptNamed("updateScrollPosition");
+            this.setFixedInPosition(false);
         }
     },
     setFixedInSize: function(optFixed) {
@@ -536,6 +535,26 @@ lively.morphic.Morph.addMethods(
             this.stopSteppingScriptNamed("updateZoomLevel");
         }
     },
+    setFixedInPosition: function(optBool) {
+        var bool = (optBool === undefined) ? true : optBool;
+        this.world().removeWebkitTransform();
+        var morphnode = this.renderContext().morphNode,
+            style = morphnode.getAttribute('style'),
+            positionTargetString = bool? 'position: fixed' : 'position: absolute',
+            positionSourceString = bool? 'position: absolute' : 'position: fixed',
+            leftTargetString = 'left:' + this.fixedPosition.x + 'px;',
+            leftSourceRegex = /left\:[^;]*\;/g,
+            topTargetString = 'top:' + this.fixedPosition.y + 'px;',
+            topSourceRegex = /top\:[^;]*\;/g,
+            newStyle = style.replace(positionSourceString, positionTargetString)
+                    .replace(leftSourceRegex, leftTargetString)
+                    .replace(topSourceRegex, topTargetString);
+        morphnode.setAttribute('style', newStyle);
+        if (!bool) {
+            this.setPosition(this.fixedPosition.addPt(this.world().visibleBounds().topLeft()));
+        }
+    },
+
 
     updateZoomScale: function(newZoom) {
         if(this.fixedScale) {
@@ -548,7 +567,26 @@ lively.morphic.Morph.addMethods(
             newPosition = newPosition || world.getScrollOffset();
         this.setPosition(this.fixedPosition.scaleBy(1/world.zoomLevel).addPt(newPosition));
     },
-},
+    removeWebkitTransform: function() {
+        var node = this.renderContext().morphNode
+        var style = node.getAttribute('style')
+        var newStyle = style.replace(/\-webkit\-transform[^;]*\; /g, '')
+        node.setAttribute('style', newStyle)
+    },
+    setPositionWhileFixed: function(position, optTime) {
+        if (optTime) {
+            var that = this;
+            this.setFixed(false);
+            var callback = function () {
+                this.setFixed(true);
+            }
+            this.setPositionAnimated.bind(this,position, optTime, callback.bind(this)).delay(0);
+        } else {
+            this.setFixed(false);
+            this.setPosition(position);
+            this.setFixed(true);
+        }
+    },},
 'fullscreen', {
     enterFullScreen: function(beTopLeft) {
         var world = this.world();

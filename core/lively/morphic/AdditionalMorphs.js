@@ -1761,20 +1761,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.setPosition(pos)
         fixed && this.setFixed(true);
     },
-    setPositionWhileFixed: function(position, optTime) {
-        if (optTime) {
-            var that = this;
-            this.setFixed(false);
-            var callback = (function () {
-                if (that.owner.isWorld) that.setFixed(true);
-            }).bind(this)
-            this.setPositionAnimated(position, optTime, callback);
-        } else {
-            this.setFixed(false);
-            this.setPosition(position);
-            this.setFixed(true);
-        }
-    }
 });
 
 lively.morphic.Box.subclass('lively.morphic.FlapHandle',

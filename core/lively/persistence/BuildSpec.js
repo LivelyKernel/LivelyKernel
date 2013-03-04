@@ -1,6 +1,6 @@
 module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization").toRun(function() {
 
-Object.subclass('lively.persistence.MorphSpecBuilder',
+Object.subclass('lively.persistence.SpecBuilder',
 'properties', {
     isInstanceRestorer: true, // so the class knows not ot initialize anything
     ignorePropList: ["submorphs", "scripts", "id", "shape", "registeredForMouseEvents", "partsBinMetaInfo", "eventHandler", "derivationIds", "partTests", "moved", "_renderContext", "_isRendered", "owner", "cachedBounds", "isBeingDragged", "halos", "priorExtent", "distanceToDragEvent"],
@@ -79,9 +79,7 @@ Object.subclass('lively.persistence.MorphSpecBuilder',
             if (attr.getter) value = attr.getter(morph);
             if (attr.transform) value = attr.transform(morph, value);
             if (Object.isFunction(value)) {
-                value = '<function>' + value.toString();
             } else if (value && Object.isFunction(value.serializeExpr)) {
-                value = '<eval>' + value.serializeExpr();
             } else {
                 try { JSON.stringify(value); } catch(e) { value = Strings.print(value); }
             }
@@ -90,8 +88,22 @@ Object.subclass('lively.persistence.MorphSpecBuilder',
         spec.submorphs = morph.submorphs.map(function(ea) {
             return this.build(ea, depth + 1); }, this);
         return spec;
+    }
+
+});
+
+Object.extend(lively.persistence.SpecBuilder, {
+    morphToSpec: function(morph) {
+        return new this().build(morph);
     },
     
+    stringify: function(spec) {
+        return Objects.inspect(spec, {printFunctionSource: true});
+    }
+});
+
+Object.subclass('lively.persistence.MorphBuilder',
+'building', {
     createMorph: function(spec) {
         var klass = Class.forName(spec.className);
         if (!klass || !Object.isFunction(klass)) return null;
@@ -106,19 +118,6 @@ Object.subclass('lively.persistence.MorphSpecBuilder',
         }
         Object.keys(spec).withoutAll(['className', 'sourceModule', 'submorphs']).forEach(function(key) {
             var specVal = spec[key];
-            if (typeof specVal === 'string') {
-                if (specVal.startsWith('<eval>')) {
-                    try {
-                        specVal = Global.eval(specVal.replace(/^<eval>/, ''));
-                    } catch(e) { specVal = String(e); }
-                } else if (specVal.startsWith('<function>')) {
-                    try {
-                        var func = Global.eval('(' + specVal.replace(/^<function>/, '') + ')');
-                        instance.addScript(func);
-                        return;
-                    } catch(e) { specVal = String(e); }
-                }
-            }
             if (!key.startsWith('_')) {
                 instance[key] = specVal;
                 return;
@@ -132,11 +131,7 @@ Object.subclass('lively.persistence.MorphSpecBuilder',
     }
 });
 
-Object.extend(lively.persistence.MorphSpecBuilder, {
-    morphToSpec: function(morph) {
-        return new this().build(morph);
-    },
-    
+Object.extend(lively.persistence.MorphBuilder, {
     specToMorph: function(spec) {
         return new this().createMorph(spec);
     }
@@ -145,13 +140,17 @@ Object.extend(lively.persistence.MorphSpecBuilder, {
 lively.morphic.Morph.addMethods(
 'UI builder', {
     buildSpec: function() {
-        return lively.persistence.MorphSpecBuilder.morphToSpec(this);
+        return lively.persistence.SpecBuilder.morphToSpec(this);
+    },
+    
+    printBuildSpec: function() {
+        return lively.persistence.SpecBuilder.stringify(this.buildSpec());
     }
 });
 
 Object.extend(lively.morphic.Morph, {
     fromSpec: function(spec) {
-        return lively.persistence.MorphSpecBuilder.specToMorph(spec);
+        return lively.persistence.MorphBuilder.specToMorph(spec);
     }
 });
 

@@ -351,6 +351,7 @@ Object.subclass('lively.morphic.Morph',
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
         if (this.owner) {
+            if (this.isFixed) this.setFixed(false)
             this.owner.removeMorph(this);
         }
         this.renderContextDispatch('remove');
@@ -618,9 +619,12 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 },
 'accessing -- morphic relationship', {
     addMorph: function($super, morph, optMorphBefore) {
-        // my first hand is almost the topmost morph
-        var r = $super(morph, optMorphBefore);
-        $super(this.firstHand());
+        // I keep certain controls in front
+        var morphBefore = (morph.isHalo || morph.isMenu)
+                    ? this.firstHand()
+                    : (optMorphBefore || this.bottomMostControl());
+        var r = $super(morph, morphBefore);
+        this.updateScrollFocus();
         return r;
     },
     topMorph: function() { return this.submorphs.withoutAll(this.hands).last() }
@@ -628,7 +632,17 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 },
 'accessing', {
     world: function() { return this },
-    firstHand: function() { return this.hands && this.hands[0] },
+    firstHand: function() { 
+        return this.hands && this.hands[0]
+    },
+    bottomMostControl: function() {
+        for (var i = 0; i < this.submorphs.length; i++) { // ensuring correct order
+            var m = this.submorphs[i]
+            // importance order
+            if ((m === this.firstHand()) || m.isHalo || m.isMenu || m.isFixed)
+                return m
+        }
+    },
     windowBounds:  function () {
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
 

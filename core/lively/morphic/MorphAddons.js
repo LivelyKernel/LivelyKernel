@@ -538,8 +538,6 @@ lively.morphic.Morph.addMethods(
             this.setPosition(this.fixedPosition.addPt(this.world().visibleBounds().topLeft()));
         }
     },
-
-
     updateZoomScale: function(newZoom) {
         if(this.fixedScale) {
             var newZoom = newZoom || lively.morphic.World.current().updateZoomLevel();
@@ -570,7 +568,8 @@ lively.morphic.Morph.addMethods(
             this.setPosition(position);
             this.setFixed(true);
         }
-    },},
+    },
+},
 'fullscreen', {
     enterFullScreen: function(beTopLeft) {
         var world = this.world();

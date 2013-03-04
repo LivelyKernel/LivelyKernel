@@ -130,8 +130,11 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
 },
 'events', {
-    isValidClick: function(evt) {
-        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
+    isValidEvent: function(evt) {
+        if (!this.isActive) return false;
+        if (evt.isLeftMouseButtonDown() && !evt.isCommandKey()) return true;
+        if (evt.isKeyboardEvent && evt.keyCode === Event.KEY_RETURN) return true;
+        return false;
     },
 
     onMouseOut: function (evt) {
@@ -147,19 +150,27 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
 
     onMouseDown: function (evt) {
-        if (this.isValidClick (evt) && this.isActive) {
-                this.isPressed = true;
-                this.changeAppearanceFor(true);
+        if (this.isValidEvent(evt) && this.isActive) {
+            this.activate();
         }
         return false;
     },
 
     onMouseUp: function(evt) {
-        if (this.isValidClick (evt) && this.isPressed) {
-            var newValue = this.toggle ? !this.value : false;
-            this.setValue(newValue);
-            this.changeAppearanceFor(false);
-            this.isPressed = false;
+        if (this.isValidEvent(evt) && this.isPressed) {
+            this.deactivate();
+        }
+        return false;
+    },
+    onKeyDown: function(evt) {
+        if (this.isValidEvent(evt) && this.isActive) {
+            this.activate();
+        }
+        return false;
+    },
+    onKeyUp: function(evt) {
+        if (this.isValidEvent(evt) && this.isPressed) {
+            this.deactivate();
         }
         return false;
     },
@@ -180,6 +191,17 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.onMouseDown(createEvent());
         this.onMouseUp(createEvent());
     },
+    activate: function() {
+        this.isPressed = true;
+        this.changeAppearanceFor(true);
+    },
+    deactivate: function() {
+        var newValue = this.toggle ? !this.value : false;
+        this.setValue(newValue);
+        this.changeAppearanceFor(false);
+        this.isPressed = false;
+    }
+
 },
 'menu', {
     morphMenuItems: function($super) {
@@ -192,7 +214,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             }, self.getLabel());
         }])
         return items;
-    },
+    }
 });
 
 

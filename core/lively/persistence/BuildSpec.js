@@ -2,101 +2,39 @@ module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization").
 
 Object.subclass('lively.persistence.SpecBuilder',
 'properties', {
-    isInstanceRestorer: true, // so the class knows not ot initialize anything
-    ignorePropList: ["submorphs", "scripts", "id", "shape", "registeredForMouseEvents", "partsBinMetaInfo", "eventHandler", "derivationIds", "partTests", "moved", "_renderContext", "_isRendered", "owner", "cachedBounds", "isBeingDragged", "halos", "priorExtent", "distanceToDragEvent"],
-
-    //morphProps = ["name",
-    //              "doNotSerialize", "doNotCopyProperties",
-    //              "grabbingEnabled", "droppingEnabled", "halosEnabled", "showsHalos",
-    //              "_ClipMode",
-    //              "_StyleSheet", "_StyleClassNames",
-    //              "_Position", "_Extent", "_Rotation", "_Scale",
-    //              // list:
-    //              "itemList", "grabbingEnabled", "_FontSize",
-    //              // button
-    //              "isActive", "label",
-    //              // text
-    //              "fixedWidth", "fixedHeight", "allowsInput", "_FontFamily", "_MaxTextWidth",
-    //              "_MaxTextHeight", "textColor",  "_FontSize", "_Padding", "_WhiteSpaceHandling",
-    //              "_MinTextWidth", "_MinTextHeight", "_WordBreak"]
-    //
-    //'{\n' + morphProps.map(function(ea) { return ea + ': {}'}).join(',\n') + '}'
-
-    morphProps: {
-        name: {},
-        doNotSerialize: {},
-        doNotCopyProperties: {},
-        grabbingEnabled: {},
-        droppingEnabled: {},
-        halosEnabled: {},
-        showsHalos: {},
-        _ClipMode: {},
-        _StyleSheet: {transform: function(morph, val) { return Object.isString(val) ? val : val.getText(); }},
-        _StyleClassNames: {},
-        _Position: {},
-        _Extent: {getter: function(morph) { return morph.getExtent(); }},
-        _Rotation: {},
-        _Scale: {},
-        itemList: {},
-        grabbingEnabled: {},
-        _FontSize: {},
-        isActive: {},
-        label: {},
-        fixedWidth: {},
-        fixedHeight: {},
-        allowsInput: {},
-        _FontFamily: {},
-        _MaxTextWidth: {},
-        _MaxTextHeight: {},
-        textColor: {},
-        _FontSize: {},
-        _Padding: {},
-        _WhiteSpaceHandling: {},
-        _MinTextWidth: {},
-        _MinTextHeight: {},
-        _WordBreak: {}
-    }
-
+    isInstanceRestorer: true // so the class knows not ot initialize anything
 },
 'spec construction', {
-    build: function(morph, depth) {        
-        depth = depth || 0;
-        var spec = {};
+    build: function(morph) {
+        var builder = this, spec = {};
         spec.className = morph.constructor.type;
         var sourceModule = morph.constructor.sourceModule;
         if (sourceModule && sourceModule.name() !== Global) {
             spec.sourceModule = sourceModule.name();
         }
-        var scripts = Functions.own(morph).select(function(sel) {
-            return morph[sel].hasLivelyClosure; }),
-            propsForSpec = [].concat(Object.keys(this.morphProps))
-                .concat(Properties.own(morph).withoutAll(this.ignorePropList))
-                .concat(scripts);
-        propsForSpec.forEach(function(key) {
-            var attr = this.morphProps[key] || {};
+        morph.buildSpecProperties().forEach(function(key) {
+            var attr = morph.buildSpecIncludeProperties[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
             value = morph[key];
             if (attr.getter) value = attr.getter(morph);
             if (attr.transform) value = attr.transform(morph, value);
             if (Object.isFunction(value)) {
+                // pass
             } else if (value && Object.isFunction(value.serializeExpr)) {
+                // pass
             } else {
                 try { JSON.stringify(value); } catch(e) { value = Strings.print(value); }
             }
             spec[key] = value;
-        }, this);
+        });
         spec.submorphs = morph.submorphs.map(function(ea) {
-            return this.build(ea, depth + 1); }, this);
+            return ea.buildSpec(builder); });
         return spec;
     }
 
 });
 
 Object.extend(lively.persistence.SpecBuilder, {
-    morphToSpec: function(morph) {
-        return new this().build(morph);
-    },
-    
     stringify: function(spec) {
         return Objects.inspect(spec, {printFunctionSource: true});
     }
@@ -139,8 +77,78 @@ Object.extend(lively.persistence.MorphBuilder, {
 
 lively.morphic.Morph.addMethods(
 'UI builder', {
-    buildSpec: function() {
-        return lively.persistence.SpecBuilder.morphToSpec(this);
+    
+    buildSpecExcludeProperties: ["submorphs", "scripts", "id", "shape",
+                                 "registeredForMouseEvents", "partsBinMetaInfo",
+                                 "eventHandler", "derivationIds", "partTests",
+                                 "moved", "_renderContext", "_isRendered",
+                                 "owner", "cachedBounds", "isBeingDragged", 
+                                 "halos", "priorExtent", "distanceToDragEvent"],
+
+    //morphProps = ["name",
+    //              "doNotSerialize", "doNotCopyProperties",
+    //              "grabbingEnabled", "droppingEnabled", "halosEnabled", "showsHalos",
+    //              "_ClipMode",
+    //              "_StyleSheet", "_StyleClassNames",
+    //              "_Position", "_Extent", "_Rotation", "_Scale",
+    //              // list:
+    //              "itemList", "grabbingEnabled", "_FontSize",
+    //              // button
+    //              "isActive", "label",
+    //              // text
+    //              "fixedWidth", "fixedHeight", "allowsInput", "_FontFamily", "_MaxTextWidth",
+    //              "_MaxTextHeight", "textColor",  "_FontSize", "_Padding", "_WhiteSpaceHandling",
+    //              "_MinTextWidth", "_MinTextHeight", "_WordBreak"]
+    //
+    //'{\n' + morphProps.map(function(ea) { return ea + ': {}'}).join(',\n') + '}'
+
+    buildSpecIncludeProperties: {
+        name: {},
+        doNotSerialize: {},
+        doNotCopyProperties: {},
+        grabbingEnabled: {},
+        droppingEnabled: {},
+        halosEnabled: {},
+        showsHalos: {},
+        _ClipMode: {},
+        _StyleSheet: {transform: function(morph, val) { return Object.isString(val) ? val : val.getText(); }},
+        _StyleClassNames: {},
+        _Position: {},
+        _Extent: {getter: function(morph) { return morph.getExtent(); }},
+        _Rotation: {},
+        _Scale: {},
+        itemList: {},
+        grabbingEnabled: {},
+        _FontSize: {},
+        isActive: {},
+        label: {},
+        fixedWidth: {},
+        fixedHeight: {},
+        allowsInput: {},
+        _FontFamily: {},
+        _MaxTextWidth: {},
+        _MaxTextHeight: {},
+        textColor: {},
+        _FontSize: {},
+        _Padding: {},
+        _WhiteSpaceHandling: {},
+        _MinTextWidth: {},
+        _MinTextHeight: {},
+        _WordBreak: {}
+    },
+
+    buildSpecProperties: function() {
+        var scripts = Functions.own(this).select(function(sel) {
+            return this[sel].hasLivelyClosure;
+        }, this);
+        return [].concat(Object.keys(this.buildSpecIncludeProperties))
+            .concat(Properties.own(this).withoutAll(this.buildSpecExcludeProperties))
+            .concat(scripts);
+    },
+
+    buildSpec: function(builder) {
+        builder = builder || new lively.persistence.SpecBuilder();
+        return builder.build(this);
     },
     
     printBuildSpec: function() {

@@ -198,11 +198,9 @@ Global.Objects = {
 
         // print function
         if (Object.isFunction(obj)) {
-            return 'function'
-                 + (obj.name ? ' ' + obj.name : '')
-                 + '('
-                 + obj.argumentNames().join(',')
-                 + ') {/*...*/}';
+            return options.printFunctionSource ? String(obj) :
+                'function' + (obj.name ? ' ' + obj.name : '')
+              + '(' + obj.argumentNames().join(',') + ') {/*...*/}';
         }
 
         // print "primitive"
@@ -213,6 +211,10 @@ Global.Objects = {
             case RegExp:
             case Number: return Strings.print(obj);
         };
+
+        if (Object.isFunction(obj.serializeExpr)) {
+            return obj.serializeExpr();
+        }
 
         var isArray = Object.isArray(obj),
             openBr = isArray ? '[' : '{', closeBr = isArray ? ']' : '}';

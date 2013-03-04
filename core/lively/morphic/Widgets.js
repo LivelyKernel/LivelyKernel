@@ -635,6 +635,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 
         if (title) this.setupTitle(title);
         if (items) this.addItems(items);
+        
+        this.isMenu = true
     },
     setupTitle: function(title) {
         if (this.title) this.title.remove()

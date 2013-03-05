@@ -217,8 +217,6 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                     item = this.submorphs[n],
                     win = item && item.window;
                 if (!win) return;
-                win.owner.addMorphFront(win);
-                this.owner.addMorphFront(this);
                 win.show();
                 this.focus();
             },

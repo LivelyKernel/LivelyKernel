@@ -1069,52 +1069,26 @@ lively.morphic.Morph.addMethods({
         this.setPosition(this.determineMorphPosition(alignment, flapBounds.extent(), scaleFactor, offset));
         return flap;
     },
-    mapToFlapBounds: function(alignment) {
-        var world = lively.morphic.World.current(),
-            owner = this.owner,
-            ownerBounds = owner === world? world.visibleBounds() : owner.getBounds(),
-            offset = 5,
-            morphExtent = this.getExtent(),
-            extent, morphPosition, flapPosition;
-        if (!owner) {
-            console.log('opening morph flap in World')
-            owner = lively.morphic.World.current();
-        }
-        switch (alignment) {
-            case 'top': {
-                extent = pt(morphExtent.x, this.getBounds().bottomRight().y - ownerBounds.topLeft().y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(this.getPosition().x - offset - ownerBounds.topLeft().x, 0);
-                morphPosition = pt(offset, (extent.y - morphExtent.y) * world.getZoomLevel() - offset)
-                break;
-            }
-            case 'left': {
-                debugger
-                extent = pt(this.getBounds().bottomRight().x - ownerBounds.topLeft().x, morphExtent.y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(0,this.getPosition().y - offset - ownerBounds.topLeft().y);
-                morphPosition = pt((extent.x - morphExtent.x) * world.getZoomLevel() - offset, offset);
-                break
-            }
-            case 'bottom': {
-                extent = pt(morphExtent.x, ownerBounds.bottomRight().y - this.getBounds().topLeft().y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(this.getPosition().x - offset, ownerBounds.bottomRight().y - extent.y);
-                flapPosition = flapPosition.subPt(ownerBounds.topLeft())
-                morphPosition = pt(5,5)
-                break;
-            }
-            case 'right': {
-                extent = pt(ownerBounds.bottomRight().x - this.getBounds().topLeft().x, morphExtent.y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(ownerBounds.bottomRight().x - extent.x + offset,this.getPosition().y);
-                flapPosition = flapPosition.subPt(ownerBounds.topLeft())
-                morphPosition = pt(5,5)
-                break;
-            }
-        }
-        return {flapBounds: flapPosition.extent(extent), morphPosition: morphPosition};
+    addFlapWithMorph: function(morph, alignment) {
+        if (!morph.owner)
+            this.addMorph(morph)
+        var offset = 5,
+            flapBounds = morph.determineFlapBounds(alignment, this, offset),
+            scaleFactor = this.isWorld? this.getZoomLevel() : 1,
+            flap = new lively.morphic.Flap(alignment, this, flapBounds);
+        flap.addMorph(morph);
+        flap.setFixed(false);
+        flap.setScale(1/scaleFactor);
+        flap.setFixed(true);
+        this.adjustHandlePosition(flap);
+        morph.setScale(scaleFactor);
+        morph.setPosition(morph.determineMorphPosition(alignment, flapBounds.extent(), scaleFactor, offset)); //refactor
+        return flap;
     },
+
+
+
+
     determineFlapBounds: function(alignment, owner, offset) {
         var world = lively.morphic.World.current(),
             ownerBounds = owner === world? world.visibleBounds() : owner.getBounds();

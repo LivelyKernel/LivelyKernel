@@ -16,15 +16,16 @@ Object.subclass('lively.persistence.SpecBuilder',
         var builder = this, spec = {};
         spec.className = morph.constructor.type;
         var sourceModule = morph.constructor.sourceModule;
-        if (sourceModule && sourceModule.name() !== Global) {
+        if (sourceModule && sourceModule !== Global && Object.isFunction(sourceModule.name)) {
             spec.sourceModule = sourceModule.name();
         }
+        var includeProps = Object.mergePropertyInHierarchy(morph, "buildSpecIncludeProperties");
         morph.buildSpecProperties().forEach(function(key) {
-            var attr = morph.buildSpecIncludeProperties[key] || {};
+            if (key === '_Fill') debugger
+            var attr = includeProps[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
             var value = morph[key];
-            if (attr.getter) value = attr.getter(morph);
-            if (attr.transform) value = attr.transform(morph, value);
+            if (attr.getter) value = attr.getter(morph, value);
             if (Object.isFunction(value)) {
                 // pass
             } else if (value && Object.isFunction(value.serializeExpr)) {
@@ -114,7 +115,12 @@ Object.subclass('lively.persistence.MorphBuilder',
             instance.setNewId();
             instance.applyStyle(instance.getStyle());
         }
+        var specialAttributes = Object.mergePropertyInHierarchy(instance, "buildSpecIncludeProperties");
         Object.keys(spec).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder']).forEach(function(key) {
+            if (specialAttributes[key] && specialAttributes[key].recreate) {
+                instance[key] = specialAttributes[key].recreate(instance, spec);
+                return;
+            }
             var specVal = spec[key];
             if (!key.startsWith('_')) {
                 instance[key] = specVal;
@@ -128,7 +134,7 @@ Object.subclass('lively.persistence.MorphBuilder',
         if (spec.submorphs) {
             spec.submorphs.forEach(function(ea) {
                 var submorph = this.createMorph(ea, options, depth + 1);
-                instance.addMorph(submorph);
+                if (submorph) instance.addMorph(submorph);
             }, this);
         }
         if (spec.connectionRebuilder) {
@@ -139,6 +145,7 @@ Object.subclass('lively.persistence.MorphBuilder',
         // references of connections
         if (depth === 0) {
             options.connectionRebuilders.invoke('call', null);
+            instance.withAllSubmorphsDo(function(ea) { ea.onBuildSpecDone(); });
         }
         return instance;
     }
@@ -159,6 +166,7 @@ lively.morphic.Morph.addMethods(
                                  "moved", "_renderContext", "_isRendered",
                                  "owner", "cachedBounds", "isBeingDragged",
                                  "halos", "priorExtent", "distanceToDragEvent",
+                                 "prevScroll",
                                  "attributeConnections"],
 
     //morphProps = ["name",
@@ -180,24 +188,68 @@ lively.morphic.Morph.addMethods(
 
     buildSpecIncludeProperties: {
         name: {},
-        doNotSerialize: {transform: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
-        doNotCopyProperties: {transform: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        doNotSerialize: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        doNotCopyProperties: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
         grabbingEnabled: {},
         droppingEnabled: {},
         halosEnabled: {},
         showsHalos: {},
         _ClipMode: {},
-        _StyleSheet: {transform: function(morph, val) { return Object.isString(val) ? val : val.getText(); }},
+        _StyleSheet: {getter: function(morph, val) { return !val || Object.isString(val) ? val : val.getText(); }},
         _StyleClassNames: {},
         _Position: {},
         _Extent: {getter: function(morph) { return morph.getExtent(); }},
+        _Fill: {getter: function(morph) { return morph.getFill(); }},
+        _BorderColor: {getter: function(morph) { return morph.getBorderColor(); }},
+        _BorderWidth: {getter: function(morph) { return morph.getBorderWidth(); }},
+        _BorderStyle: {getter: function(morph) { return morph.getBorderStyle(); }},
         _Rotation: {},
-        _Scale: {},
+        _Scale: {}
+    },
+
+    buildSpecProperties: function() {
+        var excludes = Object.mergePropertyInHierarchy(this, "buildSpecExcludeProperties"),
+            includes = Object.mergePropertyInHierarchy(this, "buildSpecIncludeProperties"),
+            scripts = Functions.own(this).select(function(sel) { return this[sel].hasLivelyClosure; }, this),
+            ownProps = Properties.own(this)
+                       .withoutAll(excludes)
+                       .reject(function(key) { return key.startsWith('$$'); });
+        return [].concat(Object.keys(includes))
+               .concat(ownProps)
+               .concat(scripts)
+               .uniq();
+    },
+
+    buildSpec: function(builder) {
+        builder = builder || new lively.persistence.SpecBuilder();
+        return builder.build(this);
+    },
+
+    printBuildSpec: function() {
+        return lively.persistence.SpecBuilder.stringify(this.buildSpec());
+    },
+
+    onBuildSpecDone: Functions.Null
+});
+
+lively.morphic.List.addMethods(
+'UI builder', {
+    buildSpecExcludeProperties: ["changeTriggered"],
+    buildSpecIncludeProperties: {
         itemList: {},
-        grabbingEnabled: {},
+        _FontSize: {}
+    }
+});
+
+lively.morphic.Text.addMethods(
+'UI builder', {
+    buildSpecExcludeProperties: ["cachedTextString", "savedTextString",
+                                 "charsReplaced", "charsTyped", "lastFindLoc",
+                                 "parseErrors", "textChunks",
+                                 "undoSelectionRange"],
+
+    buildSpecIncludeProperties: {
         _FontSize: {},
-        isActive: {},
-        label: {},
         fixedWidth: {},
         fixedHeight: {},
         allowsInput: {},
@@ -211,26 +263,17 @@ lively.morphic.Morph.addMethods(
         _MinTextWidth: {},
         _MinTextHeight: {},
         _WordBreak: {}
-    },
+    }
 
-    buildSpecProperties: function() {
-        var scripts = Functions.own(this).select(function(sel) {
-                return this[sel].hasLivelyClosure; }, this),
-            ownProps = Properties.own(this)
-                       .withoutAll(this.buildSpecExcludeProperties)
-                       .reject(function(key) { return key.startsWith('$$'); });
-        return [].concat(Object.keys(this.buildSpecIncludeProperties))
-               .concat(ownProps)
-               .concat(scripts);
-    },
+});
 
-    buildSpec: function(builder) {
-        builder = builder || new lively.persistence.SpecBuilder();
-        return builder.build(this);
-    },
-
-    printBuildSpec: function() {
-        return lively.persistence.SpecBuilder.stringify(this.buildSpec());
+lively.morphic.Button.addMethods(
+'UI builder', {
+    buildSpecIncludeProperties: {
+        isActive: {},
+        label: {
+            getter: function(morph, val) { return val.textString || ''; },
+            recreate: function(instance, spec) { return instance.ensureLabel(spec.label); }}
     }
 });
 

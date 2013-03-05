@@ -64,7 +64,6 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
                 bar: 3,
                 submorphs: [{foo: 3}]
             };
-//(function() { $world.addTextWindow({content: Objects.inspect(spec, {printFunctionSource: true})}); }).delay(0);
         this.assertMatches(expected, spec);
         this.assert(!spec.submorphs[0].$$foo, 'connection meta attribute was serialized');
         this.assert(!spec.submorphs[0].attributeConnections, 'attributeConnections prop was serialized');
@@ -80,7 +79,20 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
                      + '    lively.bindings.connect(this, "foo", this, "bar", {});\n'
                      + '}';
         this.assertEquals(expected, result.toString());
+    },
+    test08SpecialRecreationHandler: function() {
+        lively.morphic.Box.subclass('lively.persistence.tests.SpecialBox', {
+            buildSpecIncludeProperties: {
+                foo: {recreate: function(instance, spec) { return spec.foo + 1; }}
+            }
+        });
+        var m = new lively.persistence.tests.SpecialBox(lively.rect(0,0,100,100));
+        m.foo = 2;
+        var spec = m.buildSpec(),
+            recreated = lively.morphic.Morph.fromSpec(spec);
+        this.assertEquals(3, recreated.foo);
     }
+
 
 });
 

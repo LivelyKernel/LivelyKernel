@@ -508,6 +508,24 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj1.x = 2;
         this.assertEquals(obj2.value, 2, 'connection not working');
         this.assertEquals(obj2.old, 4, 'old value not provided');
+    },
+    test44DoNotRemoveNewConnectionsAfterUpdate: function() {
+        var obj1 = {x: 4};
+        var obj2 = {y: function(v) {
+            this.z = v;
+            if (v < 5) {
+                connect(obj1, 'x', this, 'y', {removeAfterUpdate: true});
+            }
+        }};
+        connect(obj1, 'x', obj2, 'y', {removeAfterUpdate: true});
+        obj1.x = 3; // updates z and refreshes connection
+        this.assertEquals(3, obj2.z);
+        obj1.x = 4; // updates z and refreshes connection
+        this.assertEquals(4, obj2.z);
+        obj1.x = 6; // updates z and removes connection
+        this.assertEquals(6, obj2.z);
+        obj1.x = 1; // does not update z
+        this.assertEquals(6, obj2.z);
     }
 
 });

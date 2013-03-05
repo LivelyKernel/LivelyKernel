@@ -40,7 +40,12 @@ Object.subclass('lively.morphic.Morph',
         this.cachedBounds = null;
         return this.morphicSetter('Position', value);
     },
-    getPosition: function() { return this.morphicGetter('Position') || pt(0,0) },
+    getPosition: function() { 
+        var pos = this.morphicGetter('Position') || pt(0,0);
+        if (this.isFixed)
+            return pos.addPt(lively.morphic.World.current().getScrollOffset())
+        return pos
+    },
     setRotation: function(value) {
         this.cachedBounds = null;
         return this.morphicSetter('Rotation', value);

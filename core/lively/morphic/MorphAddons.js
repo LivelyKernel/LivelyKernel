@@ -515,7 +515,7 @@ lively.morphic.Morph.addMethods(
             this.disableGrabbing();
         if(fixed) {
             this.fixedScale = this.getScale() * world.getZoomLevel();
-            this.fixedPosition = this.getPosition().subPt(world.visibleBounds().topLeft());
+            this.fixedPosition = this.getPosition().subPt(world.getScrollOffset());
             this.startStepping(100, "updateZoomScale");
             this.setFixedInPosition(true);
         } else {
@@ -540,24 +540,25 @@ lively.morphic.Morph.addMethods(
     },
     setFixedInPosition: function(optBool) {
         var bool = (optBool === undefined) ? true : optBool;
+        var pos = this.fixedPosition.subPt(lively.morphic.World.current().getScrollOffset())
         if (bool) {
-            this.setPosition(this.fixedPosition); //sanitize getPosition while fixed
+            this.setPosition(pos); //sanitize getPosition while fixed
         }
         this.world().removeWebkitTransform();
         var morphnode = this.renderContext().morphNode,
             style = morphnode.getAttribute('style'),
             positionTargetString = bool? 'position: fixed' : 'position: absolute',
             positionSourceString = bool? 'position: absolute' : 'position: fixed',
-            leftTargetString = 'left:' + this.fixedPosition.x + 'px;',
+            leftTargetString = 'left:' + pos.x + 'px;',
             leftSourceRegex = /left\:[^;]*\;/g,
-            topTargetString = 'top:' + this.fixedPosition.y + 'px;',
+            topTargetString = 'top:' + pos.y + 'px;',
             topSourceRegex = /top\:[^;]*\;/g,
             newStyle = style.replace(positionSourceString, positionTargetString)
                     .replace(leftSourceRegex, leftTargetString)
                     .replace(topSourceRegex, topTargetString);
         morphnode.setAttribute('style', newStyle);
         if (!bool) {
-            this.setPosition(this.fixedPosition.addPt(this.world().visibleBounds().topLeft()));
+            this.setPosition(this.fixedPosition.addPt(lively.morphic.World.current().getScrollOffset()));
         }
     },
     updateZoomScale: function(newZoom) {

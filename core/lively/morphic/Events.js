@@ -1042,10 +1042,10 @@ handleOnCapture);
     },
 
     showsHorizontalScrollBar: function() {
-        return this.renderContextDispatch('showsHorizontalScrollBar');
+        return this.isClip() && this.renderContextDispatch('showsHorizontalScrollBar');
     },
     showsVerticalScrollBar: function() {
-        return this.renderContextDispatch('showsVerticalScrollBar');
+        return this.isClip() && this.renderContextDispatch('showsVerticalScrollBar');
     },
     getScrollBarExtent: function() { return this.renderContextDispatch('getScrollBarExtent') },
 },

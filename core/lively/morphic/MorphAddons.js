@@ -509,7 +509,10 @@ lively.morphic.Morph.addMethods(
         if(fixed && this.owner !== world) {
             return;
         }
+        fixed && world.addMorph(this);
         this.isFixed = fixed;
+        if (fixed)
+            this.disableGrabbing();
         if(fixed) {
             this.fixedScale = this.getScale() * world.getZoomLevel();
             this.fixedPosition = this.getPosition().subPt(world.visibleBounds().topLeft());
@@ -532,11 +535,14 @@ lively.morphic.Morph.addMethods(
             this.startStepping(100, "updateZoomScale");
         }
         else {
-            this.stopSteppingScriptNamed("updateZoomLevel");
+            this.stopSteppingScriptNamed("updateZoomScale");
         }
     },
     setFixedInPosition: function(optBool) {
         var bool = (optBool === undefined) ? true : optBool;
+        if (bool) {
+            this.setPosition(this.fixedPosition); //sanitize getPosition while fixed
+        }
         this.world().removeWebkitTransform();
         var morphnode = this.renderContext().morphNode,
             style = morphnode.getAttribute('style'),
@@ -1196,14 +1202,17 @@ lively.morphic.Morph.addMethods({
         var offset = 5,
             flapBounds = this.determineFlapBounds(alignment, morph, offset),
             scaleFactor = this.isWorld? this.getZoomLevel() : 1,
-            flap = new lively.morphic.Flap(alignment, this, flapBounds);
-        flap.addMorph(morph);
+            flap = new lively.morphic.Flap(alignment, this, flapBounds),
+            scrollContainer = new lively.morphic.Box(this.getBounds());
+        scrollContainer.setClipMode('scroll')
+        scrollContainer.addMorph(this);
+        flap.addMorph(scrollContainer);
         flap.setFixed(false);
         flap.setScale(1/scaleFactor);
         flap.setFixed(true);
         this.adjustHandlePosition(flap);
-        morph.setScale(scaleFactor);
-        morph.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
+        scrollContainer.setScale(scaleFactor);
+        scrollContainer.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
         return flap;
     },
     determineFlapBounds: function(alignment, morph, offset) {

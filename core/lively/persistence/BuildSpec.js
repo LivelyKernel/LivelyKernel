@@ -3,6 +3,16 @@ module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization").
 Object.subclass('lively.persistence.SpecBuilder',
 'spec construction', {
     build: function(morph) {
+        // iterates through properties of morph and creates a spec object for
+        // recording the state of the morph. This spec object will not store an
+        // arbitrary JS object representation as the
+        // lively.persistence.Serializer does but a Morphic-specific
+        // representation that captures only relevant Morph attributes. However,
+        // this version tries to be as flexible as possible.
+        // Note that certain attributes such as submorphs are handled
+        // specifically with, other attributes such as functions and
+        // serializeExpr are stored as they are, the rest is simply stringified
+        // (plain toString, no deep graph traversal)
         var builder = this, spec = {};
         spec.className = morph.constructor.type;
         var sourceModule = morph.constructor.sourceModule;
@@ -41,7 +51,12 @@ Object.subclass('lively.persistence.MorphBuilder',
     isInstanceRestorer: true // so the class knows not ot initialize anything
 },
 'building', {
-    createMorph: function(spec) {
+    createMorph: function(spec, options, depth) {
+        // Creates a new morph and iterates through properties of spec. The
+        // properties are added to the morph. Certain "special" properties such
+        // as the connections, submorphs, etc. are handled specifically
+        options = options || {connectionRebuilders: []};
+        depth = depth || 0;
         var klass = Class.forName(spec.className);
         if (!klass || !Object.isFunction(klass)) return null;
         var instance = new klass(this);

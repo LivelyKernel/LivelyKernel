@@ -43,7 +43,22 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
                 submorphs: [{_Position: lively.pt(25,25)}]
             };
         this.assertMatches(expected, spec);
-    }});
+    },
+    test05BuildSpecWithConnection: function() {
+        var m = new lively.morphic.Box(lively.rect(0,0,100,100));
+        lively.bindings.connect(m, 'foo', m, 'bar');
+        m.foo = 3;
+        var spec = m.buildSpec(),
+            expected = {
+                className: 'lively.morphic.Box',
+                foo: 3,
+                sourceModule: 'lively.morphic.Core',
+                _Position: lively.pt(0,0)
+            };
+        this.assertMatches(expected, spec);
+        this.assert(!spec.$$foo, 'connection meta attribute was serialized');
+    }
+});
 
 lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.PrintSpec',
 'testing', {

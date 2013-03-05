@@ -543,6 +543,7 @@ lively.morphic.Morph.addMethods(
         var pos = this.fixedPosition.subPt(lively.morphic.World.current().getScrollOffset())
         if (bool) {
             this.setPosition(pos); //sanitize getPosition while fixed
+            this.fixedPosition = this.fixedPosition.subPt(lively.morphic.World.current().getScrollOffset())
         }
         this.world().removeWebkitTransform();
         var morphnode = this.renderContext().morphNode,

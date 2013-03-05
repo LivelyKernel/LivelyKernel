@@ -1052,28 +1052,14 @@ lively.morphic.Morph.addMethods(
 
 lively.morphic.Morph.addMethods({
     openInFlap: function(alignment) {
-        if (!this.owner)
-            this.openInWorld()
-        var world = lively.morphic.World.current(),
-            owner = this.owner || lively.morphic.World.current(),
-            offset = 5,
-            flapBounds = this.determineFlapBounds(alignment, owner, offset),
-            scaleFactor = this.owner === world? world.getZoomLevel() : 1,
-            flap = new lively.morphic.Flap(alignment, owner, flapBounds);
-        flap.addMorph(this);
-        flap.setFixed(false);
-        flap.setScale(1/scaleFactor);
-        flap.setFixed(true);
-        this.adjustHandlePosition(flap)
-        this.setScale(scaleFactor);
-        this.setPosition(this.determineMorphPosition(alignment, flapBounds.extent(), scaleFactor, offset));
-        return flap;
+        var owner = this.owner || lively.morphic.World.current();
+        return owner.addFlapWithMorph(this, alignment);
     },
     addFlapWithMorph: function(morph, alignment) {
         if (!morph.owner)
             this.addMorph(morph)
         var offset = 5,
-            flapBounds = morph.determineFlapBounds(alignment, this, offset),
+            flapBounds = this.determineFlapBounds(alignment, morph, offset),
             scaleFactor = this.isWorld? this.getZoomLevel() : 1,
             flap = new lively.morphic.Flap(alignment, this, flapBounds);
         flap.addMorph(morph);
@@ -1082,22 +1068,22 @@ lively.morphic.Morph.addMethods({
         flap.setFixed(true);
         this.adjustHandlePosition(flap);
         morph.setScale(scaleFactor);
-        morph.setPosition(morph.determineMorphPosition(alignment, flapBounds.extent(), scaleFactor, offset)); //refactor
+        morph.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
         return flap;
     },
 
 
 
 
-    determineFlapBounds: function(alignment, owner, offset) {
-        var world = lively.morphic.World.current(),
-            ownerBounds = owner === world? world.visibleBounds() : owner.getBounds();
-        var flapExtent = this.determineFlapExtent(alignment, ownerBounds, offset),
-            flapPosition = this.determineFlapPosition(alignment, ownerBounds, flapExtent, offset);
+    determineFlapBounds: function(alignment, morph, offset) {
+        debugger
+        var flapExtent = this.determineFlapExtent(alignment, morph, offset),
+            flapPosition = this.determineFlapPosition(alignment, morph, flapExtent, offset);
         return flapPosition.extent(flapExtent);
     },
-    determineFlapExtent: function(alignment, ownerBounds, offset) {
-        var myBounds = this.getBounds(),
+    determineFlapExtent: function(alignment, morph, offset) {
+        var myBounds = morph.getBounds(),
+            ownerBounds = this.isWorld? this.visibleBounds() : this.getBounds(),
             extent;
         switch (alignment) {
             case 'top': {
@@ -1119,9 +1105,10 @@ lively.morphic.Morph.addMethods({
         }
         return extent.addPt(pt(2*offset, 2*offset));
     },
-    determineFlapPosition: function(alignment, ownerBounds, flapExtent, offset) {
-        var myBounds = this.getBounds(),
-            myPosition = this.getPosition(),
+    determineFlapPosition: function(alignment, morph, flapExtent, offset) {
+        var myBounds = morph.getBounds(),
+            myPosition = morph.getPosition(),
+            ownerBounds = this.isWorld? this.visibleBounds() : this.getBounds(),
             ownerPosition = ownerBounds.topLeft(),
             ownerExtent = ownerBounds.extent();
         switch (alignment) {
@@ -1133,7 +1120,7 @@ lively.morphic.Morph.addMethods({
         }
     },
 
-    determineMorphPosition: function(alignment, flapExtent, scaleFactor, offset) {
+    determinePositionInFlap: function(alignment, flapExtent, scaleFactor, offset) {
         var myExtent = this.getExtent();
         switch (alignment) {
             case 'top': return pt(offset, (flapExtent.y - myExtent.y) * scaleFactor - offset);

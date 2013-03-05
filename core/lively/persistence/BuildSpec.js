@@ -35,7 +35,53 @@ Object.subclass('lively.persistence.SpecBuilder',
             spec[key] = value;
         });
         spec.submorphs = morph.submorphs.map(function(ea) { return ea.buildSpec(builder); });
+        if (morph.attributeConnections) {
+            spec.connectionRebuilder = this.generateConnectionRebuilder(morph, morph.attributeConnections);
+        }
         return spec;
+    },
+
+    generateConnectionRebuilder: function(sourceObj, connections) {
+        var template = '(function connectionRebuilder() {\n    %SOURCE%\n})';
+        function generateFailFunction(err) {
+            var errStr = Strings.print(err).replace(/\n/g, '\n    //');
+            return eval(template.replace('%SOURCE', "// failed with:\n" + errStr));
+        }
+        function generateGetObjectCode(obj) {
+            if (!obj) return null;
+            // 1) this
+            if (sourceObj === obj) return 'this';
+            // 2) lookup by name
+            if (obj.name) return 'this.get("' + obj.name +'")';
+            // 3) lookup owner chain
+            var ownerIdx = sourceObj.ownerChain().indexOf(obj);
+            if (ownerIdx > -1) return 'this' + '.owner'.times(ownerIdx+1);
+            // fail
+            return null;
+        }
+        var sourceGetterCode = generateGetObjectCode(sourceObj);
+        if (!sourceGetterCode) {
+            return generateFailFunction('cannot access sourceObj ' + sourceObj);
+        }
+        var code = connections.map(function(c) {
+            var targetObject = c.getTargetObj(),
+                targetGetterCode = generateGetObjectCode(targetObject);
+            if (!targetGetterCode) {
+                return '// failed to generate rebuild code for ' + String(c);
+            }
+        	var optConfig = [];
+        	if (c.converterString) { optConfig.push("converter: \n" + c.converterString); }
+        	if (c.updaterString) { optConfig.push("updater: \n" + c.updaterString);}
+        	return Strings.format('lively.bindings.connect(%s, "%s", %s, "%s", {%s});',
+        			              sourceGetterCode,
+        			              c.getSourceAttrName(),
+        			              targetGetterCode,
+        			              c.getTargetMethodName(),
+        			              optConfig.join(','));
+        }).join("\n    ");
+        try { return eval(template.replace(/%SOURCE%/, code)); } catch(e) {
+            return generateFailFunction(e);
+        }
     }
 
 });
@@ -68,7 +114,7 @@ Object.subclass('lively.persistence.MorphBuilder',
             instance.setNewId();
             instance.applyStyle(instance.getStyle());
         }
-        Object.keys(spec).withoutAll(['className', 'sourceModule', 'submorphs']).forEach(function(key) {
+        Object.keys(spec).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder']).forEach(function(key) {
             var specVal = spec[key];
             if (!key.startsWith('_')) {
                 instance[key] = specVal;
@@ -79,6 +125,21 @@ Object.subclass('lively.persistence.MorphBuilder',
                 setter.call(instance, specVal);
             }
         });
+        if (spec.submorphs) {
+            spec.submorphs.forEach(function(ea) {
+                var submorph = this.createMorph(ea, options, depth + 1);
+                instance.addMorph(submorph);
+            }, this);
+        }
+        if (spec.connectionRebuilder) {
+            options.connectionRebuilders.push(function() { spec.connectionRebuilder.call(instance); });
+        }
+        // Defer reinitialization of connections until morph hierarchy is
+        // rebuild. This allows to use morphic name lookup for finding
+        // references of connections
+        if (depth === 0) {
+            options.connectionRebuilders.invoke('call', null);
+        }
         return instance;
     }
 });
@@ -97,7 +158,8 @@ lively.morphic.Morph.addMethods(
                                  "eventHandler", "derivationIds", "partTests",
                                  "moved", "_renderContext", "_isRendered",
                                  "owner", "cachedBounds", "isBeingDragged",
-                                 "halos", "priorExtent", "distanceToDragEvent"],
+                                 "halos", "priorExtent", "distanceToDragEvent",
+                                 "attributeConnections"],
 
     //morphProps = ["name",
     //              "doNotSerialize", "doNotCopyProperties",
@@ -118,8 +180,8 @@ lively.morphic.Morph.addMethods(
 
     buildSpecIncludeProperties: {
         name: {},
-        doNotSerialize: {},
-        doNotCopyProperties: {},
+        doNotSerialize: {transform: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        doNotCopyProperties: {transform: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
         grabbingEnabled: {},
         droppingEnabled: {},
         halosEnabled: {},
@@ -153,7 +215,7 @@ lively.morphic.Morph.addMethods(
 
     buildSpecProperties: function() {
         var scripts = Functions.own(this).select(function(sel) {
-            return this[sel].hasLivelyClosure; }, this),
+                return this[sel].hasLivelyClosure; }, this),
             ownProps = Properties.own(this)
                        .withoutAll(this.buildSpecExcludeProperties)
                        .reject(function(key) { return key.startsWith('$$'); });
@@ -178,4 +240,4 @@ Object.extend(lively.morphic.Morph, {
     }
 });
 
-}) // end of module
+}) // end of moduled of module

@@ -44,20 +44,44 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
             };
         this.assertMatches(expected, spec);
     },
-    test05BuildSpecWithConnection: function() {
-        var m = new lively.morphic.Box(lively.rect(0,0,100,100));
-        lively.bindings.connect(m, 'foo', m, 'bar');
-        m.foo = 3;
-        var spec = m.buildSpec(),
+    test05RecreateWithSubmorphs: function() {
+        var m1 = new lively.morphic.Box(lively.rect(0,0,100,100)),
+            m2 = new lively.morphic.Box(lively.rect(25,25,50,50));
+        m1.addMorph(m2);
+        var spec = m1.buildSpec(),
+            recreated = lively.morphic.Morph.fromSpec(spec);
+        this.assertEquals(1, recreated.submorphs.length, 'submorphs?');
+    },
+    test06BuildSpecWithConnection: function() {
+        var m1 = new lively.morphic.Box(lively.rect(0,0,100,100)),
+            m2 = new lively.morphic.Box(lively.rect(25,25,50,50));
+        m1.addMorph(m2);
+        lively.bindings.connect(m2, 'foo', m1, 'bar');
+        m2.foo = 3;
+        var spec = m1.buildSpec(),
+            recreated = lively.morphic.Morph.fromSpec(spec),
             expected = {
-                className: 'lively.morphic.Box',
-                foo: 3,
-                sourceModule: 'lively.morphic.Core',
-                _Position: lively.pt(0,0)
+                bar: 3,
+                submorphs: [{foo: 3}]
             };
+//(function() { $world.addTextWindow({content: Objects.inspect(spec, {printFunctionSource: true})}); }).delay(0);
         this.assertMatches(expected, spec);
-        this.assert(!spec.$$foo, 'connection meta attribute was serialized');
+        this.assert(!spec.submorphs[0].$$foo, 'connection meta attribute was serialized');
+        this.assert(!spec.submorphs[0].attributeConnections, 'attributeConnections prop was serialized');
+        recreated.submorphs[0].foo = 4;
+        this.assertEquals(4, recreated.bar, 'm2.foo -> m1.bar connection not working');
+    },
+    test07GenerateConnectionRebuilder: function() {
+        var sut = new lively.persistence.SpecBuilder(),
+            obj = {},
+            c = lively.bindings.connect(obj, 'foo', obj, 'bar'),
+            result = sut.generateConnectionRebuilder(obj, obj.attributeConnections),
+            expected = 'function connectionRebuilder() {\n'
+                     + '    lively.bindings.connect(this, "foo", this, "bar", {});\n'
+                     + '}';
+        this.assertEquals(expected, result.toString());
     }
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.PrintSpec',

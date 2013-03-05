@@ -1,9 +1,6 @@
 module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization").toRun(function() {
 
 Object.subclass('lively.persistence.SpecBuilder',
-'properties', {
-    isInstanceRestorer: true // so the class knows not ot initialize anything
-},
 'spec construction', {
     build: function(morph) {
         var builder = this, spec = {};
@@ -15,7 +12,7 @@ Object.subclass('lively.persistence.SpecBuilder',
         morph.buildSpecProperties().forEach(function(key) {
             var attr = morph.buildSpecIncludeProperties[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
-            value = morph[key];
+            var value = morph[key];
             if (attr.getter) value = attr.getter(morph);
             if (attr.transform) value = attr.transform(morph, value);
             if (Object.isFunction(value)) {
@@ -27,8 +24,7 @@ Object.subclass('lively.persistence.SpecBuilder',
             }
             spec[key] = value;
         });
-        spec.submorphs = morph.submorphs.map(function(ea) {
-            return ea.buildSpec(builder); });
+        spec.submorphs = morph.submorphs.map(function(ea) { return ea.buildSpec(builder); });
         return spec;
     }
 
@@ -41,6 +37,9 @@ Object.extend(lively.persistence.SpecBuilder, {
 });
 
 Object.subclass('lively.persistence.MorphBuilder',
+'properties', {
+    isInstanceRestorer: true // so the class knows not ot initialize anything
+},
 'building', {
     createMorph: function(spec) {
         var klass = Class.forName(spec.className);
@@ -77,12 +76,12 @@ Object.extend(lively.persistence.MorphBuilder, {
 
 lively.morphic.Morph.addMethods(
 'UI builder', {
-    
+
     buildSpecExcludeProperties: ["submorphs", "scripts", "id", "shape",
                                  "registeredForMouseEvents", "partsBinMetaInfo",
                                  "eventHandler", "derivationIds", "partTests",
                                  "moved", "_renderContext", "_isRendered",
-                                 "owner", "cachedBounds", "isBeingDragged", 
+                                 "owner", "cachedBounds", "isBeingDragged",
                                  "halos", "priorExtent", "distanceToDragEvent"],
 
     //morphProps = ["name",
@@ -139,18 +138,20 @@ lively.morphic.Morph.addMethods(
 
     buildSpecProperties: function() {
         var scripts = Functions.own(this).select(function(sel) {
-            return this[sel].hasLivelyClosure;
-        }, this);
+            return this[sel].hasLivelyClosure; }, this),
+            ownProps = Properties.own(this)
+                       .withoutAll(this.buildSpecExcludeProperties)
+                       .reject(function(key) { return key.startsWith('$$'); });
         return [].concat(Object.keys(this.buildSpecIncludeProperties))
-            .concat(Properties.own(this).withoutAll(this.buildSpecExcludeProperties))
-            .concat(scripts);
+               .concat(ownProps)
+               .concat(scripts);
     },
 
     buildSpec: function(builder) {
         builder = builder || new lively.persistence.SpecBuilder();
         return builder.build(this);
     },
-    
+
     printBuildSpec: function() {
         return lively.persistence.SpecBuilder.stringify(this.buildSpec());
     }

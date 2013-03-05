@@ -43,14 +43,26 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
         this.changeAppearanceFor(false, false);
 
-        this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
-        this.addMorph(this.label);
-        this.label.beLabel(this.style.label);
-        this.label.setTextStylingMode(true);
+        this.ensureLabel(labelString);
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
-    }
+    },
+    ensureLabel: function(labelString) {
+        if (!this.label) {
+            this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
+        } else {
+            this.label.setBounds(this.getExtent().extentAsRectangle());
+            this.label.textString = labelString;
+        }
+        if (this.label.owner !== this) {
+            this.addMorph(this.label);
+        }
+        this.label.beLabel(this.style.label);
+        this.label.setTextStylingMode(true);
+        return this.label;
+    },
+
 
 },
 'accessing', {

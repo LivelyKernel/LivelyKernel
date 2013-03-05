@@ -166,7 +166,7 @@ lively.morphic.Morph.addMethods(
                                  "moved", "_renderContext", "_isRendered",
                                  "owner", "cachedBounds", "isBeingDragged",
                                  "halos", "priorExtent", "distanceToDragEvent",
-                                 "prevScroll",
+                                 "prevScroll", "_PreviousBorderWidth",
                                  "attributeConnections"],
 
     //morphProps = ["name",
@@ -267,6 +267,21 @@ lively.morphic.Text.addMethods(
 
 });
 
+lively.morphic.CodeEditor.addMethods(
+'UI builder', {
+    buildSpecExcludeProperties: ["_isFocused", "savedTextString", "aceEditor"],
+        buildSpecIncludeProperties: {
+            textString: {getter: function(morph) { return morph.textString }},
+            theme: {
+                getter: function(morph) { return morph.getTheme(); },
+                recreate: function(morph, spec) { morph.setTheme(spec.theme); }
+            },
+            textMode: {
+                getter: function(morph) { return morph.getTextMode(); },
+                recreate: function(morph, spec) { morph.setTextMode(spec.textMode); }
+            }
+        }
+});
 lively.morphic.Button.addMethods(
 'UI builder', {
     buildSpecIncludeProperties: {

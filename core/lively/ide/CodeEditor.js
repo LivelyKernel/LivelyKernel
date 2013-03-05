@@ -126,14 +126,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                         (stringOrOptions || {});
         $super(this.defaultShape());
         bounds = bounds || lively.rect(0,0,400,300);
-        var shape = new lively.morphic.CodeEditorShape();
-
-        $super(shape);
         this.setBounds(bounds);
         this.textString = options.content || '';
 
         this.setTheme(options.theme || Config.get('aceDefaultTheme'));
         this.setTextMode(options.textMode || Config.get('aceDefaultTextMode'));
+    },
+
+    defaultShape: function() {
+        return new lively.morphic.CodeEditorShape();
     },
 
     onOwnerChanged: function(newOwner) {

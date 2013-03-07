@@ -500,6 +500,7 @@ lively.morphic.Morph.addMethods(
             this.isFixed = fixed;
         } else {
             delete this.isFixed;
+            this.world().addMorph(this); //sending it to the back positions 
         }
     },
     setFixedInSize: function(optFixed) {
@@ -530,6 +531,7 @@ lively.morphic.Morph.addMethods(
         this.updatePositionStyleAttribtues(fixed, pos);
         if (fixed) {
             this.fixedPosition = pos;
+            this.cachedBounds = undefined
         } else {
             this.setPosition(this.getPosition()); // refresh lively position
             delete this.fixedPosition;

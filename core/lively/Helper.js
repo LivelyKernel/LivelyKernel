@@ -25,8 +25,7 @@
 module('lively.Helper').requires('lively.LogHelper').toRun(function() {
 
 /*
- * Stack Viewer when Dan's StackTracer is not available
- * FIXME rk: move this to Helper.js?
+ * Simple Stack Viewer
  */
 function getStack() {
     var result = [];
@@ -42,21 +41,18 @@ function getStack() {
 
 function printStack() {
     function guessFunctionName(func) {
-        var qName = func.qualifiedMethodName && func.qualifiedMethodName(),
-            regExpRes = func.toString().match(/function (.+)\(/);
-        return qName || (regExpRes && regExpRes[1]) || func;
+        var name = func.qualifiedMethodName && func.qualifiedMethodName();
+        if (name && name !== 'anonymous') return name;
+        var regExpRes = func.toString().match(/function (.+)\(/);
+        return (regExpRes && regExpRes[1]) || String(func).replace(/\s+/g, ' ').truncate(50);
     };
 
-    var string = "== Stack ==\n",
-        stack = getStack();
+    var string = "== Stack ==\n", stack = getStack();
     stack.shift(); // for getStack
     stack.shift(); // for printStack (me)
-    var indent = "";
-    for (var i=0; i < stack.length; i++) {
-        string += indent + i + ": " +guessFunctionName(stack[i]) + "\n";
-        indent += " ";
-    };
-    return string;
+    return string + stack
+            .map(function(func, i) { return stack.length - i + ": " + guessFunctionName(func) })
+            .join('\n') + "\n==========";
 };
 
 function logStack() {
@@ -70,6 +66,11 @@ Object.extend(Global, {
     getStack: getStack,
     printStack: printStack,
     logStack: logStack
+});
+
+Object.extend(lively, {
+    getStack: getStack,
+    printStack: printStack
 });
 
 Object.extend(Global, {

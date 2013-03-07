@@ -78,7 +78,10 @@ Object.subclass('lively.morphic.Morph',
             if (subBounds) bounds = bounds.union(subBounds);
         }
 
-        return this.cachedBounds = bounds;
+        if (!this.isFixed)
+            this.cachedBounds = bounds;
+
+        return bounds
     },
     globalBounds: function() {
         return this.owner ?

@@ -77,7 +77,7 @@ Object.subclass('lively.morphic.EventHandler',
 'accessing', {
     eventSpecsDo: function(iterator, context) {
         Properties.ownValues(this.dispatchTable)
-            .select(function(ea) { return ea != null })
+            .select(function(ea) { return !!ea; })
             .forEach(iterator, context);
     },
     hand: function() {
@@ -97,12 +97,23 @@ Object.subclass('lively.morphic.EventHandler',
         }, this);
     },
     registerHTMLAndSVG: function(eventSpec) {
-        var handler = this;
-        eventSpec.node = eventSpec.node || this.morph.renderContext().morphNode;
-        if (!eventSpec.node) {
+        var handler = this,
+            prevNode = eventSpec.node,
+            prevHandler = eventSpec.handlerFunc,
+            currentNode = this.morph.renderContext().morphNode;
+
+        if (!currentNode) {
             throw new Error('Cannot register Event handler because cannot find '
                             + 'HTML/SVG morphNode');
         }
+
+        // re-register?
+        if (prevNode) {
+            if (prevNode === currentNode && prevHandler) return; // already registered
+            if (prevNode === currentNode && prevHandler) this.unregisterHTMLAndSVGAndCANVAS(eventSpec);
+        }
+
+        eventSpec.node = currentNode;
         eventSpec.doNotSerialize = ['node'];
         // bind is too expensive here
         eventSpec.handlerFunc = function(evt) { handler.handleEvent(evt); };
@@ -521,8 +532,8 @@ lively.morphic.Morph.addMethods(
         if (!this.eventHandler) this.addEventHandler();
         var existing = this.eventHandler.dispatchTable[type];
         if (existing) {
-            console.warn('Warning! Event %s already handled: %s.%s. Overwriting with %s.%s!',
-                type, existing.target, existing.targetMethodName, target, targetMethodName);
+            // console.warn('Warning! Event %s already handled: %s.%s. Overwriting with %s.%s!',
+            //     type, existing.target, existing.targetMethodName, target, targetMethodName);
         }
         var eventSpec = {
             type: type,

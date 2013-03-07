@@ -1740,6 +1740,7 @@ lively.morphic.World.addMethods(
             blockMorph = lively.morphic.Morph.makeRectangle(modalBounds),
             transparentMorph = lively.morphic.Morph.makeRectangle(blockMorph.innerBounds());
         blockMorph.isEpiMorph = true;
+        blockMorph.isControl = true;
         blockMorph.applyStyle({
             fill: null,
             borderWidth: 0,
@@ -2325,6 +2326,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.setBorderStylingMode(true);
         this.targetMorph = this.addMorph(targetMorph);
         this.targetMorph.setPosition(this.contentOffset);
+
+        this.beControl(true)
     },
 
     makeReframeHandles: function() {
@@ -2465,13 +2468,20 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         // step 1: highlight me and remove highlight from other windows
         if (!this.isActive()) {
             this.world().submorphs.forEach(function(ea) {
-                ea !== this && ea.isWindow && ea.highlight(false); }, this);
+                if (ea === this || !ea.isWindow) return;
+                if (ea.isControlMorph()) {
+                    ea.beControl(false);
+                    if (!ea.isFixed) this.world().addMorph(ea)
+                }
+                ea.highlight(false);
+            }, this);
             this.highlight(true);
         }
 
         var inner = this.targetMorph,
             callGetsFocus = inner && !!inner.onWindowGetsFocus;
         if (this.isInFront()) { if (callGetsFocus) { inner.onWindowGetsFocus(this); }; return; }
+        this.beControl(true);
 
         // step 2: make me the frontmost morph of the world
         var scrolledMorphs = [], scrolls = [];
@@ -2504,6 +2514,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.cameForward = true; // for stopping the up as well
         return false;
     },
+
     onMouseUp: function(evt) {
         if (!this.cameForward) return false;
         this.cameForward = false;

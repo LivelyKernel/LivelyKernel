@@ -626,6 +626,17 @@ Object.subclass('lively.morphic.Morph',
     jQuery: function() {
         return jQuery(this.jQueryNode());
     }
+},
+'controls', {
+    beControl: function (optBool) {
+        if (optBool === false)
+            delete this.isControl
+        else
+            this.isControl = true
+    },
+    isControlMorph: function () {
+        return this.isHand || this.isHalo || this.isMenu || this.isFixed || this.isControl;
+    }
 });
 
 lively.morphic.Morph.subclass('lively.morphic.World',
@@ -649,7 +660,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 'accessing -- morphic relationship', {
     addMorph: function($super, morph, optMorphBefore) {
         // I keep certain controls in front
-        var morphBefore = (morph.isHalo || morph.isMenu)
+        var morphBefore = (morph.isControlMorph())
                     ? this.firstHand()
                     : (optMorphBefore || this.bottomMostControl());
         var r = $super(morph, morphBefore);
@@ -662,14 +673,18 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     firstHand: function() { 
         return this.hands && this.hands[0]
     },
+
+
     bottomMostControl: function() {
         for (var i = 0; i < this.submorphs.length; i++) { // ensuring correct order
             var m = this.submorphs[i]
             // importance order
-            if ((m === this.firstHand()) || m.isHalo || m.isMenu || m.isFixed)
+            if (m.isControlMorph())
                 return m
         }
     },
+
+
     windowBounds:  function () {
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
 

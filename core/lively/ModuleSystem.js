@@ -86,6 +86,9 @@ Global.module = lively.module = function module(moduleName) {
                 }
             }
             module.addOnloadCallback(codeWrapper);
+            // wasDefined: module body and module requirements encountered but
+            // body not necessarily executed or requirements loaded
+            module.wasDefined = true;
             module.load();
         }
 
@@ -98,7 +101,6 @@ Global.module = lively.module = function module(moduleName) {
     };
 
     var module = createNamespaceModule(moduleName);
-    module.wasDefined = true;
     module.requires = basicRequire.curry(module);
     return module;
 };

@@ -664,6 +664,8 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.renderContext().domInterface.removeAllChildrenOf(el);
         this.renderContext().setParentNode(el);
         this.renderContextDispatch('append');
+        this.withAllSubmorphsDo(function(ea) {
+            ea.registerForEvents(Config.handleOnCapture); });
     },
 
     hideHostMouseCursor: function () {

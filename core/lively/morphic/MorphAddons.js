@@ -496,7 +496,11 @@ lively.morphic.Morph.addMethods(
         }
         this.setFixedInPosition(fixed);
         this.setFixedInSize(fixed);
-        this.isFixed = fixed;
+        if (fixed) {
+            this.isFixed = fixed;
+        } else {
+            delete this.isFixed;
+        }
     },
     setFixedInSize: function(optFixed) {
         // Keeps the morph scale when zooming the world
@@ -505,13 +509,13 @@ lively.morphic.Morph.addMethods(
             return;
         }
         if(fixed) {
-            this.fixedScale = this.getScale() * this.world().getZoomLevel();
             this.startStepping(100, "updateZoomScale");
+            this.fixedScale = this.getScale() * this.world().getZoomLevel();
         }
         else {
             this.stopSteppingScriptNamed("updateZoomScale");
+            delete this.fixedScale;
         }
-        this.isFixed = true;
     },
     setFixedInPosition: function(optFixed) {
         // Keeps a morph fixed on screen
@@ -520,38 +524,47 @@ lively.morphic.Morph.addMethods(
             return;
         }
         var pos = this.getPosition().subPt(this.world().getScrollOffset());
-        if (fixed) { this.setPosition(pos); } //sanitize getPosition while fixed
+        if (fixed) { 
+            this.setPosition(pos); //sanitize getPosition while fixed
+        }
         this.updatePositionStyleAttribtues(fixed, pos);
-        if (!fixed) { this.setPosition(this.getPosition()); } // refresh lively position
+        if (fixed) {
+            this.fixedPosition = pos;
+        } else {
+            this.setPosition(this.getPosition()); // refresh lively position
+            delete this.fixedPosition;
+        }
     },
     updatePositionStyleAttribtues: function(fixed, pos) {
         // enter comment here
         this.world().removeWebkitTransform(); // Known webkit bug: 3D don't work with fixed postitioning
         var morphnode = this.renderContext().morphNode,
             style = morphnode.getAttribute('style'),
-            positionTargetString = fixed? 'position: fixed' : 'position: absolute',
-            positionSourceString = fixed? 'position: absolute' : 'position: fixed',
-            leftTargetString = 'left:' + pos.x + 'px;',
-            leftSourceRegex = /left\:[^;]*\;/g,
-            topTargetString = 'top:' + pos.y + 'px;',
-            topSourceRegex = /top\:[^;]*\;/g,
-            newStyle = style.replace(positionSourceString, positionTargetString)
-                    .replace(leftSourceRegex, leftTargetString)
-                    .replace(topSourceRegex, topTargetString);
+            positionTargetString = fixed? 'position: fixed;' : 'position: absolute;',
+            newStyle = style.replace(/position\:[^;]*\;/g, positionTargetString)
+            if (fixed) {
+                newStyle = newStyle.replace(/left\:[^;]*\;/g, 'left:' + pos.x + 'px;')
+                        .replace(/top\:[^;]*\;/g, 'top:' + pos.y + 'px;');
+            }
         morphnode.setAttribute('style', newStyle);
     },
 
-    updateZoomScale: function(newZoom) {
-        if(this.fixedScale) {
-            var newZoom = newZoom || lively.morphic.World.current().updateZoomLevel();
-            this.setScale(this.fixedScale/newZoom);
+    updateZoomScale: function(zoom) {
+        if(this.isFixed) {
+            var oldZoom = this.world().zoomLevel;
+            var zoom = zoom || this.world().calculateCurrentZoom();
+            if (zoom === oldZoom) return
+            this.world().updateZoomLevel(zoom)
+            this.fixedScale && this.setScale(this.fixedScale/zoom);
+            this.fixedPosition && this.updateFixedPositionAfterScale();
         }
     },
-    updateScrollPosition: function(newPosition) {
-        var world = lively.morphic.World.current(),
-            newPosition = newPosition || world.getScrollOffset();
-        this.setPosition(this.fixedPosition.scaleBy(1/world.zoomLevel).addPt(newPosition));
+    updateFixedPositionAfterScale: function() {
+        var pos = this.fixedPosition.scaleBy(1/this.world().getZoomLevel())
+        this.updatePositionStyleAttribtues(true, pos)
     },
+
+
     removeWebkitTransform: function() {
         var node = this.renderContext().morphNode
         var style = node.getAttribute('style')
@@ -941,8 +954,8 @@ lively.morphic.World.addMethods(
             return window.outerWidth / window.innerWidth;
         }
     },
-    updateZoomLevel: function () {
-        this.zoomLevel = this.calculateCurrentZoom();
+    updateZoomLevel: function (optZoom) {
+        this.zoomLevel = optZoom || this.calculateCurrentZoom();
         return this.zoomLevel
     },
     getScrollOffset: function () {

@@ -325,6 +325,11 @@ Object.subclass('lively.morphic.Morph',
         return this.submorphs.reject(function(ea) { return ea.isEpiMorph }).last();
     },
 
+    onOwnerChanged: function(newOwner) {
+        // This method well get called when my direct or any of my indirect(!)
+        // owners changes, i.e. I or any of my parents is added or removed to/
+        // from another morph. On remove newOwner will be null.
+    }
 
 },
 'accessing -- shapes', {

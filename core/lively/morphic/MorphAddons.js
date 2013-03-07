@@ -516,7 +516,7 @@ lively.morphic.Morph.addMethods(
             this.isFixed = fixed;
         } else {
             delete this.isFixed;
-            this.world().addMorph(this); //sending it to the back positions 
+            this.world().addMorph(this); //sending it to the back positions
         }
     },
     setFixedInSize: function(optFixed) {
@@ -541,7 +541,7 @@ lively.morphic.Morph.addMethods(
             return;
         }
         var pos = this.getPosition().subPt(this.world().getScrollOffset());
-        if (fixed) { 
+        if (fixed) {
             this.setPosition(pos); //sanitize getPosition while fixed
         }
         this.updatePositionStyleAttribtues(fixed, pos);
@@ -554,7 +554,6 @@ lively.morphic.Morph.addMethods(
         }
     },
     updatePositionStyleAttribtues: function(fixed, pos) {
-        // enter comment here
         this.world().removeWebkitTransform(); // Known webkit bug: 3D don't work with fixed postitioning
         var morphnode = this.renderContext().morphNode,
             style = morphnode.getAttribute('style'),
@@ -568,41 +567,39 @@ lively.morphic.Morph.addMethods(
     },
 
     updateZoomScale: function(zoom) {
-        if(this.isFixed) {
-            var oldZoom = this.world().zoomLevel;
-            var zoom = zoom || this.world().calculateCurrentZoom();
-            if (zoom === oldZoom) return
-            this.world().updateZoomLevel(zoom)
-            this.fixedScale && this.setScale(this.fixedScale/zoom);
-            this.fixedPosition && this.updateFixedPositionAfterScale();
-        }
+        if (!this.isFixed) return;
+        var oldZoom = this.world().zoomLevel;
+        zoom = zoom || this.world().calculateCurrentZoom();
+        if (zoom === oldZoom) return
+        this.world().updateZoomLevel(zoom)
+        this.fixedScale && this.setScale(this.fixedScale/zoom);
+        this.fixedPosition && this.updateFixedPositionAfterScale();
     },
+
     updateFixedPositionAfterScale: function() {
         var pos = this.fixedPosition.scaleBy(1/this.world().getZoomLevel());
         this.updatePositionStyleAttribtues(true, pos);
     },
 
-
     removeWebkitTransform: function() {
-        var node = this.renderContext().morphNode;
-        var style = node.getAttribute('style');
-        var newStyle = style.replace(/\-webkit\-transform[^;]*\; /g, '');
+        var node = this.renderContext().morphNode,
+            style = node.getAttribute('style'),
+            newStyle = style.replace(/\-webkit\-transform[^;]*\; /g, '');
         node.setAttribute('style', newStyle);
     },
+
     setPositionWhileFixed: function(position, optTime) {
         if (optTime) {
-            var that = this;
+            var self = this;
             this.setFixed(false);
-            var callback = function () {
-                this.setFixed(true);
-            }
-            this.setPositionAnimated.bind(this,position, optTime, callback.bind(this)).delay(0);
+            var callback = function () { self.setFixed(true); }
+            this.setPositionAnimated.bind(this, position, optTime, callback).delay(0);
         } else {
             this.setFixed(false);
             this.setPosition(position);
             this.setFixed(true);
         }
-    },
+    }
 },
 'fullscreen', {
     enterFullScreen: function(beTopLeft) {

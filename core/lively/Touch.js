@@ -1412,7 +1412,7 @@ lively.morphic.Morph.addMethods(
         this.addScript(function onTouchStart(evt) {
             evt.stop();
             var touch = evt.touches[0];
-            if(touch) {
+            if (touch) {
                 touch.originalDragOffset = touch.screenY;
                 touch.originalMorphPosition = this.getPosition().y;
             }
@@ -1421,7 +1421,7 @@ lively.morphic.Morph.addMethods(
         this.addScript(function onTouchMove(evt) {
             evt.stop();
             var touch = evt.touches[0];
-            if(touch && touch.originalDragOffset && !touch.draggingCanceled) {
+            if (touch && touch.originalDragOffset && !touch.draggingCanceled) {
                 var delta = touch.screenY - touch.originalDragOffset;
                 var pos = touch.originalMorphPosition+delta;
                 if (this.getExtent().y > this.owner.getExtent().y) {
@@ -1440,7 +1440,7 @@ lively.morphic.Morph.addMethods(
         this.addScript(function onTouchStart(evt) {
             evt.stop();
             var touch = evt.touches[0];
-            if(touch) {
+            if (touch) {
                 touch.originalDragOffset = touch.screenX;
                 touch.originalMorphPosition = this.getPosition().x;
             }
@@ -1449,7 +1449,7 @@ lively.morphic.Morph.addMethods(
         this.addScript(function onTouchMove(evt) {
             evt.stop();
             var touch = evt.touches[0];
-            if(touch && touch.originalDragOffset && !touch.draggingCanceled) {
+            if (touch && touch.originalDragOffset && !touch.draggingCanceled) {
                 var delta = touch.screenX - touch.originalDragOffset;
                 var pos = touch.originalMorphPosition+delta;
                 if (this.getExtent().x > this.owner.getExtent().x) {
@@ -1463,8 +1463,8 @@ lively.morphic.Morph.addMethods(
             }
             return true;
         });
-    },
-    });
+    }
+});
 
 lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
 'default category', {

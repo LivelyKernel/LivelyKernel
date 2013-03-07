@@ -250,7 +250,11 @@ Object.subclass('lively.morphic.Morph',
             }
         }
 
-        morph.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(newOwner) });
+        var isInWorld = !!this.world();
+        morph.withAllSubmorphsDo(function(ea) {
+            if (isInWorld) ea.registerForEvents(Config.handleOnCapture);
+            ea.onOwnerChanged(newOwner);
+        });
 
         return morph;
     },
@@ -350,7 +354,8 @@ Object.subclass('lively.morphic.Morph',
             this.owner.removeMorph(this);
         }
         this.renderContextDispatch('remove');
-        this.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(null) });
+        this.disableEventHandlerRecursively();
+        this.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(null); });
     },
 
     removeMorph: function(morph) {

@@ -162,9 +162,15 @@ lively.morphic.World.addMethods(
     onrestore: function($super) {
         $super();
         // this should go into prepareForNewRenderContext / event registration...!
-        this.registerForGlobalEvents();
+        lively.bindings.connect(this, '_isRendered', this, 'restoreEvents', {
+            removeAfterUpdate: true });
         this.getLastModificationDate();
     },
+    restoreEvents: function() {
+        this.withAllSubmorphsDo(function(ea) {
+            ea.registerForEvents(Config.handleOnCapture); });
+    },
+
 
     interactiveSaveWorldAs: function() {
         var world = this;

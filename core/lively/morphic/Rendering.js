@@ -486,7 +486,6 @@ lively.morphic.Morph.addMethods(
         for (var i = 0; i < this.submorphs.length; i++) {
             this.submorphs[i].prepareForNewRenderContext(newCtx.newForChild());
         }
-        this.registerForEvents(Config.handleOnCapture);
         this.onRenderFinished(newCtx);
         this.resumeStepping();
         if (this.onLoad) {

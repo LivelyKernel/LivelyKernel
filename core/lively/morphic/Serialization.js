@@ -161,8 +161,6 @@ lively.morphic.World.addMethods(
 
     onrestore: function($super) {
         $super();
-        // this should go into prepareForNewRenderContext / event registration...!
-        this.registerForGlobalEvents();
         this.getLastModificationDate();
     },
 

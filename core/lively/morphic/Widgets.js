@@ -1672,6 +1672,7 @@ lively.morphic.World.addMethods(
         blockMorph.disableGrabbing();
         blockMorph.disableDragging();
         blockMorph.isEpiMorph = true;
+        blockMorph.isControl = true;
         blockMorph.applyStyle({
             fill: null,
             borderWidth: 0,
@@ -2209,6 +2210,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
+        this.beControl(true)
     },
 
     makeTitleBar: function(titleString, width, optSuppressControls) {

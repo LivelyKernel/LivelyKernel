@@ -545,8 +545,8 @@ lively.morphic.Morph.addMethods(
             positionTargetString = fixed? 'position: fixed;' : 'position: absolute;',
             newStyle = style.replace(/position\:[^;]*\;/g, positionTargetString)
             if (fixed) {
-                newStyle = newStyle.replace(/left\:[^;]*\;/g, 'left:' + pos.x + 'px;')
-                        .replace(/top\:[^;]*\;/g, 'top:' + pos.y + 'px;');
+                newStyle = newStyle.replace(/left\:[^;]*\;/g, 'left: ' + pos.x + 'px;')
+                        .replace(/top\:[^;]*\;/g, 'top: ' + pos.y + 'px;');
             }
         morphnode.setAttribute('style', newStyle);
     },
@@ -562,16 +562,16 @@ lively.morphic.Morph.addMethods(
         }
     },
     updateFixedPositionAfterScale: function() {
-        var pos = this.fixedPosition.scaleBy(1/this.world().getZoomLevel())
-        this.updatePositionStyleAttribtues(true, pos)
+        var pos = this.fixedPosition.scaleBy(1/this.world().getZoomLevel());
+        this.updatePositionStyleAttribtues(true, pos);
     },
 
 
     removeWebkitTransform: function() {
-        var node = this.renderContext().morphNode
-        var style = node.getAttribute('style')
-        var newStyle = style.replace(/\-webkit\-transform[^;]*\; /g, '')
-        node.setAttribute('style', newStyle)
+        var node = this.renderContext().morphNode;
+        var style = node.getAttribute('style');
+        var newStyle = style.replace(/\-webkit\-transform[^;]*\; /g, '');
+        node.setAttribute('style', newStyle);
     },
     setPositionWhileFixed: function(position, optTime) {
         if (optTime) {

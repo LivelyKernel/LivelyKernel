@@ -62,11 +62,11 @@ Object.subclass('lively.morphic.Morph',
         return bounds;
     },
     getBounds: function() {
-        if (this.cachedBounds) return this.cachedBounds;
+                if (this.cachedBounds) return this.cachedBounds;
 
         var tfm = this.getTransform(),
             bounds = this.innerBounds();
-
+        
         bounds = tfm.transformRectToRect(bounds);
 
         if (!this.isClip()) {

@@ -1255,7 +1255,12 @@
                         && lively.morphic.World.current();
             if (isLoaded) return;
             LoadingScreen.setLogoText('New Sources Loaded');
-            appCache.swapCache();
+            try {
+                // FIXME rk 2013-03-06: sometimes this throws a DOM error?
+                appCache.swapCache();
+            } catch(e) {
+                console.error(e);
+            }
             // we have to reload the whole page to get the new sources
             document.location.reload();
         }, false);

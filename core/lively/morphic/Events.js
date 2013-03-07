@@ -149,6 +149,7 @@ Object.subclass('lively.morphic.EventHandler',
     unregisterHTMLAndSVGAndCANVAS: function(evtSpec) {
         if (!evtSpec.node) return;
         evtSpec.node.removeEventListener(evtSpec.type, evtSpec.handlerFunc, evtSpec.handleOnCapture);
+        delete evtSpec.handlerFunc;
         delete evtSpec.node;
     }
 },

@@ -96,15 +96,26 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
     },
 
     test08SpecialRecreationHandler: function() {
-        lively.morphic.Box.subclass('lively.persistence.tests.SpecialBox', {
-            buildSpecProperties: {
-                foo: {recreate: function(instance, spec) { return spec.foo + 1; }}
-            }
-        });
-        var m = new lively.persistence.tests.SpecialBox(lively.rect(0,0,100,100));
+        var m = new lively.morphic.Box(lively.rect(0,0,100,100));
+        m.buildSpecProperties = {
+            foo: {recreate: function(instance, spec) { return spec.foo + 1; }}
+        }
         m.foo = 2;
         var recreated = m.buildSpec().createMorph();
         this.assertEquals(3, recreated.foo);
+    },
+
+    test09SubmorphFilter: function() {
+        var m1 = new lively.morphic.Box(lively.rect(0,0,100,100)),
+            m2 = new lively.morphic.Box(lively.rect(20,20,10,10));
+        m1.addMorph(m2);
+        m1.buildSpecProperties = {
+            submorphs: {
+                filter: function(morph, submorphs) { return submorphs.without(m2); }
+            }
+        }
+        var spec = m1.buildSpec();
+        this.assertEquals(0, spec.attributeStore.submorphs.length, 'submorph not filtered');
     }
 
 });

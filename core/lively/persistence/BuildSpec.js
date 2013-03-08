@@ -38,7 +38,7 @@ Object.subclass('lively.persistence.SpecObject',
             }
             this.set(key, value);
         }, this);
-        this.setSubmorphs(morph);
+        this.setSubmorphs(morph, props);
         this.setConnections(morph);
         return this;
     },
@@ -69,8 +69,12 @@ Object.subclass('lively.persistence.SpecObject',
         }
     },
 
-    setSubmorphs: function(morph) {
-        this.set("submorphs", morph.submorphs.invoke("buildSpec"));
+    setSubmorphs: function(morph, properties) {
+        var submorphs = morph.submorphs;
+        if (properties.submorphs && properties.submorphs.filter) {
+            submorphs = properties.submorphs.filter(morph, submorphs);
+        }
+        this.set("submorphs", submorphs.invoke("buildSpec"));
     },
 
     setConnections: function(sourceObj) {
@@ -148,21 +152,21 @@ Object.subclass('lively.persistence.SpecObject',
             instance.setNewId();
             instance.applyStyle(instance.getStyle());
         }
+        if (object.buildSpecProperties) {
+            // buildSpecProperties on object level need to be at instance before
+            // other attributes are assigned
+            instance.buildSpecProperties = object.buildSpecProperties;
+        }
         var specialAttributes = Object.mergePropertyInHierarchy(instance, "buildSpecProperties");
-        Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder']).forEach(function(key) {
+        Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder', 'buildSpecProperties']).forEach(function(key) {
             if (specialAttributes[key] && specialAttributes[key].recreate) {
                 instance[key] = specialAttributes[key].recreate(instance, object);
                 return;
             }
             var specVal = object[key];
-            if (!key.startsWith('_')) {
-                instance[key] = specVal;
-                return;
-            }
+            if (!key.startsWith('_')) { instance[key] = specVal; return; }
             var setter = instance['set' + key.replace(/^_/, '').capitalize()];
-            if (Object.isFunction(setter)) {
-                setter.call(instance, specVal);
-            }
+            if (Object.isFunction(setter)) { setter.call(instance, specVal); }
         });
         if (object.submorphs) {
             object.submorphs.forEach(function(ea, i) {
@@ -377,6 +381,10 @@ lively.morphic.CodeEditor.addMethods(
 lively.morphic.Button.addMethods(
 'UI builder', {
     buildSpecProperties: {
+        submorphs: {
+            exclude: true,
+            filter: function(morph, submorphs) { return submorphs.without(morph.label); }
+        },
         isActive: {},
         label: {
             getter: function(morph, val) { return val.textString || ''; },

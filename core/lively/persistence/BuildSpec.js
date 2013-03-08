@@ -245,7 +245,7 @@ lively.morphic.Text.addMethods(
 'UI builder', {
     buildSpecExcludeProperties: ["cachedTextString", "savedTextString",
                                  "charsReplaced", "charsTyped", "lastFindLoc",
-                                 "parseErrors", "textChunks",
+                                 "parseErrors", "textChunks", "priorSelectionRange",
                                  "undoSelectionRange"],
 
     buildSpecIncludeProperties: {
@@ -295,6 +295,12 @@ lively.morphic.Button.addMethods(
 Object.extend(lively.morphic.Morph, {
     fromSpec: function(spec) {
         return lively.persistence.MorphBuilder.specToMorph(spec);
+    },
+
+    fromSpecString: function(string) {
+        var spec;
+        try { spec = eval('(' + string + ')'); } catch(e) { return e; }
+        return this.fromSpec(spec);
     }
 });
 

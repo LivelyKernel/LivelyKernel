@@ -102,17 +102,30 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Pri
         var m = new lively.morphic.Box(lively.rect(0,0,100,100));
         m.addScript(function foo() { return 123; });
         var spec = m.printBuildSpec(),
-            expected = '{\n'
-                     + '  _ClipMode: "visible",\n'
-                     + '  _Extent: lively.pt(100.0,100.0),\n'
-                     + '  _Position: lively.pt(0.0,0.0),\n'
-                     + '  className: "lively.morphic.Box",\n'
-                     + '  droppingEnabled: true,\n'
-                     + '  halosEnabled: true,\n'
-                     + '  sourceModule: "lively.morphic.Core",\n'
-                     + '  submorphs: [],\n'
-                     + '  foo: function foo() { return 123; }\n'
-                     + '}'
+            expected = "{\n"
+                     + "  _BorderColor: Color.rgb(204,0,0),\n"
+                     + "  _BorderStyle: \"solid\",\n"
+                     + "  _BorderWidth: 0,\n"
+                     + "  _ClipMode: \"visible\",\n"
+                     + "  _Extent: lively.pt(100.0,100.0),\n"
+                     + "  _Fill: null,\n"
+                     + "  _Position: lively.pt(0.0,0.0),\n"
+                     + "  _StyleSheet: undefined,\n"
+                     + "  className: \"lively.morphic.Box\",\n"
+                     + "  doNotCopyProperties: undefined,\n"
+                     + "  doNotSerialize: [\n"
+                     + "    \"_renderContext\",\n"
+                     + "    \"halos\",\n"
+                     + "    \"_isRendered\",\n"
+                     + "    \"priorExtent\",\n"
+                     + "    \"cachedBounds\"\n"
+                     + "  ],\n"
+                     + "  droppingEnabled: true,\n"
+                     + "  halosEnabled: true,\n"
+                     + "  sourceModule: \"lively.morphic.Core\",\n"
+                     + "  submorphs: [],\n"
+                     + "  foo: function foo() { return 123; }\n"
+                     + "}"
         this.assertEquals(expected, spec);
     }
 

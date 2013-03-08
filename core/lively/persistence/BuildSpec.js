@@ -20,7 +20,7 @@ Object.subclass('lively.persistence.SpecBuilder',
             spec.sourceModule = sourceModule.name();
         }
         var includeProps = Object.mergePropertyInHierarchy(morph, "buildSpecIncludeProperties");
-        morph.buildSpecProperties().forEach(function(key) {
+        morph.getBuildSpecProperties().forEach(function(key) {
             if (key === '_Fill') debugger
             var attr = includeProps[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
@@ -186,7 +186,7 @@ lively.morphic.Morph.addMethods(
     //
     //'{\n' + morphProps.map(function(ea) { return ea + ': {}'}).join(',\n') + '}'
 
-    buildSpecIncludeProperties: {
+    buildSpecProperties: {
         name: {},
         doNotSerialize: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
         doNotCopyProperties: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
@@ -204,20 +204,41 @@ lively.morphic.Morph.addMethods(
         _BorderWidth: {getter: function(morph) { return morph.getBorderWidth(); }},
         _BorderStyle: {getter: function(morph) { return morph.getBorderStyle(); }},
         _Rotation: {},
-        _Scale: {}
+        _Scale: {},
+        // excludes:
+        submorphs: {exclude: true},
+        scripts: {exclude: true},
+        id: {exclude: true},
+        shape: {exclude: true},
+        registeredForMouseEvents: {exclude: true},
+        partsBinMetaInfo: {exclude: true},
+        eventHandler: {exclude: true},
+        derivationIds: {exclude: true},
+        partTests: {exclude: true},
+        moved: {exclude: true},
+        _renderContext: {exclude: true},
+        _isRendered: {exclude: true},
+        owner: {exclude: true},
+        cachedBounds: {exclude: true},
+        isBeingDragged: {exclude: true},
+        halos: {exclude: true},
+        priorExtent: {exclude: true},
+        distanceToDragEvent: {exclude: true},
+        prevScroll: {exclude: true},
+        _PreviousBorderWidth: {exclude: true},
+        attributeConnections: {exclude: true}
     },
 
-    buildSpecProperties: function() {
-        var excludes = Object.mergePropertyInHierarchy(this, "buildSpecExcludeProperties"),
-            includes = Object.mergePropertyInHierarchy(this, "buildSpecIncludeProperties"),
-            scripts = Functions.own(this).select(function(sel) { return this[sel].hasLivelyClosure; }, this),
+    getBuildSpecProperties: function() {
+        var rawProps = Object.mergePropertyInHierarchy(this, "buildSpecProperties"),
+            props = Object.keys(rawProps).groupBy(function(key) {
+                return rawProps[key].exclude ? 'excludes' : 'includes'; }),
+            scripts = Functions.own(this).select(function(sel) {
+                return this[sel].hasLivelyClosure; }, this),
             ownProps = Properties.own(this)
-                       .withoutAll(excludes)
+                       .withoutAll(props.excludes)
                        .reject(function(key) { return key.startsWith('$$'); });
-        return [].concat(Object.keys(includes))
-               .concat(ownProps)
-               .concat(scripts)
-               .uniq();
+        return props.includes.concat(ownProps).concat(scripts).uniq();
     },
 
     buildSpec: function(builder) {
@@ -234,21 +255,17 @@ lively.morphic.Morph.addMethods(
 
 lively.morphic.List.addMethods(
 'UI builder', {
-    buildSpecExcludeProperties: ["changeTriggered"],
-    buildSpecIncludeProperties: {
+    buildSpecProperties: {
         itemList: {},
-        _FontSize: {}
+        _FontSize: {},
+        changeTriggered: {exlude: true}
     }
 });
 
 lively.morphic.Text.addMethods(
 'UI builder', {
-    buildSpecExcludeProperties: ["cachedTextString", "savedTextString",
-                                 "charsReplaced", "charsTyped", "lastFindLoc",
-                                 "parseErrors", "textChunks", "priorSelectionRange",
-                                 "undoSelectionRange"],
 
-    buildSpecIncludeProperties: {
+    buildSpecProperties: {
         _FontSize: {},
         fixedWidth: {},
         fixedHeight: {},
@@ -262,33 +279,48 @@ lively.morphic.Text.addMethods(
         _WhiteSpaceHandling: {},
         _MinTextWidth: {},
         _MinTextHeight: {},
-        _WordBreak: {}
+        _WordBreak: {},
+        // excludes:
+        cachedTextString: {exclude: true},
+        savedTextString: {exclude: true},
+        charsReplaced: {exclude: true},
+        charsTyped: {exclude: true},
+        lastFindLoc: {exclude: true},
+        parseErrors: {exclude: true},
+        textChunks: {exclude: true},
+        priorSelectionRange: {exclude: true},
+        undoSelectionRange: {exclude: true}
     }
 
 });
 
 lively.morphic.CodeEditor.addMethods(
 'UI builder', {
-    buildSpecExcludeProperties: ["_isFocused", "savedTextString", "aceEditor"],
-        buildSpecIncludeProperties: {
-            textString: {getter: function(morph) { return morph.textString }},
-            theme: {
-                getter: function(morph) { return morph.getTheme(); },
-                recreate: function(morph, spec) { morph.setTheme(spec.theme); }
-            },
-            textMode: {
-                getter: function(morph) { return morph.getTextMode(); },
-                recreate: function(morph, spec) { morph.setTextMode(spec.textMode); }
-            }
-        }
+    buildSpecProperties: {
+        textString: {getter: function(morph) { return morph.textString }},
+        theme: {
+            getter: function(morph) { return morph.getTheme(); },
+            recreate: function(morph, spec) { morph.setTheme(spec.theme); }
+        },
+        textMode: {
+            getter: function(morph) { return morph.getTextMode(); },
+            recreate: function(morph, spec) { morph.setTextMode(spec.textMode); }
+        },
+        // excludes
+        _isFocused: {exclude: true},
+        savedTextString: {exclude: true},
+        aceEditor: {exclude: true}
+    }
 });
+
 lively.morphic.Button.addMethods(
 'UI builder', {
-    buildSpecIncludeProperties: {
+    buildSpecProperties: {
         isActive: {},
         label: {
             getter: function(morph, val) { return val.textString || ''; },
-            recreate: function(instance, spec) { return instance.ensureLabel(spec.label); }}
+            recreate: function(instance, spec) { return instance.ensureLabel(spec.label); }
+        }
     }
 });
 

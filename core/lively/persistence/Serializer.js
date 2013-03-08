@@ -1360,8 +1360,8 @@ Object.extend(lively.persistence, {
     },
 
     pluginsForLively: [
-        StoreAndRestorePlugin,
         ClosurePlugin,
+        StoreAndRestorePlugin,
         lively.persistence.TraitPlugin,
         RegExpPlugin,
         IgnoreFunctionsPlugin,

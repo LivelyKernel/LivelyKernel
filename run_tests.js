@@ -71,6 +71,7 @@ var testList = [
     "lively.ast.tests.AstTests",
 
     // persistence
+    "lively.persistence.tests.BuildSpec",
     "lively.persistence.tests.PersistenceTests",
     'lively.persistence.tests.MassMorphCreation',
     'lively.persistence.tests.TraitPersistenceTests',

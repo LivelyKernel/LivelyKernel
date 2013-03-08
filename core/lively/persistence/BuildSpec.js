@@ -23,9 +23,9 @@ Object.subclass('lively.persistence.SpecObject',
         // serializeExpr are stored as they are, the rest is simply stringified
         // (plain toString, no deep graph traversal)
         this.setClass(morph.constructor);
-        var includeProps = Object.mergePropertyInHierarchy(morph, "buildSpecIncludeProperties");
+        var props = Object.mergePropertyInHierarchy(morph, "buildSpecProperties");
         morph.getBuildSpecProperties().forEach(function(key) {
-            var attr = includeProps[key] || {};
+            var attr = props[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
             var value = morph[key];
             if (attr.getter) value = attr.getter(morph, value);
@@ -148,7 +148,7 @@ Object.subclass('lively.persistence.SpecObject',
             instance.setNewId();
             instance.applyStyle(instance.getStyle());
         }
-        var specialAttributes = Object.mergePropertyInHierarchy(instance, "buildSpecIncludeProperties");
+        var specialAttributes = Object.mergePropertyInHierarchy(instance, "buildSpecProperties");
         Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder']).forEach(function(key) {
             if (specialAttributes[key] && specialAttributes[key].recreate) {
                 instance[key] = specialAttributes[key].recreate(instance, object);

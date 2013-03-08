@@ -138,5 +138,33 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Pri
 
 });
 
+lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Registry',
+'running', {
+    setUp: function($super) {
+        $super();
+        // setup empty registry
+        this.oldRegistry = lively.persistence.BuildSpec.Registry;
+        lively.persistence.BuildSpec.Registry = new lively.persistence.SpecObjectRegistry();
+    },
+
+    tearDown: function($super) {
+        $super();
+        // setup empty registry
+        lively.persistence.BuildSpec.Registry = this.oldRegistry;
+    }
+},
+'testing', {
+
+    test01RegisterSpecObj: function() {
+        var spec = lively.BuildSpec('foo', {className: 'lively.morphic.Box'});
+        this.assert(spec && spec.isSpecObject, 'failed to create');
+        this.assertIdentity(spec, lively.persistence.BuildSpec.Registry.foo, 'not Registry.foo');
+        this.assertIdentity(spec, lively.BuildSpec('foo'), 'spec lookup');
+        this.assert(lively.persistence.BuildSpec.Registry.has('foo'), '#has 1');
+        this.assert(!lively.persistence.BuildSpec.Registry.has('bar'), '#has 2');
+    }
+
+});
+
 
 }) // end of module

@@ -215,13 +215,33 @@ Object.extend(lively.persistence.SpecObject, {
     fromString: function(string) { return new this().fromString(string); }
 });
 
+Object.subclass('lively.persistence.SpecObjectRegistry',
+'accessing', {
+    get: function(name) { return this[name]; },
+    set: function(name, spec) { return this[name] = spec; }
+},
+'testing', {
+    has: function(name) { return !!this.get(name); }
+});
+
 Object.extend(lively, {
-    BuildSpec: function(specObj) {
+    BuildSpec: function(/*[name], specObj*/) {
+        // name is optional for registering the specObj
         // specObj can be a plain JS object or an instance of SpecObject
-        if (!specObj) return new lively.persistence.SpecObject();
-        if (specObj.isSpecObject) return specObj;
-        return lively.persistence.SpecObject.fromPlainObject(specObj);
+        var name = Object.isString(arguments[0]) && arguments[0],
+            specObj = name ? arguments[1] : arguments[0],
+            registry = lively.persistence.BuildSpec.Registry;
+        // just lookup
+        if (name && !specObj) return registry.get(name);
+        specObj = !specObj ?
+            new lively.persistence.SpecObject() :
+            (specObj.isSpecObject ? specObj : lively.persistence.SpecObject.fromPlainObject(specObj));
+        return name ? registry.set(name, specObj) : specObj;
     }
+});
+
+Object.extend(lively.persistence.BuildSpec, {
+    Registry: new lively.persistence.SpecObjectRegistry()
 });
 
 lively.morphic.Morph.addMethods(

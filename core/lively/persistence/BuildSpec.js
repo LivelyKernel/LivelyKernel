@@ -186,15 +186,42 @@ Object.subclass('lively.persistence.SpecObject',
 },
 'stringification', {
 
-    stringify: function(spec) {
-        return Objects.inspect(this.attributeStore, {printFunctionSource: true});
+    stringify: function() {
+        return Objects.inspect(this.attributeStore, {printFunctionSource: true, indent: '    '});
+    },
+
+    serializeExpr: function() {
+        var isTopLevel = !lively.persistence.BuildSpec.inRecursivePrint;
+        lively.persistence.BuildSpec.inRecursivePrint = true;
+        try {
+            var string = this.stringify();
+            return isTopLevel ?
+                "lively.BuildSpec(" + string + ')' :
+                string.split('\n').join('\n    ');
+        } finally {
+            if (isTopLevel) delete lively.persistence.BuildSpec.inRecursivePrint;
+        }
+    },
+
+    toString: function() {
+        return this.serializeExpr();
     }
+
 });
 
 Object.extend(lively.persistence.SpecObject, {
     fromMorph: function(morph) { return new this().fromMorph(morph); },
     fromPlainObject: function(object) { return new this().fromPlainObject(object); },
     fromString: function(string) { return new this().fromString(string); }
+});
+
+Object.extend(lively, {
+    BuildSpec: function(specObj) {
+        // specObj can be a plain JS object or an instance of SpecObject
+        if (!specObj) return new lively.persistence.SpecObject();
+        if (specObj.isSpecObject) return specObj;
+        return lively.persistence.SpecObject.fromPlainObject(specObj);
+    }
 });
 
 lively.morphic.Morph.addMethods(
@@ -257,10 +284,6 @@ lively.morphic.Morph.addMethods(
 
     buildSpec: function() {
         return lively.persistence.SpecObject.fromMorph(this);
-    },
-
-    printBuildSpec: function() {
-        return this.buildSpec().stringify();
     },
 
     onFromBuildSpecCreated: Functions.Null

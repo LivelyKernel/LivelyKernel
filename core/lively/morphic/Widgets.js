@@ -2202,17 +2202,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
 
-        // create three reframe handles (bottom, right, and bottom-right) and align them to the window
-        var e = this.getExtent();
-        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
-        this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(spacing)));
-        this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(spacing)));
-        this.alignAllHandles();
+        this.makeReframeHandles();
 
         this.titleBar = this.addMorph(titleBar);
         this.contentOffset = pt(spacing, titleHeight);
         targetMorph.setPosition(this.contentOffset);
-        // this.closeAllToDnD();
 
         this.collapsedTransform   = null;
         this.collapsedExtent      = null;
@@ -2223,6 +2217,15 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
+    },
+
+    makeReframeHandles: function() {
+        // create three reframe handles (bottom, right, and bottom-right) and align them to the window
+        var e = this.getExtent();
+        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+        this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(this.spacing)));
+        this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(this.spacing)));
+        this.alignAllHandles();
     },
 
     makeTitleBar: function(titleString, width, optSuppressControls) {
@@ -2384,12 +2387,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         return true;
     },
     onMouseUp: function(evt) {
-        if (this.cameForward) {
-            this.cameForward = false;
-            evt.stop();
-            return true;
-        }
-        return false;
+        if (!this.cameForward) return false;
+        this.cameForward = false;
+        evt.stop();
+        return true;
     },
     onDragStart: function(evt) {
         this.prevDragPos = evt.getPosition();

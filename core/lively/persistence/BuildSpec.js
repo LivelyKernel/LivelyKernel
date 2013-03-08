@@ -84,7 +84,8 @@ Object.subclass('lively.persistence.SpecObject',
     },
 
     set: function(key, value) {
-        this.attributeStore[key] = value;
+        if (value === undefined) delete this.attributeStore[key];
+        else this.attributeStore[key] = value;
     }
 },
 'connections', {
@@ -391,6 +392,34 @@ lively.morphic.Button.addMethods(
             recreate: function(instance, spec) { return instance.ensureLabel(spec.label); }
         }
     }
+});
+lively.morphic.Window.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        submorphs: {
+            exclude: true,
+            filter: function(morph, submorphs) {
+                var handles = [morph.reframeHandle, morph.bottomReframeHandle, morph.rightReframeHandle];
+                return submorphs.withoutAll(handles).without(morph.titleBar);
+            }
+        },
+        titleBar: {
+            getter: function(morph, val) { return val ? val.getTitle() : ''; },
+            recreate: function(instance, spec) { return instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
+        },
+        reframeHandle: {exclude: true},
+        bottomReframeHandle: {exclude: true},
+        rightReframeHandle: {exclude: true},
+        targetMorph: {exclude: true}
+    },
+
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.makeReframeHandles();
+        this.addMorph(this.titleBar);
+        this.targetMorph = this.submorphs[0];
+    }
+
 });
 
 Object.extend(lively.morphic.Morph, {

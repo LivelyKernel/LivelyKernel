@@ -195,9 +195,10 @@ Object.subclass('lively.persistence.SpecObject',
         lively.persistence.BuildSpec.inRecursivePrint = true;
         try {
             var string = this.stringify();
-            return isTopLevel ?
-                "lively.BuildSpec(" + string + ')' :
-                string.split('\n').join('\n    ');
+            if (!isTopLevel) return string.split('\n').join('\n    ');
+            var name = lively.persistence.BuildSpec.Registry.nameForSpec(this);
+            if (name) string = '"' + name + '", ' + string;
+            return "lively.BuildSpec(" + string + ')';
         } finally {
             if (isTopLevel) delete lively.persistence.BuildSpec.inRecursivePrint;
         }
@@ -218,7 +219,11 @@ Object.extend(lively.persistence.SpecObject, {
 Object.subclass('lively.persistence.SpecObjectRegistry',
 'accessing', {
     get: function(name) { return this[name]; },
-    set: function(name, spec) { return this[name] = spec; }
+    set: function(name, spec) { return this[name] = spec; },
+    nameForSpec: function(spec) {
+        return Properties.nameFor(this, spec);
+    },
+
 },
 'testing', {
     has: function(name) { return !!this.get(name); }

@@ -162,6 +162,12 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Reg
         this.assertIdentity(spec, lively.BuildSpec('foo'), 'spec lookup');
         this.assert(lively.persistence.BuildSpec.Registry.has('foo'), '#has 1');
         this.assert(!lively.persistence.BuildSpec.Registry.has('bar'), '#has 2');
+    },
+
+    test02PrintRegisteredSpecObj: function() {
+        var spec = lively.BuildSpec('foo', {className: 'lively.morphic.Box'}),
+            expected = "lively.BuildSpec(\"foo\", {\n    className: \"lively.morphic.Box\"\n})";
+        this.assertEquals(expected, spec.toString());
     }
 
 });

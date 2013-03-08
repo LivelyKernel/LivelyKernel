@@ -1,27 +1,23 @@
-Global.module = lively.module = function module(moduleName) {
+Object.extend(lively, {
 
-    moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
-
-    function namespace(spec, context) {
+    lookup: function(spec, context, createMissing) {
         function createNamespaceObject(spec, context) {
             context = context || Global;
             spec = spec.valueOf();
-            if (typeof spec === 'string') {
-                (function() {
-                    var parts = spec.split('.');
-                    for (var i = 0, len = parts.length; i < len; i++) {
-                        spec = parts[i];
-                        if (!Class.isValidIdentifier(spec)) {
-                            throw new Error('"' + spec + '" is not a valid name for a module.');
-                        }
-                        context[spec] = context[spec] || new lively.Module(context, spec);
-                        context = context[spec];
-                    }
-                })();
-                return context;
-            } else {
-                throw new TypeError();
+            if (typeof spec !== 'string') throw new TypeError();
+            var parts = spec.split('.');
+            for (var i = 0, len = parts.length; i < len; i++) {
+                spec = parts[i];
+                if (!Class.isValidIdentifier(spec)) {
+                    throw new Error('"' + spec + '" is not a valid name for a module.');
+                }
+                if (!context[spec]) {
+                    if (!createMissing) return null;
+                    context[spec] =  new lively.Module(context, spec);
+                }
+                context = context[spec];
             }
+            return context;
         }
         var codeDB;
         if (spec[0] == '$') {
@@ -31,90 +27,109 @@ Global.module = lively.module = function module(moduleName) {
         var ret = createNamespaceObject(spec, context);
         if (codeDB) { ret.fromDB = codeDB; }
         return ret;
-    }
+    },
 
-    function isNamespaceAwareModule(moduleName) {
-        return moduleName && !moduleName.endsWith('.js');
-    }
+    assignObjectToPath: function(obj, path, context) {
+        var sepIdx = path.lastIndexOf('.'),
+            contextPath = path.substring(0, sepIdx),
+            nameInContext = path.substring(sepIdx + 1);
+        context = contextPath === '' ?
+            (context || Global) :
+            lively.lookup(contextPath, context, true);
+        return context[nameInContext] = obj;
+    },
 
-    function convertUrlToNSIdentifier(url) {
-        // foo/bar/baz.js -> foo.bar.baz
-        var result = url;
-        result = result.replace(/\//g, '.');
-        // get rid of '.js'
-        if (result.endsWith('.js')) result = result.substring(0, result.lastIndexOf('.'));
-        return result;
-    }
+    module: function module(moduleName) {
+        moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
 
-    function createNamespaceModule(moduleName) {
-        return namespace(isNamespaceAwareModule(moduleName) ?
-                         moduleName : convertUrlToNSIdentifier(moduleName));
-    }
-
-    function basicRequire(/*module, requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
-        // support modulenames as array and parameterlist
-        var args = Array.from(arguments),
-            module = args.shift(),
-            preReqModuleNames = Object.isArray(args[0]) ? args[0] : args,
-            requiredModules = [];
-        for (var i = 0; i < preReqModuleNames.length; i++) {
-            var name = LivelyMigrationSupport.fixModuleName(preReqModuleNames[i]),
-                reqModule = createNamespaceModule(name);
-            module.addRequiredModule(reqModule);
-            requiredModules.push(reqModule);
+        function isNamespaceAwareModule(moduleName) {
+            return moduleName && !moduleName.endsWith('.js');
         }
 
-        function requiresLib(libSpec) {
-            if (libSpec) module.addRequiredLib(libSpec);
-            return toRunOrRequiresLibObj;
+        function convertUrlToNSIdentifier(url) {
+            // foo/bar/baz.js -> foo.bar.baz
+            var result = url;
+            result = result.replace(/\//g, '.');
+            // get rid of '.js'
+            if (result.endsWith('.js')) result = result.substring(0, result.lastIndexOf('.'));
+            return result;
         }
 
-        function moduleExecute(code) {
-            var debugCode = code;
-             // pass in own module name for nested requirements
-            code = code.curry(module);
-             // run code with namespace modules as additional parameters
-            function codeWrapper() {
-                try {
-                    module.activate();
-                    code.apply(this, requiredModules);
-                    module._isLoaded = true;
-                } catch(e) {
-                    module.logError(module + '>>basicRequire: ' + e, debugCode);
-                } finally {
-                    module.deactivate();
-                }
+        function createNamespaceModule(moduleName) {
+            return lively.lookup(
+                isNamespaceAwareModule(moduleName) ? moduleName : convertUrlToNSIdentifier(moduleName),
+                Global,true);
+        }
+
+        function basicRequire(/*module, requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
+            // support modulenames as array and parameterlist
+            var args = Array.from(arguments),
+                module = args.shift(),
+                preReqModuleNames = Object.isArray(args[0]) ? args[0] : args,
+                requiredModules = [];
+            for (var i = 0; i < preReqModuleNames.length; i++) {
+                var name = LivelyMigrationSupport.fixModuleName(preReqModuleNames[i]),
+                    reqModule = createNamespaceModule(name);
+                module.addRequiredModule(reqModule);
+                requiredModules.push(reqModule);
             }
-            module.addOnloadCallback(codeWrapper);
-            // wasDefined: module body and module requirements encountered but
-            // body not necessarily executed or requirements loaded
-            module.wasDefined = true;
-            module.load();
-        }
 
-        var toRunOrRequiresLibObj = {
-            toRun: moduleExecute,
-            requiresLib: requiresLib
+            function requiresLib(libSpec) {
+                if (libSpec) module.addRequiredLib(libSpec);
+                return toRunOrRequiresLibObj;
+            }
+
+            function moduleExecute(code) {
+                var debugCode = code;
+                 // pass in own module name for nested requirements
+                code = code.curry(module);
+                 // run code with namespace modules as additional parameters
+                function codeWrapper() {
+                    try {
+                        module.activate();
+                        code.apply(this, requiredModules);
+                        module._isLoaded = true;
+                    } catch(e) {
+                        module.logError(module + '>>basicRequire: ' + e, debugCode);
+                    } finally {
+                        module.deactivate();
+                    }
+                }
+                module.addOnloadCallback(codeWrapper);
+                // wasDefined: module body and module requirements encountered but
+                // body not necessarily executed or requirements loaded
+                module.wasDefined = true;
+                module.load();
+            }
+
+            var toRunOrRequiresLibObj = {
+                toRun: moduleExecute,
+                requiresLib: requiresLib
+            };
+
+            return toRunOrRequiresLibObj;
         };
 
-        return toRunOrRequiresLibObj;
-    };
+        var module = createNamespaceModule(moduleName);
+        module.requires = basicRequire.curry(module);
+        return module;
+    },
 
-    var module = createNamespaceModule(moduleName);
-    module.requires = basicRequire.curry(module);
-    return module;
-};
+    require: function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
+        var getUniqueName = function() { return 'anonymous_module_' + require.counter },
+            args = $A(arguments);
+        require.counter !== undefined ? require.counter++ : require.counter = 0;
+        var m = module(getUniqueName()).beAnonymous();
+        if (lively.Config.showModuleDefStack)
+            try { throw new Error() } catch(e) { m.defStack = e.stack }
+        return m.requires(Object.isArray(args[0]) ? args[0] : args);
+    }
+});
 
-Global.require = lively.require = function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
-    var getUniqueName = function() { return 'anonymous_module_' + require.counter },
-        args = $A(arguments);
-    require.counter !== undefined ? require.counter++ : require.counter = 0;
-    var m = module(getUniqueName()).beAnonymous();
-    if (lively.Config.showModuleDefStack)
-        try { throw new Error() } catch(e) { m.defStack = e.stack }
-    return m.requires(Object.isArray(args[0]) ? args[0] : args);
-};
-
+Object.extend(Global, {
+    module: lively.module,
+    require: lively.require
+});
 
 Object.subclass('lively.Module',
 'properties', {
@@ -432,7 +447,7 @@ Object.subclass('lively.Module',
     }
 },
 'debugging', {
-    toString: function() { return 'module(' + this.namespaceIdentifier + ')' },
+    toString: function() { return 'lively.module("' + this.namespaceIdentifier + '")' },
     inspect: function() { return this.toString() + ' defined at ' + this.defStack; },
     logError: function(e, optCode) {
         var list = this.traceDependendModules(),

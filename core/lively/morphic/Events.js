@@ -77,7 +77,7 @@ Object.subclass('lively.morphic.EventHandler',
 'accessing', {
     eventSpecsDo: function(iterator, context) {
         Properties.ownValues(this.dispatchTable)
-            .select(function(ea) { return ea != null })
+            .select(function(ea) { return !!ea; })
             .forEach(iterator, context);
     },
     hand: function() {
@@ -89,6 +89,8 @@ Object.subclass('lively.morphic.EventHandler',
 },
 'registering', {
     register: function(eventSpec) {
+        var existing = this.dispatchTable[eventSpec.type];
+        if (existing) { this[existing.unregisterMethodName](existing); }
         this.dispatchTable[eventSpec.type] = eventSpec;
     },
     enable: function() {
@@ -96,13 +98,17 @@ Object.subclass('lively.morphic.EventHandler',
             this.morph.renderContext().registerHandlerForEvent(this, eventSpec);
         }, this);
     },
+
     registerHTMLAndSVG: function(eventSpec) {
-        var handler = this;
-        eventSpec.node = eventSpec.node || this.morph.renderContext().morphNode;
-        if (!eventSpec.node) {
+        var handler = this,
+            node = this.morph.renderContext().morphNode;
+
+        if (!node) {
             throw new Error('Cannot register Event handler because cannot find '
-                            + 'HTML/SVG morphNode');
+                           + 'HTML/SVG morphNode');
         }
+
+        eventSpec.node = node;
         eventSpec.doNotSerialize = ['node'];
         // bind is too expensive here
         eventSpec.handlerFunc = function(evt) { handler.handleEvent(evt); };
@@ -138,6 +144,7 @@ Object.subclass('lively.morphic.EventHandler',
     unregisterHTMLAndSVGAndCANVAS: function(evtSpec) {
         if (!evtSpec.node) return;
         evtSpec.node.removeEventListener(evtSpec.type, evtSpec.handlerFunc, evtSpec.handleOnCapture);
+        delete evtSpec.handlerFunc;
         delete evtSpec.node;
     }
 },
@@ -519,11 +526,6 @@ lively.morphic.Morph.addMethods(
 
     registerForEvent: function(type, target, targetMethodName, handleOnCapture) {
         if (!this.eventHandler) this.addEventHandler();
-        var existing = this.eventHandler.dispatchTable[type];
-        if (existing) {
-            console.warn('Warning! Event %s already handled: %s.%s. Overwriting with %s.%s!',
-                type, existing.target, existing.targetMethodName, target, targetMethodName);
-        }
         var eventSpec = {
             type: type,
             target: target,

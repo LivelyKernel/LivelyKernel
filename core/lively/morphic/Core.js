@@ -250,7 +250,11 @@ Object.subclass('lively.morphic.Morph',
             }
         }
 
-        morph.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(newOwner) });
+        var isInWorld = !!this.world();
+        morph.withAllSubmorphsDo(function(ea) {
+            if (isInWorld) ea.registerForEvents(Config.handleOnCapture);
+            ea.onOwnerChanged(newOwner);
+        });
 
         return morph;
     },
@@ -325,6 +329,11 @@ Object.subclass('lively.morphic.Morph',
         return this.submorphs.reject(function(ea) { return ea.isEpiMorph }).last();
     },
 
+    onOwnerChanged: function(newOwner) {
+        // This method well get called when my direct or any of my indirect(!)
+        // owners changes, i.e. I or any of my parents is added or removed to/
+        // from another morph. On remove newOwner will be null.
+    }
 
 },
 'accessing -- shapes', {
@@ -345,7 +354,8 @@ Object.subclass('lively.morphic.Morph',
             this.owner.removeMorph(this);
         }
         this.renderContextDispatch('remove');
-        this.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(null) });
+        this.disableEventHandlerRecursively();
+        this.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(null); });
     },
 
     removeMorph: function(morph) {
@@ -654,6 +664,8 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.renderContext().domInterface.removeAllChildrenOf(el);
         this.renderContext().setParentNode(el);
         this.renderContextDispatch('append');
+        this.withAllSubmorphsDo(function(ea) {
+            ea.registerForEvents(Config.handleOnCapture); });
     },
 
     hideHostMouseCursor: function () {

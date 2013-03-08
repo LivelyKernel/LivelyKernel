@@ -608,13 +608,13 @@ Object.subclass('lively.morphic.Morph',
         return jQuery(this.jQueryNode());
     }
 },
-'controls', {
-    beControl: function (optBool) {
-        if (optBool === false) delete this.isControl;
-        else this.isControl = true;
+'staying in front', {
+    setInFront: function (optBool) {
+        if (optBool === false) delete this.inFront;
+        else this.inFront = true;
     },
-    isControlMorph: function () {
-        return this.isHand || this.isHalo || this.isMenu || this.isFixed || this.isControl;
+    isFrontMorph: function () {
+        return this.isHand || this.isHalo || this.isMenu || this.isFixed || this.inFront;
     }
 });
 
@@ -632,7 +632,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 'accessing -- morphic relationship', {
     addMorph: function($super, morph, optMorphBefore) {
         // I keep certain controls in front
-        var morphBefore = morph.isControlMorph() ?
+        var morphBefore = morph.isFrontMorph() ?
                 this.firstHand() : (optMorphBefore || this.bottomMostControl()),
             r = $super(morph, morphBefore);
         this.updateScrollFocus();
@@ -651,7 +651,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         for (var i = 0; i < this.submorphs.length; i++) { // ensuring correct order
             var m = this.submorphs[i]
             // importance order
-            if (m.isControlMorph()) return m;
+            if (m.isFrontMorph()) return m
         }
         return null;
     },

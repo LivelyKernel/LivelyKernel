@@ -1453,7 +1453,7 @@ lively.morphic.World.addMethods(
         var activeWindow = this.getActiveWindow();
         if (activeWindow && (!this.clickedOnMorph ||
                             this.clickedOnMorph.getWindow() !== activeWindow)) {
-            activeWindow.beControl(false);
+            activeWindow.setInFront(false);
             activeWindow.highlight(false);
             if (!activeWindow.isFixed) this.addMorph(activeWindow);
         };

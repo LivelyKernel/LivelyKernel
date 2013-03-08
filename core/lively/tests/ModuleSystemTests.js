@@ -1,5 +1,31 @@
 module('lively.tests.ModuleSystemTests').requires('lively.TestFramework').toRun(function() {
 
+TestCase.subclass('lively.tests.ModuleSystemTests.ObjectLookupTest',
+'running', {
+    setUp: function() {
+        delete lively.tests.ModuleSystemTests.foo;
+        delete lively.tests.ModuleSystemTests.bar;
+    }
+},
+'testing', {
+    testLookupAndAssignObjectPath: function() {
+        var context = lively.tests.ModuleSystemTests;
+        this.assert(!context.foo, 'setup failed');
+        this.assert(!context.bar, 'setup failed');
+        this.assert(!lively.lookup("lively.tests.ModuleSystemTests.foo"), 'setup failed');
+
+        var foo1 = context.foo = 'a';
+        this.assertIdentity(foo1, lively.lookup("lively.tests.ModuleSystemTests.foo"), 'lookup 1');
+        this.assertIdentity(foo1, lively.lookup("foo", context), 'lookup 2');
+
+        var foo2 = 'b', assignResult = lively.assignObjectToPath(foo2, "foo", context);
+        this.assertIdentity(foo2, assignResult, 'assignObjectToPath 1');
+        this.assertIdentity(foo2, lively.lookup("foo", context), 'assignObjectToPath 2');
+        lively.assignObjectToPath(foo1, "lively.tests.ModuleSystemTests.foo");
+        this.assertIdentity(foo1, lively.lookup("foo", context), 'assignObjectToPath 3');
+    }
+});
+
 TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
     testGetModulesInDir: function() {
         var moduleNames, cb = URL.codeBase,

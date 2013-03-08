@@ -63,7 +63,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphAddons.Morph
         this.assert(style.indexOf('top: 40px') >= 0, 'CSS top attribute was not set correctly');
         this.assert(style.indexOf('left: 150px') >= 0, 'CSS left attribute was not set correctly');
         this.assert(m.world().renderContext().morphNode.getAttribute('style').indexOf() < 0, '#D transform render context still exists on world - not compatible with position: fixed in webkit')
+    },
+    testAddFlapWithMorph: function() {
+        var m = lively.morphic.Morph.makeRectangle(rect(100,100,100,100)).openInWorld();
+        var flap = m.world().addFlapWithMorph(m, 'left');
+        this.assert(m.world().submorphs.find(function (ea) {return ea.isFlap}), 'no flap added')
+        this.assert(flap.submorphs.find(function (ea) {return ea.submorphs.first() === m}), 'morph is not in flap')
     }
+
 
 });
 

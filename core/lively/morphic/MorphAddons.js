@@ -489,7 +489,7 @@ lively.morphic.Morph.addMethods(
     setFixed: function(optFixed) {
         // Fixes the morph at the current position and zoom when called with true or no parameter, and unfixes it when called with false.
         var fixed = optFixed || (optFixed === false? false : true);
-        if (fixed && this.owner !== this.world()) return;
+        if (!this.owner.isWorld) return;
         if (fixed) {
             this.disableGrabbing();
             this.world().addMorph(this);
@@ -1129,9 +1129,9 @@ lively.morphic.Morph.addMethods({
             flapBounds = this.determineFlapBounds(alignment, morph, offset),
             scaleFactor = this.isWorld? this.getZoomLevel() : 1,
             flap = new lively.morphic.Flap(alignment, this, flapBounds),
-            scrollContainer = new lively.morphic.Box(this.getBounds());
+            scrollContainer = new lively.morphic.Box(morph.getBounds());
         scrollContainer.setClipMode('scroll')
-        scrollContainer.addMorph(this);
+        scrollContainer.addMorph(morph);
         flap.addMorph(scrollContainer);
         flap.setFixed(false);
         flap.setScale(1/scaleFactor);

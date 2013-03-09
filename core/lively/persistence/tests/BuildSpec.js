@@ -23,7 +23,6 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
             expected = {
                 className: 'lively.morphic.Box',
                 sourceModule: 'lively.morphic.Core',
-                _Position: lively.pt(0,0)
             };
         this.assertSpecMatches(expected, spec);
     },
@@ -53,7 +52,6 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
             expected = {
                 className: 'lively.morphic.Box',
                 sourceModule: 'lively.morphic.Core',
-                _Position: lively.pt(0,0),
                 submorphs: [{_Position: lively.pt(25,25)}]
             };
         this.assertSpecMatches(expected, spec);
@@ -116,8 +114,16 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
         }
         var spec = m1.buildSpec();
         this.assertEquals(0, spec.attributeStore.submorphs.length, 'submorph not filtered');
-    }
+    },
 
+    test10DefaultValues: function() {
+        var m = new lively.morphic.Box(lively.rect(0,0,100,100));
+        m.buildSpecProperties = {foo: {defaultValue: 2}}
+        m.foo = 2;
+        var spec = m.buildSpec(), recreated = spec.createMorph();
+        this.assert(!spec.attributeStore.hasOwnProperty('foo'), 'default foo in spec');
+        this.assertEquals(2, recreated.foo);
+    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.PrintSpec',
@@ -127,13 +133,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Pri
         m.addScript(function foo() { return 123; });
         var spec = m.buildSpec().serializeExpr(),
             expected = "lively.BuildSpec({\n"
-                     + "    _BorderColor: Color.rgb(204,0,0),\n"
-                     + "    _BorderStyle: \"solid\",\n"
-                     + "    _BorderWidth: 0,\n"
-                     + "    _ClipMode: \"visible\",\n"
                      + "    _Extent: lively.pt(100.0,100.0),\n"
-                     + "    _Fill: null,\n"
-                     + "    _Position: lively.pt(0.0,0.0),\n"
                      + "    className: \"lively.morphic.Box\",\n"
                      + "    doNotSerialize: [\"_renderContext\",\"halos\",\"_isRendered\",\"priorExtent\",\"cachedBounds\"],\n"
                      + "    droppingEnabled: true,\n"

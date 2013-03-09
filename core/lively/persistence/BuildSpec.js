@@ -24,11 +24,13 @@ Object.subclass('lively.persistence.SpecObject',
         // (plain toString, no deep graph traversal)
         this.setClass(morph.constructor);
         var props = Object.mergePropertyInHierarchy(morph, "buildSpecProperties");
-        morph.getBuildSpecProperties().forEach(function(key) {
+        morph.getBuildSpecProperties(props).forEach(function(key) {
             var attr = props[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
             var value = morph[key];
             if (attr.getter) value = attr.getter(morph, value);
+            // don't record values that are the same as their default
+            if (attr.hasOwnProperty("defaultValue") && Objects.equal(attr.defaultValue, value)) { return; }
             if (Object.isFunction(value)) {
                 // pass
             } else if (value && Object.isFunction(value.serializeExpr)) {
@@ -78,7 +80,7 @@ Object.subclass('lively.persistence.SpecObject',
     },
 
     setConnections: function(sourceObj) {
-        if (!sourceObj.attributeConnections) return;
+        if (!sourceObj.attributeConnections || sourceObj.attributeConnections.length === 0) return;
         var rebuilderFunc = this.generateConnectionsRebuilder(sourceObj, sourceObj.attributeConnections);
         this.set("connectionRebuilder", rebuilderFunc);
     },
@@ -142,6 +144,8 @@ Object.subclass('lively.persistence.SpecObject',
         var object = this.attributeStore;
         options = options || {connectionRebuilders: []};
         depth = depth || 0;
+
+        // create new morph instance and initialize
         var klass = Class.forName(object.className);
         if (!klass || !Object.isFunction(klass)) return null;
         var instance = new klass(this);
@@ -153,28 +157,44 @@ Object.subclass('lively.persistence.SpecObject',
             instance.setNewId();
             instance.applyStyle(instance.getStyle());
         }
-        if (object.buildSpecProperties) {
-            // buildSpecProperties on object level need to be at instance before
-            // other attributes are assigned
-            instance.buildSpecProperties = object.buildSpecProperties;
-        }
-        var specialAttributes = Object.mergePropertyInHierarchy(instance, "buildSpecProperties");
-        Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder', 'buildSpecProperties']).forEach(function(key) {
-            if (specialAttributes[key] && specialAttributes[key].recreate) {
-                instance[key] = specialAttributes[key].recreate(instance, object);
+
+        // helper for assigning retrieving attribute values of instance
+        function set(key, val, buildSpecAttr) {
+            if (buildSpecAttr && buildSpecAttr.recreate) {
+                instance[key] = buildSpecAttr.recreate(instance, object, key, val);
                 return;
             }
-            var specVal = object[key];
-            if (!key.startsWith('_')) { instance[key] = specVal; return; }
+            if (!key.startsWith('_')) { instance[key] = val; return; }
             var setter = instance['set' + key.replace(/^_/, '').capitalize()];
-            if (Object.isFunction(setter)) { setter.call(instance, specVal); }
+            if (Object.isFunction(setter)) { setter.call(instance, val); }
+        }
+
+        // buildSpecProperties on object level need to be at instance before
+        // other attributes are assigned
+        if (object.buildSpecProperties) {
+            instance.buildSpecProperties = object.buildSpecProperties;
+        }
+        // add anything that was recorded in SpecObj
+        var buildSpecProps = Object.mergePropertyInHierarchy(instance, "buildSpecProperties"),
+            recordedKeys = Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder', 'buildSpecProperties']);
+        recordedKeys.forEach(function(key) { set(key, object[key], buildSpecProps[key]); });
+
+        // add default values
+        debugger
+        var defaults = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key].hasOwnProperty('defaultValue'); });
+        defaults.withoutAll(recordedKeys).forEach(function(key) {
+            set(key, buildSpecProps[key].defaultValue, buildSpecProps[key]);
         });
+
+        // add submorphs
         if (object.submorphs) {
             object.submorphs.forEach(function(ea, i) {
                 var submorph = ea.createMorph(options, depth + 1);
                 if (submorph) instance.addMorph(submorph);
             });
         }
+
+        // add connections
         if (object.connectionRebuilder) {
             options.connectionRebuilders.push(function() { object.connectionRebuilder.call(instance); });
         }
@@ -185,6 +205,7 @@ Object.subclass('lively.persistence.SpecObject',
             options.connectionRebuilders.invoke('call', null);
             instance.withAllSubmorphsDo(function(ea) { ea.onFromBuildSpecCreated(); });
         }
+
         return instance;
     }
 
@@ -264,20 +285,20 @@ lively.morphic.Morph.addMethods(
         grabbingEnabled: {},
         droppingEnabled: {},
         halosEnabled: {},
-        showsHalos: {},
-        _ClipMode: {},
+        _ClipMode: {defaultValue: 'visible'},
         _StyleSheet: {getter: function(morph, val) { return !val || Object.isString(val) ? val : val.getText(); }},
         _StyleClassNames: {},
-        _Position: {},
+        _Position: {defaultValue: lively.pt(0.0,0.0)},
         _Extent: {getter: function(morph) { return morph.getExtent(); }},
-        _Fill: {getter: function(morph) { return morph.getFill(); }},
-        _BorderColor: {getter: function(morph) { return morph.getBorderColor(); }},
-        _BorderWidth: {getter: function(morph) { return morph.getBorderWidth(); }},
-        _BorderStyle: {getter: function(morph) { return morph.getBorderStyle(); }},
-        _Rotation: {},
-        _Scale: {},
+        _Fill: {defaultValue: null, getter: function(morph) { return morph.getFill(); }},
+        _BorderColor: {defaultValue: Color.rgb(0,0,0), getter: function(morph) { return morph.getBorderColor(); }},
+        _BorderWidth: {defaultValue: 0, getter: function(morph) { return morph.getBorderWidth(); }},
+        _BorderStyle: {defaultValue: 'solid', getter: function(morph) { return morph.getBorderStyle(); }},
+        _Rotation: {defaultValue: 0},
+        _Scale: {defaultValue: 1},
         // excludes:
         submorphs: {exclude: true},
+        showsHalos: {exclude: true},
         scripts: {exclude: true},
         id: {exclude: true},
         shape: {exclude: true},
@@ -297,12 +318,13 @@ lively.morphic.Morph.addMethods(
         distanceToDragEvent: {exclude: true},
         prevScroll: {exclude: true},
         _PreviousBorderWidth: {exclude: true},
-        attributeConnections: {exclude: true}
+        attributeConnections: {exclude: true},
+        isLockOwner: {exclude: true}
     },
 
-    getBuildSpecProperties: function() {
-        var rawProps = Object.mergePropertyInHierarchy(this, "buildSpecProperties"),
-            props = Object.keys(rawProps).groupBy(function(key) {
+    getBuildSpecProperties: function(rawProps) {
+        rawProps = rawProps || Object.mergePropertyInHierarchy(this, "buildSpecProperties");
+        var props = Object.keys(rawProps).groupBy(function(key) {
                 return rawProps[key].exclude ? 'excludes' : 'includes'; }),
             scripts = Functions.own(this).select(function(sel) {
                 return this[sel].hasLivelyClosure; }, this),
@@ -324,7 +346,7 @@ lively.morphic.List.addMethods(
     buildSpecProperties: {
         itemList: {},
         _FontSize: {},
-        changeTriggered: {exlude: true}
+        changeTriggered: {exclude: true}
     }
 });
 
@@ -332,20 +354,20 @@ lively.morphic.Text.addMethods(
 'UI builder', {
 
     buildSpecProperties: {
-        _FontSize: {},
-        fixedWidth: {},
-        fixedHeight: {},
-        allowsInput: {},
-        _FontFamily: {},
-        _MaxTextWidth: {},
-        _MaxTextHeight: {},
-        textColor: {},
-        _FontSize: {},
-        _Padding: {},
-        _WhiteSpaceHandling: {},
-        _MinTextWidth: {},
-        _MinTextHeight: {},
-        _WordBreak: {},
+        textString: {getter: function(morph, val) { return val || '' }},
+        _FontSize: {defaultValue: 10},
+        fixedWidth: {defaultValue: false},
+        fixedHeight: {defaultValue: false},
+        allowsInput: {defaultValue: true},
+        _FontFamily: {defaultValue: 'Arial'},
+        _MaxTextWidth: {defaultValue: null},
+        _MaxTextHeight: {defaultValue: null},
+        textColor: {defaultValue: Color.rgb(0,0,0)},
+        _Padding: {defaultValue: lively.Rectangle.inset(0)},
+        _WhiteSpaceHandling: {defaultValue: "pre-wrap"},
+        _MinTextWidth: {defaultValue: null},
+        _MinTextHeight: {defaultValue: null},
+        _WordBreak: {defaultValue: 'normal'},
         // excludes:
         cachedTextString: {exclude: true},
         savedTextString: {exclude: true},
@@ -355,6 +377,7 @@ lively.morphic.Text.addMethods(
         parseErrors: {exclude: true},
         textChunks: {exclude: true},
         priorSelectionRange: {exclude: true},
+        previousSelection: {exclude: true},
         undoSelectionRange: {exclude: true}
     }
 
@@ -363,12 +386,14 @@ lively.morphic.Text.addMethods(
 lively.morphic.CodeEditor.addMethods(
 'UI builder', {
     buildSpecProperties: {
-        textString: {getter: function(morph) { return morph.textString }},
+        textString: {defaultValue: '', getter: function(morph) { return morph.textString }},
         theme: {
+            defaultValue: 'chrome',
             getter: function(morph) { return morph.getTheme(); },
             recreate: function(morph, spec) { morph.setTheme(spec.theme); }
         },
         textMode: {
+            defaultValue: 'text',
             getter: function(morph) { return morph.getTextMode(); },
             recreate: function(morph, spec) { morph.setTextMode(spec.textMode); }
         },
@@ -386,8 +411,9 @@ lively.morphic.Button.addMethods(
             exclude: true,
             filter: function(morph, submorphs) { return submorphs.without(morph.label); }
         },
-        isActive: {},
+        isActive: {defaultValue: true},
         label: {
+            defaultValue: '',
             getter: function(morph, val) { return val.textString || ''; },
             recreate: function(instance, spec) { return instance.ensureLabel(spec.label); }
         }

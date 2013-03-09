@@ -143,7 +143,8 @@ lively.morphic.Morph.addMethods(
         focus: 'focusHTML',
         blur: 'blurHTML',
         setFocusable: 'setFocusableHTML',
-    },
+        isScrollTarget: 'isScrollTargetHTML'
+    }
 },
 'udpating', {
     setTransformHTML: function(ctx, value) {
@@ -351,6 +352,15 @@ lively.morphic.Morph.addMethods(
             ctx.morphNode.tabIndex = boolOrIndex;
         } else delete ctx.morphNode.tabIndex
     },
+    isScrollTargetHTML: function(ctx, evt) {
+        var node = evt.target;
+        // test if evt.target is directly in one of my children
+        // the current morph node
+        while (node && node.getAttribute('data-lively-node-type') !== 'morph-node') {
+            node = node.parentNode
+        }
+        return node === ctx.morphNode;
+    }
 });
 
 lively.morphic.World.addMethods(

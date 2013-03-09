@@ -356,7 +356,7 @@ lively.morphic.Morph.addMethods(
         var node = evt.target;
         // test if evt.target is directly in one of my children
         // the current morph node
-        while (node && node.getAttribute('data-lively-node-type') !== 'morph-node') {
+        while (node && node.getAttribute && node.getAttribute('data-lively-node-type') !== 'morph-node') {
             node = node.parentNode
         }
         return node === ctx.morphNode;

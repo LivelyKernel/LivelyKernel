@@ -133,6 +133,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Pri
         m.addScript(function foo() { return 123; });
         var spec = m.buildSpec().serializeExpr(),
             expected = "lively.BuildSpec({\n"
+                     + "    _BorderColor: Color.rgb(204,0,0),\n"
                      + "    _Extent: lively.pt(100.0,100.0),\n"
                      + "    className: \"lively.morphic.Box\",\n"
                      + "    doNotSerialize: [\"_renderContext\",\"halos\",\"_isRendered\",\"priorExtent\",\"cachedBounds\"],\n"

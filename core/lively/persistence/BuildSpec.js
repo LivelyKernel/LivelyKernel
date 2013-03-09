@@ -161,7 +161,7 @@ Object.subclass('lively.persistence.SpecObject',
         // helper for assigning retrieving attribute values of instance
         function set(key, val, buildSpecAttr) {
             if (buildSpecAttr && buildSpecAttr.recreate) {
-                instance[key] = buildSpecAttr.recreate(instance, object, key, val);
+                buildSpecAttr.recreate(instance, object, key, val);
                 return;
             }
             if (!key.startsWith('_')) { instance[key] = val; return; }
@@ -354,7 +354,25 @@ lively.morphic.Text.addMethods(
 'UI builder', {
 
     buildSpecProperties: {
-        textString: {getter: function(morph, val) { return val || '' }},
+        textString: {
+            defaultValue: '',
+            getter: function(morph, val) { return val || '' },
+            recreate: function(instance, spec) {
+                instance.textString = spec.textString;
+                // important: emphasis after textString!
+                if (spec.emphasis) instance.emphasizeRanges(spec.emphasis);
+            }
+        },
+        emphasis: {
+            getter: function(morph, val) {
+                var styles = morph.getChunkStyles(),
+                    ranges = morph.getChunkRanges();
+                return ranges.collect(function(range, i) {
+                        return [range[0], range[1], styles[i].asSpec()]; });
+            },
+            recreate: function(instance, spec) { /*see textString*/ }
+        },
+        isLabel: {defaultValue: false, recreate: function(instance, spec) { if (spec.isLabel) instance.beLabel(); }},
         _FontSize: {defaultValue: 10},
         fixedWidth: {defaultValue: false},
         fixedHeight: {defaultValue: false},
@@ -415,7 +433,7 @@ lively.morphic.Button.addMethods(
         label: {
             defaultValue: '',
             getter: function(morph, val) { return val.textString || ''; },
-            recreate: function(instance, spec) { return instance.ensureLabel(spec.label); }
+            recreate: function(instance, spec) { instance.ensureLabel(spec.label); }
         }
     }
 });
@@ -431,7 +449,7 @@ lively.morphic.Window.addMethods(
         },
         titleBar: {
             getter: function(morph, val) { return val ? val.getTitle() : ''; },
-            recreate: function(instance, spec) { return instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
+            recreate: function(instance, spec) { instance.titleBar = instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
         },
         reframeHandle: {exclude: true},
         bottomReframeHandle: {exclude: true},

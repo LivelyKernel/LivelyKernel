@@ -96,7 +96,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
     test08SpecialRecreationHandler: function() {
         var m = new lively.morphic.Box(lively.rect(0,0,100,100));
         m.buildSpecProperties = {
-            foo: {recreate: function(instance, spec) { return spec.foo + 1; }}
+            foo: {recreate: function(instance, spec) { instance.foo = spec.foo + 1; }}
         }
         m.foo = 2;
         var recreated = m.buildSpec().createMorph();
@@ -181,6 +181,5 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Reg
     }
 
 });
-
 
 }) // end of module

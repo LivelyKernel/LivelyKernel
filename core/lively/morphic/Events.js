@@ -470,7 +470,9 @@ Trait('ScrollableTrait',
         this.world().setScroll(worldScroll[0], worldScroll[1] - evt.wheelDeltaY);
         return true;
     },
+
     stopScrollWhenBordersAreReached: function(evt) {
+        if (!this.isScrollable() || this.isInInactiveWindow() || !this.isScrollTarget(evt)) return false;
         // FIXME HTML specfic! Move to HTML module
         var div = this.getScrollableNode(evt);
         if (evt.wheelDeltaX) {
@@ -482,11 +484,16 @@ Trait('ScrollableTrait',
         if (evt.wheelDeltaY) {
             var maxVerticalScroll = div.scrollHeight - div.clientHeight,
                 currentVerticalScroll = div.scrollTop;
-            if (evt. wheelDeltaY < 0 && currentVerticalScroll >= maxVerticalScroll) { evt.stop(); }
-            if (evt. wheelDeltaY > 0 && currentVerticalScroll <= 0) { evt.stop(); }
+            if (evt.wheelDeltaY < 0 && currentVerticalScroll >= maxVerticalScroll) { evt.stop(); }
+            if (evt.wheelDeltaY > 0 && currentVerticalScroll <= 0) { evt.stop(); }
         }
         return true;
     },
+
+    isScrollTarget: function(evt) {
+        return this.renderContextDispatch('isScrollTarget', evt);
+    },
+
     getMaxScrollExtent: function() {
         var div = this.getScrollableNode(),
             maxHorizontalScroll = div.scrollWidth - div.clientWidth,
@@ -495,13 +502,7 @@ Trait('ScrollableTrait',
     },
     scrollToBottom: function() {
         this.setScroll(this.getScroll()[0], this.getMaxScrollExtent().y);
-    },
-    scrollWithMouseWheelEvent: function(evt) {
-        var scroll = this.getScroll();
-        this.setScroll(scroll[0] - evt.wheelDeltaX, scroll[1] - evt.wheelDeltaY);
-        this.stopScrollWhenBordersAreReached(evt);
-        evt.stop();
-    },
+    }
 })
 .applyTo(lively.morphic.Morph)
 .applyTo(lively.morphic.Text, {override: ['onMouseWheel']})
@@ -684,7 +685,6 @@ handleOnCapture);
         if (this.eventsAreIgnored) return false;
         evt.world.clickedOnMorph = this;
         evt.world.clickedOnMorphTime = Date.now();
-        evt.hand.scrollFocusMorph = this;
 
         return this.onMouseDown(evt);
 
@@ -741,62 +741,21 @@ handleOnCapture);
     },
 
     onMouseWheel: function(evt) {
+        this.stopScrollWhenBordersAreReached(evt);
         return false;
     },
 
     onMouseWheelEntry: function(evt) {
-        evt.hand.lastScrollTime = new Date().getTime();
-        this.prevScroll = this.getScroll();
-        var world = evt.world;
-        if (!world || !evt.hand.scrollFocusMorph) { return false }
-        var scrollable = world.morphsContainingPoint(evt.getPosition())
-                         .detect(function(ea) { return ea.isScrollable(); });
-        if (!scrollable) { return false }
-        if (scrollable.isInSameWindowAs(this.getTopmostMorph(evt.getPosition()))
-          && scrollable.isInSameWindowAs(evt.hand.scrollFocusMorph)
-          && evt.hand.scrollFocusMorph.isInFrontOf(scrollable, evt.getPosition())) {
-            if (!scrollable.getWindow()) {
-                // scrollable is not in a window hierarchy but in the world.
-                // This will probably break nested scrollable structures in the world
-                // but we don't seem to have them.
-                if (scrollable !== evt.hand.scrollFocusMorph) {
-                    scrollable.undoScroll(evt);
-                    return false;
-                }
-            }
-            // Lists seem to behave a little different than other scrollable morphs in Chrome,
-            // hence the if/else orgy. Let the browser handle List scrolling
-            if (!scrollable.isList) {
-                scrollable.scrollWithMouseWheelEvent(evt);
-                scrollable.onMouseWheel(evt);
-                return true;
-            } else {
-                scrollable.stopScrollWhenBordersAreReached(evt);
-                return false;
-            }
-        } else {
-            // Thank you browser for scrolling me. I don't want that, because I'm not
-            // focused enough! Let me go back!
-
-            // work in progress TRAC ISSUE 230
-            // the scrolling does not reset any more!
-
-            //scrollable.undoScroll(evt);
-            return true;
-        }
-        return true;
+        if (this.isScrollable()) this.prevScroll = this.getScroll();
+        return this.onMouseWheel(evt);
     },
 
     onMouseMove: function(evt) {},
 
     onMouseMoveEntry: function(evt) {
-        if ((new Date().getTime() > evt.hand.lastScrollTime + 250) &&
-                (!this.isText || this.isScrollable())) {
-            evt.hand.scrollFocusMorph = this;
-        }
-        if (this.eventsAreIgnored) { return false; }
-        return this.onMouseMove(evt);
+        return this.eventsAreIgnored ? false : this.onMouseMove(evt);
     },
+
     onMouseOut: function(evt) { return false; },
 
     dragTriggerDistance: 5, // the distance the mouse has to move before dragStart is triggered
@@ -1279,6 +1238,13 @@ lively.morphic.List.addMethods(
     basicGetScrollableNode: function(evt) {
         return this.renderContext().listNode;
     },
+
+    onMouseWheel: function(evt) {
+        this.stopScrollWhenBordersAreReached(evt);
+        return false;
+    },
+
+
     correctForDragOffset: function(evt) {
         return false;
     },
@@ -1671,12 +1637,6 @@ lively.morphic.World.addMethods(
     },
     correctForDragOffset: function(evt) {
         return false;
-    },
-    updateScrollFocus: function() {
-        var that = this;
-        this.hands.forEach(function(hand) {
-            hand.scrollFocusMorph = that.getTopmostMorph(hand.getPosition());
-        });
     }
 },
 'scrolling', {

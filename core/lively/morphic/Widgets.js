@@ -2220,8 +2220,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
     initiateShutdown: function() {
         if (this.isShutdown()) return null;
+        var owner = this.owner;
         if (this.onShutdown) this.onShutdown();
         this.remove();
+        var morphBelow = owner.topMorph();
+        if (morphBelow && morphBelow.isWindow) { morphBelow.comeForward(); }
         this.state = 'shutdown'; // no one will ever know...
         return true;
     },

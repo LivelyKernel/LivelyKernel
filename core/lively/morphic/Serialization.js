@@ -385,7 +385,7 @@ lively.morphic.Script.addMethods(
 
 lively.morphic.HandMorph.addMethods(
 'serialization', {
-    doNotSerialize: ['internalClickedOnMorph', 'scrollFocusMorph']
+    doNotSerialize: ['internalClickedOnMorph']
 });
 
 }) // end of module

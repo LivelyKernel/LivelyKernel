@@ -1142,7 +1142,12 @@ lively.morphic.Morph.addMethods(
             return this.owner.getWindow();
         }
         return null;
-    }
+    },
+    isInInactiveWindow: function() {
+        var win = this.getWindow();
+        return win ? !win.isActive() : false;
+    },
+
 },
 'modal dialog', {
     beModal: function(optBackgroundColor) {

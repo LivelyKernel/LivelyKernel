@@ -582,6 +582,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     stopScrollWhenBordersAreReached: function(evt) {
         // because of how ace scrolls internally these works a bit different to
         // the morphic #stopScrollWhenBordersAreReached
+        if (!this.isScrollable() || this.isInInactiveWindow()) return false;
         var ed = this.aceEditor,
             renderer = ed.renderer;
         if (evt.wheelDeltaX) {/*...*/}
@@ -599,11 +600,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return true;
     },
 
-    scrollWithMouseWheelEvent: function (evt) {
-        // the actual scrolling happens internally in ace
-        // we just make sure that we don't "overscroll":
-        this.stopScrollWhenBordersAreReached(evt);
-    }
 },
 'text morph eval interface', {
 

@@ -2213,6 +2213,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.beControl(true)
     },
 
+    onrestore: function() {
+        this.setInFront();
+    },
+
     makeTitleBar: function(titleString, width, optSuppressControls) {
         // Overridden in TabbedPanelMorph
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
@@ -2237,9 +2241,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.state = 'shutdown'; // no one will ever know...
         return true;
     },
-
     isShutdown: function() { return this.state === 'shutdown' }
-
 },
 'accessing', {
     setTitle: function(string) { this.titleBar.setTitle(string) },

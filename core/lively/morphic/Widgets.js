@@ -3577,22 +3577,21 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 },
 "accessing", {
     getRootTree: function() {
-        if (this.parent) return this.parent.getRootTree();
-        return this;
+        return this.parent? this.parent.getRootTree() : this;
     },
     setItem: function(item) {
         this.layoutAfter(function() {
             this.item = item;
-            connect(item, "changed", this, "update");
+            lively.bindings.connect(item, "changed", this, "update");
             this.submorphs.invoke("remove");
             this.childNodes = null;
-            if (this.item.name == undefined) {
-                if (this.item.children) this.expand();
+            if (!item.name) {
+                if (item.children) this.expand();
             } else {
                 this.initializeNode();
             }
         });
-    },
+    }
 },
 'updating', {
     update: function() {
@@ -3600,19 +3599,15 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     updateItem: function(item) {
         var oldItem = this.item;
-        if (oldItem)
-            disconnect(oldItem, "changed", this, "update");
+        if (oldItem) disconnect(oldItem, "changed", this, "update");
         this.item = item;
-        if (item == null) {
-            this.remove();
-        } else {
-            connect(item, "changed", this, "update");
-            if (oldItem === item && item.onUpdate) item.onUpdate(this);
-            this.updateNode();
-            if (this.childNodes) {
-                if (oldItem === item && item.onUpdateChildren) item.onUpdateChildren(this);
-                this.updateChildren();
-            }
+        if (item == null) { this.remove(); return; }
+        lively.bindings.connect(item, "changed", this, "update");
+        if (oldItem === item && item.onUpdate) item.onUpdate(this);
+        this.updateNode();
+        if (this.childNodes) {
+            if (oldItem === item && item.onUpdateChildren) item.onUpdateChildren(this);
+            this.updateChildren();
         }
     },
     updateNode: function() {
@@ -3627,8 +3622,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         if (this.icon.textString !== str) this.icon.textString = str;
     },
     updateLabel: function() {
-        var str = this.item.name;
-        var changed = false;
+        var str = this.item.name, changed = false;
         if (this.item.description) str += "  " + this.item.description;
         if (this.label.getTextNode().textContent !== str) {
             this.label.textString = this.item.name;

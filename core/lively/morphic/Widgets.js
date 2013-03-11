@@ -2046,7 +2046,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
 
         $super(bounds);
 
-        // this.ignoreEvents();
         this.windowMorph = windowMorph;
 
         // Note: Layout of submorphs happens in adjustForNewBounds (q.v.)
@@ -2079,7 +2078,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
             this.connectButtons(windowMorph);
         }
         // This will align the buttons and label properly
-        this.adjustForNewBounds();
         this.adjustForNewBounds();
 
         this.disableDropping();
@@ -2115,11 +2113,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
             this.menuButton.setPosition(loc);
             loc = loc.addPt(dx);
         }
-        if (this.label) {
-            var start = this.menuButton ? this.menuButton.bounds().topRight() : pt(0,0),
-                end = this.collapseButton ? this.collapseButton.bounds().bottomLeft() : innerBounds.bottomRight();
-            this.label.setBounds(rect(start, end))
-        }
         if (this.closeButton) {
             loc = this.innerBounds().topRight().addXY(
                 -sp-this.closeButton.shape.getBounds().width, sp);
@@ -2128,8 +2121,12 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         }
         if (this.collapseButton) {
             this.collapseButton.setPosition(loc);
-            //loc = loc.subPt(dx);
         };
+        if (this.label) {
+            var start = this.menuButton ? this.menuButton.bounds().topRight() : pt(0,0),
+                end = this.collapseButton ? this.collapseButton.bounds().bottomLeft() : innerBounds.bottomRight();
+            this.label.setBounds(rect(start, end));
+        }
 
 /*        var style = this.styleNamed("titleBar");
         var w = style.borderWidth || 1;

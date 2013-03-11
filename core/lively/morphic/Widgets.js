@@ -2321,7 +2321,19 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     comeForward: function() {
         // adds the window before each other morph in owner
         // this resets the scroll in HTML, fix for now -- gather before and set it afterwards
-        if (this.isInFront()) return; // already at front
+
+        // step 1: highlight me and remove highlight from other windows
+        if (!this.isActive()) {
+            this.world().submorphs.forEach(function(ea) {
+                ea !== this && ea.isWindow && ea.highlight(false); }, this);
+            this.highlight(true);
+        }
+
+        var inner = this.targetMorph,
+            callGetsFocus = inner && !!inner.onWindowGetsFocus;
+        if (this.isInFront()) { if (callGetsFocus) { inner.onWindowGetsFocus(this); }; return; }
+
+        // step 2: make me the frontmost morph of the world
         var textsAndLists = [], scrolls = [];
         this.withAllSubmorphsDo(function(ea) {
             if (!ea.isList && !ea.isText) return;
@@ -2330,8 +2342,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         });
         this.owner.addMorphFront(this); // come forward
         this.alignAllHandles();
-        var inner = this.targetMorph,
-            callGetsFocus = inner && !!inner.onWindowGetsFocus;
         (function() {
             textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
             if (callGetsFocus) { inner.onWindowGetsFocus(this); }
@@ -2340,25 +2350,14 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
     onMouseDown: function(evt) {
         var wasInFront = this.isActive();
-        // this.highlight(true);
+        if (wasInFront) return false; // was: $super(evt);
         this.comeForward();
-        if (!wasInFront) {
-            this.world().submorphs.forEach(function(ea) {
-                ea !== this && ea.isWindow && ea.highlight(false);
-            }, this);
-            this.highlight(true);
-            if (this.morphsContainingPoint(evt.getPosition()).detect(function(ea) {
-                return ea.accessibleInInactiveWindow || true }))
-                    return false; // was: $super(evt);
-
-            this.cameForward = true; // for stopping the up as well
-            evt.world.clickedOnMorph = null; // dont initiate drag, FIXME, global state!
-            evt.stop(); // so that text, lists that are automatically doing things are not modified
-            return true;
-        } else {
-            this.comeForward();
-            return false; // was: $super(evt);
-        }
+        if (this.morphsContainingPoint(evt.getPosition()).detect(function(ea) {
+            return ea.accessibleInInactiveWindow || true })) return false;
+        this.cameForward = true; // for stopping the up as well
+        evt.world.clickedOnMorph = null; // dont initiate drag, FIXME, global state!
+        evt.stop(); // so that text, lists that are automatically doing things are not modified
+        return true;
     },
     onMouseUp: function(evt) {
         if (this.cameForward) {

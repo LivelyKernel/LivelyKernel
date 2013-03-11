@@ -494,8 +494,8 @@ lively.morphic.Morph.addMethods(
             this.disableGrabbing();
             this.world().addMorph(this);
         }
-        this.setFixedInPosition(fixed);
         this.setFixedInSize(fixed);
+        this.setFixedInPosition(fixed);
         if (fixed) {
             this.isFixed = fixed;
         } else {
@@ -516,6 +516,7 @@ lively.morphic.Morph.addMethods(
         else {
             this.stopSteppingScriptNamed("updateZoomScale");
             delete this.fixedScale;
+            delete this.oldZoom; // in updateZoomScale, oldZoom is used to reduce the number of accesses to the style attribute
         }
     },
     setFixedInPosition: function(optFixed) {
@@ -524,11 +525,15 @@ lively.morphic.Morph.addMethods(
         if (fixed && this.owner !== this.world()) {
             return;
         }
-        var pos = this.getPosition().subPt(this.world().getScrollOffset());
-        if (fixed) {
+        // initially normalize the postion on the screen to scroll (0,0) and zoom level 1
+        if (fixed && !this.fixedPosition) this.fixedPosition = this.getPosition().subPt(this.world().getScrollOffset()).scaleBy(this.world().getZoomLevel());
+        // the fixed position will be set as if we are on zoom level 1 and zoomed to top left
+        var pos = this.fixedPosition
+        if (fixed) { 
             this.setPosition(pos); //sanitize getPosition while fixed
         }
-        this.updatePositionStyleAttribtues(fixed, pos);
+        // CSS fixed positioning does work on the current zoom level without the scroll offset, as we set fixedPosition relative to the current uper left corner
+        this.updatePositionStyleAttribtues(fixed/*, pos.scaleBy(1/this.world().getZoomLevel())*/);
         if (fixed) {
             this.fixedPosition = pos;
             this.cachedBounds = undefined
@@ -537,17 +542,20 @@ lively.morphic.Morph.addMethods(
             delete this.fixedPosition;
         }
     },
-    updatePositionStyleAttribtues: function(fixed, pos) {
+    updatePositionStyleAttribtues: function(fixed, optPos) {
+        var pos = optPos || this.fixedPosition.scaleBy(1/this.world().getZoomLevel())
         this.world().removeWebkitTransform(); // Known webkit bug: 3D don't work with fixed postitioning
         var morphnode = this.renderContext().morphNode,
             style = morphnode.getAttribute('style'),
-            positionTargetString = fixed? 'position: fixed;' : 'position: absolute;',
-            newStyle = style.replace(/position\:[^;]*\;/g, positionTargetString)
-            if (fixed) {
-                newStyle = newStyle.replace(/left\:[^;]*\;/g, 'left: ' + pos.x + 'px;')
-                        .replace(/top\:[^;]*\;/g, 'top: ' + pos.y + 'px;');
-            }
+               positionTargetString = fixed? 'position: fixed;' : 'position: absolute;',
+               newStyle = style.replace(/position\:[^;]*\;/g, positionTargetString)
+               if (fixed) {
+                   newStyle = newStyle.replace(/left\:[^;]*\;/g, 'left: ' + pos.x + 'px;')
+                           .replace(/top\:[^;]*\;/g, 'top: ' + pos.y + 'px;');
+               }
         morphnode.setAttribute('style', newStyle);
+        return
+
     },
 
     updateZoomScale: function(zoom) {
@@ -563,6 +571,13 @@ lively.morphic.Morph.addMethods(
     updateFixedPositionAfterScale: function() {
         var pos = this.fixedPosition.scaleBy(1/this.world().getZoomLevel());
         this.updatePositionStyleAttribtues(true, pos);
+        if(!this.isFixed) return
+        var zoom = zoom || this.world().calculateCurrentZoom();
+        if (zoom === this.oldZoom) return
+        this.world().updateZoomLevel(zoom)
+        this.oldZoom = this.world().zoomLevel;
+        this.fixedScale && this.setScale(this.fixedScale/zoom);
+        this.fixedPosition && this.updateFixedPositionAfterScale(zoom);
     },
 
     removeWebkitTransform: function() {

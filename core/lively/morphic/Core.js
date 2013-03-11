@@ -43,7 +43,7 @@ Object.subclass('lively.morphic.Morph',
     getPosition: function() {
         var pos = this.morphicGetter('Position') || pt(0,0);
         return this.fixedPosition ?
-            pos.addPt(this.world().getScrollOffset()).scaleBy(1/this.world().getZoomLevel()) :
+            this.fixedPosition.scaleBy(1/this.world().getZoomLevel()).addPt(this.world().getScrollOffset()) :
             pos;
     },
     setRotation: function(value) {

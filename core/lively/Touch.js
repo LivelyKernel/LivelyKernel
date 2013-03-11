@@ -857,7 +857,7 @@ lively.morphic.Morph.addMethods(
         // enter comment here
         if(!this.isSelectable()) return;
         $world.updateSelection(this);
-        this.selectionMorph = new lively.morphic.SelectionMorph(this.bounds(), this);
+        this.selectionMorph = new lively.morphic.SelectionMorph(this.getPosition().extent(this.getExtent()), this);
         $world.addMorph(this.selectionMorph);
         $world.firstHand().setPosition(this.selectionMorph.bounds().center());
         this.ignoreEvents();
@@ -1591,19 +1591,7 @@ lively.morphic.World.addMethods(
     }
 },
 "TapThroughHalos", {
-    onTap: function($super, evt) {
-        $super(evt);
-        if (this.firstHand().submorphs) {
-            this.addMorph(this.firstHand().submorphs[1])
-            this.firstHand().submorphs.invoke('remove')
-        }
-        if (this.currentHaloTarget && !this.isInEditMode()) {
-            this.currentHaloTarget.removeHalos()
-        }
-        this.setEditMode(false)
-        // worldMenu.js integration!!!
-        this.worldMenuMorph && this.worldMenuMorph.remove();
-    },
+
     select: function() {
         this.updateSelection(null);
     },
@@ -1702,10 +1690,14 @@ lively.morphic.World.addMethods(
 
     onTap: function($super, evt) {
         $super(evt);
-        this.getTouchMenu().remove()
-        if (this.currentHaloTarget) {
-            this.currentHaloTarget.removeHalos()
+        // add carried morphs to world
+        if (this.firstHand().submorphs.length > 0) {
+            this.addMorph(this.firstHand().submorphs[1])
+            this.firstHand().submorphs.invoke('remove')
         }
+        // remove touch menus, selection morphs
+        this.getTouchMenu().remove()
+        this.currentlySelectedMorph && this.currentHaloTarget.removeHalos()
         this.removePie();
         this.worldMenuMorph && this.worldMenuMorph.remove();
     },
@@ -1795,10 +1787,11 @@ lively.morphic.World.addMethods(
             touchMenu.moveBy(pt( -touchMenu.getExtent().x / 2 + delta, 0).scaleBy(1 / $world.getZoomLevel()));
             triangle.moveBy(pt(+touchMenu.getExtent().x/2-delta,0));
         }
-        if(fixed) {
-            touchMenu.setFixed(true, true);
-        }
         this.addMorph(touchMenu)
+        if(fixed) {
+            touchMenu.setScale(1/this.getZoomLevel())
+            touchMenu.setFixed(true);
+        }
         return touchMenu;
     },
     getTouchMenu: function() {
@@ -2361,7 +2354,7 @@ lively.morphic.Box.subclass('lively.morphic.SelectionMorph',
             world = lively.morphic.World.current();
         this.targetMorph = targetMorph;
         this.setBorderWidth(Math.ceil(2
-                        / lively.morphic.World.current().getZoomLevel()
+                        / world.getZoomLevel()
                         / this.targetMorph.getGlobalTransform().getScale()))
         this.setName("SelectionMorph");
         this.align(this.bounds().topLeft(), targetMorph.shape.bounds().topLeft());
@@ -2371,6 +2364,7 @@ lively.morphic.Box.subclass('lively.morphic.SelectionMorph',
         this.initializeConnections();
         this.initializeGrabHandles();
         this.initializeRenameHalo();
+        this.setInFront();
         return returnValue;
     },
     initializeConnections: function() {

@@ -1707,6 +1707,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         // check for level of submenu missing.
         connect(this.list, 'openSuperMenu', this, 'hideBackButton');
         connect(this.list, 'activateCallback', this, 'onCallbackActivate');
+        this.setInFront(true);
         return returnValue
     },
     initializeListBackground: function() {

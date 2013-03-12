@@ -1521,7 +1521,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.initializeHandle(owner);
         if (owner.isWorld) {
             this.setFixed(true);
-            this.fixedScale = 1//$world.getZoomLevel();
+            //this.fixedScale = 1//$world.getZoomLevel();
         }
         this.expanded = true;
     },
@@ -1581,6 +1581,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     },
     fitToOwner: function (owner) {
         this.setExtent(this.determineExtent(owner));
+        this.setScale(1/this.world().getZoomLevel())
         this.setPosition(this.getExpandedPosition(owner));
         this.setBorderRadius(this.determineBorderRadius());
         this.expanded = true;

@@ -253,24 +253,6 @@ cop.create('IPadExtensions')
         this.renderContextDispatch('updateListContent', items);
         }
     },
-}).refineClass(lively.morphic.Text,
-'text control', {
-    initialize: function (bounds, string) {
-        var returnValue = cop.proceed(bounds, string);
-        this.initializeTextControl();
-        return returnValue;
-    },
-    onrestore: function() {
-        var returnValue = cop.proceed(bounds, string);
-        this.initializeTextControl();
-        return returnValue;
-    },
-    beInputLine: function() {
-        var returnValue = cop.proceed()
-        this.disableTextControl();
-        return returnValue
-    }
-
 })
 // the following code can be used in combination with ensureselectionmorph (not used right now)
 // .refineClass(lively.morphic.Button, {
@@ -2685,9 +2667,6 @@ lively.morphic.PieItem.subclass('lively.morphic.ClosePieItem',
 },
 'pieItemActions', {
     activate: function(evt) {
-        if(this.targetMorph.setFixed) {
-            this.targetMorph.setFixed(false);
-        }
         this.targetMorph.deselect();
         this.targetMorph.remove();
     },

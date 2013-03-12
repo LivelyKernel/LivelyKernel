@@ -1386,6 +1386,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
     initialize: function ($super) {
         $super('top')
         // target is supposed to be the current selection
+        debugger
+        var world = this.world() || lively.morphic.World.current()
         connect(lively.morphic.World.current(), "currentlySelectedMorph", this, "setTarget");
         this.tabContainer = this.initializeTabContainer();
         // When opening a plain ObjectEditor, it is supposed to point to the world.

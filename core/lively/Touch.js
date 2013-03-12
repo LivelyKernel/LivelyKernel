@@ -1391,61 +1391,52 @@ lively.morphic.Morph.addMethods(
 
 
     beVerticalScroll: function() {
-        this.addScript(function onTouchStart(evt) {
-            evt.stop();
-            var touch = evt.touches[0];
-            if (touch) {
-                touch.originalDragOffset = touch.screenY;
-                touch.originalMorphPosition = this.getPosition().y;
-            }
-            return true;
-        });
-        this.addScript(function onTouchMove(evt) {
-            evt.stop();
-            var touch = evt.touches[0];
-            if (touch && touch.originalDragOffset && !touch.draggingCanceled) {
-                var delta = touch.screenY - touch.originalDragOffset;
-                var pos = touch.originalMorphPosition+delta;
-                if (this.getExtent().y > this.owner.getExtent().y) {
-                    pos = Math.min(0, pos);
-                    pos = Math.max(this.owner.getExtent().y-this.getExtent().y,pos);
-                } else {
-                    pos = Math.max(0, pos);
-                    pos = Math.min(this.owner.getExtent().y-this.getExtent().y,pos);
-                }
-                this.setPosition(pt(this.getPosition().x,pos));
-            }
-            return true;
-        });
+        this.beScroll('vertical');
     },
     beHorizontalScroll: function() {
-        this.addScript(function onTouchStart(evt) {
-            evt.stop();
-            var touch = evt.touches[0];
-            if (touch) {
-                touch.originalDragOffset = touch.screenX;
-                touch.originalMorphPosition = this.getPosition().x;
+        this.beScroll('horizontal');
+    },
+beScroll: function(optAlign) {
+    this.scrollAlign = optAlign === 'horizontal' ? 'horizontal' : 'vertical';
+    this.addScript(function onTouchStart(evt) {
+        evt.stop();
+        var touch = evt.touches[0];
+        if (touch) {
+            touch.originalDragOffset = this.isVerticalScroll() ?
+                    touch.screenY :
+                    touch.screenX;
+            touch.originalMorphPosition = this.isVerticalScroll() ?
+                    this.getPosition().y :
+                    this.getPosition().x;
+        }
+        return true;
+    });
+    this.addScript(function onTouchMove(evt) {
+        evt.stop();
+        var touch = evt.touches[0];
+        if (touch && touch.originalDragOffset && !touch.draggingCanceled) {
+            var staticPosValue = this.isVerticalScroll() ? this.getPosition().x : this.getPosition().y;
+                deltaStart = this.isVerticalScroll() ? touch.screenY : touch.screenX,
+                delta = deltaStart - touch.originalDragOffset,
+                pos = touch.originalMorphPosition+delta,
+                offsetToOwner = this.isVerticalScroll() ?
+                    this.owner.getExtent().y-this.getExtent().y :
+                    this.owner.getExtent().x-this.getExtent().x;
+            if (offsetToOwner < 0) {
+                pos = Math.min(0, pos);
+                pos = Math.max(offsetToOwner,pos);
+            } else {
+                pos = Math.max(0, pos);
+                pos = Math.min(offsetToOwner,pos);
             }
-            return true;
-        });
-        this.addScript(function onTouchMove(evt) {
-            evt.stop();
-            var touch = evt.touches[0];
-            if (touch && touch.originalDragOffset && !touch.draggingCanceled) {
-                var delta = touch.screenX - touch.originalDragOffset;
-                var pos = touch.originalMorphPosition+delta;
-                if (this.getExtent().x > this.owner.getExtent().x) {
-                    pos = Math.min(0, pos);
-                    pos = Math.max(this.owner.getExtent().x-this.getExtent().x,pos);
-                } else {
-                    pos = Math.max(0, pos);
-                    pos = Math.min(this.owner.getExtent().x-this.getExtent().x,pos);
-                }
-                this.setPosition(pt(pos,this.getPosition().y));
-            }
-            return true;
-        });
-    }
+            this.setPosition(this.isVerticalScroll()? pt(staticPosValue,pos) : pt(pos, staticPosValue));
+        }
+        return true;
+    });
+},
+isVerticalScroll: function() {
+    return this.scrollAlign === 'vertical'
+},
 });
 
 lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',

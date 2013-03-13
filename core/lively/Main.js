@@ -179,9 +179,7 @@ Object.subclass('lively.Main.Loader',
         require(worldData.modulesBeforeDeserialization()).toRun(function() {
             require(worldData.modulesBeforeWorldLoad()).toRun(function() {
                 require(worldData.modulesOnWorldLoad()).toRun(function() {
-                    var world = worldData.getWorld();
-                    world.displayOnDocument(self.getDoc());
-                    self.onFinishLoading(world);
+                    self.onFinishLoading(worldData.getWorld());
                 });
             });
         });

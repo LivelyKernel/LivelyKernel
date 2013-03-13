@@ -1336,8 +1336,24 @@ lively.morphic.World.addMethods(
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onWindowScroll(evt);
         };
+        this.registerForVisibilityChange(false);
+    },
+    registerForVisibilityChange: function(capturing) {
+        var world = this;
+        function handler(evt) {
+            evt = evt || window.event;
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            return world.onVisibilityChange(evt);
+        }
 
+        // see #onVisibilityChange for details
+        var p = lively.Config.get('browserPrefix'),
+            hidden = p + "Hidden";
+        if (document.hasOwnProperty(hidden)) {
+            document.addEventListener(p + "visibilitychange", handler);
+        }
     }
+
 },
 'keyboard event handling', {
     onKeyDown: function($super, evt) {
@@ -1623,9 +1639,22 @@ lively.morphic.World.addMethods(
     onWindowResize: function(evt) {
         this.cachedWindowBounds = null;
     },
+
+    onVisibilityChange: function(evt) {
+        // see
+        // https://developer.mozilla.org/en-US/docs/DOM/Using_the_Page_Visibility_API
+        // This event is fired when the web browser is hidden or becomes
+        // visible, e.g. when switching browser tabs. You can test for the
+        // current state with document.visibilityState* which can be "visible",
+        // "hidden", "prerender"
+        // * currently this attribute is only accessible via browser vendor
+        // * specific prefixes: document[lively.Config.get('browserPrefix') + 'VisibilityState'];
+    },
+
     onWindowScroll: function(evt) {
         this.cachedWindowBounds = null;
     },
+
     onScroll: function(evt) {
         // This is a fix for the annoying bug that cost us a keynote...
         var node = this.renderContext().morphNode;
@@ -2010,12 +2039,15 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 });
 
 Object.extend(lively.morphic.Events, {
-    MutationObserver: window.MutationObserver
-                      || window.WebKitMutationObserver
-                      || window.MozMutationObserver
+    MutationObserver: (function() {
+                        return window.MutationObserver
+                            || window.WebKitMutationObserver
+                            || window.MozMutationObserver; })()
 });
 
-// FIXME remove!!!
-module('lively.morphic.EventExperiments').load();
+(function setupEventExeriments() {
+    // FIXME remove!!!
+    module('lively.morphic.EventExperiments').load();
+})();
 
 }) // end of module

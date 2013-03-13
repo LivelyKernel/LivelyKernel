@@ -1162,7 +1162,7 @@ lively.morphic.Morph.addMethods(
         menu.targetMorph = this;
         menu.setup(itemFilter(this.morphMenuItems()));
         return menu
-    },
+    }
 },
 "CSSTransitions", {
     moveByAnimated: function(delta, time, callback) {

@@ -46,7 +46,7 @@ Trait('LinearGradientCSSTrait',
     toCSSStringUnknown: function() {
         console.warn('Trying to detect how CSS gradients are rendered but wasn\'t able to recognize browser');
         return '';
-    },
+    }
 })
 .applyTo(lively.morphic.LinearGradient, {
     alias: (function() {
@@ -54,7 +54,7 @@ Trait('LinearGradientCSSTrait',
         if (UserAgent.isIE) return {toCSSStringIE: 'toCSSString'};
         if (UserAgent.webKitVersion) return {toCSSStringWebkit: 'toCSSString'};
         return {toCSSStringUnknown: 'toCSSString'};
-    })(),
+    })()
 })
 
 Trait('RadialGradientCSSTrait',

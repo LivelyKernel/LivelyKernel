@@ -496,6 +496,26 @@ Global.Config = {
 
 })(Global.Config, Global.UserAgent, Global.ExistingConfig);
 
+(function addSystemConfigOptions(Config, UserAgent) {
+
+    var browserPrefix = (function() {
+        if (UserAgent.fireFoxVersion) return 'moz';
+        if (UserAgent.isIE) return 'ms';
+        if (UserAgent.isOpera) return 'o';
+        if (UserAgent.webKitVersion) return 'webkit';
+        return '';
+    })(), browserPrefixDash = '-' + browserPrefix + '-';
+
+    Config.addOptions(
+        "lively.morphic.Rendering", [
+            ["browserPrefix", browserPrefix, "Prefix used for accessing browser specific features."],
+            ["html5CssPrefix", browserPrefixDash],
+            ["html5TransformProperty", UserAgent.isOpera ? 'OTransform' : (browserPrefixDash + 'transform')],
+            ["html5TransformOriginProperty", UserAgent.isOpera ? 'OTransformOrigin' : (browserPrefixDash + 'transform-origin')]
+        ]);
+
+})(Global.Config, Global.UserAgent);
+
 (function addOptionsFromPreBootstrapConfig(ExistingConfig, NewConfig) {
     if (!ExistingConfig) return;
     for (var name in ExistingConfig) {

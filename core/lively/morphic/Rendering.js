@@ -54,29 +54,10 @@ Trait('lively.morphic.Renderable',
 Object.subclass('lively.morphic.Rendering.DOMInterface',
 'settings', {
     canvasId: 'lively.morphic.Dom.Canvas',
-    html5CssPrefix: (function() {
-        if (UserAgent.fireFoxVersion) return '-moz-';
-        if (UserAgent.isIE) return '-ms-';
-        if (UserAgent.isOpera) return '-o-';
-        if (UserAgent.webKitVersion) return '-webkit-';
-        return '';
-    })(),
-    html5TransformProperty: (function() {
-        if (UserAgent.fireFoxVersion) return '-moz-transform';
-        if (UserAgent.isIE) return '-ms-transform';
-        if (UserAgent.isOpera) return 'OTransform';
-        if (UserAgent.webKitVersion) return '-webkit-transform';
-        return 'transform';
-    })(),
-    html5TransformOriginProperty: (function() {
-        if (UserAgent.fireFoxVersion) return '-moz-transform-origin';
-        if (UserAgent.isIE) return '-ms-transform-origin';
-        if (UserAgent.isOpera) return 'OTransformOrigin';
-        if (UserAgent.webKitVersion) return '-webkit-transform-origin';
-        return 'transform-origin';
-    })(),
-
-
+    browserPrefix: lively.Config.get('browserPrefix'),
+    html5CssPrefix: lively.Config.get('html5CssPrefix'),
+    html5TransformProperty: lively.Config.get('html5TransformProperty'),
+    html5TransformOriginProperty: lively.Config.get('html5TransformOriginProperty')
 },
 'node creation', {
     canvasRawNode: function() {

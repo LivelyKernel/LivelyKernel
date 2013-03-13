@@ -992,10 +992,10 @@ lively.morphic.Button.addMethods(
 lively.morphic.List.addMethods(
 'deprecated interface', {
     innerMorph: function() { return this },
-    addMenuButton: function() { return this },
+    addMenuButton: function() { return this }
 },
 'filter interface', {
-    clearFilter: function() {},
+    clearFilter: function() {}
 });
 
 lively.morphic.Morph.addMethods(
@@ -1003,7 +1003,7 @@ lively.morphic.Morph.addMethods(
 
     withCSSTransitionDo: function(morphModifyFunc, duration, whenDone) {
         // FIXME move HTML specific stuff to HTML.js!
-        var prefix = this.renderContext().domInterface.html5CssPrefix,
+        var prefix = lively.Config.get('html5CssPrefix'),
             durationProp = prefix === "-moz-" ?
                 "MozTransitionDuration" : prefix + "transition-duration",
             transitionProp = prefix === "-moz-" ?

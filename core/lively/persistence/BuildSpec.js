@@ -50,7 +50,7 @@ Object.subclass('lively.persistence.SpecObject',
         var spec = this.attributeStore = Object.extend({}, object);
         if (spec.submorphs) {
             spec.submorphs = spec.submorphs.map(function(ea) {
-                return lively.persistence.SpecObject.fromPlainObject(ea); });
+                return ea.isSpecObject ? ea : lively.persistence.SpecObject.fromPlainObject(ea); });
         }
         return this;
     },
@@ -496,6 +496,17 @@ lively.morphic.Tree.addMethods(
         this.initializeLayout();
         this.disableDragging();
         this.setItem(this.item || {name: "tree with no item"});
+    }
+});
+lively.morphic.Image.addMethods(
+'buildSpec', {
+    buildSpecProperties: {
+        url: {getter: function(morph) { return morph.getImageURL(); }},
+        useNativeExtent: {defaultValue: false}
+    },
+
+    onFromBuildSpecCreated: function() {
+        this.setImageURL(this.url, this.useNativeExtent);
     }
 });
 

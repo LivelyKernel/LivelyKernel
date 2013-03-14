@@ -312,26 +312,30 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 
 lively.morphic.Morph.subclass('lively.morphic.Image',
 'initializing', {
-    doNotSerialize: ['isLoaded'],
     initialize: function($super, bounds, url, useNativeExtent) {
-        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle(), url);
+        var imageShape = this.defaultShape(bounds.extent().extentAsRectangle(), url);
         $super(imageShape);
         this.setPosition(bounds.topLeft());
-        if (useNativeExtent) {
-            connect(imageShape, 'isLoaded', this, 'setNativeExtent',
-                    {removeAfterUpdate: true});
-        } else {
-            connect(imageShape, 'isLoaded', this, 'setExtent',
-                    {removeAfterUpdate: true, converter: function() {
-                        return this.targetObj.getExtent() }});
-        }
+        this.setImageURL(url, useNativeExtent);
     },
-    createImageShape: function(bounds, url) {
+    defaultShape: function(bounds, url) {
+        url = url || '';
         return new lively.morphic.Shapes.Image(bounds, url);
-    },
+    }
 },
 'accessing', {
-    setImageURL: function(url) { return this.shape.setImageURL(url) },
+    setImageURL: function(url, useNativeExtent) {
+        if (!url) return null;
+        if (useNativeExtent) {
+            connect(this.shape, 'isLoaded', this, 'setNativeExtent',
+                    {removeAfterUpdate: true});
+        } else {
+            connect(this.shape, 'isLoaded', this, 'setExtent',
+                    {removeAfterUpdate: true, converter: function() {
+                        return this.targetObj.getExtent(); }});
+        }
+        return this.shape.setImageURL(url);
+    },
     getImageURL: function() { return this.shape.getImageURL() },
     getNativeExtent: function() { return this.shape.getNativeExtent() },
     setNativeExtent: function() {

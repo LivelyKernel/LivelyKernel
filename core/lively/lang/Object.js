@@ -245,13 +245,16 @@ Global.Objects = {
 
         if (printedProps.length === 0) { return openBr + closeBr; }
 
-        var indent = Strings.indent('', options.indent || '  ', depth),
+        var printedPropsJoined = printedProps.join(','),
+            useNewLines = !isArray
+                       && (!options.minLengthForNewLine
+                        || printedPropsJoined.length >= options.minLengthForNewLine),
+            indent = Strings.indent('', options.indent || '  ', depth),
             propIndent = Strings.indent('', options.indent || '  ', depth + 1),
-            startBreak = isArray ? '' : '\n' + propIndent,
-            endBreak = isArray ? '' : '\n' + indent;
-        return openBr + startBreak
-             + printedProps.join(',' + startBreak)
-             + endBreak + closeBr;
+            startBreak = useNewLines ? '\n' + propIndent: '',
+            endBreak = useNewLines ? '\n' + indent : '';
+        if (useNewLines) printedPropsJoined = printedProps.join(',' + startBreak);
+        return openBr + startBreak + printedPropsJoined + endBreak + closeBr;
     },
 
     typeStringOf: function(obj) {

@@ -42,6 +42,7 @@ Object.subclass('lively.persistence.SpecObject',
         }, this);
         this.setSubmorphs(morph, props);
         this.setConnections(morph);
+        if (morph.onBuildSpecCreated) morph.onBuildSpecCreated(this.attributeStore);
         return this;
     },
 

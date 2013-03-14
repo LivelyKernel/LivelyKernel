@@ -1,6 +1,14 @@
 module('lively.persistence.tests.BuildSpec').requires('lively.persistence.BuildSpec', 'lively.morphic.tests.Helper').toRun(function() {
 
 lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Morphic',
+/*
+Functions.timeToRun(function() {
+    console.profile();
+    t = new lively.persistence.tests.BuildSpec.Morphic();
+    t.runAll();
+    console.profileEnd();
+});
+*/
 'assertion', {
     assertSpecMatches: function(expected, specObj, msg) {
         this.assert(
@@ -22,7 +30,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
             spec = m.buildSpec(),
             expected = {
                 className: 'lively.morphic.Box',
-                sourceModule: 'lively.morphic.Core',
+                sourceModule: 'lively.morphic.Core'
             };
         this.assertSpecMatches(expected, spec);
     },
@@ -123,6 +131,13 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Mor
         var spec = m.buildSpec(), recreated = spec.createMorph();
         this.assert(!spec.attributeStore.hasOwnProperty('foo'), 'default foo in spec');
         this.assertEquals(2, recreated.foo);
+    },
+    test11OnBuildSpecCreated: function() {
+        var m = new lively.morphic.Box(lively.rect(0,0,100,100));
+        m.addScript(function onBuildSpecCreated(buildSpec) {
+            buildSpec.foo = 3; });
+        var recreated = m.buildSpec().createMorph();
+        this.assertEquals(3, recreated.foo);
     }
 });
 

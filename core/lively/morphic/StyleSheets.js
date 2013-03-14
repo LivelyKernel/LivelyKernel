@@ -90,14 +90,13 @@ lively.morphic.Morph.addMethods(
         return this.shape.getBorderStylingMode();
     },
     setStyleSheet: function (styleSheet) {
-        if (styleSheet.isStyleSheet) {
-            return this.setParsedStyleSheet(styleSheet);
+        styleSheet = styleSheet || '';
+        if (typeof styleSheet === 'string' && styleSheet.length > 0) {
+            styleSheet = apps.cssParser.parse(styleSheet, this);
         }
-        if (typeof (styleSheet) === 'string' && styleSheet.length > 0) {
-            var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
-            return this.setParsedStyleSheet(parsedStyleSheet);
-        }
-        return this.setParsedStyleSheet();
+        var styleSheetString = styleSheet.getText ? styleSheet.getText() : styleSheet;
+        return this.getStyleSheet() === styleSheetString ?
+            styleSheetString : this.setParsedStyleSheet(styleSheet);
     },
     setBaseThemeStyleSheet: function(styleSheet) {
         if (styleSheet.isStyleSheet) {
@@ -270,17 +269,15 @@ lively.morphic.Morph.addMethods(
             return prev.concat(rule.getDeclarations()); }, []);
     },
     getStyleSheetBorderWidth: function() {
-        var borderWidthDecls = this.getAggregatedMatchingStyleSheetDeclarations().select(
-                function(d) {
-                    var p = d.getProperty();
-                    return p.indexOf('border') >= 0 && p.indexOf('width') >= 0;
-                }),
+        var decls = this.getAggregatedMatchingStyleSheetDeclarations(),
+            borderWidthDecls = decls.select(function(d) {
+                var p = d.getProperty();
+                return p.indexOf('border') >= 0 && p.indexOf('width') >= 0; }),
             convert = this.convertLengthToPx;
         if (borderWidthDecls.length === 0) return 0;
         // No support for left-top-right-bottom separation yet, so we just take the average
-        var borderWidth = borderWidthDecls.reduce(function(prev, decl, i, a) {
+        return borderWidthDecls.reduce(function(prev, decl, i, a) {
             return prev + convert(decl.getValues().first()) / a.length; }, 0);
-        return borderWidth;
     },
 
     getStyleSheetDeclarationValue: function(property) {
@@ -374,24 +371,21 @@ lively.morphic.Morph.addMethods(
     },
     getMatchingStyleSheetRules: function () {
         var sizzle = new lively.morphic.Sizzle(),
-            matchingRules = [],
-            morphInLoop = this;
-        // Collect matching rules from ancestors (and self)
-        while (morphInLoop) {
-            var styleSheetRules = morphInLoop.getStyleSheetRules();
-            if (styleSheetRules) {
-                styleSheetRules.each(function (rule) {
+            startMorph = this,
+            withOwners = [this].concat(this.ownerChain()),
+            matchingRules = withOwners.inject([], function(matchingRules, morph) {
+                var styleSheetRules = morph.getStyleSheetRules();
+                if (!styleSheetRules) return matchingRules;
+                return matchingRules.concat(styleSheetRules.select(function (rule) {
                     try {
-                        if (sizzle.select(rule.getSelector(), morphInLoop, null, [this]).length === 1) {
-                            matchingRules.push(rule);
-                        }
+                        var sel = sizzle.select(rule.getSelector(), morph, null, [startMorph]);
+                        return sel.length === 1;
                     } catch(e) {
                         console.warn('Selector engine failed to deal with '+rule.getSelector());
+                        return false;
                     }
-                }, this);
-            }
-            morphInLoop = morphInLoop.owner;
-        }
+                }));
+            });
         return this.sortStyleSheetRules(matchingRules);
     },
 
@@ -407,14 +401,12 @@ lively.morphic.Morph.addMethods(
         return rules.sort(function (a, b) {
             var specA = thisMorph.getStyleSheetRuleSpecificity(a),
                 specB = thisMorph.getStyleSheetRuleSpecificity(b);
-            if (specA === specB) {
-                if (a.getOriginMorph() !== b.getOriginMorph()) {
-                    return b.getOriginMorph().isAncestorOf(a.getOriginMorph());
-                }
-                return false;
-                // order ok like this?
+            // order ok like this?
+            if (specA !== specB) return specA > specB;
+            if (a.getOriginMorph() !== b.getOriginMorph()) {
+                return b.getOriginMorph().isAncestorOf(a.getOriginMorph());
             }
-            return (specA > specB);
+            return false;
         });
     },
 

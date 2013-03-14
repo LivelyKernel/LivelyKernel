@@ -1986,10 +1986,11 @@ lively.morphic.List.addMethods(
         var items = this.itemList;
         return this.getSelectedIndexes().collect(function(i) { return items[i] });
     },
-    getSelectedIndexes: function() { return this.renderContextDispatch('getSelectedIndexes') },
+
+    getSelectedIndexes: function() { return this.renderContextDispatch('getSelectedIndexes'); },
 
     getSelections: function() {
-        return this.getSelectedItems().collect(function(ea) {return ea.isListItem ? ea.value : ea})
+        return this.getSelectedItems().collect(function(ea) { return ea.isListItem ? ea.value : ea; })
     },
     setSelections: function(arr) {
         var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
@@ -2004,9 +2005,10 @@ lively.morphic.List.addMethods(
     selectAllAt: function(indexes) {
         this.renderContextDispatch('selectAllAt', indexes)
     },
+
     renderFunction: function(anObject) {
         return anObject.string || String(anObject);
-    },
+    }
 
 });
 
@@ -3926,12 +3928,23 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 },
 'enumerating', {
     withAllTreesDo: function(iter, context, depth) {
+        // only iterates through expanded childNodes, not necessarily through
+        // all item children! See #withAllItemsDo
         if (!depth) depth = 0;
-        iter.call(context || Global, this, depth);
-        if (!this.childNodes) return;
-        for (var i = 0; i < this.childNodes.length; i++) {
-            this.childNodes[i].withAllTreesDo(iter, context, depth + 1);
+        var result = iter.call(context || Global, this, depth);
+        if (!this.childNodes) return [result];
+        return [result].concat(
+            this.childNodes.invoke("withAllTreesDo", iter, context, depth + 1));
+    },
+
+    withAllItemsDo: function(iter, context) {
+        function visitItem(item, depth) {
+            var result = iter.call(context || Global, item, depth);
+            if (!item.children) return [result];
+            return item.children.inject([result], function(all, ea) {
+                return all.concat(visitItem(ea, depth + 1)); });
         }
+        return this.item && visitItem(this.item, 0);
     }
 });
 

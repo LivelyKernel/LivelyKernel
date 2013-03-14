@@ -181,7 +181,6 @@ Object.subclass('lively.persistence.SpecObject',
         recordedKeys.forEach(function(key) { set(key, object[key], buildSpecProps[key]); });
 
         // add default values
-        debugger
         var defaults = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key].hasOwnProperty('defaultValue'); });
         defaults.withoutAll(recordedKeys).forEach(function(key) {
             set(key, buildSpecProps[key].defaultValue, buildSpecProps[key]);
@@ -320,7 +319,8 @@ lively.morphic.Morph.addMethods(
         prevScroll: {exclude: true},
         _PreviousBorderWidth: {exclude: true},
         attributeConnections: {exclude: true},
-        isLockOwner: {exclude: true}
+        isLockOwner: {exclude: true},
+        isInLayoutCycle: {exlude: true}
     },
 
     getBuildSpecProperties: function(rawProps) {
@@ -438,6 +438,7 @@ lively.morphic.Button.addMethods(
         }
     }
 });
+
 lively.morphic.Window.addMethods(
 'UI builder', {
     buildSpecProperties: {
@@ -465,6 +466,37 @@ lively.morphic.Window.addMethods(
         this.targetMorph = this.submorphs[0];
     }
 
+});
+
+lively.morphic.List.addMethods(
+'buildspec', {
+    onFromBuildSpecCreated: function() {
+        this.setList(this.itemList || []);
+    }
+});
+
+lively.morphic.Tree.addMethods(
+'buildSpec', {
+    buildSpecProperties: {
+        childNodes: {exclude: true},
+        icon: {exclude: true},
+        isInLayoutCycle: false,
+        item: {exclude: true},
+        label: {exclude: true},
+        node: {exclude: true}
+    },
+
+    onBuildSpecCreated: function(buildSpec) {
+        if (this.item && Object.isFunction(this.item.serializeExpr)) {
+            buildSpec.item = item;
+        }
+    },
+
+    onFromBuildSpecCreated: function() {
+        this.initializeLayout();
+        this.disableDragging();
+        this.setItem(this.item || {name: "tree with no item"});
+    }
 });
 
 Object.extend(lively.morphic.Morph, {

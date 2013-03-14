@@ -138,7 +138,14 @@ Functions.timeToRun(function() {
             buildSpec.foo = 3; });
         var recreated = m.buildSpec().createMorph();
         this.assertEquals(3, recreated.foo);
+    },
+
+    test12BuildSpecForList: function() {
+        var m = new lively.morphic.List(lively.rect(0,0,100,100), ['abc', 'def']);
+        var recreated = m.buildSpec().createMorph();
+        this.assertEqualState(['abc', 'def'], recreated.getList());
     }
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.PrintSpec',

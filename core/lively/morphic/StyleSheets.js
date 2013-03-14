@@ -537,7 +537,8 @@ lively.morphic.Morph.addMethods(
         }
         // add real class types to the classnames too
         for (var type = this.constructor; type !== Object; type = type.superclass) {
-            styleClassNames.unshift(type.name);
+            if (styleClassNames.indexOf(type.name) === -1) {
+                styleClassNames.unshift(type.name); }
         }
         // each class has to be in the return array only once
         return styleClassNames;

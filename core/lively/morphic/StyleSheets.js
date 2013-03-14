@@ -195,7 +195,11 @@ lively.morphic.Morph.addMethods(
     },
 
     getParsedStyleSheet: function () {
-        return this.morphicGetter('StyleSheet');
+        var styleSheet = this.morphicGetter('StyleSheet');
+        if (styleSheet && Object.isString(styleSheet)) {
+            styleSheet = apps.cssParser.parse(styleSheet, this);
+        }
+        return styleSheet;
     },
     getParsedBaseThemeStyleSheet: function() {
         return this.$$baseThemeStyleSheet || null;
@@ -537,56 +541,38 @@ lively.morphic.Morph.addMethods(
 },
 'Style classes and ids', {
     getStyleClassNames: function () {
-        var styleClassNames = [],
-        theStyleClassNames = this.morphicGetter('StyleClassNames');
-
-            if(theStyleClassNames) {
-                styleClassNames = styleClassNames.concat(theStyleClassNames);
-            }
-        // add real class types to the classnames too
-        var type = this.constructor;
-        while(type != Object) {
-            styleClassNames.unshift(type.name);
-            type = type.superclass;
-        }
-
-        // each class has to be in the return array only once
-        return this.makeUniqueStyleClassNamesList(styleClassNames);
-    },
-
-    isOfStyleClass: function (className) {
-        // Tests if a morph has a specific class.
-        // Argument can be a single class name or a
-        // string containing multiple classnames
-        // separated by blanks.
-
-        var classNames = className.trim().split(/[\s,]+/),
-        morphClasses = this.getStyleClassNames() || [];
-
-        // Generate a RegExp for each className
-        classNames = classNames.collect(function (c) {
-            return this.makeStyleClassNameRegExp(c);
-        }, this);
-
-        for (var i = 0; i < classNames.length; i++) {
-            var innerLoopRet = false;
-            for (var j = 0; j < morphClasses.length && !innerLoopRet; j++) {
-                     if (classNames[i].test(morphClasses[j])) { innerLoopRet = true; }
-            }
-            if (!innerLoopRet) { return false; }
-        }
-        return true;
-    },
-
-    addStyleClassName: function (className) {
-        var classNames = this.morphicGetter('StyleClassNames') || [];
-        if (!className) return;
-        if (Object.isArray(className)) {
-            classNames = classNames.concat(className);
+        var styleClassNames = this.morphicGetter('StyleClassNames');
+        if (Object.isString(styleClassNames)) {
+            styleClassNames = styleClassNames.split(' ').trim();
         } else {
-            classNames.push(className);
+            styleClassNames = styleClassNames ? styleClassNames.clone() : [];
         }
-        this.setStyleClassNames(classNames);
+        // add real class types to the classnames too
+        for (var type = this.constructor; type !== Object; type = type.superclass) {
+            styleClassNames.unshift(type.name);
+        }
+        // each class has to be in the return array only once
+        return styleClassNames;
+    },
+
+    isOfStyleClass: function (classNameOrNames) {
+        // Tests if a morph has a specific class. Argument can be a single
+        // class name or a string containing multiple classnames separated by
+        // blanks or an array of classnames
+        if (Object.isString(classNameOrNames)) {
+            classNameOrNames = classNameOrNames.trim().split(/[\s,]+/);
+        }
+        var morphClasses = this.getStyleClassNames(),
+            inBoth = morphClasses.intersect(classNameOrNames);
+        return inBoth.length === classNameOrNames.length;
+    },
+
+    addStyleClassName: function (classNameOrNames) {
+        if (!classNameOrNames || this.isOfStyleClass(classNameOrNames)) return;
+        var ownClassNames = this.morphicGetter('StyleClassNames') || [];
+        ownClassNames = ownClassNames.concat(Object.isArray(classNameOrNames) ?
+            classNameOrNames : [classNameOrNames]);
+        this.setStyleClassNames(ownClassNames);
     },
 
     setStyleId: function (id) {
@@ -613,54 +599,26 @@ lively.morphic.Morph.addMethods(
     },
 
     removeStyleClassName: function (className) {
-        var pattern = this.makeStyleClassNameRegExp(className),
-            newClassList = [],
-            result = false,
-            classNames = this.morphicGetter('StyleClassNames');
-        if (!classNames) return;
-        classNames.forEach(function (c) {
-            if (!pattern.test(c)) {
-                newClassList.push(c);
-            }
-        }, this);
-        this.setStyleClassNames(newClassList);
+        className = className.trim();
+        var classNames = this.morphicGetter('StyleClassNames') || [],
+            idx = classNames.indexOf(className);
+        if (idx === -1) return;
+        classNames.splice(idx, 1);
+        this.setStyleClassNames(classNames);
     },
     setStyleClassNames: function (classNames) {
-        if(classNames && classNames.length > 0) {
-            if(Array.isArray(classNames)) {
-                this.morphicSetter('StyleClassNames',
-                    this.makeUniqueStyleClassNamesList(classNames));
-            } else { // if it's not an array we assume it's a string
-                this.morphicSetter('StyleClassNames',
-                    this.makeUniqueStyleClassNamesList(classNames.split(' ')));
-            }
-        } else {
+        if (!classNames || classNames.length === 0) {
             this.morphicSetter('StyleClassNames', null);
             delete this._StyleClassNames;
+        } else  {
+            if (Object.isString(classNames)) {
+                classNames = classNames.split(' ').invoke('trim');
+            }
+            this.morphicSetter('StyleClassNames', classNames);
         }
         this.adaptBorders();
-    },
-
-    makeUniqueStyleClassNamesList: function (classNames) {
-        var uniqueClassNames = [];
-        classNames.each(function (c) {
-            var name = this.makeStyleClassNameRegExp(c),
-            notInListYet = true;
-            uniqueClassNames.each(function (u) {
-                if(name.test(u)) {
-                    notInListYet = false;
-                }
-            });
-            if(notInListYet) {
-                uniqueClassNames.push(c);
-            }
-
-        }, this);
-        return uniqueClassNames;
-    },
-    makeStyleClassNameRegExp: function (className) {
-        return new RegExp("(^|[\\x20\\t\\r\\n\\f])" + className + "([\\x20\\t\\r\\n\\f]|$)", "");
     }
+
 });
 
 lively.morphic.Text.addMethods('Style sheet getters and setters', {

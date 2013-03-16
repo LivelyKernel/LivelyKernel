@@ -180,6 +180,10 @@ lively.morphic.World.addMethods(
     },
 
     saveWorldAs: function(url, checkForOverwrites) {
+        // FIXME: this should go somewhere else or actually not be necessary at 
+        // all... cleanup, removing junk css defs
+        lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this);
+
         // Step 1: Get serialized representation of the world
         var serializer = lively.persistence.ObjectGraphLinearizer.forNewLively(),
             json = serializer.serialize(this, null, serializer);

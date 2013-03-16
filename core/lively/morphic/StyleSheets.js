@@ -1863,4 +1863,18 @@ if ( !xml ) {
 
 });
 
+Object.extend(lively.morphic.StyleSheets,{
+    removeStylesForMorphsNotIn: function(morph) {
+        var ids = {};
+        $("head style[id|=\"style-for\"]").each(function() {
+            var id = this.getAttribute('id'),
+                morphId = id.slice('style-for-'.length);
+            ids[morphId] = id;
+        });
+        morph.withAllSubmorphsDo(function(ea) { delete ids[ea.id]; });
+        var jQuerySel = '#' + Object.values(ids).join(',#');
+        $(jQuerySel).remove();
+    }
+});
+
 }); // end of module

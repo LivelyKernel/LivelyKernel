@@ -1175,6 +1175,7 @@ Object.extend(lively.persistence.Serializer, {
         if (lively.Config.get('createWorldPreview')) {
             var previewHTML = world.asHTMLLogo({asFragment: true});
             $doc.find("body").html(previewHTML);
+            lively.morphic.StyleSheets.removeStylesForMorphsNotIn(world);
             $("head style").clone().appendTo($head);
         }
 

@@ -478,7 +478,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         // are its submorphs
         var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
         yellowRectangle.applyStyle({fill: Color.yellow});
-        yellowRectangle.openInWorld();
+        // yellowRectangle.openInWorld();
+        this.world.addMorph(yellowRectangle);
         yellowRectangle.addStyleClassName('yellow');
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
@@ -876,6 +877,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.blueRectangle1.setParsedStyleSheet(sheet);
         this.assertEquals(this.blueRectangle1, sheet.getOriginMorph(),
             'originMorph of sheet should be blue after adding');
+    },
+    test13RemoveStyleTagsForRemovedMorphs: function() {
+        var id = this.yellowRectangle.id;
+        this.yellowRectangle.setStyleSheet('.Morph { color: red; }');
+        this.assertEquals(1, $('head style[id="style-for-' + id + '"]').length);
+        this.yellowRectangle.remove();
+        lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this.world);
+        this.assertEquals(0, $('head style[id="style-for-' + id + '"]').length);
     }
 
 });

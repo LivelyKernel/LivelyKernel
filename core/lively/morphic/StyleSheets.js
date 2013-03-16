@@ -11,15 +11,13 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'lively.mor
 // on http://sizzlejs.com/ that maps sizzle rules to the Morphic scene graph.
 
 (function loadBaseThemeOnWorldLoad() {
-    // Load the base theme when the world is loaded
-    Config.finishLoadingCallbacks.push(function(world) {
+    lively.whenLoaded(function(world) {
         world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
     });
-    if (UserAgent.isTouch) {
-        Config.finishLoadingCallbacks.push(function(world) {
-            world.loadStyleSheetFromFile(Config.ipadThemeStyleSheetURL, '');
-        });
-    }
+    if (!UserAgent.isTouch) return;
+    lively.whenLoaded(function(world) {
+        world.loadStyleSheetFromFile(Config.ipadThemeStyleSheetURL, '');
+    });
 })();
 
 lively.morphic.Shapes.Shape.addMethods('Styling', {
@@ -94,9 +92,7 @@ lively.morphic.Morph.addMethods(
         if (typeof styleSheet === 'string' && styleSheet.length > 0) {
             styleSheet = apps.cssParser.parse(styleSheet, this);
         }
-        var styleSheetString = styleSheet.getText ? styleSheet.getText() : styleSheet;
-        return this.getStyleSheet() === styleSheetString ?
-            styleSheetString : this.setParsedStyleSheet(styleSheet);
+        return this.setParsedStyleSheet(styleSheet);
     },
     setBaseThemeStyleSheet: function(styleSheet) {
         if (styleSheet.isStyleSheet) {

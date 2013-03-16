@@ -566,12 +566,12 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Selectors',
     setUp: function($super) {
         $super();
         this.sizzle = new lively.morphic.Sizzle();
-this.createSomeMorphs();
+        this.createSomeMorphs();
     },
 
- tearDown: function() {
+    tearDown: function() {
         this.yellowRectangle.remove();
-    },
+    }
 
 },
 'testing', {

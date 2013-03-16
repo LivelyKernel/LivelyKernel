@@ -58,8 +58,7 @@ Object.extend(apps.cssParser, {
             return new lively.morphic.StyleSheetComment('/* ' + msg + '\n' + rule.parsedCssText + '\n*/');
         };
 
-        return new lively.morphic.StyleSheet(
-        styleSheet.cssRules.collect(function (rule) {
+        return new lively.morphic.StyleSheet(styleSheet.cssRules.collect(function (rule) {
             switch(rule.type) {
                 case 0:
                     // Rule could not be parsed
@@ -122,8 +121,7 @@ Object.extend(apps.cssParser, {
                 default:
                     return notSupportedRuleAsComment('This type of rule is not supported yet, sry!', rule);
             }
-        }),
-        originMorph);
+        }), originMorph);
     },
     isShorthand: function(property) {
         var propList = apps.cssParser.getPropList(),

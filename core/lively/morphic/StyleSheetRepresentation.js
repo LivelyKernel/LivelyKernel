@@ -13,8 +13,7 @@ Object.subclass('lively.morphic.StyleSheet',
         // Returns the CSS formated text of the style sheet
         return this.rules.reduce(function(prev, rule, i, rules) {
             // Add two newlines after each rule, except the last
-            return prev + rule.getText()
-                 + (i < rules.length - 1 ? '\n\n' : '');
+            return prev + rule.getText() + (i < rules.length - 1 ? '\n\n' : '');
         }, '');
     },
     getRules: function() {
@@ -27,8 +26,7 @@ Object.subclass('lively.morphic.StyleSheet',
 'Setter', {
     setRules: function(rules) {
         this.rules = rules || [];
-        this.rules.each(function(rule) {
-            rule.setStyleSheet(this); }, this);
+        this.rules.forEach(function(rule) { rule.setStyleSheet(this); }, this);
     },
     setOriginMorph: function(morph) {
         this.originMorph = morph;

@@ -33,6 +33,12 @@ Object.subclass('lively.morphic.StyleSheet',
     }
 });
 
+Object.extend(lively.morphic.StyleSheet, {
+    fromString: function(string) {
+        var styleSheet = apps.cssParser.parse(string);
+    }
+});
+
 Object.subclass('lively.morphic.StyleSheetRule',
 'init', {
     isStyleSheetRule: true,

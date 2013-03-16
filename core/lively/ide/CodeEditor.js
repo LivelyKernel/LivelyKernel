@@ -420,7 +420,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     lookupCommand: function(keySpec) {
         return this.withAceDo(function(ed) {
-            var handler = ed.getKeyboardHandler(),
+            var handler = ed.commands,
                 binding = handler.parseKeys(keySpec),
                 command = handler.findKeyCommand(binding.hashId, binding.key);
             if (!command) return null;
@@ -865,17 +865,25 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     morphMenuItems: function($super) {
         var items = $super(), editor = this;
 
-        var themeItems = lively.ide.ace.availableThemes().map(function(theme) {
-            return [theme, function(evt) { editor.setTheme(theme); }] });
+        var currentTheme = this.getTheme(),
+            themeItems = lively.ide.ace.availableThemes().map(function(theme) {
+            var themeString = Strings.format('[%s] %s',
+                                             theme === currentTheme ? 'X' : ' ',
+                                             theme);
+            return [themeString, function(evt) { editor.setTheme(theme); }]; });
 
-        var modeItems = lively.ide.ace.availableTextModes().map(function(mode) {
-            return [mode, function(evt) { editor.setTextMode(mode); }] });
+        var currentTextMode = this.getTextMode(),
+            modeItems = lively.ide.ace.availableTextModes().map(function(mode) {
+                var modeString = Strings.format('[%s] %s',
+                                                 mode === currentTextMode ? 'X' : ' ',
+                                                 mode);
+                return [modeString, function(evt) { editor.setTextMode(mode); }]; });
 
         items.push(["themes", themeItems]);
         items.push(["modes", modeItems]);
 
         var usesWrap = editor.aceEditor.session.getUseWrapMode();
-        items.push(["line wrapping " + (usesWrap ? 'off' : 'on'), function() {
+        items.push([Strings.format("[%s] line wrapping", usesWrap ? 'X' : ' '), function() {
             editor.aceEditor.session.setUseWrapMode(!usesWrap);
         }]);
 

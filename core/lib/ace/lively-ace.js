@@ -1611,6 +1611,7 @@ exports.mixin = function(obj, mixin) {
     for (var key in mixin) {
         obj[key] = mixin[key];
     }
+    return obj;
 };
 
 exports.implement = function(proto, mixin) {
@@ -3045,7 +3046,8 @@ config.defineOptions(Editor.prototype, "editor", {
     readOnly: {
         set: function(readOnly) {
             this.textInput.setReadOnly(readOnly);
-            this.renderer.$cursorLayer.setBlinking(!readOnly);
+            var cursorLayer = this.renderer.$cursorLayer;
+            cursorLayer && cursorLayer.setBlinking(!readOnly);
         },
         initialValue: false
     },
@@ -15248,9 +15250,7 @@ exports.handler.attach = function(editor) {
     editor.$emacsModeHandler = this;
     require('../incremental_search');
     editor.setOption('useIncrementalSearch', true);
-    if (!this.usesIncrementalSearch) {
-        this.setupIncrementalSearch(editor, true);
-    };
+    this.setupIncrementalSearch(editor, true);
 };
 
 exports.handler.detach = function(editor) {
@@ -15586,7 +15586,7 @@ exports.killRing = {
 
 });
 
-ace.define('ace/incremental_search', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/commands/incremental_search_commands', 'ace/lib/dom', 'ace/commands/command_manager', 'ace/keyboard/emacs', 'ace/editor', 'ace/config'], function(require, exports, module) {
+ace.define('ace/incremental_search', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/commands/incremental_search_commands', 'ace/lib/dom', 'ace/editor', 'ace/config'], function(require, exports, module) {
 
 
 var oop = require("./lib/oop");
@@ -15609,6 +15609,7 @@ oop.inherits(IncrementalSearch, Search);
         this.$options.needle = '';
         this.$options.backwards = backwards;
         editor.keyBinding.addKeyboardHandler(this.$keyboardHandler);
+        this.$mousedownHandler = editor.addEventListener('mousedown', this.onMouseDown.bind(this));
         this.selectionFix(editor);
         var msg = this.$options.backwards ? 'reverse-' : '';
         msg += 'isearch: ' + this.$options.needle;
@@ -15618,6 +15619,10 @@ oop.inherits(IncrementalSearch, Search);
     this.deactivate = function(reset) {
         this.cancelSearch(reset);
         this.$editor.keyBinding.removeKeyboardHandler(this.$keyboardHandler);
+        if (this.$mousedownHandler) {
+            this.$editor.removeEventListener('mousedown', this.$mousedownHandler);
+            delete this.$mousedownHandler;
+        }
         this.message('');
     }
 
@@ -15626,6 +15631,7 @@ oop.inherits(IncrementalSearch, Search);
             editor.clearSelection();
         }
     }
+
     this.cancelSearch = function(reset) {
         var e = this.$editor;
         this.$prevNeedle = this.$options.needle;
@@ -15687,6 +15693,11 @@ oop.inherits(IncrementalSearch, Search);
         });
     }
 
+    this.onMouseDown = function(evt) {
+        this.deactivate();
+        return true;
+    }
+
     this.message = function(msg) {
         var cmdLine = this.$editor && this.$editor.cmdLine;
         if (cmdLine) {
@@ -15695,7 +15706,6 @@ oop.inherits(IncrementalSearch, Search);
             console.log(msg);
         }
     }
-
 
 }).call(IncrementalSearch.prototype);
 
@@ -15712,28 +15722,30 @@ function patchHighlightMarkerStyling(options) {
             + '}\n'
     dom.importCssString(css, id);
 }
-var CommandManager = require("./commands/command_manager").CommandManager;
-(function() {
-    this.setupIncrementalSearch = function(editor, val) {
+require(["./commands/command_manager"], function(cmdMgr) {
+    (function() {
+        this.setupIncrementalSearch = function(editor, val) {
+            if (this.usesIncrementalSearch == val) return;
+            this.usesIncrementalSearch = val;
+            var iSearchCommands = iSearchCommandModule.iSearchStartCommands,
+                method = val ? 'addCommands' : 'removeCommands';
+            this[method](iSearchCommands);
+        };
+    }).call(cmdMgr.CommandManager.prototype);
+});
+require(["./keyboard/emacs"], function(emacs) {
+    emacs.handler.setupIncrementalSearch = function(editor, val) {
         if (this.usesIncrementalSearch == val) return;
         this.usesIncrementalSearch = val;
-        var iSearchCommands = iSearchCommandModule.iSearchStartCommands,
-            method = val ? 'addCommands' : 'removeCommands';
-        this[method](iSearchCommands);
-    };
-}).call(CommandManager.prototype);
-var emacs = require("./keyboard/emacs");
-emacs.handler.setupIncrementalSearch = function(editor, val) {
-    if (this.usesIncrementalSearch == val) return;
-    this.usesIncrementalSearch = val;
-    if (val) {
-        this.bindKey('C-s', 'iSearch');
-        this.bindKey('C-r', 'iSearchBackwards');
-    } else {
-        this.bindKey('C-s', "findnext");
-        this.bindKey('C-r', "findprevious");
+        if (val) {
+            this.bindKey('C-s', 'iSearch');
+            this.bindKey('C-r', 'iSearchBackwards');
+        } else {
+            this.bindKey('C-s', "findnext");
+            this.bindKey('C-r', "findprevious");
+        }
     }
-}
+});
 var Editor = require("./editor").Editor;
 require("./config").defineOptions(Editor.prototype, "editor", {
     useIncrementalSearch: {
@@ -15744,13 +15756,14 @@ require("./config").defineOptions(Editor.prototype, "editor", {
                     handler.setupIncrementalSearch(this, val);
                 }
             });
+            this._emit('incrementalSearchSettingChanged', {isEnabled: val});
         }
     }
 });
 
 });
 
-ace.define('ace/commands/incremental_search_commands', ['require', 'exports', 'module' , 'ace/config', 'ace/keyboard/hash_handler', 'ace/lib/oop'], function(require, exports, module) {
+ace.define('ace/commands/incremental_search_commands', ['require', 'exports', 'module' , 'ace/config', 'ace/commands/occur_commands', 'ace/keyboard/hash_handler', 'ace/lib/oop'], function(require, exports, module) {
 
 var config = require("../config");
 exports.iSearchStartCommands = [{
@@ -15841,7 +15854,23 @@ exports.iSearchCommands = [{
     isIncrementalSearchCommand: true
 }];
 
-
+if (true) {
+    var occurCmds = require("./occur_commands").commands, occurStartCmd;
+    for (var i = 0; i < occurCmds.length; i++) {
+        if (occurCmds[i].name === 'occur') { occurStartCmd = occurCmds[i]; break; }
+    }
+    exports.iSearchCommands.push({
+        name: 'occurisearch',
+        bindKey: 'Ctrl-O',
+        exec: function(iSearch) {
+            var options = oop.mixin({}, iSearch.$options), ed = iSearch.$editor;
+            iSearch.deactivate();
+            occurStartCmd.exec(ed, options);
+        },
+        readOnly: true,
+        isIncrementalSearchCommand: true
+    });
+}
 
 var HashHandler = require("../keyboard/hash_handler").HashHandler;
 var oop = require("../lib/oop");
@@ -15886,6 +15915,169 @@ oop.inherits(IncrementalSearchKeyboardHandler, HashHandler);
 
 
 exports.IncrementalSearchKeyboardHandler = IncrementalSearchKeyboardHandler;
+
+});
+
+ace.define('ace/commands/occur_commands', ['require', 'exports', 'module' , 'ace/config', 'ace/occur', 'ace/keyboard/hash_handler', 'ace/lib/oop'], function(require, exports, module) {
+
+var config = require("../config"),
+    Occur = require("../occur").Occur;
+var occurStartCommands = [{
+    name: "occur",
+    exec: function(editor, options) {
+        var occurSessionActive = new Occur().enter(editor, options);
+        if (occurSessionActive) OccurKeyboardHandler.installIn(editor);
+    },
+    readOnly: true
+}];
+
+var occurCommands = [{
+    name: "occurexit",
+    bindKey: 'esc|Ctrl-G',
+    exec: function(editor) {
+        var occur = editor.session.getDocument().$occur;
+        if (!occur) return;
+        occur.exit(editor, {});
+        OccurKeyboardHandler.uninstallFrom(editor);
+    },
+    readOnly: true
+}, {
+    name: "occuraccept",
+    bindKey: 'enter',
+    exec: function(editor) {
+        var occur = editor.session.getDocument().$occur;
+        if (!occur) return;
+        occur.exit(editor, {translatePosition: true});
+        OccurKeyboardHandler.uninstallFrom(editor);
+    },
+    readOnly: true
+}];
+
+var HashHandler = require("../keyboard/hash_handler").HashHandler;
+var oop = require("../lib/oop");
+
+
+function OccurKeyboardHandler() {}
+
+oop.inherits(OccurKeyboardHandler, HashHandler);
+
+;(function() {
+
+    this.isOccurHandler = true;
+
+    this.attach = function(editor) {
+        HashHandler.call(this, occurCommands, editor.commands.platform);
+        this.$editor = editor;
+    }
+
+    var handleKeyboard$super = this.handleKeyboard;
+    this.handleKeyboard = function(data, hashId, key, keyCode) {
+        var cmd = handleKeyboard$super.call(this, data, hashId, key, keyCode);
+        return (cmd && cmd.command) ? cmd : {command: "null", passEvent: true};
+    }
+
+}).call(OccurKeyboardHandler.prototype);
+
+OccurKeyboardHandler.installIn = function(editor) {
+    var handler = new this();
+    editor.keyBinding.addKeyboardHandler(handler);
+    editor.commands.addCommands(occurCommands);
+}
+
+OccurKeyboardHandler.uninstallFrom = function(editor) {
+    editor.commands.removeCommands(occurCommands);
+    var handler = editor.getKeyboardHandler();
+    if (handler.isOccurHandler) editor.keyBinding.removeKeyboardHandler(handler);
+}
+
+exports.commands = occurStartCommands;
+
+});
+
+ace.define('ace/occur', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/document'], function(require, exports, module) {
+
+
+var oop = require("./lib/oop");
+var Range = require("./range").Range;
+var Search = require("./search").Search;
+var Document = require("./document").Document;
+function Occur() {}
+
+oop.inherits(Occur, Search);
+
+(function() {
+    this.enter = function(editor, options) {
+        if (!options.needle) return false;
+        var pos = editor.getCursorPosition();
+        editor.setReadOnly(true);
+        this.display(editor.session, options);
+        var translatedPos = this.originalToOccurPosition(editor.session, pos);
+        editor.moveCursorToPosition(translatedPos);
+        return true;
+    }
+    this.exit = function(editor, options) {
+        var session = editor.session,
+            pos = options.translatePosition && editor.getCursorPosition(),
+            translatedPos = pos && this.occurToOriginalPosition(editor.session, pos);
+        this.displayOriginal(session);
+        editor.setReadOnly(false);
+        if (translatedPos) editor.moveCursorToPosition(translatedPos);
+        return true;
+    }
+
+    this.display = function(session, options) {
+        this.$originalDoc = session.doc;
+        var found = this.matchingLines(session, options),
+            lines = found.map(function(foundLine) { return foundLine.content; }),
+            occurDoc = new Document(lines);
+        occurDoc.$occur = this;
+        occurDoc.$occurMatchingLines = found;
+        session.setDocument(occurDoc);
+        session.highlight(null);
+        session.highlight(options.re);
+        session._emit('changeBackMarker');
+    }
+
+    this.displayOriginal = function(session) {
+        session.setDocument(this.$originalDoc);
+        session.highlight(null);
+        session._emit('changeBackMarker');
+    }
+    this.originalToOccurPosition = function(session, pos) {
+        var lines = session.getDocument().$occurMatchingLines,
+            nullPos = {row: 0, column: 0};
+        if (!lines) return nullPos;
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i].row === pos.row) return {row: i, column: pos.column}
+        }
+        return nullPos;
+    }
+    this.occurToOriginalPosition = function(session, pos) {
+        var lines = session.getDocument().$occurMatchingLines;
+        if (!lines || !lines[pos.row]) return pos;
+        debugger
+        return {row: lines[pos.row].row, column: pos.column};
+    }
+
+    this.matchingLines = function(session, options) {
+        options = oop.mixin({}, options);
+        if (!session || !options.needle) return [];
+        var search = new Search();
+        search.set(options);
+        return search.findAll(session).reduce(function(lines, range) {
+            var row = range.start.row,
+                last = lines[lines.length-1];
+            return last && last.row === row ?
+                lines :
+                lines.concat({row: row, content: session.getLine(row)});
+        }, []);
+    }
+
+}).call(Occur.prototype);
+
+window.Occur = Occur
+window.Document = Document
+exports.Occur = Occur;
 
 });
 /* ***** BEGIN LICENSE BLOCK *****

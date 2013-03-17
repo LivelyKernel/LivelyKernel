@@ -15168,7 +15168,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * ***** END LICENSE BLOCK ***** */
 
-ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/keyboard/hash_handler', 'ace/lib/keys'], function(require, exports, module) {
+ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/keyboard/hash_handler', 'ace/incremental_search', 'ace/lib/keys'], function(require, exports, module) {
 
 
 var dom = require("../lib/dom");
@@ -15246,9 +15246,10 @@ exports.handler.attach = function(editor) {
     editor.commands.addCommands(commands);
     exports.handler.platform = editor.commands.platform;
     editor.$emacsModeHandler = this;
-    var hasISearch = editor.getOption('useIncrementalSearch');
-    if (hasISearch != this.usesIncrementalSearch) {
-        this.setupIncrementalSearch(editor, hasISearch);
+    require('../incremental_search');
+    editor.setOption('useIncrementalSearch', true);
+    if (!this.usesIncrementalSearch) {
+        this.setupIncrementalSearch(editor, true);
     };
 };
 
@@ -15582,6 +15583,309 @@ exports.killRing = {
     }
 };
 
+
+});
+
+ace.define('ace/incremental_search', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/commands/incremental_search_commands', 'ace/lib/dom', 'ace/commands/command_manager', 'ace/keyboard/emacs', 'ace/editor', 'ace/config'], function(require, exports, module) {
+
+
+var oop = require("./lib/oop");
+var Range = require("./range").Range;
+var Search = require("./search").Search;
+var iSearchCommandModule = require("./commands/incremental_search_commands");
+var ISearchKbd = iSearchCommandModule.IncrementalSearchKeyboardHandler;
+function IncrementalSearch() {
+    this.$options = {wrap: false, skipCurrent: false};
+    this.$keyboardHandler = new ISearchKbd(this);
+}
+
+oop.inherits(IncrementalSearch, Search);
+
+;(function() {
+
+    this.activate = function(editor, backwards) {
+        this.$editor = editor;
+        this.$startPos = this.$currentPos = editor.getCursorPosition();
+        this.$options.needle = '';
+        this.$options.backwards = backwards;
+        editor.keyBinding.addKeyboardHandler(this.$keyboardHandler);
+        this.selectionFix(editor);
+        var msg = this.$options.backwards ? 'reverse-' : '';
+        msg += 'isearch: ' + this.$options.needle;
+        this.message(msg);
+    }
+
+    this.deactivate = function(reset) {
+        this.cancelSearch(reset);
+        this.$editor.keyBinding.removeKeyboardHandler(this.$keyboardHandler);
+        this.message('');
+    }
+
+    this.selectionFix = function(editor) {
+        if (editor.selection.isEmpty() && !editor.session.$emacsMark) {
+            editor.clearSelection();
+        }
+    }
+    this.cancelSearch = function(reset) {
+        var e = this.$editor;
+        this.$prevNeedle = this.$options.needle;
+        this.$options.needle = '';
+        if (reset) {
+            e.moveCursorToPosition(this.$startPos);
+            this.$currentPos = this.$startPos;
+        }
+        e.session.highlight(null);
+        e.renderer.updateBackMarkers(); // force highlight layer redraw
+        return Range.fromPoints(this.$currentPos, this.$currentPos);
+    }
+
+    this.highlightAndFindWithNeedle = function(moveToNext, needleUpdateFunc) {
+        if (!this.$editor) return null;
+        var options = this.$options;
+        if (needleUpdateFunc) {
+            options.needle = needleUpdateFunc.call(this, options.needle || '') || '';
+        }
+        if (options.needle.length === 0) return this.cancelSearch(true);
+        options.start = this.$currentPos;
+        var session = this.$editor.session,
+            found = this.find(session);
+        if (found) {
+            if (options.backwards) found = Range.fromPoints(found.end, found.start);
+            this.$editor.moveCursorToPosition(found.end);
+            if (moveToNext) this.$currentPos = found.end;
+            session.highlight(options.re);
+            this.$editor.renderer.updateBackMarkers();
+        }
+
+        var msg = options.backwards ? 'reverse-' : '';
+        msg += 'isearch: ' + options.needle;
+        if (!found) msg += ' (not found)';
+        this.message(msg);
+
+        return found;
+    }
+
+    this.addChar = function(c) {
+        return this.highlightAndFindWithNeedle(false, function(needle) {
+            return needle + c;
+        });
+    }
+
+    this.removeChar = function(c) {
+        return this.highlightAndFindWithNeedle(false, function(needle) {
+            return needle.length > 0 ? needle.substring(0, needle.length-1) : needle;
+        });
+    }
+
+    this.next = function(options) {
+        options = options || {};
+        this.$options.backwards = !!options.backwards;
+        this.$currentPos = this.$editor.getCursorPosition();
+        return this.highlightAndFindWithNeedle(true, function(needle) {
+            return options.useCurrentOrPrevSearch && needle.length === 0 ?
+                this.$prevNeedle || '' : needle;
+        });
+    }
+
+    this.message = function(msg) {
+        var cmdLine = this.$editor && this.$editor.cmdLine;
+        if (cmdLine) {
+            cmdLine.setValue(msg, 1);
+        } else {
+            console.log(msg);
+        }
+    }
+
+
+}).call(IncrementalSearch.prototype);
+
+
+exports.IncrementalSearch = IncrementalSearch;
+
+var dom = require('./lib/dom');
+function patchHighlightMarkerStyling(options) {
+    options = options || {};
+    var id = 'incremental-search-highlight-style-patch',
+        css = 'div.ace_selected-word {\n'
+            + '  background-color: orange !important;\n'
+            + '  border: 0 !important;\n'
+            + '}\n'
+    dom.importCssString(css, id);
+}
+var CommandManager = require("./commands/command_manager").CommandManager;
+(function() {
+    this.setupIncrementalSearch = function(editor, val) {
+        if (this.usesIncrementalSearch == val) return;
+        this.usesIncrementalSearch = val;
+        var iSearchCommands = iSearchCommandModule.iSearchStartCommands,
+            method = val ? 'addCommands' : 'removeCommands';
+        this[method](iSearchCommands);
+    };
+}).call(CommandManager.prototype);
+var emacs = require("./keyboard/emacs");
+emacs.handler.setupIncrementalSearch = function(editor, val) {
+    if (this.usesIncrementalSearch == val) return;
+    this.usesIncrementalSearch = val;
+    if (val) {
+        this.bindKey('C-s', 'iSearch');
+        this.bindKey('C-r', 'iSearchBackwards');
+    } else {
+        this.bindKey('C-s', "findnext");
+        this.bindKey('C-r', "findprevious");
+    }
+}
+var Editor = require("./editor").Editor;
+require("./config").defineOptions(Editor.prototype, "editor", {
+    useIncrementalSearch: {
+        set: function(val) {
+            patchHighlightMarkerStyling({enable: val});
+            this.keyBinding.$handlers.forEach(function(handler) {
+                if (handler.setupIncrementalSearch) {
+                    handler.setupIncrementalSearch(this, val);
+                }
+            });
+        }
+    }
+});
+
+});
+
+ace.define('ace/commands/incremental_search_commands', ['require', 'exports', 'module' , 'ace/config', 'ace/keyboard/hash_handler', 'ace/lib/oop'], function(require, exports, module) {
+
+var config = require("../config");
+exports.iSearchStartCommands = [{
+    name: "iSearch",
+    bindKey: {win: "Ctrl-F", mac: "Command-F"},
+    exec: function(editor, options) {
+        config.loadModule(["core", "ace/incremental_search"], function(e) {
+            var iSearch = e.iSearch = e.iSearch || new e.IncrementalSearch();
+            iSearch.activate(editor, options.backwards);
+            if (options.jumpToFirstMatch) iSearch.next(options);
+        });
+    },
+    readOnly: true
+}, {
+    name: "iSearchBackwards",
+    exec: function(editor, jumpToNext) { editor.execCommand('iSearch', {backwards: true}); },
+    readOnly: true
+}, {
+    name: "iSearchAndGo",
+    bindKey: {win: "Ctrl-K", mac: "Command-G"},
+    exec: function(editor, jumpToNext) { editor.execCommand('iSearch', {jumpToFirstMatch: true, useCurrentOrPrevSearch: true}); },
+    readOnly: true
+}, {
+    name: "iSearchBackwardsAndGo",
+    bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
+    exec: function(editor) { editor.execCommand('iSearch', {jumpToFirstMatch: true, backwards: true, useCurrentOrPrevSearch: true}); },
+    readOnly: true
+}];
+exports.iSearchCommands = [{
+    name: "restartSearch",
+    bindKey: {win: "Ctrl-F", mac: "Command-F"},
+    exec: function(iSearch) {
+        iSearch.cancelSearch(true);
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: "searchForward",
+    bindKey: {win: "Ctrl-S|Ctrl-K", mac: "Ctrl-S|Command-G"},
+    exec: function(iSearch, options) {
+        options.useCurrentOrPrevSearch = true;
+        iSearch.next(options);
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: "searchBackward",
+    bindKey: {win: "Ctrl-R|Ctrl-Shift-K", mac: "Ctrl-R|Command-Shift-G"},
+    exec: function(iSearch, options) {
+        options.useCurrentOrPrevSearch = true;
+        options.backwards = true;
+        iSearch.next(options);
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: "extendSearchTerm",
+    exec: function(iSearch, string) {
+        iSearch.addChar(string);
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: "extendSearchTermSpace",
+    bindKey: "space",
+    exec: function(iSearch) { iSearch.addChar(' '); },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: "shrinkSearchTerm",
+    bindKey: "backspace",
+    exec: function(iSearch) {
+        iSearch.removeChar();
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: 'confirmSearch',
+    bindKey: 'return',
+    exec: function(iSearch) { iSearch.deactivate(); },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: 'cancelSearch',
+    bindKey: 'esc|Ctrl-G',
+    exec: function(iSearch) { iSearch.deactivate(true); },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}];
+
+
+
+var HashHandler = require("../keyboard/hash_handler").HashHandler;
+var oop = require("../lib/oop");
+
+function IncrementalSearchKeyboardHandler(iSearch) {
+    this.$iSearch = iSearch;
+}
+
+oop.inherits(IncrementalSearchKeyboardHandler, HashHandler);
+
+;(function() {
+
+    this.attach = function(editor) {
+        var iSearch = this.$iSearch;
+        HashHandler.call(this, exports.iSearchCommands, editor.commands.platform);
+        this.$commandExecHandler = editor.commands.addEventListener('exec', function(e) {
+            if (!e.command.isIncrementalSearchCommand) return undefined;
+            e.stopPropagation();
+            e.preventDefault();
+            return e.command.exec(iSearch, e.args || {});
+        });
+    }
+
+    this.detach = function(editor) {
+        if (!this.$commandExecHandler) return;
+        editor.commands.removeEventListener('exec', this.$commandExecHandler);
+        delete this.$commandExecHandler;
+    }
+
+    var handleKeyboard$super = this.handleKeyboard;
+    this.handleKeyboard = function(data, hashId, key, keyCode) {
+        var cmd = handleKeyboard$super.call(this, data, hashId, key, keyCode);
+        if (cmd.command) { return cmd; }
+        if (hashId == -1) {
+            var extendCmd = this.commands.extendSearchTerm;
+            if (extendCmd) { return {command: extendCmd, args: key}; }
+        }
+        return {command: "null", passEvent: hashId == 0 || hashId == 4};
+    }
+
+}).call(IncrementalSearchKeyboardHandler.prototype);
+
+
+exports.IncrementalSearchKeyboardHandler = IncrementalSearchKeyboardHandler;
 
 });
 /* ***** BEGIN LICENSE BLOCK *****

@@ -1707,7 +1707,9 @@ var Editor = function(renderer, session) {
 
     oop.implement(this, EventEmitter);
     this.setKeyboardHandler = function(keyboardHandler) {
-        if (typeof keyboardHandler == "string" && keyboardHandler) {
+        if (!keyboardHandler) {
+            this.keyBinding.setKeyboardHandler(null);
+        } else if (typeof keyboardHandler == "string") {
             this.$keybindingId = keyboardHandler;
             var _self = this;
             config.loadModule(["keybinding", keyboardHandler], function(module) {
@@ -1857,10 +1859,7 @@ var Editor = function(renderer, session) {
         this.renderer.unsetStyle(style);
     };
     this.setFontSize = function(size) {
-        if (typeof size == "number")
-            size = size + "px";
-        this.container.style.fontSize = size;
-        this.renderer.updateFontSize();
+        this.setOption("fontSize", size);
     };
 
     this.$highlightBrackets = function() {
@@ -1880,8 +1879,11 @@ var Editor = function(renderer, session) {
             var pos = self.session.findMatchingBracket(self.getCursorPosition());
             if (pos) {
                 var range = new Range(pos.row, pos.column, pos.row, pos.column+1);
-                self.session.$bracketHighlight = self.session.addMarker(range, "ace_bracket", "text");
+            } else if (self.session.$mode.getMatching) {
+                var range = self.session.$mode.getMatching(self.session);
             }
+            if (range)
+                self.session.$bracketHighlight = self.session.addMarker(range, "ace_bracket", "text");
         }, 50);
     };
     this.focus = function() {
@@ -2471,16 +2473,15 @@ var Editor = function(renderer, session) {
         _numberRx.lastIndex = 0
 
         var s = this.session.getLine(row)
-        while(_numberRx.lastIndex < column - 1 ){
+        while (_numberRx.lastIndex < column) {
             var m = _numberRx.exec(s)
             if(m.index <= column && m.index+m[0].length >= column){
                 var number = {
                     value: m[0],
                     start: m.index,
                     end: m.index+m[0].length
-
                 }
-                return number
+                return number;
             }
         }
         return null;
@@ -3051,21 +3052,27 @@ config.defineOptions(Editor.prototype, "editor", {
     behavioursEnabled: {initialValue: true},
     wrapBehavioursEnabled: {initialValue: true},
 
+    hScrollBarAlwaysVisible: "renderer",
     highlightGutterLine: "renderer",
     animatedScroll: "renderer",
     showInvisibles: "renderer",
     showPrintMargin: "renderer",
     printMarginColumn: "renderer",
+    printMargin: "renderer",
     fadeFoldWidgets: "renderer",
     showFoldWidgets: "renderer",
     showGutter: "renderer",
     displayIndentGuides: "renderer",
+    fontSize: "renderer",
+    fontFamily: "renderer",
 
     scrollSpeed: "$mouseHandler",
     dragDelay: "$mouseHandler",
     focusTimout: "$mouseHandler",
 
     firstLineNumber: "session",
+    overwrite: "session",
+    newLineMode: "session",
     useWorker: "session",
     useSoftTabs: "session",
     tabSize: "session",
@@ -3312,8 +3319,13 @@ var TextInput = function(parentNode, host) {
     function resetSelection(isEmpty) {
         if (inCompostion)
             return;
-        var selectionStart = isEmpty ? 2 : 1;
-        var selectionEnd = 2;
+        if (inputHandler) {
+            selectionStart = 0;
+            selectionEnd = isEmpty ? 0 : text.value.length - 1;
+        } else {
+            var selectionStart = isEmpty ? 2 : 1;
+            var selectionEnd = 2;
+        }
         try {
             text.setSelectionRange(selectionStart, selectionEnd);
         } catch(e){}
@@ -3391,26 +3403,33 @@ var TextInput = function(parentNode, host) {
     var onSelect = function(e) {
         if (cut) {
             cut = false;
-            return;
-        }
-        if (copied) {
+        } else if (copied) {
             copied = false;
-            return;
-        }
-        if (isAllSelected(text)) {
+        } else if (isAllSelected(text)) {
             host.selectAll();
             resetSelection();
+        } else if (inputHandler) {
+            resetSelection(host.selection.isEmpty());
         }
     };
 
+    var inputHandler = null;
+    this.setInputHandler = function(cb) {inputHandler = cb};
+    this.getInputHandler = function() {return inputHandler};
+
     var sendText = function(data) {
+        if (inputHandler) {
+            data = inputHandler(data);
+            inputHandler = null;
+        }
         if (pasted) {
             resetSelection();
             if (data)
                 host.onPaste(data);
             pasted = false;
         } else if (data == PLACEHOLDER[0]) {
-            host.execCommand("del", {source: "ace"});
+            if (Date.now() - lastCompositionTime > 100)
+                host.execCommand("del", {source: "ace"});
         } else {
             if (data.substring(0, 2) == PLACEHOLDER)
                 data = data.substr(2);
@@ -3429,9 +3448,8 @@ var TextInput = function(parentNode, host) {
         if (inCompostion)
             return;
         var data = text.value;
-        resetValue();
-
         sendText(data);
+        resetValue();
     };
 
     var onCut = function(e) {
@@ -3547,9 +3565,11 @@ var TextInput = function(parentNode, host) {
         host.onCompositionUpdate(text.value);
     };
 
+    var lastCompositionTime = -1;
     var onCompositionEnd = function(e) {
         inCompostion = false;
         host.onCompositionEnd();
+        lastCompositionTime = Date.now();
     };
 
     var syncComposition = lang.delayedCall(onCompositionUpdate, 50);
@@ -3578,9 +3598,10 @@ var TextInput = function(parentNode, host) {
         var style = dom.computedStyle(host.container);
         var top = rect.top + (parseInt(style.borderTopWidth) || 0);
         var left = rect.left + (parseInt(rect.borderLeftWidth) || 0);
+        var maxTop = rect.bottom - top - text.clientHeight;
         var move = function(e) {
             text.style.left = e.clientX - left - 2 + "px";
-            text.style.top = e.clientY - top - 2 + "px";
+            text.style.top = Math.min(e.clientY - top - 2, maxTop) + "px";
         };
         move(e);
 
@@ -3723,7 +3744,7 @@ var MouseHandler = function(editor) {
 }).call(MouseHandler.prototype);
 
 config.defineOptions(MouseHandler.prototype, "mouseHandler", {
-    scrollSpeed: {initialValue: 1},
+    scrollSpeed: {initialValue: 2},
     dragDelay: {initialValue: 150},
     focusTimout: {initialValue: 0}
 });
@@ -4404,12 +4425,12 @@ exports.loadModule = function(moduleName, onLoad) {
         module = require(moduleName);
     } catch (e) {};
     if (module)
-        return onLoad(module);
+        return onLoad && onLoad(module);
 
     var afterLoad = function() {
         require([moduleName], function(module) {
             exports._emit("load.module", {name: moduleName, module: module});
-            onLoad(module);
+            onLoad && onLoad(module);
         });
     };
 
@@ -4703,7 +4724,7 @@ function FoldHandler(editor) {
         }
     });
 
-    editor.on("guttermousedown", function(e) {
+    editor.on("gutterclick", function(e) {
         var gutterRegion = editor.renderer.$gutterLayer.getRegion(e);
 
         if (gutterRegion == "foldWidgets") {
@@ -4768,11 +4789,12 @@ var KeyBinding = function(editor) {
     };
 
     this.setKeyboardHandler = function(kb) {
-        if (this.$handlers[this.$handlers.length - 1] == kb)
+        var h = this.$handlers;
+        if (h[h.length - 1] == kb)
             return;
 
-        while (this.$handlers[1])
-            this.removeKeyboardHandler(this.$handlers[1]);
+        while (h[h.length - 1] && h[h.length - 1] != this.$defaultHandler)
+            this.removeKeyboardHandler(h[h.length - 1]);
 
         this.addKeyboardHandler(kb, 1);
     };
@@ -5096,10 +5118,7 @@ var EditSession = function(text, mode) {
 
     this.$overwrite = false;
     this.setOverwrite = function(overwrite) {
-        if (this.$overwrite == overwrite) return;
-
-        this.$overwrite = overwrite;
-        this._emit("changeOverwrite");
+        this.setOption("overwrite", overwrite)
     };
     this.getOverwrite = function() {
         return this.$overwrite;
@@ -5779,9 +5798,12 @@ var EditSession = function(text, mode) {
             this._emit("changeWrapMode");
         }
     };
-    this.adjustWrapLimit = function(desiredLimit) {
-        var wrapLimit = this.$constrainWrapLimit(desiredLimit);
-        if (wrapLimit != this.$wrapLimit && wrapLimit > 0) {
+    this.adjustWrapLimit = function(desiredLimit, $printMargin) {
+        var limits = this.$wrapLimitRange
+        if (limits.max < 0)
+            limits = {min: $printMargin, max: $printMargin};
+        var wrapLimit = this.$constrainWrapLimit(desiredLimit, limits.min, limits.max);
+        if (wrapLimit != this.$wrapLimit && wrapLimit > 1) {
             this.$wrapLimit = wrapLimit;
             this.$modified = true;
             if (this.$useWrapMode) {
@@ -5794,15 +5816,14 @@ var EditSession = function(text, mode) {
         return false;
     };
 
-    this.$constrainWrapLimit = function(wrapLimit) {
-        var min = this.$wrapLimitRange.min;
+    this.$constrainWrapLimit = function(wrapLimit, min, max) {
         if (min)
             wrapLimit = Math.max(min, wrapLimit);
 
-        var max = this.$wrapLimitRange.max;
         if (max)
             wrapLimit = Math.min(max, wrapLimit);
-        return Math.max(1, wrapLimit);
+
+        return  wrapLimit;
     };
     this.getWrapLimit = function() {
         return this.$wrapLimit;
@@ -6398,9 +6419,13 @@ config.defineOptions(EditSession.prototype, "session", {
                 value = false;
             else if (value == "free")
                 value = true;
+            else if (value == "printMargin")
+                value = -1;
             else if (typeof value == "string")
                 value = parseInt(value, 10) || false;
 
+            if (this.$wrap == value)
+                return;
             if (!value) {
                 this.setUseWrapMode(false);
             } else {
@@ -6440,6 +6465,15 @@ config.defineOptions(EditSession.prototype, "session", {
             this._emit("changeTabSize");
         },
         initialValue: 4,
+        handlesSet: true
+    },
+    overwrite: {
+        set: function(val) {this._emit("changeOverwrite");},
+        initialValue: false
+    },
+    newLineMode: {
+        set: function(val) {this.doc.setNewLineMode(val)},
+        get: function() {return this.doc.getNewLineMode(newLineMode)},
         handlesSet: true
     }
 });
@@ -7304,12 +7338,7 @@ var Mode = function() {
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
     this.createWorker = function(session) {
@@ -7426,7 +7455,7 @@ var Tokenizer = function(rules) {
                     matchcount = 1;
                     adjustedregex = this.removeCapturingGroups(rule.regex);
                 }
-                if (!rule.splitRegex)
+                if (!rule.splitRegex && typeof rule.token != "string")
                     rule.splitRegex = this.createSplitterRegexp(rule.regex, flag);
             }
 
@@ -7491,7 +7520,34 @@ var Tokenizer = function(rules) {
     };
 
     this.createSplitterRegexp = function(src, flag) {
-        src = src.replace(/\(\?=([^()]|\\.|\(([^()]|\\.)*?\))*\)(?=\)*$)/, "");
+        if (src.indexOf("(?=") != -1) {
+            var stack = 0;
+            var inChClass = false;
+            var lastCapture = {};
+            src.replace(/(\\.)|(\((?:\?[=!])?)|(\))|([])/g, function(
+                m, esc, parenOpen, parenClose, square, index
+            ) {
+                if (inChClass) {
+                    inChClass = square != "]";
+                } else if (square) {
+                    inChClass = true;
+                } else if (parenClose) {
+                    if (stack == lastCapture.stack)
+                        lastCapture.end = index+1
+                    stack--;
+                } else if (parenOpen) {
+                    stack++;
+                    if (parenOpen.length != 1) {
+                        lastCapture.stack = stack
+                        lastCapture.start = index;
+                    }
+                }
+                return m;
+            });
+
+            if (lastCapture.end != null && /^\)*$/.test(src.substr(lastCapture.end)))
+                src = src.substring(0, lastCapture.start) + src.substr(lastCapture.end);
+        }
         return new RegExp(src, (flag||"").replace("g", ""));
     };
     this.getLineTokens = function(line, startState) {
@@ -7992,7 +8048,8 @@ var Document = function(text) {
         if (position.row >= length) {
             position.row = Math.max(0, length - 1);
             position.column = this.getLine(length-1).length;
-        }
+        } else if (position.row < 0)
+            position.row = 0;
         return position;
     };
     this.insert = function(position, text) {
@@ -10517,7 +10574,7 @@ function HashHandler(config, platform) {
             var modifier = keyUtil.KEY_MODS[parts[i]];
             if (modifier == null) {
                 if (typeof console != "undefined")
-                    console.error("invalid modifier " + parts[i] + " in " + keys);
+                console.error("invalid modifier " + parts[i] + " in " + keys);
                 return false;
             }
             hashId |= modifier;
@@ -11398,7 +11455,6 @@ var VirtualRenderer = function(container, theme) {
 
     this.$cursorLayer = new CursorLayer(this.content);
     this.$horizScroll = false;
-    this.$horizScrollAlwaysVisible = false;
 
     this.scrollBar = new ScrollBar(this.container);
     this.scrollBar.addEventListener("scroll", function(e) {
@@ -11608,7 +11664,7 @@ var VirtualRenderer = function(container, theme) {
     this.adjustWrapLimit = function() {
         var availableWidth = this.$size.scrollerWidth - this.$padding * 2;
         var limit = Math.floor(availableWidth / this.characterWidth);
-        return this.session.adjustWrapLimit(limit);
+        return this.session.adjustWrapLimit(limit, this.$showPrintMargin && this.$printMarginColumn);
     };
     this.setAnimatedScroll = function(shouldAnimate){
         this.setOption("animatedScroll", shouldAnimate);
@@ -11693,6 +11749,9 @@ var VirtualRenderer = function(container, theme) {
         var style = this.$printMarginEl.style;
         style.left = ((this.characterWidth * this.$printMarginColumn) + this.$padding) + "px";
         style.visibility = this.$showPrintMargin ? "visible" : "hidden";
+
+        if (this.session && this.session.$wrap == -1)
+            this.adjustWrapLimit();
     };
     this.getContainerElement = function() {
         return this.container;
@@ -11727,8 +11786,8 @@ var VirtualRenderer = function(container, theme) {
 
         this.textarea.style.height = this.lineHeight + "px";
         this.textarea.style.width = w + "px";
-        this.textarea.style.right = this.$size.scrollerWidth - posLeft - w + "px";
-        this.textarea.style.bottom = this.$size.height - posTop - this.lineHeight + "px";
+        this.textarea.style.right = Math.max(0, this.$size.scrollerWidth - posLeft - w) + "px";
+        this.textarea.style.bottom = Math.max(0, this.$size.height - posTop - this.lineHeight) + "px";
     };
     this.getFirstVisibleRow = function() {
         return this.layerConfig.firstRow;
@@ -11755,14 +11814,10 @@ var VirtualRenderer = function(container, theme) {
         this.$updatePrintMargin();
     };
     this.getHScrollBarAlwaysVisible = function() {
-        return this.$horizScrollAlwaysVisible;
+        return this.$hScrollBarAlwaysVisible;
     };
     this.setHScrollBarAlwaysVisible = function(alwaysVisible) {
-        if (this.$horizScrollAlwaysVisible != alwaysVisible) {
-            this.$horizScrollAlwaysVisible = alwaysVisible;
-            if (!this.$horizScrollAlwaysVisible || !this.$horizScroll)
-                this.$loop.schedule(this.CHANGE_SCROLL);
-        }
+        this.setOption("hScrollBarAlwaysVisible", alwaysVisible);
     };
 
     this.$updateScrollBar = function() {
@@ -11867,7 +11922,7 @@ var VirtualRenderer = function(container, theme) {
 
         var longestLine = this.$getLongestLine();
 
-        var horizScroll = this.$horizScrollAlwaysVisible || this.$size.scrollerWidth - longestLine < 0;
+        var horizScroll = this.$hScrollBarAlwaysVisible || this.$size.scrollerWidth - longestLine < 0;
         var horizScrollChanged = this.$horizScroll !== horizScroll;
         this.$horizScroll = horizScroll;
         if (horizScrollChanged) {
@@ -12252,6 +12307,17 @@ config.defineOptions(VirtualRenderer.prototype, "renderer", {
         set: function() { this.$updatePrintMargin(); },
         initialValue: 80
     },
+    printMargin: {
+        set: function(val) {
+            if (typeof val == "number")
+                this.$printMarginColumn = val;
+            this.$showPrintMargin = !!val;
+            this.$updatePrintMargin();
+        },
+        get: function() {
+            return this.$showPrintMargin && this.$printMarginColumn;
+        }
+    },
     showGutter: {
         set: function(show){
             this.$gutter.style.display = show ? "block" : "none";
@@ -12291,6 +12357,29 @@ config.defineOptions(VirtualRenderer.prototype, "renderer", {
         },
         initialValue: false,
         value: true
+    },
+    hScrollBarAlwaysVisible: {
+        set: function(alwaysVisible) {
+            this.$hScrollBarAlwaysVisible = alwaysVisible;
+            if (!this.$hScrollBarAlwaysVisible || !this.$horizScroll)
+                this.$loop.schedule(this.CHANGE_SCROLL);
+        },
+        initialValue: false
+    },
+    fontSize:  {
+        set: function(size) {
+            if (typeof size == "number")
+                size = size + "px";
+            this.container.style.fontSize = size;
+            this.updateFontSize();
+        },
+        initialValue: 12
+    },
+    fontFamily: {
+        set: function(name) {
+            this.container.style.fontFamily = name;
+            this.updateFontSize();
+        }
     }
 });
 
@@ -14485,12 +14574,12 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
         } else {
             if (require.nameToUrl && !require.toUrl)
                 require.toUrl = require.nameToUrl;
-            workerUrl = normalizePath(require.toUrl("ace/worker/worker", null, "_"));
+            workerUrl = normalizePath(require.toUrl("ace/worker/worker.js", null, "_"));
         }
 
         var tlns = {};
         topLevelNamespaces.forEach(function(ns) {
-            tlns[ns] = normalizePath(require.toUrl(ns, null, "_").replace(/.js(\?.*)?$/, ""));
+            tlns[ns] = normalizePath(require.toUrl(ns, null, "_").replace(/(\.js)?(\?.*)?$/, ""));
         });
     }
 
@@ -15079,7 +15168,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * ***** END LICENSE BLOCK ***** */
 
-ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/keyboard/hash_handler', 'ace/lib/keys', 'ace/incremental_search'], function(require, exports, module) {
+ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/keyboard/hash_handler', 'ace/lib/keys'], function(require, exports, module) {
 
 
 var dom = require("../lib/dom");
@@ -15142,29 +15231,33 @@ exports.handler.attach = function(editor) {
 
     editor.session.$emacsMark = null;
 
-    exports.markMode = function() {
-        return editor.session.$emacsMark;
+    editor.emacsMarkMode = function() {
+        return this.session.$emacsMark;
     }
 
-    exports.setMarkMode = function(p) {
-        editor.session.$emacsMark = p;
+    editor.setEmacsMarkMode = function(p) {
+        this.session.$emacsMark = p;
     }
 
-    editor.on("click",$resetMarkMode);
+    editor.on("click", $resetMarkMode);
     editor.on("changeSession",$kbSessionChange);
     editor.renderer.screenToTextCoordinates = screenToTextBlockCoordinates;
     editor.setStyle("emacs-mode");
     editor.commands.addCommands(commands);
     exports.handler.platform = editor.commands.platform;
-    this.setupIncrementalSearch(editor);
+    editor.$emacsModeHandler = this;
+    var hasISearch = editor.getOption('useIncrementalSearch');
+    if (hasISearch != this.usesIncrementalSearch) {
+        this.setupIncrementalSearch(editor, hasISearch);
+    };
 };
 
 exports.handler.detach = function(editor) {
     delete editor.renderer.screenToTextCoordinates;
     editor.session.$selectLongWords = $formerLongWords;
     editor.session.$useEmacsStyleLineStart = $formerLineStart;
-    editor.removeEventListener("click",$resetMarkMode);
-    editor.removeEventListener("changeSession",$kbSessionChange);
+    editor.removeEventListener("click", $resetMarkMode);
+    editor.removeEventListener("changeSession", $kbSessionChange);
     editor.unsetStyle("emacs-mode");
     editor.commands.removeCommands(commands);
 };
@@ -15218,8 +15311,9 @@ exports.handler.bindKey = function(key, command) {
 
 
 exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
+    var editor = data.editor;
     if (hashId == -1) {
-        exports.setMarkMode(null);
+        editor.setEmacsMarkMode(null);
         if (data.count) {
             var str = Array(data.count + 1).join(key);
             data.count = null;
@@ -15227,8 +15321,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         }
     }
 
-    if (key == "\x00")
-        return;
+    if (key == "\x00") return undefined;
 
     var modifier = eMods[hashId];
     if (modifier == "c-" || data.universalArgument) {
@@ -15243,7 +15336,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     if (data.keyChain) key = data.keyChain += " " + key;
     var command = this.commmandKeyBinding[key];
     data.keyChain = command == "null" ? key : "";
-    if (!command) return;
+    if (!command) return undefined;
     if (command === "null") return {command: "null"};
 
     if (command === "universalArgument") {
@@ -15255,7 +15348,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         args = command.args;
         if (command.command) command = command.command;
         if (command === "goorselect") {
-            command = exports.markMode() ? args[1] : args[0];
+            command = editor.emacsMarkMode() ? args[1] : args[0];
             args = null;
         }
     }
@@ -15264,9 +15357,10 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         if (command === "insertstring" ||
             command === "splitline" ||
             command === "togglecomment") {
-            exports.setMarkMode(null);
+            editor.setEmacsMarkMode(null);
         }
-        command = this.commands[command] || data.editor.commands.commands[command];
+        command = this.commands[command] || editor.commands.commands[command];
+        if (!command) return undefined;
     }
 
     if (!command.readonly && !command.isYank)
@@ -15354,7 +15448,8 @@ exports.emacsKeys = {
 
     "C-/|C-x u|S-C--|C-z": "undo",
     "S-C-/|S-C-x u|C--|S-C-z": "redo", //infinite undo?
-    "C-x r":  "selectRectangularRegion"
+    "C-x r":  "selectRectangularRegion",
+    "M-x": {command: "focusCommandLine", args: "M-x "}
 };
 
 
@@ -15379,19 +15474,18 @@ exports.handler.addCommands({
         editor.multiSelect.toggleBlockSelection();
     },
     setMark:  function(editor) {
-        var markMode = exports.markMode();
+        var markMode = editor.emacsMarkMode();
         if (markMode) {
             var cp = editor.getCursorPosition();
             if (editor.selection.isEmpty() &&
-               markMode.row == cp.row && markMode.column == cp.column) {
-                exports.setMarkMode(null);
+                markMode.row == cp.row && markMode.column == cp.column) {
+                editor.setEmacsMarkMode(null);
                 return;
             }
         }
         markMode = editor.getCursorPosition();
-        exports.setMarkMode(markMode);
+        editor.setEmacsMarkMode(markMode);
         editor.selection.setSelectionAnchor(markMode.row, markMode.column);
-
     },
     exchangePointAndMark: {
         exec: function(editor) {
@@ -15419,7 +15513,7 @@ exports.handler.addCommands({
         multiselectAction: "forEach"
     },
     killLine: function(editor) {
-        exports.setMarkMode(null);
+        editor.setEmacsMarkMode(null);
         var pos = editor.getCursorPosition();
         if (pos.column == 0 &&
             editor.session.doc.getLine(pos.row).length == 0) {
@@ -15455,17 +15549,17 @@ exports.handler.addCommands({
     },
     keyboardQuit: function(editor) {
         editor.selection.clearSelection();
-        exports.setMarkMode(null);
+        editor.setEmacsMarkMode(null);
+    },
+    focusCommandLine: function(editor, arg) {
+        if (editor.showCommandLine)
+            editor.showCommandLine(arg);
     }
 });
 
 var commands = exports.handler.commands;
 commands.yank.isYank = true;
 commands.yankRotate.isYank = true;
-
-exports.handler.setupIncrementalSearch = function(editor) {
-    require('../incremental_search', function() { editor.setOption('useIncrementalSearch', true) });
-}
 
 exports.killRing = {
     $data: [],
@@ -15488,308 +15582,6 @@ exports.killRing = {
     }
 };
 
-
-});
-
-ace.define('ace/incremental_search', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/commands/incremental_search_commands', 'ace/editor', 'ace/config'], function(require, exports, module) {
-
-
-var oop = require("./lib/oop");
-var Range = require("./range").Range;
-var Search = require("./search").Search;
-var ISearchKbd = require("./commands/incremental_search_commands").IncrementalSearchKeyboardHandler;
-function IncrementalSearch() {
-    this.$options = {wrap: false, skipCurrent: false};
-    this.$keyboardHandler = new ISearchKbd(this);
-}
-
-oop.inherits(IncrementalSearch, Search);
-
-;(function() {
-
-    this.activate = function(editor, backwards) {
-        this.$editor = editor;
-        this.$startPos = this.$currentPos = editor.getCursorPosition();
-        this.$options.needle = '';
-        this.$options.backwards = backwards;
-        editor.keyBinding.addKeyboardHandler(this.$keyboardHandler);
-        var msg = this.$options.backwards ? 'reverse-' : '';
-        msg += 'isearch: ' + this.$options.needle;
-        this.message(msg);
-    }
-
-    this.deactivate = function(reset) {
-        this.cancelSearch(reset);
-        this.$editor.keyBinding.removeKeyboardHandler(this.$keyboardHandler);
-        this.message('');
-    }
-
-    this.cancelSearch = function(reset) {
-        var e = this.$editor;
-        this.$prevNeedle = this.$options.needle;
-        this.$options.needle = '';
-        if (reset) {
-            e.moveCursorToPosition(this.$startPos);
-            this.$currentPos = this.$startPos;
-        }
-        e.session.highlight(null);
-        e.renderer.updateBackMarkers(); // force highlight layer redraw
-        return Range.fromPoints(this.$currentPos, this.$currentPos);
-    }
-
-    this.highlightAndFindWithNeedle = function(moveToNext, needleUpdateFunc) {
-        if (!this.$editor) return null;
-        var options = this.$options;
-        if (needleUpdateFunc) {
-            options.needle = needleUpdateFunc.call(this, options.needle || '') || '';
-        }
-        if (options.needle.length === 0) return this.cancelSearch(true);
-        options.start = this.$currentPos;
-        var session = this.$editor.session,
-            found = this.find(session);
-        if (found) {
-            if (options.backwards) found = Range.fromPoints(found.end, found.start);
-            this.$editor.moveCursorToPosition(found.end);
-            if (moveToNext) this.$currentPos = found.end;
-            session.highlight(options.re);
-            this.$editor.renderer.updateBackMarkers();
-        }
-
-        var msg = options.backwards ? 'reverse-' : '';
-        msg += 'isearch: ' + options.needle;
-        if (!found) msg += ' (not found)';
-        this.message(msg);
-
-        return found;
-    }
-
-    this.addChar = function(c) {
-        return this.highlightAndFindWithNeedle(false, function(needle) {
-            return needle + c;
-        });
-    }
-
-    this.removeChar = function(c) {
-        return this.highlightAndFindWithNeedle(false, function(needle) {
-            return needle.length > 0 ? needle.substring(0, needle.length-1) : needle;
-        });
-    }
-
-    this.next = function(options) {
-        options = options || {};
-        this.$options.backwards = !!options.backwards;
-        this.$currentPos = this.$editor.getCursorPosition();
-        return this.highlightAndFindWithNeedle(true, function(needle) {
-            return options.useCurrentOrPrevSearch && needle.length === 0 ?
-                this.$prevNeedle || '' : needle;
-        });
-    }
-
-    this.message = function(msg) {
-        var cmdLine = this.$editor && this.$editor.cmdLine;
-        if (cmdLine) {
-            cmdLine.setValue(msg, 1);
-        } else {
-            console.log(msg);
-        }
-    }
-
-
-}).call(IncrementalSearch.prototype);
-
-
-exports.IncrementalSearch = IncrementalSearch;
-
-function patchHighlightMarkerStyling(options) {
-    options = options || {};
-    var id = 'incremental-search-highlight-style-patch',
-        style = document.getElementById(id);
-    if (style) {
-        if (options.enable) return;
-        style.parentNode.removeChild(style);
-        return;
-    }
-    if (!options.enable) return;
-    style = document.createElement('style');
-    style.setAttribute('id', id);
-    style.textContent = "div.ace_selected-word {\n"
-                      + "  background-color: orange !important;\n"
-                      + "  border: 0 !important;"
-                      + "}\n"
-    document.getElementsByTagName('head')[0].appendChild(style);
-}
-
-
-var Editor = require("./editor").Editor;
-require("./config").defineOptions(Editor.prototype, "editor", {
-    useIncrementalSearch: {
-        set: function(val) {
-            var iSearchCommands = require("ace/commands/incremental_search_commands").iSearchStartCommands;
-            var kbd = this.getKeyboardHandler();
-            patchHighlightMarkerStyling({enable: val});
-            if (val) {
-                this.commands.addCommands(iSearchCommands);
-                if (kbd.isEmacs) { // adapt emacs key handler if used
-                    kbd.oldSearchBindings = {
-                        'c-s': kbd.commmandKeyBinding['c-s'],
-                        'c-r': kbd.commmandKeyBinding['c-r']
-                    }
-                    kbd.bindKey('C-s', 'iSearch');
-                    kbd.bindKey('C-r', 'iSearchBackwards');
-                }
-            } else {
-                this.commands.removeCommands(iSearchCommands);
-                if (kbd.isEmacs && kbd.oldSearchBindings) {
-                    kbd.bindKey('C-s', kbd.oldSearchBindings['c-s']);
-                    kbd.bindKey('C-r', kbd.oldSearchBindings['c-r']);
-                }
-            }
-        }
-    }
-});
-
-});
-
-ace.define('ace/commands/incremental_search_commands', ['require', 'exports', 'module' , 'ace/config', 'ace/keyboard/hash_handler', 'ace/lib/oop'], function(require, exports, module) {
-
-var config = require("../config");
-exports.iSearchStartCommands = [{
-    name: "iSearch",
-    bindKey: {win: "Ctrl-F", mac: "Command-F"},
-    exec: function(editor, options) {
-        config.loadModule(["core", "ace/incremental_search"], function(e) {
-            var iSearch = e.iSearch = e.iSearch || new e.IncrementalSearch();
-            iSearch.activate(editor, options.backwards);
-            if (options.jumpToFirstMatch) iSearch.next(options);
-        });
-    },
-    readOnly: true
-}, {
-    name: "iSearchBackwards",
-    exec: function(editor, jumpToNext) { editor.execCommand('iSearch', {backwards: true}); },
-    readOnly: true
-}, {
-    name: "iSearchAndGo",
-    bindKey: {win: "Ctrl-K", mac: "Command-G"},
-    exec: function(editor, jumpToNext) { editor.execCommand('iSearch', {jumpToFirstMatch: true, useCurrentOrPrevSearch: true}); },
-    readOnly: true
-}, {
-    name: "iSearchBackwardsAndGo",
-    bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
-    exec: function(editor) { editor.execCommand('iSearch', {jumpToFirstMatch: true, backwards: true, useCurrentOrPrevSearch: true}); },
-    readOnly: true
-}];
-exports.iSearchCommands = [{
-    name: "restartSearch",
-    bindKey: {win: "Ctrl-F", mac: "Command-F"},
-    exec: function(iSearch) {
-        iSearch.cancelSearch(true);
-    },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
-    name: "searchForward",
-    bindKey: {win: "Ctrl-S|Ctrl-K", mac: "Ctrl-S|Command-G"},
-    exec: function(iSearch, options) {
-        options.useCurrentOrPrevSearch = true;
-        iSearch.next(options);
-    },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
-    name: "searchBackward",
-    bindKey: {win: "Ctrl-R|Ctrl-Shift-K", mac: "Ctrl-R|Command-Shift-G"},
-    exec: function(iSearch, options) {
-        options.useCurrentOrPrevSearch = true;
-        options.backwards = true;
-        iSearch.next(options);
-    },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
-    name: "extendSearchTerm",
-    exec: function(iSearch, string) {
-        iSearch.addChar(string);
-    },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
-    name: "extendSearchTermSpace",
-    bindKey: "space",
-    exec: function(iSearch) { iSearch.$editor.execCommand("extendSearchTerm", ' '); },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
-    name: "shrinkSearchTerm",
-    bindKey: "backspace",
-    exec: function(iSearch) {
-        iSearch.removeChar();
-    },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
-    name: 'confirmSearch',
-    bindKey: 'return',
-    exec: function(iSearch) { iSearch.deactivate(); },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
-    name: 'cancelSearch',
-    bindKey: 'esc|Ctrl-G',
-    exec: function(iSearch) { iSearch.deactivate(true); },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}];
-
-
-
-var HashHandler = require("../keyboard/hash_handler").HashHandler;
-var oop = require("../lib/oop");
-
-function IncrementalSearchKeyboardHandler(iSearch) {
-    this.$iSearch = iSearch;
-}
-
-oop.inherits(IncrementalSearchKeyboardHandler, HashHandler);
-
-;(function() {
-
-    this.attach = function(editor) {
-        var iSearch = this.$iSearch;
-        HashHandler.call(this, exports.iSearchCommands, editor.commands.platform);
-        this.$commandExecHandler = editor.commands.addEventListener('exec', function(e) {
-            if (!e.command.isIncrementalSearchCommand) return undefined;
-            e.stopPropagation();
-            e.preventDefault();
-            return e.command.exec(iSearch, e.args || {});
-        });
-    }
-
-    this.detach = function(editor) {
-        if (!this.$commandExecHandler) return;
-        editor.commands.removeEventListener('exec', this.$commandExecHandler);
-        delete this.$commandExecHandler;
-    }
-
-    var handleKeyboard$super = this.handleKeyboard;
-    this.handleKeyboard = function(data, hashId, key, keyCode) {
-        console.log("data: " + data
-                       + ", hashId: " + hashId
-                       + ", key: " + key
-                       + ", keyCode: " + keyCode);
-        var cmd = handleKeyboard$super.call(this, data, hashId, key, keyCode);
-        if (cmd.command) { return cmd; }
-        if (key.length === 1 && !(/[\x00-\x1F]/.test(key))) {
-            var extendCmd = this.commands.extendSearchTerm;
-            if (extendCmd) { return {command: extendCmd, args: key}; }
-        }
-        return {command: "null"};
-    }
-
-}).call(IncrementalSearchKeyboardHandler.prototype);
-
-
-exports.IncrementalSearchKeyboardHandler = IncrementalSearchKeyboardHandler;
 
 });
 /* ***** BEGIN LICENSE BLOCK *****
@@ -15938,10 +15730,11 @@ exports.onCursorMove = function(e) {
 
 });
 
-ace.define('ace/keyboard/vim/commands', ['require', 'exports', 'module' , 'ace/keyboard/vim/maps/util', 'ace/keyboard/vim/maps/motions', 'ace/keyboard/vim/maps/operators', 'ace/keyboard/vim/maps/aliases', 'ace/keyboard/vim/registers'], function(require, exports, module) {
+ace.define('ace/keyboard/vim/commands', ['require', 'exports', 'module' , 'ace/lib/lang', 'ace/keyboard/vim/maps/util', 'ace/keyboard/vim/maps/motions', 'ace/keyboard/vim/maps/operators', 'ace/keyboard/vim/maps/aliases', 'ace/keyboard/vim/registers'], function(require, exports, module) {
 
 "never use strict";
 
+var lang = require("../../lib/lang");
 var util = require("./maps/util");
 var motions = require("./maps/motions");
 var operators = require("./maps/operators");
@@ -15999,6 +15792,8 @@ var actions = exports.actions = {
         param: true,
         fn: function(editor, range, count, param) {
             if (param && param.length) {
+                if (param.length > 1)
+                    param = param == "return" ? "\n" : param == "tab" ? "\t" : param;
                 repeat(function() { editor.insert(param); }, count || 1);
                 editor.navigateLeft();
             }
@@ -16115,13 +15910,14 @@ var actions = exports.actions = {
             editor.setOverwrite(false);
             if (defaultReg.isLine) {
                 var pos = editor.getCursorPosition();
-                var lines = defaultReg.text.split("\n");
-                editor.session.getDocument().insertLines(pos.row + 1, lines);
+                pos.column = editor.session.getLine(pos.row).length;
+                var text = lang.stringRepeat("\n" + defaultReg.text, count || 1);
+                editor.session.insert(pos, text);
                 editor.moveCursorTo(pos.row + 1, 0);
             }
             else {
                 editor.navigateRight();
-                editor.insert(defaultReg.text);
+                editor.insert(lang.stringRepeat(defaultReg.text, count || 1));
                 editor.navigateLeft();
             }
             editor.setOverwrite(true);
@@ -16135,12 +15931,13 @@ var actions = exports.actions = {
 
             if (defaultReg.isLine) {
                 var pos = editor.getCursorPosition();
-                var lines = defaultReg.text.split("\n");
-                editor.session.getDocument().insertLines(pos.row, lines);
-                editor.moveCursorTo(pos.row, 0);
+                pos.column = 0;
+                var text = lang.stringRepeat(defaultReg.text + "\n", count || 1);
+                editor.session.insert(pos, text);
+                editor.moveCursorToPosition(pos);
             }
             else {
-                editor.insert(defaultReg.text);
+                editor.insert(lang.stringRepeat(defaultReg.text, count || 1));
             }
             editor.setOverwrite(true);
             editor.selection.clearSelection();
@@ -16188,14 +15985,23 @@ var actions = exports.actions = {
     },
     ":": {
         fn: function(editor, range, count, param) {
+            var val = ":";
+            if (count > 1)
+                val = ".,.+" + count + val;
+            if (editor.showCommandLine)
+                editor.showCommandLine(val);
         }
     },
     "/": {
         fn: function(editor, range, count, param) {
+            if (editor.showCommandLine)
+                editor.showCommandLine("/");
         }
     },
     "?": {
         fn: function(editor, range, count, param) {
+            if (editor.showCommandLine)
+                editor.showCommandLine("?");
         }
     },
     ".": {
@@ -16229,14 +16035,18 @@ var inputBuffer = exports.inputBuffer = {
     lastInsertCommands: [],
 
     push: function(editor, ch, keyId) {
+        var status = this.status;
         var isKeyHandled = true;
         this.idle = false;
         var wObj = this.waitingForParam;
+        if (/^numpad\d+$/i.test(ch))
+            ch = ch.substr(6);
+
         if (wObj) {
             this.exec(editor, wObj, ch);
         }
         else if (!(ch === "0" && !this.currentCount.length) &&
-            (ch.match(/^\d+$/) && this.isAccepting(NUMBER))) {
+            (/^\d+$/.test(ch) && this.isAccepting(NUMBER))) {
             this.currentCount += ch;
             this.currentCmd = NUMBER;
             this.accepting = [NUMBER, OPERATOR, MOTION, ACTION];
@@ -16289,6 +16099,7 @@ var inputBuffer = exports.inputBuffer = {
                 this.idle = false;
         }
         else if (this.operator) {
+            this.operator.count = this.getCount();
             this.exec(editor, { operator: this.operator }, ch);
         }
         else {
@@ -16302,10 +16113,9 @@ var inputBuffer = exports.inputBuffer = {
             this.status = this.currentCount;
         } else if (this.status) {
             this.status = "";
-        } else {
-            return isKeyHandled;
         }
-        editor._emit("changeStatus");
+        if (this.status != status)
+            editor._emit("changeStatus");
         return isKeyHandled;
     },
 
@@ -16729,6 +16539,8 @@ function find(editor, needle, dir) {
 
 var Range = require("../../../range").Range;
 
+var LAST_SEARCH_MOTION = {};
+
 module.exports = {
     "w": new Motion(function(editor) {
         var str = new StringStream(editor);
@@ -16969,7 +16781,9 @@ module.exports = {
     "f": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "f", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getRightNthChar(editor, cursor, param, count || 1);
 
@@ -16982,7 +16796,9 @@ module.exports = {
     "F": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "F", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getLeftNthChar(editor, cursor, param, count || 1);
 
@@ -16995,9 +16811,14 @@ module.exports = {
     "t": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "t", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getRightNthChar(editor, cursor, param, count || 1);
+
+            if (isRepeat && column == 0 && !(count > 1))
+                var column = util.getRightNthChar(editor, cursor, param, 2);
 
             if (typeof column === "number") {
                 cursor.column += column + (isSel ? 1 : 0);
@@ -17008,14 +16829,44 @@ module.exports = {
     "T": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "T", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getLeftNthChar(editor, cursor, param, count || 1);
+
+            if (isRepeat && column == 0 && !(count > 1))
+                var column = util.getLeftNthChar(editor, cursor, param, 2);
 
             if (typeof column === "number") {
                 cursor.column -= column;
                 return cursor;
             }
+        }
+    }),
+    ";": new Motion({
+        handlesCount: true,
+        getPos: function(editor, range, count, param, isSel) {
+            var ch = LAST_SEARCH_MOTION.ch;
+            if (!ch)
+                return;
+            return module.exports[ch].getPos(
+                editor, range, count, LAST_SEARCH_MOTION.param, isSel, true
+            );
+        }
+    }),
+    ",": new Motion({
+        handlesCount: true,
+        getPos: function(editor, range, count, param, isSel) {
+            var ch = LAST_SEARCH_MOTION.ch;
+            if (!ch)
+                return;
+            var up = ch.toUpperCase();
+            ch = ch === up ? ch.toLowerCase() : up;
+
+            return module.exports[ch].getPos(
+                editor, range, count, LAST_SEARCH_MOTION.param, isSel, true
+            );
         }
     }),
 
@@ -17202,7 +17053,7 @@ module.exports = {
 };
 
 module.exports.backspace = module.exports.left = module.exports.h;
-module.exports.right = module.exports.l;
+module.exports.space = module.exports.return = module.exports.right = module.exports.l;
 module.exports.up = module.exports.k;
 module.exports.down = module.exports.j;
 module.exports.pagedown = module.exports["ctrl-d"];
@@ -17212,7 +17063,7 @@ module.exports.pageup = module.exports["ctrl-u"];
 
 ace.define('ace/keyboard/vim/maps/operators', ['require', 'exports', 'module' , 'ace/keyboard/vim/maps/util', 'ace/keyboard/vim/registers'], function(require, exports, module) {
 
-"never use strict";
+
 
 var util = require("./util");
 var registers = require("../registers");
@@ -17239,7 +17090,6 @@ module.exports = {
                         registers._default.text += editor.getCopyText();
                         var selRange = editor.getSelectionRange();
                         if (!selRange.isMultiLine()) {
-                            lastLineReached = true
                             var row = selRange.start.row - 1;
                             var col = editor.session.getLine(row).length
                             selRange.setStart(row, col);
@@ -18329,12 +18179,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -18738,12 +18583,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -19160,7 +19000,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -19441,7 +19290,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -19537,7 +19395,7 @@ ace.define('ace/mode/diff_highlight_rules', ['require', 'exports', 'module' , 'a
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var DiffHighlightRules = function() {
+var DiffHighlightRules = function() {
 
     this.$rules = {
         "start" : [{
@@ -19674,7 +19532,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * ***** END LICENSE BLOCK ***** */
 
-ace.define('ace/mode/django', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/html', 'ace/mode/text_highlight_rules', 'ace/tokenizer', 'ace/mode/html_highlight_rules'], function(require, exports, module) {
+ace.define('ace/mode/django', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/html', 'ace/tokenizer', 'ace/mode/html_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
 var oop = require("../lib/oop");
 var HtmlMode = require("./html").Mode;
@@ -20268,12 +20126,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -20611,7 +20464,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -23539,12 +23401,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -23882,7 +23739,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -27319,12 +27185,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -27662,7 +27523,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -28315,12 +28185,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -28658,7 +28523,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -28889,12 +28763,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -29232,7 +29101,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -29802,12 +29680,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -30224,7 +30097,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -30406,8 +30288,8 @@ ace.define('ace/mode/livescript', ['require', 'exports', 'module' , 'ace/tokeniz
     var indenter, prototype = extend$((import$(LiveScriptMode, superclass).displayName = 'LiveScriptMode', LiveScriptMode), superclass).prototype, constructor = LiveScriptMode;
     function LiveScriptMode(){
       var that;
-      this.$tokenizer = new (require('ace/tokenizer')).Tokenizer(LiveScriptMode.Rules);
-      if (that = require('ace/mode/matching_brace_outdent')) {
+      this.$tokenizer = new (require('../tokenizer')).Tokenizer(LiveScriptMode.Rules);
+      if (that = require('../mode/matching_brace_outdent')) {
         this.$outdent = new that.MatchingBraceOutdent;
       }
     }
@@ -30426,7 +30308,7 @@ ace.define('ace/mode/livescript', ['require', 'exports', 'module' , 'ace/tokeniz
     prototype.toggleCommentLines = function(state, doc, startRow, endRow){
       var comment, range, i$, i, out, line;
       comment = /^(\s*)#/;
-      range = new (require('ace/range')).Range(0, 0, 0, 0);
+      range = new (require('../range')).Range(0, 0, 0, 0);
       for (i$ = startRow; i$ <= endRow; ++i$) {
         i = i$;
         if (out = comment.test(line = doc.getLine(i))) {
@@ -30449,7 +30331,7 @@ ace.define('ace/mode/livescript', ['require', 'exports', 'module' , 'ace/tokeniz
       return (ref$ = this.$outdent) != null ? ref$.autoOutdent(doc, row) : void 8;
     };
     return LiveScriptMode;
-  }(require('ace/mode/text').Mode));
+  }(require('../mode/text').Mode));
   keywordend = '(?![$\\w]|-[A-Za-z]|\\s*:(?![:=]))';
   stringfill = {
     token: 'string',
@@ -30680,17 +30562,304 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
 
 exports.MatchingBraceOutdent = MatchingBraceOutdent;
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
+ * Copyright (c) 2012, Ajax.org B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+ace.define('ace/mode/logiql', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/logiql_highlight_rules', 'ace/mode/folding/coffee', 'ace/token_iterator', 'ace/range'], function(require, exports, module) {
+
+
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var LogiQLHighlightRules = require("./logiql_highlight_rules").LogiQLHighlightRules;
+var FoldMode = require("./folding/coffee").FoldMode;
+var TokenIterator = require("../token_iterator").TokenIterator;
+var Range = require("../range").Range;
+
+var Mode = function() {
+    var highlighter = new LogiQLHighlightRules();
+    this.foldingRules = new FoldMode();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+};
+oop.inherits(Mode, TextMode);
+
+(function() {
+    this.lineCommentStart = "//";
+    this.blockComment = {start: "/*", end: "*/"};
+
+    this.getNextLineIndent = function(state, line, tab) {
+        var indent = this.$getIndent(line);
+
+        var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
+        var tokens = tokenizedLine.tokens;
+        var endState = tokenizedLine.state;
+        if (/comment|string/.test(endState))
+            return indent;
+        if (tokens.length && tokens[tokens.length - 1].type == "comment.single")
+            return indent;
+
+        var match = line.match();
+        if (/(-->|<--|<-|->)\s*$/.test(line))
+            indent += tab;
+        return indent;
+    };
+
+    this.checkOutdent = function(state, line, input) {
+        if (input !== "\n" && input !== "\r\n")
+            return false;
+
+        if (!/^\s+/.test(line))
+            return false;
+
+        return true;
+    };
+
+    this.autoOutdent = function(state, doc, row) {
+        var prevLine = doc.getLine(row);
+        var match = prevLine.match(/^\s+/);
+        var column = prevLine.lastIndexOf(".") + 1;
+        if (!match || !row || !column) return 0;
+
+        var line = doc.getLine(row + 1);
+        var startRange = this.getMatching(doc, {row: row, column: column});
+        if (!startRange || startRange.start.row == row) return 0;
+
+        column = match[0].length;
+        var indent = this.$getIndent(doc.getLine(startRange.start.row));
+        doc.replace(new Range(row + 1, 0, row + 1, column), indent);
+    };
+
+    this.getMatching = function(session, row, column) {
+        if (row == undefined)
+            row = session.selection.lead
+        if (typeof row == "object") {
+            column = row.column;
+            row = row.row;
+        }
+
+        var startToken = session.getTokenAt(row, column);
+        var KW_START = "keyword.start", KW_END = "keyword.end";
+        var tok;
+        if (!startToken)
+            return;
+        if (startToken.type == KW_START) {
+            var it = new TokenIterator(session, row, column);
+            it.step = it.stepForward;
+        } else if (startToken.type == KW_END) {
+            var it = new TokenIterator(session, row, column);
+            it.step = it.stepBackward;
+        } else
+            return;
+
+        while (tok = it.step()) {
+            if (tok.type == KW_START || tok.type == KW_END)
+                break;
+        }
+        if (!tok || tok.type == startToken.type)
+            return;
+
+        var col = it.getCurrentTokenColumn();
+        var row = it.getCurrentTokenRow();
+        return new Range(row, col, row, col + tok.value.length);
+    };
+}).call(Mode.prototype);
+
+exports.Mode = Mode;
+});
+
+ace.define('ace/mode/logiql_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+
+
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+
+var LogiQLHighlightRules = function() {
+
+    this.$rules = { start:
+       [ { token: 'comment.block',
+           regex: '/\\*',
+           push:
+            [ { token: 'comment.block', regex: '\\*/', next: 'pop' },
+              { defaultToken: 'comment.block' } ],
+            },
+         { token: 'comment.single',
+           regex: '//.*',
+            },
+         { token: 'constant.numeric',
+           regex: '\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?',
+            },
+         { token: 'string',
+           regex: '"',
+           push:
+            [ { token: 'string', regex: '"', next: 'pop' },
+              { defaultToken: 'string' } ],
+            },
+         { token: 'constant.language',
+           regex: '\\b(true|false)\\b',
+            },
+         { token: 'entity.name.type.logicblox',
+           regex: '`[a-zA-Z_:]+(\\d|\\a)*\\b',
+            },
+         { token: 'keyword.start', regex: '->',  comment: 'Constraint' },
+         { token: 'keyword.start', regex: '-->', comment: 'Level 1 Constraint'},
+         { token: 'keyword.start', regex: '<-',  comment: 'Rule' },
+         { token: 'keyword.start', regex: '<--', comment: 'Level 1 Rule' },
+         { token: 'keyword.end',   regex: '\\.', comment: 'Terminator' },
+         { token: 'keyword.other', regex: '!',   comment: 'Negation' },
+         { token: 'keyword.other', regex: ',',   comment: 'Conjunction' },
+         { token: 'keyword.other', regex: ';',   comment: 'Disjunction' },
+         { token: 'keyword.operator', regex: '<=|>=|!=|<|>', comment: 'Equality'},
+         { token: 'keyword.other', regex: '@', comment: 'Equality' },
+         { token: 'keyword.operator', regex: '\\+|-|\\*|/', comment: 'Arithmetic operations'},
+         { token: 'keyword', regex: '::', comment: 'Colon colon' },
+         { token: 'support.function',
+           regex: '\\b(agg\\s*<<)',
+           push:
+            [ { include: '$self' },
+              { token: 'support.function',
+                regex: '>>',
+                next: 'pop' } ],
+            },
+         { token: 'storage.modifier',
+           regex: '\\b(lang:[\\w:]*)',
+            },
+         { token: [ 'storage.type', 'text' ],
+           regex: '(export|sealed|clauses|block|alias)\\s*\\((?=`)',
+            },
+         { token: 'entity.name',
+           regex: '[a-zA-Z_][a-zA-Z_0-9:]*(@prev|@init|@final)?(?=(\\(|\\[))',
+            },
+         { token: 'variable.parameter',
+           regex: '([a-zA-Z][a-zA-Z_0-9]*|_)\\s*(?=(,|\\.|<-|->|\\)|\\]|=))',
+            } ] }
+
+    this.normalizeRules();
+};
+
+oop.inherits(LogiQLHighlightRules, TextHighlightRules);
+
+exports.LogiQLHighlightRules = LogiQLHighlightRules;
+});
+
+ace.define('ace/mode/folding/coffee', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/folding/fold_mode', 'ace/range'], function(require, exports, module) {
+
+
+var oop = require("../../lib/oop");
+var BaseFoldMode = require("./fold_mode").FoldMode;
+var Range = require("../../range").Range;
+
+var FoldMode = exports.FoldMode = function() {};
+oop.inherits(FoldMode, BaseFoldMode);
+
+(function() {
+
+    this.getFoldWidgetRange = function(session, foldStyle, row) {
+        var range = this.indentationBlock(session, row);
+        if (range)
+            return range;
+
+        var re = /\S/;
+        var line = session.getLine(row);
+        var startLevel = line.search(re);
+        if (startLevel == -1 || line[startLevel] != "#")
+            return;
+
+        var startColumn = line.length;
+        var maxRow = session.getLength();
+        var startRow = row;
+        var endRow = row;
+
+        while (++row < maxRow) {
+            line = session.getLine(row);
+            var level = line.search(re);
+
+            if (level == -1)
+                continue;
+
+            if (line[level] != "#")
+                break;
+
+            endRow = row;
+        }
+
+        if (endRow > startRow) {
+            var endColumn = session.getLine(endRow).length;
+            return new Range(startRow, startColumn, endRow, endColumn);
+        }
+    };
+    this.getFoldWidget = function(session, foldStyle, row) {
+        var line = session.getLine(row);
+        var indent = line.search(/\S/);
+        var next = session.getLine(row + 1);
+        var prev = session.getLine(row - 1);
+        var prevIndent = prev.search(/\S/);
+        var nextIndent = next.search(/\S/);
+
+        if (indent == -1) {
+            session.foldWidgets[row - 1] = prevIndent!= -1 && prevIndent < nextIndent ? "start" : "";
+            return "";
+        }
+        if (prevIndent == -1) {
+            if (indent == nextIndent && line[indent] == "#" && next[indent] == "#") {
+                session.foldWidgets[row - 1] = "";
+                session.foldWidgets[row + 1] = "";
+                return "start";
+            }
+        } else if (prevIndent == indent && line[indent] == "#" && prev[indent] == "#") {
+            if (session.getLine(row - 2).search(/\S/) == -1) {
+                session.foldWidgets[row - 1] = "start";
+                session.foldWidgets[row + 1] = "";
+                return "";
+            }
+        }
+
+        if (prevIndent!= -1 && prevIndent < indent)
+            session.foldWidgets[row - 1] = "start";
+        else
+            session.foldWidgets[row - 1] = "";
+
+        if (indent < nextIndent)
+            return "start";
+        else
+            return "";
+    };
+
+}).call(FoldMode.prototype);
+
 });
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
@@ -31155,12 +31324,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -31498,7 +31662,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -32389,12 +32562,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -32732,7 +32900,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -34737,7 +34914,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -35668,12 +35854,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -35857,12 +36038,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -38071,12 +38247,7 @@ var MatchingBraceOutdent = function() {};
     };
 
     this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
+        return line.match(/^\s*/)[0];
     };
 
 }).call(MatchingBraceOutdent.prototype);
@@ -38091,7 +38262,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
@@ -38433,7 +38613,16 @@ var oop = require("../../lib/oop");
 var Range = require("../../range").Range;
 var BaseFoldMode = require("./fold_mode").FoldMode;
 
-var FoldMode = exports.FoldMode = function() {};
+var FoldMode = exports.FoldMode = function(commentRegex) {
+    if (commentRegex) {
+        this.foldingStartMarker = new RegExp(
+            this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.start)
+        );
+        this.foldingStopMarker = new RegExp(
+            this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + commentRegex.end)
+        );
+    }
+};
 oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {

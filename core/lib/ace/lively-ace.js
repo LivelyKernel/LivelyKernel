@@ -11272,6 +11272,20 @@ z-index: 4;\
 -webkit-box-sizing: border-box;\
 box-sizing: border-box;\
 }\
+.ace_marker-layer .ace_isearch-result {\
+position: absolute;\
+z-index: 6;\
+-moz-box-sizing: border-box;\
+-webkit-box-sizing: border-box;\
+box-sizing: border-box;\
+}\
+.ace_marker-layer .ace_occur-highlight {\
+position: absolute;\
+z-index: 4;\
+-moz-box-sizing: border-box;\
+-webkit-box-sizing: border-box;\
+box-sizing: border-box;\
+}\
 .ace_line .ace_fold {\
 -moz-box-sizing: border-box;\
 -webkit-box-sizing: border-box;\
@@ -15170,7 +15184,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * ***** END LICENSE BLOCK ***** */
 
-ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/keyboard/hash_handler', 'ace/incremental_search', 'ace/lib/keys'], function(require, exports, module) {
+ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/keyboard/hash_handler', 'ace/lib/keys', 'ace/incremental_search'], function(require, exports, module) {
 
 
 var dom = require("../lib/dom");
@@ -15248,9 +15262,8 @@ exports.handler.attach = function(editor) {
     editor.commands.addCommands(commands);
     exports.handler.platform = editor.commands.platform;
     editor.$emacsModeHandler = this;
-    require('../incremental_search');
-    editor.setOption('useIncrementalSearch', true);
-    this.setupIncrementalSearch(editor, true);
+    if (!editor.getOption('useIncrementalSearch')) editor.setOption('useIncrementalSearch', true)
+    else this.setupIncrementalSearch(editor, true);;
 };
 
 exports.handler.detach = function(editor) {
@@ -15583,15 +15596,28 @@ exports.killRing = {
     }
 };
 
+require('../incremental_search');
+exports.handler.setupIncrementalSearch = function(editor, val) {
+    if (this.usesIncrementalSearch == val) return;
+    this.usesIncrementalSearch = val;
+    if (val) {
+        this.bindKey('C-s', 'iSearch');
+        this.bindKey('C-r', 'iSearchBackwards');
+    } else {
+        this.bindKey('C-s', "findnext");
+        this.bindKey('C-r', "findprevious");
+    }
+}
 
 });
 
-ace.define('ace/incremental_search', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/commands/incremental_search_commands', 'ace/lib/dom', 'ace/editor', 'ace/config'], function(require, exports, module) {
+ace.define('ace/incremental_search', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/search_highlight', 'ace/commands/incremental_search_commands', 'ace/lib/dom', 'ace/commands/command_manager', 'ace/editor', 'ace/config'], function(require, exports, module) {
 
 
 var oop = require("./lib/oop");
 var Range = require("./range").Range;
 var Search = require("./search").Search;
+var SearchHighlight = require("./search_highlight").SearchHighlight;
 var iSearchCommandModule = require("./commands/incremental_search_commands");
 var ISearchKbd = iSearchCommandModule.IncrementalSearchKeyboardHandler;
 function IncrementalSearch() {
@@ -15603,17 +15629,15 @@ oop.inherits(IncrementalSearch, Search);
 
 ;(function() {
 
-    this.activate = function(editor, backwards) {
-        this.$editor = editor;
-        this.$startPos = this.$currentPos = editor.getCursorPosition();
+    this.activate = function(ed, backwards) {
+        this.$editor = ed;
+        this.$startPos = this.$currentPos = ed.getCursorPosition();
         this.$options.needle = '';
         this.$options.backwards = backwards;
-        editor.keyBinding.addKeyboardHandler(this.$keyboardHandler);
-        this.$mousedownHandler = editor.addEventListener('mousedown', this.onMouseDown.bind(this));
-        this.selectionFix(editor);
-        var msg = this.$options.backwards ? 'reverse-' : '';
-        msg += 'isearch: ' + this.$options.needle;
-        this.message(msg);
+        ed.keyBinding.addKeyboardHandler(this.$keyboardHandler);
+        this.$mousedownHandler = ed.addEventListener('mousedown', this.onMouseDown.bind(this));
+        this.selectionFix(ed);
+        this.statusMessage(true);
     }
 
     this.deactivate = function(reset) {
@@ -15632,6 +15656,14 @@ oop.inherits(IncrementalSearch, Search);
         }
     }
 
+    this.highlight = function(regexp) {
+        var sess = this.$editor.session,
+            hl = sess.$isearchHighlight = sess.$isearchHighlight || sess.addDynamicMarker(
+                new SearchHighlight(null, "ace_isearch-result", "text"));
+        hl.setRegexp(regexp);
+        sess._emit("changeBackMarker"); // force highlight layer redraw
+    }
+
     this.cancelSearch = function(reset) {
         var e = this.$editor;
         this.$prevNeedle = this.$options.needle;
@@ -15640,8 +15672,7 @@ oop.inherits(IncrementalSearch, Search);
             e.moveCursorToPosition(this.$startPos);
             this.$currentPos = this.$startPos;
         }
-        e.session.highlight(null);
-        e.renderer.updateBackMarkers(); // force highlight layer redraw
+        this.highlight(null);
         return Range.fromPoints(this.$currentPos, this.$currentPos);
     }
 
@@ -15651,7 +15682,10 @@ oop.inherits(IncrementalSearch, Search);
         if (needleUpdateFunc) {
             options.needle = needleUpdateFunc.call(this, options.needle || '') || '';
         }
-        if (options.needle.length === 0) return this.cancelSearch(true);
+        if (options.needle.length === 0) {
+            this.statusMessage(true);
+            return this.cancelSearch(true);
+        };
         options.start = this.$currentPos;
         var session = this.$editor.session,
             found = this.find(session);
@@ -15659,14 +15693,10 @@ oop.inherits(IncrementalSearch, Search);
             if (options.backwards) found = Range.fromPoints(found.end, found.start);
             this.$editor.moveCursorToPosition(found.end);
             if (moveToNext) this.$currentPos = found.end;
-            session.highlight(options.re);
-            this.$editor.renderer.updateBackMarkers();
+            this.highlight(options.re)
         }
 
-        var msg = options.backwards ? 'reverse-' : '';
-        msg += 'isearch: ' + options.needle;
-        if (!found) msg += ' (not found)';
-        this.message(msg);
+        this.statusMessage(found);
 
         return found;
     }
@@ -15698,10 +15728,18 @@ oop.inherits(IncrementalSearch, Search);
         return true;
     }
 
+    this.statusMessage = function(found) {
+        var options = this.$options, msg = '';
+        msg += options.backwards ? 'reverse-' : '';
+        msg += 'isearch: ' + options.needle;
+        msg += found ? '' : ' (not found)';
+        this.message(msg);
+    }
+
     this.message = function(msg) {
-        var cmdLine = this.$editor && this.$editor.cmdLine;
-        if (cmdLine) {
-            cmdLine.setValue(msg, 1);
+        if (this.$editor.showCommandLine) {
+            this.$editor.showCommandLine(msg);
+            this.$editor.focus();
         } else {
             console.log(msg);
         }
@@ -15715,37 +15753,28 @@ exports.IncrementalSearch = IncrementalSearch;
 var dom = require('./lib/dom');
 function patchHighlightMarkerStyling(options) {
     options = options || {};
-    var id = 'incremental-search-highlight-style-patch',
-        css = 'div.ace_selected-word {\n'
-            + '  background-color: orange !important;\n'
-            + '  border: 0 !important;\n'
+    var id = 'incremental-search-highlighting',
+        css = 'div.ace_isearch-result {\n'
+            + "  border-radius: 4px;\n"
+            + "  border: 8px solid rgba(255, 200, 0, 0.5);\n"
+            + "  box-shadow: 0 0 4px rgb(255, 200, 0);\n"
+            + "}\n"
+            + '.ace_dark div.ace_isearch-result {\n'
+            + "  border: 8px solid rgb(100, 110, 160);\n"
+            + "  box-shadow: 0 0 4px rgb(80, 90, 140);\n"
             + '}\n'
     dom.importCssString(css, id);
 }
-require(["./commands/command_manager"], function(cmdMgr) {
-    (function() {
-        this.setupIncrementalSearch = function(editor, val) {
-            if (this.usesIncrementalSearch == val) return;
-            this.usesIncrementalSearch = val;
-            var iSearchCommands = iSearchCommandModule.iSearchStartCommands,
-                method = val ? 'addCommands' : 'removeCommands';
-            this[method](iSearchCommands);
-        };
-    }).call(cmdMgr.CommandManager.prototype);
-});
-require(["./keyboard/emacs"], function(emacs) {
-    emacs.handler.setupIncrementalSearch = function(editor, val) {
+var commands = require("./commands/command_manager");
+(function() {
+    this.setupIncrementalSearch = function(editor, val) {
         if (this.usesIncrementalSearch == val) return;
         this.usesIncrementalSearch = val;
-        if (val) {
-            this.bindKey('C-s', 'iSearch');
-            this.bindKey('C-r', 'iSearchBackwards');
-        } else {
-            this.bindKey('C-s', "findnext");
-            this.bindKey('C-r', "findprevious");
-        }
-    }
-});
+        var iSearchCommands = iSearchCommandModule.iSearchStartCommands,
+            method = val ? 'addCommands' : 'removeCommands';
+        this[method](iSearchCommands);
+    };
+}).call(commands.CommandManager.prototype);
 var Editor = require("./editor").Editor;
 require("./config").defineOptions(Editor.prototype, "editor", {
     useIncrementalSearch: {
@@ -15925,8 +15954,9 @@ var config = require("../config"),
 var occurStartCommands = [{
     name: "occur",
     exec: function(editor, options) {
+        var alreadyInOccur = !!editor.session.$occur;
         var occurSessionActive = new Occur().enter(editor, options);
-        if (occurSessionActive) OccurKeyboardHandler.installIn(editor);
+        if (occurSessionActive && !alreadyInOccur) OccurKeyboardHandler.installIn(editor);
     },
     readOnly: true
 }];
@@ -15935,20 +15965,20 @@ var occurCommands = [{
     name: "occurexit",
     bindKey: 'esc|Ctrl-G',
     exec: function(editor) {
-        var occur = editor.session.getDocument().$occur;
+        var occur = editor.session.$occur;
         if (!occur) return;
         occur.exit(editor, {});
-        OccurKeyboardHandler.uninstallFrom(editor);
+        if (!editor.session.$occur) OccurKeyboardHandler.uninstallFrom(editor);
     },
     readOnly: true
 }, {
     name: "occuraccept",
     bindKey: 'enter',
     exec: function(editor) {
-        var occur = editor.session.getDocument().$occur;
+        var occur = editor.session.$occur;
         if (!occur) return;
         occur.exit(editor, {translatePosition: true});
-        OccurKeyboardHandler.uninstallFrom(editor);
+        if (!editor.session.$occur) OccurKeyboardHandler.uninstallFrom(editor);
     },
     readOnly: true
 }];
@@ -15973,7 +16003,7 @@ oop.inherits(OccurKeyboardHandler, HashHandler);
     var handleKeyboard$super = this.handleKeyboard;
     this.handleKeyboard = function(data, hashId, key, keyCode) {
         var cmd = handleKeyboard$super.call(this, data, hashId, key, keyCode);
-        return (cmd && cmd.command) ? cmd : {command: "null", passEvent: true};
+        return (cmd && cmd.command) ? cmd : undefined;
     }
 
 }).call(OccurKeyboardHandler.prototype);
@@ -15994,13 +16024,14 @@ exports.commands = occurStartCommands;
 
 });
 
-ace.define('ace/occur', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/document'], function(require, exports, module) {
+ace.define('ace/occur', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/range', 'ace/search', 'ace/edit_session', 'ace/search_highlight', 'ace/lib/dom'], function(require, exports, module) {
 
 
 var oop = require("./lib/oop");
 var Range = require("./range").Range;
 var Search = require("./search").Search;
-var Document = require("./document").Document;
+var EditSession = require("./edit_session").EditSession;
+var SearchHighlight = require("./search_highlight").SearchHighlight;
 function Occur() {}
 
 oop.inherits(Occur, Search);
@@ -16009,42 +16040,43 @@ oop.inherits(Occur, Search);
     this.enter = function(editor, options) {
         if (!options.needle) return false;
         var pos = editor.getCursorPosition();
-        editor.setReadOnly(true);
-        this.display(editor.session, options);
+        this.displayOccurContent(editor, options);
         var translatedPos = this.originalToOccurPosition(editor.session, pos);
         editor.moveCursorToPosition(translatedPos);
         return true;
     }
     this.exit = function(editor, options) {
-        var session = editor.session,
-            pos = options.translatePosition && editor.getCursorPosition(),
+        var pos = options.translatePosition && editor.getCursorPosition(),
             translatedPos = pos && this.occurToOriginalPosition(editor.session, pos);
-        this.displayOriginal(session);
-        editor.setReadOnly(false);
+        this.displayOriginalContent(editor);
         if (translatedPos) editor.moveCursorToPosition(translatedPos);
         return true;
     }
 
-    this.display = function(session, options) {
-        this.$originalDoc = session.doc;
-        var found = this.matchingLines(session, options),
-            lines = found.map(function(foundLine) { return foundLine.content; }),
-            occurDoc = new Document(lines);
-        occurDoc.$occur = this;
-        occurDoc.$occurMatchingLines = found;
-        session.setDocument(occurDoc);
-        session.highlight(null);
-        session.highlight(options.re);
-        session._emit('changeBackMarker');
+    this.highlight = function(sess, regexp) {
+        var hl = sess.$occurHighlight = sess.$occurHighlight || sess.addDynamicMarker(
+                new SearchHighlight(null, "ace_occur-highlight", "text"));
+        hl.setRegexp(regexp);
+        sess._emit("changeBackMarker"); // force highlight layer redraw
     }
 
-    this.displayOriginal = function(session) {
-        session.setDocument(this.$originalDoc);
-        session.highlight(null);
-        session._emit('changeBackMarker');
+    this.displayOccurContent = function(editor, options) {
+        this.$originalSession = editor.session;
+        var found = this.matchingLines(editor.session, options),
+            lines = found.map(function(foundLine) { return foundLine.content; }),
+            occurSession = new EditSession(lines.join('\n'));
+        occurSession.$occur = this;
+        occurSession.$occurMatchingLines = found;
+        editor.setSession(occurSession);
+        this.highlight(occurSession, options.re);
+        occurSession._emit('changeBackMarker');
+    }
+
+    this.displayOriginalContent = function(editor) {
+        editor.setSession(this.$originalSession);
     }
     this.originalToOccurPosition = function(session, pos) {
-        var lines = session.getDocument().$occurMatchingLines,
+        var lines = session.$occurMatchingLines,
             nullPos = {row: 0, column: 0};
         if (!lines) return nullPos;
         for (var i = 0; i < lines.length; i++) {
@@ -16053,9 +16085,8 @@ oop.inherits(Occur, Search);
         return nullPos;
     }
     this.occurToOriginalPosition = function(session, pos) {
-        var lines = session.getDocument().$occurMatchingLines;
+        var lines = session.$occurMatchingLines;
         if (!lines || !lines[pos.row]) return pos;
-        debugger
         return {row: lines[pos.row].row, column: pos.column};
     }
 
@@ -16075,8 +16106,21 @@ oop.inherits(Occur, Search);
 
 }).call(Occur.prototype);
 
-window.Occur = Occur
-window.Document = Document
+var dom = require('./lib/dom');
+(function patchHighlightMarkerStyling() {
+    var id = 'incremental-occur-highlighting',
+        css = 'div.ace_occur-highlight {\n'
+            + "  border-radius: 4px;\n"
+            + "border: 8px solid rgba(87, 255, 8, 0.25);\n"
+            + "box-shadow: 0 0 4px rgb(91, 255, 50);\n"
+            + "}\n"
+            + '.ace_dark div.ace_occur-highlight {\n'
+            + "border: 8px solid rgb(80, 140, 85);\n"
+            + "box-shadow: 0 0 4px rgb(60, 120, 70);\n"
+            + '}\n';
+    dom.importCssString(css, id);
+})();
+
 exports.Occur = Occur;
 
 });
@@ -19891,7 +19935,7 @@ ace.define('ace/mode/diff_highlight_rules', ['require', 'exports', 'module' , 'a
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var DiffHighlightRules = function() {
+var DiffHighlightRules = function() {
 
     this.$rules = {
         "start" : [{

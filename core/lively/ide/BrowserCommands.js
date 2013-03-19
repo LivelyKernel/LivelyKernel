@@ -467,8 +467,9 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
 
     runTest: function() {
         var klass = this.getTestClass(),
-            testSelector = this.getSelectedNode().target.getName();
-        var test = new klass();
+            testSelector = this.getSelectedNode().target.getName(),
+            test = new klass();
+        alertOK('Running test ' + klass.type + '>>' + testSelector);
         test.runTest(testSelector);
         var failures = test.result.failureList();
         if (failures.length == 0) {
@@ -482,7 +483,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
 
     trigger: function() {
         return [['run test', this.runTest.bind(this)]]
-    },
+    }
 
 });
 

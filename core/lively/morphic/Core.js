@@ -326,7 +326,11 @@ Object.subclass('lively.morphic.Morph',
     },
 
     topMorph: function() {
-        return this.submorphs.reject(function(ea) { return ea.isEpiMorph }).last();
+        for (var i = this.submorphs.length-1; i >= 0; i--) {
+            var morph = this.submorphs[i];
+            if (!morph.isEpiMorph && !morph.isHand) return morph;
+        }
+        return null;
     },
 
     onOwnerChanged: function(newOwner) {
@@ -622,9 +626,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         var r = $super(morph, optMorphBefore);
         $super(this.firstHand());
         return r;
-    },
-    topMorph: function() { return this.submorphs.withoutAll(this.hands).last() }
-
+    }
 },
 'accessing', {
     world: function() { return this },

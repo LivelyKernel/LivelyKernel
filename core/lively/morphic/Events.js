@@ -376,7 +376,44 @@ Object.extend(Event, {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && evt.which === 3 } :
             function(evt) { return evt.which === 3 }
-    })()
+    })(),
+
+    decodeKeyIdentifier: function(keyEvt) {
+        // trying to find out what the String representation of the key pressed
+        // in key event is.
+        // Uses keyIdentifier which can be Unicode like "U+0021"
+        var id = keyEvt.keyIdentifier,
+            unicodeDecodeRe = /u\+?([\d\w]{4})/gi,
+            unicodeReplacer = function (match, grp) { return String.fromCharCode(parseInt(grp, 16)); },
+            key = id && id.replace(unicodeDecodeRe, unicodeReplacer);
+        if (key === 'Meta') key = "Command";
+        if (key === ' ') key = "Space";
+        if (keyEvt.keyCode === Event.KEY_BACKSPACE) key = "Backspace";
+        return key;
+    },
+
+    pressedKeyString: function(evt, options) {
+        // returns a human readable presentation of the keys pressed in the
+        // event like Shift-Alt-X
+        // options: {
+        //   ignoreModifiersIfNoCombo: Bool, // if true don't print single mod like "Alt"
+        //   ignoreKeys: Array // list of strings -- key(combos) to ignore
+        // }
+        options = options || {};
+        var keyParts = [];
+        if (evt.isCommandKey()) keyParts.push('Command');
+        if (evt.isCtrlDown()) keyParts.push('Control');
+        if (evt.isAltDown()) keyParts.push('Alt');
+        if (evt.isShiftDown()) keyParts.push('Shift');
+        var id = this.decodeKeyIdentifier(evt);
+        if (options.ignoreModifiersIfNoCombo) {
+            if (keyParts.length >= 1 && keyParts.include(id)) return '';
+        };
+        keyParts.push(id);
+        var result = keyParts.compact().uniq().join('-');
+        if (options.ignoreKeys && options.ignoreKeys.include(result)) return '';
+        return result;
+    }
 });
 
 Trait('ScrollableTrait',
@@ -840,6 +877,7 @@ handleOnCapture);
         if (this.eventsAreIgnored) { return false; }
         return this.interactiveMoveOrResize('down', evt);
     },
+
     interactiveMoveOrResize: function(keyPressed, evt) {
         if (!this.showsHalos) return false;
         evt.stop();

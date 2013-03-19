@@ -114,16 +114,20 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     isAceEditor: true
 },
 'initializing', {
-    initialize: function($super, bounds, string) {
+    initialize: function($super, bounds, stringOrOptions) {
+        var options = Object.isString(stringOrOptions) ?
+                        {content: stringOrOptions} :
+                        (stringOrOptions || {});
+        $super(this.defaultShape());
         bounds = bounds || lively.rect(0,0,400,300);
         var shape = new lively.morphic.CodeEditorShape();
 
         $super(shape);
         this.setBounds(bounds);
-        this.textString = string || '';
+        this.textString = options.content || '';
 
-        this.setTheme(Config.get('aceDefaultTheme'));
-        this.setTextMode(Config.get('aceDefaultTextMode'));
+        this.setTheme(options.theme || Config.get('aceDefaultTheme'));
+        this.setTextMode(options.textMode || Config.get('aceDefaultTextMode'));
     },
 
     onOwnerChanged: function(newOwner) {

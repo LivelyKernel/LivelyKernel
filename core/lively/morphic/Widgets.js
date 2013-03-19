@@ -3356,8 +3356,38 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
         this.movedVerticallyBy(deltaY);
         return true;
     },
+
+    correctForDragOffset: Functions.False
 },
 'internal slider logic', {
+
+    divideRelativeToParent: function(ratio) {
+        // 0 <= ratio <= 1. Set divider so that it divides its owner by ration.
+        // |--------|          |--------|           |<======>|
+        // |        |          |        |           |        |
+        // |        |          |        |           |        |
+        // |<======>|   = 0.5  |        |   = 1     |        |   = 0
+        // |        |          |        |           |        |
+        // |        |          |        |           |        |
+        // |--------|          |<======>|           |--------|
+        if (!this.owner || !Object.isNumber(ratio) || ratio < 0 || ratio > 1) return;
+        var ownerHeight = this.owner.getExtent().y - this.getExtent().y;
+        if (ownerHeight < 0) return;
+        var currentRatio = this.getRelativeDivide(),
+            deltaRation = ratio - currentRatio,
+            deltaY = ownerHeight * deltaRation;
+        this.movedVerticallyBy(deltaY);
+    },
+
+    getRelativeDivide: function(ratio) {
+        var bounds = this.bounds(),
+            myTop = bounds.top(),
+            myHeight = bounds.height,
+            ownerHeight = this.owner.getExtent().y - myHeight;
+        if (ownerHeight < 0) return NaN;
+        return myTop / ownerHeight;
+    },
+
     movedVerticallyBy: function(deltaY) {
         if (!this.resizeIsSave(deltaY)) return;
 
@@ -3378,8 +3408,8 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
     },
 
     resizeIsSave: function(deltaY) {
-        return this.scalingAbove.all(function(m) { return (m.getExtent().y + deltaY) > this.minHeight }, this)
-        && this.scalingBelow.all(function(m) { return (m.getExtent().y - deltaY) > this.minHeight}, this)
+        return this.scalingAbove.all(function(m) { return (m.getExtent().y + deltaY) >= this.minHeight }, this)
+            && this.scalingBelow.all(function(m) { return (m.getExtent().y - deltaY) >= this.minHeight }, this);
     },
 
     addFixed: function(m) { if (!this.fixed.include(m)) this.fixed.push(m) },

@@ -1821,7 +1821,11 @@ lively.morphic.World.addMethods(
             })
     },
     getActiveWindow: function () {
-        return this.submorphs.detect(function (ea) { return ea.isWindow && ea.isActive() });
+        for (var i = this.submorphs.length-1; i >= 0; i--) {
+            var morph = this.submorphs[i];
+            if (morph.isWindow && morph.isActive()) return morph;
+        }
+        return null;
     }
 });
 

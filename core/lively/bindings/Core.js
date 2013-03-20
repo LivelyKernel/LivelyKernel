@@ -126,6 +126,7 @@ Object.subclass('AttributeConnection',
         delete this.converterString;
         delete this.updater;
         delete this.updaterString;
+        delete this.willBeRemoved;
     },
 
     privateAttrName: function(attrName) { return '$$' + attrName },
@@ -216,11 +217,12 @@ Object.subclass('AttributeConnection',
             // that no bind is necessary and oldValue is accessible. Note that
             // when updater calls this method arguments can be more than just
             // the new value
+            connection.willBeRemoved = connection.removeAfterUpdate;
             if (converter) newValue = converter.call(connection, newValue, oldValue);
             var result = (typeof targetMethod === 'function') ?
                 targetMethod.apply(target, arguments) :
                 target[propName] = newValue;
-            if (connection.removeAfterUpdate) connection.disconnect();
+            if (connection.willBeRemoved) connection.disconnect();
             return result;
         };
 

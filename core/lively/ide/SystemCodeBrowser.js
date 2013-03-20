@@ -26,19 +26,18 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
         connect(this, 'targetURL', this.locationInput(), 'setTextString',
             {updater: function($upd, value) { value && $upd(String(value)) }});
 
-        connect(this.locationInput(), 'savedTextString', this, 'setTargetURL',
-            {converter: function(value) { return new URL(value) }});
+        connect(this.locationInput(), 'savedTextString', this, 'setTargetURL');
         this.targetURL = this.targetURL; // hrmpf
         this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
 
         this.panel.codeBaseDirBtn.setLabel('Codebase');
         connect(this.panel.codeBaseDirBtn, 'fire', this, 'setTargetURL',
-            {converter: function() { return URL.codeBase.withFilename('lively/')} })
+            {converter: function() { return URL.codeBase.withFilename('lively/'); } })
         this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
 
         this.panel.localDirBtn.setLabel('Local');
         connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL', {converter: function() {
-            return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory() }});
+            return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory(); }});
         this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
     },
 
@@ -47,13 +46,26 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
         return this.targetURL;
     },
 
-    setTargetURL: function(url) {
-        url = url.withRelativePartsResolved();
+    setTargetURL: function(urlOrString) {
+        var url = urlOrString || URL.root;
+        if (Object.isString(urlOrString) ) {
+            try {
+                if (urlOrString.startsWith('http://')) {
+                    url = new URL(urlOrString).withRelativePartsResolved();
+                } else {
+                    var module = lively.module(urlOrString);
+                    lively.ide.browse(null, null, {name: module.name()}, this);
+                    return;
+                }
+            } catch(e) {
+                console.warn('SCB>>setTargetURL:' + e);
+            }
+        }
         this.selectNothing();
         this.ensureSourceNotAccidentlyDeleted(function() {
             var prevURL = this.targetURL;
-            if (!url.toString().endsWith('/'))
-                url = new URL(url.toString() + '/');
+            // if (url.isLeaf())
+            //     url = new URL(url.toString() + '/');
             try {
                 this.targetURL = url;
                 this.rootNode().locationChanged();
@@ -68,6 +80,8 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
             console.log('new url: ' + url);
         });
     },
+
+    setLocation: function() {},
 
     rootNode: function() {
         var srcCtrl = lively.ide.startSourceControl();
@@ -132,9 +146,10 @@ Object.extend(lively.ide.SystemBrowser, {
 });
 
 Object.extend(lively.ide, {
+
     browse: function(/*args*/) {
         // args can be:
-        // 1. objectName, methodName, moduleNameOrSpec
+        // 1. objectName, methodName, moduleNameOrSpec, optional browser instance
         //   Browse a method in a object (class, layer, etc)
         //   See MethodFinder for original implementation
         //   Example:
@@ -142,19 +157,20 @@ Object.extend(lively.ide, {
         //   methodName = "onMouseDown"
         //   moduleNameOrSpec = "lively.morphic.Events"
         //     || {name: "lively.ast.LivelyJSParser", type: 'ometa'};
-        // 2. URL (URL object or string)
-        // 3. path (String) relative to URL.root
+        // 2. URL (URL object or string), optional browser instance
+        // 3. path (String) relative to URL.root, optional browser instance
 
         var args = Array.from(arguments);
         if (args.length === 0) { this.openSystemCodeBrowser(); return }
-        if (args.length === 1) { // url or path
+        if (args.length <= 2) { // url or path or options object
             var url = args[0].toString().startsWith('http:') ?
                 new URL(args[0]) : URL.root.withFilename(args[0]);
-            this.browseURL(url);
+            this.browseURL(url, args[1]/*optional browser*/);
         } else {
             var objectName = args[0],
                 methodName = args[1],
-                moduleNameOrSpec = args[2];
+                moduleNameOrSpec = args[2],
+                browser = args[3];
 
             var promise = {}, moduleName, moduleType;
             if (Object.isString(moduleNameOrSpec)) {
@@ -177,18 +193,19 @@ Object.extend(lively.ide, {
                 });
 
             if (fileFragments.length > 0) {
-                return fileFragments[0].browseIt()
+                return fileFragments[0].browseIt(browser)
             } else {
                 alert("could not browse " + methodName + " in " + objectName);
-                rootNode.browseIt();
+                rootNode.browseIt(browser);
                 return false;
             }
 
             return promise;
         }
     },
-    browseURL: function(url) {
-        var browser = this.openSystemCodeBrowser();
+
+    browseURL: function(url, browser) {
+        browser = browser || this.openSystemCodeBrowser();
         if (url.isLeaf()) {
             var dir = url.getDirectory(),
                 fileName = url.filename();
@@ -201,12 +218,12 @@ Object.extend(lively.ide, {
         }
 
     },
+
     openSystemCodeBrowser: function() {
         var browser = new lively.ide.SystemBrowser();
         browser.openIn(lively.morphic.World.current());
         return browser;
-    },
-
+    }
 
 });
 

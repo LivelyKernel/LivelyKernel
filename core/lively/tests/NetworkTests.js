@@ -148,7 +148,17 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
     testAsModuleName: function() {
         var url = URL.codeBase.withFilename('foo/bar/Baz.js');
         this.assertEquals('foo.bar.Baz', url.asModuleName());
+    },
+
+    testExtension: function() {
+        var url = URL.codeBase.withFilename('foo/bar/Baz.js');
+        this.assertEquals('js', url.extension());
+        url = URL.codeBase.withFilename('foo');
+        this.assertEquals('', url.extension());
+        url = URL.codeBase.withFilename('foo/');
+        this.assertEquals(null, url.extension());
     }
+
 });
 
 TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',

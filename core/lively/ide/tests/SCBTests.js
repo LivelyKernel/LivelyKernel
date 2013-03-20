@@ -1,4 +1,5 @@
 module('lively.ide.tests.SCBTests').requires('lively.TestFramework', 'lively.ide').toRun(function() {
+
 // Browser related tests
 TestCase.subclass('lively.ide.tests.SCBTests.SystemBrowserTests', {
 
@@ -10,9 +11,9 @@ TestCase.subclass('lively.ide.tests.SCBTests.SystemBrowserTests', {
         this.browser = browser;
     },
 
-	  createBrowser: function() {
-		    return new lively.ide.BasicBrowser();
-	  },
+    createBrowser: function() {
+        return new lively.ide.BasicBrowser();
+    },
 
 	  mockNodeClass: lively.ide.BrowserNode.subclass('lively.ide.tests.SCBTests.MockNode', {
 			  initialize: function($super, target, browser, c) { $super(target, browser); this.children = c || [] },
@@ -394,7 +395,7 @@ TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',
 TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
 'testing', {
 
-    shouldRun: false,
+    shouldRun: true,
 
     testLivelyIdeBrowse: function() {
         var sut = lively.ide.browse("lively.morphic.Morph", "onMouseDown", "lively.morphic.Events");

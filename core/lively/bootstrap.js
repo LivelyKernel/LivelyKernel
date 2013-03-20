@@ -2,13 +2,9 @@
 /*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true, regexp: false*/
 
 (function bootstrapLively(Global) {
-    // "Global" is the lively accessor to the toplevel JS scope
-    Global.Global = Global;
     var hostString = Global.document && document.location.host,
-        useMinifiedLibs = hostString && hostString.indexOf('localhost') === -1,
-        browserDetector;
+        useMinifiedLibs = hostString && hostString.indexOf('localhost') === -1;
 
-    var BrowserDetector = function(optSpec) {
     /*
     * Detects browsers with help of the userAgent property of the navigator object.
     * Lookup for browsers happens by the name of the application.
@@ -26,6 +22,7 @@
     * Version numbers can be specified as you like but the object will only use
     * the first two components of the version - the rest will be ignored.
     */
+    var BrowserDetector = function(optSpec) {
         var that = {},
             spec = optSpec || [{
                 browser: "Chrome",
@@ -38,7 +35,7 @@
                 version: "5",
                 versionPrefix: "Version"
             }],
-            userAgent = navigator.userAgent;
+            userAgent = Global['navigator'] ? navigator.userAgent : '';
 
         that.detectBrowser = function(optSpec) {
             var fullSpec = optSpec || spec,
@@ -125,9 +122,7 @@
         };
 
         that.isNodejs = function() {
-            return typeof window === "undefined"
-                && Global.process
-                && !!Global.process.versions.node;
+            return (typeof process !== 'undefined') && !!process.versions.node;
         };
 
         that.isSpecSatisfied = function() {
@@ -165,13 +160,40 @@
     };
 
     // run detection a first time
-    browserDetector = new BrowserDetector();
+    var browserDetector = new BrowserDetector();
 
+    (function setupGlobal() {
+        if (browserDetector.isNodejs()) {
+            // Now setup a DOM and window object
+            var jsdom = require("jsdom").jsdom,
+                world = {__LivelyClassName__: "lively.morphic.World",
+                         __SourceModuleName__: "Global.lively.morphic.Core",
+                        submorphs:[],scripts:[],id:0,
+                        shape: {id:1, __isSmartRef__: true}},
+                shape = {__LivelyClassName__: "lively.morphic.Shapes.Rectangle",
+                         __SourceModuleName__: "Global.lively.morphic.Shapes"},
+                worldData = {id:0,registry:{0:world,1:shape,isSimplifiedRegistry: true}},
+                worldDataJson = JSON.stringify(worldData),
+                body = '<script type="text/x-lively-world">'+worldDataJson+'</script>',
+                markup = '<html><head><title>Lively</title></head><body>'+body+'</body></html>',
+                doc = jsdom(markup);
+            Global = doc.createWindow();
+            Global.window = window = Global;
+            Global.document = document = doc;
+            Global.console = console;
+            Global.Event = {};
+            Global.getSelection = function() {};
+            Global.UserAgent = {isNodeJS: true};
+            Global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+            module.exports = Global;
+        }
+        // "Global" is the lively accessor to the toplevel JS scope
+        Global.Global = Global;
+    })();
 
     (function ensureConfig() {
-        // Should have addtional logic for the case when no no window object
-        // exist...
         if (!Global.Config) Global.Config = {};
+        Config = Global.Config;
     })();
 
     (function setupLively() {
@@ -186,20 +208,6 @@
             };
         }
         lively.useMinifiedLibs = useMinifiedLibs;
-    })();
-
-    (function setupNodejs() {
-        if (!browserDetector.isNodejs()) return;
-        // First define Global
-        // Now setup a DOM and window object
-        var jsdom = require("jsdom").jsdom,
-            markup = "<html><body><h1>test</h1></html></body>",
-            doc = jsdom(markup);
-        Global.window = doc.createWindow();
-        // FIX for global, see
-        // https://github.com/tmpvar/jsdom/commit/667948b3f0be1e1eb8edb8f0c5422deec84b25c2
-        // and https://github.com/brianmcd/contextify
-        window.window = window.getGlobal();
     })();
 
     (function setupConsole() {
@@ -729,9 +737,9 @@
             return document.getElementsByTagName('script');
         },
 
-        scriptInDOM: browserDetector.isNodejs() ?
-            function() { return false; } :
-            function(url) { return this.scriptsThatLinkTo(url).length > 0; },
+        scriptInDOM: function(url) {
+            return this.scriptsThatLinkTo(url).length > 0;
+        },
 
         scriptsThatLinkTo: function(url) {
             var scriptsFound = [],
@@ -1161,8 +1169,13 @@
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-
     // initializing bootstrap
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-
-    var domLoaded = false;
-    Global.addEventListener('DOMContentLoaded', function() { domLoaded = true; }, true);
+    var domLoaded;
+    if (browserDetector.isNodejs()) {
+        domLoaded = true;
+    } else {
+        domLoaded = false;
+        Global.addEventListener('DOMContentLoaded', function() { domLoaded = true; }, true);
+    }
 
     function setupExitWarning() {
         Global.addEventListener('beforeunload', function(evt) {
@@ -1205,12 +1218,25 @@
             'lively/defaultconfig.js',
             'lively/localconfig.js',
             'lively/Base.js',
-            'lively/ModuleSystem.js',
-            'lively/lang/Closure.js',   // FIXME: require module instead
-            'lively/lang/UUID.js',      // FIXME: require module instead
-            'lively/LocalStorage.js'    // FIXME: require module instead
+            'lively/ModuleSystem.js'
         ];
-        Global.LivelyLoader.bootstrap(function() { console.log('bootstrap done'); });
+        var bootstrapModules = [
+            'lively.lang.Closure',
+            'lively.lang.UUID',
+            'lively.bindings',
+            'lively.Main'
+        ];
+        Global.LivelyLoader.bootstrap(function() {
+            // need to use Lively's global eval because it creates functions
+            // with proper Function.prototype extensions
+            var finished = Global.eval('(' + function() {
+                debugger;
+                var loader = lively.Main.getLoader(document);
+                loader.systemStart(document);
+                console.log('bootstrap done');
+            } + ')');
+            Global.require(bootstrapModules).toRun(finished);
+        });
     }
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-

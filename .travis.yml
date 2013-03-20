@@ -19,7 +19,7 @@ before_script:
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "lk server --forever"
 
-script: "lk test --display :1"
+script: "lk test --nodejs && lk test --display :1"
 
 branches:
   except: ww-mirror-2.1.3

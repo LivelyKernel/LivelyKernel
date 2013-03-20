@@ -161,12 +161,17 @@ Object.subclass('lively.persistence.SpecObject',
 
         // helper for assigning retrieving attribute values of instance
         function set(key, val, buildSpecAttr) {
+            // buildSpec #recreate
             if (buildSpecAttr && buildSpecAttr.recreate) {
                 buildSpecAttr.recreate(instance, object, key, val);
                 return;
             }
+            // scripts
+            if (Object.isFunction(val) && val.name) { instance.addScript(val, key); return; }
             if (!key.startsWith('_')) { instance[key] = val; return; }
+            // normal attributes
             var setter = instance['set' + key.replace(/^_/, '').capitalize()];
+            // _Attributes
             if (Object.isFunction(setter)) { setter.call(instance, val); }
         }
 

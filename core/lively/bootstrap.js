@@ -553,16 +553,45 @@
         XLINKNamespace: 'http:\/\/www.w3.org/1999/xlink',
         LIVELYNamespace: 'http:\/\/www.experimentalstuff.com/Lively',
 
+        require: function(relPath) {
+            // for use with NodeJS
+            var pathLib = require('path'),
+                absPath = pathLib.resolve(relPath),
+                path = 'file://' + absPath + (/\.js$/.test(absPath) ? '' : '.js'),
+                loaded = false,
+                that = this,
+                cb;
+            Global.lively.whenLoaded(function() {
+                that.loadJs(path, function() {
+                    console.log("loaded " + path);
+                    loaded = true;
+                    if (cb) cb();
+                });
+            });
+            return {
+                toRun: function(toRunCB) {
+                    if (loaded) {
+                        console.log("already loaded");
+                        toRunCB();
+                    } else {
+                        console.log("wait for loading");
+                        cb = toRunCB;
+                    }
+                }
+            };
+        },
         loadJs: browserDetector.isNodejs() ?
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                 console.log('loading ' + url);
-                var path = url.match(/(^http|^file):\/\/(.*)/)[2],
-                    fs = require('fs'),
-                    code = fs.readFileSync(path),
-                    vm = require('vm');
-                // vm.runInThisContext(code, path);
-                eval(code);
-                if (onLoadCb) onLoadCb();
+                var path = url;
+                //var path = url.match(/(^http|^file):\/\/(.*)/)[2];
+                var scriptEl = window.document.createElement("script");
+                scriptEl.src = path;
+                window.document.body.appendChild(scriptEl);
+                if (onLoadCb) {
+                    scriptEl.onload = onLoadCb;
+                }
+                return Global;
             } :
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                 if (okToUseCache === undefined) okToUseCache = true;

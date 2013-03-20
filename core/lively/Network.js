@@ -33,6 +33,7 @@
 module('lively.Network').requires('lively.bindings', 'lively.Data').toRun(function(thisModule) {
 
 Object.subclass('URL', {
+    isURL: true,
     splitter: new RegExp('(http:|https:|file:)' + '(//[^/:]*(:[0-9]+)?)?' + '(/.*)?'),
     pathSplitter: new RegExp("([^\\?#]*)(\\?[^#]*)?(#.*)?"),
 
@@ -99,6 +100,13 @@ Object.subclass('URL', {
         return p.substring(slash + 1);
     },
 
+    extension: function() {
+        if (!this.isLeaf()) return null;
+        var fn = this.filename(),
+            idx = fn.lastIndexOf('.');
+        return idx === -1 ? '' : fn.slice(-idx+1);
+    },
+
     normalizedHostname: function() {
         return this.hostname.replace(/^www\.(.*)/, '$1');
     },
@@ -110,11 +118,6 @@ Object.subclass('URL', {
         return this.fullPath().endsWith('/') ?
             this : new URL(this.withoutQuery().toString() + '/');
     },
-
-
-
-
-
 
     withPath: function(path) {
         var result = path.match(this.pathSplitter);
@@ -175,11 +178,11 @@ Object.subclass('URL', {
             url.search == this.search &&
             url.hash == this.hash;
     },
+
     isIn: function(origin) {
         return origin.normalizedHostname() == this.normalizedHostname() &&
             this.fullPath().startsWith(origin.fullPath());
     },
-
 
     relativePathFrom: function(origin) {
         function checkPathes(path1, path2) {

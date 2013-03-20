@@ -556,7 +556,8 @@
         require: function(relPath) {
             // for use with NodeJS
             var pathLib = require('path'),
-                absPath = pathLib.resolve(relPath),
+                parentDir = pathLib.dirname(module.parent.filename),
+                absPath = pathLib.resolve(parentDir, relPath),
                 path = 'file://' + absPath + (/\.js$/.test(absPath) ? '' : '.js'),
                 loaded = false,
                 that = this,

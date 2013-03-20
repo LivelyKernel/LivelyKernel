@@ -434,7 +434,6 @@ Object.subclass('NetRequestStatus',
 
 });
 
-
 View.subclass('NetRequest',
 'settings', {
     documentation: "a view that writes the contents of an http request into the model",
@@ -533,8 +532,11 @@ View.subclass('NetRequest',
                 this.setResponseText(this.getResponseText());
             if (this.transport.responseXML !== undefined)
                 this.setResponseXML(this.getResponseXML());
-            if (this.transport.getAllResponseHeaders() !== undefined)
-                this.setResponseHeaders(this.getResponseHeaders());
+            try {
+                if (this.transport.getAllResponseHeaders() !== undefined)
+                    this.setResponseHeaders(this.getResponseHeaders());
+            } catch(e) {} // ignore responses without headers
+                          // (e.g. when using file:// requests)
             this.disconnectModel(); // autodisconnect?
         }
     },
@@ -1274,9 +1276,12 @@ Object.subclass('WebResource',
     },
 
     setLastModificationDateFromXHR: function(xhr) {
-        var dateString = xhr.getResponseHeader("last-modified")
-                      || xhr.getResponseHeader("Date");
-        if (dateString) this.lastModified = new Date(dateString);
+        try {
+            var dateString = xhr.getResponseHeader("last-modified")
+                          || xhr.getResponseHeader("Date");
+            if (dateString) this.lastModified = new Date(dateString);
+        } catch (e) {} // ignore errors when headers are missing
+                       // (e.g. when making file:// requests)
     }
 },
 'accessing', {

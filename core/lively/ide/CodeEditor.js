@@ -142,24 +142,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'serialization', {
     onLoad: function() {
-        if (this.aceThemeName) {
-            this.setTheme(this.aceThemeName);
-            delete this.aceThemeName;
-        }
-        if (this.aceTextModeName) {
-            this.setTextMode(this.aceTextModeName);
-            delete this.aceTextModeName;
-        }
         this.initializeAce();
     },
 
     onstore: function($super, persistentCopy) {
         $super(persistentCopy);
-        this.withAceDo(function(ed) {
-            persistentCopy.aceThemeName = this.getTheme();
-            persistentCopy.aceTextModeName = this.getTextMode();
-            persistentCopy.storedTextString = this.textString;
-        });
+        persistentCopy.storedTextString = this.textString;
     },
 
     onrestore: function($super) {
@@ -193,11 +181,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                           + ' top:0;'
                           + ' bottom:0;left:0;right:0;'
                           + ' font-family: Monaco,monospace;'
-                          + ' font-size: ' + Config.get('defaultCodeFontSize') + 'pt;'
                           + '}');
         this.setupKeyBindings();
         this.setTextMode(this.getTextMode() || "");
         this.setTheme(this.getTheme() || '');
+        this.setFontSize(this.getFontSize());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
@@ -520,9 +508,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.withAceDo(function(ed) {
             ed.setTheme(lively.ide.ace.moduleNameForTheme(themeName));
         });
+        return this._Theme = themeName;
     },
 
     getTheme: function() {
+        if (this._Theme) return this._Theme;
         return this.withAceDo(function(ed) {
             var theme = ed.getTheme() || '';
             return theme.replace('ace/theme/', '');
@@ -533,9 +523,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.withAceDo(function(ed) {
             ed.session.setMode(lively.ide.ace.moduleNameForTextMode(modeName));
         });
+        return this._TextMode = modeName;
     },
 
     getTextMode: function() {
+        if (this._TextMode) return this._TextMode;
         return this.withAceDo(function(ed) {
             var mode = ed.session.getMode(),
                 name = mode && mode.$id ? mode.$id : 'text';
@@ -844,11 +836,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     setFontSize: function(size) {
-        this.getShape().shapeNode.style.fontSize = size + 'pt';
+        this.withAceDo(function(ed) { ed.setOption("fontSize", size); });
         return this._FontSize = size;
     },
 
-    getFontSize: function() { return this._FontSize; },
+    getFontSize: function() {
+        if (this._FontSize) return this._FontSize;
+        return this.withAceDo(function(ed) { return ed.getOption("fontSize"); })
+            || Config.get("defaultCodeFontSize");
+    },
 
     setFontFamily: function(fontName) {
         this.getShape().shapeNode.style.fontFamily = fontName;
@@ -900,6 +896,7 @@ lively.morphic.World.addMethods(
             pane = this.internalAddWindow(editor, options.title, options.position);;
         editor.applyStyle({resizeWidth: true, resizeHeight: true});
         editor.accessibleInInactiveWindow = true;
+        if (options.theme) editor.setTheme(options.theme);
         editor.focus();
         return pane;
     },
@@ -909,7 +906,8 @@ lively.morphic.World.addMethods(
         var window = this.addCodeEditor({
             title: "Workspace",
             content: "nothing",
-            syntaxHighlighting: !0
+            syntaxHighlighting: !0,
+            theme: Config.aceWorkspaceTheme
         });
         return window;
     }),

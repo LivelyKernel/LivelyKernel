@@ -34,22 +34,22 @@ module('lively.Network').requires('lively.bindings', 'lively.Data').toRun(functi
 
 Object.subclass('URL', {
     isURL: true,
-    splitter: new RegExp('(http:|https:|file:)' + '(//[^/:]*(:[0-9]+)?)?' + '(/.*)?'),
+    splitter: new RegExp('^(http|https|file)://([^/:]*)(:([0-9]+))?(/.*)?$'),
     pathSplitter: new RegExp("([^\\?#]*)(\\?[^#]*)?(#.*)?"),
 
-    initialize: function(/*...*/) { // same field names as window.location
+    initialize: function(url) { // same field names as window.location
         dbgOn(!arguments[0]);
-        if (Object.isString(arguments[0].valueOf())) {
-            var urlString = arguments[0];
+        if (Object.isString(url.valueOf())) {
+            var urlString = url;
             var result = urlString.match(this.splitter);
             if (!result) throw new Error("malformed URL string '" + urlString + "'");
             this.protocol = result[1];
             if (!result[1])
                 throw new Error("bad url " + urlString + ", " + result);
-            this.hostname = result[2] && result[2].substring(2).split(':')[0]; // skip the leading slashes and remove port
-            this.port = result[3] && parseInt(result[3].substring(1)); // skip the colon
+            this.hostname = result[2]; // empty means localhost
+            this.port = result[4] && parseInt(result[4]);
 
-            var fullpath = result[4];
+            var fullpath = result[5];
             if (fullpath) {
                 result = fullpath.match(this.pathSplitter);
                 this.pathname = result[1];
@@ -61,7 +61,7 @@ Object.subclass('URL', {
                 this.hash = "";
             }
         } else { // spec is either an URL or window.location
-            var spec = arguments[0];
+            var spec = url;
             this.protocol = spec.protocol || "http";
             this.port = spec.port;
             this.hostname = spec.hostname;
@@ -76,7 +76,7 @@ Object.subclass('URL', {
     },
 
     toString: function() {
-        return this.protocol + "//" + this.hostname + (this.port ? ":" + this.port : "") + this.fullPath();
+        return this.protocol + "://" + this.hostname + (this.port ? ":" + this.port : "") + this.fullPath();
     },
 
     fullPath: function() {
@@ -87,8 +87,8 @@ Object.subclass('URL', {
         return !this.fullPath().endsWith('/');
     },
 
-    // POSIX style
     dirname: function() {
+        // POSIX style
         var p = this.pathname;
         var slash = p.endsWith('/') ? p.lastIndexOf('/', p.length - 2) : p.lastIndexOf('/');
         return p.substring(0, slash + 1);
@@ -114,6 +114,7 @@ Object.subclass('URL', {
     getDirectory: function() {
         return this.withPath(this.dirname());
     },
+
     asDirectory: function() {
         return this.fullPath().endsWith('/') ?
             this : new URL(this.withoutQuery().toString() + '/');
@@ -249,19 +250,20 @@ Object.subclass('URL', {
     },
 
     withRelativePartsResolved: function() {
-        var urlString = this.toString(),
-            result = urlString;
-        // resolve ..
+        var path = this.fullPath(),
+            result = path;
+        // /foo/../bar --> /bar
         do {
-            urlString = result;
-            result = urlString.replace(/\/[^\/]+\/\.\./, '')
-        } while(result != urlString)
+            path = result;
+            result = path.replace(/\/[^\/]+\/\.\./, '');
+        } while (result != path);
         // foo//bar --> foo/bar
-        result = result.replace(/([^:])[\/]+/g, '$1/')
+        result = result.replace(/([^:])[\/]+/g, '$1/');
         // foo/./bar --> foo/bar
-        result = result.replace(/\/\.\//g, '/')
-        return new URL(result)
+        result = result.replace(/\/\.\//g, '/');
+        return this.withPath(result);
     },
+
     getAllParentDirectories: function() {
         var url = this, all = [], max = 100;;
         do {
@@ -346,23 +348,20 @@ Object.extend(URL, {
     create: function(string) { return new URL(string) },
 
     ensureAbsoluteURL: function(urlString) {
-        return /^http.*/.test(urlString) ?
+        return /^(http|file).*/.test(urlString) ?
         new URL(urlString) :
         URL.source.notSvnVersioned().getDirectory().withRelativePath(urlString);
     },
     ensureAbsoluteCodeBaseURL: function(urlString) {
-        return /^http.*/.test(urlString) ?
+        return /^(http|file).*/.test(urlString) ?
             new URL(urlString) :
             URL.codeBase.withRelativePath(urlString);
     },
     ensureAbsoluteRootPathURL: function(urlString) {
-        return /^http.*/.test(urlString) ?
+        return /^(http|file).*/.test(urlString) ?
             new URL(urlString) :
             new URL(Config.rootPath).withRelativePath(urlString);
     },
-
-
-
     fromLiteral: function(literal) {
         return new URL(literal)
     },

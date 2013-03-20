@@ -452,32 +452,42 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
     },
 
     getTestClass: function() {
-        var node = this.getSelectedNode(),
-            klassName = node.target.getClassName ? node.target.getClassName() : node.target.className,
+        var node = this.getSelectedNode();
+            klassName = (node.isClassNode && node.target.getName())
+                     || (node.target.getClassName && node.target.getClassName())
+                     || node.target.className,
             klass = Class.forName(klassName);
-        return klass && Global.TestCase && klass.isSubclassOf(TestCase) && klass;
+        return Class.isClass(klass) && Global.TestCase && klass.isSubclassOf(TestCase) && klass;
     },
 
     isActive: function(pane) {
         var node = this.getSelectedNode();
-        if (!node || !node.isMemberNode || node.target.isStatic() || !node.target.getName().startsWith('test'))
-            return;
-        return this.getTestClass() != null;
+        if (!node) return false;
+        if (node.isClassNode && !!this.getTestClass()) return true;
+        if (node.isMemberNode && !node.target.isStatic() && node.target.getName().startsWith('test')) return true;
+        return false;
     },
 
     runTest: function() {
         var klass = this.getTestClass(),
-            testSelector = this.getSelectedNode().target.getName(),
+            node = this.getSelectedNode(),
+            testSelector = node.isMemberNode && node.target.getName(),
             test = new klass();
-        alertOK('Running test ' + klass.type + '>>' + testSelector);
-        test.runTest(testSelector);
+        if (testSelector) {
+            alertOK('Running test ' + klass.type + '>>' + testSelector);
+            test.runTest(testSelector);
+        } else {
+            alertOK('Running tests of ' + klass.type);
+            test.runAll();
+        }
         var failures = test.result.failureList();
         if (failures.length == 0) {
-            var msg = klass.name + '>>' + testSelector + ' succeeded';
+            var msg = testSelector ?
+                        klass.name + '>>' + testSelector + ' succeeded' :
+                        'all tests of ' + klass.name + ' succeeded';
             lively.morphic.World.current().setStatusMessage(msg, Color.green, 3);
         } else {
-            // lively.morphic.World.current().setStatusMessage(failures[0], Color.red, 6);
-            lively.morphic.World.current().logError(test.result.failed[0].err)
+            lively.morphic.World.current().logError(test.result.failed[0].err);
         }
     },
 

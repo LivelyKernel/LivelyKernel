@@ -15756,11 +15756,11 @@ function patchHighlightMarkerStyling(options) {
     var id = 'incremental-search-highlighting',
         css = 'div.ace_isearch-result {\n'
             + "  border-radius: 4px;\n"
-            + "  border: 8px solid rgba(255, 200, 0, 0.5);\n"
+            + "  background-color: rgba(255, 200, 0, 0.5);\n"
             + "  box-shadow: 0 0 4px rgb(255, 200, 0);\n"
             + "}\n"
             + '.ace_dark div.ace_isearch-result {\n'
-            + "  border: 8px solid rgb(100, 110, 160);\n"
+            + "  background-color: rgb(100, 110, 160);\n"
             + "  box-shadow: 0 0 4px rgb(80, 90, 140);\n"
             + '}\n'
     dom.importCssString(css, id);
@@ -16111,12 +16111,12 @@ var dom = require('./lib/dom');
     var id = 'incremental-occur-highlighting',
         css = 'div.ace_occur-highlight {\n'
             + "  border-radius: 4px;\n"
-            + "border: 8px solid rgba(87, 255, 8, 0.25);\n"
-            + "box-shadow: 0 0 4px rgb(91, 255, 50);\n"
+            + "  background-color: rgba(87, 255, 8, 0.25);\n"
+            + "  box-shadow: 0 0 4px rgb(91, 255, 50);\n"
             + "}\n"
             + '.ace_dark div.ace_occur-highlight {\n'
-            + "border: 8px solid rgb(80, 140, 85);\n"
-            + "box-shadow: 0 0 4px rgb(60, 120, 70);\n"
+            + "  background-color: rgb(80, 140, 85);\n"
+            + "  box-shadow: 0 0 4px rgb(60, 120, 70);\n"
             + '}\n';
     dom.importCssString(css, id);
 })();

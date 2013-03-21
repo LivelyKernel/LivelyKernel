@@ -293,6 +293,7 @@ Object.subclass('lively.Module',
         if (typeof libSpec.loadTest !== 'function') {
             throw new Error('libSpec.loadTest is not a function!');
         }
+        if (libSpec.loadTest()) return; // skip polling if load tests already succeeds
         if (!this.libLoadTests) this.libLoadTests = [];
         this.libLoadTests.push(libSpec.loadTest);
         JSLoader.loadJs(String(libSpec.url || libSpec.uri));

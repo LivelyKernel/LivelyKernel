@@ -293,6 +293,7 @@ Object.subclass('lively.Module',
         if (typeof libSpec.loadTest !== 'function') {
             throw new Error('libSpec.loadTest is not a function!');
         }
+        if (libSpec.loadTest()) return; // skip polling if load tests already succeeds
         if (!this.libLoadTests) this.libLoadTests = [];
         this.libLoadTests.push(libSpec.loadTest);
         JSLoader.loadJs(String(libSpec.url || libSpec.uri));
@@ -379,16 +380,15 @@ Object.subclass('lively.Module',
 },
 'loading', {
     load: function(loadSync) {
-        var prevWasSync = false;
-        if (loadSync) {
-            prevWasSync = this.constructor.loadSync;
-            this.constructor.loadSync = true;
+        if (!this.wasDefined) {
+            return JSLoader.loadJs(this.uri(), null, loadSync);
+        }
+        if (this.hasPendingRequirements()) {
+            return this.loadRequirementsFirst();
         }
         if (this.isLoaded()) {
             this.runOnloadCallbacks();
-            return;
-        }
-        if (this.isLoading() && this.wasDefined && !this.hasPendingRequirements()) {
+        } else {
             this.runOnloadCallbacks();
             // time is not only the time needed for the request and code
             // evaluation but the complete time span from the creation of the
@@ -397,14 +397,7 @@ Object.subclass('lively.Module',
             var time = this.createTime ? new Date() - this.createTime : 'na';
             console.log(this.uri() + ' loaded in ' + time + ' ms');
             this.informDependendModules();
-            return;
         }
-        if (this.isLoading()) {
-            this.loadRequirementsFirst();
-            return;
-        }
-        JSLoader.loadJs(this.uri(), null, this.constructor.loadSync);
-        if (loadSync) this.constructor.loadSync = prevWasSync;
     },
 
     activate: function() {

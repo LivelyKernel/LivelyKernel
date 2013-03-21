@@ -34,6 +34,13 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
         this.assertEquals(module('users/robertkrahn/foo.js').uri(),
                           module('users.robertkrahn.foo').uri());
     },
+    testToRun: function() {
+        var moduleCodeExecuted = false;
+        module('foo.baz').requires().toRun(function() {
+            moduleCodeExecuted = true;
+        });
+        this.assert(moduleCodeExecuted, 'module not executed');
+    },
     testRequireLib: function() {
         var moduleCodeExecuted = false;
         module('foo.bar').requires().requiresLib().toRun(function() {

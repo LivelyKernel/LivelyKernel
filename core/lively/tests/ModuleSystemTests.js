@@ -36,20 +36,19 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
     },
     testToRun: function() {
         var moduleCodeExecuted = false;
-        module('foo.baz').requires().toRun(function() {
+        module('foo.goo').requires().toRun(function() {
             moduleCodeExecuted = true;
         });
         this.assert(moduleCodeExecuted, 'module not executed');
     },
     testRequireLib: function() {
-        var moduleCodeExecuted = false;
-        module('foo.bar').requires().requiresLib().toRun(function() {
+        var moduleCodeExecuted = false,
+            lib = {uri: URL.root.withFilename('foo.js'), loadTest: function() { return false; }};
+        module('foo.bar').requires().requiresLib(lib).toRun(function() {
             moduleCodeExecuted = true;
         });
         this.assert(!moduleCodeExecuted, 'module prematurely executed');
     }
-
-
 });
 
 AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',

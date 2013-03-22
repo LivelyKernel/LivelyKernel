@@ -725,14 +725,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     turnParserErrorsOff: function() { this.debugMode = false },
     turnParserErrorsOn: function() { this.debugMode = true }
 
-
 });
 
-lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
-
-    documentation: 'Hack for deserializing my browser widget',
-
-    openForDragAndDrop: false,
+lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
+'serialization', {
 
     onDeserialize: function($super) {
         var widget = new this.ownerWidget.constructor(),
@@ -742,7 +738,10 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
         this.owner.targetMorph.setPosition(this.getPosition());
         this.remove();
         this.resetSelection(selection, widget);
-    },
+    }
+
+},
+'accessing', {
 
     getPane: function(pane) { return this[pane] && this[pane].innerMorph() },
 
@@ -769,12 +768,10 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
     resetSelection: function(selectionSpec, widget) {
         for (var paneName in selectionSpec)
             widget.inPaneSelectNodeNamed(paneName, selectionSpec[paneName]);
-    },
-    onWindowGetsFocus: function() {
-        this.sourcePane && this.sourcePane.focus();
-    },
+    }
 
-
+},
+'shutdown', {
     shutdown: function($super) {
         $super();
         var browser = this.ownerWidget;
@@ -784,6 +781,12 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
         }
         console.log('unregister browser: ' + browser);
         browser.stop();
+    }
+},
+'events', {
+
+    onWindowGetsFocus: function() {
+        this.sourcePane && this.sourcePane.focus();
     },
 
     onKeyDown: function(evt) {

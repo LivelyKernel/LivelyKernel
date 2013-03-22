@@ -3124,7 +3124,16 @@ Object.subclass('lively.morphic.TextEmphasis',
             propStrings.push(key + ': ' +  String(value));
         });
         return 'TextEmphasis(' + propStrings.join(',') + ')';
+    },
+    asSpec: function() {
+        var spec = {};
+        Properties.forEachOwn(this.styleAttributes, function(name, attr) {
+            var val = attr.get.call(this);
+            if (val !== undefined) spec[name] = val;
+        }, this);
+        return spec;
     }
+
 });
 
 Object.extend(lively.morphic.TextEmphasis, {

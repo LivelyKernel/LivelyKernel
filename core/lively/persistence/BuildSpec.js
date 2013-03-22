@@ -1,99 +1,153 @@
-module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization").toRun(function() {
+module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization", "lively.ide.CodeEditor").toRun(function() {
 
-Object.subclass('lively.persistence.MorphSpecBuilder',
+Object.subclass('lively.persistence.SpecObject',
 'properties', {
-    isInstanceRestorer: true, // so the class knows not ot initialize anything
-    ignorePropList: ["submorphs", "scripts", "id", "shape", "registeredForMouseEvents", "partsBinMetaInfo", "eventHandler", "derivationIds", "partTests", "moved", "_renderContext", "_isRendered", "owner", "cachedBounds", "isBeingDragged", "halos", "priorExtent", "distanceToDragEvent"],
-
-    //morphProps = ["name",
-    //              "doNotSerialize", "doNotCopyProperties",
-    //              "grabbingEnabled", "droppingEnabled", "halosEnabled", "showsHalos",
-    //              "_ClipMode",
-    //              "_StyleSheet", "_StyleClassNames",
-    //              "_Position", "_Extent", "_Rotation", "_Scale",
-    //              // list:
-    //              "itemList", "grabbingEnabled", "_FontSize",
-    //              // button
-    //              "isActive", "label",
-    //              // text
-    //              "fixedWidth", "fixedHeight", "allowsInput", "_FontFamily", "_MaxTextWidth",
-    //              "_MaxTextHeight", "textColor",  "_FontSize", "_Padding", "_WhiteSpaceHandling",
-    //              "_MinTextWidth", "_MinTextHeight", "_WordBreak"]
-    //
-    //'{\n' + morphProps.map(function(ea) { return ea + ': {}'}).join(',\n') + '}'
-
-    morphProps: {
-        name: {},
-        doNotSerialize: {},
-        doNotCopyProperties: {},
-        grabbingEnabled: {},
-        droppingEnabled: {},
-        halosEnabled: {},
-        showsHalos: {},
-        _ClipMode: {},
-        _StyleSheet: {transform: function(morph, val) { return Object.isString(val) ? val : val.getText(); }},
-        _StyleClassNames: {},
-        _Position: {},
-        _Extent: {getter: function(morph) { return morph.getExtent(); }},
-        _Rotation: {},
-        _Scale: {},
-        itemList: {},
-        grabbingEnabled: {},
-        _FontSize: {},
-        isActive: {},
-        label: {},
-        fixedWidth: {},
-        fixedHeight: {},
-        allowsInput: {},
-        _FontFamily: {},
-        _MaxTextWidth: {},
-        _MaxTextHeight: {},
-        textColor: {},
-        _FontSize: {},
-        _Padding: {},
-        _WhiteSpaceHandling: {},
-        _MinTextWidth: {},
-        _MinTextHeight: {},
-        _WordBreak: {}
-    }
-
+    isSpecObject: true,
+    isInstanceRestorer: true // so the class knows not to initialize anything
 },
-'spec construction', {
-    build: function(morph, depth) {        
-        depth = depth || 0;
-        var spec = {};
-        spec.className = morph.constructor.type;
-        var sourceModule = morph.constructor.sourceModule;
-        if (sourceModule && sourceModule.name() !== Global) {
-            spec.sourceModule = sourceModule.name();
-        }
-        var scripts = Functions.own(morph).select(function(sel) {
-            return morph[sel].hasLivelyClosure; }),
-            propsForSpec = [].concat(Object.keys(this.morphProps))
-                .concat(Properties.own(morph).withoutAll(this.ignorePropList))
-                .concat(scripts);
-        propsForSpec.forEach(function(key) {
-            var attr = this.morphProps[key] || {};
+'initializing', {
+
+    initialize: function() {
+        this.attributeStore = {};
+    },
+
+    fromMorph: function(morph) {
+        // iterates through properties of morph and creates a JS object for
+        // recording the state of the morph. This JS object will not store an
+        // arbitrary JS object representation as the
+        // lively.persistence.Serializer does but a Morphic-specific
+        // representation that captures only relevant Morph attributes. However,
+        // this version tries to be as flexible as possible.
+        // Note that certain attributes such as submorphs are handled
+        // specifically with, other attributes such as functions and
+        // serializeExpr are stored as they are, the rest is simply stringified
+        // (plain toString, no deep graph traversal)
+        this.setClass(morph.constructor);
+        var props = Object.mergePropertyInHierarchy(morph, "buildSpecProperties");
+        morph.getBuildSpecProperties(props).forEach(function(key) {
+            var attr = props[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
-            value = morph[key];
-            if (attr.getter) value = attr.getter(morph);
-            if (attr.transform) value = attr.transform(morph, value);
+            var value = morph[key];
+            if (attr.getter) value = attr.getter(morph, value);
+            // don't record values that are the same as their default
+            if (attr.hasOwnProperty("defaultValue") && Objects.equal(attr.defaultValue, value)) { return; }
             if (Object.isFunction(value)) {
-                value = '<function>' + value.toString();
+                // pass
             } else if (value && Object.isFunction(value.serializeExpr)) {
-                value = '<eval>' + value.serializeExpr();
+                // pass
             } else {
                 try { JSON.stringify(value); } catch(e) { value = Strings.print(value); }
             }
-            spec[key] = value;
+            this.set(key, value);
         }, this);
-        spec.submorphs = morph.submorphs.map(function(ea) {
-            return this.build(ea, depth + 1); }, this);
-        return spec;
+        this.setSubmorphs(morph, props);
+        this.setConnections(morph);
+        if (morph.onBuildSpecCreated) morph.onBuildSpecCreated(this.attributeStore);
+        return this;
     },
-    
-    createMorph: function(spec) {
-        var klass = Class.forName(spec.className);
+
+    fromPlainObject: function(object) {
+        var spec = this.attributeStore = Object.extend({}, object);
+        if (spec.submorphs) {
+            spec.submorphs = spec.submorphs.map(function(ea) {
+                return ea.isSpecObject ? ea : lively.persistence.SpecObject.fromPlainObject(ea); });
+        }
+        return this;
+    },
+
+    fromString: function(string) {
+        try {
+            return this.fromPlainObject(eval('(' + string + ')'));
+        } catch(e) { return e; }
+    }
+
+},
+'accessing', {
+    setClass: function(klass) {
+        // records class of object and its sourceModule name
+        this.attributeStore.className = klass.type || klass.name;
+        var sourceModule = klass.sourceModule;
+        if (sourceModule && sourceModule !== Global && Object.isFunction(sourceModule.name)) {
+            this.attributeStore.sourceModule = sourceModule.name();
+        }
+    },
+
+    setSubmorphs: function(morph, properties) {
+        var submorphs = morph.submorphs;
+        if (properties.submorphs && properties.submorphs.filter) {
+            submorphs = properties.submorphs.filter(morph, submorphs);
+        }
+        this.set("submorphs", submorphs.invoke("buildSpec"));
+    },
+
+    setConnections: function(sourceObj) {
+        if (!sourceObj.attributeConnections || sourceObj.attributeConnections.length === 0) return;
+        var rebuilderFunc = this.generateConnectionsRebuilder(sourceObj, sourceObj.attributeConnections);
+        this.set("connectionRebuilder", rebuilderFunc);
+    },
+
+    set: function(key, value) {
+        if (value === undefined) delete this.attributeStore[key];
+        else this.attributeStore[key] = value;
+    }
+},
+'connections', {
+    generateConnectionsRebuilder: function(sourceObj, connections) {
+        var template = '(function connectionRebuilder() {\n    %SOURCE%\n})';
+        function generateFailFunction(err) {
+            var errStr = Strings.print(err).replace(/\n/g, '\n    //');
+            return eval(template.replace('%SOURCE', "// failed with:\n" + errStr));
+        }
+        function generateGetObjectCode(obj) {
+            if (!obj) return null;
+            // 1) this
+            if (sourceObj === obj) return 'this';
+            // 2) lookup by name
+            if (obj.name) return 'this.get("' + obj.name +'")';
+            // 3) lookup owner chain
+            var ownerIdx = sourceObj.ownerChain().indexOf(obj);
+            if (ownerIdx > -1) return 'this' + '.owner'.times(ownerIdx+1);
+            // fail
+            return null;
+        }
+        var sourceGetterCode = generateGetObjectCode(sourceObj);
+        if (!sourceGetterCode) {
+            return generateFailFunction('cannot access sourceObj ' + sourceObj);
+        }
+        var code = connections.map(function(c) {
+            var targetObject = c.getTargetObj(),
+                targetGetterCode = generateGetObjectCode(targetObject);
+            if (!targetGetterCode) {
+                return '// failed to generate rebuild code for ' + String(c);
+            }
+            var optConfig = [];
+            if (c.converterString) { optConfig.push("converter: \n" + c.converterString); }
+        	if (c.updaterString) { optConfig.push("updater: \n" + c.updaterString);}
+        	return Strings.format('lively.bindings.connect(%s, "%s", %s, "%s", {%s});',
+        			              sourceGetterCode,
+        			              c.getSourceAttrName(),
+        			              targetGetterCode,
+        			              c.getTargetMethodName(),
+        			              optConfig.join(','));
+        }).join("\n    ");
+        try { return eval(template.replace(/%SOURCE%/, code)); } catch(e) {
+            return generateFailFunction(e);
+        }
+    }
+
+},
+'morphic', {
+
+    createMorph: function(options, depth) {
+        // Creates a new morph and iterates through properties of spec. The
+        // properties are added to the morph. Certain "special" properties such
+        // as the connections, submorphs, etc. are handled specifically
+        var object = this.attributeStore;
+        options = options || {connectionRebuilders: []};
+        depth = depth || 0;
+
+        // create new morph instance and initialize
+        var klass = Class.forName(object.className);
         if (!klass || !Object.isFunction(klass)) return null;
         var instance = new klass(this);
         if (instance.isMorph) {
@@ -104,55 +158,371 @@ Object.subclass('lively.persistence.MorphSpecBuilder',
             instance.setNewId();
             instance.applyStyle(instance.getStyle());
         }
-        Object.keys(spec).withoutAll(['className', 'sourceModule', 'submorphs']).forEach(function(key) {
-            var specVal = spec[key];
-            if (typeof specVal === 'string') {
-                if (specVal.startsWith('<eval>')) {
-                    try {
-                        specVal = Global.eval(specVal.replace(/^<eval>/, ''));
-                    } catch(e) { specVal = String(e); }
-                } else if (specVal.startsWith('<function>')) {
-                    try {
-                        var func = Global.eval('(' + specVal.replace(/^<function>/, '') + ')');
-                        instance.addScript(func);
-                        return;
-                    } catch(e) { specVal = String(e); }
-                }
-            }
-            if (!key.startsWith('_')) {
-                instance[key] = specVal;
+
+        // helper for assigning retrieving attribute values of instance
+        function set(key, val, buildSpecAttr) {
+            // buildSpec #recreate
+            if (buildSpecAttr && buildSpecAttr.recreate) {
+                buildSpecAttr.recreate(instance, object, key, val);
                 return;
             }
+            // scripts
+            if (Object.isFunction(val) && val.name) { instance.addScript(val, key); return; }
+            if (!key.startsWith('_')) { instance[key] = val; return; }
+            // normal attributes
             var setter = instance['set' + key.replace(/^_/, '').capitalize()];
-            if (Object.isFunction(setter)) {
-                setter.call(instance, specVal);
-            }
+            // _Attributes
+            if (Object.isFunction(setter)) { setter.call(instance, val); }
+        }
+
+        // buildSpecProperties on object level need to be at instance before
+        // other attributes are assigned
+        if (object.buildSpecProperties) {
+            instance.buildSpecProperties = object.buildSpecProperties;
+        }
+        // add anything that was recorded in SpecObj
+        var buildSpecProps = Object.mergePropertyInHierarchy(instance, "buildSpecProperties"),
+            recordedKeys = Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder', 'buildSpecProperties']);
+        recordedKeys.forEach(function(key) { set(key, object[key], buildSpecProps[key]); });
+
+        // add default values
+        var defaults = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key].hasOwnProperty('defaultValue'); });
+        defaults.withoutAll(recordedKeys).forEach(function(key) {
+            set(key, buildSpecProps[key].defaultValue, buildSpecProps[key]);
         });
+
+        // add submorphs
+        if (object.submorphs) {
+            object.submorphs.forEach(function(ea, i) {
+                var submorph = ea.createMorph(options, depth + 1);
+                if (submorph) instance.addMorph(submorph);
+            });
+        }
+
+        // add connections
+        if (object.connectionRebuilder) {
+            options.connectionRebuilders.push(function() { object.connectionRebuilder.call(instance); });
+        }
+        // Defer reinitialization of connections until morph hierarchy is
+        // rebuild. This allows to use morphic name lookup for finding
+        // references of connections
+        if (depth === 0) {
+            options.connectionRebuilders.invoke('call', null);
+            instance.withAllSubmorphsDo(function(ea) { ea.onFromBuildSpecCreated(); });
+        }
+
         return instance;
+    }
+
+},
+'stringification', {
+
+    stringify: function() {
+        return Objects.inspect(this.attributeStore, {printFunctionSource: true, indent: '    '});
+    },
+
+    serializeExpr: function() {
+        var isTopLevel = !lively.persistence.BuildSpec.inRecursivePrint;
+        lively.persistence.BuildSpec.inRecursivePrint = true;
+        try {
+            var string = this.stringify();
+            if (!isTopLevel) return string.split('\n').join('\n    ');
+            var name = lively.persistence.BuildSpec.Registry.nameForSpec(this);
+            if (name) string = '"' + name + '", ' + string;
+            return "lively.BuildSpec(" + string + ')';
+        } finally {
+            if (isTopLevel) delete lively.persistence.BuildSpec.inRecursivePrint;
+        }
+    },
+
+    toString: function() {
+        return this.serializeExpr();
+    }
+
+});
+
+Object.extend(lively.persistence.SpecObject, {
+    fromMorph: function(morph) { return new this().fromMorph(morph); },
+    fromPlainObject: function(object) { return new this().fromPlainObject(object); },
+    fromString: function(string) { return new this().fromString(string); }
+});
+
+Object.subclass('lively.persistence.SpecObjectRegistry',
+'accessing', {
+    get: function(name) { return this[name]; },
+    set: function(name, spec) { return this[name] = spec; },
+    nameForSpec: function(spec) {
+        return Properties.nameFor(this, spec);
+    },
+
+},
+'testing', {
+    has: function(name) { return !!this.get(name); }
+});
+
+Object.extend(lively, {
+    BuildSpec: function(/*[name], specObj*/) {
+        // name is optional for registering the specObj
+        // specObj can be a plain JS object or an instance of SpecObject
+        var name = Object.isString(arguments[0]) && arguments[0],
+            specObj = name ? arguments[1] : arguments[0],
+            registry = lively.persistence.BuildSpec.Registry;
+        // just lookup
+        if (name && !specObj) return registry.get(name);
+        specObj = !specObj ?
+            new lively.persistence.SpecObject() :
+            (specObj.isSpecObject ? specObj : lively.persistence.SpecObject.fromPlainObject(specObj));
+        return name ? registry.set(name, specObj) : specObj;
     }
 });
 
-Object.extend(lively.persistence.MorphSpecBuilder, {
-    morphToSpec: function(morph) {
-        return new this().build(morph);
-    },
-    
-    specToMorph: function(spec) {
-        return new this().createMorph(spec);
-    }
+Object.extend(lively.persistence.BuildSpec, {
+    Registry: new lively.persistence.SpecObjectRegistry()
 });
 
 lively.morphic.Morph.addMethods(
 'UI builder', {
+
+    buildSpecProperties: {
+        name: {},
+        doNotSerialize: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        doNotCopyProperties: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        grabbingEnabled: {},
+        droppingEnabled: {},
+        halosEnabled: {},
+        _ClipMode: {defaultValue: 'visible'},
+        _StyleSheet: {getter: function(morph, val) { return !val || Object.isString(val) ? val : val.getText(); }},
+        _StyleClassNames: {},
+        _Position: {defaultValue: lively.pt(0.0,0.0)},
+        _Extent: {getter: function(morph) { return morph.getExtent(); }},
+        _Fill: {defaultValue: null, getter: function(morph) { return morph.getFill(); }},
+        _BorderColor: {defaultValue: Color.rgb(0,0,0), getter: function(morph) { return morph.getBorderColor(); }},
+        _BorderWidth: {defaultValue: 0, getter: function(morph) { return morph.getBorderWidth(); }},
+        _BorderStyle: {defaultValue: 'solid', getter: function(morph) { return morph.getBorderStyle(); }},
+        _Rotation: {defaultValue: 0},
+        _Scale: {defaultValue: 1},
+        // excludes:
+        submorphs: {exclude: true},
+        showsHalos: {exclude: true},
+        scripts: {exclude: true},
+        id: {exclude: true},
+        shape: {exclude: true},
+        registeredForMouseEvents: {exclude: true},
+        partsBinMetaInfo: {exclude: true},
+        eventHandler: {exclude: true},
+        derivationIds: {exclude: true},
+        partTests: {exclude: true},
+        moved: {exclude: true},
+        _renderContext: {exclude: true},
+        _isRendered: {exclude: true},
+        owner: {exclude: true},
+        cachedBounds: {exclude: true},
+        isBeingDragged: {exclude: true},
+        halos: {exclude: true},
+        priorExtent: {exclude: true},
+        distanceToDragEvent: {exclude: true},
+        prevScroll: {exclude: true},
+        _PreviousBorderWidth: {exclude: true},
+        attributeConnections: {exclude: true},
+        isLockOwner: {exclude: true},
+        isInLayoutCycle: {exlude: true}
+    },
+
+    getBuildSpecProperties: function(rawProps) {
+        rawProps = rawProps || Object.mergePropertyInHierarchy(this, "buildSpecProperties");
+        var props = Object.keys(rawProps).groupBy(function(key) {
+                return rawProps[key].exclude ? 'excludes' : 'includes'; }),
+            scripts = Functions.own(this).select(function(sel) {
+                return this[sel].hasLivelyClosure; }, this),
+            ownProps = Properties.own(this)
+                       .withoutAll(props.excludes)
+                       .reject(function(key) { return key.startsWith('$$'); });
+        return props.includes.concat(ownProps).concat(scripts).uniq();
+    },
+
     buildSpec: function() {
-        return lively.persistence.MorphSpecBuilder.morphToSpec(this);
+        return lively.persistence.SpecObject.fromMorph(this);
+    },
+
+    onFromBuildSpecCreated: Functions.Null
+});
+
+lively.morphic.List.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        itemList: {},
+        _FontSize: {},
+        changeTriggered: {exclude: true}
+    }
+});
+
+lively.morphic.Text.addMethods(
+'UI builder', {
+
+    buildSpecProperties: {
+        textString: {
+            defaultValue: '',
+            getter: function(morph, val) { return val || '' },
+            recreate: function(instance, spec) {
+                instance.textString = spec.textString;
+                // important: emphasis after textString!
+                if (spec.emphasis) instance.emphasizeRanges(spec.emphasis);
+            }
+        },
+        emphasis: {
+            getter: function(morph, val) {
+                var styles = morph.getChunkStyles(),
+                    ranges = morph.getChunkRanges();
+                return ranges.collect(function(range, i) {
+                        return [range[0], range[1], styles[i].asSpec()]; });
+            },
+            recreate: function(instance, spec) { /*see textString*/ }
+        },
+        isLabel: {defaultValue: false, recreate: function(instance, spec) { if (spec.isLabel) instance.beLabel(); }},
+        _FontSize: {defaultValue: 10},
+        fixedWidth: {defaultValue: false},
+        fixedHeight: {defaultValue: false},
+        allowsInput: {defaultValue: true},
+        _FontFamily: {defaultValue: 'Arial'},
+        _MaxTextWidth: {defaultValue: null},
+        _MaxTextHeight: {defaultValue: null},
+        textColor: {defaultValue: Color.rgb(0,0,0)},
+        _Padding: {defaultValue: lively.Rectangle.inset(0)},
+        _WhiteSpaceHandling: {defaultValue: "pre-wrap"},
+        _MinTextWidth: {defaultValue: null},
+        _MinTextHeight: {defaultValue: null},
+        _WordBreak: {defaultValue: 'normal'},
+        // excludes:
+        cachedTextString: {exclude: true},
+        savedTextString: {exclude: true},
+        charsReplaced: {exclude: true},
+        charsTyped: {exclude: true},
+        lastFindLoc: {exclude: true},
+        parseErrors: {exclude: true},
+        textChunks: {exclude: true},
+        priorSelectionRange: {exclude: true},
+        previousSelection: {exclude: true},
+        undoSelectionRange: {exclude: true}
+    }
+
+});
+
+lively.morphic.CodeEditor.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        textString: {defaultValue: '', getter: function(morph) { return morph.textString }},
+        theme: {
+            defaultValue: 'chrome',
+            getter: function(morph) { return morph.getTheme(); },
+            recreate: function(morph, spec) { morph.setTheme(spec.theme); }
+        },
+        textMode: {
+            defaultValue: 'text',
+            getter: function(morph) { return morph.getTextMode(); },
+            recreate: function(morph, spec) { morph.setTextMode(spec.textMode); }
+        },
+        // excludes
+        _isFocused: {exclude: true},
+        savedTextString: {exclude: true},
+        aceEditor: {exclude: true}
+    }
+});
+
+lively.morphic.Button.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        submorphs: {
+            exclude: true,
+            filter: function(morph, submorphs) { return submorphs.without(morph.label); }
+        },
+        isActive: {defaultValue: true},
+        label: {
+            defaultValue: '',
+            getter: function(morph, val) { return val.textString || ''; },
+            recreate: function(instance, spec) { instance.ensureLabel(spec.label); }
+        }
+    }
+});
+
+lively.morphic.Window.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        submorphs: {
+            exclude: true,
+            filter: function(morph, submorphs) {
+                var handles = [morph.reframeHandle, morph.bottomReframeHandle, morph.rightReframeHandle];
+                return submorphs.withoutAll(handles).without(morph.titleBar);
+            }
+        },
+        titleBar: {
+            getter: function(morph, val) { return val ? val.getTitle() : ''; },
+            recreate: function(instance, spec) { instance.titleBar = instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
+        },
+        reframeHandle: {exclude: true},
+        bottomReframeHandle: {exclude: true},
+        rightReframeHandle: {exclude: true},
+        targetMorph: {exclude: true}
+    },
+
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.makeReframeHandles();
+        this.addMorph(this.titleBar);
+        this.targetMorph = this.submorphs[0];
+    }
+
+});
+
+lively.morphic.List.addMethods(
+'buildspec', {
+    onFromBuildSpecCreated: function() {
+        this.setList(this.itemList || []);
+    }
+});
+
+lively.morphic.Tree.addMethods(
+'buildSpec', {
+    buildSpecProperties: {
+        childNodes: {exclude: true},
+        icon: {exclude: true},
+        isInLayoutCycle: false,
+        item: {exclude: true},
+        label: {exclude: true},
+        node: {exclude: true}
+    },
+
+    onBuildSpecCreated: function(buildSpec) {
+        if (this.item && Object.isFunction(this.item.serializeExpr)) {
+            buildSpec.item = item;
+        }
+    },
+
+    onFromBuildSpecCreated: function() {
+        this.initializeLayout();
+        this.disableDragging();
+        this.setItem(this.item || {name: "tree with no item"});
+    }
+});
+lively.morphic.Image.addMethods(
+'buildSpec', {
+    buildSpecProperties: {
+        url: {getter: function(morph) { return morph.getImageURL(); }},
+        useNativeExtent: {defaultValue: false}
+    },
+
+    onFromBuildSpecCreated: function() {
+        this.setImageURL(this.url, this.useNativeExtent);
     }
 });
 
 Object.extend(lively.morphic.Morph, {
-    fromSpec: function(spec) {
-        return lively.persistence.MorphSpecBuilder.specToMorph(spec);
+    fromSpec: function(object) {
+        return lively.persistence.SpecObject.fromPlainObject(object).createMorph();
+    },
+
+    fromSpecString: function(string) {
+        return lively.persistence.SpecObject.fromString(object).createMorph();
     }
 });
 
-}) // end of module
+}) // end of moduled of module

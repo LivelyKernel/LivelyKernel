@@ -34,15 +34,21 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
         this.assertEquals(module('users/robertkrahn/foo.js').uri(),
                           module('users.robertkrahn.foo').uri());
     },
-    testRequireLib: function() {
+    testToRun: function() {
         var moduleCodeExecuted = false;
-        module('foo.bar').requires().requiresLib().toRun(function() {
+        module('foo.goo').requires().toRun(function() {
+            moduleCodeExecuted = true;
+        });
+        this.assert(moduleCodeExecuted, 'module not executed');
+    },
+    testRequireLib: function() {
+        var moduleCodeExecuted = false,
+            lib = {uri: URL.root.withFilename('foo.js'), loadTest: function() { return false; }};
+        module('foo.bar').requires().requiresLib(lib).toRun(function() {
             moduleCodeExecuted = true;
         });
         this.assert(!moduleCodeExecuted, 'module prematurely executed');
     }
-
-
 });
 
 AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
@@ -66,7 +72,7 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
         var moduleCodeExecuted = false,
             libBazIsLoaded = false,
             loadTestCalled = 0;
-        module('foo.bar')
+        module('foo.baz')
             .requires()
             .requiresLib({
                 url: Config.codeBase + 'lib/baz.js',
@@ -74,16 +80,16 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
             }).toRun(function() {
                 moduleCodeExecuted = true;
             });
-        this.assert(module('foo.bar').hasPendingRequirements(), 'hasPendingRequirements 1');
+        this.assert(module('foo.baz').hasPendingRequirements(), 'hasPendingRequirements 1');
         this.delay(function() {
             this.assert(loadTestCalled > 1, 'load test call count');
             this.assert(!moduleCodeExecuted, 'module prematurely executed');
-            this.assert(module('foo.bar').hasPendingRequirements(), 'hasPendingRequirements 2');
+            this.assert(module('foo.baz').hasPendingRequirements(), 'hasPendingRequirements 2');
             libBazIsLoaded = true;
         }, 60);
         this.delay(function() {
             this.assert(moduleCodeExecuted, 'module not executed');
-            this.assert(!module('foo.bar').hasPendingRequirements(), 'hasPendingRequirements 3');
+            this.assert(!module('foo.baz').hasPendingRequirements(), 'hasPendingRequirements 3');
             this.done();
         }, 120);
     }

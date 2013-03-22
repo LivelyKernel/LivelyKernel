@@ -13,7 +13,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     get: function(path, callback) {
         this.subscribe(path, callback, true);
     },
-    
+
     subscribe: function(path, callback, once) {
         var store = this.store, registry = this.registry;
         var i = 0;
@@ -26,7 +26,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         if (!registry[path]) { registry[path] = []; }; registry[path].push(updateHandler);
         store.get(path, updateHandler) || store.addCallback(path, updateHandler);
     },
-    
+
     off: function(path) {
         delete this.registry[path];
     }
@@ -35,7 +35,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     set: function(path, val, callback) {
         this.store.set(path, val, {callback: callback});
     },
-    
+
     commit: function(path, updateFunc, callback) {
         var handle = this;
         this.get(path, function(val) {
@@ -77,7 +77,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
 'accessing', {
 
     set: function(path, val, options) {
-        options = options || {}, preconditionOK = true;
+        options = options || {};
         if (options.precondition) {
             var preconditionOK = options.precondition();
             if (!preconditionOK) {
@@ -86,12 +86,12 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             }
         }
         this[path] = val;
-        var cbs = this.callbacks[path] || [];
+        var cbs = this.callbacks[path] || [], cb;
         this.callbacks[path] = [];
         while (cbs && (cb = cbs.shift())) cb(path, val);
         options.callback && options.callback(null);
     },
-    
+
     get: function(path, callback) {
         var hasIt = this.has(path);
         if (hasIt) callback(path, this[path]);

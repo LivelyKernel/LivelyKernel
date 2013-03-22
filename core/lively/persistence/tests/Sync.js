@@ -17,6 +17,12 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.assertEqualState([23], result);
     },
 
+    testGetRoot: function() {
+        this.store.set('foo', 23);
+        var result;
+        this.rootHandle.get(function(val) { result = val; });
+        this.assertEqualState({foo: 23}, result);
+    },
 
     testGetWhenAvailable: function() {
         var result = [];
@@ -41,7 +47,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     testOn: function() {
         var result = [];
         this.store.set('foo', 23);
-        this.rootHandle.subscribe('foo', function(val) { result.push(val); });
+        this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
         this.assertEqualState([23], result);
         this.store.set('foo', 42);
         this.assertEqualState([23, 42], result);
@@ -50,7 +56,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     testOnOff: function() {
         var result = [];
         this.store.set('foo', 23);
-        this.rootHandle.subscribe('foo', function(val) { result.push(val); });
+        this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
         this.assertEqualState([23], result);
         this.rootHandle.off('foo');
         this.store.set('foo', 42);
@@ -61,32 +67,32 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         var done;
         this.rootHandle.set('foo', 23, function(err) { done = true });
         this.assert(done, 'not done?');
-        this.assertEqualState(23, this.store.foo);
+        this.assertEqualState(23, this.store.db.foo);
     },
 
     testCommit: function() {
         var done, writtenVal, preVal;
-        this.store.foo = 22;
+        this.store.db.foo = 22;
         this.rootHandle.commit(
             'foo',
             function(oldVal) { preVal = oldVal; return oldVal + 1; },
             function(err, committed, val) { done = committed; writtenVal = val; });
         this.assertEquals(22, preVal, 'val before set');
         this.assert(done, 'not committed?');
-        this.assertEquals(23, this.store.foo);
+        this.assertEquals(23, this.store.db.foo);
         this.assertEquals(23, writtenVal);
     },
 
     testCommitCancels: function() {
         var done, written, eventualVal;
-        this.store.foo = 22;
+        this.store.db.foo = 22;
         this.rootHandle.commit(
             'foo',
             function(oldVal) { return undefined; },
             function(err, committed, val) { done = true; written = committed; eventualVal = val; });
         this.assert(done, 'not done?');
         this.assert(!written, 'committed?');
-        this.assertEquals(22, this.store.foo);
+        this.assertEquals(22, this.store.db.foo);
         this.assertEquals(22, eventualVal);
     },
 
@@ -100,11 +106,21 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
             function(err, committed, val) { done = true; written = committed; eventualVal = val; });
         this.assert(done, 'not done?');
         this.assert(written, 'not committed?');
-        this.assertEquals(42, this.store.foo);
+        this.assertEquals(42, this.store.db.foo);
         this.assertEquals(42, eventualVal);
     },
 
-    testChildAccess: function() {}
+    testChildFullPath: function() {
+        var barHandle = this.rootHandle.child('foo');
+        this.assertEquals("foo.bar", barHandle.fullPath('bar'), 'path creation');
+    },
+
+    testChildAccess: function() {
+        var barHandle = this.rootHandle.child('bar'), barVal;
+        this.rootHandle.set({bar: 23});
+        barHandle.get(function(val) { barVal = val; });
+        this.assertEquals(23, barVal);
+    }
 
 });
 

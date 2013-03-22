@@ -859,10 +859,7 @@
             'lively/defaultconfig.js',
             'lively/localconfig.js',
             'lively/Base.js',
-            'lively/ModuleSystem.js',
-            'lively/lang/Closure.js',   // FIXME: require module instead
-            'lively/lang/UUID.js',      // FIXME: require module instead
-            'lively/LocalStorage.js'    // FIXME: require module instead
+            'lively/ModuleSystem.js'
         ],
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
@@ -955,8 +952,15 @@
         //
         loadMain: function(doc, startupFunc) {
             LoadingScreen.add('Loading');
-            lively.Config.loadUserConfigModule();
-            require('lively.bindings', 'lively.Main').toRun(function() {
+            var bootstrapModules = [
+                'lively.lang.Closure',
+                'lively.lang.UUID',
+                'lively.bindings',
+                'lively.LocalStorage',
+                'lively.Main'
+            ];
+            require(bootstrapModules).toRun(function() {
+                lively.Config.loadUserConfigModule();
                 var loader = lively.Main.getLoader(doc);
                 lively.bindings.connect(loader, 'finishLoading',
                                         LoadingScreen, 'remove');

@@ -188,7 +188,7 @@ Trait('StyleSheetsHTMLTrait',
     appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function (proceed, ctx, optMorphAfter) {
         proceed(ctx, optMorphAfter);
         this.prepareDOMForStyleSheetsHTML(ctx);
-        this.setStyleSheet(this.getParsedStyleSheet());
+        this.setStyleSheetHTML(ctx, this.getParsedStyleSheet());
 
         // Mark morphNode if it's not the same as the shapeNode
         if (ctx.morphNode && ctx.morphNode !== ctx.shapeNode) {

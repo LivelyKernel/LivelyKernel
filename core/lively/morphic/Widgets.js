@@ -43,14 +43,26 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
         this.changeAppearanceFor(false, false);
 
-        this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
-        this.addMorph(this.label);
-        this.label.beLabel(this.style.label);
-        this.label.setTextStylingMode(true);
+        this.ensureLabel(labelString);
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
-    }
+    },
+    ensureLabel: function(labelString) {
+        if (!this.label) {
+            this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
+        } else {
+            this.label.setBounds(this.getExtent().extentAsRectangle());
+            this.label.textString = labelString;
+        }
+        if (this.label.owner !== this) {
+            this.addMorph(this.label);
+        }
+        this.label.beLabel(this.style.label);
+        this.label.setTextStylingMode(true);
+        return this.label;
+    },
+
 
 },
 'accessing', {
@@ -300,26 +312,30 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 
 lively.morphic.Morph.subclass('lively.morphic.Image',
 'initializing', {
-    doNotSerialize: ['isLoaded'],
     initialize: function($super, bounds, url, useNativeExtent) {
-        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle(), url);
+        var imageShape = this.defaultShape(bounds.extent().extentAsRectangle(), url);
         $super(imageShape);
         this.setPosition(bounds.topLeft());
-        if (useNativeExtent) {
-            connect(imageShape, 'isLoaded', this, 'setNativeExtent',
-                    {removeAfterUpdate: true});
-        } else {
-            connect(imageShape, 'isLoaded', this, 'setExtent',
-                    {removeAfterUpdate: true, converter: function() {
-                        return this.targetObj.getExtent() }});
-        }
+        this.setImageURL(url, useNativeExtent);
     },
-    createImageShape: function(bounds, url) {
+    defaultShape: function(bounds, url) {
+        url = url || '';
         return new lively.morphic.Shapes.Image(bounds, url);
-    },
+    }
 },
 'accessing', {
-    setImageURL: function(url) { return this.shape.setImageURL(url) },
+    setImageURL: function(url, useNativeExtent) {
+        if (!url) return null;
+        if (useNativeExtent) {
+            connect(this.shape, 'isLoaded', this, 'setNativeExtent',
+                    {removeAfterUpdate: true});
+        } else {
+            connect(this.shape, 'isLoaded', this, 'setExtent',
+                    {removeAfterUpdate: true, converter: function() {
+                        return this.targetObj.getExtent(); }});
+        }
+        return this.shape.setImageURL(url);
+    },
     getImageURL: function() { return this.shape.getImageURL() },
     getNativeExtent: function() { return this.shape.getNativeExtent() },
     setNativeExtent: function() {
@@ -1974,10 +1990,11 @@ lively.morphic.List.addMethods(
         var items = this.itemList;
         return this.getSelectedIndexes().collect(function(i) { return items[i] });
     },
-    getSelectedIndexes: function() { return this.renderContextDispatch('getSelectedIndexes') },
+
+    getSelectedIndexes: function() { return this.renderContextDispatch('getSelectedIndexes'); },
 
     getSelections: function() {
-        return this.getSelectedItems().collect(function(ea) {return ea.isListItem ? ea.value : ea})
+        return this.getSelectedItems().collect(function(ea) { return ea.isListItem ? ea.value : ea; })
     },
     setSelections: function(arr) {
         var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
@@ -1992,9 +2009,10 @@ lively.morphic.List.addMethods(
     selectAllAt: function(indexes) {
         this.renderContextDispatch('selectAllAt', indexes)
     },
+
     renderFunction: function(anObject) {
         return anObject.string || String(anObject);
-    },
+    }
 
 });
 
@@ -2190,17 +2208,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
 
-        // create three reframe handles (bottom, right, and bottom-right) and align them to the window
-        var e = this.getExtent();
-        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
-        this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(spacing)));
-        this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(spacing)));
-        this.alignAllHandles();
+        this.makeReframeHandles();
 
         this.titleBar = this.addMorph(titleBar);
         this.contentOffset = pt(spacing, titleHeight);
         targetMorph.setPosition(this.contentOffset);
-        // this.closeAllToDnD();
 
         this.collapsedTransform   = null;
         this.collapsedExtent      = null;
@@ -2211,6 +2223,15 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
+    },
+
+    makeReframeHandles: function() {
+        // create three reframe handles (bottom, right, and bottom-right) and align them to the window
+        var e = this.getExtent();
+        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+        this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(this.spacing)));
+        this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(this.spacing)));
+        this.alignAllHandles();
     },
 
     makeTitleBar: function(titleString, width, optSuppressControls) {
@@ -2372,12 +2393,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         return true;
     },
     onMouseUp: function(evt) {
-        if (this.cameForward) {
-            this.cameForward = false;
-            evt.stop();
-            return true;
-        }
-        return false;
+        if (!this.cameForward) return false;
+        this.cameForward = false;
+        evt.stop();
+        return true;
     },
     onDragStart: function(evt) {
         this.prevDragPos = evt.getPosition();
@@ -3913,12 +3932,23 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 },
 'enumerating', {
     withAllTreesDo: function(iter, context, depth) {
+        // only iterates through expanded childNodes, not necessarily through
+        // all item children! See #withAllItemsDo
         if (!depth) depth = 0;
-        iter.call(context || Global, this, depth);
-        if (!this.childNodes) return;
-        for (var i = 0; i < this.childNodes.length; i++) {
-            this.childNodes[i].withAllTreesDo(iter, context, depth + 1);
+        var result = iter.call(context || Global, this, depth);
+        if (!this.childNodes) return [result];
+        return [result].concat(
+            this.childNodes.invoke("withAllTreesDo", iter, context, depth + 1));
+    },
+
+    withAllItemsDo: function(iter, context) {
+        function visitItem(item, depth) {
+            var result = iter.call(context || Global, item, depth);
+            if (!item.children) return [result];
+            return item.children.inject([result], function(all, ea) {
+                return all.concat(visitItem(ea, depth + 1)); });
         }
+        return this.item && visitItem(this.item, 0);
     }
 });
 

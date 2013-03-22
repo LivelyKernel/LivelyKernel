@@ -335,22 +335,26 @@ lively.morphic.Morph.addMethods(
     },
     setPointerEventsHTML: function(ctx, value) {
         if (ctx.morphNode) ctx.morphNode.style.pointerEvents = value;
-    },
+    }
+},
+'focus', {
+    getFocusNodeHTML: function(ctx) { return ctx.morphNode; },
     focusHTML: function(ctx) {
-        var node = ctx.morphNode;
+        var node = this.getFocusNodeHTML(ctx);
         if (node && !this.isFocused() && node.tabIndex !== undefined) node.focus();
     },
     blurHTML: function(ctx) {
-        var node = ctx.morphNode;
+        var node = this.getFocusNodeHTML(ctx);;
         if (node && this.isFocused()) node.blur();
     },
     setFocusableHTML: function(ctx, boolOrIndex) {
-        if (!ctx.morphNode) return;
+        var node = this.getFocusNodeHTML(ctx);
+        if (!node) return;
         if (typeof boolOrIndex === "boolean") {
-            ctx.morphNode.tabIndex = -1;
+            node.tabIndex = -1;
         } else if (typeof boolOrIndex === "number") {
-            ctx.morphNode.tabIndex = boolOrIndex;
-        } else delete ctx.morphNode.tabIndex
+            node.tabIndex = boolOrIndex;
+        } else delete node.tabIndex
     },
     isScrollTargetHTML: function(ctx, evt) {
         var node = evt.target;
@@ -405,7 +409,6 @@ lively.morphic.Text.addMethods(
         setDisplay: 'setDisplayHTML',
         setWhiteSpaceHandling: 'setWhiteSpaceHandlingHTML',
         setWordBreak: 'setWordBreakHTML',
-        focusMorph: 'focusMorphHTML',
         setInputAllowed: 'setInputAllowedHTML'
     }
 },
@@ -568,23 +571,12 @@ lively.morphic.Text.addMethods(
     enableTextEventsHTML: function(ctx) {
         // FIXME this seems totally wrong,
         // and has nothing to do with inputs!!!
-        if (ctx.textNode)
-            ctx.textNode.contentEditable = true;
+        if (ctx.textNode) ctx.textNode.contentEditable = true;
     },
-    // --------------------->> /FIXME
+},
+'focus', {
+    getFocusNodeHTML: function(ctx) { return ctx.textNode; }
 
-    focusHTML: function(ctx) {
-        var node = ctx.textNode;
-        if (node && !this.isFocused() && node.tabIndex !== undefined) node.focus();
-    },
-    focusMorphHTML: function(ctx) {
-        var node = ctx.morphNode;
-        if (node && !this.isFocused() && node.tabIndex !== undefined) node.focus();
-    },
-    blurHTML: function(ctx) {
-        var node = ctx.textNode;
-        if (node && this.isFocused()) node.blur();
-    },
 },
 'node creation', {
     createTextNodeHTML: function() {
@@ -730,7 +722,10 @@ lively.morphic.List.addMethods(
                 node.scrollIntoViewIfNeeded();
         }
     },
-    clearSelectionsHTML: function(ctx) { this.deselectNodesHTML(ctx) }
+    clearSelectionsHTML: function(ctx) { this.deselectNodesHTML(ctx) },
+},
+'focus', {
+    getFocusNodeHTML: function(ctx) { return ctx.listNode; }
 },
 'node creation', {
     createListNodeHTML: function() {
@@ -742,7 +737,7 @@ lively.morphic.List.addMethods(
     },
     getListExtentHTML: function(ctx) {
         return ctx.listNode.scrollHeight != 0 ? pt(ctx.listNode.scrollWidth, ctx.listNode.scrollHeight) : this.getExtent()
-    },
+    }
 },
 'styling', {
     setFontSizeHTML: function(ctx, value) {

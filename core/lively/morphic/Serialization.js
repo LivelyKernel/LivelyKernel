@@ -13,6 +13,11 @@ Color.addMethods(
     serializeExpr: function() { return 'Color.' + this.toString(); }
 });
 
+URL.addMethods(
+'serialization', {
+    serializeExpr: function() { return 'URL.create("' + this.toString() + '")'; }
+});
+
 lively.morphic.Shapes.Shape.addMethods(
 'copying', {
     doNotSerialize: ['_renderContext']

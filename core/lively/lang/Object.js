@@ -222,7 +222,7 @@ Global.Objects = {
 
         var printedProps = [];
         if (isArray) {
-            printedProps = obj.map(function(ea) { return Objects.inspect(ea, options, depth + 1); });
+            printedProps = obj.map(function(ea) { return Objects.inspect(ea, options, depth); });
         } else {
             printedProps = Object.keys(obj)
                // .select(function(key) { return obj.hasOwnProperty(key); })
@@ -245,12 +245,16 @@ Global.Objects = {
 
         if (printedProps.length === 0) { return openBr + closeBr; }
 
-        var indent = Strings.indent('', '  ', depth),
-            propIndent = Strings.indent('', '  ', depth + 1);
-        return openBr + '\n'
-             + propIndent
-             + printedProps.join(',\n' + propIndent)
-             + '\n' + indent + closeBr;
+        var printedPropsJoined = printedProps.join(','),
+            useNewLines = !isArray
+                       && (!options.minLengthForNewLine
+                        || printedPropsJoined.length >= options.minLengthForNewLine),
+            indent = Strings.indent('', options.indent || '  ', depth),
+            propIndent = Strings.indent('', options.indent || '  ', depth + 1),
+            startBreak = useNewLines ? '\n' + propIndent: '',
+            endBreak = useNewLines ? '\n' + indent : '';
+        if (useNewLines) printedPropsJoined = printedProps.join(',' + startBreak);
+        return openBr + startBreak + printedPropsJoined + endBreak + closeBr;
     },
 
     typeStringOf: function(obj) {

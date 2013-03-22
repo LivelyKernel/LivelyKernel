@@ -384,7 +384,7 @@ Object.subclass('lively.Module',
 
     isLoading: function() {
         if (this.isLoaded()) return false;
-        if (this.uri().include('anonymous')) return true;
+        if (this.uri().include('anonymous')) return false;
         return JSLoader.scriptInDOM(this.uri());
     },
 
@@ -395,15 +395,16 @@ Object.subclass('lively.Module',
 },
 'loading', {
     load: function(loadSync) {
-        if (!this.wasDefined) {
-            return JSLoader.loadJs(this.uri(), null, loadSync);
+        if (!this.wasDefined) { // module definition missing
+            if (!this.isLoading()) { // load definiton if not already loading
+                JSLoader.loadJs(this.uri(), null, loadSync);
+            }
+            return;
         }
-        if (this.hasPendingRequirements()) {
+        if (this.hasPendingRequirements()) { // requirement missing
             return this.loadRequirementsFirst();
         }
-        if (this.isLoaded()) {
-            this.runOnloadCallbacks();
-        } else {
+        if (!this.isLoaded()) { // load module for the first time
             this.runOnloadCallbacks();
             // time is not only the time needed for the request and code
             // evaluation but the complete time span from the creation of the
@@ -412,6 +413,8 @@ Object.subclass('lively.Module',
             var time = this.createTime ? new Date() - this.createTime : 'na';
             console.log(this.uri() + ' loaded in ' + time + ' ms');
             this.informDependendModules();
+        } else { // re-load module to apply runtime changes
+            this.runOnloadCallbacks();
         }
     },
 

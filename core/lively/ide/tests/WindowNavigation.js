@@ -6,7 +6,8 @@ AsyncTestCase.subclass('lively.ide.tests.WindowNavigation.WindowManager', lively
         $super();
         this.createWorld();
         this.sut = new lively.ide.WindowNavigation.WindowManager(this.world);
-    }
+    },
+    shouldRun: !Config.serverInvokedTest
 },
 'testing', {
     testGetListOfWindows: function() {

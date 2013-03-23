@@ -126,14 +126,15 @@ if (!Global.View) Object.subclass("View");
 View.subclass('Query',  {
     documentation: "Wrapper around XPath evaluation",
 
-    xpe: Global.XPathEvaluator ? new XPathEvaluator() : (console.log('XPath not available, emulating...') || new XPathEmulator()),
+    xpe: Global.XPathEvaluator ? new XPathEvaluator()
+         : (UserAgent.isIE ? (console.log('XPath not available, emulating...') || new XPathEmulator())
+           : (console.log('XPath not available') || {})),
 
     formals: ["+Results", // Node[]
         "-ContextNode", // where to evaluate
     ],
 
       initialize: function(expression, optPlug) {
-            //if (!this.xpe) throw new Error("XPath not available");
             this.contextNode = null;
             this.expression = expression;
             if (optPlug) this.connectModel(optPlug);

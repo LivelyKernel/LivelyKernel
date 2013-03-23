@@ -57,7 +57,6 @@ TestCase.subclass('lively.tests.BaseTests.StringsFormatTableTest', {
              input: [['a', 'b', 'c '], ['d', 'eee', 'fff']],
              options: {align: ["left", "right", "left"]}}];
         testData.forEach(function(data, i) {
-            debugger
             this.assertEquals(data.expected,
                               Strings.printTable(data.input, data.options),
                               'for ' + i + ' ' + data.input);

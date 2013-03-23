@@ -166,6 +166,9 @@ lively.morphic.World.addMethods(
 
     onrestore: function($super) {
         $super();
+        if (!this.firstHand()) {
+            this.addHandMorph();
+        }
         this.getLastModificationDate();
     },
 

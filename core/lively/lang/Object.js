@@ -67,7 +67,7 @@ Object.extend(Object, {
     },
 
     isArray: function(object) {
-        return object && object.constructor === Array;
+        return object && Array.isArray(object);
     },
 
     isFunction: function(object) {

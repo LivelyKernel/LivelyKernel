@@ -2,9 +2,9 @@
 workspace/
 
 # Worlds #
-*.xhtml
-!blank.xhtml
-!run_tests.xhtml
+*.html
+!blank.html
+!run_tests.html
 
 # Node #
 node_modules

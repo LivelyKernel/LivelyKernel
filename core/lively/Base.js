@@ -22,12 +22,6 @@
  * THE SOFTWARE.
  */
 
-// set to the context enclosing the SVG context.
-// rk: replaced "this.window.top || this.window" with "this.window"
-// rk: when is it necessary to use the parent context?
-
-var Global = this.window || GLOBAL; /*for Node.js*/
-
 // ===========================================================================
 // Our JS library extensions (JS 1.5, no particular browser or graphics engine)
 // ===========================================================================
@@ -35,7 +29,6 @@ var Global = this.window || GLOBAL; /*for Node.js*/
 /**
   * LK class system.
   */
-
 Object.extend(Function.prototype, {
 
     defaultCategoryName: 'default category',

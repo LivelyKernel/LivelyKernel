@@ -12,11 +12,15 @@ function prepareConfig() {
     // for network tests
     Config.serverInvokedTest = true;
 }
+
 function alertForever(msg) {
     alert(msg, 99999);
 }
 
 function getURLParam(name) {
+    if (Global.testRun && testRun.hasOwnProperty(name)) {
+        return testRun[name];
+    }
     var queryRegex = new RegExp(name + '=([^\\&]+)'),
         match = document.URL.split('?').last().match(queryRegex),
         // FIXME OMeta overwrite unescape
@@ -43,28 +47,17 @@ function postResult(message) {
 
 
 // running the actual tests
-var testList = [
+var baseTests = [
     // core
     "lively.tests.BaseTests",
-    'lively.tests.BootstrapTests',
     "lively.tests.ClassTests",
-    'lively.tests.CoreTests',
-    "lively.tests.HelperTests",
-    // 'lively.tests.LKWikiTests',
     "lively.tests.ModuleSystemTests",
     "lively.tests.NetworkTests",
     "lively.tests.ObjectTests",
     "lively.tests.PartsTestFrameworkTests",
-    // "lively.tests.PublishingTests",
-    // "lively.tests.ScriptingTests",
     "lively.tests.TestFrameworkTests",
-    // "lively.tests.ToolsTests",
     "lively.tests.TracingTests",
     "lively.tests.TraitTests",
-
-    // lang support
-    "lively.lang.tests.ExtensionTests",
-    "lively.lang.tests.WorkerTests",
 
     // AST / OMeta
     "ometa.tests.OmetaTests",
@@ -73,8 +66,27 @@ var testList = [
     // persistence
     "lively.persistence.tests.BuildSpec",
     "lively.persistence.tests.PersistenceTests",
-    'lively.persistence.tests.MassMorphCreation',
-    'lively.persistence.tests.TraitPersistenceTests',
+    "lively.persistence.tests.TraitPersistenceTests",
+
+    //bindings
+    "lively.bindings.tests.BindingTests"
+];
+
+var browserTests = [
+    // core
+    'lively.tests.BootstrapTests',
+    'lively.tests.CoreTests',
+    "lively.tests.HelperTests",
+
+    // lang support
+    "lively.lang.tests.ExtensionTests",
+    "lively.lang.tests.WorkerTests",
+
+    // persistence
+    "lively.persistence.tests.MassMorphCreation",
+
+    //bindings
+    "lively.bindings.tests.GeometryBindingTests",
 
     // ide / SCB
     "lively.ide.tests.CodeEditor",
@@ -82,9 +94,9 @@ var testList = [
     "lively.ide.tests.ModuleLookup",
     'lively.ide.tests.SCBTests',
     "lively.ide.tests.SyntaxHighlighting",
+    "lively.ide.tests.WindowNavigation",
 
     // morphic
-    // "lively.morphic.tests.All",
     "lively.morphic.tests.Connectors",
     "lively.morphic.tests.CoreToolsTests",
     "lively.morphic.tests.DataGridTests",
@@ -106,16 +118,17 @@ var testList = [
     "lively.morphic.tests.Text",
     "lively.morphic.tests.TextUndoTests",
 
-    //bindings
-    "lively.bindings.tests.GeometryBindingTests",
-    "lively.bindings.tests.BindingTests",
-
     // cop
     "cop.tests.LayerTests",
 
     // apps
     "apps.tests.Handlebars"
 ];
+
+var testList = baseTests;
+if (!Global.testRun || !testRun.isNodeJS) {
+    testList.pushAll(browserTests);
+}
 
 var additionalModules = getURLParam('additionalModules');
 if (additionalModules) {
@@ -134,15 +147,18 @@ if (filter) {
     suiteFilter = parts.slice(1).join('|'); // last 2
 }
 
-
 prepareConfig();
 
 require(['lively.TestFramework'].concat(testList)).toRun(function() {
     var suite = TestSuite.forAllAvailableTests(suiteFilter);
     suite.runFinished = function() {
-        var result = suite.result.asJSONString();
-        postResult(result);
-        if (!getURLParam('stayOpen')) { exit.delay(0.5); }
+        if (Global.testRun) {
+            testRun.onTestResult(suite.result.asJSON());
+        } else {
+            var result = suite.result.asJSONString();
+            postResult(result);
+            if (!getURLParam('stayOpen')) { exit.delay(0.5); }
+        }
     };
     suite.runAll();
 });

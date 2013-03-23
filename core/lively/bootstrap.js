@@ -185,6 +185,8 @@
             Global.getSelection = function() {};
             Global.UserAgent = {isNodeJS: true};
             Global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+            Global._require = require; // native NodeJS require
+            Global.__dirname = require('path').dirname(module.parent.filename);
             module.exports = Global;
         }
         // "Global" is the lively accessor to the toplevel JS scope

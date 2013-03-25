@@ -122,7 +122,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             .inject([], function(cbs, path) {
                 var parsedPath = this.parsePath(path);
                 if (!pathAccessor.isParentPathOf(parsedPath)) return cbs;
-                var relativeVal = parsedPath.lookup(val);
+                var relativeVal = parsedPath.lookup(this.db);
                 cbs = cbs.concat(this.callbacks[path].invoke('bind', null, path, relativeVal));
                 this.callbacks[path] = [];
                 return cbs;
@@ -189,7 +189,10 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             lookup: function(obj) {
                 return parts.inject(obj, function(current, pathPart) {
                     return current ? current[pathPart] : current; });
-            }
+            },
+            toString: function() {
+                return 'lively.Path("' + this.normalizePath() + '")';
+            } 
         });
     },
     relativeChangedValue: function(path, value) {

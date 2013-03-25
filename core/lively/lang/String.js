@@ -141,7 +141,9 @@ Global.Strings = {
             else return value.toString();
         }
 
-        var appenderMap = {s: appendText, d: appendInteger, i: appendInteger, f: appendFloat};
+        function appendObject(value, string) { return Objects.inspect(value); }
+
+        var appenderMap = {s: appendText, d: appendInteger, i: appendInteger, f: appendFloat, o: appendObject};
         var reg = /((^%|[^\\]%)(\d+)?(\.)([a-zA-Z]))|((^%|[^\\]%)([a-zA-Z]))/;
 
         function parseFormat(fmt) {

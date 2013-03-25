@@ -74,10 +74,11 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     testCommit: function() {
         var done, writtenVal, preVal;
         this.store.db.foo = 22;
-        this.rootHandle.commit(
-            'foo',
-            function(oldVal) { preVal = oldVal; return oldVal + 1; },
-            function(err, committed, val) { done = committed; writtenVal = val; });
+        this.rootHandle.commit({
+            path: 'foo',
+            transaction: function(oldVal) { preVal = oldVal; return oldVal + 1; },
+            callback: function(err, committed, val) { done = committed; writtenVal = val; }
+        });
         this.assertEquals(22, preVal, 'val before set');
         this.assert(done, 'not committed?');
         this.assertEquals(23, this.store.db.foo);
@@ -87,10 +88,11 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     testCommitCancels: function() {
         var done, written, eventualVal;
         this.store.db.foo = 22;
-        this.rootHandle.commit(
-            'foo',
-            function(oldVal) { return undefined; },
-            function(err, committed, val) { done = true; written = committed; eventualVal = val; });
+        this.rootHandle.commit({
+            path: 'foo',
+            transaction: function(oldVal) { return undefined; },
+            callback: function(err, committed, val) { done = true; written = committed; eventualVal = val; }
+        });
         this.assert(done, 'not done?');
         this.assert(!written, 'committed?');
         this.assertEquals(22, this.store.db.foo);
@@ -101,10 +103,11 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         var done, written, eventualVal;
         var store = this.store;
         store.set('foo', 22);
-        this.rootHandle.commit(
-            'foo',
-            function(oldVal) { if (oldVal === 22) store.set('foo', 41); return oldVal + 1; },
-            function(err, committed, val) { done = true; written = committed; eventualVal = val; });
+        this.rootHandle.commit({
+            path: 'foo',
+            transaction: function(oldVal) { if (oldVal === 22) store.set('foo', 41); return oldVal + 1; },
+            callback: function(err, committed, val) { done = true; written = committed; eventualVal = val; }
+        });
         this.assert(done, 'not done?');
         this.assert(written, 'not committed?');
         this.assertEquals(42, this.store.db.foo);

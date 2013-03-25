@@ -56,25 +56,29 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         this.store.set(this.fullPath(path), val, {callback: callback});
     },
 
-    commit: function(path, updateFunc, callback) {
-        path = this.fullPath(path);
-        var handle = this;
+    commit: function(options) {
+        options.n = options.n ? options.n+1 : 1; // just for debugging
+        if (options.n > 10) {
+            alert('Commit endless recursion?');
+            throw new Error('Commit endless recursion?');
+        }
+        var path = options.path,
+            fullPath = this.fullPath(path),
+            handle = this;
         this.get(path, function(val) {
-            var newVal = updateFunc(val);
+            var newVal = options.transaction(val);
             // cancel commit?
             if (newVal === undefined) {
-                callback(null, false, val);
+                options.callback(null, false, val);
                 return;
             }
-            handle.store.set(path, newVal, {
+            handle.store.set(fullPath, newVal, {
                 callback: function(err) {
-                    if (err && err.type === 'precondition') {
-                        handle.commit(path, updateFunc, callback);
-                        return;
-                    }
-                    callback(err, !err, err ? val : newVal);
+                    if (err && err.type === 'precondition') handle.commit(options); 
+                    else options.callback(err, !err, err ? val : newVal);
                 },
                 precondition: function(storeVal) {
+                    // show("precondition: %o vs %o", storeVal, val);
                     return storeVal === val;
                 }
             });

@@ -39,6 +39,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     },
 
     off: function(path, optCallback) {
+        if (!path) { this.registry = {}; return; }
         path = this.fullPath(path);
         if (optCallback && Object.isArray(this.registry[path])) {
             this.registry[path] = this.registry[path].without(optCallback);

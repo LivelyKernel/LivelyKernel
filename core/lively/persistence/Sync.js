@@ -75,8 +75,6 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 },
 'handle hierarchy', {
     child: function(path) {
-        alert("childPath:" + this.fullPath(path))
-        alert("childPath:" + path)
         return new this.constructor({path: this.fullPath(path), store: this.store});
     }
 },
@@ -96,51 +94,110 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 
 Object.subclass('lively.persistence.Sync.LocalStore',
 'properties', {
-    callbacks: {}
+    callbacks: null
 },
 'initializing', {
     initialize: function() {
         this.db = {};
+        this.callbacks = {};
     }
 },
 'accessing', {
 
     set: function(path, val, options) {
         options = options || {};
+        var pathAccessor = this.parsePath(path),
+            normalizedPath = pathAccessor.normalizePath();
         if (options.precondition) {
-            var currentVal = path === '.' ? this.db : this.db[path];
-            var preconditionOK = options.precondition(currentVal);
+            var currentVal = pathAccessor.lookup(this.db),
+                preconditionOK = options.precondition(currentVal);
             if (!preconditionOK) {
                 options.callback && options.callback({type: 'precondition'});
                 return;
             }
         }
-        if (!path || path === '' || path === '.') this.db = val;
-        else this.db[path] = val;
-        var cbs = this.callbacks[path] || [], cb;
-        this.callbacks[path] = [];
-        while (cbs && (cb = cbs.shift())) cb(path, val);
+        if (pathAccessor.isRoot()) this.db = val;
+        else pathAccessor.assign(this.db, val);
+        var cbs = Object.keys(this.callbacks)
+            .inject([], function(cbs, path) {
+                var parsedPath = this.parsePath(path);
+                if (!pathAccessor.isParentPathOf(parsedPath)) return cbs;
+                var relativeVal = parsedPath.lookup(val);
+                cbs = cbs.concat(this.callbacks[path].invoke('bind', null, path, relativeVal));
+                this.callbacks[path] = [];
+                return cbs;
+            }, this), cb
+        while ((cb = cbs.shift())) cb();
         options.callback && options.callback(null);
     },
 
     get: function(path, callback) {
-        var hasIt = this.has(path);
-        var val = path === '.' ? this.db : this.db[path];
-        if (hasIt) callback(path, val);
+        var accessor = this.parsePath(path),
+            hasIt = accessor.isInObject(this.db);
+        if (hasIt) callback(path, accessor.lookup(this.db));
         return hasIt;
     },
 
     addCallback: function(path, callback) {
-        var cbs = this.callbacks[path] = this.callbacks[path] || [];
+        var normalizedPath = this.parsePath(path).normalizePath(),
+            cbs = this.callbacks[normalizedPath] = this.callbacks[normalizedPath] || [];
         cbs.push(callback);
     }
 },
-'testing', {
-
-    has: function(path) {
-        return !path || path === '' || path === '.' ? true : !!this.db.hasOwnProperty(path);
+'path access', {
+    parsePath: function(path) {
+        if (path && path.isPathAccessor) return path;
+        var parts = [];
+        if (Object.isString(path) && path !== '' && path !== '.') {
+            parts = path.split('.');
+        } else if (Object.isArray(path)) {
+            parts = path.clone();
+        }
+        var parse = this.parsePath;
+        return Object.extend(parts, {
+            isPathAccessor: true,
+            normalizePath: function() {
+                // FIXME: define normalization
+                return path;
+            },
+            isRoot: function(obj) { return parts.length === 0; },
+            isInObject: function(obj) {
+                if (this.isRoot()) return true;
+                var parent = this.lookupParent(obj);
+                return parent && parent.hasOwnProperty(parts.last());
+            },
+            isParentPathOf: function(otherPath) {
+                otherPath = otherPath && otherPath.isPathAccessor ? otherPath : parse(otherPath);
+                return this.intersect(otherPath).length === this.length;
+            },
+            relativePathTo: function(otherPath) {
+                otherPath = otherPath && otherPath.isPathAccessor ? otherPath : parse(otherPath);
+                return this.isParentPathOf(otherPath) ? parse(otherPath.slice(this.length)) : undefined;
+            },
+            assign: function(obj, val) {
+                if (this.isRoot()) return undefined;
+                var parent = this.lookupParent(obj);
+                if (!parent) return undefined;
+                return parent[parts.last()] = val;
+            },
+            lookupParent: function(obj) {
+                if (this.isRoot()) return undefined;
+                var last = parts.pop(), parent = this.lookup(obj);
+                parts.push(last);
+                return parent;
+            },
+            lookup: function(obj) {
+                return parts.inject(obj, function(current, pathPart) {
+                    return current ? current[pathPart] : current; });
+            }
+        });
+    },
+    relativeChangedValue: function(path, value) {
+        return this.parsePath(path).lookup(value);
     }
-
+},
+'testing', {
+    has: function(path) { return this.parsePath(path).isInObject(this.db); }
 });
 
 }) // end of module

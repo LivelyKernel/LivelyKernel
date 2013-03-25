@@ -4,13 +4,14 @@ Object.extend(lively.morphic, {
 
     show: function(obj) {
         if (!obj) return null;
-        if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
+        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); lively.morphic.alert(msg); return msg; }
+        else if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
         else if (obj instanceof lively.Point) return lively.morphic.newShowPt(obj);
         else if (obj instanceof lively.Line) return lively.morphic.newShowLine(obj);
         else if (obj instanceof Rectangle) return lively.morphic.newShowRect(obj);
         else if (obj.isMorph) return lively.morphic.newShowMorph(obj);
         else if (obj instanceof HTMLElement) return lively.morphic.newShowElement(obj);
-        return null;
+        else { var msg = Strings.format("%o", obj); lively.morphic.alert(msg); return msg; }
     },
 
     newShowPt: function (/*pos or x,y, duration, extent*/) {

@@ -30,6 +30,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.assertEqualState([], result);
         this.store.set('foo', 23);
         this.assertEqualState([23], result);
+        this.assert(!this.rootHandle.registry.foo, 'local registry still exist');
     },
 
     testetTwice: function() {

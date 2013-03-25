@@ -18,24 +18,32 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     },
 
     subscribe: function(options) {
-        var path = this.fullPath(options.path),
+        var fullPath = this.fullPath(options.path),
+            type = options.type || 'value',
             callback = options.callback,
             once = options.once,
             store = this.store,
-            registry = this.registry;
-        if (!path || path === '') path = '.';
+            registry = this.registry,
+            handle = this;
+        if (!fullPath || fullPath === '') fullPath = '.';
         var i = 0;
         function updateHandler(path, val) {
             if (i++ > 100) { debugger; throw new Error('Endless recursion in #subscribe ' + path); }
             if (!registry[path] || !registry[path].include(updateHandler)) return;
             callback(val);
-            if (!once) store.addCallback(path, updateHandler);
+            if (once) handle.off(fullPath, updateHandler);
+            else store.addCallback(path, updateHandler);
         }
-        if (!registry[path]) { registry[path] = []; }; registry[path].push(updateHandler);
-        store.get(path, updateHandler) || store.addCallback(path, updateHandler);
+        if (!registry[fullPath]) { registry[fullPath] = []; }; registry[fullPath].push(updateHandler);
+        store.get(fullPath, updateHandler) || store.addCallback(fullPath, updateHandler);
     },
 
-    off: function(path) {
+    off: function(path, optCallback) {
+        path = this.fullPath(path);
+        if (optCallback && Object.isArray(this.registry[path])) {
+            this.registry[path] = this.registry[path].without(optCallback);
+            if (this.registry[path].length > 0) return;
+        }
         delete this.registry[path];
     }
 },

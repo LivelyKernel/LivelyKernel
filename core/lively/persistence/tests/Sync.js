@@ -45,7 +45,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.assertEqualState([23], result2);
     },
 
-    testOn: function() {
+    testSubscribe: function() {
         var result = [];
         this.store.set('foo', 23);
         this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
@@ -54,14 +54,15 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.assertEqualState([23, 42], result);
     },
 
-    testOnOff: function() {
+    testSubscribeUnsubscribe: function() {
         var result = [];
         this.store.set('foo', 23);
         this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
         this.assertEqualState([23], result);
-        this.rootHandle.off('foo');
+        this.rootHandle.unsubscribe({path: 'foo'});
         this.store.set('foo', 23);
         this.assertEqualState([23], result);
+        this.assertEqualState(this.rootHandle.registry, {});
     },
 
     testSet: function() {

@@ -29,18 +29,23 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
             if (i++ > 100) { debugger; throw new Error('Endless recursion in #subscribe ' + path); }
             if (!registry[path] || !registry[path].include(updateHandler)) return;
             callback(val);
-            if (once) handle.off(fullPath, updateHandler);
+            if (once) handle.unsubscribe({path: fullPath, callback: updateHandler});
             else store.addCallback(path, updateHandler);
         }
         if (!registry[fullPath]) { registry[fullPath] = []; }; registry[fullPath].push(updateHandler);
         store.get(fullPath, updateHandler) || store.addCallback(fullPath, updateHandler);
     },
 
-    off: function(path, optCallback) {
+    unsubscribe: function(options) {
+        // options: {
+        //   [path: STRING,]
+        //   [callback: FUNCTION] -- the specific callback to unsubscribe
+        // }
+        var path = options.path;
         if (!path) { this.registry = {}; return; }
         path = this.fullPath(path);
-        if (optCallback && Object.isArray(this.registry[path])) {
-            this.registry[path] = this.registry[path].without(optCallback);
+        if (options.callback && Object.isArray(this.registry[path])) {
+            this.registry[path] = this.registry[path].without(options.callback);
             if (this.registry[path].length > 0) return;
         }
         delete this.registry[path];
@@ -54,10 +59,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 
     commit: function(options) {
         options.n = options.n ? options.n+1 : 1; // just for debugging
-        if (options.n > 10) {
-            alert('Commit endless recursion?');
-            throw new Error('Commit endless recursion?');
-        }
+        if (options.n > 10) { throw new Error(show('Commit endless recursion?')); }
         var path = options.path,
             fullPath = this.fullPath(path),
             handle = this;

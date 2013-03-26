@@ -185,7 +185,7 @@
             Global.getSelection = function() {};
             Global.UserAgent = {isNodeJS: true};
             Global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-            Global._require = require; // native NodeJS require
+            Global._require = module.parent.require.bind(module.parent); // native NodeJS require
             Global.__dirname = require('path').dirname(module.parent.filename);
             module.exports = Global;
         }

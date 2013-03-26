@@ -10,11 +10,9 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     }
 },
 'read', {
-    get: function(/*[path,] callback*/) {
-        var args = Array.from(arguments),
-            path = Object.isString(args[0]) ? args[0] : null,
-            callback = Object.isString(args[0]) ? args[1] : args[0];
-        this.subscribe({once: true, path: path, callback: callback});
+    get: function(options) {
+        // options: {path: STRING, callback: FUNCTION}
+        this.subscribe({once: true, path: options.path, callback: options.callback});
     },
 
     subscribe: function(options) {
@@ -49,12 +47,9 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     }
 },
 'write', {
-    set: function(/*path, val, callback*/) {
-        var args = Array.from(arguments),
-            path = Object.isString(args[0]) && args[0],
-            val = Object.isString(args[0]) ? args[1] : args[0],
-            callback = Object.isString(args[0]) ? args[2] : args[1];
-        this.store.set(this.fullPath(path), val, {callback: callback});
+    set: function(options) {
+        // options: {path: STRING, callback: FUNCTION, value: OBJECT}
+        this.store.set(this.fullPath(options.path), options.value, {callback: options.callback});
     },
 
     commit: function(options) {
@@ -66,13 +61,10 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         var path = options.path,
             fullPath = this.fullPath(path),
             handle = this;
-        this.get(path, function(val) {
+        function withValueDo(val) {
             var newVal = options.transaction(val);
             // cancel commit?
-            if (newVal === undefined) {
-                options.callback(null, false, val);
-                return;
-            }
+            if (newVal === undefined) { options.callback(null, false, val); return; }
             handle.store.set(fullPath, newVal, {
                 callback: function(err) {
                     if (err && err.type === 'precondition') handle.commit(options); 
@@ -83,7 +75,8 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
                     return storeVal === val;
                 }
             });
-        });
+        }
+        this.get({path: path, callback: withValueDo});
     }
 },
 'handle hierarchy', {

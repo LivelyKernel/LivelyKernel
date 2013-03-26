@@ -13,20 +13,20 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     testGetValue: function() {
         this.store.set('foo', 23);
         var result = [];
-        this.rootHandle.get('foo', function(val) { result.push(val); });
+        this.rootHandle.get({path: 'foo', callback: function(val) { result.push(val); }});
         this.assertEqualState([23], result);
     },
 
     testGetRoot: function() {
         this.store.set('foo', 23);
         var result;
-        this.rootHandle.get(function(val) { result = val; });
+        this.rootHandle.get({callback: function(val) { result = val; }});
         this.assertEqualState({foo: 23}, result);
     },
 
     testGetWhenAvailable: function() {
         var result = [];
-        this.rootHandle.get('foo', function(val) { result.push(val); });
+        this.rootHandle.get({path: 'foo', callback: function(val) { result.push(val); }});
         this.assertEqualState([], result);
         this.store.set('foo', 23);
         this.assertEqualState([23], result);
@@ -35,12 +35,12 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
 
     testetTwice: function() {
         var result1 = [], result2 = [];
-        this.rootHandle.get('foo', function(val) { result1.push(val); });
-        this.rootHandle.get('foo', function(val) { result2.push(val); });
+        this.rootHandle.get({path: 'foo', callback: function(val) { result1.push(val); }});
+        this.rootHandle.get({path: 'foo', callback: function(val) { result2.push(val); }});
         this.store.set('foo', 23);
         this.assertEqualState([23], result1);
         this.assertEqualState([23], result2);
-        this.store.set('foo', 24);
+        this.store.set('foo', 23);
         this.assertEqualState([23], result1);
         this.assertEqualState([23], result2);
     },
@@ -60,13 +60,13 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
         this.assertEqualState([23], result);
         this.rootHandle.off('foo');
-        this.store.set('foo', 42);
+        this.store.set('foo', 23);
         this.assertEqualState([23], result);
     },
 
     testSet: function() {
         var done;
-        this.rootHandle.set('foo', 23, function(err) { done = true });
+        this.rootHandle.set({path: 'foo', value: 23, callback: function(err) { done = true }});
         this.assert(done, 'not done?');
         this.assertEqualState(23, this.store.db.foo);
     },
@@ -121,8 +121,8 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
 
     testChildAccess: function() {
         var barHandle = this.rootHandle.child('bar'), barVal;
-        this.rootHandle.set({bar: 23});
-        barHandle.get(function(val) { barVal = val; });
+        this.rootHandle.set({value: {bar: 23}});
+        barHandle.get({callback: function(val) { barVal = val; }});
         this.assertEquals(23, barVal);
     },
 
@@ -130,9 +130,9 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         var childHandle = this.rootHandle.child('bar.baz'),
             childHandleReads = [];
         childHandle.subscribe({callback: function(val) { childHandleReads.push(val); }});
-        this.rootHandle.set({bar: {baz: 23}});
-        this.rootHandle.set('bar', {baz: 24});
-        this.rootHandle.set('bar.baz', 25);
+        this.rootHandle.set({value: {bar: {baz: 23}}});
+        this.rootHandle.set({path: 'bar', value: {baz: 24}});
+        this.rootHandle.set({path: 'bar.baz', value: 25});
         this.assertEqualState([23, 24, 25], childHandleReads);
     }
 

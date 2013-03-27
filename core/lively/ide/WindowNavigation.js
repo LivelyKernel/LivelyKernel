@@ -35,7 +35,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
             win = this.findWindow(function(ea) { return ea.getTitle() === morphOrTitleOrName; });
         }
         if (!win) {
-            win = this.findWindow(function(ea) { return ea.getName === morphOrTitleOrName; });
+            win = this.findWindow(function(ea) { return ea.getName() === morphOrTitleOrName; });
         }
         if (!win) return;
         win.comeForward();
@@ -156,9 +156,10 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                 return true;
             },
             open: function open(options) {
-                var w = $world,
+                var w = lively.morphic.World.current(),
                     mgr = new lively.ide.WindowNavigation.WindowManager(w),
-                    windows = mgr.getWindows().reverse();
+                    windows = mgr.getWindows().reverse(),
+                    sel = windows[0] && windows[0].isActive() ? 1 : 0;
 
                 this.state = {
                     timeOpened: Date.now(),
@@ -171,9 +172,9 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
 
                 w.addMorphFront(this);
                 this.align(this.bounds().center(), w.visibleBounds().center());
-                if (windows.length === 0 || windows.length === 1) { this.noWindows(); return; }
+                if (windows.length === 0) { this.noWindows(); return; }
                 this.listWindows(windows);
-                this.selectN(this.initialSelection || 0);
+                this.selectN(sel);
             },
             reset: function reset() {
                 this.removeAllMorphs();

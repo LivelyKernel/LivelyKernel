@@ -1744,7 +1744,7 @@ var Editor = function(renderer, session) {
             this.session.removeEventListener("changeAnnotation", this.$onChangeAnnotation);
             this.session.removeEventListener("changeOverwrite", this.$onCursorChange);
             this.session.removeEventListener("changeScrollTop", this.$onScrollTopChange);
-            this.session.removeEventListener("changeLeftTop", this.$onScrollLeftChange);
+            this.session.removeEventListener("changeScrollLeft", this.$onScrollLeftChange);
 
             var selection = this.session.getSelection();
             selection.removeEventListener("changeCursor", this.$onCursorChange);
@@ -2973,7 +2973,7 @@ var Editor = function(renderer, session) {
         this._emit("destroy", this);
     };
     this.setAutoScrollEditorIntoView = function(enable) {
-        if (enable === true)
+        if (enable === false)
             return;
         var rect;
         var self = this;
@@ -3014,7 +3014,7 @@ var Editor = function(renderer, session) {
             }
         });
         this.setAutoScrollEditorIntoView = function(enable) {
-            if (enable === false)
+            if (enable === true)
                 return;
             delete this.setAutoScrollEditorIntoView;
             this.removeEventListener("changeSelection", onChangeSelection);
@@ -3033,7 +3033,7 @@ config.defineOptions(Editor.prototype, "editor", {
             this.onSelectionChange();
             this._emit("changeSelectionStyle", {data: style});
         },
-        initialValue: "line",
+        initialValue: "line"
     },
     highlightActiveLine: {
         set: function() {this.$updateHighlightActiveLine();},
@@ -3078,7 +3078,8 @@ config.defineOptions(Editor.prototype, "editor", {
     useWorker: "session",
     useSoftTabs: "session",
     tabSize: "session",
-    wrap: "session"
+    wrap: "session",
+    foldStyle: "session"
 });
 
 exports.Editor = Editor;
@@ -3730,6 +3731,7 @@ var MouseHandler = function(editor) {
                 renderer.$moveTextAreaToCursor();
             }
             self.isMousePressed = false;
+            self.onMouseEvent("mouseup", e)
         };
 
         var onCaptureInterval = function() {
@@ -4417,22 +4419,36 @@ exports.setModuleUrl = function(name, subst) {
     return options.$moduleUrls[name] = subst;
 };
 
+exports.$loading = {};
 exports.loadModule = function(moduleName, onLoad) {
     var module, moduleType;
     if (Array.isArray(moduleName)) {
         moduleType = moduleName[0];
         moduleName = moduleName[1];
     }
+
     try {
         module = require(moduleName);
     } catch (e) {};
-    if (module)
+    if (module && !exports.$loading[moduleName])
         return onLoad && onLoad(module);
+
+    if (!exports.$loading[moduleName])
+        exports.$loading[moduleName] = [];
+
+    exports.$loading[moduleName].push(onLoad);
+
+    if (exports.$loading[moduleName].length > 1)
+        return;
 
     var afterLoad = function() {
         require([moduleName], function(module) {
             exports._emit("load.module", {name: moduleName, module: module});
-            onLoad && onLoad(module);
+            var listeners = exports.$loading[moduleName];
+            exports.$loading[moduleName] = null;
+            listeners.forEach(function(onLoad) {
+                onLoad && onLoad(module);
+            });
         });
     };
 
@@ -4656,11 +4672,10 @@ EventEmitter._signal = function(eventName, e) {
 
 EventEmitter.once = function(eventName, callback) {
     var _self = this;
-    var newCallback = function() {
-        fun && fun.apply(null, arguments);
-        _self.removeEventListener(event, newCallback);
-    };
-    this.addEventListener(event, newCallback);
+    callback && this.addEventListener(eventName, function newCallback() {
+        _self.removeEventListener(eventName, newCallback);
+        callback.apply(null, arguments);
+    });
 };
 
 
@@ -6475,7 +6490,7 @@ config.defineOptions(EditSession.prototype, "session", {
     },
     newLineMode: {
         set: function(val) {this.doc.setNewLineMode(val)},
-        get: function() {return this.doc.getNewLineMode(newLineMode)},
+        get: function() {return this.doc.getNewLineMode()},
         handlesSet: true
     }
 });
@@ -7249,6 +7264,11 @@ Range.fromPoints = function(start, end) {
 };
 Range.comparePoints = comparePoints;
 
+Range.comparePoints = function(p1, p2) {
+    return p1.row - p2.row || p1.column - p2.column;
+};
+
+
 exports.Range = Range;
 });
 
@@ -7435,8 +7455,12 @@ var Tokenizer = function(rules) {
             var adjustedregex = rule.regex;
             var matchcount = new RegExp("(?:(" + adjustedregex + ")|(.))").exec("a").length - 2;
             if (Array.isArray(rule.token)) {
-                if (rule.token.length == 1) {
+                if (rule.token.length == 1 || matchcount == 1) {
                     rule.token = rule.token[0];
+                } else if (matchcount - 1 != rule.token.length) {
+                    throw new Error("number of classes and regexp groups in '" +
+                        rule.token + "'\n'" + rule.regex +  "' doesn't match\n"
+                        + (matchcount - 1) + "!=" + rule.token.length);
                 } else {
                     rule.tokenArray = rule.token;
                     rule.onMatch = this.$arrayTokens;
@@ -7498,11 +7522,6 @@ var Tokenizer = function(rules) {
         var values = this.splitRegex.exec(str);
         var tokens = [];
         var types = this.tokenArray;
-        if (types.length != values.length - 1) {
-            if (window.console)
-                console.error(types , values, str, this.splitRegex, this);
-            return [{type: "error.invalid", value: str}];
-        }
         for (var i = 0, l = types.length; i < l; i++) {
             if (values[i + 1])
                 tokens[tokens.length] = {
@@ -7526,7 +7545,7 @@ var Tokenizer = function(rules) {
             var stack = 0;
             var inChClass = false;
             var lastCapture = {};
-            src.replace(/(\\.)|(\((?:\?[=!])?)|(\))|([])/g, function(
+            src.replace(/(\\.)|(\((?:\?[=!])?)|(\))|([\[\]])/g, function(
                 m, esc, parenOpen, parenClose, square, index
             ) {
                 if (inChClass) {
@@ -7534,8 +7553,10 @@ var Tokenizer = function(rules) {
                 } else if (square) {
                     inChClass = true;
                 } else if (parenClose) {
-                    if (stack == lastCapture.stack)
-                        lastCapture.end = index+1
+                    if (stack == lastCapture.stack) {
+                        lastCapture.end = index+1;
+                        lastCapture.stack = -1;
+                    }
                     stack--;
                 } else if (parenOpen) {
                     stack++;
@@ -7627,7 +7648,7 @@ var Tokenizer = function(rules) {
                             tokens.push(token);
                         token = {type: type, value: value};
                     }
-                } else {
+                } else if (type) {
                     if (token.type)
                         tokens.push(token);
                     token = {type: null, value: ""};
@@ -8334,48 +8355,45 @@ var Anchor = exports.Anchor = function(doc, row, column) {
 
         var row = this.row;
         var column = this.column;
+        var start = range.start;
+        var end = range.end;
 
         if (delta.action === "insertText") {
-            if (range.start.row === row && range.start.column <= column) {
-                if (range.start.row === range.end.row) {
-                    column += range.end.column - range.start.column;
+            if (start.row === row && start.column <= column) {
+                if (start.row === end.row) {
+                    column += end.column - start.column;
+                } else {
+                    column -= start.column;
+                    row += end.row - start.row;
                 }
-                else {
-                    column -= range.start.column;
-                    row += range.end.row - range.start.row;
-                }
-            }
-            else if (range.start.row !== range.end.row && range.start.row < row) {
-                row += range.end.row - range.start.row;
+            } else if (start.row !== end.row && start.row < row) {
+                row += end.row - start.row;
             }
         } else if (delta.action === "insertLines") {
-            if (range.start.row <= row) {
-                row += range.end.row - range.start.row;
+            if (start.row <= row) {
+                row += end.row - start.row;
             }
-        }
-        else if (delta.action == "removeText") {
-            if (range.start.row == row && range.start.column < column) {
-                if (range.end.column >= column)
-                    column = range.start.column;
+        } else if (delta.action === "removeText") {
+            if (start.row === row && start.column < column) {
+                if (end.column >= column)
+                    column = start.column;
                 else
-                    column = Math.max(0, column - (range.end.column - range.start.column));
+                    column = Math.max(0, column - (end.column - start.column));
 
-            } else if (range.start.row !== range.end.row && range.start.row < row) {
-                if (range.end.row == row) {
-                    column = Math.max(0, column - range.end.column) + range.start.column;
-                }
-                row -= (range.end.row - range.start.row);
-            }
-            else if (range.end.row == row) {
-                row -= range.end.row - range.start.row;
-                column = Math.max(0, column - range.end.column) + range.start.column;
+            } else if (start.row !== end.row && start.row < row) {
+                if (end.row === row)
+                    column = Math.max(0, column - end.column) + start.column;
+                row -= (end.row - start.row);
+            } else if (end.row === row) {
+                row -= end.row - start.row;
+                column = Math.max(0, column - end.column) + start.column;
             }
         } else if (delta.action == "removeLines") {
-            if (range.start.row <= row) {
-                if (range.end.row <= row)
-                    row -= range.end.row - range.start.row;
+            if (start.row <= row) {
+                if (end.row <= row)
+                    row -= end.row - start.row;
                 else {
-                    row = range.start.row;
+                    row = start.row;
                     column = 0;
                 }
             }
@@ -8391,8 +8409,7 @@ var Anchor = exports.Anchor = function(doc, row, column) {
                 row: row,
                 column: column
             };
-        }
-        else {
+        } else {
             pos = this.$clipPositionToDocument(row, column);
         }
 
@@ -11272,20 +11289,6 @@ z-index: 4;\
 -webkit-box-sizing: border-box;\
 box-sizing: border-box;\
 }\
-.ace_marker-layer .ace_isearch-result {\
-position: absolute;\
-z-index: 6;\
--moz-box-sizing: border-box;\
--webkit-box-sizing: border-box;\
-box-sizing: border-box;\
-}\
-.ace_marker-layer .ace_occur-highlight {\
-position: absolute;\
-z-index: 4;\
--moz-box-sizing: border-box;\
--webkit-box-sizing: border-box;\
-box-sizing: border-box;\
-}\
 .ace_line .ace_fold {\
 -moz-box-sizing: border-box;\
 -webkit-box-sizing: border-box;\
@@ -11656,6 +11659,9 @@ var VirtualRenderer = function(container, theme) {
                 changes = changes | this.CHANGE_FULL;
         }
 
+        if (!this.$size.scrollerHeight)
+            return;
+
         if (force)
             this.$renderChanges(changes, true);
         else
@@ -11705,7 +11711,7 @@ var VirtualRenderer = function(container, theme) {
         this.setOption("showPrintMargin", showPrintMargin);
     };
     this.getShowPrintMargin = function() {
-        this.getOption("showPrintMargin");
+        return this.getOption("showPrintMargin");
     };
     this.setPrintMarginColumn = function(showPrintMargin) {
         this.setOption("printMarginColumn", showPrintMargin);
@@ -12264,6 +12270,8 @@ var VirtualRenderer = function(container, theme) {
         }
 
         function afterLoad(theme) {
+            if (!theme.cssClass)
+                return;
             dom.importCssString(
                 theme.cssText,
                 theme.cssClass,
@@ -14311,13 +14319,10 @@ exports.onSessionChange = function(e) {
 
     var oldSession = e.oldSession;
     if (oldSession) {
-        if (oldSession.multiSelect && oldSession.multiSelect.editor == this)
-            oldSession.multiSelect.editor = null;
-
-        session.multiSelect.removeEventListener("addRange", this.$onAddRange);
-        session.multiSelect.removeEventListener("removeRange", this.$onRemoveRange);
-        session.multiSelect.removeEventListener("multiSelect", this.$onMultiSelect);
-        session.multiSelect.removeEventListener("singleSelect", this.$onSingleSelect);
+        oldSession.multiSelect.removeEventListener("addRange", this.$onAddRange);
+        oldSession.multiSelect.removeEventListener("removeRange", this.$onRemoveRange);
+        oldSession.multiSelect.removeEventListener("multiSelect", this.$onMultiSelect);
+        oldSession.multiSelect.removeEventListener("singleSelect", this.$onSingleSelect);
     }
 
     session.multiSelect.on("addRange", this.$onAddRange);
@@ -14451,7 +14456,7 @@ function onMouseDown(e) {
 
         var oldRange = selection.rangeList.rangeAtPoint(pos);
 
-        event.capture(editor.container, function(){}, function() {
+        editor.once("mouseup", function() {
             var tmpSel = selection.toOrientedRange();
 
             if (oldRange && tmpSel.isEmpty() && isSamePoint(oldRange.cursor, tmpSel.cursor))
@@ -15184,10 +15189,13 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * ***** END LICENSE BLOCK ***** */
 
-ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/keyboard/hash_handler', 'ace/lib/keys', 'ace/incremental_search'], function(require, exports, module) {
+ace.define('ace/keyboard/emacs', ['require', 'exports', 'module' , 'ace/lib/dom', 'ace/incremental_search', 'ace/commands/incremental_search_commands', 'ace/keyboard/hash_handler', 'ace/lib/keys'], function(require, exports, module) {
 
 
 var dom = require("../lib/dom");
+require("../incremental_search");
+var iSearchCommandModule = require("../commands/incremental_search_commands");
+
 
 var screenToTextBlockCoordinates = function(x, y) {
     var canvasPos = this.scroller.getBoundingClientRect();
@@ -15246,24 +15254,30 @@ exports.handler.attach = function(editor) {
     editor.session.$useEmacsStyleLineStart = true;
 
     editor.session.$emacsMark = null;
+    editor.session.$emacsMarkRing = editor.session.$emacsMarkRing || [];
 
     editor.emacsMarkMode = function() {
         return this.session.$emacsMark;
     }
 
     editor.setEmacsMarkMode = function(p) {
+        var prevMark = this.session.$emacsMark;
+        if (prevMark)
+            this.session.$emacsMarkRing.push(prevMark);
         this.session.$emacsMark = p;
     }
 
+    editor.getLastEmacsMark = function(p) {
+        return this.session.$emacsMark || this.session.$emacsMarkRing.reverse()[0];
+    }
+
     editor.on("click", $resetMarkMode);
-    editor.on("changeSession",$kbSessionChange);
+    editor.on("changeSession", $kbSessionChange);
     editor.renderer.screenToTextCoordinates = screenToTextBlockCoordinates;
     editor.setStyle("emacs-mode");
     editor.commands.addCommands(commands);
     exports.handler.platform = editor.commands.platform;
     editor.$emacsModeHandler = this;
-    if (!editor.getOption('useIncrementalSearch')) editor.setOption('useIncrementalSearch', true)
-    else this.setupIncrementalSearch(editor, true);;
 };
 
 exports.handler.detach = function(editor) {
@@ -15289,6 +15303,8 @@ var $kbSessionChange = function(e) {
 
     if (!e.session.hasOwnProperty('$emacsMark'))
         e.session.$emacsMark = null;
+    if (!e.session.hasOwnProperty('$emacsMarkRing'))
+        e.session.$emacsMarkRing = [];
 }
 
 var $resetMarkMode = function(e) {
@@ -15429,8 +15445,10 @@ exports.emacsKeys = {
     "PageUp|M-v": {command: "goorselect", args: ["gotopageup","selectpageup"]},
     "S-C-Down": "selectpagedown",
     "S-C-Up": "selectpageup",
-    "C-s": "findnext",
-    "C-r": "findprevious",
+
+    "C-s": "iSearch",
+    "C-r": "iSearchBackwards",
+
     "M-C-s": "findnext",
     "M-C-r": "findprevious",
     "S-M-5": "replace",
@@ -15489,6 +15507,13 @@ exports.handler.addCommands({
     },
     setMark:  function(editor) {
         var markMode = editor.emacsMarkMode();
+        var useCuaMarkMode = true;
+        if (markMode && useCuaMarkMode) {
+            editor.clearSelection();
+            editor.setEmacsMarkMode(null);
+
+            return;
+        }
         if (markMode) {
             var cp = editor.getCursorPosition();
             if (editor.selection.isEmpty() &&
@@ -15504,6 +15529,10 @@ exports.handler.addCommands({
     exchangePointAndMark: {
         exec: function(editor) {
             var range = editor.selection.getRange();
+            if (range.isEmpty()) {
+                var lastMark = editor.getLastEmacsMark();
+                lastMark && range.setStart(lastMark.row, lastMark.column);
+            }
             editor.selection.setSelectionRange(range, !editor.selection.isBackwards());
         },
         readonly: true,
@@ -15571,6 +15600,8 @@ exports.handler.addCommands({
     }
 });
 
+exports.handler.addCommands(iSearchCommandModule.iSearchStartCommands);
+
 var commands = exports.handler.commands;
 commands.yank.isYank = true;
 commands.yankRotate.isYank = true;
@@ -15595,19 +15626,6 @@ exports.killRing = {
         return this.get();
     }
 };
-
-require('../incremental_search');
-exports.handler.setupIncrementalSearch = function(editor, val) {
-    if (this.usesIncrementalSearch == val) return;
-    this.usesIncrementalSearch = val;
-    if (val) {
-        this.bindKey('C-s', 'iSearch');
-        this.bindKey('C-r', 'iSearchBackwards');
-    } else {
-        this.bindKey('C-s', "findnext");
-        this.bindKey('C-r', "findprevious");
-    }
-}
 
 });
 
@@ -15751,27 +15769,30 @@ oop.inherits(IncrementalSearch, Search);
 exports.IncrementalSearch = IncrementalSearch;
 
 var dom = require('./lib/dom');
-function patchHighlightMarkerStyling(options) {
-    options = options || {};
-    var id = 'incremental-search-highlighting',
-        css = 'div.ace_isearch-result {\n'
-            + "  border-radius: 4px;\n"
-            + "  background-color: rgba(255, 200, 0, 0.5);\n"
-            + "  box-shadow: 0 0 4px rgb(255, 200, 0);\n"
-            + "}\n"
-            + '.ace_dark div.ace_isearch-result {\n'
-            + "  background-color: rgb(100, 110, 160);\n"
-            + "  box-shadow: 0 0 4px rgb(80, 90, 140);\n"
-            + '}\n'
-    dom.importCssString(css, id);
-}
+dom.importCssString && dom.importCssString("\
+.ace_marker-layer .ace_isearch-result {\
+  position: absolute;\
+  z-index: 6;\
+  -moz-box-sizing: border-box;\
+  -webkit-box-sizing: border-box;\
+  box-sizing: border-box;\
+}\
+div.ace_isearch-result {\
+  border-radius: 4px;\
+  background-color: rgba(255, 200, 0, 0.5);\
+  box-shadow: 0 0 4px rgb(255, 200, 0);\
+}\
+.ace_dark div.ace_isearch-result {\
+  background-color: rgb(100, 110, 160);\
+  box-shadow: 0 0 4px rgb(80, 90, 140);\
+}", "incremental-search-highlighting");
 var commands = require("./commands/command_manager");
 (function() {
     this.setupIncrementalSearch = function(editor, val) {
         if (this.usesIncrementalSearch == val) return;
         this.usesIncrementalSearch = val;
-        var iSearchCommands = iSearchCommandModule.iSearchStartCommands,
-            method = val ? 'addCommands' : 'removeCommands';
+        var iSearchCommands = iSearchCommandModule.iSearchStartCommands;
+        var method = val ? 'addCommands' : 'removeCommands';
         this[method](iSearchCommands);
     };
 }).call(commands.CommandManager.prototype);
@@ -15779,7 +15800,6 @@ var Editor = require("./editor").Editor;
 require("./config").defineOptions(Editor.prototype, "editor", {
     useIncrementalSearch: {
         set: function(val) {
-            patchHighlightMarkerStyling({enable: val});
             this.keyBinding.$handlers.forEach(function(handler) {
                 if (handler.setupIncrementalSearch) {
                     handler.setupIncrementalSearch(this, val);
@@ -15792,9 +15812,12 @@ require("./config").defineOptions(Editor.prototype, "editor", {
 
 });
 
-ace.define('ace/commands/incremental_search_commands', ['require', 'exports', 'module' , 'ace/config', 'ace/commands/occur_commands', 'ace/keyboard/hash_handler', 'ace/lib/oop'], function(require, exports, module) {
+ace.define('ace/commands/incremental_search_commands', ['require', 'exports', 'module' , 'ace/config', 'ace/lib/oop', 'ace/keyboard/hash_handler', 'ace/commands/occur_commands'], function(require, exports, module) {
 
 var config = require("../config");
+var oop = require("../lib/oop");
+var HashHandler = require("../keyboard/hash_handler").HashHandler;
+var occurStartCommand = require("./occur_commands").occurStartCommand;
 exports.iSearchStartCommands = [{
     name: "iSearch",
     bindKey: {win: "Ctrl-F", mac: "Command-F"},
@@ -15881,28 +15904,17 @@ exports.iSearchCommands = [{
     exec: function(iSearch) { iSearch.deactivate(true); },
     readOnly: true,
     isIncrementalSearchCommand: true
+}, {
+    name: 'occurisearch',
+    bindKey: 'Ctrl-O',
+    exec: function(iSearch) {
+        var options = oop.mixin({}, iSearch.$options);
+        iSearch.deactivate();
+        occurStartCommand.exec(iSearch.$editor, options);
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
 }];
-
-if (true) {
-    var occurCmds = require("./occur_commands").commands, occurStartCmd;
-    for (var i = 0; i < occurCmds.length; i++) {
-        if (occurCmds[i].name === 'occur') { occurStartCmd = occurCmds[i]; break; }
-    }
-    exports.iSearchCommands.push({
-        name: 'occurisearch',
-        bindKey: 'Ctrl-O',
-        exec: function(iSearch) {
-            var options = oop.mixin({}, iSearch.$options), ed = iSearch.$editor;
-            iSearch.deactivate();
-            occurStartCmd.exec(ed, options);
-        },
-        readOnly: true,
-        isIncrementalSearchCommand: true
-    });
-}
-
-var HashHandler = require("../keyboard/hash_handler").HashHandler;
-var oop = require("../lib/oop");
 
 function IncrementalSearchKeyboardHandler(iSearch) {
     this.$iSearch = iSearch;
@@ -15951,15 +15963,16 @@ ace.define('ace/commands/occur_commands', ['require', 'exports', 'module' , 'ace
 
 var config = require("../config"),
     Occur = require("../occur").Occur;
-var occurStartCommands = [{
+var occurStartCommand = {
     name: "occur",
     exec: function(editor, options) {
         var alreadyInOccur = !!editor.session.$occur;
         var occurSessionActive = new Occur().enter(editor, options);
-        if (occurSessionActive && !alreadyInOccur) OccurKeyboardHandler.installIn(editor);
+        if (occurSessionActive && !alreadyInOccur)
+            OccurKeyboardHandler.installIn(editor);
     },
     readOnly: true
-}];
+};
 
 var occurCommands = [{
     name: "occurexit",
@@ -16017,10 +16030,11 @@ OccurKeyboardHandler.installIn = function(editor) {
 OccurKeyboardHandler.uninstallFrom = function(editor) {
     editor.commands.removeCommands(occurCommands);
     var handler = editor.getKeyboardHandler();
-    if (handler.isOccurHandler) editor.keyBinding.removeKeyboardHandler(handler);
+    if (handler.isOccurHandler)
+        editor.keyBinding.removeKeyboardHandler(handler);
 }
 
-exports.commands = occurStartCommands;
+exports.occurStartCommand = occurStartCommand;
 
 });
 
@@ -16046,10 +16060,11 @@ oop.inherits(Occur, Search);
         return true;
     }
     this.exit = function(editor, options) {
-        var pos = options.translatePosition && editor.getCursorPosition(),
-            translatedPos = pos && this.occurToOriginalPosition(editor.session, pos);
+        var pos = options.translatePosition && editor.getCursorPosition();
+        var translatedPos = pos && this.occurToOriginalPosition(editor.session, pos);
         this.displayOriginalContent(editor);
-        if (translatedPos) editor.moveCursorToPosition(translatedPos);
+        if (translatedPos)
+            editor.moveCursorToPosition(translatedPos);
         return true;
     }
 
@@ -16062,9 +16077,9 @@ oop.inherits(Occur, Search);
 
     this.displayOccurContent = function(editor, options) {
         this.$originalSession = editor.session;
-        var found = this.matchingLines(editor.session, options),
-            lines = found.map(function(foundLine) { return foundLine.content; }),
-            occurSession = new EditSession(lines.join('\n'));
+        var found = this.matchingLines(editor.session, options);
+        var lines = found.map(function(foundLine) { return foundLine.content; });
+        var occurSession = new EditSession(lines.join('\n'));
         occurSession.$occur = this;
         occurSession.$occurMatchingLines = found;
         editor.setSession(occurSession);
@@ -16076,17 +16091,19 @@ oop.inherits(Occur, Search);
         editor.setSession(this.$originalSession);
     }
     this.originalToOccurPosition = function(session, pos) {
-        var lines = session.$occurMatchingLines,
-            nullPos = {row: 0, column: 0};
+        var lines = session.$occurMatchingLines;
+        var nullPos = {row: 0, column: 0};
         if (!lines) return nullPos;
         for (var i = 0; i < lines.length; i++) {
-            if (lines[i].row === pos.row) return {row: i, column: pos.column}
+            if (lines[i].row === pos.row)
+                return {row: i, column: pos.column};
         }
         return nullPos;
     }
     this.occurToOriginalPosition = function(session, pos) {
         var lines = session.$occurMatchingLines;
-        if (!lines || !lines[pos.row]) return pos;
+        if (!lines || !lines[pos.row])
+            return pos;
         return {row: lines[pos.row].row, column: pos.column};
     }
 
@@ -16096,8 +16113,8 @@ oop.inherits(Occur, Search);
         var search = new Search();
         search.set(options);
         return search.findAll(session).reduce(function(lines, range) {
-            var row = range.start.row,
-                last = lines[lines.length-1];
+            var row = range.start.row;
+            var last = lines[lines.length-1];
             return last && last.row === row ?
                 lines :
                 lines.concat({row: row, content: session.getLine(row)});
@@ -16107,19 +16124,20 @@ oop.inherits(Occur, Search);
 }).call(Occur.prototype);
 
 var dom = require('./lib/dom');
-(function patchHighlightMarkerStyling() {
-    var id = 'incremental-occur-highlighting',
-        css = 'div.ace_occur-highlight {\n'
-            + "  border-radius: 4px;\n"
-            + "  background-color: rgba(87, 255, 8, 0.25);\n"
-            + "  box-shadow: 0 0 4px rgb(91, 255, 50);\n"
-            + "}\n"
-            + '.ace_dark div.ace_occur-highlight {\n'
-            + "  background-color: rgb(80, 140, 85);\n"
-            + "  box-shadow: 0 0 4px rgb(60, 120, 70);\n"
-            + '}\n';
-    dom.importCssString(css, id);
-})();
+dom.importCssString(".ace_occur-highlight {\n\
+    border-radius: 4px;\n\
+    background-color: rgba(87, 255, 8, 0.25);\n\
+    position: absolute;\n\
+    z-index: 4;\n\
+    -moz-box-sizing: border-box;\n\
+    -webkit-box-sizing: border-box;\n\
+    box-sizing: border-box;\n\
+    box-shadow: 0 0 4px rgb(91, 255, 50);\n\
+}\n\
+.ace_dark .ace_occur-highlight {\n\
+    background-color: rgb(80, 140, 85);\n\
+    box-shadow: 0 0 4px rgb(60, 120, 70);\n\
+}\n", "incremental-occur-highlighting");
 
 exports.Occur = Occur;
 
@@ -17589,7 +17607,7 @@ module.exports = {
                 return pos;
             }
         }
-    }),
+    })
 };
 
 module.exports.backspace = module.exports.left = module.exports.h;
@@ -18678,7 +18696,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                 regex : '###',
                 next : "start"
             }, {
-                defaultToken : "comment",
+                defaultToken : "comment"
             }]
         };
         this.normalizeRules();
@@ -20464,7 +20482,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -20482,7 +20500,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -20495,7 +20513,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -20529,10 +20547,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -20554,11 +20572,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -20570,11 +20588,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -22679,7 +22697,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -22697,7 +22715,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -22710,7 +22728,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -22744,10 +22762,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -22769,11 +22787,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -22785,11 +22803,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -23153,7 +23171,7 @@ var RubyHighlightRules = function() {
         "attr|attr_writer|attr_reader|attr_accessor|attr_accessible|autoload|binding|block_given?|callcc|" +
         "caller|catch|chomp|chomp!|chop|chop!|defined?|delete_via_redirect|eval|exec|exit|" +
         "exit!|fail|Float|flunk|follow_redirect!|fork|form_for|form_tag|format|gets|global_variables|gsub|" +
-        "gsub!|get_via_redirect|h|host!|https?|https!|include|Integer|lambda|link_to|" +
+        "gsub!|get_via_redirect|host!|https?|https!|include|Integer|lambda|link_to|" +
         "link_to_unless_current|link_to_function|link_to_remote|load|local_variables|loop|open|open_session|" +
         "p|print|printf|proc|putc|puts|post_via_redirect|put_via_redirect|raise|rand|" +
         "raw|readline|readlines|redirect?|request_via_redirect|require|scan|select|" +
@@ -23171,7 +23189,7 @@ var RubyHighlightRules = function() {
         "validates_inclusion_of|validates_numericality_of|validates_with|validates_each|" +
         "authenticate_or_request_with_http_basic|authenticate_or_request_with_http_digest|" +
         "filter_parameter_logging|match|get|post|resources|redirect|scope|assert_routing|" +
-        "translate|localize|extract_locale_from_tld|t|l|caches_page|expire_page|caches_action|expire_action|" +
+        "translate|localize|extract_locale_from_tld|caches_page|expire_page|caches_action|expire_action|" +
         "cache|expire_fragment|expire_cache_for|observe|cache_sweeper|" +
         "has_many|has_one|belongs_to|has_and_belongs_to_many"
     );
@@ -23739,7 +23757,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -23757,7 +23775,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -23770,7 +23788,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -23804,10 +23822,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -23829,11 +23847,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -23845,11 +23863,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -25515,15 +25533,15 @@ var JadeHighlightRules = function() {
             regex : escapedRe
         }, {
             token : "string",
-            regex : '[^"\\\\]+',
+            regex : '[^"\\\\]+'
         }, {
             token : "string",
             regex : "\\\\$",
-            next  : "qqstring",
+            next  : "qqstring"
         }, {
             token : "string",
             regex : '"|$',
-            next  : "tag_attributes",
+            next  : "tag_attributes"
         }
     ],
     "qstring" : [
@@ -25532,15 +25550,15 @@ var JadeHighlightRules = function() {
             regex : escapedRe
         }, {
             token : "string",
-            regex : "[^'\\\\]+",
+            regex : "[^'\\\\]+"
         }, {
             token : "string",
             regex : "\\\\$",
-            next  : "qstring",
+            next  : "qstring"
         }, {
             token : "string",
             regex : "'|$",
-            next  : "tag_attributes",
+            next  : "tag_attributes"
         }
     ]
 };
@@ -25916,7 +25934,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -25934,7 +25952,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -25947,7 +25965,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -25981,10 +25999,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -26006,11 +26024,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -26022,11 +26040,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -27142,7 +27160,7 @@ ace.define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 
                 regex : '###',
                 next : "start"
             }, {
-                defaultToken : "comment",
+                defaultToken : "comment"
             }]
         };
         this.normalizeRules();
@@ -27523,7 +27541,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -27541,7 +27559,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -27554,7 +27572,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -27588,10 +27606,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -27613,11 +27631,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -27629,11 +27647,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -28523,7 +28541,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -28541,7 +28559,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -28554,7 +28572,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -28588,10 +28606,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -28613,11 +28631,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -28629,11 +28647,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -29251,15 +29269,15 @@ var JsonHighlightRules = function() {
                 regex : /\\(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|["\\\/bfnrt])/
             }, {
                 token : "string",
-                regex : '[^"\\\\]+',
+                regex : '[^"\\\\]+'
             }, {
                 token : "string",
                 regex : '"',
-                next  : "start",
+                next  : "start"
             }, {
                 token : "string",
                 regex : "",
-                next  : "start",
+                next  : "start"
             }
         ]
     };
@@ -31139,7 +31157,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * ***** END LICENSE BLOCK ***** */
 
-ace.define('ace/mode/logiql', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/logiql_highlight_rules', 'ace/mode/folding/coffee', 'ace/token_iterator', 'ace/range'], function(require, exports, module) {
+ace.define('ace/mode/logiql', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/logiql_highlight_rules', 'ace/mode/folding/coffee', 'ace/token_iterator', 'ace/range', 'ace/mode/behaviour/cstyle', 'ace/mode/matching_brace_outdent'], function(require, exports, module) {
 
 
 var oop = require("../lib/oop");
@@ -31149,11 +31167,15 @@ var LogiQLHighlightRules = require("./logiql_highlight_rules").LogiQLHighlightRu
 var FoldMode = require("./folding/coffee").FoldMode;
 var TokenIterator = require("../token_iterator").TokenIterator;
 var Range = require("../range").Range;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 
 var Mode = function() {
     var highlighter = new LogiQLHighlightRules();
     this.foldingRules = new FoldMode();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$outdent = new MatchingBraceOutdent();
+    this.$behaviour = new CstyleBehaviour();
 };
 oop.inherits(Mode, TextMode);
 
@@ -31173,12 +31195,15 @@ oop.inherits(Mode, TextMode);
             return indent;
 
         var match = line.match();
-        if (/(-->|<--|<-|->)\s*$/.test(line))
+        if (/(-->|<--|<-|->|{)\s*$/.test(line))
             indent += tab;
         return indent;
     };
 
     this.checkOutdent = function(state, line, input) {
+        if (this.$outdent.checkOutdent(line, input))
+            return true;
+
         if (input !== "\n" && input !== "\r\n")
             return false;
 
@@ -31189,6 +31214,8 @@ oop.inherits(Mode, TextMode);
     };
 
     this.autoOutdent = function(state, doc, row) {
+        if (this.$outdent.autoOutdent(doc, row))
+            return;
         var prevLine = doc.getLine(row);
         var match = prevLine.match(/^\s+/);
         var column = prevLine.lastIndexOf(".") + 1;
@@ -31298,7 +31325,7 @@ var LogiQLHighlightRules = function() {
            regex: '\\b(lang:[\\w:]*)',
             },
          { token: [ 'storage.type', 'text' ],
-           regex: '(export|sealed|clauses|block|alias)\\s*\\((?=`)',
+           regex: '(export|sealed|clauses|block|alias)(\\s*\\()(?=`)',
             },
          { token: 'entity.name',
            regex: '[a-zA-Z_][a-zA-Z_0-9:]*(@prev|@init|@final)?(?=(\\(|\\[))',
@@ -31400,6 +31427,369 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 }).call(FoldMode.prototype);
 
+});
+
+ace.define('ace/mode/behaviour/cstyle', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/behaviour', 'ace/token_iterator', 'ace/lib/lang'], function(require, exports, module) {
+
+
+var oop = require("../../lib/oop");
+var Behaviour = require("../behaviour").Behaviour;
+var TokenIterator = require("../../token_iterator").TokenIterator;
+var lang = require("../../lib/lang");
+
+var SAFE_INSERT_IN_TOKENS =
+    ["text", "paren.rparen", "punctuation.operator"];
+var SAFE_INSERT_BEFORE_TOKENS =
+    ["text", "paren.rparen", "punctuation.operator", "comment"];
+
+
+var autoInsertedBrackets = 0;
+var autoInsertedRow = -1;
+var autoInsertedLineEnd = "";
+var maybeInsertedBrackets = 0;
+var maybeInsertedRow = -1;
+var maybeInsertedLineStart = "";
+var maybeInsertedLineEnd = "";
+
+var CstyleBehaviour = function () {
+
+    CstyleBehaviour.isSaneInsertion = function(editor, session) {
+        var cursor = editor.getCursorPosition();
+        var iterator = new TokenIterator(session, cursor.row, cursor.column);
+        if (!this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_IN_TOKENS)) {
+            var iterator2 = new TokenIterator(session, cursor.row, cursor.column + 1);
+            if (!this.$matchTokenType(iterator2.getCurrentToken() || "text", SAFE_INSERT_IN_TOKENS))
+                return false;
+        }
+        iterator.stepForward();
+        return iterator.getCurrentTokenRow() !== cursor.row ||
+            this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
+    };
+
+    CstyleBehaviour.$matchTokenType = function(token, types) {
+        return types.indexOf(token.type || token) > -1;
+    };
+
+    CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
+        var cursor = editor.getCursorPosition();
+        var line = session.doc.getLine(cursor.row);
+        if (!this.isAutoInsertedClosing(cursor, line, autoInsertedLineEnd[0]))
+            autoInsertedBrackets = 0;
+        autoInsertedRow = cursor.row;
+        autoInsertedLineEnd = bracket + line.substr(cursor.column);
+        autoInsertedBrackets++;
+    };
+
+    CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
+        var cursor = editor.getCursorPosition();
+        var line = session.doc.getLine(cursor.row);
+        if (!this.isMaybeInsertedClosing(cursor, line))
+            maybeInsertedBrackets = 0;
+        maybeInsertedRow = cursor.row;
+        maybeInsertedLineStart = line.substr(0, cursor.column) + bracket;
+        maybeInsertedLineEnd = line.substr(cursor.column);
+        maybeInsertedBrackets++;
+    };
+
+    CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
+        return autoInsertedBrackets > 0 &&
+            cursor.row === autoInsertedRow &&
+            bracket === autoInsertedLineEnd[0] &&
+            line.substr(cursor.column) === autoInsertedLineEnd;
+    };
+
+    CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
+        return maybeInsertedBrackets > 0 &&
+            cursor.row === maybeInsertedRow &&
+            line.substr(cursor.column) === maybeInsertedLineEnd &&
+            line.substr(0, cursor.column) == maybeInsertedLineStart;
+    };
+
+    CstyleBehaviour.popAutoInsertedClosing = function() {
+        autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
+        autoInsertedBrackets--;
+    };
+
+    CstyleBehaviour.clearMaybeInsertedClosing = function() {
+        maybeInsertedBrackets = 0;
+        maybeInsertedRow = -1;
+    };
+
+    this.add("braces", "insertion", function (state, action, editor, session, text) {
+        var cursor = editor.getCursorPosition();
+        var line = session.doc.getLine(cursor.row);
+        if (text == '{') {
+            var selection = editor.getSelectionRange();
+            var selected = session.doc.getTextRange(selection);
+            if (selected !== "" && selected !== "{" && editor.getWrapBehavioursEnabled()) {
+                return {
+                    text: '{' + selected + '}',
+                    selection: false
+                };
+            } else if (CstyleBehaviour.isSaneInsertion(editor, session)) {
+                if (/[\]\}\)]/.test(line[cursor.column])) {
+                    CstyleBehaviour.recordAutoInsert(editor, session, "}");
+                    return {
+                        text: '{}',
+                        selection: [1, 1]
+                    };
+                } else {
+                    CstyleBehaviour.recordMaybeInsert(editor, session, "{");
+                    return {
+                        text: '{',
+                        selection: [1, 1]
+                    };
+                }
+            }
+        } else if (text == '}') {
+            var rightChar = line.substring(cursor.column, cursor.column + 1);
+            if (rightChar == '}') {
+                var matching = session.$findOpeningBracket('}', {column: cursor.column + 1, row: cursor.row});
+                if (matching !== null && CstyleBehaviour.isAutoInsertedClosing(cursor, line, text)) {
+                    CstyleBehaviour.popAutoInsertedClosing();
+                    return {
+                        text: '',
+                        selection: [1, 1]
+                    };
+                }
+            }
+        } else if (text == "\n" || text == "\r\n") {
+            var closing = "";
+            if (CstyleBehaviour.isMaybeInsertedClosing(cursor, line)) {
+                closing = lang.stringRepeat("}", maybeInsertedBrackets);
+                CstyleBehaviour.clearMaybeInsertedClosing();
+            }
+            var rightChar = line.substring(cursor.column, cursor.column + 1);
+            if (rightChar == '}' || closing !== "") {
+                var openBracePos = session.findMatchingBracket({row: cursor.row, column: cursor.column}, '}');
+                if (!openBracePos)
+                     return null;
+
+                var indent = this.getNextLineIndent(state, line.substring(0, cursor.column), session.getTabString());
+                var next_indent = this.$getIndent(line);
+
+                return {
+                    text: '\n' + indent + '\n' + next_indent + closing,
+                    selection: [1, indent.length, 1, indent.length]
+                };
+            }
+        }
+    });
+
+    this.add("braces", "deletion", function (state, action, editor, session, range) {
+        var selected = session.doc.getTextRange(range);
+        if (!range.isMultiLine() && selected == '{') {
+            var line = session.doc.getLine(range.start.row);
+            var rightChar = line.substring(range.end.column, range.end.column + 1);
+            if (rightChar == '}') {
+                range.end.column++;
+                return range;
+            } else {
+                maybeInsertedBrackets--;
+            }
+        }
+    });
+
+    this.add("parens", "insertion", function (state, action, editor, session, text) {
+        if (text == '(') {
+            var selection = editor.getSelectionRange();
+            var selected = session.doc.getTextRange(selection);
+            if (selected !== "" && editor.getWrapBehavioursEnabled()) {
+                return {
+                    text: '(' + selected + ')',
+                    selection: false
+                };
+            } else if (CstyleBehaviour.isSaneInsertion(editor, session)) {
+                CstyleBehaviour.recordAutoInsert(editor, session, ")");
+                return {
+                    text: '()',
+                    selection: [1, 1]
+                };
+            }
+        } else if (text == ')') {
+            var cursor = editor.getCursorPosition();
+            var line = session.doc.getLine(cursor.row);
+            var rightChar = line.substring(cursor.column, cursor.column + 1);
+            if (rightChar == ')') {
+                var matching = session.$findOpeningBracket(')', {column: cursor.column + 1, row: cursor.row});
+                if (matching !== null && CstyleBehaviour.isAutoInsertedClosing(cursor, line, text)) {
+                    CstyleBehaviour.popAutoInsertedClosing();
+                    return {
+                        text: '',
+                        selection: [1, 1]
+                    };
+                }
+            }
+        }
+    });
+
+    this.add("parens", "deletion", function (state, action, editor, session, range) {
+        var selected = session.doc.getTextRange(range);
+        if (!range.isMultiLine() && selected == '(') {
+            var line = session.doc.getLine(range.start.row);
+            var rightChar = line.substring(range.start.column + 1, range.start.column + 2);
+            if (rightChar == ')') {
+                range.end.column++;
+                return range;
+            }
+        }
+    });
+
+    this.add("brackets", "insertion", function (state, action, editor, session, text) {
+        if (text == '[') {
+            var selection = editor.getSelectionRange();
+            var selected = session.doc.getTextRange(selection);
+            if (selected !== "" && editor.getWrapBehavioursEnabled()) {
+                return {
+                    text: '[' + selected + ']',
+                    selection: false
+                };
+            } else if (CstyleBehaviour.isSaneInsertion(editor, session)) {
+                CstyleBehaviour.recordAutoInsert(editor, session, "]");
+                return {
+                    text: '[]',
+                    selection: [1, 1]
+                };
+            }
+        } else if (text == ']') {
+            var cursor = editor.getCursorPosition();
+            var line = session.doc.getLine(cursor.row);
+            var rightChar = line.substring(cursor.column, cursor.column + 1);
+            if (rightChar == ']') {
+                var matching = session.$findOpeningBracket(']', {column: cursor.column + 1, row: cursor.row});
+                if (matching !== null && CstyleBehaviour.isAutoInsertedClosing(cursor, line, text)) {
+                    CstyleBehaviour.popAutoInsertedClosing();
+                    return {
+                        text: '',
+                        selection: [1, 1]
+                    };
+                }
+            }
+        }
+    });
+
+    this.add("brackets", "deletion", function (state, action, editor, session, range) {
+        var selected = session.doc.getTextRange(range);
+        if (!range.isMultiLine() && selected == '[') {
+            var line = session.doc.getLine(range.start.row);
+            var rightChar = line.substring(range.start.column + 1, range.start.column + 2);
+            if (rightChar == ']') {
+                range.end.column++;
+                return range;
+            }
+        }
+    });
+
+    this.add("string_dquotes", "insertion", function (state, action, editor, session, text) {
+        if (text == '"' || text == "'") {
+            var quote = text;
+            var selection = editor.getSelectionRange();
+            var selected = session.doc.getTextRange(selection);
+            if (selected !== "" && selected !== "'" && selected != '"' && editor.getWrapBehavioursEnabled()) {
+                return {
+                    text: quote + selected + quote,
+                    selection: false
+                };
+            } else {
+                var cursor = editor.getCursorPosition();
+                var line = session.doc.getLine(cursor.row);
+                var leftChar = line.substring(cursor.column-1, cursor.column);
+                if (leftChar == '\\') {
+                    return null;
+                }
+                var tokens = session.getTokens(selection.start.row);
+                var col = 0, token;
+                var quotepos = -1; // Track whether we're inside an open quote.
+
+                for (var x = 0; x < tokens.length; x++) {
+                    token = tokens[x];
+                    if (token.type == "string") {
+                      quotepos = -1;
+                    } else if (quotepos < 0) {
+                      quotepos = token.value.indexOf(quote);
+                    }
+                    if ((token.value.length + col) > selection.start.column) {
+                        break;
+                    }
+                    col += tokens[x].value.length;
+                }
+                if (!token || (quotepos < 0 && token.type !== "comment" && (token.type !== "string" || ((selection.start.column !== token.value.length+col-1) && token.value.lastIndexOf(quote) === token.value.length-1)))) {
+                    if (!CstyleBehaviour.isSaneInsertion(editor, session))
+                        return;
+                    return {
+                        text: quote + quote,
+                        selection: [1,1]
+                    };
+                } else if (token && token.type === "string") {
+                    var rightChar = line.substring(cursor.column, cursor.column + 1);
+                    if (rightChar == quote) {
+                        return {
+                            text: '',
+                            selection: [1, 1]
+                        };
+                    }
+                }
+            }
+        }
+    });
+
+    this.add("string_dquotes", "deletion", function (state, action, editor, session, range) {
+        var selected = session.doc.getTextRange(range);
+        if (!range.isMultiLine() && (selected == '"' || selected == "'")) {
+            var line = session.doc.getLine(range.start.row);
+            var rightChar = line.substring(range.start.column + 1, range.start.column + 2);
+            if (rightChar == selected) {
+                range.end.column++;
+                return range;
+            }
+        }
+    });
+
+};
+
+oop.inherits(CstyleBehaviour, Behaviour);
+
+exports.CstyleBehaviour = CstyleBehaviour;
+});
+
+ace.define('ace/mode/matching_brace_outdent', ['require', 'exports', 'module' , 'ace/range'], function(require, exports, module) {
+
+
+var Range = require("../range").Range;
+
+var MatchingBraceOutdent = function() {};
+
+(function() {
+
+    this.checkOutdent = function(line, input) {
+        if (! /^\s+$/.test(line))
+            return false;
+
+        return /^\s*\}/.test(input);
+    };
+
+    this.autoOutdent = function(doc, row) {
+        var line = doc.getLine(row);
+        var match = line.match(/^(\s*\})/);
+
+        if (!match) return 0;
+
+        var column = match[1].length;
+        var openBracePos = doc.findMatchingBracket({row: row, column: column});
+
+        if (!openBracePos || openBracePos.row == row) return 0;
+
+        var indent = this.$getIndent(doc.getLine(openBracePos.row));
+        doc.replace(new Range(row, 0, row, column-1), indent);
+    };
+
+    this.$getIndent = function(line) {
+        return line.match(/^\s*/)[0];
+    };
+
+}).call(MatchingBraceOutdent.prototype);
+
+exports.MatchingBraceOutdent = MatchingBraceOutdent;
 });
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
@@ -32900,7 +33290,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -32918,7 +33308,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -32931,7 +33321,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -32965,10 +33355,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -32990,11 +33380,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -33006,11 +33396,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -34844,6 +35234,1279 @@ oop.inherits(FoldMode, BaseFoldMode);
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
+ * Copyright (c) 2010, Ajax.org B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+ace.define('ace/mode/mushcode', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/mushcode_high_rules', 'ace/mode/folding/pythonic', 'ace/range'], function(require, exports, module) {
+
+
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var MushCodeRules = require("./mushcode_high_rules").MushCodeRules;
+var PythonFoldMode = require("./folding/pythonic").FoldMode;
+var Range = require("../range").Range;
+
+var Mode = function() {
+    this.$tokenizer = new Tokenizer(new MushCodeRules().getRules());
+    this.foldingRules = new PythonFoldMode("\\:");
+};
+oop.inherits(Mode, TextMode);
+
+(function() {
+
+    this.lineCommentStart = "#";
+
+    this.getNextLineIndent = function(state, line, tab) {
+        var indent = this.$getIndent(line);
+
+        var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
+        var tokens = tokenizedLine.tokens;
+
+        if (tokens.length && tokens[tokens.length-1].type == "comment") {
+            return indent;
+        }
+
+        if (state == "start") {
+            var match = line.match(/^.*[\{\(\[\:]\s*$/);
+            if (match) {
+                indent += tab;
+            }
+        }
+
+        return indent;
+    };
+
+   var outdents = {
+        "pass": 1,
+        "return": 1,
+        "raise": 1,
+        "break": 1,
+        "continue": 1
+    };
+
+    this.checkOutdent = function(state, line, input) {
+        if (input !== "\r\n" && input !== "\r" && input !== "\n")
+            return false;
+
+        var tokens = this.$tokenizer.getLineTokens(line.trim(), state).tokens;
+
+        if (!tokens)
+            return false;
+        do {
+            var last = tokens.pop();
+        } while (last && (last.type == "comment" || (last.type == "text" && last.value.match(/^\s+$/))));
+
+        if (!last)
+            return false;
+
+        return (last.type == "keyword" && outdents[last.value]);
+    };
+
+    this.autoOutdent = function(state, doc, row) {
+
+        row += 1;
+        var indent = this.$getIndent(doc.getLine(row));
+        var tab = doc.getTabString();
+        if (indent.slice(-tab.length) == tab)
+            doc.remove(new Range(row, indent.length-tab.length, row, indent.length));
+    };
+
+}).call(Mode.prototype);
+
+exports.Mode = Mode;
+});
+
+ace.define('ace/mode/mushcode_high_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+
+
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+
+var MushCodeRules = function() {
+
+
+    var keywords = (
+ "@if|"+
+ "@ifelse|"+
+ "@switch|"+
+ "@halt|"+
+ "@dolist|"+
+ "@create|"+
+ "@scent|"+
+ "@sound|"+
+ "@touch|"+
+ "@ataste|"+
+ "@osound|"+
+ "@ahear|"+
+ "@aahear|"+
+ "@amhear|"+
+ "@otouch|"+
+ "@otaste|"+
+ "@drop|"+
+ "@odrop|"+
+ "@adrop|"+
+ "@dropfail|"+
+ "@odropfail|"+
+ "@smell|"+
+ "@oemit|"+
+ "@emit|"+
+ "@pemit|"+
+ "@parent|"+
+ "@clone|"+
+ "@taste|"+
+ "whisper|"+
+ "page|"+
+ "say|"+
+ "pose|"+
+ "semipose|"+
+ "teach|"+
+ "touch|"+
+ "taste|"+
+ "smell|"+
+ "listen|"+
+ "look|"+
+ "move|"+
+ "go|"+
+ "home|"+
+ "follow|"+
+ "unfollow|"+
+ "desert|"+
+ "dismiss|"+
+ "@tel"
+    );
+
+    var builtinConstants = (
+        "=#0"
+    );
+
+    var builtinFunctions = (
+ "default|"+
+ "edefault|"+
+ "eval|"+
+ "get_eval|"+
+ "get|"+
+ "grep|"+
+ "grepi|"+
+ "hasattr|"+
+ "hasattrp|"+
+ "hasattrval|"+
+ "hasattrpval|"+
+ "lattr|"+
+ "nattr|"+
+ "poss|"+
+ "udefault|"+
+ "ufun|"+
+ "u|"+
+ "v|"+
+ "uldefault|"+
+ "xget|"+
+ "zfun|"+
+ "band|"+
+ "bnand|"+
+ "bnot|"+
+ "bor|"+
+ "bxor|"+
+ "shl|"+
+ "shr|"+
+ "and|"+
+ "cand|"+
+ "cor|"+
+ "eq|"+
+ "gt|"+
+ "gte|"+
+ "lt|"+
+ "lte|"+
+ "nand|"+
+ "neq|"+
+ "nor|"+
+ "not|"+
+ "or|"+
+ "t|"+
+ "xor|"+
+ "con|"+
+ "entrances|"+
+ "exit|"+
+ "followers|"+
+ "home|"+
+ "lcon|"+
+ "lexits|"+
+ "loc|"+
+ "locate|"+
+ "lparent|"+
+ "lsearch|"+
+ "next|"+
+ "num|"+
+ "owner|"+
+ "parent|"+
+ "pmatch|"+
+ "rloc|"+
+ "rnum|"+
+ "room|"+
+ "where|"+
+ "zone|"+
+ "worn|"+
+ "held|"+
+ "carried|"+
+ "acos|"+
+ "asin|"+
+ "atan|"+
+ "ceil|"+
+ "cos|"+
+ "e|"+
+ "exp|"+
+ "fdiv|"+
+ "fmod|"+
+ "floor|"+
+ "log|"+
+ "ln|"+
+ "pi|"+
+ "power|"+
+ "round|"+
+ "sin|"+
+ "sqrt|"+
+ "tan|"+
+ "aposs|"+
+ "andflags|"+
+ "conn|"+
+ "commandssent|"+
+ "controls|"+
+ "doing|"+
+ "elock|"+
+ "findable|"+
+ "flags|"+
+ "fullname|"+
+ "hasflag|"+
+ "haspower|"+
+ "hastype|"+
+ "hidden|"+
+ "idle|"+
+ "isbaker|"+
+ "lock|"+
+ "lstats|"+
+ "money|"+
+ "who|"+
+ "name|"+
+ "nearby|"+
+ "obj|"+
+ "objflags|"+
+ "photo|"+
+ "poll|"+
+ "powers|"+
+ "pendingtext|"+
+ "receivedtext|"+
+ "restarts|"+
+ "restarttime|"+
+ "subj|"+
+ "shortestpath|"+
+ "tmoney|"+
+ "type|"+
+ "visible|"+
+ "cat|"+
+ "element|"+
+ "elements|"+
+ "extract|"+
+ "filter|"+
+ "filterbool|"+
+ "first|"+
+ "foreach|"+
+ "fold|"+
+ "grab|"+
+ "graball|"+
+ "index|"+
+ "insert|"+
+ "itemize|"+
+ "items|"+
+ "iter|"+
+ "last|"+
+ "ldelete|"+
+ "map|"+
+ "match|"+
+ "matchall|"+
+ "member|"+
+ "mix|"+
+ "munge|"+
+ "pick|"+
+ "remove|"+
+ "replace|"+
+ "rest|"+
+ "revwords|"+
+ "setdiff|"+
+ "setinter|"+
+ "setunion|"+
+ "shuffle|"+
+ "sort|"+
+ "sortby|"+
+ "splice|"+
+ "step|"+
+ "wordpos|"+
+ "words|"+
+ "add|"+
+ "lmath|"+
+ "max|"+
+ "mean|"+
+ "median|"+
+ "min|"+
+ "mul|"+
+ "percent|"+
+ "sign|"+
+ "stddev|"+
+ "sub|"+
+ "val|"+
+ "bound|"+
+ "abs|"+
+ "inc|"+
+ "dec|"+
+ "dist2d|"+
+ "dist3d|"+
+ "div|"+
+ "floordiv|"+
+ "mod|"+
+ "modulo|"+
+ "remainder|"+
+ "vadd|"+
+ "vdim|"+
+ "vdot|"+
+ "vmag|"+
+ "vmax|"+
+ "vmin|"+
+ "vmul|"+
+ "vsub|"+
+ "vunit|"+
+ "regedit|"+
+ "regeditall|"+
+ "regeditalli|"+
+ "regediti|"+
+ "regmatch|"+
+ "regmatchi|"+
+ "regrab|"+
+ "regraball|"+
+ "regraballi|"+
+ "regrabi|"+
+ "regrep|"+
+ "regrepi|"+
+ "after|"+
+ "alphamin|"+
+ "alphamax|"+
+ "art|"+
+ "before|"+
+ "brackets|"+
+ "capstr|"+
+ "case|"+
+ "caseall|"+
+ "center|"+
+ "containsfansi|"+
+ "comp|"+
+ "decompose|"+
+ "decrypt|"+
+ "delete|"+
+ "edit|"+
+ "encrypt|"+
+ "escape|"+
+ "if|"+
+ "ifelse|"+
+ "lcstr|"+
+ "left|"+
+ "lit|"+
+ "ljust|"+
+ "merge|"+
+ "mid|"+
+ "ostrlen|"+
+ "pos|"+
+ "repeat|"+
+ "reverse|"+
+ "right|"+
+ "rjust|"+
+ "scramble|"+
+ "secure|"+
+ "space|"+
+ "spellnum|"+
+ "squish|"+
+ "strcat|"+
+ "strmatch|"+
+ "strinsert|"+
+ "stripansi|"+
+ "stripfansi|"+
+ "strlen|"+
+ "switch|"+
+ "switchall|"+
+ "table|"+
+ "tr|"+
+ "trim|"+
+ "ucstr|"+
+ "unsafe|"+
+ "wrap|"+
+ "ctitle|"+
+ "cwho|"+
+ "channels|"+
+ "clock|"+
+ "cflags|"+
+ "ilev|"+
+ "itext|"+
+ "inum|"+
+ "convsecs|"+
+ "convutcsecs|"+
+ "convtime|"+
+ "ctime|"+
+ "etimefmt|"+
+ "isdaylight|"+
+ "mtime|"+
+ "secs|"+
+ "msecs|"+
+ "starttime|"+
+ "time|"+
+ "timefmt|"+
+ "timestring|"+
+ "utctime|"+
+ "atrlock|"+
+ "clone|"+
+ "create|"+
+ "cook|"+
+ "dig|"+
+ "emit|"+
+ "lemit|"+
+ "link|"+
+ "oemit|"+
+ "open|"+
+ "pemit|"+
+ "remit|"+
+ "set|"+
+ "tel|"+
+ "wipe|"+
+ "zemit|"+
+ "fbcreate|"+
+ "fbdestroy|"+
+ "fbwrite|"+
+ "fbclear|"+
+ "fbcopy|"+
+ "fbcopyto|"+
+ "fbclip|"+
+ "fbdump|"+
+ "fbflush|"+
+ "fbhset|"+
+ "fblist|"+
+ "fbstats|"+
+ "qentries|"+
+ "qentry|"+
+ "play|"+
+ "ansi|"+
+ "break|"+
+ "c|"+
+ "asc|"+
+ "die|"+
+ "isdbref|"+
+ "isint|"+
+ "isnum|"+
+ "isletters|"+
+ "linecoords|"+
+ "localize|"+
+ "lnum|"+
+ "nameshort|"+
+ "null|"+
+ "objeval|"+
+ "r|"+
+ "rand|"+
+ "s|"+
+ "setq|"+
+ "setr|"+
+ "soundex|"+
+ "soundslike|"+
+ "valid|"+
+ "vchart|"+
+ "vchart2|"+
+ "vlabel|"+
+ "@@|"+
+ "bakerdays|"+
+ "bodybuild|"+
+ "box|"+
+ "capall|"+
+ "catalog|"+
+ "children|"+
+ "ctrailer|"+
+ "darttime|"+
+ "debt|"+
+ "detailbar|"+
+ "exploredroom|"+
+ "fansitoansi|"+
+ "fansitoxansi|"+
+ "fullbar|"+
+ "halfbar|"+
+ "isdarted|"+
+ "isnewbie|"+
+ "isword|"+
+ "lambda|"+
+ "lobjects|"+
+ "lplayers|"+
+ "lthings|"+
+ "lvexits|"+
+ "lvobjects|"+
+ "lvplayers|"+
+ "lvthings|"+
+ "newswrap|"+
+ "numsuffix|"+
+ "playerson|"+
+ "playersthisweek|"+
+ "randomad|"+
+ "randword|"+
+ "realrandword|"+
+ "replacechr|"+
+ "second|"+
+ "splitamount|"+
+ "strlenall|"+
+ "text|"+
+ "third|"+
+ "tofansi|"+
+ "totalac|"+
+ "unique|"+
+ "getaddressroom|"+
+ "listpropertycomm|"+
+ "listpropertyres|"+
+ "lotowner|"+
+ "lotrating|"+
+ "lotratingcount|"+
+ "lotvalue|"+
+ "boughtproduct|"+
+ "companyabb|"+
+ "companyicon|"+
+ "companylist|"+
+ "companyname|"+
+ "companyowners|"+
+ "companyvalue|"+
+ "employees|"+
+ "invested|"+
+ "productlist|"+
+ "productname|"+
+ "productowners|"+
+ "productrating|"+
+ "productratingcount|"+
+ "productsoldat|"+
+ "producttype|"+
+ "ratedproduct|"+
+ "soldproduct|"+
+ "topproducts|"+
+ "totalspentonproduct|"+
+ "totalstock|"+
+ "transfermoney|"+
+ "uniquebuyercount|"+
+ "uniqueproductsbought|"+
+ "validcompany|"+
+ "deletepicture|"+
+ "fbsave|"+
+ "getpicturesecurity|"+
+ "haspicture|"+
+ "listpictures|"+
+ "picturesize|"+
+ "replacecolor|"+
+ "rgbtocolor|"+
+ "savepicture|"+
+ "setpicturesecurity|"+
+ "showpicture|"+
+ "piechart|"+
+ "piechartlabel|"+
+ "createmaze|"+
+ "drawmaze|"+
+ "drawwireframe"
+    );
+    var keywordMapper = this.createKeywordMapper({
+        "invalid.deprecated": "debugger",
+        "support.function": builtinFunctions,
+        "constant.language": builtinConstants,
+        "keyword": keywords
+    }, "identifier");
+
+    var strPre = "(?:r|u|ur|R|U|UR|Ur|uR)?";
+
+    var decimalInteger = "(?:(?:[1-9]\\d*)|(?:0))";
+    var octInteger = "(?:0[oO]?[0-7]+)";
+    var hexInteger = "(?:0[xX][\\dA-Fa-f]+)";
+    var binInteger = "(?:0[bB][01]+)";
+    var integer = "(?:" + decimalInteger + "|" + octInteger + "|" + hexInteger + "|" + binInteger + ")";
+
+    var exponent = "(?:[eE][+-]?\\d+)";
+    var fraction = "(?:\\.\\d+)";
+    var intPart = "(?:\\d+)";
+    var pointFloat = "(?:(?:" + intPart + "?" + fraction + ")|(?:" + intPart + "\\.))";
+    var exponentFloat = "(?:(?:" + pointFloat + "|" +  intPart + ")" + exponent + ")";
+    var floatNumber = "(?:" + exponentFloat + "|" + pointFloat + ")";
+
+    this.$rules = {
+        "start" : [
+         {
+                token : "variable", // mush substitution register
+                regex : "%[0-9]{1}"
+         },
+         {
+                token : "variable", // mush substitution register
+                regex : "%q[0-9A-Za-z]{1}"
+         },
+         {
+                token : "variable", // mush special character register
+                regex : "%[a-zA-Z]{1}"
+         },
+         {
+                token: "variable.language",
+                regex: "%[a-z0-9-_]+"
+         },
+        {
+            token : "constant.numeric", // imaginary
+            regex : "(?:" + floatNumber + "|\\d+)[jJ]\\b"
+        }, {
+            token : "constant.numeric", // float
+            regex : floatNumber
+        }, {
+            token : "constant.numeric", // long integer
+            regex : integer + "[lL]\\b"
+        }, {
+            token : "constant.numeric", // integer
+            regex : integer + "\\b"
+        }, {
+            token : keywordMapper,
+            regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
+        }, {
+            token : "keyword.operator",
+            regex : "\\+|\\-|\\*|\\*\\*|\\/|\\/\\/|#|%|<<|>>|\\||\\^|~|<|>|<=|=>|==|!=|<>|="
+        }, {
+            token : "paren.lparen",
+            regex : "[\\[\\(\\{]"
+        }, {
+            token : "paren.rparen",
+            regex : "[\\]\\)\\}]"
+        }, {
+            token : "text",
+            regex : "\\s+"
+        } ],
+    };
+};
+
+oop.inherits(MushCodeRules, TextHighlightRules);
+
+exports.MushCodeRules = MushCodeRules;
+});
+
+ace.define('ace/mode/folding/pythonic', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/folding/fold_mode'], function(require, exports, module) {
+
+
+var oop = require("../../lib/oop");
+var BaseFoldMode = require("./fold_mode").FoldMode;
+
+var FoldMode = exports.FoldMode = function(markers) {
+    this.foldingStartMarker = new RegExp("([\\[{])(?:\\s*)$|(" + markers + ")(?:\\s*)(?:#.*)?$");
+};
+oop.inherits(FoldMode, BaseFoldMode);
+
+(function() {
+
+    this.getFoldWidgetRange = function(session, foldStyle, row) {
+        var line = session.getLine(row);
+        var match = line.match(this.foldingStartMarker);
+        if (match) {
+            if (match[1])
+                return this.openingBracketBlock(session, match[1], row, match.index);
+            if (match[2])
+                return this.indentationBlock(session, row, match.index + match[2].length);
+            return this.indentationBlock(session, row);
+        }
+    }
+
+}).call(FoldMode.prototype);
+
+});
+/*
+ * MUSHCodeMode
+ */
+
+ace.define('ace/mode/mushcode_high_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+
+
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+
+var MushCodeRules = function() {
+
+
+    var keywords = (
+ "@if|"+
+ "@ifelse|"+
+ "@switch|"+
+ "@halt|"+
+ "@dolist|"+
+ "@create|"+
+ "@scent|"+
+ "@sound|"+
+ "@touch|"+
+ "@ataste|"+
+ "@osound|"+
+ "@ahear|"+
+ "@aahear|"+
+ "@amhear|"+
+ "@otouch|"+
+ "@otaste|"+
+ "@drop|"+
+ "@odrop|"+
+ "@adrop|"+
+ "@dropfail|"+
+ "@odropfail|"+
+ "@smell|"+
+ "@oemit|"+
+ "@emit|"+
+ "@pemit|"+
+ "@parent|"+
+ "@clone|"+
+ "@taste|"+
+ "whisper|"+
+ "page|"+
+ "say|"+
+ "pose|"+
+ "semipose|"+
+ "teach|"+
+ "touch|"+
+ "taste|"+
+ "smell|"+
+ "listen|"+
+ "look|"+
+ "move|"+
+ "go|"+
+ "home|"+
+ "follow|"+
+ "unfollow|"+
+ "desert|"+
+ "dismiss|"+
+ "@tel"
+    );
+
+    var builtinConstants = (
+        "=#0"
+    );
+
+    var builtinFunctions = (
+ "default|"+
+ "edefault|"+
+ "eval|"+
+ "get_eval|"+
+ "get|"+
+ "grep|"+
+ "grepi|"+
+ "hasattr|"+
+ "hasattrp|"+
+ "hasattrval|"+
+ "hasattrpval|"+
+ "lattr|"+
+ "nattr|"+
+ "poss|"+
+ "udefault|"+
+ "ufun|"+
+ "u|"+
+ "v|"+
+ "uldefault|"+
+ "xget|"+
+ "zfun|"+
+ "band|"+
+ "bnand|"+
+ "bnot|"+
+ "bor|"+
+ "bxor|"+
+ "shl|"+
+ "shr|"+
+ "and|"+
+ "cand|"+
+ "cor|"+
+ "eq|"+
+ "gt|"+
+ "gte|"+
+ "lt|"+
+ "lte|"+
+ "nand|"+
+ "neq|"+
+ "nor|"+
+ "not|"+
+ "or|"+
+ "t|"+
+ "xor|"+
+ "con|"+
+ "entrances|"+
+ "exit|"+
+ "followers|"+
+ "home|"+
+ "lcon|"+
+ "lexits|"+
+ "loc|"+
+ "locate|"+
+ "lparent|"+
+ "lsearch|"+
+ "next|"+
+ "num|"+
+ "owner|"+
+ "parent|"+
+ "pmatch|"+
+ "rloc|"+
+ "rnum|"+
+ "room|"+
+ "where|"+
+ "zone|"+
+ "worn|"+
+ "held|"+
+ "carried|"+
+ "acos|"+
+ "asin|"+
+ "atan|"+
+ "ceil|"+
+ "cos|"+
+ "e|"+
+ "exp|"+
+ "fdiv|"+
+ "fmod|"+
+ "floor|"+
+ "log|"+
+ "ln|"+
+ "pi|"+
+ "power|"+
+ "round|"+
+ "sin|"+
+ "sqrt|"+
+ "tan|"+
+ "aposs|"+
+ "andflags|"+
+ "conn|"+
+ "commandssent|"+
+ "controls|"+
+ "doing|"+
+ "elock|"+
+ "findable|"+
+ "flags|"+
+ "fullname|"+
+ "hasflag|"+
+ "haspower|"+
+ "hastype|"+
+ "hidden|"+
+ "idle|"+
+ "isbaker|"+
+ "lock|"+
+ "lstats|"+
+ "money|"+
+ "who|"+
+ "name|"+
+ "nearby|"+
+ "obj|"+
+ "objflags|"+
+ "photo|"+
+ "poll|"+
+ "powers|"+
+ "pendingtext|"+
+ "receivedtext|"+
+ "restarts|"+
+ "restarttime|"+
+ "subj|"+
+ "shortestpath|"+
+ "tmoney|"+
+ "type|"+
+ "visible|"+
+ "cat|"+
+ "element|"+
+ "elements|"+
+ "extract|"+
+ "filter|"+
+ "filterbool|"+
+ "first|"+
+ "foreach|"+
+ "fold|"+
+ "grab|"+
+ "graball|"+
+ "index|"+
+ "insert|"+
+ "itemize|"+
+ "items|"+
+ "iter|"+
+ "last|"+
+ "ldelete|"+
+ "map|"+
+ "match|"+
+ "matchall|"+
+ "member|"+
+ "mix|"+
+ "munge|"+
+ "pick|"+
+ "remove|"+
+ "replace|"+
+ "rest|"+
+ "revwords|"+
+ "setdiff|"+
+ "setinter|"+
+ "setunion|"+
+ "shuffle|"+
+ "sort|"+
+ "sortby|"+
+ "splice|"+
+ "step|"+
+ "wordpos|"+
+ "words|"+
+ "add|"+
+ "lmath|"+
+ "max|"+
+ "mean|"+
+ "median|"+
+ "min|"+
+ "mul|"+
+ "percent|"+
+ "sign|"+
+ "stddev|"+
+ "sub|"+
+ "val|"+
+ "bound|"+
+ "abs|"+
+ "inc|"+
+ "dec|"+
+ "dist2d|"+
+ "dist3d|"+
+ "div|"+
+ "floordiv|"+
+ "mod|"+
+ "modulo|"+
+ "remainder|"+
+ "vadd|"+
+ "vdim|"+
+ "vdot|"+
+ "vmag|"+
+ "vmax|"+
+ "vmin|"+
+ "vmul|"+
+ "vsub|"+
+ "vunit|"+
+ "regedit|"+
+ "regeditall|"+
+ "regeditalli|"+
+ "regediti|"+
+ "regmatch|"+
+ "regmatchi|"+
+ "regrab|"+
+ "regraball|"+
+ "regraballi|"+
+ "regrabi|"+
+ "regrep|"+
+ "regrepi|"+
+ "after|"+
+ "alphamin|"+
+ "alphamax|"+
+ "art|"+
+ "before|"+
+ "brackets|"+
+ "capstr|"+
+ "case|"+
+ "caseall|"+
+ "center|"+
+ "containsfansi|"+
+ "comp|"+
+ "decompose|"+
+ "decrypt|"+
+ "delete|"+
+ "edit|"+
+ "encrypt|"+
+ "escape|"+
+ "if|"+
+ "ifelse|"+
+ "lcstr|"+
+ "left|"+
+ "lit|"+
+ "ljust|"+
+ "merge|"+
+ "mid|"+
+ "ostrlen|"+
+ "pos|"+
+ "repeat|"+
+ "reverse|"+
+ "right|"+
+ "rjust|"+
+ "scramble|"+
+ "secure|"+
+ "space|"+
+ "spellnum|"+
+ "squish|"+
+ "strcat|"+
+ "strmatch|"+
+ "strinsert|"+
+ "stripansi|"+
+ "stripfansi|"+
+ "strlen|"+
+ "switch|"+
+ "switchall|"+
+ "table|"+
+ "tr|"+
+ "trim|"+
+ "ucstr|"+
+ "unsafe|"+
+ "wrap|"+
+ "ctitle|"+
+ "cwho|"+
+ "channels|"+
+ "clock|"+
+ "cflags|"+
+ "ilev|"+
+ "itext|"+
+ "inum|"+
+ "convsecs|"+
+ "convutcsecs|"+
+ "convtime|"+
+ "ctime|"+
+ "etimefmt|"+
+ "isdaylight|"+
+ "mtime|"+
+ "secs|"+
+ "msecs|"+
+ "starttime|"+
+ "time|"+
+ "timefmt|"+
+ "timestring|"+
+ "utctime|"+
+ "atrlock|"+
+ "clone|"+
+ "create|"+
+ "cook|"+
+ "dig|"+
+ "emit|"+
+ "lemit|"+
+ "link|"+
+ "oemit|"+
+ "open|"+
+ "pemit|"+
+ "remit|"+
+ "set|"+
+ "tel|"+
+ "wipe|"+
+ "zemit|"+
+ "fbcreate|"+
+ "fbdestroy|"+
+ "fbwrite|"+
+ "fbclear|"+
+ "fbcopy|"+
+ "fbcopyto|"+
+ "fbclip|"+
+ "fbdump|"+
+ "fbflush|"+
+ "fbhset|"+
+ "fblist|"+
+ "fbstats|"+
+ "qentries|"+
+ "qentry|"+
+ "play|"+
+ "ansi|"+
+ "break|"+
+ "c|"+
+ "asc|"+
+ "die|"+
+ "isdbref|"+
+ "isint|"+
+ "isnum|"+
+ "isletters|"+
+ "linecoords|"+
+ "localize|"+
+ "lnum|"+
+ "nameshort|"+
+ "null|"+
+ "objeval|"+
+ "r|"+
+ "rand|"+
+ "s|"+
+ "setq|"+
+ "setr|"+
+ "soundex|"+
+ "soundslike|"+
+ "valid|"+
+ "vchart|"+
+ "vchart2|"+
+ "vlabel|"+
+ "@@|"+
+ "bakerdays|"+
+ "bodybuild|"+
+ "box|"+
+ "capall|"+
+ "catalog|"+
+ "children|"+
+ "ctrailer|"+
+ "darttime|"+
+ "debt|"+
+ "detailbar|"+
+ "exploredroom|"+
+ "fansitoansi|"+
+ "fansitoxansi|"+
+ "fullbar|"+
+ "halfbar|"+
+ "isdarted|"+
+ "isnewbie|"+
+ "isword|"+
+ "lambda|"+
+ "lobjects|"+
+ "lplayers|"+
+ "lthings|"+
+ "lvexits|"+
+ "lvobjects|"+
+ "lvplayers|"+
+ "lvthings|"+
+ "newswrap|"+
+ "numsuffix|"+
+ "playerson|"+
+ "playersthisweek|"+
+ "randomad|"+
+ "randword|"+
+ "realrandword|"+
+ "replacechr|"+
+ "second|"+
+ "splitamount|"+
+ "strlenall|"+
+ "text|"+
+ "third|"+
+ "tofansi|"+
+ "totalac|"+
+ "unique|"+
+ "getaddressroom|"+
+ "listpropertycomm|"+
+ "listpropertyres|"+
+ "lotowner|"+
+ "lotrating|"+
+ "lotratingcount|"+
+ "lotvalue|"+
+ "boughtproduct|"+
+ "companyabb|"+
+ "companyicon|"+
+ "companylist|"+
+ "companyname|"+
+ "companyowners|"+
+ "companyvalue|"+
+ "employees|"+
+ "invested|"+
+ "productlist|"+
+ "productname|"+
+ "productowners|"+
+ "productrating|"+
+ "productratingcount|"+
+ "productsoldat|"+
+ "producttype|"+
+ "ratedproduct|"+
+ "soldproduct|"+
+ "topproducts|"+
+ "totalspentonproduct|"+
+ "totalstock|"+
+ "transfermoney|"+
+ "uniquebuyercount|"+
+ "uniqueproductsbought|"+
+ "validcompany|"+
+ "deletepicture|"+
+ "fbsave|"+
+ "getpicturesecurity|"+
+ "haspicture|"+
+ "listpictures|"+
+ "picturesize|"+
+ "replacecolor|"+
+ "rgbtocolor|"+
+ "savepicture|"+
+ "setpicturesecurity|"+
+ "showpicture|"+
+ "piechart|"+
+ "piechartlabel|"+
+ "createmaze|"+
+ "drawmaze|"+
+ "drawwireframe"
+    );
+    var keywordMapper = this.createKeywordMapper({
+        "invalid.deprecated": "debugger",
+        "support.function": builtinFunctions,
+        "constant.language": builtinConstants,
+        "keyword": keywords
+    }, "identifier");
+
+    var strPre = "(?:r|u|ur|R|U|UR|Ur|uR)?";
+
+    var decimalInteger = "(?:(?:[1-9]\\d*)|(?:0))";
+    var octInteger = "(?:0[oO]?[0-7]+)";
+    var hexInteger = "(?:0[xX][\\dA-Fa-f]+)";
+    var binInteger = "(?:0[bB][01]+)";
+    var integer = "(?:" + decimalInteger + "|" + octInteger + "|" + hexInteger + "|" + binInteger + ")";
+
+    var exponent = "(?:[eE][+-]?\\d+)";
+    var fraction = "(?:\\.\\d+)";
+    var intPart = "(?:\\d+)";
+    var pointFloat = "(?:(?:" + intPart + "?" + fraction + ")|(?:" + intPart + "\\.))";
+    var exponentFloat = "(?:(?:" + pointFloat + "|" +  intPart + ")" + exponent + ")";
+    var floatNumber = "(?:" + exponentFloat + "|" + pointFloat + ")";
+
+    this.$rules = {
+        "start" : [
+         {
+                token : "variable", // mush substitution register
+                regex : "%[0-9]{1}"
+         },
+         {
+                token : "variable", // mush substitution register
+                regex : "%q[0-9A-Za-z]{1}"
+         },
+         {
+                token : "variable", // mush special character register
+                regex : "%[a-zA-Z]{1}"
+         },
+         {
+                token: "variable.language",
+                regex: "%[a-z0-9-_]+"
+         },
+        {
+            token : "constant.numeric", // imaginary
+            regex : "(?:" + floatNumber + "|\\d+)[jJ]\\b"
+        }, {
+            token : "constant.numeric", // float
+            regex : floatNumber
+        }, {
+            token : "constant.numeric", // long integer
+            regex : integer + "[lL]\\b"
+        }, {
+            token : "constant.numeric", // integer
+            regex : integer + "\\b"
+        }, {
+            token : keywordMapper,
+            regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
+        }, {
+            token : "keyword.operator",
+            regex : "\\+|\\-|\\*|\\*\\*|\\/|\\/\\/|#|%|<<|>>|\\||\\^|~|<|>|<=|=>|==|!=|<>|="
+        }, {
+            token : "paren.lparen",
+            regex : "[\\[\\(\\{]"
+        }, {
+            token : "paren.rparen",
+            regex : "[\\]\\)\\}]"
+        }, {
+            token : "text",
+            regex : "\\s+"
+        } ],
+    };
+};
+
+oop.inherits(MushCodeRules, TextHighlightRules);
+
+exports.MushCodeRules = MushCodeRules;
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
  *
@@ -35020,7 +36683,7 @@ var ObjectiveCHighlightRules = function() {
         },
         {
             token: ["support.class.cocoa"],
-            regex: "(?:\\b)(NS(?:R(?:u(?:nLoop|ler(?:Marker|View))|e(?:sponder|cursiveLock|lativeSpecifier)|an(?:domSpecifier|geSpecifier))|G(?:etCommand|lyph(?:Generator|Storage|Info)|raphicsContext)|XML(?:Node|D(?:ocument|TD(?:Node)?)|Parser|Element)|M(?:iddleSpecifier|ov(?:ie(?:View)?|eCommand)|utable(?:S(?:tring|et)|C(?:haracterSet|opying)|IndexSet|D(?:ictionary|ata)|URLRequest|ParagraphStyle|A(?:ttributedString|rray))|e(?:ssagePort(?:NameServer)?|nu(?:Item(?:Cell)?|View)?|t(?:hodSignature|adata(?:Item|Query(?:ResultGroup|AttributeValueTuple)?)))|a(?:ch(?:BootstrapServer|Port)|trix))|B(?:itmapImageRep|ox|u(?:ndle|tton(?:Cell)?)|ezierPath|rowser(?:Cell)?)|S(?:hadow|c(?:anner|r(?:ipt(?:SuiteRegistry|C(?:o(?:ercionHandler|mmand(?:Description)?)|lassDescription)|ObjectSpecifier|ExecutionContext|WhoseTest)|oll(?:er|View)|een))|t(?:epper(?:Cell)?|atus(?:Bar|Item)|r(?:ing|eam))|imple(?:HorizontalTypesetter|CString)|o(?:cketPort(?:NameServer)?|und|rtDescriptor)|p(?:e(?:cifierTest|ech(?:Recognizer|Synthesizer)|ll(?:Server|Checker))|litView)|e(?:cureTextField(?:Cell)?|t(?:Command)?|archField(?:Cell)?|rializer|gmentedC(?:ontrol|ell))|lider(?:Cell)?|avePanel)|H(?:ost|TTP(?:Cookie(?:Storage)?|URLResponse)|elpManager)|N(?:ib(?:Con(?:nector|trolConnector)|OutletConnector)?|otification(?:Center|Queue)?|u(?:ll|mber(?:Formatter)?)|etService(?:Browser)?|ameSpecifier)|C(?:ha(?:ngeSpelling|racterSet)|o(?:n(?:stantString|nection|trol(?:ler)?|ditionLock)|d(?:ing|er)|unt(?:Command|edSet)|pying|lor(?:Space|P(?:ick(?:ing(?:Custom|Default)|er)|anel)|Well|List)?|m(?:p(?:oundPredicate|arisonPredicate)|boBox(?:Cell)?))|u(?:stomImageRep|rsor)|IImageRep|ell|l(?:ipView|o(?:seCommand|neCommand)|assDescription)|a(?:ched(?:ImageRep|URLResponse)|lendar(?:Date)?)|reateCommand)|T(?:hread|ypesetter|ime(?:Zone|r)|o(?:olbar(?:Item(?:Validations)?)?|kenField(?:Cell)?)|ext(?:Block|Storage|Container|Tab(?:le(?:Block)?)?|Input|View|Field(?:Cell)?|List|Attachment(?:Cell)?)?|a(?:sk|b(?:le(?:Header(?:Cell|View)|Column|View)|View(?:Item)?))|reeController)|I(?:n(?:dex(?:S(?:pecifier|et)|Path)|put(?:Manager|S(?:tream|erv(?:iceProvider|er(?:MouseTracker)?)))|vocation)|gnoreMisspelledWords|mage(?:Rep|Cell|View)?)|O(?:ut(?:putStream|lineView)|pen(?:GL(?:Context|Pixel(?:Buffer|Format)|View)|Panel)|bj(?:CTypeSerializationCallBack|ect(?:Controller)?))|D(?:i(?:st(?:antObject(?:Request)?|ributed(?:NotificationCenter|Lock))|ctionary|rectoryEnumerator)|ocument(?:Controller)?|e(?:serializer|cimalNumber(?:Behaviors|Handler)?|leteCommand)|at(?:e(?:Components|Picker(?:Cell)?|Formatter)?|a)|ra(?:wer|ggingInfo))|U(?:ser(?:InterfaceValidations|Defaults(?:Controller)?)|RL(?:Re(?:sponse|quest)|Handle(?:Client)?|C(?:onnection|ache|redential(?:Storage)?)|Download(?:Delegate)?|Prot(?:ocol(?:Client)?|ectionSpace)|AuthenticationChallenge(?:Sender)?)?|n(?:iqueIDSpecifier|doManager|archiver))|P(?:ipe|o(?:sitionalSpecifier|pUpButton(?:Cell)?|rt(?:Message|NameServer|Coder)?)|ICTImageRep|ersistentDocument|DFImageRep|a(?:steboard|nel|ragraphStyle|geLayout)|r(?:int(?:Info|er|Operation|Panel)|o(?:cessInfo|tocolChecker|perty(?:Specifier|ListSerialization)|gressIndicator|xy)|edicate))|E(?:numerator|vent|PSImageRep|rror|x(?:ception|istsCommand|pression))|V(?:iew(?:Animation)?|al(?:idated(?:ToobarItem|UserInterfaceItem)|ue(?:Transformer)?))|Keyed(?:Unarchiver|Archiver)|Qui(?:ckDrawView|tCommand)|F(?:ile(?:Manager|Handle|Wrapper)|o(?:nt(?:Manager|Descriptor|Panel)?|rm(?:Cell|atter)))|W(?:hoseSpecifier|indow(?:Controller)?|orkspace)|L(?:o(?:c(?:k(?:ing)?|ale)|gicalTest)|evelIndicator(?:Cell)?|ayoutManager)|A(?:ssertionHandler|nimation|ctionCell|ttributedString|utoreleasePool|TSTypesetter|ppl(?:ication|e(?:Script|Event(?:Manager|Descriptor)))|ffineTransform|lert|r(?:chiver|ray(?:Controller)?))))(?:\\b)",
+            regex: "(?:\\b)(NS(?:R(?:u(?:nLoop|ler(?:Marker|View))|e(?:sponder|cursiveLock|lativeSpecifier)|an(?:domSpecifier|geSpecifier))|G(?:etCommand|lyph(?:Generator|Storage|Info)|raphicsContext)|XML(?:Node|D(?:ocument|TD(?:Node)?)|Parser|Element)|M(?:iddleSpecifier|ov(?:ie(?:View)?|eCommand)|utable(?:S(?:tring|et)|C(?:haracterSet|opying)|IndexSet|D(?:ictionary|ata)|URLRequest|ParagraphStyle|A(?:ttributedString|rray))|e(?:ssagePort(?:NameServer)?|nu(?:Item(?:Cell)?|View)?|t(?:hodSignature|adata(?:Item|Query(?:ResultGroup|AttributeValueTuple)?)))|a(?:ch(?:BootstrapServer|Port)|trix))|B(?:itmapImageRep|ox|u(?:ndle|tton(?:Cell)?)|ezierPath|rowser(?:Cell)?)|S(?:hadow|c(?:anner|r(?:ipt(?:SuiteRegistry|C(?:o(?:ercionHandler|mmand(?:Description)?)|lassDescription)|ObjectSpecifier|ExecutionContext|WhoseTest)|oll(?:er|View)|een))|t(?:epper(?:Cell)?|atus(?:Bar|Item)|r(?:ing|eam))|imple(?:HorizontalTypesetter|CString)|o(?:cketPort(?:NameServer)?|und|rtDescriptor)|p(?:e(?:cifierTest|ech(?:Recognizer|Synthesizer)|ll(?:Server|Checker))|litView)|e(?:cureTextField(?:Cell)?|t(?:Command)?|archField(?:Cell)?|rializer|gmentedC(?:ontrol|ell))|lider(?:Cell)?|avePanel)|H(?:ost|TTP(?:Cookie(?:Storage)?|URLResponse)|elpManager)|N(?:ib(?:Con(?:nector|trolConnector)|OutletConnector)?|otification(?:Center|Queue)?|u(?:ll|mber(?:Formatter)?)|etService(?:Browser)?|ameSpecifier)|C(?:ha(?:ngeSpelling|racterSet)|o(?:n(?:stantString|nection|trol(?:ler)?|ditionLock)|d(?:ing|er)|unt(?:Command|edSet)|pying|lor(?:Space|P(?:ick(?:ing(?:Custom|Default)|er)|anel)|Well|List)?|m(?:p(?:oundPredicate|arisonPredicate)|boBox(?:Cell)?))|u(?:stomImageRep|rsor)|IImageRep|ell|l(?:ipView|o(?:seCommand|neCommand)|assDescription)|a(?:ched(?:ImageRep|URLResponse)|lendar(?:Date)?)|reateCommand)|T(?:hread|ypesetter|ime(?:Zone|r)|o(?:olbar(?:Item(?:Validations)?)?|kenField(?:Cell)?)|ext(?:Block|Storage|Container|Tab(?:le(?:Block)?)?|Input|View|Field(?:Cell)?|List|Attachment(?:Cell)?)?|a(?:sk|b(?:le(?:Header(?:Cell|View)|Column|View)|View(?:Item)?))|reeController)|I(?:n(?:dex(?:S(?:pecifier|et)|Path)|put(?:Manager|S(?:tream|erv(?:iceProvider|er(?:MouseTracker)?)))|vocation)|gnoreMisspelledWords|mage(?:Rep|Cell|View)?)|O(?:ut(?:putStream|lineView)|pen(?:GL(?:Context|Pixel(?:Buffer|Format)|View)|Panel)|bj(?:CTypeSerializationCallBack|ect(?:Controller)?))|D(?:i(?:st(?:antObject(?:Request)?|ributed(?:NotificationCenter|Lock))|ctionary|rectoryEnumerator)|ocument(?:Controller)?|e(?:serializer|cimalNumber(?:Behaviors|Handler)?|leteCommand)|at(?:e(?:Components|Picker(?:Cell)?|Formatter)?|a)|ra(?:wer|ggingInfo))|U(?:ser(?:InterfaceValidations|Defaults(?:Controller)?)|RL(?:Re(?:sponse|quest)|Handle(?:Client)?|C(?:onnection|ache|redential(?:Storage)?)|Download(?:Delegate)?|Prot(?:ocol(?:Client)?|ectionSpace)|AuthenticationChallenge(?:Sender)?)?|n(?:iqueIDSpecifier|doManager|archiver))|P(?:ipe|o(?:sitionalSpecifier|pUpButton(?:Cell)?|rt(?:Message|NameServer|Coder)?)|ICTImageRep|ersistentDocument|DFImageRep|a(?:steboard|nel|ragraphStyle|geLayout)|r(?:int(?:Info|er|Operation|Panel)|o(?:cessInfo|tocolChecker|perty(?:Specifier|ListSerialization)|gressIndicator|xy)|edicate))|E(?:numerator|vent|PSImageRep|rror|x(?:ception|istsCommand|pression))|V(?:iew(?:Animation)?|al(?:idated(?:ToobarItem|UserInterfaceItem)|ue(?:Transformer)?))|Keyed(?:Unarchiver|Archiver)|Qui(?:ckDrawView|tCommand)|F(?:ile(?:Manager|Handle|Wrapper)|o(?:nt(?:Manager|Descriptor|Panel)?|rm(?:Cell|atter)))|W(?:hoseSpecifier|indow(?:Controller)?|orkspace)|L(?:o(?:c(?:k(?:ing)?|ale)|gicalTest)|evelIndicator(?:Cell)?|ayoutManager)|A(?:ssertionHandler|nimation|ctionCell|ttributedString|utoreleasePool|TSTypesetter|ppl(?:ication|e(?:Script|Event(?:Manager|Descriptor)))|ffineTransform|lert|r(?:chiver|ray(?:Controller)?))))(?:\\b)"
         },
         {
             token: ["support.type.cocoa.leopard"],
@@ -36661,7 +38324,7 @@ var SassHighlightRules = function() {
             regex: "/\\*|[{;}]"
         }, {
             token: "support.type",
-            regex: /^\s*:[\w\-]+\s/,
+            regex: /^\s*:[\w\-]+\s/
         });
 
         this.$rules.comment = [
@@ -38585,7 +40248,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
+                next: "regex"
             }, {
                 token : "text",
                 regex : "\\s+|^$",
@@ -38603,7 +40266,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "no_regex",
+                next: "no_regex"
             }, {
                 token : "invalid",
                 regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
@@ -38616,7 +40279,7 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
+                next: "regex_character_class"
             }, {
                 token: "empty",
                 regex: "$",
@@ -38650,10 +40313,10 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
@@ -38675,11 +40338,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -38691,11 +40354,11 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "no_regex",
+                next  : "no_regex"
             }, {
                 defaultToken: "string"
             }
@@ -38935,7 +40598,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 }).call(FoldMode.prototype);
 
 });
-ace.define('ace/mode/tmsnippet', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+ace.define('ace/mode/tmsnippet', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/text_highlight_rules', 'ace/mode/folding/coffee'], function(require, exports, module) {
 
 
 var oop = require("../lib/oop");
@@ -38957,7 +40620,7 @@ var SnippetHighlightRules = function() {
                 if (stack[1])
                     stack[1]++;
                 else
-                    stack.unshift("start", 1);
+                    stack.unshift(state, 1);
                 return this.tokenName;
             }, tokenName: "markup.list", regex: "\\${", next: "varDecl"},
             {onMatch: function(value, state, stack) {
@@ -38968,7 +40631,7 @@ var SnippetHighlightRules = function() {
                     stack.splice(0,2);
                 return this.tokenName;
             }, tokenName: "markup.list", regex: "}"},
-            {token: "doc,comment", regex:/^\${2}-{5,}$/}
+            {token: "doc.comment", regex:/^\${2}-{5,}$/}
         ],
         "varDecl" : [
             {regex: /\d+\b/, token: "constant.numeric"},
@@ -38997,15 +40660,44 @@ var SnippetHighlightRules = function() {
         ]
     };
 };
-
 oop.inherits(SnippetHighlightRules, TextHighlightRules);
 
 exports.SnippetHighlightRules = SnippetHighlightRules;
 
+var SnippetGroupHighlightRules = function() {
+    this.$rules = {
+        "start" : [
+			{token: "text", regex: "^\\t", next: "sn-start"},
+			{token:"invalid", regex: /^ \s*/},
+            {token:"comment", regex: /^#.*/},
+            {token:"constant.language.escape", regex: "^regex ", next: "regex"},
+            {token:"constant.language.escape", regex: "^(trigger|endTrigger|name|snippet|guard|endGuard|tabTrigger|key)\\b"}
+        ],
+		"regex" : [
+			{token:"text", regex: "\\."},
+			{token:"keyword", regex: "/"},
+			{token:"empty", regex: "$", next: "start"}
+		]
+    };
+	this.embedRules(SnippetHighlightRules, "sn-", [
+		{token: "text", regex: "^\\t", next: "sn-start"},
+		{onMatch: function(value, state, stack) {
+			stack.splice(stack.length);
+			return this.tokenName;
+		}, tokenName: "text", regex: "^(?!\t)", next: "start"},
+	])
+
+};
+
+oop.inherits(SnippetGroupHighlightRules, TextHighlightRules);
+
+exports.SnippetGroupHighlightRules = SnippetGroupHighlightRules;
+
+var FoldMode = require("./folding/coffee").FoldMode;
 
 var Mode = function() {
-    var highlighter = new SnippetHighlightRules();
-
+    var highlighter = new SnippetGroupHighlightRules();
+    this.foldingRules = new FoldMode();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
@@ -39017,6 +40709,93 @@ oop.inherits(Mode, TextMode);
 }).call(Mode.prototype);
 exports.Mode = Mode;
 
+
+});
+
+ace.define('ace/mode/folding/coffee', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/folding/fold_mode', 'ace/range'], function(require, exports, module) {
+
+
+var oop = require("../../lib/oop");
+var BaseFoldMode = require("./fold_mode").FoldMode;
+var Range = require("../../range").Range;
+
+var FoldMode = exports.FoldMode = function() {};
+oop.inherits(FoldMode, BaseFoldMode);
+
+(function() {
+
+    this.getFoldWidgetRange = function(session, foldStyle, row) {
+        var range = this.indentationBlock(session, row);
+        if (range)
+            return range;
+
+        var re = /\S/;
+        var line = session.getLine(row);
+        var startLevel = line.search(re);
+        if (startLevel == -1 || line[startLevel] != "#")
+            return;
+
+        var startColumn = line.length;
+        var maxRow = session.getLength();
+        var startRow = row;
+        var endRow = row;
+
+        while (++row < maxRow) {
+            line = session.getLine(row);
+            var level = line.search(re);
+
+            if (level == -1)
+                continue;
+
+            if (line[level] != "#")
+                break;
+
+            endRow = row;
+        }
+
+        if (endRow > startRow) {
+            var endColumn = session.getLine(endRow).length;
+            return new Range(startRow, startColumn, endRow, endColumn);
+        }
+    };
+    this.getFoldWidget = function(session, foldStyle, row) {
+        var line = session.getLine(row);
+        var indent = line.search(/\S/);
+        var next = session.getLine(row + 1);
+        var prev = session.getLine(row - 1);
+        var prevIndent = prev.search(/\S/);
+        var nextIndent = next.search(/\S/);
+
+        if (indent == -1) {
+            session.foldWidgets[row - 1] = prevIndent!= -1 && prevIndent < nextIndent ? "start" : "";
+            return "";
+        }
+        if (prevIndent == -1) {
+            if (indent == nextIndent && line[indent] == "#" && next[indent] == "#") {
+                session.foldWidgets[row - 1] = "";
+                session.foldWidgets[row + 1] = "";
+                return "start";
+            }
+        } else if (prevIndent == indent && line[indent] == "#" && prev[indent] == "#") {
+            if (session.getLine(row - 2).search(/\S/) == -1) {
+                session.foldWidgets[row - 1] = "start";
+                session.foldWidgets[row + 1] = "";
+                return "";
+            }
+        }
+
+        if (prevIndent!= -1 && prevIndent < indent)
+            session.foldWidgets[row - 1] = "start";
+        else
+            session.foldWidgets[row - 1] = "";
+
+        if (indent < nextIndent)
+            return "start";
+        else
+            return "";
+    };
+
+}).call(FoldMode.prototype);
 
 });
 /* ***** BEGIN LICENSE BLOCK *****
@@ -39122,7 +40901,7 @@ var TomlHighlightRules = function() {
         {
             token : "string",
             regex : "\\\\$",
-            next  : "qqstring",
+            next  : "qqstring"
         },
         {
             token : "constant.language.escape",
@@ -39131,7 +40910,7 @@ var TomlHighlightRules = function() {
         {
             token : "string",
             regex : '"|$',
-            next  : "start",
+            next  : "start"
         },
         {
             defaultToken: "string"
@@ -40885,6 +42664,160 @@ text-decoration: underline\
 .ace-solarized-dark .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNg0Db7zzBz5sz/AA82BCv7wOIDAAAAAElFTkSuQmCC) right repeat-y\
 }";
+
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
+ * Copyright (c) 2010, Ajax.org B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+ace.define('ace/theme/terminal', ['require', 'exports', 'module' , 'ace/lib/dom'], function(require, exports, module) {
+
+exports.isDark = true;
+exports.cssClass = "ace-terminal-theme";
+exports.cssText = ".ace-terminal-theme .ace_gutter {\
+background: #1a0005;\
+color: steelblue\
+}\
+.ace-terminal-theme .ace_print-margin {\
+width: 1px;\
+background: #1a1a1a\
+}\
+.ace-terminal-theme .ace_scroller {\
+background-color: black\
+}\
+.ace-terminal-theme .ace_text-layer {\
+color: #DEDEDE\
+}\
+.ace-terminal-theme .ace_cursor {\
+border-left: 2px solid springgreen\
+}\
+.ace-terminal-theme .ace_overwrite-cursors .ace_cursor {\
+border-left: 0px;\
+border-bottom: 1px solid #9F9F9F\
+}\
+.ace-terminal-theme .ace_marker-layer .ace_selection {\
+background: #424242\
+}\
+.ace-terminal-theme.ace_multiselect .ace_selection.ace_start {\
+box-shadow: 0 0 3px 0px black;\
+border-radius: 2px\
+}\
+.ace-terminal-theme .ace_marker-layer .ace_step {\
+background: rgb(0, 0, 0)\
+}\
+.ace-terminal-theme .ace_marker-layer .ace_bracket {\
+background: #090;\
+}\
+.ace-terminal-theme .ace_marker-layer .ace_bracket-start {\
+background: #090;\
+}\
+.ace-terminal-theme .ace_marker-layer .ace_bracket-unmatched {\
+margin: -1px 0 0 -1px;\
+border: 1px solid #900\
+}\
+.ace-terminal-theme .ace_marker-layer .ace_active-line {\
+background: #2A2A2A\
+}\
+.ace-terminal-theme .ace_gutter-active-line {\
+background-color: #2A112A\
+}\
+.ace-terminal-theme .ace_marker-layer .ace_selected-word {\
+border: 1px solid #424242\
+}\
+.ace-terminal-theme .ace_invisible {\
+color: #343434\
+}\
+.ace-terminal-theme .ace_keyword,\
+.ace-terminal-theme .ace_meta,\
+.ace-terminal-theme .ace_storage,\
+.ace-terminal-theme .ace_storage.ace_type,\
+.ace-terminal-theme .ace_support.ace_type {\
+color: tomato\
+}\
+.ace-terminal-theme .ace_keyword.ace_operator {\
+color: deeppink\
+}\
+.ace-terminal-theme .ace_constant.ace_character,\
+.ace-terminal-theme .ace_constant.ace_language,\
+.ace-terminal-theme .ace_constant.ace_numeric,\
+.ace-terminal-theme .ace_keyword.ace_other.ace_unit,\
+.ace-terminal-theme .ace_support.ace_constant,\
+.ace-terminal-theme .ace_variable.ace_parameter {\
+color: #E78C45\
+}\
+.ace-terminal-theme .ace_constant.ace_other {\
+color: gold\
+}\
+.ace-terminal-theme .ace_invalid {\
+color: yellow;\
+background-color: red\
+}\
+.ace-terminal-theme .ace_invalid.ace_deprecated {\
+color: #CED2CF;\
+background-color: #B798BF\
+}\
+.ace-terminal-theme .ace_fold {\
+background-color: #7AA6DA;\
+border-color: #DEDEDE\
+}\
+.ace-terminal-theme .ace_entity.ace_name.ace_function,\
+.ace-terminal-theme .ace_support.ace_function,\
+.ace-terminal-theme .ace_variable {\
+color: #7AA6DA\
+}\
+.ace-terminal-theme .ace_support.ace_class,\
+.ace-terminal-theme .ace_support.ace_type {\
+color: #E7C547\
+}\
+.ace-terminal-theme .ace_markup.ace_heading,\
+.ace-terminal-theme .ace_string {\
+color: #B9CA4A\
+}\
+.ace-terminal-theme .ace_entity.ace_name.ace_tag,\
+.ace-terminal-theme .ace_entity.ace_other.ace_attribute-name,\
+.ace-terminal-theme .ace_meta.ace_tag,\
+.ace-terminal-theme .ace_string.ace_regexp,\
+.ace-terminal-theme .ace_variable {\
+color: #D54E53\
+}\
+.ace-terminal-theme .ace_comment {\
+color: orangered\
+}\
+.ace-terminal-theme .ace_markup.ace_underline {\
+text-decoration: underline\
+}\
+.ace-terminal-theme .ace_indent-guide {\
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGD4z7Bq1ar/AAz9A/2naJQKAAAAAElFTkSuQmCC) right repeat-y\
+}\
+";
 
 var dom = require("../lib/dom");
 dom.importCssString(exports.cssText, exports.cssClass);

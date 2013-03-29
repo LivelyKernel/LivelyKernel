@@ -3,7 +3,7 @@ module('lively.persistence.Sync').requires().toRun(function() {
 Object.subclass('lively.persistence.Sync.ObjectHandle',
 "initializing", {
     initialize: function(options) {
-        this.path = options.path || '';
+        this.path = lively.PropertyPath(options.path || '');
         this.store = options.store;
         this.callbackRegistry = {};
         this.localStore = {};
@@ -12,22 +12,21 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 'read', {
     get: function(options) {
         // options: {path: STRING, callback: FUNCTION}
-        this.store.get(this.fullPath(options.path), function(path, val) { options.callback(val); });
+        this.store.get(this.path.concat(options.path), function(path, val) { options.callback(val); });
     },
 
     subscribe: function(options) {
-        var fullPath = this.fullPath(options.path),
+        var fullPath = this.path.concat(options.path),
             type = options.type || 'value',
             callback = options.callback,
             registry = this.callbackRegistry,
             handle = this;
-        if (!fullPath || fullPath === '') fullPath = '.';
         var i = 0;
         function updateHandler(path, val) {
             if (i++ > 100) { debugger; throw new Error('Endless recursion in #subscribe ' + path); }
             // if (!registry[path] || !registry[path].include(updateHandler)) {
             //     return; /*in case of an unsubscribe*/}
-            callback(val, handle.fullPath(path));
+            callback(val, handle.path.concat(path));
             handle.store.addCallback(fullPath, updateHandler);
         }
         if (!registry[fullPath]) { registry[fullPath] = []; }; registry[fullPath].push(updateHandler);
@@ -42,7 +41,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         var path = options && options.path, paths = path ? [path] : Object.keys(registry),
             store = this.store, registry = this.callbackRegistry;
         paths.forEach(function(p) {
-            p = this.fullPath(p);
+            p = this.path.concat(p);
             registry[p] && registry[p].forEach(function(cb) { store.removeCallback(p, cb); });
             delete registry[p];
         }, this);
@@ -51,14 +50,14 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 'write', {
     set: function(options) {
         // options: {path: STRING, callback: FUNCTION, value: OBJECT}
-        this.store.set(this.fullPath(options.path), options.value, {callback: options.callback});
+        this.store.set(this.path.concat(options.path), options.value, {callback: options.callback});
     },
 
     commit: function(options) {
         options.n = options.n ? options.n+1 : 1; // just for debugging
         if (options.n > 10) { throw new Error(show('Commit endless recursion?')); }
         var path = options.path,
-            fullPath = this.fullPath(path),
+            fullPath = this.path.concat(path),
             handle = this;
         function withValueDo(val) {
             var newVal = options.transaction(val);
@@ -80,19 +79,12 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 },
 'handle hierarchy', {
     child: function(path) {
-        return new this.constructor({path: this.fullPath(path), store: this.store});
-    }
-},
-'path helpers', {
-    fullPath: function(path) {
-        var result = [this.path, path].select(function(ea) {
-            return ea && ea.length > 0; }).join('.');
-        return result === '' ? '.' : result;
+        return new this.constructor({path: this.path.concat(path), store: this.store});
     }
 },
 'debugging', {
     toString: function() {
-        return 'ObjectHandle(' + Objects.inspect({name: this.path})
+        return 'ObjectHandle(' + Objects.inspect({path: this.path})
              + ', ' + Objects.inspect(this.localStore) + ')';
     }
 });
@@ -110,12 +102,12 @@ Object.subclass('lively.persistence.Sync.LocalStore',
 'accessing', {
 
     set: function(path, val, options) {
+        path = lively.PropertyPath(path);
         options = options || {};
-        var parsePath = this.parsePath, changedPath = parsePath(path),
-            callbacks = this.callbacks, db = this.db;
+        var callbacks = this.callbacks, db = this.db;
         // 1: checking precondition
         if (options.precondition) {
-            var currentVal = changedPath.get(db),
+            var currentVal = path.get(db),
                 preconditionOK = options.precondition(currentVal);
             if (!preconditionOK) {
                 options.callback && options.callback({type: 'precondition'});
@@ -123,19 +115,19 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             }
         }
         // 2: setting the value in storage
-        if (changedPath.isRoot()) this.db = db = val; else changedPath.set(db, val);
+        if (path.isRoot()) this.db = db = val; else path.set(db, val);
         // 3: Informing subscribers
-        var cbs = Object.keys(callbacks).inject([], function(cbs, path) {
-            var cbPath = parsePath(path);
-            if (changedPath.isParentPathOf(cbPath)) {
+        var cbs = Object.keys(callbacks).inject([], function(cbs, cbPath) {
+            var cbPath = lively.PropertyPath(cbPath);
+            if (path.isParentPathOf(cbPath)) {
                 var relativeVal = cbPath.get(db),
-                    boundCbs = callbacks[path].invoke('bind', null, changedPath.normalizePath(), relativeVal);
+                    boundCbs = callbacks[cbPath].invoke('bind', null, cbPath, relativeVal);
                 cbs = cbs.concat(boundCbs);
-            } else if (cbPath.isParentPathOf(changedPath)) {
-                var boundCbs = callbacks[path].invoke('bind', null, changedPath.normalizePath(), val);
+            } else if (cbPath.isParentPathOf(path)) {
+                var boundCbs = callbacks[cbPath].invoke('bind', null, path, val);
                 cbs = cbs.concat(boundCbs);
             }
-            callbacks[path] = [];
+            callbacks[cbPath] = [];
             return cbs;
         }), cb;
         while ((cb = cbs.shift())) cb();
@@ -143,27 +135,18 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     },
 
     get: function(path, callback) {
-        callback(path, this.parsePath(path).get(this.db));
+        path = lively.PropertyPath(path);
+        callback(path, path.get(this.db));
     },
 
     addCallback: function(path, callback) {
-        var normalizedPath = this.parsePath(path).normalizePath(),
-            cbs = this.callbacks[normalizedPath] = this.callbacks[normalizedPath] || [];
-        cbs.push(callback);
+        this.callbacks[path] = (this.callbacks[path] || []).concat([callback]);
     },
 
     removeCallback: function(path, callback) {
-        var normalizedPath = this.parsePath(path).normalizePath();
-        if (!this.callbacks[normalizedPath]) return;
-        this.callbacks[normalizedPath] = this.callbacks[normalizedPath].without(callback);
+        if (!this.callbacks[path]) return;
+        this.callbacks[path] = this.callbacks[path].without(callback);
     }
-},
-'path access', {
-    parsePath: function(path) { return lively.PropertyPath(path); },
-    relativeChangedValue: function(path, value) { return this.parsePath(path).get(value); }
-},
-'testing', {
-    has: function(path) { return this.parsePath(path).isIn(this.db); }
 });
 
 }) // end of module

@@ -116,8 +116,8 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     },
 
     testChildFullPath: function() {
-        var barHandle = this.rootHandle.child('foo');
-        this.assertEquals("foo.bar", barHandle.fullPath('bar'), 'path creation');
+        var barHandle = this.rootHandle.child('foo.bar');
+        this.assertEquals("foo.bar", barHandle.path.toString(), 'path creation');
     },
 
     testChildAccess: function() {
@@ -142,7 +142,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         var childHandle = this.rootHandle.child('bar.baz'), reads = [];
         this.rootHandle.subscribe({type: 'childChanged', callback: function(val, path) { reads.push(path); reads.push(val); }});
         childHandle.set({value: 23});
-        this.assertEqualState(['bar.baz', 23], reads);
+        this.assertEquals(['bar.baz', 23], reads);
     }
 
 });
@@ -155,17 +155,6 @@ TestCase.subclass('lively.persistence.Sync.test.StoreInterface',
     }
 },
 'testing', {
-    testRecognizePathsInObjectChanges: function() {
-        var obj = {foo: 23, bar: {baz: 42}},
-            result = this.store.relativeChangedValue('.', obj);
-        this.assertEquals(obj, result);
-        result = this.store.relativeChangedValue('foo', obj);
-        this.assertEquals(23, result);
-        result = this.store.relativeChangedValue('bar', obj);
-        this.assertEquals(obj.bar, result);
-        result = this.store.relativeChangedValue('bar.baz', obj);
-        this.assertEquals(42, result);
-    }
 });
 
 }) // end of module

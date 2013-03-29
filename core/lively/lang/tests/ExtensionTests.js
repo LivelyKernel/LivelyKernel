@@ -1,6 +1,7 @@
 module('lively.lang.tests.ExtensionTests').requires('lively.TestFramework').toRun(function() {
 
-TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
+TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest',
+'testing', {
     testExtendSetsDisplayName: function() {
         var obj = {};
         Object.extend(obj, {foo: function() {return "bar"}})
@@ -123,6 +124,42 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
             return name.length == 2;
         });
         this.assertMatches(expected, result);
+    }
+});
+
+TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
+// todo:
+// - listen? wrap? watch?
+'testing', {
+    testParsePath: function() {
+        this.assertEquals([], lively.PropertyPath(undefined).parts());
+        this.assertEquals([], lively.PropertyPath('').parts());
+        this.assertEquals([], lively.PropertyPath('.').parts());
+        this.assertEquals(['foo'], lively.PropertyPath('foo').parts());
+        this.assertEquals(['foo', 'bar'], lively.PropertyPath('foo.bar').parts());
+    },
+    testPathAccesor: function() {
+        var obj = {foo: {bar: 42}, baz: {zork: {'x y z z y': 23}}};
+        this.assertEquals(obj, lively.PropertyPath('').get(obj));
+        this.assertEquals(42, lively.PropertyPath('foo.bar').get(obj));
+        this.assertEquals(obj.baz.zork, lively.PropertyPath('baz.zork').get(obj));
+        this.assertEquals(23, lively.PropertyPath('baz.zork.x y z z y').get(obj));
+        this.assertEquals(undefined, lively.PropertyPath('non.ex.is.tan.t').get(obj));
+    },
+    testPathIncludes: function() {
+        var base = lively.PropertyPath('foo.bar');
+        this.assert(base.isParentPathOf('foo.bar'), 'equal paths should be "parents"');
+        this.assert(base.isParentPathOf(base), 'equal paths should be "parents" 2');
+        this.assert(base.isParentPathOf('foo.bar.baz'), 'foo.bar.baz');
+        this.assert(!base.isParentPathOf('foo.baz'), 'foo.baz');
+        this.assert(!base.isParentPathOf('.'), '.');
+        this.assert(!base.isParentPathOf(''), 'empty string');
+        this.assert(!base.isParentPathOf(), 'undefined');
+    },
+    testRelativePath: function() {
+        var base = lively.PropertyPath('foo.bar');
+        this.assertEquals([], base.relativePathTo('foo.bar').parts(), 'foo.bar');
+        this.assertEquals(['baz', 'zork'], base.relativePathTo('foo.bar.baz.zork').parts(), 'foo.bar.baz.zork');
     }
 });
 

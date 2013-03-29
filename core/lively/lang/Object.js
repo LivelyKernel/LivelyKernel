@@ -396,6 +396,79 @@ Global.Properties = {
 
 };
 
+Object.extend(lively, {
+    PropertyPath: function(path) {
+        if (path instanceof Global.lively.PropertyPath) return path;
+        if (!(this instanceof Global.lively.PropertyPath)) return new Global.lively.PropertyPath(path);
+        return this.fromPath(path);
+    }
+});
+
+Object.extend(lively.PropertyPath.prototype, {
+
+    isPathAccessor: true,
+
+    fromPath: function(path) {
+        if (Object.isString(path) && path !== '' && path !== '.') {
+            this._parts = path.split('.');
+            this._path = path;
+        } else if (Object.isArray(path)) {
+            this._parts = [].concat(path);
+            this._path = path.join('.');
+        } else {
+            this._parts = [];
+            this._path = '';
+        }
+        return this;
+    },
+
+    parts: function() { return this._parts; },
+
+    size: function() { return this._parts.length; },
+
+    slice: function(n, m) { return lively.PropertyPath(this.parts().slice(n, m)); },
+
+    normalizePath: function() {
+        // FIXME: define normalization
+        return this._path;
+    },
+
+    isRoot: function(obj) { return this._parts.length === 0; },
+
+    isIn: function(obj) {
+        if (this.isRoot()) return true;
+        var parent = this.get(obj, -1);
+        return parent && parent.hasOwnProperty(this._parts.last());
+    },
+
+    isParentPathOf: function(otherPath) {
+        otherPath = otherPath && otherPath.isPathAccessor ? otherPath : lively.PropertyPath(otherPath);
+        var parts = this.parts();
+        return parts.intersect(otherPath.parts()).length === parts.length;
+    },
+
+    relativePathTo: function(otherPath) {
+        otherPath = lively.PropertyPath(otherPath);
+        return this.isParentPathOf(otherPath) ? otherPath.slice(this.size(), otherPath.size()) : undefined;
+    },
+
+    set: function(obj, val) {
+        if (this.isRoot()) return undefined;
+        var parent = this.get(obj, -1);
+        return parent ? parent[this._parts.last()] = val : undefined;
+    },
+
+    get: function(obj, n) {
+        var parts = n ? this._parts.slice(0, n) : this._parts;
+        return parts.inject(obj, function(current, pathPart) {
+            return current ? current[pathPart] : current; });
+    },
+
+    toString: function() {
+        return 'lively.PropertyPath("' + this.normalizePath() + '")';
+    }
+});
+
 Object.extend(JSON, {
     prettyPrint: function(jsoOrJson, indent) {
         var jso = (typeof jsoOrJson == 'string') ? JSON.parse(jsoOrJson) : jsoOrJson,

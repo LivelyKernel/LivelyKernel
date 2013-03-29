@@ -464,9 +464,16 @@ Object.extend(lively.PropertyPath.prototype, {
             return current ? current[pathPart] : current; });
     },
 
-    toString: function() {
-        return 'lively.PropertyPath("' + this.normalizePath() + '")';
+    concat: function(path) {
+        return lively.PropertyPath(this.parts().concat(lively.PropertyPath(path).parts()));
+    },
+
+    toString: function() { return this.normalizePath(); },
+
+    serializeExpr: function() {
+        return 'lively.PropertyPath(' + Objects.inspect(this.parts()) + ')';
     }
+
 });
 
 Object.extend(JSON, {

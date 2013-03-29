@@ -27,8 +27,8 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
             if (i++ > 100) { debugger; throw new Error('Endless recursion in #subscribe ' + path); }
             // if (!registry[path] || !registry[path].include(updateHandler)) {
             //     return; /*in case of an unsubscribe*/}
-            callback(val);
-            handle.store.addCallback(path, updateHandler);
+            callback(val, handle.fullPath(path));
+            handle.store.addCallback(fullPath, updateHandler);
         }
         if (!registry[fullPath]) { registry[fullPath] = []; }; registry[fullPath].push(updateHandler);
         handle.store.addCallback(fullPath, updateHandler);
@@ -39,9 +39,8 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         //   [path: STRING,]
         //   currently not supported: [callback: FUNCTION] -- the specific callback to unsubscribe
         // }
-        var path = options.path, paths = [path],
+        var path = options && options.path, paths = path ? [path] : Object.keys(registry),
             store = this.store, registry = this.callbackRegistry;
-        if (!path) { paths = Object.keys(registry); }
         paths.forEach(function(p) { 
             p = this.fullPath(p);
             registry[p] && registry[p].forEach(function(cb) { store.removeCallback(p, cb); });
@@ -128,11 +127,16 @@ Object.subclass('lively.persistence.Sync.LocalStore',
         // 3: Informing subscribers
         var cbs = Object.keys(callbacks).inject([], function(cbs, path) {
             var cbPath = parsePath(path);
-            if (!changedPath.isParentPathOf(cbPath)) return cbs;
-            var relativeVal = cbPath.lookup(db),
-                boundCbs = callbacks[path].invoke('bind', null, path, relativeVal);
+            if (changedPath.isParentPathOf(cbPath)) {
+                var relativeVal = cbPath.lookup(db),
+                    boundCbs = callbacks[path].invoke('bind', null, changedPath.normalizePath(), relativeVal);
+                cbs = cbs.concat(boundCbs);
+            } else if (cbPath.isParentPathOf(changedPath)) {
+                var boundCbs = callbacks[path].invoke('bind', null, changedPath.normalizePath(), val);
+                cbs = cbs.concat(boundCbs);
+            }
             callbacks[path] = [];
-            return cbs.concat(boundCbs);
+            return cbs;
         }), cb;
         while ((cb = cbs.shift())) cb();
         options.callback && options.callback(null);

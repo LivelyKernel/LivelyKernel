@@ -135,6 +135,14 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.rootHandle.set({path: 'bar', value: {baz: 24}});
         this.rootHandle.commit({path: 'bar.baz', transaction: function(n) { return n+1; }});
         this.assertEqualState([23, 24, 25], childHandleReads);
+    },
+    
+    testChildChange: function() {
+        // return;
+        var childHandle = this.rootHandle.child('bar.baz'), reads = [];
+        this.rootHandle.subscribe({type: 'childChanged', callback: function(val, path) { reads.push(path); reads.push(val); }});
+        childHandle.set({value: 23});
+        this.assertEqualState(['bar.baz', 23], reads);
     }
 
 });

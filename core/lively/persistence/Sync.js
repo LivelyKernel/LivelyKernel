@@ -41,7 +41,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         // }
         var path = options && options.path, paths = path ? [path] : Object.keys(registry),
             store = this.store, registry = this.callbackRegistry;
-        paths.forEach(function(p) { 
+        paths.forEach(function(p) {
             p = this.fullPath(p);
             registry[p] && registry[p].forEach(function(cb) { store.removeCallback(p, cb); });
             delete registry[p];
@@ -66,7 +66,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
             if (newVal === undefined) { options.callback(null, false, val); return; }
             handle.store.set(fullPath, newVal, {
                 callback: function(err) {
-                    if (err && err.type === 'precondition') handle.commit(options); 
+                    if (err && err.type === 'precondition') handle.commit(options);
                     else options.callback && options.callback(err, !err, err ? val : newVal);
                 },
                 precondition: function(storeVal) {
@@ -115,7 +115,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             callbacks = this.callbacks, db = this.db;
         // 1: checking precondition
         if (options.precondition) {
-            var currentVal = changedPath.lookup(db),
+            var currentVal = changedPath.get(db),
                 preconditionOK = options.precondition(currentVal);
             if (!preconditionOK) {
                 options.callback && options.callback({type: 'precondition'});
@@ -123,12 +123,12 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             }
         }
         // 2: setting the value in storage
-        if (changedPath.isRoot()) this.db = db = val; else changedPath.assign(db, val);
+        if (changedPath.isRoot()) this.db = db = val; else changedPath.set(db, val);
         // 3: Informing subscribers
         var cbs = Object.keys(callbacks).inject([], function(cbs, path) {
             var cbPath = parsePath(path);
             if (changedPath.isParentPathOf(cbPath)) {
-                var relativeVal = cbPath.lookup(db),
+                var relativeVal = cbPath.get(db),
                     boundCbs = callbacks[path].invoke('bind', null, changedPath.normalizePath(), relativeVal);
                 cbs = cbs.concat(boundCbs);
             } else if (cbPath.isParentPathOf(changedPath)) {
@@ -143,7 +143,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     },
 
     get: function(path, callback) {
-        callback(path, this.parsePath(path).lookup(this.db));
+        callback(path, this.parsePath(path).get(this.db));
     },
 
     addCallback: function(path, callback) {
@@ -151,7 +151,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             cbs = this.callbacks[normalizedPath] = this.callbacks[normalizedPath] || [];
         cbs.push(callback);
     },
-    
+
     removeCallback: function(path, callback) {
         var normalizedPath = this.parsePath(path).normalizePath();
         if (!this.callbacks[normalizedPath]) return;
@@ -159,62 +159,11 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     }
 },
 'path access', {
-    parsePath: function(path) {
-        if (path && path.isPathAccessor) return path;
-        var parts = [];
-        if (Object.isString(path) && path !== '' && path !== '.') {
-            parts = path.split('.');
-        } else if (Object.isArray(path)) {
-            parts = path.clone();
-        }
-        var parse = this.parsePath;
-        return Object.extend(parts, {
-            isPathAccessor: true,
-            normalizePath: function() {
-                // FIXME: define normalization
-                return path;
-            },
-            isRoot: function(obj) { return parts.length === 0; },
-            isInObject: function(obj) {
-                if (this.isRoot()) return true;
-                var parent = this.lookupParent(obj);
-                return parent && parent.hasOwnProperty(parts.last());
-            },
-            isParentPathOf: function(otherPath) {
-                otherPath = otherPath && otherPath.isPathAccessor ? otherPath : parse(otherPath);
-                return this.intersect(otherPath).length === this.length;
-            },
-            relativePathTo: function(otherPath) {
-                otherPath = otherPath && otherPath.isPathAccessor ? otherPath : parse(otherPath);
-                return this.isParentPathOf(otherPath) ? parse(otherPath.slice(this.length)) : undefined;
-            },
-            assign: function(obj, val) {
-                if (this.isRoot()) return undefined;
-                var parent = this.lookupParent(obj);
-                if (!parent) return undefined;
-                return parent[parts.last()] = val;
-            },
-            lookupParent: function(obj) {
-                if (this.isRoot()) return undefined;
-                var last = parts.pop(), parent = this.lookup(obj);
-                parts.push(last);
-                return parent;
-            },
-            lookup: function(obj) {
-                return parts.inject(obj, function(current, pathPart) {
-                    return current ? current[pathPart] : current; });
-            },
-            toString: function() {
-                return 'lively.Path("' + this.normalizePath() + '")';
-            } 
-        });
-    },
-    relativeChangedValue: function(path, value) {
-        return this.parsePath(path).lookup(value);
-    }
+    parsePath: function(path) { return lively.PropertyPath(path); },
+    relativeChangedValue: function(path, value) { return this.parsePath(path).get(value); }
 },
 'testing', {
-    has: function(path) { return this.parsePath(path).isInObject(this.db); }
+    has: function(path) { return this.parsePath(path).isIn(this.db); }
 });
 
 }) // end of module

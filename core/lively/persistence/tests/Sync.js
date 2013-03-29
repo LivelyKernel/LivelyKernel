@@ -136,7 +136,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.rootHandle.commit({path: 'bar.baz', transaction: function(n) { return n+1; }});
         this.assertEqualState([23, 24, 25], childHandleReads);
     },
-    
+
     testChildChange: function() {
         // return;
         var childHandle = this.rootHandle.child('bar.baz'), reads = [];
@@ -146,6 +146,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     }
 
 });
+
 TestCase.subclass('lively.persistence.Sync.test.StoreInterface',
 'running', {
     setUp: function($super) {
@@ -154,21 +155,6 @@ TestCase.subclass('lively.persistence.Sync.test.StoreInterface',
     }
 },
 'testing', {
-    testParsePath: function() {
-        this.assertEquals([], this.store.parsePath(undefined));
-        this.assertEquals([], this.store.parsePath(''));
-        this.assertEquals([], this.store.parsePath('.'));
-        this.assertEquals(['foo'], this.store.parsePath('foo'));
-        this.assertEquals(['foo', 'bar'], this.store.parsePath('foo.bar'));
-    },
-    testPathAccesor: function() {
-        var obj = {foo: {bar: 42}, baz: {zork: {'x y z z y': 23}}};
-        this.assertEquals(obj, this.store.parsePath('').lookup(obj));
-        this.assertEquals(42, this.store.parsePath('foo.bar').lookup(obj));
-        this.assertEquals(obj.baz.zork, this.store.parsePath('baz.zork').lookup(obj));
-        this.assertEquals(23, this.store.parsePath('baz.zork.x y z z y').lookup(obj));
-        this.assertEquals(undefined, this.store.parsePath('non.ex.is.tan.t').lookup(obj));
-    },
     testRecognizePathsInObjectChanges: function() {
         var obj = {foo: 23, bar: {baz: 42}},
             result = this.store.relativeChangedValue('.', obj);
@@ -179,20 +165,7 @@ TestCase.subclass('lively.persistence.Sync.test.StoreInterface',
         this.assertEquals(obj.bar, result);
         result = this.store.relativeChangedValue('bar.baz', obj);
         this.assertEquals(42, result);
-    },
-    testPathIncludes: function() {
-        var base = this.store.parsePath('foo.bar');
-        this.assert(base.isParentPathOf('foo.bar'), 'equal paths should be "parents"');
-        this.assert(base.isParentPathOf('foo.bar.baz'), 'foo.bar.baz');
-        this.assert(!base.isParentPathOf('foo.baz'), 'foo.baz');
-        this.assert(!base.isParentPathOf('.'), '.');
-        this.assert(!base.isParentPathOf(''), 'empty string');
-        this.assert(!base.isParentPathOf(), 'undefined');
-    },
-    testRelativePath: function() {
-        var base = this.store.parsePath('foo.bar');
-        this.assertEquals([], base.relativePathTo('foo.bar'), 'foo.bar');
-        this.assertEquals(['baz', 'zork'], base.relativePathTo('foo.bar.baz.zork'), 'foo.bar.baz.zork');
     }
 });
+
 }) // end of module

@@ -17,6 +17,13 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.assertEqualState([23], result);
     },
 
+    testGetNonExistantValue: function() {
+        var result = [];
+        this.rootHandle.get({path: 'foo', callback: function(val) { result.push(val); }});
+        this.assertEqualState([undefined], result);
+        this.assertEqualState([], Object.keys(this.rootHandle.callbackRegistry));
+    },
+
     testGetRoot: function() {
         this.store.set('foo', 23);
         var result;
@@ -24,20 +31,11 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.assertEqualState({foo: 23}, result);
     },
 
-    testGetWhenAvailable: function() {
-        var result = [];
-        this.rootHandle.get({path: 'foo', callback: function(val) { result.push(val); }});
-        this.assertEqualState([], result);
-        this.store.set('foo', 23);
-        this.assertEqualState([23], result);
-        this.assert(!this.rootHandle.registry.foo, 'local registry still exist');
-    },
-
     testetTwice: function() {
         var result1 = [], result2 = [];
+        this.store.set('foo', 23);
         this.rootHandle.get({path: 'foo', callback: function(val) { result1.push(val); }});
         this.rootHandle.get({path: 'foo', callback: function(val) { result2.push(val); }});
-        this.store.set('foo', 23);
         this.assertEqualState([23], result1);
         this.assertEqualState([23], result2);
         this.store.set('foo', 23);
@@ -49,20 +47,21 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         var result = [];
         this.store.set('foo', 23);
         this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
-        this.assertEqualState([23], result);
+        this.assertEqualState([], result);
         this.store.set('foo', 42);
-        this.assertEqualState([23, 42], result);
+        this.assertEqualState([42], result);
     },
 
     testSubscribeUnsubscribe: function() {
         var result = [];
         this.store.set('foo', 23);
         this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
-        this.assertEqualState([23], result);
+        this.assertEqualState([], result);
         this.rootHandle.unsubscribe({path: 'foo'});
         this.store.set('foo', 23);
-        this.assertEqualState([23], result);
-        this.assertEqualState(this.rootHandle.registry, {});
+        this.assertEqualState([], result);
+        this.assertEqualState(this.rootHandle.callbackRegistry, {});
+        // this.assertEqualState(0, Object.keys(this.store.callbacks).length, 'store callbacks');
     },
 
     testSet: function() {
@@ -138,7 +137,6 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     }
 
 });
-
 TestCase.subclass('lively.persistence.Sync.test.StoreInterface',
 'running', {
     setUp: function($super) {

@@ -5,35 +5,33 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     initialize: function(options) {
         this.path = options.path || '';
         this.store = options.store;
-        this.registry = {};
+        this.callbackRegistry = {};
         this.localStore = {};
     }
 },
 'read', {
     get: function(options) {
         // options: {path: STRING, callback: FUNCTION}
-        this.subscribe({once: true, path: options.path, callback: options.callback});
+        this.store.get(this.fullPath(options.path), function(path, val) { options.callback(val); });
     },
 
     subscribe: function(options) {
         var fullPath = this.fullPath(options.path),
             type = options.type || 'value',
             callback = options.callback,
-            once = options.once,
-            store = this.store,
-            registry = this.registry,
+            registry = this.callbackRegistry,
             handle = this;
         if (!fullPath || fullPath === '') fullPath = '.';
         var i = 0;
         function updateHandler(path, val) {
             if (i++ > 100) { debugger; throw new Error('Endless recursion in #subscribe ' + path); }
-            if (!registry[path] || !registry[path].include(updateHandler)) return;
+            if (!registry[path] || !registry[path].include(updateHandler)) {
+                return; /*in case of an unsubscribe*/}
             callback(val);
-            if (once) handle.unsubscribe({path: fullPath, callback: updateHandler});
-            else store.addCallback(path, updateHandler);
+            handle.store.addCallback(path, updateHandler);
         }
         if (!registry[fullPath]) { registry[fullPath] = []; }; registry[fullPath].push(updateHandler);
-        store.get(fullPath, updateHandler) || store.addCallback(fullPath, updateHandler);
+        handle.store.addCallback(fullPath, updateHandler);
     },
 
     unsubscribe: function(options) {
@@ -42,13 +40,13 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         //   [callback: FUNCTION] -- the specific callback to unsubscribe
         // }
         var path = options.path;
-        if (!path) { this.registry = {}; return; }
+        if (!path) { this.callbackRegistry = {}; return; }
         path = this.fullPath(path);
-        if (options.callback && Object.isArray(this.registry[path])) {
-            this.registry[path] = this.registry[path].without(options.callback);
-            if (this.registry[path].length > 0) return;
+        if (options.callback && Object.isArray(this.callbackRegistry[path])) {
+            this.callbackRegistry[path] = this.callbackRegistry[path].without(options.callback);
+            if (this.callbackRegistry[path].length > 0) return;
         }
-        delete this.registry[path];
+        delete this.callbackRegistry[path];
     }
 },
 'write', {
@@ -140,10 +138,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     },
 
     get: function(path, callback) {
-        var accessor = this.parsePath(path),
-            hasIt = accessor.isInObject(this.db);
-        if (hasIt) callback(path, accessor.lookup(this.db));
-        return hasIt;
+        callback(path, this.parsePath(path).lookup(this.db));
     },
 
     addCallback: function(path, callback) {

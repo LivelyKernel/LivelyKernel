@@ -56,6 +56,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         var result = [];
         this.store.set('foo', 23);
         this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
+        this.assertEquals(this.rootHandle.callbackRegistry.foo[0].constructor, this.store.callbacks.foo[0].constructor);
         this.assertEqualState([], result);
         this.rootHandle.unsubscribe({path: 'foo'});
         this.store.set('foo', 23);
@@ -132,7 +133,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         childHandle.subscribe({callback: function(val) { childHandleReads.push(val); }});
         this.rootHandle.set({value: {bar: {baz: 23}}});
         this.rootHandle.set({path: 'bar', value: {baz: 24}});
-        this.rootHandle.set({path: 'bar.baz', value: 25});
+        this.rootHandle.commit({path: 'bar.baz', transaction: function(n) { return n+1; }});
         this.assertEqualState([23, 24, 25], childHandleReads);
     }
 

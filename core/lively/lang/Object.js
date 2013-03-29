@@ -44,17 +44,15 @@ Object.extend(Object, {
         }
     },
 
-    keys: function(object) {
+    keys: Object.keys || function(object) {
         var keys = [];
-        for (var property in object)
-        keys.push(property);
+        for (var property in object) keys.push(property);
         return keys;
     },
 
     values: function(object) {
         var values = [];
-        for (var property in object)
-        values.push(object[property]);
+        for (var property in object) values.push(object[property]);
         return values;
     },
 
@@ -178,7 +176,8 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
         values: function(object) {
             var values = [];
             for (var property in object)
-            if (object.hasOwnProperty(property)) values.push(object[property]);
+                if (object.hasOwnProperty(property))
+                    values.push(object[property]);
             return values;
         }
     })
@@ -397,33 +396,35 @@ Global.Properties = {
 
 };
 
-JSON.prettyPrint = function(jsoOrJson, indent) {
-	var jso = (typeof jsoOrJson == 'string') ? JSON.parse(jsoOrJson) : jsoOrJson,
-		isArray = jsoOrJson && jsoOrJson.constructor === Array,
-		str = '',
-		propStrings = [];
-	indent = indent || '';
+Object.extend(JSON, {
+    prettyPrint: function(jsoOrJson, indent) {
+        var jso = (typeof jsoOrJson == 'string') ? JSON.parse(jsoOrJson) : jsoOrJson,
+    		isArray = jsoOrJson && jsoOrJson.constructor === Array,
+    		str = '',
+    		propStrings = [];
+    	indent = indent || '';
 
-	for (var key in jso) {
-		if (!jso.hasOwnProperty(key)) continue;
-		var val = jso[key],
-			propIndent = indent + '  ',
-			propStr = propIndent;
-		if (!isArray) propStr += '"' + key + '"' + ': ';
-		if (typeof val === 'object') {
-			propStr += JSON.prettyPrint(val, propIndent);
-		} else if (typeof val === 'string'){
-			propStr += '"' + String(val) + '"';
-		} else {
-			propStr += String(val);
-		}
-		propStrings.push(propStr);
-	}
+    	for (var key in jso) {
+    		if (!jso.hasOwnProperty(key)) continue;
+    		var val = jso[key],
+    			propIndent = indent + '  ',
+    			propStr = propIndent;
+    		if (!isArray) propStr += '"' + key + '"' + ': ';
+    		if (typeof val === 'object') {
+    			propStr += JSON.prettyPrint(val, propIndent);
+    		} else if (typeof val === 'string'){
+    			propStr += '"' + String(val) + '"';
+    		} else {
+    			propStr += String(val);
+    		}
+    		propStrings.push(propStr);
+    	}
 
-	var openBracket = isArray ? '[' : '{',
-		closeBracket = isArray ? ']' : '}';
-	str += propStrings.length == 0 ?
-		openBracket + closeBracket :
-		openBracket + '\n' + propStrings.join(',\n') + '\n' + indent + closeBracket;
-	return str;
-};
+    	var openBracket = isArray ? '[' : '{',
+    		closeBracket = isArray ? ']' : '}';
+    	str += propStrings.length == 0 ?
+    		openBracket + closeBracket :
+    		openBracket + '\n' + propStrings.join(',\n') + '\n' + indent + closeBracket;
+    	return str;
+    }
+});

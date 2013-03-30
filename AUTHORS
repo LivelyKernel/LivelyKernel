@@ -1,17 +1,20 @@
-A lot of people have commited code to the Lively Kernel project since it was founded at Sun Microsystem in 2006 by Dan Ingalls and Antero Taivalsaari.
+A lot of people have commited code to the Lively Kernel project since it was
+founded at Sun Microsystem in 2006 by Dan Ingalls and Antero Taivalsaari.
 
-This repository only includes the core parts of the project. In order to find the people who recently contributed source code to the project we did run
+This repository only includes the core parts of the project. In order to find
+the people who recently contributed source code to the project you can run
 
 find lively Tests cop -iname "*.js" -exec svn blame --force {} \; > authors.txt
 cat authors.txt | sed "s/^[ 0-9]* \([^ ]*\).*/\1/" | sort | uniq
 
-against revision 135634 of the webwerkstatt SVN repository (lively-kernel.org/repository/webwerkstatt/). If you have contributed to the Lively Kernel and are not mentioned below then you are welcom to add your name to the list.
+against the webwerkstatt SVN repository (lively-kernel.org/repository/webwerkstatt/).
 
-
-Committers as of 11/02/2012:
+If you have contributed to the Lively Kernel and are not mentioned below then
+you are welcom to add your name to the list.
 
 Astrid Thomschke      <Astrid.Thomschke@student.hpi.uni-potsdam.de>
 Benjamin Siegmund     <Benjamin.Siegmund@student.hpi.uni-potsdam.de>
+Benjamin Gnauk        <bgnauk@googlemail.com>
 Christopher Schuster  <cschuster@ucdavis.edu>
 Conrad Calmez         <conrad.calmez@student.hpi.uni-potsdam.de>
 Dan Ingalls           <dan@squeakland.org>

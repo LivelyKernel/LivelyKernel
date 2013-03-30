@@ -161,11 +161,11 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
         this.assertEquals([], base.relativePathTo('foo.bar').parts(), 'foo.bar');
         this.assertEquals(['baz', 'zork'], base.relativePathTo('foo.bar.baz.zork').parts(), 'foo.bar.baz.zork');
     },
-    testJoinWithRelative: function() {
+    testConcat: function() {
         var p1 = lively.PropertyPath('foo.bar'),
             p2 = lively.PropertyPath('baz.zork');
-        this.assertEquals('baz.zork.foo.bar', p2.joinWithRelativePath(p1).normalizePath());
-        this.assertEquals('foo.bar.baz.zork', p1.joinWithRelativePath(p2).normalizePath());
+        this.assertEquals('baz.zork.foo.bar', p2.concat(p1));
+        this.assertEquals('foo.bar.baz.zork', p1.concat(p2));
     }
 });
 

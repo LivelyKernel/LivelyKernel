@@ -54,4 +54,4 @@ cop.LayerInliner.addMethods( {
     }
 })
 
-}) // end of module}) // end of module
+}) // end of module

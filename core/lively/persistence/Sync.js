@@ -38,13 +38,13 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         //   [path: STRING,]
         //   currently not supported: [callback: FUNCTION] -- the specific callback to unsubscribe
         // }
-        var path = options && options.path, paths = path ? [path] : Object.keys(registry),
-            store = this.store, registry = this.callbackRegistry;
+        var path = options && options.path,
+            store = this.store, registry = this.callbackRegistry,
+            paths = path ? [this.path.concat(path)] : Object.keys(registry);
         paths.forEach(function(p) {
-            p = this.path.concat(p);
             registry[p] && registry[p].forEach(function(cb) { store.removeCallback(p, cb); });
             delete registry[p];
-        }, this);
+        });
     }
 },
 'write', {
@@ -54,13 +54,13 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     },
 
     commit: function(options) {
-        options.n = options.n ? options.n+1 : 1; // just for debugging
+        options.n = options.n === undefined ? 0 : options.n+1; // just for debugging
         if (options.n > 10) { throw new Error(show('Commit endless recursion?')); }
         var path = options.path,
             fullPath = this.path.concat(path),
             handle = this;
         function withValueDo(val) {
-            var newVal = options.transaction(val);
+            var newVal = options.transaction(val, options.n);
             // cancel commit?
             if (newVal === undefined) { options.callback(null, false, val); return; }
             handle.store.set(fullPath, newVal, {
@@ -146,6 +146,38 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     removeCallback: function(path, callback) {
         if (!this.callbacks[path]) return;
         this.callbacks[path] = this.callbacks[path].without(callback);
+    }
+});
+
+lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.LocalAsyncStore',
+'initializing', {
+    initialize: function($super, randTimeInterval) {
+        $super();
+        this.randomTime = Numbers.random.curry(randTimeInterval[0], randTimeInterval[1]);
+    }
+},
+'accessing', {
+
+    set: function($super, path, val, options) {
+        $super.curry(path, val, options).delay(this.randomTime()/1000);
+    },
+
+    get: function($super, path, callback) {
+        $super.curry(path, callback).delay(this.randomTime()/1000);
+    },
+
+    addCallback: function($super, path, callback) {
+        var randTime = this.randomTime()/1000;
+        $super(path, callback.wrap(function(proceed) {
+            var args = Array.from(arguments).slice(1);
+            (function() { proceed.apply(null, args); }).delay(randTime);
+        }));
+    },
+
+    removeCallback: function(path, callback) {
+        if (!this.callbacks[path]) return;
+        var matching = this.callbacks[path].select(function(cb) { return cb.getOriginal() === callback; });
+        this.callbacks[path] = this.callbacks[path].withoutAll(matching);
     }
 });
 

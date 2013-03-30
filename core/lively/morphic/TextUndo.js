@@ -169,7 +169,6 @@ LastMutations.push(mutations);
         } else if (this.isChunkMergeAtBorder(mutations)) {
             this.recordChunkMergeAtBorder(mutations);
         } else {
-            // debugger;
             console.error('unrecognized text change');
             // this.showMutationsExpt(mutations);
             var domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this);

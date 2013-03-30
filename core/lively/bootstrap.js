@@ -1262,7 +1262,6 @@
             // need to use Lively's global eval because it creates functions
             // with proper Function.prototype extensions
             var finished = Global.eval('(' + function() {
-                debugger;
                 var loader = lively.Main.getLoader(document);
                 loader.systemStart(document);
                 console.log('bootstrap done');

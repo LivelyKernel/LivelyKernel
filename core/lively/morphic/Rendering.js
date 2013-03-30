@@ -33,10 +33,7 @@ Trait('lively.morphic.Renderable',
         if (!this._renderContext) return undefined;
         var renderSpecificAspect = this._renderContext[this.renderContextTableType][aspect];
         if (!renderSpecificAspect) {
-            var msg = 'renderContextTable does no include: ' + aspect + ' in ' + this;
-            debugger;
-            console.warn(msg);
-            alert(msg);
+            dbgOn(true, 'renderContextTable does no include: ' + aspect);
             return undefined;
         }
         return this[renderSpecificAspect](this._renderContext, arg);

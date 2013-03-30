@@ -149,7 +149,6 @@ Object.subclass('lively.ide.ErrorViewer.ChromeErrorLine',
 	},
 
     fileFragment: function() {
-		debugger
 		var sc = lively.ide.startSourceControl(),
 			moduleWrapper = sc.addModule(this.path());
 		if (moduleWrapper == undefined)

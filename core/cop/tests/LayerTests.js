@@ -756,7 +756,6 @@ TestCase.subclass('cop.tests.LayerTests.LayerTest',
         var o = new cop.example.SecondDummySubclass();
         this.assertEquals(o.m1(), 1, "base is broken")
         cop.withLayers([DummyLayer], function() {
-debugger
             this.assertEquals(o.m1(), 101, "layer in second subclass is broken")
         }.bind(this));
       },
@@ -923,7 +922,6 @@ cop.tests.LayerTests.LayerTestCase.subclass('cop.tests.LayerTests.LayerSubclassi
         }.bind(this))
 
         var s = new (this.dummySubclass())();
-        debugger
         this.assertEquals(s.m1(), "S$m1a m1 S$m1b", "base S$m1 broken");
         cop.withLayers([this.dummyLayer()], function() {
             this.assertEquals(s.m1(), "L$m1a S$m1a L$m1a m1 L$m1b S$m1b L$m1b", "layered S$m1 broken");
@@ -946,7 +944,6 @@ cop.tests.LayerTests.LayerTestCase.subclass('cop.tests.LayerTests.LayerSubclassi
 
         var s = new (this.dummySubclass())();
         cop.withLayers([this.dummyLayer()], function() {
-debugger
             this.assertEquals(s.m1(), "L$m1,S$m1", "layered S$m1 broken");
         }.bind(this))
     },
@@ -1126,7 +1123,6 @@ TestCase.subclass('cop.tests.LayerTests.LayerStateTest', {
 
         cop.withLayers([layer1], function() {
             this.assertEquals(o.a, 10, "layer getter broken");
-debugger
             o.a = 20;
             this.assertEquals(o.l1_value, 20, "layer setter broken");
         }.bind(this));
@@ -1342,7 +1338,6 @@ TestCase.subclass('cop.tests.LayerTests.LayerObjectActivationTest', {
 
     testLayerIsActivatedInMyObject: function() {
         this.o.setWithLayers([DummyLayer]);
-debugger
         this.assertEquals(this.o.k2(), 7, " layer is not activated in my object")
     },
 
@@ -1421,7 +1416,6 @@ TestCase.subclass('cop.tests.LayerTests.ActiveLayersTest', {
             return $super().concat([DummyLayer2])
         }
         cop.withLayers([DummyLayer], function() {
-debugger
             self.assertEquals(o.f(), 1100, "active layers failed")
         })
     },

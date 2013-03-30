@@ -306,7 +306,6 @@ cop.recompileLayers([this.layer1, this.layer2])
             expected = this.layer1.getName() + '-' + 'BaseLayer',
             test = this,
             obj = new this.dummyClass();
-debugger
         cop.withLayers([this.layer1], function() {
             result = obj.printLayers();
             test.assert(obj.printLayers.isInlinedByCop, 'method not inlined');

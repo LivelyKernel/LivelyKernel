@@ -1071,12 +1071,7 @@ lively.morphic.Morph.addMethods({
         morph.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
         return flap;
     },
-
-
-
-
     determineFlapBounds: function(alignment, morph, offset) {
-        debugger
         var flapExtent = this.determineFlapExtent(alignment, morph, offset),
             flapPosition = this.determineFlapPosition(alignment, morph, flapExtent, offset);
         return flapPosition.extent(flapExtent);

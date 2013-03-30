@@ -119,7 +119,7 @@ Object.subclass('lively.morphic.EventHandler',
     },
     registerCANVAS: function(eventSpec) {
         var handler = this;
-        if (eventSpec.node) { alert('EventHandler still registered in DOM?'); debugger; };
+        dbgOn(eventSpec.node, 'EventHandler still registered in DOM?');
         eventSpec.node = this.morph.renderContext().getCanvas();
         if (!eventSpec.node) {
             throw dbgOn(new Error('Cannot register event handler because cannot'

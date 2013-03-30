@@ -158,7 +158,6 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
                 try {
                     node.innerHTML = source;
                 } catch(e) {
-                    debugger;
                     node.innerHTML = '<span>' + item.name + '</span>';
                     throw e;
                 }

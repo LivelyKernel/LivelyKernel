@@ -124,7 +124,6 @@ Global.OMeta = {
           failer    = new Failer()
       this.input.memo[rule] = failer
       if (!this[rule]) {
-        debugger;
         throw new Error('Can\'t find rule ' + rule);
       };
       this.input.memo[rule] = memoRec = {ans: this[rule].call(this), nextInput: this.input}

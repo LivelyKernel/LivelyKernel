@@ -130,19 +130,19 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     testParentChangesTriggerChildEvents: function() {
         var childHandle = this.rootHandle.child('bar.baz'),
             childHandleReads = [];
-        childHandle.subscribe({callback: function(val) { childHandleReads.push(val); }});
+        childHandle.subscribe({callback: function(val, path) { childHandleReads.push([val, path]); }});
         this.rootHandle.set({value: {bar: {baz: 23}}});
         this.rootHandle.set({path: 'bar', value: {baz: 24}});
         this.rootHandle.commit({path: 'bar.baz', transaction: function(n) { return n+1; }});
-        this.assertEqualState([23, 24, 25], childHandleReads);
+        this.assertEquals([[23, 'bar.baz'], [24, 'bar.baz'], [25, 'bar.baz']], childHandleReads);
     },
 
     testChildChange: function() {
         // return;
         var childHandle = this.rootHandle.child('bar.baz'), reads = [];
-        this.rootHandle.subscribe({type: 'childChanged', callback: function(val, path) { reads.push(path); reads.push(val); }});
+        this.rootHandle.subscribe({type: 'childChanged', callback: function(val, path) { reads.push([val, path]); }});
         childHandle.set({value: 23});
-        this.assertEquals(['bar.baz', 23], reads);
+        this.assertEquals([[23, 'bar.baz']], reads);
     }
 
 });

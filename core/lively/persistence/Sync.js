@@ -26,7 +26,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
             if (i++ > 100) { debugger; throw new Error('Endless recursion in #subscribe ' + path); }
             // if (!registry[path] || !registry[path].include(updateHandler)) {
             //     return; /*in case of an unsubscribe*/}
-            callback(val, handle.path.concat(path));
+            callback(val, lively.PropertyPath(path));
             handle.store.addCallback(fullPath, updateHandler);
         }
         if (!registry[fullPath]) { registry[fullPath] = []; }; registry[fullPath].push(updateHandler);

@@ -1400,6 +1400,15 @@ lively.morphic.World.addMethods(
     openSystemConsole: function() {
         return this.openPartItem('SystemConsole', 'PartsBin/Tools');
     },
+
+    openBuildSpecEditor: function() {
+        require('lively.ide.tools.BuildSpecEditor').toRun(function() {
+          var win = lively.BuildSpec('lively.ide.tools.BuildSpecEditor').createMorph();
+          win.openInWorld();
+          win.align(win.bounds().center(), win.world().visibleBounds().center());
+        });
+    },
+
     openSubserverViewer: function() {
         require('lively.ide.tools.SubserverViewer').toRun(function() {
           var win = lively.BuildSpec('lively.ide.tools.SubserverViewer').createMorph();
@@ -1407,14 +1416,14 @@ lively.morphic.World.addMethods(
           win.align(win.bounds().center(), win.world().visibleBounds().center());
         });
     },
+
     openServerWorkspace: function() {
         require('lively.ide.tools.ServerWorkspace').toRun(function() {
           var win = lively.BuildSpec('lively.ide.tools.ServerWorkspace').createMorph();
           win.openInWorld();
           win.align(win.bounds().center(), win.world().visibleBounds().center());
         });
-    },
-
+    }
 
 },
 'menu', {
@@ -1587,6 +1596,7 @@ lively.morphic.World.addMethods(
                 ['Workspace', this.openWorkspace.bind(this)],
                 ['System Code Browser', this.openSystemBrowser.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
+                ['BuildSpecEditor', this.openBuildSpecEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
                 ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],

@@ -1,5 +1,5 @@
 var util = require('util');
-module.exports = function(route, app) {
+module.exports = function(route, app, subserver) {
     app.post(route, function(req, res) {
         var data = '';
         req.on('data', function(d) { data += d.toString() });

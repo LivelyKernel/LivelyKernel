@@ -1399,7 +1399,23 @@ lively.morphic.World.addMethods(
     },
     openSystemConsole: function() {
         return this.openPartItem('SystemConsole', 'PartsBin/Tools');
-    }
+    },
+    openSubserverViewer: function() {
+        require('lively.ide.tools.SubserverViewer').toRun(function() {
+          var win = lively.BuildSpec('lively.ide.tools.SubserverViewer').createMorph();
+          win.openInWorld();
+          win.align(win.bounds().center(), win.world().visibleBounds().center());
+        });
+    },
+    openServerWorkspace: function() {
+        require('lively.ide.tools.ServerWorkspace').toRun(function() {
+          var win = lively.BuildSpec('lively.ide.tools.ServerWorkspace').createMorph();
+          win.openInWorld();
+          win.align(win.bounds().center(), win.world().visibleBounds().center());
+        });
+    },
+
+
 },
 'menu', {
     morphMenuPartsBinItems: function() {
@@ -1574,7 +1590,9 @@ lively.morphic.World.addMethods(
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
                 ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],
-                ['System Console', this.openSystemConsole.bind(this)]
+                ['System Console', this.openSystemConsole.bind(this)],
+                ['SubserverViewer', this.openSubserverViewer.bind(this)],
+                ['ServerWorkspace', this.openServerWorkspace.bind(this)]
             ]],
             ['Stepping', [
                 ['Start stepping',  function() { world.submorphs.each(

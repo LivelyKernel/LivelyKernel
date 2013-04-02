@@ -54,6 +54,17 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
     },
 
     commit: function(options) {
+        // options: {
+        //   [path: STRING || lively.PropertyPath,] -- path (relative to 
+        //     this.basePath to modify.
+        //   transaction: FUNCTION(OBJECT) -> OBJECT, -- transaction function is
+        //     called 1+ times. It receives the currentl object at path and
+        //     should return the object that should be set at path. If it
+        //     returns undefined the transaction is canceled.
+        //  [precondition: OBJECT] -- the precondition send to and evaluated by
+        //  the store. Currently supported:
+        //    - {type: 'identity', value: OBJECT}.
+        // }
         options.n = options.n === undefined ? 0 : options.n+1; // just for debugging
         if (options.n > 10) { throw new Error(show('Commit endless recursion?')); }
         var path = options.path,
@@ -68,10 +79,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
                     if (err && err.type === 'precondition') handle.commit(options);
                     else options.callback && options.callback(err, !err, err ? val : newVal);
                 },
-                precondition: function(storeVal) {
-                    // show("precondition: %o vs %o", storeVal, val);
-                    return storeVal === val;
-                }
+                precondition: options.precondition || {type: 'identity', value: val}
             });
         }
         this.get({path: path, callback: withValueDo});
@@ -104,11 +112,15 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     set: function(path, val, options) {
         path = lively.PropertyPath(path);
         options = options || {};
-        var callbacks = this.callbacks, db = this.db;
+        var callbacks = this.callbacks, db = this.db,
+            precondition = options.precondition;
         // 1: checking precondition
-        if (options.precondition) {
-            var currentVal = path.get(db),
-                preconditionOK = options.precondition(currentVal);
+        if (precondition) {
+            var preconditionOK = true;
+            if (precondition.type === 'identity') {
+                var currentVal = path.get(db);
+                preconditionOK = precondition.value === currentVal;
+            }
             if (!preconditionOK) {
                 options.callback && options.callback({type: 'precondition'});
                 return;

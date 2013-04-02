@@ -152,7 +152,7 @@ lively.morphic.Text.addMethods(
         $super(renderCtx);
         // FIXME cachedTextString is used for compatiblity before rich text was implemented
         if (this.cachedTextString) {
-            this.textString = this.cachedTextString;
+            this.renderContextDispatch('updateText', this.cachedTextString);
         } else {
             this.getTextChunks().forEach(function(ea) { ea.restoreFromCacheContent(); });
         }

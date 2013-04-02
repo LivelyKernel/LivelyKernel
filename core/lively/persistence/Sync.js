@@ -55,7 +55,7 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 
     commit: function(options) {
         // options: {
-        //   [path: STRING || lively.PropertyPath,] -- path (relative to 
+        //   [path: STRING || lively.PropertyPath,] -- path (relative to
         //     this.basePath to modify.
         //   transaction: FUNCTION(OBJECT) -> OBJECT, -- transaction function is
         //     called 1+ times. It receives the currentl object at path and
@@ -129,21 +129,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
         // 2: setting the value in storage
         if (path.isRoot()) this.db = db = val; else path.set(db, val);
         // 3: Informing subscribers
-        var cbs = Object.keys(callbacks).inject([], function(cbs, cbPath) {
-            var cbPath = lively.PropertyPath(cbPath);
-            if (path.isParentPathOf(cbPath)) {
-                var relativeVal = cbPath.get(db),
-                    boundCbs = callbacks[cbPath].invoke('bind', null, cbPath, relativeVal);
-                cbs = cbs.concat(boundCbs);
-            } else if (cbPath.isParentPathOf(path)) {
-                var boundCbs = callbacks[cbPath].invoke('bind', null, path, val);
-                cbs = cbs.concat(boundCbs);
-            }
-            callbacks[cbPath] = [];
-            return cbs;
-        }), cb;
-        while ((cb = cbs.shift())) cb();
-        options.callback && options.callback(null);
+        this.informSubscribers(path, val, options);
     },
 
     get: function(path, callback) {
@@ -158,6 +144,26 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     removeCallback: function(path, callback) {
         if (!this.callbacks[path]) return;
         this.callbacks[path] = this.callbacks[path].without(callback);
+    },
+
+    informSubscribers: function(path, value, options) {
+        path = lively.PropertyPath(path);
+        var callbacks = this.callbacks;
+        var cbs = Object.keys(callbacks).inject([], function(cbs, cbPath) {
+            var cbPath = lively.PropertyPath(cbPath);
+            if (path.isParentPathOf(cbPath)) {
+                var relativeVal = path.relativePathTo(cbPath).get(value),
+                    boundCbs = callbacks[cbPath].invoke('bind', null, cbPath, relativeVal);
+                cbs = cbs.concat(boundCbs);
+            } else if (cbPath.isParentPathOf(path)) {
+                var boundCbs = callbacks[cbPath].invoke('bind', null, path, value);
+                cbs = cbs.concat(boundCbs);
+            }
+            callbacks[cbPath] = [];
+            return cbs;
+        }), cb;
+        while ((cb = cbs.shift())) cb();
+        options && options.callback && options.callback(null);
     }
 });
 

@@ -25,7 +25,7 @@ Object.extend = function(destination, source) {
         if (sourceObj instanceof Function) {
             if ((!sourceObj.name || (sourceObj.name.length == 0)) && !sourceObj.displayName) sourceObj.displayName = property;
             // remember the module that contains the class def
-            if (window.lively && lively.Module && lively.Module.current)
+            if (typeof lively !== 'undefined' && lively.Module && lively.Module.current)
                 sourceObj.sourceModule = lively.Module.current();
         }
     }
@@ -438,7 +438,7 @@ Object.extend(lively.PropertyPath.prototype, {
     isIn: function(obj) {
         if (this.isRoot()) return true;
         var parent = this.get(obj, -1);
-        return parent && parent.hasOwnProperty(this._parts.last());
+        return parent && parent.hasOwnProperty(this._parts[this._parts.length-1]);
     },
 
     isParentPathOf: function(otherPath) {
@@ -455,13 +455,13 @@ Object.extend(lively.PropertyPath.prototype, {
     set: function(obj, val) {
         if (this.isRoot()) return undefined;
         var parent = this.get(obj, -1);
-        return parent ? parent[this._parts.last()] = val : undefined;
+        return parent ? parent[this._parts[this._parts.length-1]] = val : undefined;
     },
 
     get: function(obj, n) {
         var parts = n ? this._parts.slice(0, n) : this._parts;
-        return parts.inject(obj, function(current, pathPart) {
-            return current ? current[pathPart] : current; });
+        return parts.reduce(function(current, pathPart) {
+            return current ? current[pathPart] : current; }, obj);
     },
 
     concat: function(path) {

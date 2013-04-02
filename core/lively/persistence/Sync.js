@@ -199,4 +199,52 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.LocalAsyncS
     }
 });
 
+lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore',
+'initializing', {
+    initialize: function($super, url) {
+        $super();
+        this.url = new URL(url);
+        this.debug = false;
+    }
+},
+'accessing', {
+
+    set: function($super, path, val, options) {
+        path = lively.PropertyPath(path);
+        options = options || {};
+        var self = this;
+        // ------
+        function sendToRemote(baseURL, debug, thenDo) {
+            if (debug) show('sending ' + JSON.stringify(val));
+            var webR = baseURL.withFilename(path.toString().replace(/\./g, '/')).asWebResource().beSync();
+            if (debug) {
+                connect(webR, 'status', lively.morphic, 'show', {updater: function($upd, val) {
+                    if (val && val.isDone()) $upd("%s: %o", val, val.transport.responseText);
+                }});
+            }
+            webR.put(JSON.stringify({data: val, precondition: options.precondition}), 'application/json');
+            var status = webR.status;
+            var err = status.isSuccess() ? null : {message: status.transport.responseText}
+            if (status.code() === 419) err.type = 'precondition';
+            options.callback && options.callback(err);
+            return !err;
+        }
+        var sendSuccess = sendToRemote(this.url, this.debug);
+        if (sendSuccess) this.informSubscribers(path, val, options);
+    },
+
+    get: function($super, path, callback) {
+        path = lively.PropertyPath(path);
+        var webR = this.url.withFilename(String(path).replace(/\./g, '/')).asWebResource().beSync();
+        connect(webR, 'content', {cb: callback.curry(path), debug: this.debug}, 'cb', {
+            converter: function(val) {
+                if (this.targetObj.debug) show('%s (%s)', val);
+                return val ? JSON.parse(val) : undefined;
+            }
+        });
+        webR.get();
+    }
+
+});
+
 }) // end of module

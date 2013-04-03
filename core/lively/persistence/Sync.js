@@ -63,23 +63,25 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         //     returns undefined the transaction is canceled.
         //  [precondition: OBJECT] -- the precondition send to and evaluated by
         //  the store. Currently supported:
-        //    - {type: 'identity', value: OBJECT}.
+        //    - {type: 'equality', value: OBJECT}.
+        //    - {type: 'id', id: STRING}.
         // }
         options.n = options.n === undefined ? 0 : options.n+1; // just for debugging
         if (options.n > 10) { throw new Error(show('Commit endless recursion?')); }
-        var path = options.path,
+        var precondition = options.precondition || {type: 'equality'},
+            path = options.path,
             fullPath = this.path.concat(path),
-            handle = this;
+            store = this.store;
         function withValueDo(val) {
+            if (precondition.id) precondition.type = 'id';
+            if (precondition.type === 'equality' && !precondition.value) precondition.value = val;
             var newVal = options.transaction(val, options.n);
-            // cancel commit?
             if (newVal === undefined) { options.callback(null, false, val); return; }
-            handle.store.set(fullPath, newVal, {
+            store.set(fullPath, newVal, {
                 callback: function(err) {
-                    if (err && err.type === 'precondition') handle.commit(options);
-                    else options.callback && options.callback(err, !err, err ? val : newVal);
+                    options.callback && options.callback(err, !err, err ? val : newVal);
                 },
-                precondition: options.precondition || {type: 'identity', value: val}
+                precondition: precondition
             });
         }
         this.get({path: path, callback: withValueDo});
@@ -115,11 +117,16 @@ Object.subclass('lively.persistence.Sync.LocalStore',
         var callbacks = this.callbacks, db = this.db,
             precondition = options.precondition;
         // 1: checking precondition
-        if (precondition) {
-            var preconditionOK = true;
-            if (precondition.type === 'identity') {
-                var currentVal = path.get(db);
+        if (precondition && path.isIn(db)) {
+            var preconditionOK = true,
+                currentVal = path.get(db);
+            if (precondition.type === 'equality') {
                 preconditionOK = precondition.value === currentVal;
+            }
+            if (precondition.type === 'id') {
+                preconditionOK = !currentVal
+                              || !currentVal.hasOwnProperty('id')
+                              || precondition.id === currentVal.id;
             }
             if (!preconditionOK) {
                 options.callback && options.callback({type: 'precondition'});

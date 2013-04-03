@@ -29,10 +29,10 @@ function write(storeName, pathString, value, precondition, thenDo) {
     if (!storePath.isIn(inMemoryStores)) storePath.set(inMemoryStores, {});
     var path = storePath.concat(pathString), err = null;
     if (precondition) {
-        if (precondition.type === 'identity') {
+        if (precondition.type === 'equality') {
             var currentVal = path.get(inMemoryStores);
-            err = precondition.value !== currentVal
-              && {type: "precondition", message: 'identity mismatch'};
+            err = precondition.value != currentVal
+               && {type: "precondition", message: 'equality mismatch'};
             console.log('Precondition test: %s vs. %s', i(currentVal), i(precondition.value))
         }
     }

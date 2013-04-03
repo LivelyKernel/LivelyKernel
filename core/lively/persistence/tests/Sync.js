@@ -42,7 +42,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
 
 });
 
-TestCase.subclass('lively.persistence.Sync.test.StoreAccess',
+AsyncTestCase.subclass('lively.persistence.Sync.test.StoreAccess',
 'running', {
     setUp: function($super) {
         $super();
@@ -54,23 +54,26 @@ TestCase.subclass('lively.persistence.Sync.test.StoreAccess',
 
     testGetValue: function() {
         this.store.set('foo', 23);
-        var result = [];
-        this.rootHandle.get({path: 'foo', callback: function(val) { result.push(val); }});
-        this.assertEqualState([23], result);
+        this.rootHandle.get({path: 'foo', callback: function(val) {
+            this.assertEqualState(23, val);
+            this.done();
+        }.bind(this)});
     },
 
     testGetNonExistantValue: function() {
-        var result = [];
-        this.rootHandle.get({path: 'foo', callback: function(val) { result.push(val); }});
-        this.assertEqualState([undefined], result);
-        this.assertEqualState([], Object.keys(this.rootHandle.callbackRegistry));
+        this.rootHandle.get({path: 'foo', callback: function(val) {
+            this.assertIdentity(undefined, val);
+            this.assertEqualState([], Object.keys(this.rootHandle.callbackRegistry));
+            this.done();
+        }.bind(this)});
     },
 
     testGetRoot: function() {
         this.store.set('foo', 23);
-        var result;
-        this.rootHandle.get({callback: function(val) { result = val; }});
-        this.assertEqualState({foo: 23}, result);
+        this.rootHandle.get({callback: function(val) {
+            this.assertEqualState({foo: 23}, val);
+            this.done();
+        }.bind(this)});
     },
 
     testetTwice: function() {
@@ -78,56 +81,70 @@ TestCase.subclass('lively.persistence.Sync.test.StoreAccess',
         this.store.set('foo', 23);
         this.rootHandle.get({path: 'foo', callback: function(val) { result1.push(val); }});
         this.rootHandle.get({path: 'foo', callback: function(val) { result2.push(val); }});
-        this.assertEqualState([23], result1);
-        this.assertEqualState([23], result2);
-        this.store.set('foo', 23);
-        this.assertEqualState([23], result1);
-        this.assertEqualState([23], result2);
+        this.delay(function() {
+            this.assertEqualState([23], result1);
+            this.assertEqualState([23], result2);
+            this.store.set('foo', 23);
+            this.delay(function() {
+                this.assertEqualState([23], result1);
+                this.assertEqualState([23], result2);
+                this.done();
+            }, 20);
+        }, 20);
     },
 
     testSubscribe: function() {
         var result = [];
         this.store.set('foo', 23);
-        this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
-        this.assertEqualState([], result);
+        this.rootHandle.subscribe({path: 'foo', callback: function(val) {
+            result.push(val);
+            this.assertEqualState([42], result);
+            this.done();
+        }.bind(this)});
+        this.assertEqualState([], result); // no immediate invocation
         this.store.set('foo', 42);
-        this.assertEqualState([42], result);
     },
 
     testSubscribeUnsubscribe: function() {
-        var result = [];
         this.store.set('foo', 23);
-        this.rootHandle.subscribe({path: 'foo', callback: function(val) { result.push(val); }});
+        this.rootHandle.subscribe({path: 'foo', callback: function(val) {
+            this.assert(false, 'should not ever be called');
+        }.bind(this)});
         this.assertEquals(this.rootHandle.callbackRegistry.foo[0].constructor, this.store.callbacks.foo[0].constructor);
-        this.assertEqualState([], result);
         this.rootHandle.unsubscribe({path: 'foo'});
         this.store.set('foo', 23);
-        this.assertEqualState([], result);
-        this.assertEqualState(this.rootHandle.callbackRegistry, {});
-        // this.assertEqualState(0, Object.keys(this.store.callbacks).length, 'store callbacks');
+        this.delay(function() {
+            this.assertEqualState(this.rootHandle.callbackRegistry, {});
+            // this.assertEqualState(0, Object.keys(this.store.callbacks).length, 'store callbacks');
+            this.done();
+        }, 20);
     },
 
     testSet: function() {
-        var done;
-        this.rootHandle.set({path: 'foo', value: 23, callback: function(err) { done = true }});
-        this.assert(done, 'not done?');
-        var instore; this.store.get('foo', function(_, val) { instore = val });
-        this.assertEqualState(23, instore);
+        this.rootHandle.set({path: 'foo', value: 23, callback: function(err) {
+            this.store.get('foo', function(_, val) {
+                this.assertEqualState(23, val);
+                this.done();
+            }.bind(this));
+        }.bind(this)});
     },
 
     testCommit: function() {
-        var done, writtenVal, preVal;
+        var preVal;
         this.store.set('foo', 22);
         this.rootHandle.commit({
             path: 'foo',
             transaction: function(oldVal) { preVal = oldVal; return oldVal + 1; },
-            callback: function(err, committed, val) { done = committed; writtenVal = val; }
+            callback: function(err, committed, val) {
+                this.assertEquals(22, preVal, 'val before set');
+                this.assert(committed, 'not committed?');
+                this.assertEquals(23, val);
+                this.store.get('foo', function(_, v) {
+                    this.done();
+                    this.assertEquals(23, v);
+                }.bind(this));
+            }.bind(this)
         });
-        this.assertEquals(22, preVal, 'val before set');
-        this.assert(done, 'not committed?');
-        var actual; this.store.get('foo', function(_, v) { actual = v; });
-        this.assertEquals(23, actual);
-        this.assertEquals(23, writtenVal);
     },
 
     testCommitCancels: function() {
@@ -136,34 +153,85 @@ TestCase.subclass('lively.persistence.Sync.test.StoreAccess',
         this.rootHandle.commit({
             path: 'foo',
             transaction: function(oldVal) { return undefined; },
-            callback: function(err, committed, val) { done = true; written = committed; eventualVal = val; }
+            callback: function(err, committed, val) {
+                this.assert(!committed, 'committed?');
+                this.assertEquals(22, val);
+                this.store.get('foo', function(_, v) {
+                    this.assertEquals(22, v);
+                    this.done();
+                }.bind(this));
+            }.bind(this)
         });
-        this.assert(done, 'not done?');
-        this.assert(!written, 'committed?');
-        var actual; this.store.get('foo', function(_, v) { actual = v; });
-        this.assertEquals(22, actual);
-        this.assertEquals(22, eventualVal);
+    },
+
+    testCommitToUnsetValueSucceeds: function() {
+        var transactionCalls = 0, store = this.store;
+        // store.set('foo', 22);
+        this.rootHandle.commit({
+            path: 'foo',
+            transaction: function(oldVal) { transactionCalls++; return 23; },
+            callback: function(err, committed, val) {
+                this.assert(committed, 'committed?');
+                this.assertEquals(1, transactionCalls, 'transactionCall count');
+                this.assertEquals(23, val);
+                this.store.get('foo', function(_, v) {
+                    this.assertEquals(23, v);
+                    this.done();
+                }.bind(this));
+            }.bind(this)
+        });
     },
 
     testCommitWithConflict: function() {
-        var done, written, eventualVal, transactionCalls = 0;
-        var store = this.store;
+        // by default equality to previous value is tested
+        var transactionCalls = 0, store = this.store;
         store.set('foo', 22);
         this.rootHandle.commit({
             path: 'foo',
             transaction: function(oldVal) { transactionCalls++; if (oldVal === 22) store.set('foo', 41); return oldVal + 1; },
-            callback: function(err, committed, val) { done = true; written = committed; eventualVal = val; }
+            callback: function(err, committed, val) {
+                this.assert(!committed, 'committed?');
+                this.assertEquals(1, transactionCalls, 'transactionCall count');
+                this.assertEquals(22, val);
+                this.rootHandle.commit({
+                    path: 'foo',
+                    transaction: function(oldVal) { transactionCalls++; return oldVal + 1; },
+                    callback: function(err, committed, val) {
+                        this.assert(committed, 'not committed?');
+                        this.assertEquals(2, transactionCalls, 'transactionCall count');
+                        this.assertEquals(42, val);
+                        this.store.get('foo', function(_, v) {
+                            this.assertEquals(42, v);
+                            this.done();
+                        }.bind(this));
+                    }.bind(this)
+                });
+            }.bind(this)
         });
-        this.assert(done, 'not done?');
-        this.assert(written, 'not committed?');
-        this.assertEquals(2, transactionCalls, 'transactionCall count');
-        var actual; this.store.get('foo', function(_, v) { actual = v; });
-        this.assertEquals(42, actual);
-        this.assertEquals(42, eventualVal);
+    },
+
+    testCommitWithId: function() {
+        this.done(); return;
+        var transactionCalls = 0, store = this.store;
+        store.set('foo', {value: 1, id: 1});
+        this.rootHandle.commit({
+            path: 'foo',
+            precondition: {id: '2'},
+            transaction: function(oldVal) { transactionCalls++; return {id: 3}; },
+            callback: function(err, committed, val) {
+                this.assert(!committed, 'committed?');
+                this.assertEquals(1, transactionCalls, 'transactionCall count');
+                // this.store.get('foo', function(_, v) {
+                //     this.assertEquals(42, actual);
+                //     this.assertEquals(42, eventualVal);
+                    this.done();
+                // }.bind(this));
+            }.bind(this)
+        });
     }
 });
 
-TestCase.subclass('lively.persistence.Sync.test.RemoteStore',
+AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
 'running', {
     setUp: function($super) {
         $super();
@@ -175,17 +243,19 @@ TestCase.subclass('lively.persistence.Sync.test.RemoteStore',
 'testing', {
     testUploadSomeSimpleData: function() {
         this.rootHandle.set({value: {foo: {bar: 23}}});
-        var serverContent = this.store.url.asWebResource().get().content;
-        this.assertEqualState('{"foo":{"bar":23}}', serverContent);
+        this.delay(function() {
+            var serverContent = this.store.url.asWebResource().get().content;
+            this.assertEqualState('{"foo":{"bar":23}}', serverContent);
+            this.done();
+        }, 20);
     },
 
     testRunStoreTests: function() {
+        this._maxWaitDelay = 5000;
         var test = new lively.persistence.Sync.test.StoreAccess(),
-            tests = test.allTestSelectors();
-        tests.forEach(function(testName) {
-            this[testName] = test[testName];
-            this.runTest(testName);
-        }, this);
+            sels = test.allTestSelectors(), tests = this.createTests(sels);
+        sels.forEach(function(testName, i) { tests[i][testName] = test[testName]; });
+        this.runAll(null, function() { this.done(); }.bind(this), tests);
     }
 });
 

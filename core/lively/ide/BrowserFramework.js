@@ -790,38 +790,43 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
     },
 
     onKeyDown: function(evt) {
-        if (!evt.isAltDown()) return false;
+        if (!this.navigateBrowserPanes(evt)) return false;
+        evt.stop(); return true;
+    },
+    navigateBrowserPanes: function(evt) {
+        var evtString = Event.pressedKeyString(evt),
+            functionKeyMatch = evtString.match(/^F([1-6])/),
+            altKeyMatch = evtString.match(/^Alt-(Left|Right|Up|Down)/);
+        if (!functionKeyMatch && !altKeyMatch) return false;
         // alt+1..5 to select panels via keybord
         var self = this, browser = self.ownerWidget;
-        function getPaneName(keyCode) {
+        function getPaneName() {
             // alt+1..5 to select panels
             var keyPaneMapping = {
-                '1': 'Pane1','2': 'Pane2','3': 'Pane3','4': 'Pane4', '5': 'sourcePane', '0': 'locationPane'
+                '1': 'Pane1','2': 'Pane2','3': 'Pane3','4': 'Pane4', '5': 'sourcePane', '6': 'locationPane'
             }
-            var key = String.fromCharCode(keyCode);
-            if (keyPaneMapping[key]) return keyPaneMapping[key];
+            if (functionKeyMatch) return keyPaneMapping[functionKeyMatch[1]];
             // Alt + Arrow keys
-            var pressed = [Event.KEY_DOWN, Event.KEY_UP, Event.KEY_LEFT, Event.KEY_RIGHT].map(function(code) { return keyCode === code; }),
-                down = pressed[0], up = pressed[1], left = pressed[2], right = pressed[3];
-            if (!(up || down || left || right)) return null;
+            if (!altKeyMatch[1]) return null;
+            evt[altKeyMatch[1].toLowerCase()] = true;
             var paneNames = Object.values(keyPaneMapping),
                 panes = paneNames.map(function(pane) { return self.getPane(pane); }),
                 currentPane = paneNames.detect(function(pane, i) { return panes[i].isFocused(); }),
                 i = Number(Properties.nameFor(keyPaneMapping, currentPane));
             if (i === undefined) return null;
             if (currentPane === 'locationPane') {
-                if (down) for (var j = 4; j > 0; j--) if (browser[paneNames[j-1] + "Selection"]) return keyPaneMapping[j];
+                if (evt.down) for (var j = 4; j > 0; j--) if (browser[paneNames[j-1] + "Selection"]) return keyPaneMapping[j];
                 return null;
             }
             if (currentPane === "sourcePane") {
                 // up: only from sourcePane, select list with selection, from right
-                if (up) for (var j = 4; j > 0; j--) if (browser[paneNames[j-1] + "Selection"]) return keyPaneMapping[j];
+                if (evt.up) for (var j = 4; j > 0; j--) if (browser[paneNames[j-1] + "Selection"]) return keyPaneMapping[j];
                 return null;
             }
-            if (down) { return keyPaneMapping[5]; }
-            if (up) { return keyPaneMapping[0]; }
-            if (left) { return keyPaneMapping[i-1]; }
-            if (right) { return keyPaneMapping[i+1]; }
+            if (evt.down) { return keyPaneMapping[5]; }
+            if (evt.up) { return keyPaneMapping[6]; }
+            if (evt.left) { return keyPaneMapping[i-1] || keyPaneMapping[6]; }
+            if (evt.right) { return keyPaneMapping[i+1]; }
             return null;
         }
         function selectPane(paneName) {
@@ -832,9 +837,9 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
             if (browser['set' + sel]) browser['set' + sel](pane.selection);
             return true;
         }
-        if (selectPane(getPaneName(evt.keyCode))) { evt.stop(); return true; }
-        return false;
+        return selectPane(getPaneName());
     }
+
 
 });
 

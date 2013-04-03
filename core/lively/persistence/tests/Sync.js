@@ -211,7 +211,6 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.StoreAccess',
     },
 
     testCommitWithId: function() {
-        this.done(); return;
         var transactionCalls = 0, store = this.store;
         store.set('foo', {value: 1, id: 1});
         this.rootHandle.commit({
@@ -221,11 +220,17 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.StoreAccess',
             callback: function(err, committed, val) {
                 this.assert(!committed, 'committed?');
                 this.assertEquals(1, transactionCalls, 'transactionCall count');
-                // this.store.get('foo', function(_, v) {
-                //     this.assertEquals(42, actual);
-                //     this.assertEquals(42, eventualVal);
-                    this.done();
-                // }.bind(this));
+                this.rootHandle.commit({
+                    path: 'foo',
+                    precondition: {id: '1'},
+                    transaction: function(oldVal) { transactionCalls++; return {id: 3}; },
+                    callback: function(err, committed, val) {
+                        this.assert(committed, 'not committed? ');
+                        this.assertEquals(2, transactionCalls, 'transactionCall count');
+                        this.assertEqualState({id: 3}, val, 'eventual value');
+                        this.done();
+                    }.bind(this)
+                });
             }.bind(this)
         });
     }

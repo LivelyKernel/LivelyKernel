@@ -117,26 +117,30 @@ Object.subclass('lively.persistence.Sync.LocalStore',
         var callbacks = this.callbacks, db = this.db,
             precondition = options.precondition;
         // 1: checking precondition
-        if (precondition && path.isIn(db)) {
-            var preconditionOK = true,
-                currentVal = path.get(db);
-            if (precondition.type === 'equality') {
-                preconditionOK = precondition.value === currentVal;
-            }
-            if (precondition.type === 'id') {
-                preconditionOK = !currentVal
-                              || !currentVal.hasOwnProperty('id')
-                              || precondition.id === currentVal.id;
-            }
-            if (!preconditionOK) {
-                options.callback && options.callback({type: 'precondition'});
-                return;
-            }
-        }
+        var err = this.checkPrecondition(path, options.precondition);
+        if (err) { options.callback && options.callback(err); return; }
         // 2: setting the value in storage
         if (path.isRoot()) this.db = db = val; else path.set(db, val);
         // 3: Informing subscribers
         this.informSubscribers(path, val, options);
+    },
+
+    checkPrecondition: function(path, precondition) {
+        var db = this.db, err = {type: 'precondition'};
+        if (!precondition || !path.isIn(db)) return null;
+        var currentVal = path.get(db);
+        if (precondition.type === 'equality') {
+            return precondition.value == currentVal ? null : Object.extend(err, {message: 'equality mismatch'});
+        } else if (precondition.type === 'id') {
+            if (!currentVal || !currentVal.hasOwnProperty('id')) return null;
+            var valId = String(currentVal.id),
+                expectedId = String(precondition.id);
+            return valId === expectedId ? null : Object.extend(err, {
+                message: 'id mismatch, expected: '
+                        + expectedId + ' actual: ' + valId
+            });
+        }
+        return null;
     },
 
     get: function(path, callback) {

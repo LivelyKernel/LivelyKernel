@@ -23,19 +23,29 @@ function getStore(storeName) {
     return inMemoryStores[storeName];
 }
 
+function checkPrecondition(path, precondition) {
+    var db = inMemoryStores,  err = {type: 'precondition'};
+    if (!precondition || !path.isIn(db)) return null;
+    var currentVal = path.get(db);
+    if (precondition.type === 'equality') {
+        return precondition.value == currentVal ? null : Object.extend(err, {message: 'equality mismatch'});
+    } else if (precondition.type === 'id') {
+        if (!currentVal || !currentVal.hasOwnProperty('id')) return null;
+        var valId = String(currentVal.id),
+            expectedId = String(precondition.id);
+        return valId === expectedId ? null : Object.extend(err, {
+            message: 'id mismatch, expected: '
+                    + expectedId + ' actual: ' + valId
+        });
+    }
+    return null;
+}
 
 function write(storeName, pathString, value, precondition, thenDo) {
     var storePath = lively.PropertyPath(storeName);
     if (!storePath.isIn(inMemoryStores)) storePath.set(inMemoryStores, {});
-    var path = storePath.concat(pathString), err = null;
-    if (precondition) {
-        if (precondition.type === 'equality') {
-            var currentVal = path.get(inMemoryStores);
-            err = precondition.value != currentVal
-               && {type: "precondition", message: 'equality mismatch'};
-            console.log('Precondition test: %s vs. %s', i(currentVal), i(precondition.value))
-        }
-    }
+    var path = storePath.concat(pathString),
+        err = checkPrecondition(path, precondition);
     if (!err) {
         path.set(inMemoryStores, value);
         console.log('stored %s in %s', value, path);

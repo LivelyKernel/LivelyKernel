@@ -173,8 +173,8 @@ Object.subclass('lively.persistence.Sync.LocalStore',
             callbacks[cbPath] = [];
             return cbs;
         }), cb;
+        if (options && options.callback) cbs.push(options.callback.bind(null, null/*err*/));
         while ((cb = cbs.shift())) cb();
-        options && options.callback && options.callback(null);
     }
 });
 
@@ -212,10 +212,57 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.LocalAsyncS
 
 lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore',
 'initializing', {
-    initialize: function($super, url) {
+    initialize: function($super, name) {
         $super();
-        this.url = new URL(url);
+        this.name = name;
         this.debug = false;
+        this.pollingProcess = null;
+        this.lastFetchUpdateTime = null;
+    }
+},
+'network', {
+    getURL: function(path) {
+        path = String(path || '').replace(/\./g, '/');
+        var baseURL = new URL(Config.nodeJSURL).asDirectory().withFilename('Store/');
+        return baseURL.withFilename(this.name + '/' + path);
+    },
+
+    getWebResource: function(path) { return this.getURL(path).asWebResource(); }
+},
+'updates', {
+    enablePolling: function(options) {
+        this.disablePolling();
+        var time = (options && options.interval * 1000) || 5000; // secs
+        this.pollingProcess = Global.setInterval(function() {
+            this.fetchRemoteUpdates();
+        }.bind(this), time);
+    },
+
+    disablePolling: function() {
+        if (!this.pollingProcess) return;
+        Global.clearInterval(this.pollingProcess);
+        this.pollingProcess = null;
+    },
+
+    fetchRemoteUpdates: function() {
+        var store = this,
+            webR = this.getURL().withQuery({"changes-since": this.lastFetchUpdateTime}).asWebResource().beSync().get(),
+            s = webR.status,
+            err = s.isSuccess() ? null : s.code() + ' ' + s.transport.responseText,
+            result;
+        if (!err) {
+            try {
+                result = JSON.parse(webR.content);
+                err = result.error;
+            } catch(e) { err = e; }
+        }
+        if (err) { lively.morphic.show(err); return; }
+        show(result);
+        store.lastFetchUpdateTime = result.endTime;
+        result.paths
+            .map(function(p) { return lively.PropertyPath(p).relativePathTo(store.name); }).compact()
+            .forEach(function(path) {
+                store.get(path, function(_, val) { store.informSubscribers(path, val); }); });
     }
 },
 'accessing', {
@@ -225,9 +272,8 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
         options = options || {};
         var self = this;
         // ------
-        function sendToRemote(baseURL, debug, thenDo) {
+        function sendToRemote(webR, debug, thenDo) {
             if (debug) show('sending ' + JSON.stringify(val));
-            var webR = baseURL.withFilename(path.toString().replace(/\./g, '/')).asWebResource().beSync();
             if (debug) {
                 connect(webR, 'status', lively.morphic, 'show', {updater: function($upd, val) {
                     if (val && val.isDone()) $upd("%s: %o", val, val.transport.responseText);
@@ -240,13 +286,13 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
             options.callback && options.callback(err);
             return !err;
         }
-        var sendSuccess = sendToRemote(this.url, this.debug);
+        var sendSuccess = sendToRemote(this.getWebResource(path).beSync(), this.debug);
         if (sendSuccess) this.informSubscribers(path, val, options);
     },
 
     get: function($super, path, callback) {
         path = lively.PropertyPath(path);
-        var webR = this.url.withFilename(String(path).replace(/\./g, '/')).asWebResource().beSync();
+        var webR = this.getWebResource(path).beSync();
         connect(webR, 'content', {cb: callback.curry(path), debug: this.debug}, 'cb', {
             converter: function(val) {
                 if (this.targetObj.debug) show('%s (%s)', val);

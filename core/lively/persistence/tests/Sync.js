@@ -38,6 +38,13 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
         this.rootHandle.subscribe({type: 'childChanged', callback: function(val, path) { reads.push([val, path]); }});
         childHandle.set({value: 23});
         this.assertEquals([[23, 'bar.baz']], reads);
+    },
+
+    testIdIsAddedToObjectsButNotValues: function() {
+        this.rootHandle.set({value: {foo: {bar: 3}}});
+        // this.rootHandle.subscribe({type: 'childChanged', callback: function(val, path) { reads.push([val, path]); }});
+        // childHandle.set({value: 23});
+        // this.assertEquals([[23, 'bar.baz']], reads);
     }
 
 });
@@ -241,24 +248,45 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
     setUp: function($super) {
         $super();
         this.url = new URL(Config.nodeJSURL).asDirectory().withFilename('Store/' + this.currentSelector + '/');
-        this.store = new lively.persistence.Sync.RemoteStore(this.url);
+        this.store = new lively.persistence.Sync.RemoteStore(this.currentSelector);
         this.rootHandle = new lively.persistence.Sync.ObjectHandle({store: this.store});
+    },
+
+    tearDown: function($super) {
+        $super();
+        this.store.disablePolling();
     }
 },
 'testing', {
     testUploadSomeSimpleData: function() {
+        this.assertEquals(this.url, this.store.getURL());
         this.rootHandle.set({value: {foo: {bar: 23}}});
         this.delay(function() {
-            var serverContent = this.store.url.asWebResource().get().content;
+            var serverContent = this.store.getWebResource().get().content;
             this.assertEqualState('{"foo":{"bar":23}}', serverContent);
             this.done();
         }, 20);
     },
 
+    testRemoteChangesAreReceived: function() {
+        var callbackCalls = 0;
+        this.store.enablePolling({interval: 0.2});
+        this.rootHandle.subscribe({path: 'foo', callback: function(val, path) {
+            callbackCalls++;
+            this.assertEquals(42, val);
+        }.bind(this)});
+        this.store.getWebResource().put(JSON.stringify({data: {foo: 42}}), 'application/json');
+        this.delay(function() {
+            this.assertEquals(1, callbackCalls, 'callback call count');
+            this.done();
+        }, 900);
+    },
+
     testRunStoreTests: function() {
         this._maxWaitDelay = 5000;
         var test = new lively.persistence.Sync.test.StoreAccess(),
-            sels = test.allTestSelectors(), tests = this.createTests(sels);
+            sels = test.allTestSelectors(),
+            tests = this.createTests(sels);
         sels.forEach(function(testName, i) { tests[i][testName] = test[testName]; });
         this.runAll(null, function() { this.done(); }.bind(this), tests);
     }

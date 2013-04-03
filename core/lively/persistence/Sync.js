@@ -225,7 +225,7 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
             webR.put(JSON.stringify({data: val, precondition: options.precondition}), 'application/json');
             var status = webR.status;
             var err = status.isSuccess() ? null : {message: status.transport.responseText}
-            if (status.code() === 419) err.type = 'precondition';
+            if (status.code() === 412) err.type = 'precondition';
             options.callback && options.callback(err);
             return !err;
         }

@@ -72,7 +72,7 @@ module.exports = function(route, app) {
         console.log('setting %s.%s=%s', store, path, i(req.body));
         write(store, path, value, precondition, function(err) {
             var status = 200;
-            if (err) { status = err.type && err.type === 'precondition' ? 419 : 400; } 
+            if (err) { status = err.type && err.type === 'precondition' ? 412 : 400; }
             res.status(status);
             res.end(JSON.stringify(err || 'OK'));
         });

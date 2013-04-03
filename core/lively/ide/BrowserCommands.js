@@ -468,27 +468,32 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
         return false;
     },
 
+    showTestResult: function(testClassName, testSelector, test) {
+        var failures = test.result.failureList(),
+            world = lively.morphic.World.current();
+        if (failures.length == 0) {
+            var msg = testSelector ?
+                testClassName + '>>' + testSelector + ' succeeded' :
+                'all tests of ' + testClassName + ' succeeded';
+            world.setStatusMessage(msg, Color.green, 3);
+        } else {
+            world.logError(test.result.failed[0].err);
+        }
+    },
+
     runTest: function() {
         var klass = this.getTestClass(),
             node = this.getSelectedNode(),
             testSelector = node.isMemberNode && node.target.getName(),
-            test = new klass();
+            test = new klass(),
+            tests = undefined;
         if (testSelector) {
             alertOK('Running test ' + klass.type + '>>' + testSelector);
-            test.runTest(testSelector);
+            tests = [new klass(test.result, testSelector)];
         } else {
-            alertOK('Running tests of ' + klass.type);
-            test.runAll();
+            alertOK('Running all tests of ' + klass.type);
         }
-        var failures = test.result.failureList();
-        if (failures.length == 0) {
-            var msg = testSelector ?
-                        klass.name + '>>' + testSelector + ' succeeded' :
-                        'all tests of ' + klass.name + ' succeeded';
-            lively.morphic.World.current().setStatusMessage(msg, Color.green, 3);
-        } else {
-            lively.morphic.World.current().logError(test.result.failed[0].err);
-        }
+        test.runAllThenDo(null, this.showTestResult.bind(this, klass.name, testSelector, test), tests);
     },
 
     trigger: function() {
@@ -496,7 +501,6 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
     }
 
 });
-
 lively.ide.BrowserCommand.subclass('lively.ide.OpenInFileEditorCommand', {
 
     wantsMenu: Functions.True,

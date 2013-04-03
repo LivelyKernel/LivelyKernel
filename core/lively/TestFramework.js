@@ -36,10 +36,10 @@ Object.subclass('TestCase',
         this.currentSelector = optTestSelector;
         this.statusUpdateFunc = null;
     },
-    createTests: function() {
-        return this.allTestSelectors().collect(function(sel) {
-            return new this.constructor(this.result, sel);
-        }, this);
+    createTests: function(selectors) {
+        selectors = selectors || this.allTestSelectors();
+        return selectors.collect(function(sel) {
+            return new this.constructor(this.result, sel); }, this);
     }
 },
 'accessing', {
@@ -84,19 +84,19 @@ Object.subclass('TestCase',
     }
 },
 'running', {
-    runAll: function(statusUpdateFunc) {
-        var tests = this.createTests(),
-            time = Functions.timeToRun(function() {
-                tests.forEach(function(test) {
-                    test.statusUpdateFunc = statusUpdateFunc;
-                    test.runTest();
-                })
-            })
+    runAll: function(statusUpdateFunc, tests) {
+        tests = tests || this.createTests();
+        var time = Functions.timeToRun(function() {
+            tests.forEach(function(test) {
+                test.statusUpdateFunc = statusUpdateFunc;
+                test.runTest();
+            });
+        });
         this.result.setTimeToRun(this.name(), time);
         return this.result;
     },
-    runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
-        this.runAll(statusUpdateFunc);
+    runAllThenDo: function(statusUpdateFunc, whenDoneFunc, tests) {
+        this.runAll(statusUpdateFunc, tests);
         whenDoneFunc();
     },
     setUp: function() {},
@@ -506,9 +506,9 @@ TestCase.subclass('AsyncTestCase',
         } catch (e) { this.addAndSignalFailure(e) }
     },
 
-    runAll: function(statusUpdateFunc, whenDoneFunc) {
-        var self = this, tests = this.createTests(),
-            duration = 0, startTime;
+    runAll: function(statusUpdateFunc, whenDoneFunc, tests) {
+        tests = tests || this.createTests();
+        var self = this, duration = 0, startTime;
 
         function recordTime(thenDo) { duration += Date.now() - startTime; thenDo() }
 
@@ -527,19 +527,21 @@ TestCase.subclass('AsyncTestCase',
 
         return tests;
     },
-    runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
-        this.runAll(statusUpdateFunc, whenDoneFunc);
+    runAllThenDo: function(statusUpdateFunc, whenDoneFunc, tests) {
+        this.runAll(statusUpdateFunc, whenDoneFunc, tests);
     },
     runAndDoWhenDone: function(/*optTestSelector, whenDoneFunc*/) {
         var args            = Array.from(arguments),
-            optTestSelector = Object.isString(args[0]) && args[0],
+            optTestSelector = (Object.isString(args[0]) && args[0]),
+            sel             = optTestSelector || this.currentSelector,
             whenDoneFunc    = optTestSelector ? args[1] : args[0];
         this.runTest(optTestSelector);
         var self = this, waitMs = 100; // time for checking if test is done
         (function doWhenDone(timeWaited) {
             if (timeWaited >= self._maxWaitDelay) {
                 if (!self._errorOccured) {
-                    var msg = 'Asynchronous test was not done after ' + timeWaited + 'ms';
+                    var msg = 'Asynchronous test #' + sel
+                            + ' was not done after ' + timeWaited + 'ms';
                     self.addAndSignalFailure({message: msg, toString: function() { return msg }});
                 }
                 self.done();

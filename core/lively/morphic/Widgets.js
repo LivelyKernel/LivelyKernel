@@ -1870,7 +1870,13 @@ lively.morphic.World.addMethods(
             if (morph.isWindow && morph.isActive()) return morph;
         }
         return null;
+    },
+    closeActiveWindow: function() {
+        var win = this.getActiveWindow();
+        win && win.initiateShutdown();
+        return !!win;
     }
+
 });
 
 lively.morphic.List.addMethods(

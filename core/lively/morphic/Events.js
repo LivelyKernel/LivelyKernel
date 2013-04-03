@@ -401,11 +401,16 @@ Object.extend(Event, {
         // }
         options = options || {};
         var keyParts = [];
+        // modifiers
         if (evt.isCommandKey()) keyParts.push('Command');
         if (evt.isCtrlDown()) keyParts.push('Control');
         if (evt.isAltDown()) keyParts.push('Alt');
         if (evt.isShiftDown()) keyParts.push('Shift');
-        var id = this.decodeKeyIdentifier(evt);
+        // key
+        var id;
+        if (evt.keyCode === Event.KEY_TAB) id = 'Tab';
+        else if (evt.keyCode === Event.KEY_ESC) id = 'Esc';
+        else id = this.decodeKeyIdentifier(evt);
         if (options.ignoreModifiersIfNoCombo) {
             if (keyParts.length >= 1 && keyParts.include(id)) return '';
         };

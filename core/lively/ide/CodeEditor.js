@@ -417,12 +417,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             {
                 name: 'increasefontsize',
                 bindKey: {win: "Ctrl-»", mac: "Command-»"},
-                exec: function(ed) { ed.setOption("fontSize", (ed.getOption("fontSize") || 10) + 1); },
+                exec: function(ed) { codeEditor.setFontSize(codeEditor.getFontSize() + 1); },
                 readOnly: true
             }, {
                 name: 'decreasefontsize',
                 bindKey: {win: "Ctrl-½", mac: "Command-½"},
-                exec: function(ed) { ed.setOption("fontSize", (ed.getOption("fontSize") || 10) - 1); },
+                exec: function(ed) { codeEditor.setFontSize(codeEditor.getFontSize() - 1); },
                 readOnly: true
             }]);
 

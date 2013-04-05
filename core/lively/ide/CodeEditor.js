@@ -141,6 +141,21 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (newOwner) this.initializeAce();
     }
 },
+'styling', {
+    applyStyle: function ($super, spec) {
+        if (!spec) return this;
+        $super(spec);
+        if (spec.allowInput !== undefined) this.setInputAllowed(spec.allowInput);
+        if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
+        if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
+        if (spec.textColor !== undefined) this.setTextColor(spec.textColor);
+        // -----------
+        if (spec.gutter !== undefined) this.setShowGutter(spec.gutter);
+        if (spec.textMode !== undefined) this.setTextMode(spec.textMode);
+        if (spec.theme !== undefined) this.setTheme(spec.theme);
+        return this;
+    }
+},
 'serialization', {
     onLoad: function() {
         this.initializeAce();
@@ -414,8 +429,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (Object.isFunction(Config.codeEditorUserKeySetup)) {
             Config.codeEditorUserKeySetup(this);
             // update existing editors when #codeEditorUserKeySetup changes:
-            lively.bindings.connect(Config, 'codeEditorUserKeySetup', this, 'setupKeyBindings', {
-                  forceAttributeConnection: true})
+            lively.bindings.connect(Config, 'codeEditorUserKeySetup', this, 'setupKeyBindings',
+                {forceAttributeConnection: true});
         }
     },
 

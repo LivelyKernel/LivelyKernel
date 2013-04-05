@@ -452,18 +452,18 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
 },
 'helper',{
     serializeLayerArray: function(original, persistentCopy, propname) {
-        var layers = original[propname]
-        if (!layers || layers.length == 0) return;
+        var layers = original[propname];
+        if (!Object.isArray(layers) || layers.length === 0) return;
         persistentCopy[propname] = layers.collect(function(ea) {
-            return ea instanceof Layer ? ea.fullName() : ea })
+            return ea instanceof Layer ? ea.fullName() : ea; });
     },
+
     deserializeLayerArray: function(obj, propname) {
         var layers = obj[propname];
-        if (!layers || layers.length == 0) return;
+        if (!Object.isArray(layers) || layers.length === 0) return;
         module('cop.Layers').load(true); // FIXME
         obj[propname] = layers.collect(function(ea) {
-            return Object.isString(ea) ? cop.create(ea, true) : ea;
-        });
+            return Object.isString(ea) ? cop.create(ea, true) : ea; });
     }
 });
 

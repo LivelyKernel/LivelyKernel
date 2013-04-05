@@ -270,7 +270,7 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
 
     testRemoteChangesAreReceived: function() {
         var callbackCalls = 0;
-        this.store.enablePolling({interval: 0.2});
+        this.store.enablePolling({interval: 200});
         this.rootHandle.subscribe({path: 'foo', callback: function(val, path) {
             callbackCalls++;
             this.assertEquals(42, val);

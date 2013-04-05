@@ -226,16 +226,13 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
         var baseURL = new URL(Config.nodeJSURL).asDirectory().withFilename('Store/');
         return baseURL.withFilename(this.name + '/' + path);
     },
-
     getWebResource: function(path) { return this.getURL(path).asWebResource(); }
 },
 'updates', {
     enablePolling: function(options) {
         this.disablePolling();
-        var time = (options && options.interval * 1000) || 5000; // secs
-        this.pollingProcess = Global.setInterval(function() {
-            this.fetchRemoteUpdates();
-        }.bind(this), time);
+        var msecs = (options && options.interval) || 5000; // secs
+        this.pollingProcess = Global.setInterval(this.fetchRemoteUpdates.bind(this), msecs);
     },
 
     disablePolling: function() {
@@ -257,7 +254,6 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
             } catch(e) { err = e; }
         }
         if (err) { lively.morphic.show(err); return; }
-        show(result);
         store.lastFetchUpdateTime = result.endTime;
         result.paths
             .map(function(p) { return lively.PropertyPath(p).relativePathTo(store.name); }).compact()

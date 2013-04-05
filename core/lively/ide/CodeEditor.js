@@ -187,6 +187,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setTextMode(this.getTextMode() || "");
         this.setTheme(this.getTheme() || '');
         this.setFontSize(this.getFontSize());
+        this.setShowGutter(this.getShowGutter());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
@@ -855,7 +856,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getFontFamily: function() { return this._FontFamily; },
 
     inputAllowed: function() { return this.allowInput },
-    setInputAllowed: function(bool) { throw new Error('implement me'); }
+    setInputAllowed: function(bool) { throw new Error('implement me'); },
+
+    enableGutter: function() { this.setShowGutter(true); },
+    disableGutter: function() { this.setShowGutter(false); },
+    setShowGutter: function(bool) {
+        this.withAceDo(function(ed) { ed.renderer.setShowGutter(bool); });
+        return this._ShowGutter = bool;
+    },
+    getShowGutter: function(bool) {
+        if (this.hasOwnProperty('_ShowGutter')) return this._ShowGutter;
+        return this.withAceDo(function(ed) { return ed.renderer.getShowGutter(); });
+    }
 
 },
 'rendering', {

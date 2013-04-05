@@ -180,6 +180,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'ace', {
     initializeAce: function() {
         // 1) create ace editor object
+        if (this.aceEditor) return;
         var node = this.getShape().shapeNode,
             e = this.aceEditor = this.aceEditor || ace.edit(node),
             morph = this;

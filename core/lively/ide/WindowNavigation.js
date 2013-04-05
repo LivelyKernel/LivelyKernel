@@ -48,7 +48,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
 },
 'morphic switcher', {
     createSwitcher: function() {
-        var spec = {
+        return lively.BuildSpec('WindowSwitcher', {
             _ClipMode: "hidden",
             _Extent: lively.pt(200,200),
             _Position: lively.pt(0,0),
@@ -229,10 +229,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
             showsHalos: false,
             sourceModule: "lively.morphic.Core",
             submorphs: []
-        };
-
-        var switcher = lively.morphic.Morph.fromSpec(spec);
-        return switcher;
+        }).createMorph()
     }
 });
 

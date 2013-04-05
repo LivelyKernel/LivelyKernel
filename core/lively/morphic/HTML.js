@@ -406,6 +406,7 @@ lively.morphic.Text.addMethods(
         setPadding: 'setPaddingHTML',
         setAlign: 'setAlignHTML',
         setVerticalAlign: 'setVerticalAlignHTML',
+        setLineHeight: 'setLineHeightHTML',
         setDisplay: 'setDisplayHTML',
         setWhiteSpaceHandling: 'setWhiteSpaceHandlingHTML',
         setWordBreak: 'setWordBreakHTML',
@@ -421,6 +422,7 @@ lively.morphic.Text.addMethods(
         this.setFontWeightHTML(ctx, this.getFontWeight());
         this.setAlignHTML(ctx, this.getAlign());
         this.setVerticalAlignHTML(ctx, this.getVerticalAlign());
+        this.setLineHeightHTML(ctx, this.getLineHeight());
         this.setDisplayHTML(ctx, this.getDisplay());
         this.setTextColorHTML(ctx, this.getTextColor());
         this.setWhiteSpaceHandlingHTML(ctx, this.getWhiteSpaceHandling());
@@ -529,6 +531,10 @@ lively.morphic.Text.addMethods(
     setVerticalAlignHTML: function(ctx, valignMode) {
         if (ctx.textNode)
             ctx.textNode.style.verticalAlign = valignMode;
+    },
+    setLineHeightHTML: function(ctx, lineHeight) {
+        if (ctx.textNode)
+            ctx.textNode.style.lineHeight = lineHeight;
     },
     setDisplayHTML: function(ctx, mode) {
         if (ctx.textNode)

@@ -156,6 +156,9 @@ Object.subclass('lively.persistence.SpecObject',
             instance.shape = instance.defaultShape();
             instance.prepareForNewRenderContext(instance.defaultRenderContext());
             instance.setNewId();
+            // directly setting object-level style here so other attributes can
+            // overwrite
+            if (object.style) instance.style = object.style;
             instance.applyStyle(instance.getStyle());
         }
 

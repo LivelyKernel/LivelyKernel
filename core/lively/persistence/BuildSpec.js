@@ -146,22 +146,6 @@ Object.subclass('lively.persistence.SpecObject',
         options = options || {connectionRebuilders: []};
         depth = depth || 0;
 
-        // create new morph instance and initialize
-        var klass = Class.forName(object.className);
-        if (!klass || !Object.isFunction(klass)) return null;
-        var instance = new klass(this);
-        if (instance.isMorph) {
-            instance.submorphs = [];
-            instance.scripts = [];
-            instance.shape = instance.defaultShape();
-            instance.prepareForNewRenderContext(instance.defaultRenderContext());
-            instance.setNewId();
-            // directly setting object-level style here so other attributes can
-            // overwrite
-            if (object.style) instance.style = object.style;
-            instance.applyStyle(instance.getStyle());
-        }
-
         // helper for assigning retrieving attribute values of instance
         function set(key, val, buildSpecAttr) {
             // buildSpec #recreate
@@ -178,14 +162,37 @@ Object.subclass('lively.persistence.SpecObject',
             if (Object.isFunction(setter)) { setter.call(instance, val); }
         }
 
+        // create new morph instance and initialize
+        var klass = Class.forName(object.className);
+        if (!klass || !Object.isFunction(klass)) return null;
+        var instance = new klass(this);
+
         // buildSpecProperties on object level need to be at instance before
         // other attributes are assigned
-        if (object.buildSpecProperties) {
-            instance.buildSpecProperties = object.buildSpecProperties;
+        if (object.buildSpecProperties) { instance.buildSpecProperties = object.buildSpecProperties; }
+
+        // object specific buildspec settings:
+        var buildSpecProps = Object.mergePropertyInHierarchy(instance, "buildSpecProperties");
+
+        // watchers for debugging
+        var watchers = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key] && buildSpecProps[key].watch; });
+        watchers.forEach(function(key) {
+            var watchSpec = buildSpecProps[key].watch;
+            lively.PropertyPath(key).watch(Object.extend(watchSpec, {target: instance}));
+        });
+
+        // initialize morph
+        if (instance.isMorph) {
+            instance.submorphs = [];
+            instance.scripts = [];
+            instance.shape = instance.defaultShape();
+            instance.prepareForNewRenderContext(instance.defaultRenderContext());
+            instance.setNewId();
+            instance.applyStyle(instance.getStyle());
         }
-        // add anything that was recorded in SpecObj
-        var buildSpecProps = Object.mergePropertyInHierarchy(instance, "buildSpecProperties"),
-            recordedKeys = Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder', 'buildSpecProperties']);
+
+        // add properties we have in buildSpec
+        var recordedKeys = Object.keys(object).withoutAll(['className', 'sourceModule', 'submorphs', 'connectionRebuilder', 'buildSpecProperties']);
         recordedKeys.forEach(function(key) { set(key, object[key], buildSpecProps[key]); });
 
         // add default values

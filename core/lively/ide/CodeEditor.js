@@ -138,7 +138,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     onOwnerChanged: function(newOwner) {
-        if (newOwner) this.initializeAce();
+        if (newOwner) this.initializeAce(true);
     }
 },
 'styling', {
@@ -178,9 +178,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getGrabShadow: function() { return null; }
 },
 'ace', {
-    initializeAce: function() {
+    initializeAce: function(force) {
         // 1) create ace editor object
-        if (this.aceEditor) return;
+        if (this.aceEditor && !force) return;
         var node = this.getShape().shapeNode,
             e = this.aceEditor = this.aceEditor || ace.edit(node),
             morph = this;
@@ -195,9 +195,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // 3) set modes / themes
         this.setStyleSheet('#ace-editor {'
                           + ' position:absolute;'
-                          + ' top:0;'
-                          + ' bottom:0;left:0;right:0;'
-                          + ' font-family: Monaco,monospace;'
+                          + ' top:0; bottom:0; left:0; right:0;'
                           + '}');
         this.setupKeyBindings();
         this.setTextMode(this.getTextMode() || "");

@@ -113,7 +113,11 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'settings', {
     style: {
-        enableGrabbing: false
+        enableGrabbing: false,
+        fontSize: Config.get('defaultCodeFontSize'),
+        gutter: Config.get('aceDefaultShowGutter'),
+        textMode: Config.get('aceDefaultTextMode'),
+        theme: Config.get('aceDefaultTheme')
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     evalEnabled: true,
@@ -128,9 +132,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         bounds = bounds || lively.rect(0,0,400,300);
         this.setBounds(bounds);
         this.textString = options.content || '';
-
-        this.setTheme(options.theme || Config.get('aceDefaultTheme'));
-        this.setTextMode(options.textMode || Config.get('aceDefaultTextMode'));
+        if (options.theme) this.setTheme(options.theme);
+        if (options.textMode) this.setTextMode(options.textMode);
     },
 
     defaultShape: function() {
@@ -187,7 +190,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         e.on('focus', function() { morph._isFocused = true; });
         e.on('blur', function() { morph._isFocused = false; });
         node.setAttribute('id', 'ace-editor');
-        e.session.setUseSoftTabs(true);
+        e.session.setUseSoftTabs(Config.get("useSoftTabs"));
 
         // 2) let the shape know about the editor, this let's us do some optimizations
         this.getShape().aceEditor = e;
@@ -970,6 +973,7 @@ lively.morphic.World.addMethods(
         editor.applyStyle({resizeWidth: true, resizeHeight: true});
         editor.accessibleInInactiveWindow = true;
         if (options.theme) editor.setTheme(options.theme);
+        if (options.textMode) editor.setTextMode(options.textMode);
         editor.focus();
         return pane;
     },

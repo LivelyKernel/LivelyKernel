@@ -1,4 +1,4 @@
-module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization", "lively.ide.CodeEditor").toRun(function() {
+module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization").toRun(function() {
 
 Object.subclass('lively.persistence.SpecObject',
 'properties', {
@@ -410,26 +410,30 @@ lively.morphic.Text.addMethods(
 
 });
 
-lively.morphic.CodeEditor.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        textString: {defaultValue: '', getter: function(morph) { return morph.textString }},
-        theme: {
-            defaultValue: 'chrome',
-            getter: function(morph) { return morph.getTheme(); },
-            recreate: function(morph, spec) { morph.setTheme(spec.theme); }
-        },
-        textMode: {
-            defaultValue: 'text',
-            getter: function(morph) { return morph.getTextMode(); },
-            recreate: function(morph, spec) { morph.setTextMode(spec.textMode); }
-        },
-        // excludes
-        _isFocused: {exclude: true},
-        savedTextString: {exclude: true},
-        aceEditor: {exclude: true}
-    }
-});
+(function setupCodeEditor() {
+    require('lively.ide.CodeEditor').toRun(function() {
+        lively.morphic.CodeEditor.addMethods(
+            'UI builder', {
+                buildSpecProperties: {
+                    textString: {defaultValue: '', getter: function(morph) { return morph.textString }},
+                    theme: {
+                        defaultValue: 'chrome',
+                        getter: function(morph) { return morph.getTheme(); },
+                        recreate: function(morph, spec) { morph.setTheme(spec.theme); }
+                    },
+                    textMode: {
+                        defaultValue: 'text',
+                        getter: function(morph) { return morph.getTextMode(); },
+                        recreate: function(morph, spec) { morph.setTextMode(spec.textMode); }
+                    },
+                    // excludes
+                    _isFocused: {exclude: true},
+                    savedTextString: {exclude: true},
+                    aceEditor: {exclude: true}
+                }
+            });
+    });
+})();
 
 lively.morphic.Button.addMethods(
 'UI builder', {

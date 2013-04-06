@@ -4,7 +4,7 @@ $('style#incremental-search-highlight-style-patch').remove();
 $('style#incremental-search-highlighting').remove();
 $('style#incremental-occur-highlighting').remove();
 
-module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.persistence.BuildSpec', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
@@ -914,6 +914,44 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }]);
 
         return items;
+    }
+});
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// command line support
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+lively.BuildSpec('lively.morphic.CommandLine', {
+    name: "CommandLine",
+    className: "lively.morphic.CodeEditor",
+    style: {
+        gutter: false,
+        enableGrabbing: false,
+        enableDragging: false,
+        clipMode: 'hidden',
+        fontSize: 12
+    },
+    // grabbingEnabled: false
+    _Extent: pt(300, 18),
+    initCommandLine: function(ed) {
+        ed.renderer.scrollBar.element.style.display = 'none';
+        ed.renderer.scrollBar.width = 0;
+        ed.resize(true);
+        ed.commands.bindKeys({
+            "Shift-Return|Ctrl-Return|Alt-Return": function(cmdLine) { cmdLine.insert("\n"); },
+            "Esc|Shift-Esc": function(cmdLine){ cmdLine.editor.focus(); },
+            "Return": function(cmdLine){
+                show('command %s', cmdLine.getValue());
+                // var command = cmdLine.getValue().split(/\s+/);
+                // var editor = cmdLine.editor;
+                // editor.commands.exec(command[0], editor, command[1]);
+                // editor.focus();
+            }
+        });
+        // this.setExtent(this.getExtent());
+        show.bind(null,this).delay();
+    },
+    onFromBuildSpecCreated: function() {
+        this.withAceDo(function(ed) { this.initCommandLine(ed); });
     }
 });
 

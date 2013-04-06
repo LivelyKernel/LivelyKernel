@@ -202,6 +202,8 @@ Object.subclass('lively.persistence.SpecObject',
             });
         }
 
+        if (instance.hasOwnProperty("style")) instance.applyStyle(instance.style);
+
         // add connections
         if (object.connectionRebuilder) {
             options.connectionRebuilders.push(function() { object.connectionRebuilder.call(instance); });

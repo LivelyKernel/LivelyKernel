@@ -472,6 +472,56 @@ Object.extend(lively.PropertyPath.prototype, {
 
     serializeExpr: function() {
         return 'lively.PropertyPath(' + Objects.inspect(this.parts()) + ')';
+    },
+
+    watch: function(options) {
+        // options: target, haltWhenChanged, uninstall
+        if (!options || this.isRoot()) return;
+        var target = options.target,
+            parent = this.get(target, -1),
+            propName = this.parts().last(),
+            newPropName = 'livelyPropertyWatcher$' + propName,
+            watcherIsInstalled = parent && parent.hasOwnProperty(newPropName),
+            uninstall = options.uninstall,
+            haltWhenChanged = options.haltWhenChanged,
+            showStack = options.showStack,
+            getter = parent.__lookupGetter__(propName),
+            setter = parent.__lookupSetter__(propName);
+        if (!target || !propName || !parent) return;
+        if (uninstall) {
+            if (!watcherIsInstalled) return;
+            delete parent[propName];
+            parent[propName] = parent[newPropName];
+            delete parent[newPropName];
+            var msg = Strings.format('Uninstalled watcher for %s.%s', parent, propName);
+            show(msg);
+            return;
+        }
+        if (watcherIsInstalled) {
+            var msg = Strings.format('Watcher for %s.%s already installed.', parent, propName);
+            show(msg);
+            return;
+        }
+        if (getter || setter) {
+            var msg = Strings.format('%s["%s"] is a getter/setter, watching not support', parent, propName);
+            show(msg);
+            return;
+        }
+        // observe slots, for debugging
+        parent[newPropName] = parent[propName];
+        parent.__defineSetter__(propName, function(v) {
+            var msg = Strings.format('%s.%s changed: %s -> %s',
+                parent, propName, parent[newPropName], v);
+            if (showStack) msg += '\n' + lively.printStack();
+            show(msg);
+            if (haltWhenChanged) debugger;
+            return parent[newPropName] = v;
+        });
+        parent.__defineGetter__(propName, function() {
+            return parent[newPropName];
+        });
+        var msg = Strings.format('Watcher for %s.%s installed', parent, propName);
+        show(msg);
     }
 
 });

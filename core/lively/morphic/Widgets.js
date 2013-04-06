@@ -1448,7 +1448,7 @@ lively.morphic.World.addMethods(
         }]}))
 
 
-        partNames = ["List", "Slider", "ScriptableButton", "Button"].sort()
+        partNames = ["List", "Slider", "Button"].sort()
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Inputs',
                 part = lively.PartsBin.getPart(ea, partSpaceName);

@@ -111,6 +111,10 @@ Object.subclass('lively.persistence.Sync.LocalStore',
 },
 'accessing', {
 
+    getHandle: function(path) {
+        return new lively.persistence.Sync.ObjectHandle({path: path, store: this})
+    },
+
     set: function(path, val, options) {
         path = lively.PropertyPath(path);
         options = options || {};

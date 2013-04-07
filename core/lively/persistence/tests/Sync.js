@@ -5,7 +5,7 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     setUp: function($super) {
         $super();
         this.store = new lively.persistence.Sync.LocalStore();
-        this.rootHandle = new lively.persistence.Sync.ObjectHandle({store: this.store});
+        this.rootHandle = this.store.getHandle();
     }
 },
 'testing', {
@@ -54,7 +54,7 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.StoreAccess',
     setUp: function($super) {
         $super();
         this.store = new lively.persistence.Sync.LocalStore();
-        this.rootHandle = new lively.persistence.Sync.ObjectHandle({store: this.store});
+        this.rootHandle = this.store.getHandle();
     }
 },
 'testing', {
@@ -249,7 +249,7 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
         $super();
         this.url = new URL(Config.nodeJSURL).asDirectory().withFilename('Store/' + this.currentSelector + '/');
         this.store = new lively.persistence.Sync.RemoteStore(this.currentSelector);
-        this.rootHandle = new lively.persistence.Sync.ObjectHandle({store: this.store});
+        this.rootHandle = this.store.getHandle();
     },
 
     tearDown: function($super) {
@@ -285,8 +285,8 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
     testRemoteAndLocalUpdatesAreNotDuplicated: function() {
         var store1 = new lively.persistence.Sync.RemoteStore(this.currentSelector),
             store2 = new lively.persistence.Sync.RemoteStore(this.currentSelector),
-            handle1 = new lively.persistence.Sync.ObjectHandle({store: store1}),
-            handle2 = new lively.persistence.Sync.ObjectHandle({store: store2}),
+            handle1 = store1.getHandle(),
+            handle2 = store2.getHandle();
             callbackCallsHandle1 = 0, callbackCallsHandle2 = 0;
         this.delay(function() {
             store1.disablePolling();

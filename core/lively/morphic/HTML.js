@@ -1028,6 +1028,7 @@ lively.morphic.Shapes.External.addMethods(
 },
 'accessing', {
     getExtentHTML: function(ctx) {
+        if (!ctx.shapeNode.style) return pt(0,0);
         var $node = $(ctx.shapeNode);
         return pt($node.outerWidth() || 0, $node.outerHeight() || 0);
     },

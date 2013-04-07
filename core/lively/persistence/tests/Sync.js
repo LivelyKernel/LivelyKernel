@@ -288,19 +288,18 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
             handle1 = new lively.persistence.Sync.ObjectHandle({store: store1}),
             handle2 = new lively.persistence.Sync.ObjectHandle({store: store2}),
             callbackCallsHandle1 = 0, callbackCallsHandle2 = 0;
-
         this.delay(function() {
             store1.disablePolling();
             store2.disablePolling();
             this.assertEquals(1, callbackCallsHandle1, 'callback1 call count');
             this.assertEquals(1, callbackCallsHandle2, 'callback2 call count');
             this.done();
-        }, 900);
+        }, 300);
 
         store1.enablePolling({interval: 100});
         store2.enablePolling({interval: 100});
-        handle1.subscribe({path: 'foo', callback: function(val, path) { callbackCallsHandle1++; show(val); }});
-        handle2.subscribe({path: 'foo', callback: function(val, path) { callbackCallsHandle2++; show(val); }});
+        handle1.subscribe({path: 'foo', callback: function(val, path) { callbackCallsHandle1++;}});
+        handle2.subscribe({path: 'foo', callback: function(val, path) { callbackCallsHandle2++; }});
 
         store1.set('foo', 23);
     },

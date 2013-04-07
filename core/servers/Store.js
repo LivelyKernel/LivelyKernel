@@ -24,15 +24,29 @@ function getStore(storeName) {
     return inMemoryStores[storeName];
 }
 
-function retrieveChanges(since, callback) {
-    var result = {startTime: Number(since) || 0, endTime: Date.now(), paths: []};
+// TODO:
+// - when a change occurs multiple times and a change later has the same id
+//   remove the prevously added changes (client has current value)
+// - the change to be send should be the one that occured last
+function retrieveChanges(since, requestingClientId, callback) {
+    var pathsRead = [];
+    var result = {startTime: Number(since) || 0, endTime: Date.now(), changes: []};
     Object.keys(changes).forEach(function(time) {
         time = Number(time);
-        if (time < result.startTime || time > result.endTime
-         || result.paths.indexOf(changes[time]) >= 0) return;
-        result.paths.push(changes[time]);
+        var change = changes[time];
+        console.log('testing for %s for client %s', i(change), requestingClientId);
+        if (time < result.startTime || time > result.endTime) return;
+        console.log('time ok');
+        if (pathsRead.indexOf(change.path) >= 0) return;
+        console.log('not yet added');
+        if (requestingClientId && change.hasOwnProperty("originClientId")
+         && requestingClientId == change.originClientId) return;
+        console.log('change from a different client');
+        console.log('adding %s', i(change));
+        result.changes.push(change);
+        pathsRead.push(change.path);
     });
-    // console.log("changes: %s, result: %s", i(changes), i(result));
+    console.log("changes: %s, result: %s", i(changes), i(result));
     callback(null, result);
 }
 function checkPrecondition(path, precondition) {
@@ -53,13 +67,13 @@ function checkPrecondition(path, precondition) {
     return null;
 }
 
-function write(storeName, pathString, value, precondition, thenDo) {
+function write(storeName, pathString, value, precondition, clientId, thenDo) {
     var storePath = lively.PropertyPath(storeName);
     if (!storePath.isIn(inMemoryStores)) storePath.set(inMemoryStores, {});
     var path = storePath.concat(pathString),
         err = checkPrecondition(path, precondition);
     if (!err) {
-        changes[Date.now()] = String(path);
+        changes[Date.now()] = {path: String(path), originClientId: clientId};
         path.set(inMemoryStores, value);
         console.log('stored %s in %s', i(value), path);
     } else {
@@ -84,21 +98,17 @@ module.exports = function(route, app) {
 
     app.get(route + ':store?*', function(req, res) {
         var changesSince = req.query['changes-since'],
+            clientId = req.query['clientId'],
             path = pathFromRequest(req),
             store = req.params.store;
-            console.log(i(req.params))
         if (changesSince) {
-            retrieveChanges(changesSince, function(err, result) {
-                res.end(JSON.stringify(result));
-            });
+            retrieveChanges(changesSince, clientId, function(err, result) {
+                res.end(JSON.stringify(result)); });
+        } else if (!store) {
+            res.end(JSON.stringify(inMemoryStores));
         } else {
-            if (!store) {
-                res.end(JSON.stringify(inMemoryStores));
-            } else {
-                read(store, path, function(err, val) {
-                    res.end(JSON.stringify(val));
-                });
-            }
+            read(store, path, function(err, val) {
+                res.end(JSON.stringify(val)); });
         }
     });
 
@@ -106,8 +116,10 @@ module.exports = function(route, app) {
         var path = pathFromRequest(req),
             store = req.params.store,
             value = req.body && req.body.data,
+            clientId = req.body && req.body.clientId,
             precondition = req.body && req.body.precondition;
-        write(store, path, value, precondition, function(err) {
+        console.log('storeing from %s', clientId);
+        write(store, path, value, precondition, clientId, function(err) {
             var status = 200;
             if (err) { status = err.type && err.type === 'precondition' ? 412 : 400; }
             res.status(status);

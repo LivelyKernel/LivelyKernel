@@ -214,6 +214,7 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
 'initializing', {
     initialize: function($super, name) {
         $super();
+        this.id = Strings.newUUID();
         this.name = name;
         this.debug = false;
         this.pollingProcess = null;
@@ -243,7 +244,7 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
 
     fetchRemoteUpdates: function() {
         var store = this,
-            webR = this.getURL().withQuery({"changes-since": this.lastFetchUpdateTime}).asWebResource().beSync().get(),
+            webR = this.getURL().withQuery({"clientId": this.id, "changes-since": this.lastFetchUpdateTime}).asWebResource().beSync().get(),
             s = webR.status,
             err = s.isSuccess() ? null : s.code() + ' ' + s.transport.responseText,
             result;
@@ -255,9 +256,10 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
         }
         if (err) { lively.morphic.show(err); return; }
         store.lastFetchUpdateTime = result.endTime;
-        result.paths
-            .map(function(p) { return lively.PropertyPath(p).relativePathTo(store.name); }).compact()
+        result.changes.pluck('path')
+            .map(function(p) { return lively.PropertyPath(store.name).relativePathTo(p); }).compact()
             .forEach(function(path) {
+                // show('informing %s about %s', store.id, path)
                 store.get(path, function(_, val) { store.informSubscribers(path, val); }); });
     }
 },
@@ -275,7 +277,7 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
                     if (val && val.isDone()) $upd("%s: %o", val, val.transport.responseText);
                 }});
             }
-            webR.put(JSON.stringify({data: val, precondition: options.precondition}), 'application/json');
+            webR.put(JSON.stringify({data: val, precondition: options.precondition, clientId: self.id}), 'application/json');
             var status = webR.status;
             var err = status.isSuccess() ? null : {message: status.transport.responseText}
             if (status.code() === 412) err.type = 'precondition';

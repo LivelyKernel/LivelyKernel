@@ -2282,7 +2282,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         if (this.onShutdown) this.onShutdown();
         this.remove();
         var morphBelow = owner.topMorph();
-        if (morphBelow && morphBelow.isWindow) { morphBelow.comeForward(); }
+        if (morphBelow && morphBelow.isWindow) {
+            var scroll = owner.getScrollOffset && owner.getScrollOffset();
+            morphBelow.comeForward();
+            if (scroll) owner.setScroll(scroll.x, scroll.y);
+        }
         this.state = 'shutdown'; // no one will ever know...
         return true;
     },

@@ -70,7 +70,6 @@ var baseTests = [
     // persistence
     "lively.persistence.tests.BuildSpec",
     "lively.persistence.tests.PersistenceTests",
-    "lively.persistence.tests.Sync",
     "lively.persistence.tests.TraitPersistenceTests",
 
     //bindings

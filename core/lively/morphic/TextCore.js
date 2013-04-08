@@ -302,6 +302,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (spec.padding !== undefined) this.setPadding(spec.padding);
         if (spec.align !== undefined) this.setAlign(spec.align);
         if (spec.verticalAlign !== undefined) this.setVerticalAlign(spec.verticalAlign);
+        if (spec.lineHeight !== undefined) this.setLineHeight(spec.lineHeight);
         if (spec.display !== undefined) this.setDisplay(spec.display);
         if (spec.whiteSpaceHandling !== undefined) this.setWhiteSpaceHandling(spec.whiteSpaceHandling);
         if (spec.syntaxHighlighting !== undefined) spec.syntaxHighlighting ? this.enableSyntaxHighlighting() : this.disableSyntaxHighlighting();
@@ -389,6 +390,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     getAlign: function() { return this.morphicGetter('Align') },
     setVerticalAlign: function(valign) { return this.morphicSetter('VerticalAlign', valign) },
     getVerticalAlign: function() { return this.morphicGetter('VerticalAlign') },
+    setLineHeight: function(lheight) { return this.morphicSetter('LineHeight', lheight) },
+    getLineHeight: function() { return this.morphicGetter('LineHeight') },
     setDisplay: function(mode) { return this.morphicSetter('Display', mode) },
     getDisplay: function() { return this.morphicGetter('Display') },
 

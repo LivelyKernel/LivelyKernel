@@ -45,6 +45,7 @@ lively.morphic.Text.addMethods('Stylesheets', {
         this.setTextColorHTML(ctx, this.getTextColor());
 
         this.setVerticalAlignHTML(ctx, this.getVerticalAlign());
+        this.setLineHeightHTML(ctx, this.getLineHeight());
         this.setTextDecorationHTML(ctx, this.getTextDecoration());
         this.setWordBreakHTML(ctx, this.getWordBreak());
         this.setDisplayHTML(ctx, this.getDisplay());
@@ -162,6 +163,13 @@ Trait('StyleSheetsHTMLTextTrait',
             proceed(ctx, value || null);
         }
     }),
+    setLineHeightHTML: lively.morphic.Text.prototype.setLineHeightHTML.wrap(function (proceed, ctx, value) {
+        if (this.morphicGetter('TextStylingMode')) {
+            proceed(ctx, 'inherit');
+        } else {
+            proceed(ctx, value || null);
+        }
+    }),
     setDisplayHTML: lively.morphic.Text.prototype.setDisplayHTML.wrap(function (proceed, ctx, value) {
         if (this.morphicGetter('TextStylingMode')) {
             proceed(ctx, 'inherit');
@@ -179,8 +187,8 @@ Trait('StyleSheetsHTMLTextTrait',
 }).applyTo(lively.morphic.Text, {
     override: ['setAlignHTML',  'setFontFamilyHTML',
         'setFontSizeHTML', 'setFontStyleHTML', 'setFontWeightHTML', 'setTextColorHTML',
-        'setTextDecorationHTML', 'setVerticalAlignHTML', 'setDisplayHTML', 'setWordBreakHTML'
-        ]
+        'setTextDecorationHTML', 'setVerticalAlignHTML', 'setDisplayHTML', 'setWordBreakHTML',
+        'setLineHeightHTML']
 });
 
 Trait('StyleSheetsHTMLTrait',

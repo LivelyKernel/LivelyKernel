@@ -1,6 +1,9 @@
 module('lively.persistence.Sync').requires().toRun(function() {
 
 Object.subclass('lively.persistence.Sync.ObjectHandle',
+"settings", {
+    connections: {}
+},
 "initializing", {
     initialize: function(options) {
         this.path = lively.PropertyPath(options.path || '');
@@ -15,37 +18,15 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         this.store.get(this.path.concat(options.path), function(path, val) { options.callback(val); });
     },
 
-    subscribe: function(options) {
-        var fullPath = this.path.concat(options.path),
-            type = options.type || 'value',
-            callback = options.callback,
-            registry = this.callbackRegistry,
-            handle = this;
-        var i = 0;
-        function updateHandler(path, val) {
-            if (i++ > 100) { debugger; throw new Error('Endless recursion in #subscribe ' + path); }
-            // if (!registry[path] || !registry[path].include(updateHandler)) {
-            //     return; /*in case of an unsubscribe*/}
-            callback(val, lively.PropertyPath(path));
-            handle.store.addCallback(fullPath, updateHandler);
-        }
-        if (!registry[fullPath]) { registry[fullPath] = []; }; registry[fullPath].push(updateHandler);
-        handle.store.addCallback(fullPath, updateHandler);
-    },
+    subscribe: function() { this.store.addSubscriber(this); },
 
-    unsubscribe: function(options) {
-        // options: {
-        //   [path: STRING,]
-        //   currently not supported: [callback: FUNCTION] -- the specific callback to unsubscribe
-        // }
-        var path = options && options.path,
-            store = this.store, registry = this.callbackRegistry,
-            paths = path ? [this.path.concat(path)] : Object.keys(registry);
-        paths.forEach(function(p) {
-            registry[p] && registry[p].forEach(function(cb) { store.removeCallback(p, cb); });
-            delete registry[p];
-        });
+    unsubscribe: function() { this.store.removeSubscriber(this); },
+
+    onValueChanged: function(value, path) {
+        lively.bindings.signal(this, 'value', value);
+        lively.bindings.signal(this, 'valueAndPath', {value: value, path: path});
     }
+
 },
 'write', {
     set: function(options) {
@@ -105,13 +86,10 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
 });
 
 Object.subclass('lively.persistence.Sync.LocalStore',
-'properties', {
-    callbacks: null
-},
 'initializing', {
     initialize: function() {
         this.db = {};
-        this.callbacks = {};
+        this.subscribers = [];
     }
 },
 'accessing', {
@@ -123,13 +101,13 @@ Object.subclass('lively.persistence.Sync.LocalStore',
     set: function(path, val, options) {
         path = lively.PropertyPath(path);
         options = options || {};
-        var callbacks = this.callbacks, db = this.db,
-            precondition = options.precondition;
+        var db = this.db, precondition = options.precondition;
         // 1: checking precondition
         var err = this.checkPrecondition(path, options.precondition);
         if (err) { options.callback && options.callback(err); return; }
         // 2: setting the value in storage
         if (path.isRoot()) this.db = db = val; else path.set(db, val);
+        options.callback && options.callback(null);
         // 3: Informing subscribers
         this.informSubscribers(path, val, options);
     },
@@ -139,7 +117,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
         if (!precondition || !path.isIn(db)) return null;
         var currentVal = path.get(db);
         if (precondition.type === 'equality') {
-            return precondition.value == currentVal ? null : Object.extend(err, {message: 'equality mismatch'});
+            return Objects.equal(precondition.value, currentVal) ? null : Object.extend(err, {message: 'equality mismatch'});
         } else if (precondition.type === 'id') {
             if (!currentVal || !currentVal.hasOwnProperty('id')) return null;
             var valId = String(currentVal.id),
@@ -157,33 +135,23 @@ Object.subclass('lively.persistence.Sync.LocalStore',
         callback(path, path.get(this.db));
     },
 
-    addCallback: function(path, callback) {
-        this.callbacks[path] = (this.callbacks[path] || []).concat([callback]);
+    addSubscriber: function(handle) {
+        this.subscribers.pushIfNotIncluded(handle);
     },
-
-    removeCallback: function(path, callback) {
-        if (!this.callbacks[path]) return;
-        this.callbacks[path] = this.callbacks[path].without(callback);
+    removeSubscriber: function(handle) {
+        this.subscribers = this.subscribers.without(handle);
     },
 
     informSubscribers: function(path, value, options) {
         path = lively.PropertyPath(path);
-        var callbacks = this.callbacks;
-        var cbs = Object.keys(callbacks).inject([], function(cbs, cbPath) {
-            var cbPath = lively.PropertyPath(cbPath);
-            if (path.isParentPathOf(cbPath)) {
-                var relativeVal = path.relativePathTo(cbPath).get(value),
-                    boundCbs = callbacks[cbPath].invoke('bind', null, cbPath, relativeVal);
-                cbs = cbs.concat(boundCbs);
-            } else if (cbPath.isParentPathOf(path)) {
-                var boundCbs = callbacks[cbPath].invoke('bind', null, path, value);
-                cbs = cbs.concat(boundCbs);
+        this.subscribers.forEach(function(handle) {
+            if (path.isParentPathOf(handle.path)) {
+                var relativeVal = path.relativePathTo(handle.path).get(value);
+                handle.onValueChanged(relativeVal, handle.path);
+            } else if (handle.path.isParentPathOf(path)) {
+                handle.onValueChanged(value, path);
             }
-            callbacks[cbPath] = [];
-            return cbs;
-        }), cb;
-        if (options && options.callback) cbs.push(options.callback.bind(null, null/*err*/));
-        while ((cb = cbs.shift())) cb();
+        });
     }
 });
 
@@ -277,24 +245,19 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.RemoteStore
     set: function($super, path, val, options) {
         path = lively.PropertyPath(path);
         options = options || {};
-        var self = this;
-        // ------
-        function sendToRemote(webR, debug, thenDo) {
-            if (debug) show('sending ' + JSON.stringify(val));
-            if (debug) {
-                connect(webR, 'status', lively.morphic, 'show', {updater: function($upd, val) {
-                    if (val && val.isDone()) $upd("%s: %o", val, val.transport.responseText);
-                }});
-            }
-            webR.put(JSON.stringify({data: val, precondition: options.precondition, clientId: self.id}), 'application/json');
-            var status = webR.status;
-            var err = status.isSuccess() ? null : {message: status.transport.responseText}
-            if (status.code() === 412) err.type = 'precondition';
-            options.callback && options.callback(err);
-            return !err;
+        var webR = this.getWebResource(path).beSync();
+        if (this.debug) {
+            show('sending ' + JSON.stringify(val));
+            connect(webR, 'status', lively.morphic, 'show', {updater: function($upd, val) {
+                if (val && val.isDone()) $upd("%s: %o", val, val.transport.responseText);
+            }});
         }
-        var sendSuccess = sendToRemote(this.getWebResource(path).beSync(), this.debug);
-        if (sendSuccess) this.informSubscribers(path, val, options);
+        webR.put(JSON.stringify({data: val, precondition: options.precondition, clientId: this.id}), 'application/json');
+        var status = webR.status,
+            err = status.isSuccess() ? null : {message: status.transport.responseText}
+        if (status.code() === 412) err.type = 'precondition';
+        options.callback && options.callback(err);
+        if (!err) this.informSubscribers(path, val, options);
     },
 
     get: function($super, path, callback) {

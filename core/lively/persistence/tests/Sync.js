@@ -25,7 +25,8 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     testParentChangesTriggerChildEvents: function() {
         var childHandle = this.rootHandle.child('bar.baz'),
             childHandleReads = [];
-        childHandle.subscribe({callback: function(val, path) { childHandleReads.push([val, path]); }});
+        childHandle.subscribe();
+        childHandle.onValueChanged = function(val, path) { childHandleReads.push([val, path]); }
         this.rootHandle.set({value: {bar: {baz: 23}}});
         this.rootHandle.set({path: 'bar', value: {baz: 24}});
         this.rootHandle.commit({path: 'bar.baz', transaction: function(n) { return n+1; }});
@@ -33,11 +34,23 @@ TestCase.subclass('lively.persistence.Sync.test.ObjectHandleInterface',
     },
 
     testChildChange: function() {
-        // return;
         var childHandle = this.rootHandle.child('bar.baz'), reads = [];
-        this.rootHandle.subscribe({type: 'childChanged', callback: function(val, path) { reads.push([val, path]); }});
+        childHandle.subscribe();
+        childHandle.onValueChanged = function(val, path) { reads.push([val, path]); }
         childHandle.set({value: 23});
         this.assertEquals([[23, 'bar.baz']], reads);
+    },
+
+    testConnect: function() {
+        var obj = {};
+        this.rootHandle.subscribe();
+        connect(this.rootHandle, 'valueAndPath', obj, 'result');
+        this.store.set('foo', 1);
+        var expected = {value: 1, path: lively.PropertyPath('foo')};
+        this.assertEqualState(expected, obj.result, 'value connection not working');
+        disconnect(this.rootHandle, 'valueAndPath', obj, 'result');
+        this.store.set('foo', 2);
+        this.assertEqualState(expected, obj.result, 'value disconnect not working');
     },
 
     testIdIsAddedToObjectsButNotValues: function() {
@@ -100,31 +113,20 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.StoreAccess',
         }, 20);
     },
 
-    testSubscribe: function() {
+    testAddSubscriber: function() {
         var result = [];
+        this.rootHandle.onValueChanged = function(val, path) { result.pushAll([val, 'foo']) }
         this.store.set('foo', 23);
-        this.rootHandle.subscribe({path: 'foo', callback: function(val) {
-            result.push(val);
-            this.assertEqualState([42], result);
-            this.done();
-        }.bind(this)});
-        this.assertEqualState([], result); // no immediate invocation
-        this.store.set('foo', 42);
-    },
-
-    testSubscribeUnsubscribe: function() {
-        this.store.set('foo', 23);
-        this.rootHandle.subscribe({path: 'foo', callback: function(val) {
-            this.assert(false, 'should not ever be called');
-        }.bind(this)});
-        this.assertEquals(this.rootHandle.callbackRegistry.foo[0].constructor, this.store.callbacks.foo[0].constructor);
-        this.rootHandle.unsubscribe({path: 'foo'});
-        this.store.set('foo', 23);
+        this.rootHandle.subscribe();
         this.delay(function() {
-            this.assertEqualState(this.rootHandle.callbackRegistry, {});
-            // this.assertEqualState(0, Object.keys(this.store.callbacks).length, 'store callbacks');
-            this.done();
-        }, 20);
+            this.rootHandle.unsubscribe();
+            this.store.set('foo', 99);
+            this.delay(function() {
+                this.assertEquals([42, 'foo'], result);
+                this.done();
+            });
+        });
+        this.store.set('foo', 42);
     },
 
     testSet: function() {
@@ -288,10 +290,11 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
     testRemoteChangesAreReceived: function() {
         var callbackCalls = 0;
         this.store.enablePolling({interval: 200});
-        this.rootHandle.subscribe({path: 'foo', callback: function(val, path) {
+        this.rootHandle.subscribe();
+        this.rootHandle.onValueChanged = function(val, path) {
             callbackCalls++;
-            this.assertEquals(42, val);
-        }.bind(this)});
+            this.assertEqualState({foo: 42}, val);
+        }.bind(this);
         this.store.getWebResource().put(JSON.stringify({data: {foo: 42}}), 'application/json');
         this.delay(function() {
             this.assertEquals(1, callbackCalls, 'callback call count');
@@ -315,9 +318,10 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
 
         store1.enablePolling({interval: 100});
         store2.enablePolling({interval: 100});
-        handle1.subscribe({path: 'foo', callback: function(val, path) { callbackCallsHandle1++;}});
-        handle2.subscribe({path: 'foo', callback: function(val, path) { callbackCallsHandle2++; }});
-
+        handle1.subscribe();
+        handle1.onValueChanged = function(val, path) { callbackCallsHandle1++; }
+        handle2.subscribe();
+        handle2.onValueChanged = function(val, path) { callbackCallsHandle2++; }
         store1.set('foo', 23);
     },
 
@@ -329,6 +333,7 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
         sels.forEach(function(testName, i) { tests[i][testName] = test[testName]; });
         this.runAll(null, function() { this.done(); }.bind(this), tests);
     }
+
 });
 
 }) // end of module

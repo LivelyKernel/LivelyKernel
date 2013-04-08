@@ -164,6 +164,10 @@ Object.extend(lively.morphic, {
     }
 
 });
+Object.extend(lively, {
+    show:     lively.morphic.show,
+    log:      lively.morphic.log
+});
 
 Object.extend(lively, {
     show:     lively.morphic.show,

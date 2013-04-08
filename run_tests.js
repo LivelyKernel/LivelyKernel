@@ -84,7 +84,6 @@ var browserTests = [
 
     // persistence
     "lively.persistence.tests.MassMorphCreation",
-    "lively.persistence.tests.Sync",
 
     //bindings
     "lively.bindings.tests.GeometryBindingTests",

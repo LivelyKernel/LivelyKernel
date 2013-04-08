@@ -172,6 +172,7 @@ lively.morphic.Morph.addMethods(
         }
     }
 });
+
 lively.morphic.Text.addMethods(
 'bindings', {
     connections: {
@@ -179,40 +180,12 @@ lively.morphic.Text.addMethods(
         savedTextString: {}
     }
 });
+
 lively.morphic.Button.addMethods(
 'bindings', {
     connections: {
         fire: {}
     }
-});
-
-Object.extend(lively.bindings, {
-    basicConnect: lively.bindings.connect,
-    connect: function(sourceObj, attrName, targetObj, targetMethodName, specOrConverter) {
-        var proceed = this.basicConnect.bind(this, sourceObj, attrName,
-                                             targetObj, targetMethodName,
-                                             specOrConverter);
-
-        if (!sourceObj.connections) return proceed();
-
-        var connectionPoint = (sourceObj.getConnectionPoints && sourceObj.getConnectionPoints()[attrName]) || sourceObj.connections[attrName];
-        if (!connectionPoint) return proceed();
-        var klass = (connectionPoint.map && lively.morphic.GeometryConnection)
-                 || (connectionPoint.connectionClassType && Class.forName(connectionPoint.connectionClassType))
-                 || AttributeConnection;
-        var connection = new klass(sourceObj, attrName,
-                                   targetObj, targetMethodName,
-                                   specOrConverter).connect();
-        if (connectionPoint.updateOnConnect) {
-            connection.update(sourceObj[attrName]);
-        }
-        return connection;
-    }
-});
-
-// connect is not late bound, so we have to reinitialize it
-Object.extend(Global, {
-    connect: lively.bindings.connect.bind(lively.bindings)
 });
 
 }) // end of module

@@ -497,7 +497,18 @@ Object.extend(lively.bindings, {
                  + '}',
 
     connect: function connect(sourceObj, attrName, targetObj, targetMethodName, specOrConverter) {
-        var spec;
+        // 1: determine what kind of connection to create. Default is
+        //    AttributeConnection but source.connections/
+        //    source.getConnectionPoints can specify different settings
+        var connectionPoints = (sourceObj.getConnectionPoints && sourceObj.getConnectionPoints())
+                            || (sourceObj.connections),
+            connectionPoint = connectionPoints && connectionPoints[attrName],
+            klass = (connectionPoint && connectionPoint.map && lively.morphic && lively.morphic.GeometryConnection)
+                 || (connectionPoint && connectionPoint.connectionClassType && Class.forName(connectionPoint.connectionClassType))
+                 || AttributeConnection,
+            spec;
+
+        // 2: connection settings: converter/updater/...
         if (Object.isFunction(specOrConverter)) {
             console.warn('Directly passing a converter function to connect() '
                          + 'is deprecated! Use spec object instead!');
@@ -505,7 +516,10 @@ Object.extend(lively.bindings, {
         } else {
             spec = specOrConverter;
         }
-        var connection = new AttributeConnection(sourceObj, attrName, targetObj, targetMethodName, spec),
+
+        // 3: does a similar connection exist? Yes: update it with new specs,
+        //    no: create new connection
+        var connection = new klass(sourceObj, attrName, targetObj, targetMethodName, spec),
             existing = connection.getExistingConnection();
         if (existing) {
             existing.resetSpec();
@@ -513,9 +527,16 @@ Object.extend(lively.bindings, {
             return existing;
         }
         var result = connection.connect();
-        if (typeof sourceObj['onConnect'] == 'function') {
+
+        // 4: notify source object if it has a #onConnect method
+        if (Object.isFunction(sourceObj.onConnect)) {
             sourceObj.onConnect(attrName, targetObj, targetMethodName)
-        };
+        }
+
+        // 5: If wanted updated the connection right now
+        if (connectionPoint && connectionPoint.updateOnConnect) {
+            connection.update(sourceObj[attrName]);
+        }
         return result;
     },
 

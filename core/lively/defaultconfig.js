@@ -458,7 +458,7 @@ Global.Config = {
             ['aceDefaultTextMode', 'javascript', "Ace text mode to use"],
             ['aceDefaultLineWrapping', true, "Wrap lines in ace?"],
             ['aceDefaultShowGutter', true, "Enables the line number gutter"],
-            ['aceDefaultUSeJavaScriptLinter', true, "Linting JavaScript code on-the-fly"]
+            ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"]
         ],
 
         'lively.morphic.StyleSheets', [

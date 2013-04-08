@@ -117,7 +117,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         fontSize: Config.get('defaultCodeFontSize'),
         gutter: Config.get('aceDefaultShowGutter'),
         textMode: Config.get('aceDefaultTextMode'),
-        theme: Config.get('aceDefaultTheme')
+        theme: Config.get('aceDefaultTheme'),
+        lineWrapping: Config.get('aceDefaultLineWrapping')
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     evalEnabled: true,
@@ -156,6 +157,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.gutter !== undefined) this.setShowGutter(spec.gutter);
         if (spec.textMode !== undefined) this.setTextMode(spec.textMode);
         if (spec.theme !== undefined) this.setTheme(spec.theme);
+        if (spec.lineWrapping !== undefined) this.setLineWrapping(spec.lineWrapping);
         return this;
     }
 },
@@ -205,6 +207,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setTheme(this.getTheme() || '');
         this.setFontSize(this.getFontSize());
         this.setShowGutter(this.getShowGutter());
+        this.setLineWrapping(this.getLineWrapping());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
@@ -553,6 +556,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return name.replace('ace/mode/', '');
         }) || 'text';
     }
+
 },
 'search and find', {
 
@@ -884,6 +888,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getShowGutter: function(bool) {
         if (this.hasOwnProperty('_ShowGutter')) return this._ShowGutter;
         return this.withAceDo(function(ed) { return ed.renderer.getShowGutter(); });
+    },
+
+    getLineWrapping: function() {
+        return this._LineWrapping || this.withAceDo(function(ed) {
+            return ed.session.getUseWrapMode(); });
+    },
+    setLineWrapping: function(bool) {
+        this.withAceDo(function(ed) { ed.session.setUseWrapMode(bool); });
+        return this._LineWrapping = bool;
     }
 
 },
@@ -911,10 +924,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         items.push(["themes", themeItems]);
         items.push(["modes", modeItems]);
 
-        var usesWrap = editor.aceEditor.session.getUseWrapMode();
+        var usesWrap = editor.getLineWrapping();
         items.push([Strings.format("[%s] line wrapping", usesWrap ? 'X' : ' '), function() {
-            editor.aceEditor.session.setUseWrapMode(!usesWrap);
-        }]);
+            editor.setLineWrapping(!usesWrap); }]);
 
         return items;
     }

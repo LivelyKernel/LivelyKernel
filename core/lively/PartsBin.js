@@ -3,14 +3,14 @@ module('lively.PartsBin').requires('lively.Traits').toRun(function() {
 Object.subclass('lively.PartsBin.PartItem',
 'initializing', {
     initialize: function($super, partOrName, partsSpaceName) {
-        this.partsSpaceName = partsSpaceName
+        this.partsSpaceName = Global.decodeURI(partsSpaceName);
         if (Object.isString(partOrName)) {
-            this.name = partOrName;
+            this.name =  Global.decodeURI(partOrName);
             this.part = null;
         } else {
             this.name = Object.isFunction(partOrName.getPartsBinMetaInfo) ?
-                this.name = partOrName.getPartsBinMetaInfo().partName :
-                this.name = partOrName.name;
+                this.name = Global.decodeURI(partOrName.getPartsBinMetaInfo().partName) :
+                this.name =  Global.decodeURI(partOrName.name);
             this.part = partOrName;
         }
         this.json = null;
@@ -461,7 +461,7 @@ Object.subclass('lively.PartsBin.PartsSpace',
 },
 'initializing', {
     initialize: function(name) {
-        this.name = name;
+        this.name = Global.decodeURI(name);
         this.clearCache();
     },
     createPartItemNamed: function(name) {
@@ -499,7 +499,7 @@ Object.subclass('lively.PartsBin.PartsSpace',
         var names = listOfUrls
             .invoke('filename')
             .select(function(ea){ return  ea.match(/(.+)\.json$/)})
-            .collect(function(ea){ return ea.replace(".json", "")});
+            .collect(function(ea){ return Global.decodeURI(ea.replace(".json", "")); });
         var items = {};
         names.forEach(function(name) { items[name] = this.createPartItemNamed(name) }, this);
         this.partItems = items;
@@ -543,7 +543,7 @@ Object.extend(lively.PartsBin, {
             name = url.isIn(rootPath) ?
                 url.relativePathFrom(rootPath) :
                 url.toString();
-        return this.partsSpaceNamed(name);
+        return this.partsSpaceNamed(Global.decodeURI(name));
     },
 
     addPartsSpaceNamed: function(name) {

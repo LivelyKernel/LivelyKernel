@@ -335,5 +335,78 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',
     }
 
 });
+AsyncTestCase.subclass('lively.persistence.Sync.test.DAVStore',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.url = new URL(Config.nodeJSURL).asDirectory().withFilename('Store/' + this.currentSelector + '/');
+        this.davRootURL = new URL(lively.persistence.tests.Sync.uri()).getDirectory().withFilename('dav-store-tests/');
+        this.store = new lively.persistence.Sync.DAVStore(this.davRootURL);
+        this.rootHandle = this.store.getHandle();
+    },
+
+    tearDown: function($super) {
+        $super();
+        this.davRootURL.asWebResource().beSync().del();
+    }
+},
+'assertion', {
+    assertExists: function(path, msg) {
+        var url = this.davRootURL.withFilename(path);
+        this.assert(url.asWebResource().exists(), url + ' does not exist ' + msg);
+    },
+    assertContent: function(expectedContent, path, msg) {
+        var url = this.davRootURL.withFilename(path),
+            fileContent = url.asWebResource().beSync().get().content;
+        this.assertEquals(expectedContent, fileContent,
+            'content of ' + url + ' does not match: '
+           + expectedContent + ' vs. ' + fileContent + '\n' + msg);
+    }
+},
+'testing', {
+    testSetFile: function() {
+        var source = '23 + 42; // test';
+        this.rootHandle.set({path: 'foo', value: {extension: 'js', content: source}, callback: function(err) {
+            this.assert(!err, 'could not set ' + JSON.stringify(err));
+            this.assertContent(source, 'foo.js', 'committed source not ok, manual request');
+            this.done();
+        }.bind(this)});
+    },
+
+    testSetDir: function() {
+        var dirSpec = {bar: {extension: 'js', content: '111'}, baz: {zork: {extension: 'txt', content: '222'}}};
+        this.rootHandle.set({path: 'foo', value: dirSpec, callback: function(err) {
+            this.assert(!err, 'could not set ' + JSON.stringify(err));
+            this.assertExists('foo/');
+            this.assertExists('foo/baz/');
+            this.assertContent('111', 'foo/bar.js');
+            this.assertContent('222', 'foo/baz/zork.txt');
+            this.done();
+        }.bind(this)});
+    },
+
+    testGet: function() {
+        var content = 'test + 123';
+        this.davRootURL.withFilename('foo.js').asWebResource().put(content);
+        this.rootHandle.get({path: 'foo', callback: function(val) {
+            this.assertEquals({extension: 'js', content: content}, val);
+            this.done();
+        }.bind(this)});
+    }
+
+    // testCommit: function() {
+    //     var dirSpec = {bar: {extension: 'js', content: '111'}, baz: {zork: {extension: 'txt', content: '222'}}};
+    //     this.rootHandle.commit({path: 'foo', value: dirSpec, callback: function(err) {
+    //         this.assert(!err, 'could not set ' + JSON.stringify(err));
+    //         this.assertExists('foo/');
+    //         this.assertExists('foo/baz/');
+    //         this.assertContent('111', 'foo/bar.js');
+    //         this.assertContent('222', 'foo/baz/zork.txt');
+    //         this.done();
+    //     }.bind(this)});
+    // }
+
+
+});
 
 }) // end of module

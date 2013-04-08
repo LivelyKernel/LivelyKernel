@@ -5,7 +5,7 @@ var fs = require('fs');
 var inMemoryStores = {};
 var changes = {};
 
-loadLivelyCode = function loadLivelyCode(path) {
+function loadLivelyCode(path) {
     lively = global.lively || {};
     Global = global;
     try {
@@ -20,6 +20,29 @@ loadLivelyCode = function loadLivelyCode(path) {
 
 loadLivelyCode('lively/lang/Object');
 
+// ---------------------------------
+
+function deepEqual(leftObj, rightObj) {
+    if (!leftObj && !rightObj) return true;
+    if (!leftObj || !rightObj) return false;
+    switch (leftObj.constructor) {
+        case String:
+        case Boolean:
+        case Date:
+        case Number: return leftObj == rightObj;
+    };
+    var cmp = function(left, right) {
+        for (var name in left) {
+              if (!(left[name] instanceof Function))
+    	        if (!deepEqual(left[name], right[name])) return false;
+        };
+        return true
+    };
+    return cmp(leftObj, rightObj) && cmp(rightObj, leftObj);
+}
+
+
+// ---------------------------------
 function getStore(storeName) {
     return inMemoryStores[storeName];
 }
@@ -54,7 +77,7 @@ function checkPrecondition(path, precondition) {
     if (!precondition || !path.isIn(db)) return null;
     var currentVal = path.get(db);
     if (precondition.type === 'equality') {
-        return precondition.value == currentVal ? null : Object.extend(err, {message: 'equality mismatch'});
+        return deepEqual(precondition.value, currentVal) ? null : Object.extend(err, {message: 'equality mismatch'});
     } else if (precondition.type === 'id') {
         if (!currentVal || !currentVal.hasOwnProperty('id')) return null;
         var valId = String(currentVal.id),

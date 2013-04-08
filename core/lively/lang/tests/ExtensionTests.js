@@ -182,6 +182,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
         p.set(obj, 3, true);
         this.assertEquals(3, obj.foo.bar.baz);
     },
+    testEqual: function() {
+        var p1 = lively.PropertyPath('foo.bar'),
+            p2 = lively.PropertyPath('baz.zork'),
+            p3 = lively.PropertyPath('foo.bar');
+        this.assert(!p1.equal(p2), 'p1 == p2 ?');
+        this.assert(p1.equal(p3), 'p1 != p2 ?');
+    },
     testParentPathOf: function() {
         var pp = lively.PropertyPath,
             p1 = pp("a.b")
@@ -191,6 +198,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
         this.assert(!p1.isParentPathOf(pp("a")))
         this.assert(!p1.isParentPathOf(pp("b.a")))
     }
+
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.IntervalTest', {

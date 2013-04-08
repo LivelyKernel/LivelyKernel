@@ -75,7 +75,12 @@ Object.subclass('lively.persistence.Sync.ObjectHandle',
         function withValueDo(val) {
             if (precondition.id) precondition.type = 'id';
             if (precondition.type === 'equality' && !precondition.value) precondition.value = val;
-            var newVal = options.transaction(val, options.n);
+            var newVal;
+            if (options.value) {
+                newVal = options.value;
+            } else if (options.transaction) {
+                newVal = options.transaction(val, options.n);
+            }
             if (newVal === undefined) { options.callback(null, false, val); return; }
             store.set(fullPath, newVal, {
                 callback: function(err) {

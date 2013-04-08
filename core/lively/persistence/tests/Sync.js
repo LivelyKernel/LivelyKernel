@@ -240,7 +240,24 @@ AsyncTestCase.subclass('lively.persistence.Sync.test.StoreAccess',
                 });
             }.bind(this)
         });
+    },
+
+    testCommitWithValue: function() {
+        this.store.set('foo', 2);
+        this.rootHandle.commit({
+            path: '',
+            value: {foo: 3},
+            callback: function(err, committed, val) {
+                this.assert(committed, 'not committed? ');
+                this.assertEqualState({foo: 3}, val, 'eventual value');
+                this.store.get('foo', function(_, val) {
+                    this.assertEquals(3, val, 'store val');
+                    this.done();
+                }.bind(this));
+            }.bind(this)
+        });
     }
+
 });
 
 AsyncTestCase.subclass('lively.persistence.Sync.test.RemoteStore',

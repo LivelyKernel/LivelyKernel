@@ -302,27 +302,24 @@ Global.Objects = {
     },
 
     equal: function(a, b) {
-        function equals(leftObj, rightObj) {
-			      if (!leftObj && !rightObj) return true;
-			      if (!leftObj || !rightObj) return false;
-			      switch (leftObj.constructor) {
-				        case String:
-				        case Boolean:
-				        case Boolean:
-				        case Number: return leftObj == rightObj;
-			      };
-			      if (leftObj.isEqualNode) return leftObj.isEqualNode(rightObj);
-
-			      var cmp = function(left, right) {
-				        for (var name in left) {
-					          if (!(left[name] instanceof Function))
-						        if (!equals(left[name], right[name])) return false;
-				        };
-				        return true
-			      };
-			      return cmp(leftObj, rightObj) && cmp(rightObj, leftObj);
-		    }
-		    return equals(a, b);
+        if (!a && !b) return true;
+        if (!a || !b) return false;
+        switch (a.constructor) {
+            case String:
+            case Date:
+            case Boolean:
+            case Number: return a == b;
+        };
+        if (Object.isFunction(a.isEqualNode)) return a.isEqualNode(b);
+        if (Object.isFunction(a.equals)) return a.equals(b);
+        function cmp(left, right) {
+            for (var name in left) {
+                if (left[name] instanceof Function) continue;
+        	    if (!Objects.equal(left[name], right[name])) return false;
+            }
+            return true;
+        }
+        return cmp(a, b) && cmp(b, a);
     }
 };
 

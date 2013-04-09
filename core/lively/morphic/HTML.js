@@ -1010,7 +1010,7 @@ lively.morphic.Shapes.External.addMethods(
         // 1) recreate shapeNode
         var element;
         if (this.stringifiedShapeNode) {
-            element = stringToXML(this.stringifiedShapeNode);
+            element = lively.$(this.stringifiedShapeNode)[0];
             element.parentNode && element.parentNode.removeChild(element);
         }
         if (!element) {

@@ -315,8 +315,8 @@ Object.subclass('AttributeConnection',
         sourceObj[methodName] = function connectionWrapper() {
             if (this.attributeConnections === undefined)
                 throw new Error('Sth wrong with this, has no attributeConnections')
-            var result = this[methodName].originalFunction.apply(this, arguments),
-                conns = this.attributeConnections.clone();
+            var conns = this.attributeConnections.clone(),
+                result = this[methodName].originalFunction.apply(this, arguments);
             for (var i = 0, len = conns.length; i < len; i++) {
                 var c = conns[i];
                 if (c.getSourceAttrName() === methodName) result = c.update(result);

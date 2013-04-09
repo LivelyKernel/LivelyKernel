@@ -508,6 +508,30 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj1.x = 2;
         this.assertEquals(obj2.value, 2, 'connection not working');
         this.assertEquals(obj2.old, 4, 'old value not provided');
+    },
+
+    test44DisconnectDuringConnectionMethodInvocation: function() {
+        var gInvoked = false;
+        var obj = {
+            f: function() { lively.bindings.disconnectAll(this); },
+            g: function() { gInvoked = true; }
+        };
+        lively.bindings.connect(obj, 'f', obj, 'g');
+        obj.f();
+        this.assert(gInvoked);
+    },
+
+    test45ConnectDuringConnectionMethodInvocation: function() {
+        var gInvoked = false, hInvoked = false;
+        var obj = {
+            f: function() { lively.bindings.connect(this, 'f', this, 'h'); },
+            g: function() { gInvoked = true; },
+            h: function() { hInvoked = true; }
+        };
+        lively.bindings.connect(obj, 'f', obj, 'g');
+        obj.f();
+        this.assert(gInvoked);
+        this.assert(!hInvoked);
     }
 
 });

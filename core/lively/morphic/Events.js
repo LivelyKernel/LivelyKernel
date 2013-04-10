@@ -2064,19 +2064,40 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 
         pos = pos.scaleBy(1/this.world().getScale());
         this.setPosition(pos);
-        if (!this.carriesGrabbedMorphs) return;
-        var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
+
+        // show layout placeholder and drop cursor when carrying a morph
+        // and hovering over a potential target morph
+        var carriedMorph, topmostMorph, layouter;
+        if (this.carriesGrabbedMorphs) {
+            carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
             topmostMorph = this.world().getTopmostMorph(evt.getPosition()),
             layouter = topmostMorph.getLayouter();
+        }
         if (!carriedMorph
           || !topmostMorph
+          || topmostMorph.isWorld
           || !topmostMorph.isLayoutable
           || !topmostMorph.wantsDroppedMorph(carriedMorph)
-          || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) { return; }
+          || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) {
+            // hide drop cursor if there is one
+            if (this.dropCursor) {
+                worldNode.style.cursor = 'default';
+                delete this.dropCursor;
+            }
+            // destroy placeholder if there is one
+            if (carriedMorph && carriedMorph.placeholder) {
+                carriedMorph.destroyPlaceholder();
+            }
+            return;
+        }
+        // show drop cursor unless there is already one
+        if (!this.dropCursor) {
+            worldNode.style.cursor = 'alias';
+            this.dropCursor = true;
+        }
+        // show placeholder if there is a layout
         if (layouter && layouter.displaysPlaceholders()) {
             layouter.showPlaceholderFor(carriedMorph, evt);
-        } else if (carriedMorph.placeholder) {
-            carriedMorph.destroyPlaceholder();
         }
     }
 });

@@ -3,7 +3,7 @@ module('lively.ide.tools.SubserverViewer').requires('lively.persistence.BuildSpe
 lively.BuildSpec('lively.ide.tools.SubserverViewer', {
     LK2: true,
     _BorderColor: Color.rgb(204,0,0),
-    _Extent: lively.pt(788.8,352.0),
+    _Extent: lively.pt(788.8,391.0),
     className: "lively.morphic.Window",
     collapsedExtent: null,
     collapsedTransform: null,
@@ -19,12 +19,12 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
         adjustForNewBounds: true
     },
     name: "SubserverViewer",
-    prevDragPos: lively.pt(1528.0,30.0),
+    prevDragPos: lively.pt(1597.0,20.0),
     sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _BorderWidth: 1,
-        _Extent: lively.pt(780.8,326.0),
+        _Extent: lively.pt(780.8,365.0),
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(4.0,22.0),
         _StyleClassNames: ["Morph","Box","SubserverViewer"],
@@ -41,13 +41,14 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
         },
         name: "SubserverViewer",
         nodejsURL: URL.create("http://localhost:9001/nodejs/"),
+        selectedServer: "Store",
         sourceModule: "lively.morphic.Core",
         submorphs: [{
             _BorderColor: Color.rgb(221,221,221),
             _BorderStyle: "inset",
             _BorderWidth: 1.278,
             _ClipMode: "auto",
-            _Extent: lively.pt(161.6,292.3),
+            _Extent: lively.pt(161.6,331.3),
             _Fill: Color.rgb(243,243,243),
             _FontSize: 10,
             _Position: lively.pt(7.7,5.8),
@@ -62,6 +63,8 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
                 resizeWidth: false
             },
             name: "ServerList",
+            selectedLineNo: 4,
+            selection: "Store",
             sourceModule: "lively.morphic.Core",
             submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
@@ -74,7 +77,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _MaxTextWidth: 120.695652,
             _MinTextWidth: 120.695652,
             _Padding: lively.rect(5,5,0,0),
-            _Position: lively.pt(173.5,303.0),
+            _Position: lively.pt(173.5,342.0),
             _StyleClassNames: ["Morph","Text","StatusText"],
             _WordBreak: "break-all",
             className: "lively.morphic.Text",
@@ -82,7 +85,8 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             droppingEnabled: false,
             emphasis: [[0,0,{
                 fontWeight: "normal",
-                italics: "normal"
+                italics: "normal",
+                uri: URL.create("http://localhost:9001/nodejs/Store/")
             }]],
             fixedHeight: true,
             fixedWidth: true,
@@ -98,7 +102,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _BorderColor: Color.rgb(189,190,192),
             _BorderWidth: 1,
             _Extent: lively.pt(23.0,19.0),
-            _Position: lively.pt(8.8,300.7),
+            _Position: lively.pt(8.8,339.7),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -119,13 +123,13 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "listSubservers", {});
         },
             doAction: function doAction() {
-            
+
         }
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderWidth: 1,
             _Extent: lively.pt(23.0,19.0),
-            _Position: lively.pt(33.8,300.7),
+            _Position: lively.pt(33.8,339.7),
             addSubserver: false,
             className: "lively.morphic.Button",
             doAction: false,
@@ -152,7 +156,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _BorderColor: Color.rgb(189,190,192),
             _BorderWidth: 1,
             _Extent: lively.pt(23.0,19.0),
-            _Position: lively.pt(59.1,301.6),
+            _Position: lively.pt(59.1,339.6),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -174,21 +178,22 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "removeSubserver", {});
         },
             doAction: function doAction() {
-            
+
         }
         },{
             _BorderColor: Color.rgb(95,94,95),
             _BorderWidth: 1,
-            _Extent: lively.pt(606.0,293.0),
+            _Extent: lively.pt(603.0,332.0),
             _FontSize: 12,
+            _LineWrapping: false,
             _Position: lively.pt(173.0,5.0),
+            _ShowGutter: true,
             _StyleSheet: "#ace-editor {\n\
-            position: absolute;\n\
+        	position: absolute;\n\
         	top: 0;\n\
         	bottom: 0;\n\
         	left: 0;\n\
         	right: 0;\n\
-        	font-family: Monaco,monospace;\n\
         }",
             _TextMode: "javascript",
             _Theme: "twilight",
@@ -207,6 +212,10 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             submorphs: [],
             textMode: "javascript",
             theme: "twilight",
+            boundEval: function boundEval(string) {
+            var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
+            return nodejsServer.post(string).content;
+        },
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "savedTextString", this.get("SubserverViewer"), "writeServerSource", {});
         }
@@ -327,7 +336,9 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
     }
     }],
     titleBar: "SubserverViewer",
-    withoutLayers: "[[GrabbingLayer]]"
+    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        this.get("SubserverViewer").onLoad();
+    }
 });
 
 }) // end of module

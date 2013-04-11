@@ -634,20 +634,21 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.mySourceControl().updateBrowsers(this, changedNode);
     },
 
-    updateTitle: function() {
+    updateTitle: Functions.debounce(50, function() {
         var window = this.panel.owner;
         if (!window) return;
-        var n1 = this.getPane1Selection();
-           var n2 = this.getPane2Selection();
-           var n3 = this.getPane3Selection();
-        var n4 = this.getPane4Selection();
-        var title = '';
+        var n1 = this.getPane1Selection(),
+            n2 = this.getPane2Selection(),
+            n3 = this.getPane3Selection(),
+            n4 = this.getPane4Selection(),
+            title = '';
         if (n1) title += n1.asString();
         if (n2) title += ':' + n2.asString();
         if (n3) title += ':' + n3.asString();
         if (n4) title += ':' + n4.asString();
+        if (title.length === 0) title = this.constructor.name;
         window.setTitle(title);
-    },
+    }),
 
 },
 'browser related', {
@@ -838,8 +839,12 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
             return true;
         }
         return selectPane(getPaneName());
-    }
+    },
 
+    onOwnerChanged: function(newOwner) {
+        if (!newOwner || !newOwner.isWindow || !this.ownerWidget) return;
+        this.ownerWidget.updateTitle();
+    }
 
 });
 

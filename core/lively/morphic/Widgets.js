@@ -2240,8 +2240,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         var titleBar = this.makeTitleBar(titleString, bounds.width, optSuppressControls),
             titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
-        this.targetMorph = this.addMorph(targetMorph);
-
         this.makeReframeHandles();
 
         this.titleBar = this.addMorph(titleBar);
@@ -2257,6 +2255,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
+        this.targetMorph = this.addMorph(targetMorph);
     },
 
     makeReframeHandles: function() {

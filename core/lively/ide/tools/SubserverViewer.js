@@ -337,6 +337,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
     }],
     titleBar: "SubserverViewer",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        $super();
         this.get("SubserverViewer").onLoad();
     }
 });

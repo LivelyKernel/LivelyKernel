@@ -222,6 +222,10 @@ Object.subclass('lively.morphic.EventHandler',
 
         evt.getKeyCode = function() { return evt.keyCode }
 
+        evt.getKeyString = function(options) {
+            return Event.pressedKeyString(evt, options);
+        }
+
         evt.isMouseEvent = evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'mousemove' || evt.type === 'mouseover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
 
         evt.isKeyboardEvent = !evt.isMouseEvent && (evt.type === 'keydown' || evt.type === 'keyup' || evt.type === 'keypress');

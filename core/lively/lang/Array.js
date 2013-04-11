@@ -1,26 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Extensions to Array instances
 ///////////////////////////////////////////////////////////////////////////////
-var $break = {};
 
-// FIXME: Array's interface is way too big.
+Object.extend(Array.prototype, {
 
-// FIXME: Is Enumerable used somewhere else? Can Array be extended directly?
-var Enumerable = {
     each: Array.prototype.forEach || function(iterator, context) {
-        var index = 0;
-        iterator = iterator.bind(context);
-        try {
-            this._each(function(value) {
-                iterator(value, index++);
-            });
-        } catch (e) {
-            if (e != $break) throw e;
-        }
+        for (var i = 0, len = this.length; i < len; i++) {
+            iterator.call(context, this[i], i); }
         return this;
     },
 
-    all: function(iterator, context) {
+    all: Array.prototype.every || function(iterator, context) {
         var result = true;
         for (var i = 0, len = this.length; i < len; i++) {
             result = result && !! iterator.call(context || Global, this[i], i);
@@ -29,14 +19,14 @@ var Enumerable = {
         return result;
     },
 
-    any: function(iterator, context) {
+    any: Array.prototype.some || function(iterator, context) {
         return this.detect(iterator, context) !== undefined;
     },
 
     collect: Array.prototype.map || (function(iterator, context) {
         iterator = iterator ? iterator.bind(context) : Prototype.K;
         var results = [];
-        this.each(function(value, index) {
+        this.forEach(function(value, index) {
             results.push(iterator(value, index));
         });
         return results;
@@ -50,7 +40,7 @@ var Enumerable = {
         return undefined;
     },
 
-    findAll: function(iterator, context) {
+    findAll: Array.prototype.filter || function(iterator, context) {
         var results = [];
         for (var i = 0; i < this.length; i++) {
             if (!this.hasOwnProperty(i)) continue;
@@ -61,43 +51,35 @@ var Enumerable = {
     },
 
     grep: function(filter, iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Prototype.K;
+        iterator = iterator || Functions.K;
         var results = [];
-
         if (Object.isString(filter)) filter = new RegExp(filter);
-
-        this.each(function(value, index) {
-            if (filter.match(value)) results.push(iterator(value, index));
+        this.forEach(function(value, index) {
+            if (filter.match(value)) results.push(iterator.call(context, value, index));
         });
         return results;
     },
 
     include: Array.prototype.indexOf ?
-        function(object) { return this.indexOf(object) != -1 } :
+        function(object) { return this.indexOf(object) !== -1 } :
         function(object) {
-            if (typeof this.indexOf == 'function') return this.indexOf(object) != -1;
-
-            var found = false;
-            this.each(function(value) {
-                if (value == object) {
-                    found = true;
-                    throw $break;
-                }
-            });
-            return found;
+            for (var i = 0, len = this.length; i < len; i++) {
+                if (this[i] == object) return true; }
+            return false;
         },
 
-    inject: function(memo, iterator, context) {
-        if (context) iterator = iterator.bind(context);
-        this.each(function(value, index) {
-            memo = iterator(memo, value, index);
-        });
-        return memo;
-    },
+    inject: Array.prototype.reduce ?
+        function(memo, iterator, context) {
+            if (context) iterator = iterator.bind(context);
+            return this.reduce(iterator, memo);
+        } : function(memo, iterator, context) {
+            this.forEach(function(value, index) {
+                memo = iterator.call(context, memo, value, index); });
+            return memo;
+        },
 
     invoke: function(method, arg1, arg2, arg3, arg4, arg5, arg6) {
-        var args = Array.from(arguments).slice(1),
-            result = new Array(this.length);
+        var result = new Array(this.length);
         for (var i = 0, len = this.length; i < len; i++) {
             result[i] = this[i][method].call(this[i], arg1, arg2, arg3, arg4, arg5, arg6);
         }
@@ -107,11 +89,11 @@ var Enumerable = {
     max: function(iterator, context) {
         iterator = iterator ? iterator.bind(context) : Functions.K;
         var value, result, resultValue;
-        this.each(function(element, index) {
+        this.forEach(function(element, index) {
             value = iterator(element, index);
-            if (result == undefined || value >= resultValue) {
-            	result = element;
-            	resultValue = value;
+            if (!result || value >= resultValue) {
+                result = element;
+                resultValue = value;
             }
         });
         return result;
@@ -120,22 +102,21 @@ var Enumerable = {
     min: function(iterator, context) {
         iterator = iterator ? iterator.bind(context) : Functions.K;
         var value, result, resultValue;
-        this.each(function(element, index) {
+        this.forEach(function(element, index) {
             value = iterator(element, index);
-            if (result == undefined || value < resultValue) {
-            	result = element;
-            	resultValue = value;
+            if (!result || value < resultValue) {
+                result = element;
+                resultValue = value;
             }
         });
         return result;
     },
 
     partition: function(iterator, context) {
-        iterator = iterator ? (context ? iterator.bind(context) : iterator) : Functions.K;
-        var trues = [],
-            falses = [];
-        this.each(function(value, index) {
-            (iterator(value, index) ? trues : falses).push(value);
+        iterator = iterator || Functions.K;
+        var trues = [], falses = [];
+        this.forEach(function(value, index) {
+            (iterator.call(contextvalue, index) ? trues : falses).push(value);
         });
         return [trues, falses];
     },
@@ -143,8 +124,7 @@ var Enumerable = {
     pluck: function(property) {
         var result = new Array(this.length);
         for (var i = 0; i < this.length; i++) {
-            result[i] = this[i][property];
-        }
+            result[i] = this[i][property]; }
         return result;
     },
 
@@ -154,86 +134,49 @@ var Enumerable = {
     },
 
     sortBy: function(iterator, context) {
-        iterator = iterator.bind(context);
         return this.map(function(value, index) {
             return {
                 value: value,
-                criteria: iterator(value, index)
+                criteria: iterator.call(context, value, index)
             };
         }).sort(function(left, right) {
-            var a = left.criteria,
-                b = right.criteria;
+            var a = left.criteria, b = right.criteria;
             return a < b ? -1 : a > b ? 1 : 0;
         }).pluck('value');
     },
 
-    toArray: function() {
-        return this.map();
-    },
+    toArray: function() { return this; },
 
     zip: function() {
-        var iterator = Prototype.K,
-            args = $A(arguments);
+        var iterator = Functions.K,
+            args = Array.from(arguments);
         if (Object.isFunction(args.last())) iterator = args.pop();
-
-        var collections = [this].concat(args).map($A);
+        var collections = [this].concat(args).map(Array.from);
         return this.map(function(value, index) {
-            return iterator(collections.pluck(index));
-        });
+            return iterator(collections.pluck(index)); });
     },
 
-    size: function() {
-        return this.toArray().length;
-    },
+    clear: function() { this.length = 0; return this; },
 
-    inspect: function() {
-        return '#<Enumerable:' + this.toArray().inspect() + '>';
-    }
-};
+    first: function() { return this[0]; },
 
-Object.extend(Enumerable, {
-    find: Enumerable.detect,
-    select: Enumerable.findAll,
-    filter: Enumerable.findAll,
-    member: Enumerable.include,
-    entries: Enumerable.toArray
-});
-
-Object.extend(Array.prototype, Enumerable);
-
-Object.extend(Enumerable, {
-    // We add these functions after Array is extended with Enumerable
-    // because JavaScript's Array already has these natively
-    map: Enumerable.collect,
-    every: Enumerable.all,
-    some: Enumerable.any
-});
-
-if (!Array.prototype._reverse) Array.prototype._reverse = Array.prototype.reverse;
-
-Object.extend(Array.prototype, {
-    _each: function(iterator) {
-        for (var i = 0, length = this.length; i < length; i++)
-        iterator(this[i]);
-    },
-
-    clear: function() {
-        this.length = 0;
-        return this;
-    },
-
-    first: function() {
-        return this[0];
-    },
-
-    last: function() {
-        return this[this.length - 1];
-    },
+    last: function() { return this[this.length - 1]; },
 
     compact: function() {
-        return this.select(function(value) {
-            return value != null;
-        });
+        return this.select(Functions.K);
+    },
+
+    mutableCompact: function() {
+        // fix gaps that were created with 'delete'
+        var i = 0, j = 0, len = this.length;
+        while (i < len) {
+            if (this.hasOwnProperty(i)) {
+                this[j++] = this[i];
+            }
+            i++;
+        }
+        while (j++ < len) this.pop();
+        return this;
     },
 
     flatten: function() {
@@ -243,29 +186,23 @@ Object.extend(Array.prototype, {
     },
 
     without: function() {
-        var values = $A(arguments);
+        var values = Array.from(arguments);
         return this.select(function(value) {
-            return !values.include(value);
-        });
+            return !values.include(value); });
     },
+
     withoutAll: function(otherArr) {
         return this.without.apply(this, otherArr);
     },
 
-    reverse: function(inline) {
-        return (inline !== false ? this : this.toArray())._reverse();
-    },
-
     uniq: function(sorted) {
         return this.inject([], function(array, value, index) {
-            if (0 == index || (sorted ? array.last() != value : !array.include(value))) array.push(value);
+            if (0 === index || (sorted ? array.last() != value : !array.include(value))) array.push(value);
             return array;
         });
     },
 
-    uniqueElements: function() {
-        return this.uniq();
-    },
+    uniqueElements: function() { return this.uniq(); },
 
     equals: function(otherArray) {
         if (!otherArray || this.length !== otherArray.length) return false;
@@ -284,19 +221,13 @@ Object.extend(Array.prototype, {
 
     intersect: function(array) {
         return this.uniq().findAll(function(item) {
-            return array.detect(function(value) {
-                return item === value
-            });
+            return array.detect(function(value) { return item === value });
         });
     },
 
-    clone: function() {
-        return [].concat(this);
-    },
+    clone: function() { return [].concat(this); },
 
-    size: function() {
-        return this.length;
-    },
+    size: function() { return this.length; },
 
     inspect: function() {
         return '[' + this.map(Object.inspect).join(', ') + ']';
@@ -329,17 +260,19 @@ Object.extend(Array.prototype, {
     pushIfNotIncluded: function(item) {
         if (!this.include(item)) this.push(item);
     },
-    replaceAt: function(item, index) {
-        this.splice(index, 1, item);
-    },
+
+    replaceAt: function(item, index) { this.splice(index, 1, item); },
 
     nestedDelay: function(iterator, waitSecs, endFunc, context, optSynchronChunks) {
+        // calls iterator for every element in this and waits between iterator
+        // calls waitSecs. eventually endFunc is called. When passing a number n
+        // as optSynchronChunks, only every nth iteration is delayed
         endFunc = endFunc || function() {};
         return this.reverse().inject(endFunc, function(nextFunc, ea, idx) {
             return function() {
                 iterator.call(context || Global, ea, idx);
                 // only really delay every n'th call optionally
-                if (optSynchronChunks && (idx % optSynchronChunks != 0)) {
+                if (optSynchronChunks && (idx % optSynchronChunks !== 0)) {
                     nextFunc()
                 } else {
                     nextFunc.delay(waitSecs);
@@ -349,8 +282,11 @@ Object.extend(Array.prototype, {
     },
 
     doAndContinue: function(iterator, endFunc, context) {
-        endFunc = endFunc ||
-        function() {};
+        // iterates over this but instead of consecutively calling iterator,
+        // iterator gets passed in the invocation for the next iteration step
+        // as a function as first parameter. This allows to wait arbitrarily
+        // between operation steps, great for synchronous dependent steps
+        endFunc = endFunc || Functions.null
         return this.reverse().inject(endFunc, function(nextFunc, ea, idx) {
             return function() {
                 iterator.call(context || Global, nextFunc, ea, idx);
@@ -363,21 +299,20 @@ Object.extend(Array.prototype, {
         var steps = this.length;
         context = context || Global;
         (this.reverse().inject(
-
-        function() {
-            progressBar.setValue(1);
-            if (whenDoneFunc) whenDoneFunc.call(context)
-        }, function(nextFunc, item, idx) {
-            return function() {
-                try {
-                    progressBar.setValue((steps - idx) / steps);
-                    if (labelFunc) progressBar.setLabel(labelFunc.call(context, item, idx));
-                    iterator.call(context, item, idx);
-                } catch (e) {
-                    alert(Strings.format('Error in forEachShowingProgress at %s (%s)\n%s\n%s', idx, item, e, e.stack))
+            function() {
+                progressBar.setValue(1);
+                if (whenDoneFunc) whenDoneFunc.call(context)
+            }, function(nextFunc, item, idx) {
+                return function() {
+                    try {
+                        progressBar.setValue((steps - idx) / steps);
+                        if (labelFunc) progressBar.setLabel(labelFunc.call(context, item, idx));
+                        iterator.call(context, item, idx);
+                    } catch (e) {
+                        console.error(Strings.format('Error in forEachShowingProgress at %s (%s)\n%s\n%s', idx, item, e, e.stack))
+                    }
+                    nextFunc.delay(0);
                 }
-                nextFunc.delay(0);
-            }
         }))();
     },
 
@@ -398,42 +333,20 @@ Object.extend(Array.prototype, {
         return groups;
     },
 
-    mutableCompact: function() {
-        // fix gaps that were created with 'delete'
-        var i = 0, j = 0, len = this.length;
-        while (i < len) {
-            if (this.hasOwnProperty(i)) {
-                this[j++] = this[i];
-            }
-            i++;
-        }
-        while (j++ < len) this.pop();
-        return this;
-    }
+    inspect: function() { return '#<Array:' + this.toArray().inspect() + '>'; },
 
 });
 
-// use native browser JS 1.6 implementation if available
-if (Object.isFunction(Array.prototype.forEach)) {
-    Array.prototype._each = Array.prototype.forEach;
-}
-
-if (!Array.prototype.indexOf) Array.prototype.indexOf = function(item, i) {
-    i || (i = 0);
-    var length = this.length;
-    if (i < 0) i = length + i;
-    for (; i < length; i++)
-    if (this[i] === item) return i;
-    return -1;
-};
-
-if (!Array.prototype.lastIndexOf) Array.prototype.lastIndexOf = function(item, i) {
-    i = isNaN(i) ? this.length : (i < 0 ? this.length + i : i) + 1;
-    var n = this.slice(0, i).reverse().indexOf(item);
-    return (n < 0) ? n : i - n - 1;
-};
-
-Array.prototype.toArray = Array.prototype.clone;
+Object.extend(Array.prototype, {
+    find: Array.prototype.find || Array.prototype.detect,
+    select: Array.prototype.findAll,
+    filter: Array.prototype.findAll,
+    member: Array.prototype.include,
+    map: Array.prototype.map || Array.prototype.collect,
+    every: Array.prototype.every || Array.prototype.all,
+    some: Array.prototype.some || Array.prototype.any,
+    entries: Array.prototype.toArray
+});
 
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -869,9 +869,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     getTextString: function(string) { return this.textString; },
 
-    insertTextStringAt: function(index, string) { throw new Error('implement me'); },
+    insertTextStringAt: function(indexOrPos, string) {
+        this.withAceDo(function(ed) {
+            var pos = indexOrPos;
+            if (Object.isNumber(pos)) pos = this.indexToPosition(pos);
+            if (!pos) pos = ed.getCursorPosition();
+            ed.session.insert(pos, string);
+        });
+    },
     insertAtCursor: function(string, selectIt, overwriteSelection) {
-        this.aceEditor.onPaste(string);
+        this.withAceDo(function(ed) { ed.onPaste(string) });
     },
 
     doSave: function() {

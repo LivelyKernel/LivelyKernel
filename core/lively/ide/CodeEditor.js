@@ -118,7 +118,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         gutter: Config.get('aceDefaultShowGutter'),
         textMode: Config.get('aceDefaultTextMode'),
         theme: Config.get('aceDefaultTheme'),
-        lineWrapping: Config.get('aceDefaultLineWrapping')
+        lineWrapping: Config.get('aceDefaultLineWrapping'),
+        invisibles: Config.get('aceDefaultShowInvisibles'),
+        printMargin: Config.get('aceDefaultShowPrintMargin'),
+        showIndents: Config.get('aceDefaultShowIndents')
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     evalEnabled: true,
@@ -158,6 +161,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.textMode !== undefined) this.setTextMode(spec.textMode);
         if (spec.theme !== undefined) this.setTheme(spec.theme);
         if (spec.lineWrapping !== undefined) this.setLineWrapping(spec.lineWrapping);
+        if (spec.invisibles !== undefined) this.setShowInvisibles(spec.invisibles);
+        if (spec.printMargin !== undefined) this.setShowPrintMargin(spec.printMargin);
+        if (spec.showIndents !== undefined) this.setShowIndents(spec.showIndents);
         return this;
     }
 },
@@ -208,6 +214,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setFontSize(this.getFontSize());
         this.setShowGutter(this.getShowGutter());
         this.setLineWrapping(this.getLineWrapping());
+        this.setShowPrintMargin(this.getShowPrintMargin());
+        this.setShowInvisibles(this.getShowInvisibles());
+        this.setShowIndents(this.getShowIndents());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
@@ -897,6 +906,33 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     setLineWrapping: function(bool) {
         this.withAceDo(function(ed) { ed.session.setUseWrapMode(bool); });
         return this._LineWrapping = bool;
+    },
+
+    setShowInvisibles: function(bool) {
+        this.withAceDo(function(ed) { ed.setShowInvisibles(bool); });
+        return this._ShowInvisibles = bool;
+    },
+    getShowInvisibles: function() {
+        return this._ShowInvisibles || this.withAceDo(function(ed) {
+            return ed.getShowInvisibles(); });
+    },
+
+    setShowPrintMargin: function(bool) {
+        this.withAceDo(function(ed) { ed.setShowPrintMargin(bool); });
+        return this._ShowPrintMargin = bool;
+    },
+    getShowPrintMargin: function() {
+        return this._ShowPrintMargin || this.withAceDo(function(ed) {
+            return ed.getShowPrintMargin(); });
+    },
+
+    setShowIndents: function(bool) {
+        this.withAceDo(function(ed) { ed.setDisplayIndentGuides(bool); });
+        return this._setShowIndents = bool;
+    },
+    getShowIndents: function() {
+        return this._setShowIndents || this.withAceDo(function(ed) {
+            return ed.getDisplayIndentGuides(); });
     }
 
 },

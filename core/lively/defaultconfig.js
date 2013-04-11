@@ -458,6 +458,9 @@ Global.Config = {
             ['aceDefaultTextMode', 'javascript', "Ace text mode to use"],
             ['aceDefaultLineWrapping', true, "Wrap lines in ace?"],
             ['aceDefaultShowGutter', true, "Enables the line number gutter"],
+            ['aceDefaultShowInvisibles', false, "Indicators for whitespace / non-print chars."],
+            ['aceDefaultShowPrintMargin', true, "Show a vertical line at the print margin column."],
+            ['aceDefaultShowIndents', true, "Indicators for indents in the beginning of lines."],
             ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"]
         ],
 

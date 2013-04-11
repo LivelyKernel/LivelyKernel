@@ -438,6 +438,20 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 bindKey: {win: "Ctrl-½", mac: "Command-½"},
                 exec: function(ed) { codeEditor.setFontSize(codeEditor.getFontSize() - 1); },
                 readOnly: true
+            },
+            // command line
+            {
+                name: 'linebreak',
+                exec: function(ed) { cmdLine.insert("\n"); }
+            }, {
+                name: 'entercommand',
+                exec: function(ed) {
+                    if (codeEditor.commandLineInput) {
+                        codeEditor.commandLineInput(ed.getValue);
+                    } else {
+                        lively.morphic.show('CommandLine should implement #commandLineInput');
+                    }
+                }
             }]);
 
         if (Object.isFunction(Config.codeEditorUserKeySetup)) {
@@ -983,25 +997,17 @@ lively.BuildSpec('lively.morphic.CommandLine', {
     },
     // grabbingEnabled: false
     _Extent: pt(300, 18),
-    initCommandLine: function(ed) {
+    initCommandLine: function initCommandLine(ed) {
+        this.isCommandLine = true;
         ed.renderer.scrollBar.element.style.display = 'none';
         ed.renderer.scrollBar.width = 0;
         ed.resize(true);
-        ed.commands.bindKeys({
-            "Shift-Return|Ctrl-Return|Alt-Return": function(cmdLine) { cmdLine.insert("\n"); },
-            "Esc|Shift-Esc": function(cmdLine){ cmdLine.editor.focus(); },
-            "Return": function(cmdLine){
-                show('command %s', cmdLine.getValue());
-                // var command = cmdLine.getValue().split(/\s+/);
-                // var editor = cmdLine.editor;
-                // editor.commands.exec(command[0], editor, command[1]);
-                // editor.focus();
-            }
-        });
-        // this.setExtent(this.getExtent());
-        show.bind(null,this).delay();
     },
-    onFromBuildSpecCreated: function() {
+    onLoad: function onLoad() {
+        $super();
+        this.withAceDo(function(ed) { this.initCommandLine(ed); });
+    },
+    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         this.withAceDo(function(ed) { this.initCommandLine(ed); });
     }
 });

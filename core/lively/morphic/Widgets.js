@@ -1690,54 +1690,46 @@ lively.morphic.World.addMethods(
         var win = this.addFramedMorph(morph, String(title || ""), pos, suppressReframeHandle);
         return morph;
     },
-},
-'dialogs', {
-    openDialog: function(dialog) {
-        var activeWindow = $world.getActiveWindow() || $world,
-            visibleBounds = this.visibleBounds(),
-            blockee = activeWindow.targetMorph || $world,
-            pointOfAlign = activeWindow.targetMorph ?
-                blockee.getShape().getBounds().topRight() :
-                this.visibleBounds().center(),
-            window = dialog.openIn(this, pt(0,0)),
-            d,
-            transparentMorph,
-            blockMorph;
-        window.align(window.owner.localize(window.bounds().center()), visibleBounds.center());
-        window.focus();
-        d = dialog
-        if (!activeWindow) return d;
-
-        // normal bounds can be negative.. we want the shape bounds here
-        var bounds = blockee.shape.bounds().translatedBy(blockee.getPosition());
-        blockMorph = lively.morphic.Morph.makeRectangle(bounds);
-        blockMorph.disableGrabbing();
-        blockMorph.disableDragging();
+    addModal: function(morph, optModalOwner) {
+        // add morph inside the world or in a window (if one currently is
+        // marked active) so that the rest of the world/window is grayed out
+        // and blocked.
+        var modalOwner = optModalOwner || this,
+            modalBounds = modalOwner.innerBounds(),
+            blockMorph = lively.morphic.Morph.makeRectangle(modalBounds),
+            transparentMorph = lively.morphic.Morph.makeRectangle(blockMorph.innerBounds());
         blockMorph.isEpiMorph = true;
         blockMorph.applyStyle({
             fill: null,
             borderWidth: 0,
+            enableGrabbing: false,
+            enableDragging: false
         });
-        transparentMorph = lively.morphic.Morph.makeRectangle(blockMorph.getShape().getBounds());
-        transparentMorph.disableGrabbing();
-        transparentMorph.disableDragging();
-        transparentMorph.isEpiMorph = true;
-        blockMorph.addMorph(transparentMorph);
         transparentMorph.applyStyle({
             fill: Color.black,
             opacity: 0.5,
+            enableGrabbing: false,
+            enableDragging: false
         });
+        transparentMorph.isEpiMorph = true;
+        blockMorph.addMorph(transparentMorph);
+        if (modalOwner.modalMorph) modalOwner.modalMorph.remove();
+        blockMorph.addMorph(morph);
+        var alignBounds = modalOwner.visibleBounds ?
+            modalOwner.visibleBounds() : modalOwner.innerBounds();
+        morph.align(morph.bounds().center(), alignBounds.center());
+        modalOwner.modalMorph = modalOwner.addMorph(blockMorph);
+        lively.bindings.connect(morph, 'remove', blockMorph, 'remove');
+        morph.focus();
+        return morph;
+    },
 
-        blockMorph.addMorph(d.panel);
-
-        if (activeWindow.targetMorph) {
-            d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
-        } else {
-            d.panel.align(d.panel.bounds().center(), pointOfAlign);
-        }
-
-        activeWindow.addMorph(blockMorph);
-        connect(d.panel, 'remove', blockMorph, 'remove');
+},
+'dialogs', {
+    openDialog: function(dialog) {
+        var win = this.getActiveWindow();
+        dialog.openIn(this, this.visibleBounds().topLeft());
+        this.addModal(dialog.panel, win ? win.targetMorph : this);
         return dialog;
     },
     confirm: function (message, callback) {

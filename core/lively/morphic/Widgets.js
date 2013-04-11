@@ -1781,6 +1781,22 @@ lively.morphic.World.addMethods(
             }
         })
     },
+    askForUserNameInList: function(names) {
+        var world = this, current = world.getUserName();
+        world.listPrompt(
+            'Please select your username.',
+            function(name) {
+                if (name) {
+                    alertOK("setting username to: " + name);
+                } else {
+                    alert("unknown user!");
+                }
+                    world.setCurrentUser(name);
+            },
+            names, current,
+            pt(300,200));
+    },
+
     askForNewWorldExtent: function() {
         var world = this;
         this.prompt("Please, give new world extent", function(str) {

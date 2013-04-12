@@ -156,7 +156,7 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
         url = URL.codeBase.withFilename('foo');
         this.assertEquals('', url.extension());
         url = URL.codeBase.withFilename('foo/');
-        this.assertEquals(null, url.extension());
+        this.assertEquals('', url.extension());
     }
 
 });

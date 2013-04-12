@@ -101,10 +101,9 @@ Object.subclass('URL', {
     },
 
     extension: function() {
-        if (!this.isLeaf()) return null;
-        var fn = this.filename(),
-            idx = fn.lastIndexOf('.');
-        return idx === -1 ? '' : fn.slice(-idx+1);
+        if (!this.isLeaf()) return '';
+        var fn = this.filename(), idx = fn.lastIndexOf('.');
+        return idx === -1 ? '' : fn.slice(idx+1);
     },
 
     normalizedHostname: function() {

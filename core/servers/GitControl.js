@@ -33,7 +33,11 @@ runGit = function(/*args, thenDo*/) {
 runGit('status')
 
 module.exports = function(route, app) {
-    
+
+    app.get(route, function(req, res) {
+        res.json({cwd: dir});
+    });
+
     app.post(route, function(req, res, next) {
         var command = req.body && req.body.command;
         if (!command) { res.status(400).end(); return; }

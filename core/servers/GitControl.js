@@ -30,7 +30,10 @@ runGit = function(/*args, thenDo*/) {
 
 }
 
-runGit('status')
+function formattedResponseText(type, data) {
+    var s = String(data);
+    return '<GITCONTROL$' + type.toUpperCase() + s.length + '>' + s;
+}
 
 module.exports = function(route, app) {
 
@@ -44,44 +47,26 @@ module.exports = function(route, app) {
         if (git.process) { res.status(400).end({error: 'Git process still running!'}); return; }
         runGit.apply(null, command.split(' '));
         if (!git.process) { res.status(400).end({error: 'Could not start git!'}); return; }
-res.removeHeader('Content-Length');
-res.set({
-  'Content-Type': 'text/plain',
-  'Transfer-Encoding': 'chunked',
-//   'Content-Length': "-1",
-//   'Accept-Ranges': 'bytes'
-//   // 'ETag': '12345'
-})
-// res.set(200, {
-//                        'Transfer-Encoding': 'chunked'
-//                      , 'Content-Type': 'application/json'
-//                      , 'Accept-Ranges': 'bytes'
-// });
-// console.dir(res);
-        stdoutCount = 0;
+
+        // make ir a streaming response:
+        res.removeHeader('Content-Length');
+        res.set({
+          'Content-Type': 'text/plain',
+          'Transfer-Encoding': 'chunked'
+        });
+
         git.process.stdout.on('data', function (data) {
-            console.log('stdout: ' + data);
-            // console.log('stdoutCount: %s', ++stdoutCount);
-            // res.write(JSON.stringify({stdout: data.toString()}));
-            var s = data.toString();
-            res.write('<GITCONTROL$STDOUT' + s.length + '>' + s);
+            res.write(formattedResponseText('STDOUT', data));
         });
 
-        stderrCount = 0;
         git.process.stderr.on('data', function (data) {
-            // console.log('stderr: ' + data);
-            // console.log('stderrcount: %s', ++stderrCount);
-            // res.write(data.toString());
-            var s = data.toString();
-            res.write('<GITCONTROL$STDERR' + s.length + '>' + s);
+            res.write(formattedResponseText('STDERR', data));
         });
 
-        git.process.on('close', function (code) {
-            var s = String(git.lastExitCode);
-            res.write('<GITCONTROL$CODE' + s.length + '>' + s);
+        git.process.on('close', function(code) {
+            res.write(formattedResponseText('CODE', git.lastExitCode));
             res.end();
         });
-
     });
 
 }

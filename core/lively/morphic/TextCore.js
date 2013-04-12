@@ -3066,7 +3066,11 @@ Object.subclass('lively.morphic.TextEmphasis',
         // ignore if debugMode was never requested
         if (debugMode !== undefined) this.applyDebugStyling(node, debugMode);
 
-        if (this.isNullStyle) { node.setAttribute('style', ""); return }
+        if (this.isNullStyle) {
+            node.setAttribute('style', "");
+            this.uninstallCallbackHandlers(node);
+            return;
+        }
 
         // FIXME refactor
         var attrs = this.styleAttributes;
@@ -3116,6 +3120,11 @@ Object.subclass('lively.morphic.TextEmphasis',
                  return true;
              });
          }, this);
+    },
+
+    uninstallCallbackHandlers: function(node) {
+        var $node = $(node);
+        $node.off();
     }
 
 },

@@ -2265,10 +2265,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.makeReframeHandles();
 
-        this.titleBar = this.addMorph(titleBar);
-        this.contentOffset = pt(spacing, titleHeight);
-        targetMorph.setPosition(this.contentOffset);
-
+        this.titleBar             = this.addMorph(titleBar);
+        this.contentOffset        = pt(spacing, titleHeight);
         this.collapsedTransform   = null;
         this.collapsedExtent      = null;
         this.expandedTransform    = null;
@@ -2279,6 +2277,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
         this.targetMorph = this.addMorph(targetMorph);
+        this.targetMorph.setPosition(this.contentOffset);
+
     },
 
     makeReframeHandles: function() {

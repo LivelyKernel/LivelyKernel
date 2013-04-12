@@ -44,7 +44,7 @@ Object.extend(lively.ide.GitInterface, {
                 endInterval: function() {
                     if (this.interval) { Global.clearInterval(this.interval); }
                 },
-                
+
                 read: function(string) {
                     var input = string.slice(this.streamPos, string.length),
                         headerMatch = input.match(/^<GITCONTROL\$([A-Z]+)([0-9]+)>/);
@@ -87,6 +87,13 @@ Object.extend(lively.ide.GitInterface, {
         if (!gitInterface.commandInProgress) cmd.startRequest();
         else gitInterface.scheduleCommand(cmd);
         return cmd;
+    },
+
+    localGitDirectory: function() {
+        var webR = this.gitControlURL.asWebResource().beSync();
+        try {
+            return JSON.parse(webR.get().content).cwd;
+        } catch(e) { return ''; }
     }
 
 });

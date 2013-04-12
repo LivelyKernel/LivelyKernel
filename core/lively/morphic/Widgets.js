@@ -1783,7 +1783,7 @@ lively.morphic.World.addMethods(
     },
     askForUserNameInList: function(names) {
         var world = this, current = world.getUserName();
-        world.listPrompt(
+        return world.listPrompt(
             'Please select your username.',
             function(name) {
                 if (name) {

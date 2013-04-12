@@ -1,4 +1,4 @@
-module('lively.morphic.Serialization').requires('lively.Network', 'lively.persistence.Serializer', 'lively.morphic.Core', 'lively.morphic.TextCore', 'lively.DOMAbstraction',  'lively.morphic.Widgets').toRun(function() {
+module('lively.morphic.Serialization').requires('lively.Network', 'lively.persistence.Serializer', 'lively.morphic.Core', 'lively.morphic.TextCore', 'lively.DOMAbstraction', 'lively.morphic.Widgets').toRun(function() {
 
 // All objects that have an eval'ble toString representation
 Trait('lively.morphic.Serialization.ToStringIsSerializerExpressionTrait',
@@ -188,7 +188,7 @@ lively.morphic.World.addMethods(
     },
 
     saveWorldAs: function(url, checkForOverwrites) {
-        // FIXME: this should go somewhere else or actually not be necessary at 
+        // FIXME: this should go somewhere else or actually not be necessary at
         // all... cleanup, removing junk css defs
         lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this);
 
@@ -377,13 +377,6 @@ Object.extend(lively.morphic.World, {
         return morph;
     },
 
-});
-
-lively.morphic.TextEditor.addMethods(
-'serialization', {
-    onrestore: function() {
-        this.loadFile.bind(this).delay(0);
-    },
 });
 
 lively.morphic.Script.addMethods(

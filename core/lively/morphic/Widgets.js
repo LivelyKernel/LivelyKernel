@@ -1599,7 +1599,7 @@ lively.morphic.World.addMethods(
                 ['BuildSpecEditor', this.openBuildSpecEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
-                ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],
+                ['Text Editor', function() { require('lively.ide').toRun(function() { lively.ide.openFile(URL.source.toString()); }); }],
                 ['System Console', this.openSystemConsole.bind(this)],
                 ['SubserverViewer', this.openSubserverViewer.bind(this)],
                 ['ServerWorkspace', this.openServerWorkspace.bind(this)]
@@ -3384,150 +3384,19 @@ Trait('SelectionMorphTrait',
 })
 .applyTo(lively.morphic.World, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
 
-lively.morphic.WindowedApp.subclass('lively.morphic.TextEditor',
-'settings', {
-    defaultTitle: 'TextEditor',
-    initialViewExtent: pt(900, 800),
-},
-'initializing', {
-    buildView: function(extent) {
-        var panel = lively.morphic.Morph.makeRectangle(0,0, extent.x, extent.y)
-            .applyStyle({
-                fill: Color.gray.lighter(2),
-                resizeWidth: true,
-                resizeHeight: true,
-                adjustForNewBounds: true});
-
-        var bounds;
-        bounds = new Rectangle(0,0, extent.x, 30);
-        var urlText = new lively.morphic.Text(bounds, URL.source.toString())
-            .beInputLine({resizeWidth: true, fixedWidth: true, padding: Rectangle.inset(5,5)})
-        panel.urlText = panel.addMorph(urlText);
-        connect(urlText, 'savedTextString', this, 'setCurrentURL');
-        connect(this, 'currentURL', this, 'loadFile');
-
-        bounds = new Rectangle(0, bounds.height, extent.x/3, 30);
-        var saveBtn = new lively.morphic.Button(bounds, 'save');
-        saveBtn.applyStyle({resizeWidth: true})
-        panel.addMorph(saveBtn);
-        connect(saveBtn, 'fire', this, 'saveFile');
-
-        bounds = rect(bounds.topRight(), bounds.bottomRight().addXY(extent.x/3, 0));
-        var loadBtn = new lively.morphic.Button(bounds, 'load')
-        loadBtn.applyStyle({resizeWidth: false, moveHorizontal: true})
-        panel.addMorph(loadBtn);
-        connect(loadBtn, 'fire', this, 'setCurrentURL', {converter: function() {
-            // FIXME
-            this.targetObj.panel.urlText.cachedTextString = null
-            return this.targetObj.panel.urlText.textString }});
-
-        bounds = rect(bounds.topRight(), bounds.bottomRight().addXY(extent.x/3, 0));
-        var removeBtn = new lively.morphic.Button(bounds, 'remove')
-        removeBtn.applyStyle({resizeWidth: false, moveHorizontal: true})
-        panel.addMorph(removeBtn)
-        connect(removeBtn, 'fire', this, 'removeFile');
-
-        bounds = rect(pt(0, bounds.maxY()), panel.bounds().bottomRight());
-        var contentMorph = new lively.morphic.Text(bounds, 'emtpy')
-            .applyStyle({
-                clipMode: 'scroll',
-                fixedHeight: true,
-                fontFamily: 'Monaco',
-                fontSize: 10,
-                resizeWidth: true,
-                resizeHeight: true,
-                padding: Rectangle.inset(5,5)});
-        panel.contentMorph = panel.addMorph(contentMorph);
-        connect(contentMorph, 'savedTextString', this, 'saveFile');
-
-        this.panel = panel;
-        return panel;
-    },
-},
-'network', {
-    setCurrentURL: function(urlString) {
-        this.currentURL = new URL(urlString);
-        alert(this.currentURL);
-    },
-    createWebResource: function() { return new WebResource(this.getURL()) },
-    getURL: function() { return new URL(this.currentURL || this.panel.urlText.textString) },
-},
-'helper', {
-    showAsLoading: function(bool) {
-        if (!bool) {
-            this.loadingScreen && this.loadingScreen.remove();
-            this.loadingScreen = null;
-        } else {
-            if (this.loadingScreen) return;
-            var morph = lively.morphic.Morph.makeRectangle(this.panel.contentMorph.bounds());
-            morph.applyStyle({fill: Color.gray.withA(0.6)});
-            this.loadingScreen = this.panel.addMorph(morph);
-        }
-    },
-},
-'file functions', {
-    getEditorContent: function() { return this.panel.contentMorph.textString },
-    saveFile: function() {
-        var webR = this.createWebResource();
-        webR
-            .beAsync()
-            .createProgressBar()
-            .statusMessage('Successfully saved ' + webR.getURL(), 'Error saving ' + webR.getURL(), true)
-            .put(this.getEditorContent());
-    },
-    loadFile: function() {
-        var res = this.createWebResource().forceUncached();
-        this.showAsLoading(true);
-        connect(res, 'status', this, 'showAsLoading', {updater: function($upd, status) {$upd(false)}});
-        connect(res, 'content', this, 'finishLoading', {updater: function($upd, content) {
-            $upd(this.sourceObj) }});
-        res.beAsync().get();
-
-    },
-    finishLoading: function(res) {
-        if (res.isExisting) {
-            this.panel.contentMorph.setTextString(res.content);
-            return
-        } else if (res.getURL().isLeaf()) {
-            this.askToCreateFile(res);
-        } else {
-            alert('Cannot open/create document at ' + res.getURL());
-        }
-    },
-
-    askToCreateFile: function(webResource) {
-        var question = 'No file ' + webResource.getURL() + ' exists...! Create it?';
-        this.panel.world().confirm(question, function(input) {
-            if (!input) return;
-            webResource.statusMessage(
-                'Successfully created ' + webResource.getURL().filename(),
-                'Cannot create ' + webResource.getURL().filename(), true)
-            webResource.put('empty file');
-            this.loadFile();
-        }.bind(this));
-    },
-    removeFile: function() {
-        var webR = this.createWebResource();
-        if (!webR.exists()) return;
-        webR.statusMessage('Successfully deleted','Error deleting', true).del();
-    },
-},
-'interface', {
-    load: function(url) {
-        this.panel.urlText.textString = url;
-        this.panel.urlText.doSave();
-    },
-});
-
 module('lively.ide'); // so that the namespace is defined even if ide is not loaded
 
 Object.extend(lively.ide, {
     openFile: function(url) {
-        if (!String(url).startsWith('http')) url = URL.codeBase.withFilename(url);
-        var textEditor = new lively.morphic.TextEditor()
-        textEditor.open()
-        textEditor.load(url);
-    },
+        require('lively.ide.tools.TextEditor').toRun(function() {
+            var editor = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph();
+            if (url) {
+                if (!String(url).startsWith('http')) url = URL.codeBase.withFilename(url);
+                editor.openURL(url);
+            }
+            editor.openInWorld($world.positionForNewMorph(editor));
+        });
+    }
 });
 
 

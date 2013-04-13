@@ -588,6 +588,17 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
 
 
 lively.morphic.Morph.subclass('lively.morphic.TabContainer',
+'documentation', {
+    example: function() {
+        var c = new lively.morphic.TabContainer();
+        c.tabBar.addTabLabeled('1');
+        c.activePane().addMorph(lively.newMorph({style: {fill: Color.red}}))
+        c.tabBar.addTabLabeled('2');
+        c.activePane().addMorph(lively.newMorph({style: {fill: Color.green}}))
+        c.setExtent(pt(300,200))
+        c.openInWorld();
+    }
+},
 'settings', {
     style: {
         borderWidth: 1,

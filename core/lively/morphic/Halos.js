@@ -25,6 +25,7 @@ lively.morphic.Morph.addMethods(
         // BoundsHalo has to be in the background (top of the list)
         // so that when other Halos get moved to be seen on the screen they are still in front
         return [lively.morphic.BoundsHalo,
+            lively.morphic.RenameHalo,
             lively.morphic.ResizeHalo,
             lively.morphic.DragHalo,
             lively.morphic.InspectHalo,
@@ -33,7 +34,6 @@ lively.morphic.Morph.addMethods(
             lively.morphic.GrabHalo,
             lively.morphic.CopyHalo,
             lively.morphic.MenuHalo,
-            lively.morphic.RenameHalo,
             lively.morphic.StyleHalo,
             lively.morphic.ScriptEditorHalo,
             lively.morphic.OriginHalo];
@@ -652,8 +652,12 @@ lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
         if (!world || !owner) return;
         var bounds = targetMorph.bounds(),
             boundsInWorld = owner.getGlobalTransform().transformRectToRect(bounds),
-            visibleBounds = this.computeHaloBounds(boundsInWorld, world);
-        this.align(this.bounds().topCenter(), visibleBounds.bottomCenter())
+            visibleBounds = this.computeHaloBounds(boundsInWorld, world),
+            haloItemBounds = this.bounds(),
+            worldBounds = world.visibleBounds(),
+            alignPoint = visibleBounds.bottom() + haloItemBounds.extent().y > worldBounds.bottom() ?
+                            haloItemBounds.bottomCenter() : haloItemBounds.topCenter();
+        this.align(alignPoint, visibleBounds.bottomCenter());
     }
 
 });

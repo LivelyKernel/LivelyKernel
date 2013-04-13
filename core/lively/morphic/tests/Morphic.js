@@ -897,15 +897,14 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
 
     test02HalosStayInVisibleBounds: function() {
         this.createWorld();
-        var m1 = lively.morphic.Morph.makeRectangle(0,0, 100, 100);
-        m1.align(m1.bounds().topRight(), this.world.bounds().topRight());
+        var m1 = lively.morphic.Morph.makeRectangle(0,0, 200, 200);
+        m1.align(m1.bounds().bottomCenter(), this.world.visibleBounds().bottomCenter().addXY(0,50));
         this.world.addMorph(m1);
         m1.showHalos();
         m1.halos.forEach(function(ea) {
             if (ea.constructor == lively.morphic.OriginHalo) return;
-            if (ea.constructor == lively.morphic.RenameHalo) return;
             if (ea.constructor == lively.morphic.BoundsHalo) return;
-            this.assert(this.world.visibleBounds().containsRect(ea.bounds()), 'halo ' + ea + ' not  in visibleBounds')
+            this.assert(this.world.visibleBounds().containsRect(ea.bounds()), 'halo ' + ea + ' not  in visibleBounds, ' + ea.bounds());
         }, this)
     },
 

@@ -987,6 +987,34 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
         return items;
     }
+},
+'messaging', {
+    setStatusMessage: function (msg, color, delay) {
+        console.log("%s status: %s", this, msg)
+        var sm = this._statusMorph;
+        if (!sm) {
+            this._statusMorph = sm = new lively.morphic.Text(pt(400,80).extentAsRectangle());
+            sm.applyStyle({
+                borderWidth: 0, borderRadius: 2,
+                fill: Color.gray.lighter(2),
+                fontSize: this.getFontSize() + 1,
+                fixedWidth: false, fixedHeight: false
+            });
+            sm.isEpiMorph = true;
+            this._sm = sm;
+        }
+        sm.textString = msg;
+        this.world().addMorph(sm);
+        sm.setTextColor(color || Color.black);
+        sm.ignoreEvents();
+        sm.align(sm.bounds().bottomCenter(),
+            this.worldPoint(this.innerBounds().bottomCenter()));
+        (function() { sm.remove() }).delay(delay || 4);
+    },
+
+    showError: function (e, offset) {
+        this.setStatusMessage(String(e), Color.red);
+    }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

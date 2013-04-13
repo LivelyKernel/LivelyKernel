@@ -324,11 +324,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         return value;
     },
     getStatusMessage: function() { return this.StatusMessage },
-    setStatusMessage: function(value, source) {
-        this.StatusMessage = value;
-        if (this.onStatusMessageUpdate) this.onStatusMessageUpdate(value, source);
-        return value;
-    },
     getRootFilters: function() { return this.RootFilters },
     setRootFilters: function(value, source) {
         this.RootFilters = value;
@@ -677,17 +672,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
 
     setStatusMessage: function(msg, color, delay) {
-        var s = this.panel.sourcePane;
-        if (!this._statusMorph) {
-            this._statusMorph = new lively.morphic.Text(pt(300,30).extentAsRectangle());
-            this._statusMorph.applyStyle({borderWidth: 0, strokeOpacity: 0});
-        }
-        var statusMorph = this._statusMorph;
-        statusMorph.setTextString(msg);
-        s.addMorph(statusMorph);
-        statusMorph.setTextColor(color || Color.black);
-        statusMorph.centerAt(s.innerBounds().center());
-        (function() { statusMorph.remove() }).delay(delay || 2);
+        this.panel.sourcePane.setStatusMessage(msg, color, delay);
     },
 
     world: function() {

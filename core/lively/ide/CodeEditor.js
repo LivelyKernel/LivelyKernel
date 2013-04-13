@@ -1151,6 +1151,7 @@ lively.morphic.World.addMethods(
         } else {
             editor.setPosition(this.positionForNewMorph(editor, morph));
         }
+        editor.setTarget(morph);
         if (Config.get('useAceEditor')) {
             var oldEditor = editor.get("CSSCodePane"),
                 newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);

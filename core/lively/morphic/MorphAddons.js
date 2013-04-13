@@ -3,103 +3,98 @@ module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.mor
 Object.extend(lively.morphic, {
 
     show: function(obj) {
-        if (!obj) return null;
-        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); lively.morphic.alert(msg); return msg; }
-        else if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
-        else if (obj instanceof lively.Point) return lively.morphic.newShowPt(obj);
-        else if (obj instanceof lively.Line) return lively.morphic.newShowLine(obj);
-        else if (obj instanceof Rectangle) return lively.morphic.newShowRect(obj);
-        else if (obj.isMorph) return lively.morphic.newShowMorph(obj);
-        else if (obj instanceof HTMLElement) return lively.morphic.newShowElement(obj);
-        else { var msg = Strings.format("%o", obj); lively.morphic.alert(msg); return msg; }
-    },
+        function newShowPt(/*pos or x,y, duration, extent*/) {
+            var args = $A(arguments);
+            // pos either specified using point object or two numbers
+            var pos = args[0].constructor == lively.Point ? args.shift() : pt(args.shift(), args.shift()),
+                duration = args.shift(),
+                extent = args.shift() || pt(12,12);
 
-    newShowPt: function (/*pos or x,y, duration, extent*/) {
-        var args = $A(arguments);
-        // pos either specified using point object or two numbers
-        var pos = args[0].constructor == lively.Point ? args.shift() : pt(args.shift(), args.shift()),
-            duration = args.shift(),
-            extent = args.shift() || pt(12,12);
-
-        var b = new lively.morphic.Morph();
-
-        b.ignoreEvents();
-        b.disableEvents();
-        b.setOpacity(0.5)
-        b.setBounds(extent.extentAsRectangle());
-        b.align(b.getCenter(), pos);
-        b.setFill(Color.red);
-
-        lively.morphic.newShowThenHide(b, duration);
-        return b;
-    },
-
-    newShowLine: function(line, duration) {
-        return line.sample(5).map(function(p) {
-            return this.newShowPt(p, duration, pt(3,3));
-        }, this);
-    },
-
-    newShowRect: function (r, duration) {
-        // creates a marker that looks like:
-        //
-        // xxxx     xxxx
-        // x           x
-        // x           x
-
-        // x           x
-        // x           x
-        // xxxx     xxxx
-
-        function createMarkerMorph(bounds) {
             var b = new lively.morphic.Morph();
-            b.isEpiMorph = true;
-            b.setBounds(bounds);
-            b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
+
             b.ignoreEvents();
+            b.disableEvents();
+            b.setOpacity(0.5)
+            b.setBounds(extent.extentAsRectangle());
+            b.align(b.getCenter(), pos);
+            b.setFill(Color.red);
+
+            newShowThenHide(b, duration);
             return b;
         }
 
-        function createMarkerForCorners() {
-            r = r.insetBy(-2);
-            var length = Math.min(r.width, r.height),
-                markerLength = Math.max(4, Math.floor((length/10) < 10 ? (length / 2) - 5 : length / 10)),
-                boundsForMarkers = [
-                    r.topLeft().     addXY(0,0).               extent(pt(markerLength, 0)),
-                    r.topLeft().     addXY(0,2).               extent(pt(0, markerLength)),
-                    r.topRight().    addXY(-markerLength, 0).  extent(pt(markerLength, 0)),
-                    r.topRight().    addXY(-4,2).              extent(pt(0, markerLength)),
-                    r.bottomRight(). addXY(-4, -markerLength). extent(pt(0, markerLength)),
-                    r.bottomRight(). addXY(-markerLength, -2). extent(pt(markerLength, 0)),
-                    r.bottomLeft().  addXY(0,-2).              extent(pt(markerLength, 0)),
-                    r.bottomLeft().  addXY(0, -markerLength).  extent(pt(0, markerLength))],
-                markers = boundsForMarkers.collect(function(bounds) {
-                    return createMarkerMorph(bounds);
-                });
-            return markers;
+        function newShowLine(line, duration) {
+            return line.sample(5).map(function(p) {
+                return newShowPt(p, duration, pt(3,3)); });
         }
 
-        return lively.morphic.newShowThenHide(createMarkerForCorners(), duration);
-    },
+        function newShowRect(r, duration) {
+            // creates a marker that looks like:
+            //
+            // xxxx     xxxx
+            // x           x
+            // x           x
 
-    newShowMorph: function (morph) {
-        lively.morphic.newShowRect(
-            morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
-    },
-
-    newShowElement: function(el) {
-        $(el).bounds({withMargin: true, withPadding: true}).show(2000);
-    },
-
-    newShowThenHide: function (morphOrMorphs, duration) {
-        var w = Global.world || lively.morphic.World.current();
-        if (!w) { alert("no world"); return }
-        var morphs = Object.isArray(morphOrMorphs) ? morphOrMorphs : [morphOrMorphs];
-        duration = duration || 3;
-        morphs.invoke('openInWorld');
-        if (duration) { // FIXME use scheduler
-            (function() { morphs.invoke('remove') }).delay(duration);
+            // x           x
+            // x           x
+            // xxxx     xxxx
+            function createMarkerMorph(bounds) {
+                var b = new lively.morphic.Morph();
+                b.isEpiMorph = true;
+                b.setBounds(bounds);
+                b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
+                b.ignoreEvents();
+                return b;
+            }
+            function createMarkerForCorners() {
+                r = r.insetBy(-2);
+                var length = Math.min(r.width, r.height),
+                    markerLength = Math.max(4, Math.floor((length/10) < 10 ? (length / 2) - 5 : length / 10)),
+                    boundsForMarkers = [
+                        r.topLeft().     addXY(0,0).               extent(pt(markerLength, 0)),
+                        r.topLeft().     addXY(0,2).               extent(pt(0, markerLength)),
+                        r.topRight().    addXY(-markerLength, 0).  extent(pt(markerLength, 0)),
+                        r.topRight().    addXY(-4,2).              extent(pt(0, markerLength)),
+                        r.bottomRight(). addXY(-4, -markerLength). extent(pt(0, markerLength)),
+                        r.bottomRight(). addXY(-markerLength, -2). extent(pt(markerLength, 0)),
+                        r.bottomLeft().  addXY(0,-2).              extent(pt(markerLength, 0)),
+                        r.bottomLeft().  addXY(0, -markerLength).  extent(pt(0, markerLength))],
+                    markers = boundsForMarkers.collect(function(bounds) {
+                        return createMarkerMorph(bounds);
+                    });
+                return markers;
+            }
+            return newShowThenHide(createMarkerForCorners(), duration);
         }
+
+        function newShowMorph (morph) {
+            newShowRect(morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
+        }
+
+        function newShowElement(el) {
+            $(el).bounds({withMargin: true, withPadding: true}).show(2000);
+        }
+
+        function newShowThenHide (morphOrMorphs, duration) {
+            var w = Global.world || lively.morphic.World.current();
+            if (!w) { alert("no world"); return }
+            var morphs = Object.isArray(morphOrMorphs) ? morphOrMorphs : [morphOrMorphs];
+            duration = duration || 3;
+            morphs.invoke('openInWorld');
+            if (duration) { // FIXME use scheduler
+                (function() { morphs.invoke('remove') }).delay(duration);
+            }
+        }
+
+        if (!obj) return null;
+        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); lively.morphic.alert(msg); return msg; }
+        else if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
+        else if (obj instanceof lively.Point) return newShowPt(obj);
+        else if (obj instanceof lively.Line) return newShowLine(obj);
+        else if (obj instanceof Rectangle) return newShowRect(obj);
+        else if (obj.isMorph) return newShowMorph(obj);
+        else if (obj instanceof HTMLElement) return newShowElement(obj);
+        else { var msg = Strings.format("%o", obj); lively.morphic.alert(msg); return msg; }
     },
 
     alertDbg: function(msg) {
@@ -144,6 +139,11 @@ Object.extend(lively.morphic, {
         lively.morphic.alert(stack);
     }
 
+});
+
+Object.extend(lively, {
+    show:     lively.morphic.show,
+    log:      lively.morphic.log,
 });
 
 Object.extend(Global, {

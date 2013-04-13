@@ -2908,12 +2908,11 @@ Object.subclass('lively.morphic.TextEmphasis',
                 } else if (Object.isString(value)) {
                     // use it as it is
                 } else {
-                    var shadowSpec = value;
-                    value = "";
-                    value += shadowSpec.offset.x + 'px ';
-                    value += shadowSpec.offset.y + 'px ';
-                    value += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
-                    value += shadowSpec.color.toCSSString();
+                    // is spec object woth attributes
+                    value = value.offset.x + 'px '
+                          + value.offset.y + 'px '
+                          + value.blur ? value.blur + 'px ' : "0 "
+                          + value.color.toCSSString();
                 }
                 this.textShadow = value;
             },
@@ -2963,15 +2962,15 @@ Object.subclass('lively.morphic.TextEmphasis',
     getColor:            function()      { return this.get('color'); },
     setColor:            function(value) { return this.set('color', value); },
     getBackgroundColor:  function()      { return this.get('backgroundColor'); },
-    setBackgroundColor:  function(value) { return this.set('backgroundColor', value);; },
+    setBackgroundColor:  function(value) { return this.set('backgroundColor', value); },
     getTextDecoration:   function()      { return this.get('textDecoration');  },
-    setTextDecoration:   function(value) { return this.set('textDecoration', value);; },
+    setTextDecoration:   function(value) { return this.set('textDecoration', value); },
     getTextAlignment:    function()      { return this.get('textAlign'); },
-    setTextAlignment:    function(value) { return this.set('textAlign', value);; },
+    setTextAlignment:    function(value) { return this.set('textAlign', value); },
     getFontSize:         function()      { return this.get('fontSize'); },
-    setFontSize:         function(value) { return this.set('fontSize', value);; },
+    setFontSize:         function(value) { return this.set('fontSize', value); },
     getTextShadow:       function()      { return this.get('textShadow'); },
-    setTextShadow:       function(value) { return this.set('textShadow', value);; }
+    setTextShadow:       function(value) { return this.set('textShadow', value); }
 },
 'cloning', {
     clone: function() { return new this.constructor(this) }

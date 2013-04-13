@@ -222,5 +222,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HTMLText.HtmlPars
 
 });
 
+lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.ObjectEmbedding',
+'testing', {
+    xtest01EmbedSimpleMorph: function() {
+        var m = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            t = this.text;
+        t.setTextString('ein test');
+        debugger;
+        t.emphasizeRanges([[3,4, {embeddedMorph: m}]]);
+        // this.checkChunks([{textString: 'ein test'}]);
+        this.checkDOM([
+            {tagName: 'span',textContent: 'ein'},
+            {tagName: 'span',childNodes: {tagName: 'div'}},
+            {tagName: 'span',textContent: 'test'}]);
+    }
+});
 
 });

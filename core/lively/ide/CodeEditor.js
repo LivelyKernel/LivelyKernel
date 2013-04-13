@@ -957,6 +957,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 
 },
+'text morph replacement', {
+    replaceTextMorph: function(oldEditor) {
+        var newEditor = this;
+        Functions.own(oldEditor).forEach(function(name) { newEditor.addScript(oldEditor[name]); })
+        newEditor.name = oldEditor.name;
+        oldEditor.owner.addMorph(newEditor);
+        oldEditor.remove();
+    }
+},
 'rendering', {
     setClipMode: Functions.Null
 },
@@ -1130,7 +1139,68 @@ lively.morphic.World.addMethods(
         textMorph.remove();
         owner.reset();
         return objectEditor;
-    })
+    }),
+
+    openStyleEditorFor: function(morph, evt) {
+        var editor = this.openPartItem('StyleEditor', 'PartsBin/Tools'),
+            alignPos = morph.getGlobalTransform().transformPoint(morph.innerBounds().bottomLeft()),
+            edBounds = editor.innerBounds(),
+            visibleBounds = this.visibleBounds();
+        if (visibleBounds.containsRect(edBounds.translatedBy(alignPos))) {
+            editor.setPosition(alignPos);
+        } else {
+            editor.setPosition(this.positionForNewMorph(editor, morph));
+        }
+        if (Config.get('useAceEditor')) {
+            var oldEditor = editor.get("CSSCodePane"),
+                newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
+            newEditor.applyStyle({
+                fontSize: Config.get('defaultCodeFontSize')-1,
+                gutter: false,
+                textMode: 'css',
+                lineWrapping: false,
+                printMargin: false,
+                resizeWidth: true, resizeHeight: true
+            });
+            lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("CSSApplyButton"), "onFire");
+            newEditor.replaceTextMorph(oldEditor);
+        }
+        return editor;
+    },
+
+    openWorldCSSEditor: function () {
+        var editor = this.openPartItem('WorldCSS', 'PartsBin/Tools');
+        if (Config.get('useAceEditor')) {
+            var oldEditor = editor.get("CSSCodePane"),
+                newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
+            newEditor.applyStyle({
+                fontSize: Config.get('defaultCodeFontSize')-1,
+                gutter: false,
+                textMode: 'css',
+                lineWrapping: false,
+                printMargin: false,
+                resizeWidth: true, resizeHeight: true
+            });
+            lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("WorldCSS"), "applyWorldCSS", {});
+            newEditor.replaceTextMorph(oldEditor);
+        }
+        return editor;
+    },
+
+    openPartItem: lively.morphic.World.prototype.openPartItem.getOriginal().wrap(function($proceed, name, partsbinCat) {
+        var part = $proceed(name, partsbinCat);
+        if (!Config.get('useAceEditor')) { return part; }
+        if (name === 'MethodFinderPane' && partsbinCat === 'PartsBin/Dialogs') {
+            var oldEditor = part.get("sourceText"),
+                newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
+            newEditor.applyStyle({
+                resizeWidth: true, resizeHeight: true
+            });
+            newEditor.replaceTextMorph(oldEditor);
+        }
+        return part;
+    }),
+
 });
 
 
@@ -1146,6 +1216,11 @@ lively.morphic.CodeEditor.addMethods(
     setVerticalScrollPosition: function(value) {}
 },
 'text compatibility', {
+    emphasize: Functions.Null,
+    emphasizeAll: Functions.Null,
+    unEmphasizeAll: Functions.Null,
+    emphasizeRegex: Functions.Null,
+    emphasizeRange: Functions.Null,
     highlightJavaScriptSyntax: Functions.Null
 });
 

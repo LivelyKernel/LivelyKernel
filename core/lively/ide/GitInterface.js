@@ -7,14 +7,12 @@ Object.extend(lively.ide.GitInterface, {
     commandQueue: [],
 
     scheduleCommand: function(cmd) {
-        show("scheduleCommand %o", cmd);
         this.commandQueue.push(cmd);
         lively.bindings.connect(this.commandInProgress, 'end', this, 'commandFromQueue');
     },
 
     commandFromQueue: function() {
         var cmd = this.commandQueue.shift();
-        show("commandFromQueue %o", cmd);
         cmd.startRequest();
     },
 

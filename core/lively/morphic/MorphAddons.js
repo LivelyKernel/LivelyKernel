@@ -137,6 +137,19 @@ Object.extend(lively.morphic, {
         var stack = 'no stack';
         try { throw new Error() } catch(e) { if (e.stack) stack = e.stack }
         lively.morphic.alert(stack);
+    },
+
+    newMorph: function(options) {
+        // for interactive usage
+        options = options || {};
+        var klass = options.klass || lively.morphic.Box,
+            pos = options.position || pt(0,0),
+            extent = options.extent || pt(100,100),
+            bounds = options.bounds || pos.extent(extent),
+            style = options.style || {fill: Color.gray},
+            args = options.args || [bounds],
+            morph = new klass(args[0], args[1], args[2], args[3], args[4], args[5]);
+        return morph.applyStyle(style);
     }
 
 });
@@ -144,6 +157,7 @@ Object.extend(lively.morphic, {
 Object.extend(lively, {
     show:     lively.morphic.show,
     log:      lively.morphic.log,
+    newMorph: lively.morphic.newMorph
 });
 
 Object.extend(Global, {

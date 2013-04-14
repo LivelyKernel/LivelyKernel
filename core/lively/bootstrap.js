@@ -1331,6 +1331,13 @@
         appCache.addEventListener('error', function(evt) {
             console.log('Error occured while loading the application cache.');
             LoadingScreen.setLogoText('Cache Error');
+            lively.whenLoaded(function(world) {
+                if (!Config.get("warnIfAppcacheError")) return;
+                world.confirm("While loading Lively we found out that the Lively\n"
+                             + "server is not available. You can continue to use\n"
+                             + "the system but server-dependent services might not\n"
+                             + "be accessible. Please check the server.\n");
+            })
             whenCacheLoaded();
         }, false);
 

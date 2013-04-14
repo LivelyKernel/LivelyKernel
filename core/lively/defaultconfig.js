@@ -394,6 +394,7 @@ Global.Config = {
             ["showModuleDefStack", true, "so modules know where they were required from"],
             ["loadUserConfig", false, "for sth like jens/config.js, used in lively.bootstrap"],
             ["modulePaths", [], "root URLs of module lookup"],
+            ["warnIfAppcacheError", true, "In case a world is loaded without being able to reach the application cache (probably because the server cannot be reached) show a warning on world load."],
 
             ["disableScriptCaching", false],
             ["defaultDisplayTheme", 'lively'],

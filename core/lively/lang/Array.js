@@ -286,11 +286,11 @@ Object.extend(Array.prototype, {
         // iterator gets passed in the invocation for the next iteration step
         // as a function as first parameter. This allows to wait arbitrarily
         // between operation steps, great for synchronous dependent steps
-        endFunc = endFunc || Functions.null
+        endFunc = endFunc || Functions.Null;
+        conext = context || Global;
+        iterator = iterator || function(next, ea, idx) { ea.call(context, next, idx); };
         return this.reverse().inject(endFunc, function(nextFunc, ea, idx) {
-            return function() {
-                iterator.call(context || Global, nextFunc, ea, idx);
-            }
+            return function() { iterator.call(context, nextFunc, ea, idx); }
         })();
     },
 

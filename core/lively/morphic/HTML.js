@@ -552,9 +552,16 @@ lively.morphic.Text.addMethods(
         return ctx.textNode ? (ctx.textNode.style.whiteSpace || 'normal') : 'normal';
     },
     setInputAllowedHTML: function(ctx, bool) {
-        if (ctx.textNode) {
-            ctx.textNode.contenteditable = bool;
-            ctx.textNode.setAttribute('contenteditable', bool);
+        if (!ctx.textNode) return;
+        ctx.textNode.contenteditable = bool;
+        ctx.textNode.setAttribute('contenteditable', bool);
+        var cssClasses = ctx.textNode.className,
+            hasVisibleSelectionClass = cssClasses.include('visibleSelection');
+        if (bool && !hasVisibleSelectionClass) {
+            ctx.textNode.className = cssClasses + ' ' + 'visibleSelection';
+        }
+        if (!bool && hasVisibleSelectionClass) {
+            ctx.textNode.className = cssClasses.replace(/visibleSelection/g, '');
         }
     }
 },

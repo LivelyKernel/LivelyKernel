@@ -28,7 +28,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             fixedHeight: true,
             textColor: Color.black,
             clipMode: 'hidden',
-            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
+            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}},
+            allowInput: false
         }
     }
 },
@@ -2119,6 +2120,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         fixedWidth: true,
         fixedHeight: true,
         resizeWidth: true,
+        allowInput: false
     }
 },
 'intitializing', {

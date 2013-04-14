@@ -517,8 +517,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
         };
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
-        this.applyStyle(labelStyle);
         this.ignoreEvents();
+        this.applyStyle(labelStyle);
         return this;
     },
     beInputLine: function(customStyle) {

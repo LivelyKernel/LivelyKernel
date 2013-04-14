@@ -402,7 +402,8 @@ Object.subclass('lively.Module',
             return;
         }
         if (this.hasPendingRequirements()) { // requirement missing
-            return this.loadRequirementsFirst();
+            this.loadRequirementsFirst();
+            return;
         }
         if (!this.isLoaded()) { // load module for the first time
             this.runOnloadCallbacks();

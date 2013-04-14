@@ -1004,6 +1004,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'messaging', {
     setStatusMessage: function (msg, color, delay) {
         console.log("%s status: %s", this, msg)
+        var world = this.world();
+        if (!world) return;
         var sm = this._statusMorph;
         if (!sm) {
             this._statusMorph = sm = new lively.morphic.Text(pt(400,80).extentAsRectangle());
@@ -1017,7 +1019,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             this._sm = sm;
         }
         sm.textString = msg;
-        this.world().addMorph(sm);
+        world.addMorph(sm);
         sm.setTextColor(color || Color.black);
         sm.ignoreEvents();
         sm.align(sm.bounds().bottomCenter(),

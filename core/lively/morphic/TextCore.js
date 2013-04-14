@@ -2911,7 +2911,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                     // is spec object woth attributes
                     value = value.offset.x + 'px '
                           + value.offset.y + 'px '
-                          + value.blur ? value.blur + 'px ' : "0 "
+                          + (value.blur ? value.blur + 'px ' : "0 ")
                           + value.color.toCSSString();
                 }
                 this.textShadow = value;

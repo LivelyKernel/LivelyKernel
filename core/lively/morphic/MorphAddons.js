@@ -793,7 +793,7 @@ lively.morphic.World.addMethods(
 
         morph.isEpiMorph = true;
         this.addMorph(morph);
-        morph.addScript(function onMouseUp(evt) {
+        morph.addScript(function onMouseDown(evt) {
             this.stayOpen = true;
             return $super(evt);
         })
@@ -868,6 +868,19 @@ lively.morphic.World.addMethods(
                 textMsg.align(textMsg.bounds().center(), this.innerBounds().center());
             }).bind(this).delay(0);
 
+        });
+
+        msgMorph.addScript(function onDoubleClick(evt) {
+            if (!this.world() || this.isMaximized) return;
+            this.isMaximized = true
+            var ext = this.get('messageText').getTextExtent();
+            this.get('messageText').setInputAllowed(true);
+            var visibleBounds = this.world().visibleBounds();
+            if (ext.y > visibleBounds.extent().y) ext.y = visibleBounds.extent().y - 20;
+            ext = this.getExtent().maxPt(ext);
+            // show(ext)
+            this.setExtent(ext);
+            this.align(this.bounds().center(), visibleBounds.center());
         });
 
         return msgMorph;

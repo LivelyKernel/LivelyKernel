@@ -2281,7 +2281,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.setBorderStylingMode(true);
         this.targetMorph = this.addMorph(targetMorph);
         this.targetMorph.setPosition(this.contentOffset);
-
     },
 
     makeReframeHandles: function() {
@@ -2669,7 +2668,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
                                    this.panel.getExtent().x - 2*this.inset, 18);
         this.label = new lively.morphic.Text(bounds, this.message).beLabel({
             fill: Color.white,
-            fixedHeight: true,
+            fixedHeight: false,
             fixedWidth: false,
             padding: Rectangle.inset(0,0),
             enableGrabbing: false,
@@ -2682,10 +2681,18 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         // determine its extent
         (function fit() {
             this.label.fit();
-            var labelWidth = this.label.getExtent().x, panelExtent = this.panel.getExtent();
-            if (labelWidth > panelExtent.x) {
-                this.panel.setExtent(panelExtent.withX(labelWidth + 2*this.inset));
+            var labelExtent = this.label.getExtent(),
+                panelExtent = this.panel.getExtent();
+            if (labelExtent.x > panelExtent.x) {
+                panelExtent = panelExtent.withX(labelExtent.x + 2*this.inset);
             }
+            if (labelExtent.y > bounds.height) {
+                var morphsBelowLabel = this.panel.submorphs.without(this.label).select(function(ea) {
+                        return ea.bounds().top() >= bounds.bottom(); }),
+                    diff = labelExtent.y - bounds.height;
+                panelExtent = panelExtent.addXY(0, diff);
+            }
+            this.panel.setExtent(panelExtent);
         }).bind(this).delay(0);
     },
     buildCancelButton: function() {
@@ -2792,6 +2799,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         return view;
     },
 });
+
 
 lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()

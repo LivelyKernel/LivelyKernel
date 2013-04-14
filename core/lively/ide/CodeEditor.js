@@ -217,6 +217,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowPrintMargin(this.getShowPrintMargin());
         this.setShowInvisibles(this.getShowInvisibles());
         this.setShowIndents(this.getShowIndents());
+        this._StyleClassNames = this.jQuery().attr('class').split(' ');
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;

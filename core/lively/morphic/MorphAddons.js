@@ -861,7 +861,11 @@ lively.morphic.World.addMethods(
             textMsg.textString = msg;
             var cssClass = (Color.red.equals(color) && 'failure')
                         || (Color.green.equals(color) && 'success');
-            cssClass &&  this.addStyleClassName(cssClass);
+            // something's wrong here...
+            // cssClass &&  this.addStyleClassName(cssClass);
+            console.log(cssClass)
+            this._StyleClassNames.pushIfNotIncluded(cssClass);
+            if (cssClass) this.jQuery().attr('class', this.jQuery().attr('class') + ' ' + cssClass);
             (function() {
                 var extent = textMsg.getTextExtent().minPt(this.getExtent().subXY(10,10));
                 textMsg.setExtent(extent);
@@ -871,11 +875,14 @@ lively.morphic.World.addMethods(
         });
 
         msgMorph.addScript(function onDoubleClick(evt) {
-            if (!this.world() || this.isMaximized) return;
+            var world = this.world();
+            if (!world || this.isMaximized) return;
             this.isMaximized = true
+            this.stayOpen = true;
+            world.statusMessages.remove(this);
             var ext = this.get('messageText').getTextExtent();
             this.get('messageText').setInputAllowed(true);
-            var visibleBounds = this.world().visibleBounds();
+            var visibleBounds = world.visibleBounds();
             if (ext.y > visibleBounds.extent().y) ext.y = visibleBounds.extent().y - 20;
             ext = this.getExtent().maxPt(ext);
             // show(ext)

@@ -85,9 +85,10 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 
     onrestore: function() {
         this.shapeNode = document.createElement('div');
-        this.shapeNode.style.width = this.extent.x + 'px';
-        this.shapeNode.style.height = this.extent.y + 'px';
-        this.setExtent(this.extent);
+        lively.bindings.connect(this, 'aceEditor', this, 'setExtent', {
+            removeAfterUpdate: true,
+            converter: function(ed) { return this.targetObj.extent; }
+        });
     }
 },
 'HTML rendering', {
@@ -101,8 +102,7 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
     setExtentHTML: function (ctx, value) {
         if (!ctx.shapeNode) return undefined;
         var borderWidth = Math.floor(this.getBorderWidth()),
-            realExtent = value.addXY(-1 * borderWidth, -1 * borderWidth);
-        realExtent = realExtent.maxPt(lively.pt(0,0));
+            realExtent = value.subXY(borderWidth, borderWidth).maxPt(lively.pt(0,0));
         ctx.domInterface.setExtent(ctx.shapeNode, realExtent);
         if (this.aceEditor) this.aceEditor.resize(true);
         return realExtent;

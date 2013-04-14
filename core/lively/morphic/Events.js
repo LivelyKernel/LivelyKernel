@@ -184,6 +184,16 @@ Object.subclass('lively.morphic.EventHandler',
 
         if (evt.hasLivelyPatch) return evt;
 
+        evt.getTargetMorph = function() {
+            var node = evt.target;
+            while (node) {
+                if (node.getAttribute
+                 && node.getAttribute('data-lively-node-type') === 'morph-node') break;
+                node = node.parentNode;
+            }
+            return node && lively.$(node).data('morph');
+        }
+
         evt.hasLivelyPatch = true;
         evt.isLeftMouseButtonDown = function() { return Event.MOUSE_LEFT_DETECTOR(evt) };
         evt.isMiddleMouseButtonDown = function() { return Event.MOUSE_MIDDLE_DETECTOR(evt) };

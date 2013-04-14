@@ -204,10 +204,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.getShape().aceEditor = e;
 
         // 3) set modes / themes
-        this.setStyleSheet('#ace-editor {'
-                          + ' position:absolute;'
-                          + ' top:0; bottom:0; left:0; right:0;'
-                          + '}');
         this.setupKeyBindings();
         this.setTextMode(this.getTextMode() || "");
         this.setTheme(this.getTheme() || '');

@@ -53,9 +53,9 @@ Object.extend(Array.prototype, {
     grep: function(filter, iterator, context) {
         iterator = iterator || Functions.K;
         var results = [];
-        if (Object.isString(filter)) filter = new RegExp(filter);
+        if (Object.isString(filter)) filter = new RegExp(filter, 'i');
         this.forEach(function(value, index) {
-            if (filter.match(value)) results.push(iterator.call(context, value, index));
+            if (filter.test(value)) results.push(iterator.call(context, value, index));
         });
         return results;
     },

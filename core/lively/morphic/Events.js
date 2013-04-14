@@ -851,7 +851,23 @@ handleOnCapture);
         if (c === Event.KEY_RIGHT) return this.onRightPressed(evt);
         if (c === Event.KEY_UP) return this.onUpPressed(evt);
         if (c === Event.KEY_DOWN) return this.onDownPressed(evt);
+        if (!this.isFocused()) return false;
+        if (evt.isCommandKey()) {
+            var result = this.processCommandKeys(evt);
+            if (result) evt.stop();
+            return result;
+        }
         return false;
+    },
+    processCommandKeys: function(evt) {
+        if (!this.isFocused()) return false;
+        var result = false, c = evt.getKeyChar();
+        switch(c && c.toLowerCase()) {
+            case 'c': result = this.doKeyCopy(evt); break;
+            case 'v': result = this.doKeyPaste(evt); break;
+        }
+        result && evt.stop();
+        return result;
     },
     onKeyUp: Functions.False,
     onKeyPress: Functions.False,
@@ -902,8 +918,61 @@ handleOnCapture);
             ea.halos && ea.halos.invoke('alignAtTarget');
         });
         return true;
-    }
+    },
 
+    createClipboardCapture: function(handler) {
+        var input = $('<input id="clipboardAccess" type="text" style="width:1px;height:1px;outline:0;position:absolute;top:-1px;left:-1px"/>'),
+            world = lively.morphic.World.current(),
+            morph = this;
+        $('body').append(input);
+        input[0].addEventListener('copy', handler, false);
+        input[0].addEventListener('paste', handler, false);
+        var scroll = world.getScrollOffset();
+        input.focus();
+        world.setScroll(scroll.x, scroll.y);
+        Global.setTimeout(function() {
+            var focused = morph.isFocused();
+            $('#clipboardAccess').remove();
+            focused && morph.focus();
+        }, 20);
+    },
+
+    doKeyCopy: function() {
+        this.withClipboardEventDo(function(evt, data) {
+            var copyString = this.copy(true),
+                header = 'LIVELYKERNELCLIPBOARDDATA|' + copyString.length + '|';
+            data.setData("Text", header + copyString);
+            alertOK('Copied ' + this);
+        });
+    },
+
+    doKeyPaste: function() {
+        this.withClipboardEventDo(function(evt, data) {
+            var text = data.getData('Text');
+            if (!text) return false;
+            var match = text.match(/LIVELYKERNELCLIPBOARDDATA\|([0-9]+)\|(.+)/i);
+            if (!match || !match[2]) return false;
+            var obj = lively.persistence.Serializer.deserialize(match[2]);
+            if (!obj || !obj.isMorph) return false;
+            var pos = this.world().firstHand().getPosition();
+            obj.setPosition(this.localize(pos));
+            this.addMorph(obj);
+            alertOK('Pasted ' + this);
+            if (obj.isMorphClipboardCarrier) {
+                obj.submorphs.forEach(function(ea) { this.addMorph(ea); }, this);
+                obj.remove();
+            }
+        });
+    },
+
+    withClipboardEventDo: function(func) {
+        var morph = this;
+        this.createClipboardCapture(function(evt) {
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            func.call(morph, evt, evt.clipboardData || window.clipboardData);
+            evt.preventDefault();
+        });
+    }
 
 },
 'touch events', {
@@ -1189,7 +1258,10 @@ lively.morphic.Text.addMethods(
 
     correctForDragOffset: function(evt) {
         return !this.allowInput;
-    }
+    },
+
+    doKeyCopy: Functions.Null,
+    doKeyPaste: Functions.Null
 });
 
 lively.morphic.List.addMethods(
@@ -1403,18 +1475,7 @@ lively.morphic.World.addMethods(
 
 },
 'keyboard event handling', {
-    onKeyDown: function($super, evt) {
-        if ($super(evt)) return true;
-        if (!this.isFocused()) return false;
 
-        if (evt.isCommandKey()) {
-            var result = this.processCommandKeys(evt);
-            if (result) evt.stop();
-            return result
-        }
-
-        return true;
-    },
     onKeyPress: function(evt) {
         if (!this.isFocused()) return false;
         evt.stop();
@@ -1424,7 +1485,7 @@ lively.morphic.World.addMethods(
         return false;
     },
 
-    processCommandKeys: function(evt) {
+    processCommandKeys: function($super, evt) {
         var key = evt.getKeyChar();
         if (key) key = key.toLowerCase();
 
@@ -1467,7 +1528,7 @@ lively.morphic.World.addMethods(
             case 219/*cmd+[*/: { this.alert('CMD+] disabled'); return true }
         }
 
-        return false;
+        return $super(evt);
     },
 
     onBackspacePressed: function(evt) {
@@ -1476,6 +1537,10 @@ lively.morphic.World.addMethods(
         evt.stop(); // so that we not accidently go back
         return true;
     },
+
+    doKeyCopy: function() {
+        lively.morphic.alert('Sorry, copying the world is currently not supported.');
+    }
 },
 'mouse event handling', {
     onMouseDown: function($super, evt) {

@@ -60,17 +60,17 @@ lively.morphic.Morph.addMethods(
 },
 'copying', {
 
-    copy: function() {
+    copy: function(stringified) {
         var copy = this.basicCopy();
         copy.withAllSubmorphsDo(function(ea) { ea.setNewId() })
         copy.prepareForNewRenderContext(this.renderContext().newInstance());
         copy.findAndSetUniqueName();
         copy.disconnectObsoleteControlPoints();
         if (typeof copy.onCopy === "function") { copy.onCopy(); }
-        return copy;
+        return stringified ? lively.persistence.Serializer.serialize(copy) : copy;
     },
     basicCopy: function() {
-        return lively.persistence.Serializer.newMorphicCopy(this);
+        return lively.persistence.Serializer.copy(this);
     },
     restoreRenderContextAfterCopy: function(renderCtx) {
         // DEPRECATED use the function called instead

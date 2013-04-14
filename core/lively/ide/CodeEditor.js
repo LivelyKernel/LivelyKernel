@@ -661,6 +661,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return true;
     },
 
+    doKeyCopy: Functions.Null,
+    doKeyPaste: Functions.Null
+
 },
 'text morph eval interface', {
 

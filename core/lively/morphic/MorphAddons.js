@@ -923,8 +923,9 @@ lively.morphic.World.addMethods(
     getScrollOffset: function () {
         this.scrollOffset = this.visibleBounds().topLeft()
         return this.scrollOffset;
-    },
+    }
 });
+
 lively.morphic.HandMorph.addMethods(
 'focus', {
     setKeyboardFocus: function() {},

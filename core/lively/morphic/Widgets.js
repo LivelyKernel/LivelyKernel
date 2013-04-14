@@ -3313,6 +3313,21 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         this.selectMorphs(all)
     },
 
+},
+'keyboard events', {
+
+    doKeyCopy: function() {
+        if (!this.selectedMorphs.length) return;
+        var copies = this.selectedMorphs.invoke('copy'),
+            carrier = lively.morphic.Morph.makeRectangle(0,0,1,1);
+        carrier.isMorphClipboardCarrier = true;
+        copies.forEach(function(ea) {
+            carrier.addMorph(ea);
+            ea.setPosition(this.localize(ea.getPosition()));
+        }, this);
+        carrier.doKeyCopy();
+    }
+
 });
 
 Trait('SelectionMorphTrait',

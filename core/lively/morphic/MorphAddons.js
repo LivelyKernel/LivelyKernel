@@ -752,20 +752,12 @@ lively.morphic.World.addMethods(
 },
 'logging', {
     setStatusMessage: function (msg, color, delay, callback, optStyle) {
-        var msgMorph = new lively.morphic.Text(new Rectangle(0,0, 600, 20), msg);
-        msgMorph.applyStyle({
-            borderWidth: 1,     fixedWidth: true,   fixedHeight: false,
-            borderColor: color, borderRadius: 10,   fill: Color.lightGray,
-            textColor: color,   allowInput: false,  padding: Rectangle.inset(10,5,80,10)});
+        var msgMorph = this.createStatusMessage(msg);
+        msgMorph.setMessage(msg, color);
 
-        var closeBtn = new lively.morphic.Button(new Rectangle(0,0,20,20), 'X')
-        msgMorph.addMorph(closeBtn);
-        closeBtn.align(closeBtn.bounds().topRight(),
-            msgMorph.innerBounds().topRight().addPt(pt(-5,5)));
-        connect(closeBtn, 'fire', msgMorph, 'remove')
-
-        if (callback) {
-            var btn = new lively.morphic.Button(new Rectangle(0,0,50,20), 'more')
+        // callbacks are currently not supported...
+        if (false && callback) {
+            var btn = new lively.morphic.Button(lively.rect(0,0,50,20), 'more')
             btn.callbackFunc = callback;
             msgMorph.addMorph(btn);
             btn.align(btn.bounds().topRight(), closeBtn.bounds().topLeft().addPt(pt(-5,0)));
@@ -776,7 +768,6 @@ lively.morphic.World.addMethods(
         } else {
             console.log(msg);
         }
-        msgMorph.ignoreEvents();
         return this.addStatusMessageMorph(msgMorph, delay || 5);
     },
 
@@ -796,6 +787,10 @@ lively.morphic.World.addMethods(
     },
     addStatusMessageMorph: function(morph, delay) {
         if (!this.statusMessages) this.statusMessages = [];
+        while (this.statusMessages.length >= 3) {
+            this.statusMessages.shift().remove()
+        }
+
         morph.isEpiMorph = true;
         this.addMorph(morph);
         morph.addScript(function onMouseUp(evt) {
@@ -809,8 +804,9 @@ lively.morphic.World.addMethods(
             }
             return $super();
         })
-        morph.align(morph.bounds().topRight(), this.visibleBounds().topRight());
-        this.statusMessages.invoke('moveBy', pt(0, morph.getExtent().y));
+        morph.align(morph.bounds().bottomRight(), this.visibleBounds().bottomRight().addXY(-20, -20));
+        // morph.align(morph.bounds().topRight(), this.visibleBounds().topRight());
+        this.statusMessages.invoke('moveBy', pt(0, -morph.getExtent().y));
         this.statusMessages.push(morph);
 
         if (delay) {
@@ -821,9 +817,65 @@ lively.morphic.World.addMethods(
 
         return morph;
     },
+    createStatusMessage: function(msg) {
+        var msgMorph = lively.newMorph({extent: pt(200, 68)});
+        msgMorph.isEpiMorph = true;
+        msgMorph.openInWorld()
+        msgMorph.applyStyle({adjustForNewBounds: true, clipMode: 'hidden'});
+        msgMorph.name = 'messageMorph'
+        msgMorph.addStyleClassName(msgMorph.name);
+
+        var textMsg = msgMorph.addMorph(new lively.morphic.Text(msgMorph.innerBounds().insetBy(10), ''));
+        textMsg.name = 'messageText'
+        textMsg.addStyleClassName(textMsg.name);
+        textMsg.beLabel({
+            fixedWidth: true, fixedHeight: true,
+            resizeWidth: true, resizeHeight: true,
+            allowInput: false,
+            clipMode: 'visible'
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        var closeBtn = msgMorph.addMorph(new lively.morphic.Text(msgMorph.innerBounds().withWidth(30), '⊗'));
+        closeBtn.align(closeBtn.bounds().topLeft(), msgMorph.innerBounds().topLeft())
+        closeBtn.name = 'closeButton'
+        closeBtn.addStyleClassName(closeBtn.name);
+        closeBtn.applyStyle({
+            moveHorizontal: false, centeredVertical: true,
+            clipMode: 'hidden'
+        });
+
+        msgMorph.withAllSubmorphsDo(function(ea) {
+            ea.setAppearanceStylingMode(true);
+            ea.setBorderStylingMode(true);
+            ea.isText && ea.setTextStylingMode(true)
+        });
+
+        closeBtn.addScript(function onMouseDown() {
+            this.owner.remove();
+        });
+
+        msgMorph.addScript(function setMessage(msg, color) {
+            var textMsg = this.get('messageText');
+            textMsg.textString = msg;
+            var cssClass = (Color.red.equals(color) && 'failure')
+                        || (Color.green.equals(color) && 'success');
+            cssClass &&  this.addStyleClassName(cssClass);
+            (function() {
+                var extent = textMsg.getTextExtent().minPt(this.getExtent().subXY(10,10));
+                textMsg.setExtent(extent);
+                textMsg.align(textMsg.bounds().center(), this.innerBounds().center());
+            }).bind(this).delay(0);
+
+        });
+
+        return msgMorph;
+    },
+
     addStatusProgress: function(label) {
         return this.addStatusMessageMorph(this.addProgressBar(null, label));
-    },
+    }
 },
 'auth', {
     getUserName: function() {

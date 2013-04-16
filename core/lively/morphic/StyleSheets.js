@@ -377,7 +377,11 @@ lively.morphic.Morph.addMethods(
                         var sel = sizzle.select(rule.getSelector(), morph, null, [startMorph]);
                         return sel.length === 1;
                     } catch(e) {
-                        console.warn('Selector engine failed to deal with '+rule.getSelector());
+                        sizzle.errors = sizzle.errors || [];
+                        var sel = rule.getSelector();
+                        if (sizzle.errors.include(sel)); return false;
+                        sizzle.errors.push(sel);
+                        console.error('Selector engine failed to deal with %s', sel);
                         return false;
                     }
                 }));
@@ -1362,7 +1366,11 @@ if ( !xml ) {
         return elem[name];
     },
     error: function (msg) {
-        throw new Error("Syntax error, unrecognized expression: " + msg);
+        this.errors = this.errors || [];
+        if (this.errors.include(msg)); return false;
+        this.errors.push(msg);
+        console.error("Syntax error, unrecognized expression: %s", msg);
+        return false;
     },
 
     getText: function (elem) {

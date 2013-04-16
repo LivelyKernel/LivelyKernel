@@ -381,6 +381,7 @@ Global.Config = {
             ["resizeScreenToWorldBounds", false],
 
             ["changeLocationOnSaveWorldAs", false],
+            ["showWorldSave", true],
 
             ["alignToGridSpace", 10, "determins the pixels to snap to during shift dragging with mouse"],
 

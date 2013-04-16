@@ -286,8 +286,9 @@ lively.morphic.World.addMethods(
             this.getLastModificationDate(webR);
             this.savedWorldAsURL =  status.url;
             lively.bindings.signal(this, 'savingDone', status.url);
+            Config.get('showWorldSave') && this.alertOK('World successfully saved');
         } else {
-            this.alert('Problem saving ' + status.url + ': ' + status)
+            Config.get('showWorldSave') && this.alert('Problem saving ' + status.url + ': ' + status);
         }
     },
     getLastModificationDate: function(webR) {

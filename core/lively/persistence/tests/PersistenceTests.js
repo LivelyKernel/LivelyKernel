@@ -125,6 +125,14 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.sut.cleanup(); // evil!!!!
         this.assertEquals(id, obj[this.sut.idProperty], 'orig');
         this.assertEquals(id, recreated[this.sut.idProperty], 'recreated');
+    },
+    test12GraceFulErrorInSerialization: function() {
+        var obj = {
+            get prop1() { throw new Error },
+            prop2: 23
+        }, serialized = this.sut.serializeToJso(obj);
+        this.assertEquals(23, serialized.registry[0].prop2);
+        this.assert(!serialized.registry[0].hasOwnProperty("prop1"), 'prop1 should be ignored and excluded');
     }
 })
 

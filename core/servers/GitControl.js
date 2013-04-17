@@ -1,16 +1,17 @@
 spawn = require('child_process').spawn;
+util = require('util');
+i = util.inspect;
 dir = process.env.WORKSPACE_LK;
 
 git = {process: null, stdout: '', stderr: '', lastExitCode: null}
-defaultOptions = ['--no-pager']
+defaultOptions = ['--no-pager'];
 
-runGit = function(/*args, thenDo*/) {
-    var args = [], thenDo;
+
+runGit = function(/*args*/) {
+    var args = [];
     for (var i = 0; i < arguments.length; i++) {
-        if (typeof arguments[i] === 'function') { thenDo = arguments[i]; break;}
         args.push(arguments[i]);
     }
-
     git.process = spawn('git', defaultOptions.concat(args), {cwd: dir});
     git.process.stdout.on('data', function (data) {
         // console.log('stdout: ' + data);
@@ -45,7 +46,13 @@ module.exports = function(route, app) {
         var command = req.body && req.body.command;
         if (!command) { res.status(400).end(); return; }
         if (git.process) { res.status(400).end({error: 'Git process still running!'}); return; }
-        runGit.apply(null, command.split(' '));
+        var commandAndArgs = [];
+        if (typeof command === 'string') {
+            commandAndArgs = command.split(' ');
+        } else if (util.isArray(command)) {
+            commandAndArgs = command;
+        }
+        runGit.apply(null, commandAndArgs);
         if (!git.process) { res.status(400).end({error: 'Could not start git!'}); return; }
 
         // make ir a streaming response:

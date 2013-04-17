@@ -18,6 +18,7 @@ Object.extend(lively.ide.GitInterface, {
 
     command: function(commandString, thenDo) {
         var gitInterface = this,
+            parsedCommand = this.parseCommandIntoCommandAndArgs(commandString),
             webR = this.gitControlURL.asWebResource().beAsync(),
             esc = {'8': String.fromCharCode(8), '27': String.fromCharCode(27)},
             ansiColorRegex = new RegExp(Strings.format('%s\[[0-9;]*m|.%s', esc[27], esc[8]), 'g'),
@@ -63,7 +64,7 @@ Object.extend(lively.ide.GitInterface, {
 
                 startRequest: function() {
                     gitInterface.commandInProgress = this;
-                    webR.post(JSON.stringify({command: commandString}), 'application/json');
+                    webR.post(JSON.stringify({command: parsedCommand}), 'application/json');
                     this.startInterval();
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) {
@@ -92,7 +93,25 @@ Object.extend(lively.ide.GitInterface, {
         try {
             return JSON.parse(webR.get().content).cwd;
         } catch(e) { return ''; }
+    },
+
+    parseCommandIntoCommandAndArgs: function(cmd) {
+        var result = [], word = '', state = 'normal';
+        function add() { 
+            if (word.length > 0) result.push(word); word = '';
+        }
+        for (var i = 0, c; c = cmd[i]; i++) {
+            if (state === 'normal' && /\s/.test(c)) { add(); continue; }
+            if (c === "\"" || c === "'") {
+                if (state === 'normal') { state = c; }
+                else if (state === c) state = 'normal'
+            }
+            word += c;
+        }
+        add();
+        return result;
     }
+
 
 });
 

@@ -1,5 +1,31 @@
 module('lively.ide.tests.GitInterface').requires('lively.TestFramework').toRun(function() {
 
+TestCase.subclass('lively.ide.tests.GitInterface.Shell',
+'testing', {
+    testCommandParsing: function() {
+        var commandParseData = [
+            ["foo", ["foo"]],
+            ["foo -bar", ["foo", "-bar"]],
+            ["foo -bar 3", ["foo", "-bar", "3"]],
+            ["foo --bar=123", ["foo", "--bar=123"]],
+            ["foo -x --bar", ["foo", "-x", "--bar"]],
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            ["foo --bar \"to ge ther\"", ["foo", "--bar", '"to ge ther"']],
+            ["foo --bar \"to ge\\\"ther\"", ["foo", "--bar", '"to ge\\\"ther"']],
+            ["foo 'bar baz'", ['foo', "'bar baz'"]],
+            ["foo 'bar \\\'baz'", ['foo', "'bar \\\'baz'"]],
+            ["foo 'bar \"baz zork\"'", ['foo', "'bar \"baz zork\"'"]]
+        ];
+        
+        commandParseData.forEach(function(spec) {
+            var cmd = spec[0], expected = spec[1],
+                result = lively.ide.GitInterface.parseCommandIntoCommandAndArgs(cmd);
+            this.assertEquals(expected, result,
+                              Strings.format('\n%s\n%s vs %s', cmd, expected, result));
+        }, this);
+    }    
+});
+
 TestCase.subclass('lively.ide.tests.GitInterface.Differ',
 'testing', {
     testParsePatch: function() {

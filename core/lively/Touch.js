@@ -253,15 +253,14 @@ cop.create('IPadExtensions')
         this.renderContextDispatch('updateListContent', items);
         }
     },
-}).refineClass(lively.morphic.Text,
-'text control', {
+}).refineClass(lively.morphic.Text, {
     initialize: function (bounds, string) {
         var returnValue = cop.proceed(bounds, string);
         this.initializeTextControl();
         return returnValue;
     },
     onrestore: function() {
-        var returnValue = cop.proceed(bounds, string);
+        var returnValue = cop.proceed();
         this.initializeTextControl();
         return returnValue;
     },

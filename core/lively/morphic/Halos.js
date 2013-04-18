@@ -276,8 +276,19 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         }
         target.moveBy(evt.getPosition().subPt(world.eventStartPos));
         target.halos.invoke('alignAtTarget');
-    }
-
+    },
+},
+'utilities', {
+    targetScripts: function() {
+        // answer sorted list of targetMorph's script names
+        var obj = this.targetMorph;
+        var fs = Functions.own(obj);
+        if (!fs)
+            return [];
+        return fs
+            .select(function(name) { return obj[name].getOriginal().hasLivelyClosure })
+            .sortBy(function(name) { return name.toLowerCase() }); 
+    },
 });
 
 lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
@@ -388,9 +399,8 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
         this.targetMorph.distanceToDragEvent = evt.getPosition().subPt(this.targetMorph.getPositionInWorld());
         this.targetMorph.removeHalosWithout(this.world(), [this, this.getBoundsHalo()]);
     },
-
-
 });
+
 lively.morphic.Halo.subclass('lively.morphic.GrabHalo',
 'settings', {
     style: {fill: Color.rgb(210, 210, 0).lighter(), toolTip: 'grab the object (CMD-click)'},
@@ -701,11 +711,31 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
     horizontalPos: 3,
     verticalPos: 1,
 },
+'initializing', {
+    setTarget: function($super, morph) {
+        $super(morph);
+        this.updateStyle();
+    },
+    updateStyle: function() {
+        // if targetMorph has scripts, use a colored handle
+        // and show script names in tooltip
+        var scripts = this.targetScripts();
+        if (scripts.size() > 0) {
+            this.setFill(Color.orange);
+            this.setToolTip(this.style.toolTip + '\n' + scripts.join('()\n') + '()');
+        } else {
+            this.setFill(Color.gray);
+            this.setToolTip(this.style.toolTip);
+        };
+    }
+
+},
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
         $world.openObjectEditorFor(this.targetMorph, evt)
     },
+
 });
 
 lively.morphic.Halo.subclass('lively.morphic.InspectHalo',

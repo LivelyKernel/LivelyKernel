@@ -438,10 +438,10 @@ Object.subclass('lively.morphic.Morph',
     innerBoundsContainsPoint: function(p) { return this.innerBounds().containsPoint(p);  }
 },
 'prototypical scripting', {
-    addScript: function(funcOrString, optName) {
+    addScript: function(funcOrString, optName, optMapping) {
         if (!funcOrString) return false;
         var func = Function.fromString(funcOrString);
-        return func.asScriptOf(this, optName);
+        return func.asScriptOf(this, optName, optMapping);
     },
 
 },

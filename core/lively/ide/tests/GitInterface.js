@@ -14,7 +14,8 @@ TestCase.subclass('lively.ide.tests.GitInterface.Shell',
             ["foo --bar \"to ge\\\"ther\"", ["foo", "--bar", '"to ge\\\"ther"']],
             ["foo 'bar baz'", ['foo', "'bar baz'"]],
             ["foo 'bar \\\'baz'", ['foo', "'bar \\\'baz'"]],
-            ["foo 'bar \"baz zork\"'", ['foo', "'bar \"baz zork\"'"]]
+            ["foo 'bar \"baz zork\"'", ['foo', "'bar \"baz zork\"'"]],
+            ["foo -- bar", ['foo', '--', 'bar']]
         ];
         
         commandParseData.forEach(function(spec) {

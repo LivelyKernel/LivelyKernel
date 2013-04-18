@@ -1031,8 +1031,9 @@ lively.morphic.Morph.addMethods(
                                           itemFilter(this.morphMenuItems()));
     },
     showMorphMenu: function(evt) {
-        this.openMorphMenuAt(evt.getPosition());
-        evt.stop();
+        var pos = evt ? evt.getPosition() : this.firstHand().getPosition();
+        evt && evt.stop();
+        this.openMorphMenuAt(pos);
         return true;
     },
     morphMenuItems: function() {

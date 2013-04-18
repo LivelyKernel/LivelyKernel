@@ -103,9 +103,10 @@ Object.extend(lively.ide.GitInterface, {
         for (var i = 0, c; c = cmd[i]; i++) {
             if (state === 'normal' && /\s/.test(c)) { add(); continue; }
             if (c === "\"" || c === "'") {
-                if (state === 'normal') { state = c; }
-                else if (state === c) state = 'normal'
+                if (state === 'normal') { state = c; continue; }
+                if (state === c) { state = 'normal'; continue; }
             }
+            if (c === '\\' && state === cmd[i+1]) { i++; c = cmd[i]; }
             word += c;
         }
         add();

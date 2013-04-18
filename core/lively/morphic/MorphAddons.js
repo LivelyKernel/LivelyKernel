@@ -1133,6 +1133,10 @@ lively.morphic.Morph.addMethods(
         this.withCSSTransitionDo(this.setOpacity.curry(opacity), time, callback);
     },
 
+    setScaleAnimated: function(scale, time, callback) {
+        this.withCSSTransitionDo(this.setScale.curry(scale), time, callback);
+    },
+
     setExtentAnimated: function(extent, time, callback) {
         this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
     }

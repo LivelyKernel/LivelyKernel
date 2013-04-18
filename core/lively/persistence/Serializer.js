@@ -150,9 +150,13 @@ Object.subclass('ObjectGraphLinearizer',
     copyPropertiesAndRegisterReferences: function(source, copy) {
         for (var key in source) {
             if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
-            var value = source[key];
-            if (this.somePlugin('ignoreProp', [source, key, value, copy])) continue;
-            copy[key] = this.registerWithPath(value, key);
+            try {
+                var value = source[key];
+                if (this.somePlugin('ignoreProp', [source, key, value, copy])) continue;
+                copy[key] = this.registerWithPath(value, key);
+            } catch(e) {
+                console.error('Serialization error: %s\n%s', e, e.stack);
+            }
         }
     },
     copyObjectAndRegisterReferences: function(obj) {

@@ -564,7 +564,7 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
 });
 lively.morphic.Halo.subclass('lively.morphic.CloseHalo',
 'settings', {
-    style: {fill: Color.red, toolTip: 'closes the object'},
+    style: {fill: Color.red, enableDragging: false, enableGrabbing: false, toolTip: 'closes the object'},
     labelText: 'X',
     horizontalPos: 3,
     verticalPos: 0,
@@ -616,7 +616,7 @@ lively.morphic.Halo.subclass('lively.morphic.MenuHalo',
 
 lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
 'settings', {
-    style: {fill: Color.white, clipMode: 'hidden', toolTip: 'rename the object'},
+    style: {fill: Color.white, clipMode: 'hidden', enableDragging: false, enableGrabbing: false, toolTip: 'rename the object'},
     labelText: 'N',
     horizontalPos: 1,
     verticalPos: 3
@@ -692,7 +692,7 @@ lively.morphic.Halo.subclass('lively.morphic.SetImageURLHalo',
 });
 lively.morphic.Halo.subclass('lively.morphic.StyleHalo',
 'settings', {
-    style: {fill: Color.green.lighter(2), toolTip: 'open style editor'},
+    style: {fill: Color.green.lighter(2), enableDragging: false, enableGrabbing: false, toolTip: 'open style editor'},
     labelText: 'S',
     horizontalPos: 0,
     verticalPos: 2,
@@ -706,7 +706,7 @@ lively.morphic.Halo.subclass('lively.morphic.StyleHalo',
 
 lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
 'settings', {
-    style: {fill: Color.gray.lighter(2), toolTip: 'open script editor'},
+    style: {fill: Color.gray.lighter(2), enableDragging: false, enableGrabbing: false, toolTip: 'open script editor'},
     labelText: 'E',
     horizontalPos: 3,
     verticalPos: 1,
@@ -740,7 +740,7 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
 
 lively.morphic.Halo.subclass('lively.morphic.InspectHalo',
 'settings', {
-    style: {fill: Color.gray.lighter(2), toolTip: 'open inspector'},
+    style: {fill: Color.gray.lighter(2), enableDragging: false, enableGrabbing: false, toolTip: 'open inspector'},
     labelText: 'I',
     horizontalPos: 3,
     verticalPos: 2,

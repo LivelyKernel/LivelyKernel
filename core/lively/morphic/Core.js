@@ -6,7 +6,6 @@ Object.subclass('lively.morphic.Morph',
     isMorph: true
 },
 'initializing', {
-    isMorph: true,
     idCounter: 0,
     initialize: function(shape) {
         this.submorphs = [];

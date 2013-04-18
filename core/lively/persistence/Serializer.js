@@ -1278,6 +1278,16 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         }, this);
     },
 
+    addMetaTags: function(metaSpecs) {
+        // metaSpecs is an array of {name: string, content: string} specs
+        metaSpecs.forEach(function(arg) {
+            $('<meta/>')
+            .attr('name', arg.name)
+            .attr('content', arg.content)
+            .appendTo(this.head);
+        }, this);
+    },
+
     addSerializedWorld: function(json, id, migrationLevel) {
         var el = this.createScriptEl({
             id: id,
@@ -1290,6 +1300,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
 
     build: function(spec) {
         if (spec.title) this.addTitle(spec.title);
+        if (spec.metaTags) this.addMetaTags(spec.metaTags);
         if (spec.styleSheets) this.addStyleSheets(spec.styleSheets);
         if (spec.html) this.addHTML(spec.html);
         if (spec.externalScripts) this.addScripts(spec.externalScripts);

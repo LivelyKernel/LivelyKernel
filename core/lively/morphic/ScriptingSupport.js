@@ -84,7 +84,8 @@ lively.morphic.Morph.addMethods(
             template = options.asXML ?
                 '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
               + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-              + '<html xmlns="http://www.w3.org/1999/xhtml"><body>INSERT_MARKUP_HERE</body></html>' :
+              + '<html xmlns="http://www.w3.org/1999/xhtml"><body>INSERT_MARKUP_HERE</body></html>'
+              :
                 '<!DOCTYPE html><html><body>INSERT_MARKUP_HERE</body></html>';
         try {
             if (options.scale) this.setScale(options.scale);

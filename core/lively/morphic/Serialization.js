@@ -202,8 +202,10 @@ lively.morphic.World.addMethods(
             bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
             css = $("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),
+            metaTags = this.getMetaTags();
             docSpec = {
                 title: title,
+                metaTags: metaTags, 
                 migrationLevel: LivelyMigrationSupport.migrationLevel,
                 serializedWorld: json,
                 html: preview,

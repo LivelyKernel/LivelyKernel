@@ -203,9 +203,11 @@ lively.morphic.World.addMethods(
             css = $("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),
             metaTags = this.getMetaTags();
+            linkTags = this.getLinkTags();
             docSpec = {
                 title: title,
                 metaTags: metaTags, 
+                linkTags: linkTags, 
                 migrationLevel: LivelyMigrationSupport.migrationLevel,
                 serializedWorld: json,
                 html: preview,

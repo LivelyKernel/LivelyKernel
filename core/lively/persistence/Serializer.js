@@ -1282,9 +1282,17 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         // metaSpecs is an array of {name: string, content: string} specs
         metaSpecs.forEach(function(arg) {
             $('<meta/>')
-            .attr('name', arg.name)
-            .attr('content', arg.content)
-            .appendTo(this.head);
+                .attr(arg)
+                .appendTo(this.head);
+        }, this);
+    },
+
+    addLinkTags: function(linkSpecs) {
+        // linkSpecs is an array of {rel: string, href: string} specs
+        linkSpecs.forEach(function(arg) {
+            $('<link/>')
+                .attr(arg)
+                .appendTo(this.head);
         }, this);
     },
 
@@ -1301,6 +1309,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
     build: function(spec) {
         if (spec.title) this.addTitle(spec.title);
         if (spec.metaTags) this.addMetaTags(spec.metaTags);
+        if (spec.linkTags) this.addLinkTags(spec.linkTags);
         if (spec.styleSheets) this.addStyleSheets(spec.styleSheets);
         if (spec.html) this.addHTML(spec.html);
         if (spec.externalScripts) this.addScripts(spec.externalScripts);

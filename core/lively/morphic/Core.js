@@ -620,6 +620,9 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     metaTags: [
         {name: "apple-mobile-web-app-capable", content: "yes"},
     ], 
+    linkTags: [
+        {rel: 'apple-touch-icon-precomposed', href: 'core/media/apple-touch-icon.png'},
+    ], 
     isWorld: true
 },
 'accessing -- morphic relationship', {
@@ -680,6 +683,11 @@ lively.morphic.Morph.subclass('lively.morphic.World',
             occurrences[each.name] = (occurrences[each.name] || 0) + 1});
         return allTags.select(function(each) {
             return occurrences[each.name]-- == 1});
+    },
+
+    getLinkTags: function() {
+        // append our own linkTags to the class's linkTags
+        return Object.mergePropertyInHierarchy(this, 'linkTags');
     },
 
     hideHostMouseCursor: function () {

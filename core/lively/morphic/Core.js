@@ -617,6 +617,9 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         enableMorphMenu: true,
         enableDragging: true
     },
+    metaTags: [
+        {name: "apple-mobile-web-app-capable", content: "yes"},
+    ], 
     isWorld: true
 },
 'accessing -- morphic relationship', {
@@ -666,6 +669,17 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.renderContextDispatch('append');
         this.withAllSubmorphsDo(function(ea) {
             ea.registerForEvents(Config.handleOnCapture); });
+    },
+
+    getMetaTags: function() {
+        // append our own metaTags to the class's metaTags
+        var allTags = Object.mergePropertyInHierarchy(this, 'metaTags');
+        // ... but make sure each only occurs once
+        var occurrences = {};
+        allTags.forEach(function(each) {
+            occurrences[each.name] = (occurrences[each.name] || 0) + 1});
+        return allTags.select(function(each) {
+            return occurrences[each.name]-- == 1});
     },
 
     hideHostMouseCursor: function () {

@@ -198,7 +198,7 @@ lively.morphic.World.addMethods(
 
         // Step 2: Create a new document
         var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
-            title = url.filename().replace(/\.x?html$/, ''),
+            title = this.getName() || url.filename().replace(/\.x?html$/, ''),
             bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
             css = $("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),

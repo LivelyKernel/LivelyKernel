@@ -89,7 +89,7 @@ Object.subclass('lively.Sound.AbstractSound', {
         // Answer the pitch in cycles/second for the given pitch specification.
         // The specification can be either a numeric pitch or pitch name such as 'c4'.
         if (typeof aStringOrNumber == "number") return aStringOrNumber;
-        return AbstractSound.pitchForName(aStringOrNumber);
+        return lively.Sound.AbstractSound.pitchForName(aStringOrNumber);
     },
     doControl: function(msPast) {
         // Update the control parameters of this sound using its envelopes, if any.
@@ -133,6 +133,38 @@ Object.subclass('lively.Sound.AbstractSound', {
             score.add(sound);
         }.bind(this));
         return score;
+    }
+});
+
+Object.extend(lively.Sound.AbstractSound, {
+    halftones: {
+        "C": 0,
+        "C#": 1,
+        "Db": 1,
+        "D": 2,
+        "D#": 3,
+        "Eb": 3,
+        "E": 4,
+        "F": 5,
+        "F#": 6,
+        "Gb": 6,
+        "G": 7,
+        "G#": 8,
+        "Ab": 8,
+        "A": 9,
+        "A#": 10,
+        "Bb": 10,
+        "B": 11
+    },
+    pitchForName: function(name) {
+        // using the MIDI standard tone mapping
+        // p = 69 + 12 * log_2(f / 440Hz)
+        var match = name.match(/^([a-gA-G]#?b?)([1-9][0-9]*)$/);
+        if (!match) throw new Error('Unsupported note: ' + name);
+        var note = match[1].capitalize(), octave = +match[2];
+        var pitch = octave * 12 + this.halftones[note];
+        var freq = 440 * Math.pow(2, (pitch - 69) / 12);
+        return freq;
     }
 });
 

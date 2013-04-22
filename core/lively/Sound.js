@@ -2,14 +2,14 @@ module('lively.Sound').requires().requiresLib({url:Config.rootPath+'core/lib/XAu
 
 Object.subclass('lively.Sound.AbstractSound', {
     aboutMe: function() {
-        // This is the superclass of FMSound, SampledSound, etc.  
+        // This is the superclass of FMSound, SampledSound, etc.
         // It establishes the protocol for sequencing in time, mixing at one time,
-        // adding envelopes, and generating samples.  
+        // adding envelopes, and generating samples.
         // There is history here...
         // The unified hierarchy of sounds and synthesis protocol is primarily the
         // work of John Maloney in Squeak Smalltalk, but it built on earlier work by
         // Alan Kay, Bob Shur, Steve Purcell, Steve Saunders and Ted Kaehler.
-        // This adaptation to JavaScript, with many simplifications possible due to 
+        // This adaptation to JavaScript, with many simplifications possible due to
         // more cycles and floating point, is the work of Dan Ingalls
     },
     initialize: function() {
@@ -55,7 +55,7 @@ Object.subclass('lively.Sound.AbstractSound', {
         // the actual mixSamples... method interspersed with calls to update time-varying
         // parameters according envelope control points every 10 millisecons or so.
         var fullVol = 1.0;
-        var pastEnd = startIndex + n;  // index just after the last sample 
+        var pastEnd = startIndex + n;  // index just after the last sample
         var i = startIndex;
         var sampsPerMS = this.samplingRate() / 1000;
         while (i < pastEnd) {
@@ -72,7 +72,7 @@ Object.subclass('lively.Sound.AbstractSound', {
         }
     },
     reset: function() {
-        // Reset my internal state for a replay. 
+        // Reset my internal state for a replay.
         // Methods that override this method should do super reset."
         this.mSecsSinceStart = 0;
         this.samplesUntilNextControl = 0;
@@ -91,7 +91,7 @@ Object.subclass('lively.Sound.AbstractSound', {
         if (typeof aStringOrNumber == "number") return aStringOrNumber;
         return AbstractSound.pitchForName(aStringOrNumber);
     },
-    doControl: function(msPast) { 
+    doControl: function(msPast) {
         // Update the control parameters of this sound using its envelopes, if any.
         // This is only called at a small fraction of the sampling rate.
         this.mSecsSinceStart += msPast;
@@ -121,7 +121,7 @@ Object.subclass('lively.Sound.AbstractSound', {
     },
     asSequence: function(noteArray) {
         // Build a note sequence (i.e., a SequentialSound) from the given array
-        // using this sound as instrument. 
+        // using this sound as instrument.
         // Elements are [pitch, duration, loudness] triples with loudness=0 for rests.
         // Loudness is given in an arbitrary scale with 1000 = max.
         // Pitches can be given as names or numbers.
@@ -139,9 +139,9 @@ Object.subclass('lively.Sound.AbstractSound', {
 lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
     aboutMe: function() {
         // The Karplus-Strong plucked string algorithm: start with a buffer full of random noise
-        // and repeatedly play the contents of that buffer while averaging adjacent samples. 
-        // High harmonics damp out more quickly, transfering their energy to lower ones. 
-        // The length of the buffer corresponds to the length of the string. 
+        // and repeatedly play the contents of that buffer while averaging adjacent samples.
+        // High harmonics damp out more quickly, transfering their energy to lower ones.
+        // The length of the buffer corresponds to the length of the string.
         // Adapted from John Maloney's Squeak code by Dan Ingalls
         // There was some noise in this (as in Squeak) because the table is only sampled, not
         // interpolated.  I therefore added interpolation and banished the sampling noise.
@@ -164,14 +164,14 @@ lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
     },
     reset: function($super) {
         // Fill the ring with random noise
-        $super(); 
+        $super();
         this.count = this.initialCount;
         this.scaledVol = this.loudness;
         this.index = 0;
         return this;
     },
     mixSamplesToBuffer: function(n, buffer, startIndex, leftVol, rightVol) {
-        // (new PluckedSound).setPitchDurLoudness(220, 2, 1).play() 
+        // (new PluckedSound).setPitchDurLoudness(220, 2, 1).play()
         // Step through the ring, averaging adjacent samples, and mixing into the buffer
 
         this.ensureRing();  // Lazily created to minimize storage burden for long melodies
@@ -217,12 +217,12 @@ lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
 });
 
 lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
-    aboutMe: function() { 
+    aboutMe: function() {
         // SequentialSound carries a list of sounds to be played in sequence.
         // Typically used to encode a melody.
         // Adapted from John Maloney's Squeak code by Dan Ingalls
     },
-    copy: function($super) { 
+    copy: function($super) {
         var copy = $super();
         copy.sounds = this.sounds.map(function(snd) { return snd.copy(); });
         return copy;

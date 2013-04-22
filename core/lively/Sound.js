@@ -371,18 +371,23 @@ Object.subclass('lively.Sound.Instrument', {
         });
         return buffer;
     },
-    play: function(note, duration, volume) {
-        if (volume === undefined) volume = 1.0;
+    play: function(note, duration, volume, optSeq) {
+        if (volume === undefined) volume = 100.0;
         if (duration === undefined) duration = 1.0;
-        var seq = this.sound.asSequence([[note, volume, duration]]);
-        this.playSound(seq);
+        if (!optSeq) {
+            optSeq = this.sound.asSequence([[note, duration, volume]]);
+            this.playSound(optSeq);
+        } else {
+            var pitch = this.sound.nameOrNumberToPitch(note);
+            var snd = this.sound.clone();
+            snd.setPitchDurLoudness(pitch, duration, volume / 1000);
+            optSeq.add(snd);
+        }
         return {
-            sound: this.sound,
             then: function(note, duration, volume) {
-                var pitch = this.sound.nameOrNumberToPitch(note);
-                var snd = this.sound.clone();
-                snd.setPitchDurLoudness(pitch, volume, duration);
-            }
+                return this.play(note, duration, volume, optSeq);
+            }.bind(this),
+            loop: function() { optSeq.isLooping = true; }
         }
     },
     

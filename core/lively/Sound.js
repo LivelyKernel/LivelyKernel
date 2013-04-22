@@ -283,8 +283,14 @@ lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
                     this.soundsIndex++;
                     snd = this.sounds[this.soundsIndex];
                 } else {
-                    this.soundsIndex = -1;
-                    return;  // no more sounds
+                    if (this.isLooping) {
+                        this.reset();
+                        return this.mixSamplesToBuffer(
+                            finalIndex - i, buffer, i, leftVol, rightVol);
+                    } else {
+                        this.soundsIndex = -1;
+                        return;  // no more sounds
+                    }
                 }
             }
             var count = (finalIndex - i) + 1;

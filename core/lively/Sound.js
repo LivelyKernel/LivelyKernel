@@ -1,9 +1,4 @@
-module('lively.Sound').requires().toRun(function() {
-
-lively.whenLoaded(function loadXAudioServer() {
-    var url = URL.codeBase.withFilename('lib/XAudioServer.js').toString();
-    JSLoader.loadJs(url);
-});
+module('lively.Sound').requires().requiresLib({url:Config.rootPath+'core/lib/XAudioServer.js',loadTest:function(){return!!Global.XAudioServer}}).toRun(function(){
 
 Object.subclass('lively.Sound.AbstractSound', {
     aboutMe: function() {

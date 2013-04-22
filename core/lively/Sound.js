@@ -157,7 +157,7 @@ lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
             this.damp = 100/this.pitch;  // damp higher frequencies slower
         }
         var monoSampleCount =  this.samplingRate() / this.pitch;
-        this.ringSize = Math.max(2, monoSampleCount);
+        this.ringSize = Math.floor(Math.max(2, monoSampleCount));
         this.ring = null;  // will be allocated lazily to minimize storage needs
         this.indexIncrement = (this.pitch * monoSampleCount) / (this.samplingRate());
         return this.reset();

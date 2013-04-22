@@ -131,7 +131,7 @@ Object.subclass('lively.Sound.AbstractSound', {
             var pitch = this.nameOrNumberToPitch(elt[0]);
             sound.setPitchDurLoudness(pitch, elt[1], elt[2] / 1000);
             score.add(sound);
-        }.bind(this));
+        }, this);
         return score;
     }
 });

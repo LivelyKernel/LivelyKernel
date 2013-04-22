@@ -389,8 +389,64 @@ Object.subclass('lively.Sound.Instrument', {
             }.bind(this),
             loop: function() { optSeq.isLooping = true; }
         }
+    }
+});
+
+Object.extend(lively.Sound.Instrument, {
+    playExampleSong: function() {
+        var plucked = new lively.Sound.PluckedSound();
+        var instrument = new lively.Sound.Instrument(plucked);
+        instrument.play("e4", 0.25)
+                  .then("e4", 0.25)
+                  .then("f4", 0.25)
+                  .then("g4", 0.25)
+                  .then("g4", 0.25)
+                  .then("f4", 0.25)
+                  .then("e4", 0.25)
+                  .then("d4", 0.25)
+                  .then("c4", 0.25)
+                  .then("c4", 0.25)
+                  .then("d4", 0.25)
+                  .then("e4", 0.25)
+                  .then("e4", 0.5)
+                  .then("d4", 0.125)
+                  .then("d4", 0.5);
     },
-    
+    playMultiInstrumentSong: function() {
+        var plucked = new lively.Sound.PluckedSound();
+        var instrument = new lively.Sound.Instrument(plucked);
+        var bass = instrument, lead = instrument;
+        bass.play("a2", 2.0)
+                  .then("e3", 1.75)
+                  .then("c3", 0.25)
+                  .then("a2", 2.0)
+                  .then("e3", 2.0);
+        lead.play("c5", 1)
+                  .then("e4", 0.5)
+                  .then("d4", 0.25)
+                  .then("e4", 0.25)
+                  .then("a4", 0.125)
+                  .then("c5", 0.125)
+                  .then("b4", 0.25)
+                  .then("d4", 0.25)
+                  .then("e4", 0.25)
+                  .then("a4", 0.125)
+                  .then("c5", 0.125)
+                  .then("b4", 0.25)
+                  .then("b4", 0.25)
+                  .then("c4", 1)
+                  .then("e4", 0.5)
+                  .then("d4", 0.25)
+                  .then("e4", 0.25)
+                  .then("a4", 0.125)
+                  .then("c5", 0.125)
+                  .then("b4", 0.25)
+                  .then("e4", 0.25)
+                  .then("d4", 0.25)
+                  .then("e4", 0.125)
+                  .then("c4", 0.125)
+                  .then("a3", 0.5);
+      }
 });
 
 }); // end of module

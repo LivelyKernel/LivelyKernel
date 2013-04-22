@@ -16,7 +16,7 @@ Object.subclass('lively.Sound.AbstractSound', {
         this.envelopes = [];
         this.scaledVol = 1;
         this.scaledVolIncr = 0;
-        return this.reset();
+        this.reset();
     },
     clone: function() {
         return new this.constructor(this);

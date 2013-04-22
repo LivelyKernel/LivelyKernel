@@ -320,6 +320,7 @@ lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
 Object.subclass('lively.Sound.Instrument', {
     initialize: function(sound) {
         this.sound = sound;
+        this.activeSounds = [];
         this.createAudioHandle();
         this.step.bind(this).delay(0.05);
     },

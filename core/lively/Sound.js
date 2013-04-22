@@ -261,8 +261,8 @@ lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
     },
     reset: function($super) {
         // Reset all sounds, and move currentIndex back to the beginning
-        $super(); 
-        this.sounds.forEach(function(snd) {snd.reset(); });
+        $super();
+        this.sounds.invoke('reset');
         this.soundsIndex = 0;
         return this;
     },

@@ -208,6 +208,18 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         this.assert(trait.def.b.sourceModule, "trait function has no source module");
     },
 
+    testMixin: function() {
+        this.dummyA.addMethods({c: function ($super) {
+            return $super() + 1;
+        }});
+        this.removeTraitAfterwards('Foo');
+        var trait = Trait('Foo', {c: function() { return 2 }});
+        trait.mixin().applyTo(this.dummyA);
+        var obj = new this.dummyA();
+        this.assertEquals(3, obj.c());
+        Trait('Foo', {c: function() { return 4 }});
+        this.assertEquals(5, obj.c());
+    }
 });
 
 lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ObjectTraits',

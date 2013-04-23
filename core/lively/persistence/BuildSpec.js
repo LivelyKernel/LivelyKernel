@@ -474,6 +474,7 @@ lively.morphic.Window.addMethods(
             getter: function(morph, val) { return val ? val.getTitle() : ''; },
             recreate: function(instance, spec) { instance.titleBar = instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
         },
+        grabbingEnabled: {defaultValue: false},
         reframeHandle: {exclude: true},
         bottomReframeHandle: {exclude: true},
         rightReframeHandle: {exclude: true},

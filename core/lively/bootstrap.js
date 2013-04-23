@@ -1281,6 +1281,11 @@
     }
 
     function initOnAppCacheLoad(whenCacheLoaded) {
+        var runCallbackInvoked = false;
+        function runCallback() {
+            runCallbackInvoked = true;
+            whenCacheLoaded && whenCacheLoaded();
+        }
         LoadingScreen.add('Checking Cache');
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1338,20 +1343,20 @@
                              + "the system but server-dependent services might not\n"
                              + "be accessible. Please check the server.\n");
             })
-            whenCacheLoaded();
+            runCallback();
         }, false);
 
         // Fired after the first download of the manifest.
         appCache.addEventListener('noupdate', function(evt) {
             console.log('noupdate');
             LoadingScreen.setLogoText('No updates');
-            whenCacheLoaded();
+            runCallback();
         }, false);
 
         // Fired after the first cache of the manifest.
         appCache.addEventListener('cached', function(evt) {
             console.log('Sources are now cached.');
-            whenCacheLoaded();
+            runCallback();
         }, false);
 
         // Fired if the manifest file returns a 404 or 410.

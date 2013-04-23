@@ -331,9 +331,7 @@ Object.extend(Array.prototype, {
             groups[hash].push(this[i]);
         }
         return groups;
-    },
-
-    inspect: function() { return '#<Array:' + this.toArray().inspect() + '>'; },
+    }
 
 });
 

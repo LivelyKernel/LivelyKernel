@@ -269,7 +269,7 @@ Object.extend(RealTrait, {
 Object.extend(Global, {
 
     Trait: function(/*traitName, def ... */) {
-        var args = $A(arguments),
+        var args = Array.from(arguments),
             traitName = args.shift(),
             trait = RealTrait.named(traitName),
             category = ' default category';

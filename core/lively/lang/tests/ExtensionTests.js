@@ -431,6 +431,11 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertEquals(12, arr.pluck('y').max());
         this.assertEqualState({x:9,y:4}, arr.max(function(ea) { return ea.x }));
         this.assertEqualState({x:2,y:12}, arr.max(function(ea) { return ea.y }));
+    },
+    testInspect: function() {
+        var obj = {a: 23, inspect: function() { return "<" + this.a + ">"; }};
+        var arr = ["foo", obj, 42];
+        this.assertEquals('[foo, <23>, 42]', arr.inspect());
     }
 });
 

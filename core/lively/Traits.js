@@ -48,6 +48,23 @@ Object.subclass('RealTrait',
         this.updateDependents();
 
         return this;
+    },
+    mixin: function() {
+        this.applyToClass = function(applyToClass, klass, options) {
+            if (!klass.mixinClass) {
+                var cls = klass.superclass.subclass();
+                klass.superclass = cls;
+                klass.prototype.__proto__ = cls.prototype;
+                klass.mixinClass = cls;
+                var methods = {};
+                Functions.own(klass.prototype).each(function(n) {
+                    methods[n] = klass.prototype[n].getOriginal();
+                });
+                klass.addMethods(methods);
+            }
+            applyToClass.call(this, klass.mixinClass, options);
+        }.curry(this.applyToClass);
+        return this;
     }
 },
 'testing', {

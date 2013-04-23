@@ -1,19 +1,18 @@
 .World {
-	font-family: Helvetica;
+    font-family: Helvetica;
 }
 
 .Box {
-	background:  #white;
 	border: 1px solid #aaa;
 }
 
 .Selection {
-	background:  rgba(222,222,222, 0.6);
+	background: rgba(222,222,222, 0.6);
 	border: 1px solid #aaa;
 }
 
 .Box.selection-indicator {
-	background:  none;
+	background: none;
 	outline: 4px solid #E73F22;
 }
 
@@ -36,9 +35,11 @@
 	cursor: pointer;
 	border: 1px solid #888;
 }
+
 .Button.pressed {
 	box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
+
 .Button.toggled {
 	background-image: -webkit-linear-gradient(top, #FFF, #EEE);
 	background-image: -moz-linear-gradient(top, #FFF, #EEE);
@@ -54,6 +55,7 @@
 	box-shadow: 0px 4px 15px #666;
 	border-radius: 5px;
 }
+
 .Window.highlighted {
 	background-color: rgba(222, 222, 222, 0.8);
 	box-shadow: 0px 5px 20px #000;
@@ -68,9 +70,11 @@
 .reframe-handle.corner {
 	cursor: se-resize;
 }
+
 .reframe-handle.right {
 	cursor: e-resize;
 }
+
 .reframe-handle.bottom {
 	cursor: s-resize;
 }
@@ -81,7 +85,8 @@
 	color: #555;
 	text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white;
 }
-.Window.highlighted  .Text.window-title {
+
+.Window.highlighted .Text.window-title {
 	font-weight: bold;
 	color: #333;
 }
@@ -140,6 +145,7 @@
 /* -=-=-=-=-=-=-=-=-=-=-=
    messaging in the world
    -=-=-=-=-=-=-=-=-=-=-= */
+
 .messageMorph {
 	background: rgba(0,0,0,0.6);
 	border-radius: 20px;
@@ -154,13 +160,13 @@
 	color: white;
 }
 
-.messageMorph:hover .closeButton {
+.messageMorph:hover .closeButton, .messageMorph.maximized .closeButton {
 	visibility: visible;
 	cursor: pointer;
 }
 
 .messageMorph .messageText {
-	font-size: 12pt;
+	font-size: 10pt;
 	font-family: Helvetica Neue,Helvetica,Arial;
 	color: white;
 	white-space: normal;
@@ -169,7 +175,7 @@
 	text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.7);
 }
 
-.messageMorph:hover .messageText {
+.messageMorph:hover .messageText, .messageMorph.maximized .messageText {
 	margin-left: 15px;
 }
 
@@ -192,7 +198,11 @@
 /* -=-=-=-=-=-=-=-=-=-
    codeeditor related
    -=-=-=-=-=-=-=-=-=- */
+
 #ace-editor {
- position:absolute;
- top:0; bottom:0; left:0; right:0;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }

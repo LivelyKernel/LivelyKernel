@@ -50,7 +50,6 @@ Object.subclass('RealTrait',
         return this;
     },
     mixin: function() {
-        this.isMixin = true;
         this.applyToClass = function(applyToClass, klass, options) {
             if (!klass.mixinClass) {
                 var cls = klass.superclass.subclass();

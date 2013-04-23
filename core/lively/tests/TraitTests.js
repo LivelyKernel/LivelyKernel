@@ -220,7 +220,6 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         Trait('Foo', {c: function() { return 4 }});
         this.assertEquals(5, obj.c());
     }
-
 });
 
 lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ObjectTraits',

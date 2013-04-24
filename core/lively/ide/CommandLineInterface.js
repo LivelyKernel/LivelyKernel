@@ -1,8 +1,8 @@
-module('lively.ide.GitInterface').requires('lively.Network').toRun(function() {
+module('lively.ide.CommandLineInterface').requires('lively.Network').toRun(function() {
 
-Object.extend(lively.ide.GitInterface, {
+Object.extend(lively.ide.CommandLineInterface, {
 
-    gitControlURL: URL.create(Config.nodeJSURL).asDirectory().withFilename('GitControl/'),
+    commandLineServerURL: URL.create(Config.nodeJSURL).asDirectory().withFilename('CommandLineServer/'),
 
     commandQueue: [],
 
@@ -16,13 +16,22 @@ Object.extend(lively.ide.GitInterface, {
         cmd.startRequest();
     },
 
-    command: function(commandString, thenDo) {
-        var gitInterface = this,
+    run: function(commandString, options, thenDo) {
+        /*
+        cmd = lively.ide.CommandLineInterface.run('ls', show);
+        lively.ide.CommandLineInterface.run('grep 1 -', {stdin: '123\n567\n,4314'}, show);
+        lively.ide.CommandLineInterface.kill();
+        */
+
+        thenDo = Object.isFunction(options) ? options : thenDo;
+        options = !options || Object.isFunction(options) ? {} : options;
+        var cmdLineInterface = this,
             parsedCommand = this.parseCommandIntoCommandAndArgs(commandString),
-            webR = this.gitControlURL.asWebResource().beAsync(),
+            webR = this.commandLineServerURL.asWebResource().beAsync(),
             esc = {'8': String.fromCharCode(8), '27': String.fromCharCode(27)},
             ansiColorRegex = new RegExp(Strings.format('%s\[[0-9;]*m|.%s', esc[27], esc[8]), 'g'),
             cmd = {
+                isShellCommand: true,
                 streamPos: 0,
                 interval: null,
                 _stdout: '',
@@ -46,7 +55,7 @@ Object.extend(lively.ide.GitInterface, {
 
                 read: function(string) {
                     var input = string.slice(this.streamPos, string.length),
-                        headerMatch = input.match(/^<GITCONTROL\$([A-Z]+)([0-9]+)>/);
+                        headerMatch = input.match(/^<SHELLCOMMAND\$([A-Z]+)([0-9]+)>/);
                     if (!headerMatch) return;
                     // show('pos: %s, reading: %s', this.streamPos, string);
                     var header = headerMatch[0],
@@ -63,8 +72,8 @@ Object.extend(lively.ide.GitInterface, {
                 },
 
                 startRequest: function() {
-                    gitInterface.commandInProgress = this;
-                    webR.post(JSON.stringify({command: parsedCommand}), 'application/json');
+                    cmdLineInterface.commandInProgress = this;
+                    webR.post(JSON.stringify({command: parsedCommand, stdin: options.stdin}), 'application/json');
                     this.startInterval();
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) {
@@ -72,7 +81,7 @@ Object.extend(lively.ide.GitInterface, {
                 },
 
                 endRequest: function(status) {
-                    gitInterface.commandInProgress = null;
+                    cmdLineInterface.commandInProgress = null;
                     this.endInterval();
                     this.read(status.transport.responseText);
                     lively.bindings.signal(this, 'end', this);
@@ -81,21 +90,62 @@ Object.extend(lively.ide.GitInterface, {
 
                 getStdout: function() { return this._stdout; },
                 getStderr: function() { return this._stderr; },
-                getCode: function() { return Number(this._code); }
+                getCode: function() { return Number(this._code); },
+                resultString: function() { return (!this.getCode() ? this.getStdout() : this.getStderr()).trim(); }
             };
-        if (!gitInterface.commandInProgress) cmd.startRequest();
-        else gitInterface.scheduleCommand(cmd);
+        if (!cmdLineInterface.commandInProgress) cmd.startRequest();
+        else cmdLineInterface.scheduleCommand(cmd);
         return cmd;
     },
+    kill: function() {
+        /*
+        lively.ide.CommandLineInterface.kill();
+        */
+        var webR = this.commandLineServerURL.asWebResource()//.beAsync();
+        return webR.del().content;
+    },
 
-    localGitDirectory: function() {
-        var webR = this.gitControlURL.asWebResource().beSync();
+    runAll: function(commands, thenDo) {
+        // commands is an array of command spec objects like [
+        //   {name: "cmd1", command: "ls -l"},
+        //   {name: "cmd2", command: "echo ls: ${cmd1}"},
+        // ];
+        // simple reference of outputs is supported as seen above to allow
+        // constructing commands out of former results
+        /*
+        lively.ide.CommandLineInterface.runAll([
+          {name: "cmd1", command: "du -sh ."},
+          {name: "cmd2", command: "echo dir size ${cmd1}"},
+         ], show)
+        lively.ide.CommandLineInterface.runAll([{name: "cmd1", command: "ls ."},], show);
+        */
+        thenDo = thenDo || Functions.Null;
+        var results = {};
+        commands.doAndContinue(function(next, ea) {
+            var cmd = ea.command.replace(/\$\{([^\}]+)\}/g, function(_, variable) {
+                return results[variable] && results[variable].isShellCommand ?
+                    results[variable].resultString() : (results[variable] || ''); });
+            lively.ide.CommandLineInterface.run(cmd, {stdin: ea.stdin}, function(cmd) {
+                results[ea.name] = ea.transform ? ea.transform(cmd) : cmd;
+                next();
+            });
+        }, thenDo.curry(results));
+    },
+
+
+    getWorkingDirectory: function() {
+        var webR = this.commandLineServerURL.asWebResource().beSync();
         try {
             return JSON.parse(webR.get().content).cwd;
         } catch(e) { return ''; }
     },
+    
+    setWorkingDirectory: function(dir) {
+        throw new Error('not yet implemented');
+    },
 
     parseCommandIntoCommandAndArgs: function(cmd) {
+        // lively.ide.CommandLineInterface.parseCommandIntoCommandAndArgs('grep o -')
         var result = [], word = '', state = 'normal';
         function add() { 
             if (word.length > 0) result.push(word); word = '';
@@ -113,7 +163,6 @@ Object.extend(lively.ide.GitInterface, {
         return result;
     }
 
-
 });
 
 Object.subclass("lively.ide.FilePatch",
@@ -121,6 +170,7 @@ Object.subclass("lively.ide.FilePatch",
     read: function(patchString) {
         // simple parser for unified patch format;
         var lines = patchString.split('\n'), line, hunks = this.hunks = [];
+        if (lines[lines.length-1] === '') lines.pop();
 
         // 1: parse header
         // line 0 like: "diff --git a/test.txt b/test.txt\n"
@@ -136,23 +186,38 @@ Object.subclass("lively.ide.FilePatch",
         this.pathChanged = line.split(' ').last();
 
         while (lines.length > 0) {
-            var hunk = new lively.ide.FilePatchHunk();
-            hunks.push(hunk.read(lines));
+            hunks.push(lively.ide.FilePatchHunk.read(lines));
         }
         return this;
     }
 },
 'patch creation', {
-    createPatchString: function() {
+    createPatchStringHeader: function() {
         var parts = [];
         if (this.command) parts.push(this.command);
-        parts.push(this.pathOriginal);
-        parts.push(this.pathChanged);
-        parts.pushAll(this.hunks.invoke('createPatchString'));
+        parts.push('--- ' + this.pathOriginal);
+        parts.push('+++ ' + this.pathChanged);
         return parts.join('\n');
     },
+
+    createPatchString: function() {
+        return this.createPatchStringHeader() + '\n'
+             + this.hunks.invoke('createPatchString').join('\n');
+    },
+
     createPatchStringFromRows: function(startRow, endRow) {
-        return ''
+        var nHeaderLines = [this.command, this.pathOriginal, this.pathChanged].compact().length,
+            hunkPatches = [];
+        startRow = Math.max(startRow, nHeaderLines)-nHeaderLines;
+        endRow -= nHeaderLines;
+        var hunkPatches = this.hunks.map(function(hunk) {
+            var patch = hunk.createPatchStringFromRows(startRow, endRow);
+            startRow -= hunk.length;
+            endRow -= hunk.length;
+            return patch;
+        }).compact();
+        if (hunkPatches.length === 0) return null;
+        return this.createPatchStringHeader() + '\n' + hunkPatches.join('\n') + '\n';
     }
 });
 
@@ -185,7 +250,7 @@ Object.subclass("lively.ide.FilePatchHunk",
     createPatchString: function() {
         return [this.header].concat(this.lines).join('\n');
     },
-    createPatchStringFromRows: function(startRow, endRow) {
+    createPatchStringFromRows2: function(startRow, endRow) {
         // row 0 is the header
         var origLine = this.originalLine,
             changedLine = this.changedLine,
@@ -213,10 +278,50 @@ Object.subclass("lively.ide.FilePatchHunk",
             lines.push(line);
 
         });
+        if (lines.length === 0) return null;
+        header = Strings.format('@@ -%s,%s +%s,%s @@',
+            origLine, origLength, changedLine, changedLength);
+        return [header].concat(lines).join('\n');
+    },
+
+    createPatchStringFromRows: function(startRow, endRow) {
+        if (endRow < 1 || startRow >= this.lines.length) return null;
+
+        // row 0 is the header
+        var origLine = this.originalLine,
+            changedLine = this.changedLine,
+            origLength = 0,
+            changedLength = 0,
+            lines = [], header;
+
+        this.lines.clone().forEach(function(line, i) {
+            i++; // compensate for header
+            if (i < startRow || i > endRow) {
+                switch (line[0]) {
+                    case '-': line = ' ' + line.slice(1);
+                    case ' ': changedLength++; origLength++; break;
+                    case '+': return;
+                }
+            } else {
+                switch (line[0]) {
+                    case ' ': changedLength++; origLength++; break;
+                    case '-': origLength++; break;
+                    case '+': changedLength++; break;
+                }
+            }
+            lines.push(line);
+        });
+
+        if (lines.length === 0) return null;
         header = Strings.format('@@ -%s,%s +%s,%s @@',
             origLine, origLength, changedLine, changedLength);
         return [header].concat(lines).join('\n');
     }
+
+});
+
+Object.extend(lively.ide.FilePatchHunk, {
+    read: function(patchString) { return new this().read(patchString); }
 });
 
 }) // end of module

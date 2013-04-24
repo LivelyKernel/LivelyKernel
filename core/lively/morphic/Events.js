@@ -564,6 +564,21 @@ Trait('ScrollableTrait',
 .applyTo(lively.morphic.Text, {override: ['onMouseWheel']})
 .applyTo(lively.morphic.List, {override: ['onMouseWheel']});
 
+
+Trait('lively.morphic.DragMoveTrait',
+'event handling', {
+    onDrag: function(evt) {
+        var movedBy = evt.getPosition().subPt(this.prevDragPos);
+        this.prevDragPos = evt.getPosition();
+        this.moveBy(movedBy);
+        return true;
+    },
+    onDragStart: function(evt) {
+        this.prevDragPos = evt.getPosition();
+        return true;
+    }
+});
+
 lively.morphic.Morph.addMethods(
 'event managment', {
     addEventHandler: function() {

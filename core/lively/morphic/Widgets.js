@@ -2260,7 +2260,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     onMouseUp: Functions.False
 });
 
-lively.morphic.Morph.subclass('lively.morphic.Window',
+lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.DragMoveTrait'),
 'documentation', {
     documentation: "Full-fledged windows with title bar, menus, etc"
 },
@@ -2485,16 +2485,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         evt.stop();
         return true;
     },
-    onDragStart: function(evt) {
-        this.prevDragPos = evt.getPosition();
-        return true;
-    },
-    onDrag: function(evt) {
-        var movedBy = evt.getPosition().subPt(this.prevDragPos);
-        this.prevDragPos = evt.getPosition();
-        this.moveBy(movedBy);
-        return true;
-    },
+
     wantsToBeDroppedInto: function(dropTarget) {
         return dropTarget.isWorld;
     }

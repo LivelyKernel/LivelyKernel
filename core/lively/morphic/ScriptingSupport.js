@@ -121,6 +121,15 @@ lively.morphic.Morph.addMethods(
     }
 });
 
+lively.morphic.World.addMethods(
+'naming', {
+    setName: function($super, name) {
+        $super(name);
+        if (this === $world)
+            document.title = this.name;
+    },
+});
+
 lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
 'settings', {
     defaultExtent: pt(100,100),

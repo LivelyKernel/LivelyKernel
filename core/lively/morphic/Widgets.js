@@ -1039,15 +1039,26 @@ lively.morphic.Morph.addMethods(
     morphMenuItems: function() {
         var self = this,
             world = this.world(),
-            items = [
-                ['Publish', function(evt) { self.copyToPartsBinWithUserRequest(); }],
-                ['Open in...', [
-                    ['Window', function(evt) { self.openInWindow(evt.mousePoint); }],
-                    ['Flap...', ['top', 'right', 'bottom', 'left'].map(function(align) {
-                        return [align, function(evt) {
-                            require('lively.morphic.MorphAddons').toRun(function() {
-                                self.openInFlap(align); }); }]; })]
-                ]]];
+            items = [];
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // partsbin related
+        items.push(['Publish', function(evt) { self.copyToPartsBinWithUserRequest(); }]);
+        if (this.reset) {
+            [].pushAt
+            var idx=-1; items.detect(function(item, i) { idx = i; return item[0] === 'Publish'; });
+            idx > -1 && items.pushAt(['Reset', this.reset.bind(this)], idx+1);
+        }
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // morphic hierarchy / windows
+        items.push(['Open in...', [
+            ['Window', function(evt) { self.openInWindow(evt.mousePoint); }],
+            ['Flap...', ['top', 'right', 'bottom', 'left'].map(function(align) {
+                return [align, function(evt) {
+                    require('lively.morphic.MorphAddons').toRun(function() {
+                        self.openInFlap(align); }); }]; })]
+        ]]);
 
         // Drilling into scene to addMorph or get a halo
         // whew... this is expensive...
@@ -1068,6 +1079,15 @@ lively.morphic.Morph.addMethods(
             getItems: menuItemsForMorphsBeneathMe.bind(this,  function(morph, evt) { morph.toggleHalos(evt); })
         }]);
 
+        if (this.owner && this.owner.submorphs.length > 1) {
+            var arrange = [];
+            arrange.push(["Bring to front", function(){self.bringToFront()}]);
+            arrange.push(["Send to back", function(){self.sendToBack()}]);
+            items.push(["Arrange morph", arrange]);
+        }
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // stepping scripts
         var steppingItems = [];
 
         if (this.startSteppingScripts) {
@@ -1079,7 +1099,10 @@ lively.morphic.Morph.addMethods(
         if (steppingItems.length != 0) {
             items.push(["Stepping", steppingItems])
         }
-        items.push(["Connections", {
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // lively bindings
+        items.push(["Connections...", {
             getConnections: function() {
                 if (!this.connections) {
                     this.connections = !self.attributeConnections ? [] :
@@ -1106,46 +1129,44 @@ lively.morphic.Morph.addMethods(
             }
         }]);
 
-        if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
-            items.push(["Disable grabbing", this.disableGrabbing.bind(this)])
-        } else {
-            items.push(["Enable grabbing", this.enableGrabbing.bind(this)])
-        }
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // morphic properties
+        var morphicMenuItems = ['Morphic properties', []];
+        items.push(morphicMenuItems);
+        ['grabbing', 'dragging', 'halos'].forEach(function(propName) {
+            if (self[propName + 'Enabled'] || self[propName + 'Enabled'] == undefined) {
+                morphicMenuItems[1].push(["Disable " + propName.capitalize(), self['disable' + propName.capitalize()].bind(self)]);
+            } else {
+                morphicMenuItems[1].push(["Enable " + propName.capitalize(), self['enable' + propName.capitalize()].bind(self)]);
+            }
 
-        if (this.owner && this.owner.submorphs.length > 1) {
-            var arrange = [];
-            arrange.push(["Bring to front", function(){self.bringToFront()}]);
-            arrange.push(["Send to back", function(){self.sendToBack()}]);
-            items.push(["Arrange morph", arrange]);
-        }
+        })
 
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {
-                items.push(["Unlock parts", this.unlock.bind(this)])
+                morphicMenuItems[1].push(["Unlock parts", this.unlock.bind(this)])
             } else {
-                items.push(["Lock parts", this.lock.bind(this)])
+                morphicMenuItems[1].push(["Lock parts", this.lock.bind(this)])
             }
         }
 
-        if(this.isFixed) {
-            items.push(["set unfixed", function() {
+        if (this.isFixed) {
+            morphicMenuItems[1].push(["set unfixed", function() {
                 self.setFixed(false);
             }]);
         } else {
-            items.push(["set fixed", function() {
+            morphicMenuItems[1].push(["set fixed", function() {
                 self.setFixed(true);
             }]);
         }
 
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // left over...
         if (false) { // rk 12-06-22: what is this for???
             items.push(["Enable internal selections", function() {
                 Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
                 self.enableDragging();
             }])
-        }
-
-        if (this.reset) {
-            items.push(['Reset', this.reset.bind(this)]);
         }
 
         return items;
@@ -1216,17 +1237,18 @@ lively.morphic.Morph.addMethods(
 lively.morphic.Text.addMethods(
 'menu', {
     morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            (this.evalEnabled ? '[X]' : '[  ]') + ' eval',
+        var self = this, items = $super(), textItems = ['Text...'];
+        textItems.push([[
+            (self.inputAllowed() ? '[X]' : '[  ]') + ' input allowed',
+            function() { self.setInputAllowed(!self.inputAllowed()); }
+        ], [
+            (self.evalEnabled ? '[X]' : '[  ]') + ' eval',
             function() { self.evalEnabled = !self.evalEnabled }
-        ]);
-        items.push([
-            (this.syntaxHighlightingWhileTyping ? '[X]' : '[  ]') + ' syntax highlighting',
+        ], [
+            (self.syntaxHighlightingWhileTyping ? '[X]' : '[  ]') + ' syntax highlighting',
             function() { self.syntaxHighlightingWhileTyping ?
                 self.disableSyntaxHighlighting() : self.enableSyntaxHighlighting() }
-        ]);
-        items.push([
+        ], [
             'convert to annotation',
             function() {
                 var part = $world.openPartItem('AnnotationPin', 'PartsBin/Documentation');
@@ -1234,15 +1256,17 @@ lively.morphic.Text.addMethods(
                 part.createAnnotationFromText(self);
                 self.remove();
             }
+        ], [
+            'debugging', [
+                [(self.isInChunkDebugMode() ? 'disable' : 'enable') + ' text chunk debugging',
+                 function() { self.setChunkDebugMode(!self.isInChunkDebugMode()) }],
+                ['open text inspector', function() {
+                    var inspector = $world.openPartItem('TextInspector', 'PartsBin/Debugging');
+                    inspector.targetMorph.findAndConnectMorph(self);
+                }]
+            ]]
         ]);
-        items.push(['debugging', [
-            [(self.isInChunkDebugMode() ? 'disable' : 'enable') + ' text chunk debugging',
-             function() { self.setChunkDebugMode(!self.isInChunkDebugMode()) }],
-            ['open text inspector', function() {
-                var inspector = $world.openPartItem('TextInspector', 'PartsBin/Debugging');
-                inspector.targetMorph.findAndConnectMorph(self);
-            }]
-        ]]);
+        items.push(textItems);
         return items;
     },
 

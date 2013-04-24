@@ -984,7 +984,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'morph menu', {
     morphMenuItems: function($super) {
-        var items = $super(), editor = this;
+        var items = ['CodeEditor...', []], otherItems = $super(), editor = this;
 
         var currentTheme = this.getTheme(),
             themeItems = lively.ide.ace.availableThemes().map(function(theme) {
@@ -1000,14 +1000,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                                                  mode);
                 return [modeString, function(evt) { editor.setTextMode(mode); }]; });
 
-        items.push(["themes", themeItems]);
-        items.push(["modes", modeItems]);
+        items[1].push(["themes", themeItems]);
+        items[1].push(["modes", modeItems]);
 
         var usesWrap = editor.getLineWrapping();
-        items.push([Strings.format("[%s] line wrapping", usesWrap ? 'X' : ' '), function() {
+        items[1].push([Strings.format("[%s] line wrapping", usesWrap ? 'X' : ' '), function() {
             editor.setLineWrapping(!usesWrap); }]);
 
-        return items;
+        otherItems.push(items);
+        return otherItems;
     }
 },
 'messaging', {

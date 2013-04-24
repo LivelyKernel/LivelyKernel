@@ -1151,6 +1151,17 @@ lively.morphic.World.addMethods(
             this.get('ObjectEditorScriptPane').focus();
         });
 
+        objectEditor.addScript(function onKeyDown(evt) {
+            var sig = evt.getKeyString(),
+                scriptList = this.get('ObjectEditorScriptList'),
+                sourcePane = this.get('ObjectEditorScriptPane');
+            switch(sig) {
+                case 'F1': scriptList.focus(); evt.stop(); return true;
+                case 'F2': sourcePane.focus(); evt.stop(); return true;
+                default: $super(evt);        
+            }
+        });
+
         owner.addMorphBack(codeMorph);
         lively.bindings.disconnectAll(textMorph);
         textMorph.remove();

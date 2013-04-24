@@ -91,7 +91,11 @@ Object.extend(lively.ide.CommandLineInterface, {
                 getStdout: function() { return this._stdout; },
                 getStderr: function() { return this._stderr; },
                 getCode: function() { return Number(this._code); },
-                resultString: function() { return (!this.getCode() ? this.getStdout() : this.getStderr()).trim(); }
+                resultString: function(bothErrAndOut) {
+                    return bothErrAndOut ?
+                        this.getStdout().trim() + '\n'+  this.getStderr().trim() :
+                        (this.getCode() ? this.getStderr() : this.getStdout()).trim();
+                }
             };
         if (!cmdLineInterface.commandInProgress) cmd.startRequest();
         else cmdLineInterface.scheduleCommand(cmd);

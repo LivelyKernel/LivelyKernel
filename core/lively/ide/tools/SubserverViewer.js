@@ -185,7 +185,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _BorderWidth: 1,
             _Extent: lively.pt(603.0,332.0),
             _FontSize: 12,
-            _LineWrapping: false,
             _Position: lively.pt(173.0,5.0),
             _ShowGutter: true,
             _StyleSheet: "#ace-editor {\n\

@@ -97,6 +97,55 @@ Object.extend(lively.ide.CommandLineInterface, {
         else cmdLineInterface.scheduleCommand(cmd);
         return cmd;
     },
+    exec: function(commandString, options, thenDo) {
+        /*
+        cmd = lively.ide.CommandLineInterface.exec('ls', show);
+        cmdLineInterface= lively.ide.CommandLineInterface
+        cmdLineInterface.commandInProgress = null
+        cmd
+        */
+        thenDo = Object.isFunction(options) ? options : thenDo;
+        options = !options || Object.isFunction(options) ? {} : options;
+        var cmdLineInterface = this,
+            webR = cmdLineInterface.commandLineServerURL.withFilename('exec').asWebResource().beAsync(),
+            cmd = {
+                isShellCommand: true,
+                _stdout: '',
+                _stderr: '',
+                _code: '',
+
+                startRequest: function() {
+                    cmdLineInterface.commandInProgress = this;
+                    lively.bindings.connect(webR, 'status', this, 'endRequest', {
+                        updater: function($upd, status) { if (status.isDone()) $upd(status); }});
+                    webR.post(JSON.stringify({command: commandString}), 'application/json');
+                },
+
+                endRequest: function(status) {
+                    cmdLineInterface.commandInProgress = null;
+                    try {
+                        result = JSON.parse(webR.content);
+                        this._code = result.code;
+                        this._stderr = result.err;
+                        this._stdout = result.out;
+                    } catch(e) {
+                        this._stderr = String(e);
+                        this._code = -1;
+                    }
+                    lively.bindings.signal(this, 'end', this);
+                    if (thenDo) thenDo(cmd);
+                },
+
+                getStdout: function() { return this._stdout; },
+                getStderr: function() { return this._stderr; },
+                getCode: function() { return Number(this._code); },
+                resultString: function() { return (!this.getCode() ? this.getStdout() : this.getStderr()).trim(); }
+            };
+        if (!cmdLineInterface.commandInProgress) cmd.startRequest();
+        else cmdLineInterface.scheduleCommand(cmd);
+        return cmd;
+    },
+
     kill: function() {
         /*
         lively.ide.CommandLineInterface.kill();
@@ -122,14 +171,19 @@ Object.extend(lively.ide.CommandLineInterface, {
         thenDo = thenDo || Functions.Null;
         var results = {};
         commands.doAndContinue(function(next, ea) {
-            var cmd = ea.command.replace(/\$\{([^\}]+)\}/g, function(_, variable) {
-                return results[variable] && results[variable].isShellCommand ?
-                    results[variable].resultString() : (results[variable] || ''); });
-            lively.ide.CommandLineInterface.run(cmd, {stdin: ea.stdin}, function(cmd) {
+            // run either with exec by setting ea.isExec truthy, otherwise with run (spawn)
+            var cmd = ea.command,
+                runCommand = ea.isExec ? this.exec : this.run;
+            if (!ea.isExec) {
+                cmd = cmd.replace(/\$\{([^\}]+)\}/g, function(_, variable) {
+                    return results[variable] && results[variable].isShellCommand ?
+                        results[variable].resultString() : (results[variable] || ''); });
+            }
+            runCommand.call(this, cmd, {stdin: ea.stdin}, function(cmd) {
                 results[ea.name] = ea.transform ? ea.transform(cmd) : cmd;
                 next();
             });
-        }, thenDo.curry(results));
+        }, thenDo.curry(results), this);
     },
 
 

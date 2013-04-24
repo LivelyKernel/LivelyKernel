@@ -1,4 +1,5 @@
 spawn = require('child_process').spawn;
+exec = require('child_process').exec;
 util = require('util');
 i = util.inspect;
 dir = process.env.WORKSPACE_LK;
@@ -44,6 +45,22 @@ runShellCommand = function(cmdInstructions) {
 
 }
 
+runShellCommandExec = function(cmdInstructions) {
+    var cmd = cmdInstructions.command,
+        callback = cmdInstructions.callback;
+    if (!cmd) return;
+
+    var options = {cwd: dir, stdio: 'pipe'};
+    if (debug) console.log('Running command: %s', cmd);
+    shellCommand.process = exec(cmd, options, function(code, out, err) {
+        shellCommand.process = null;
+        shellCommand.lastExitCode = code;
+        shellCommand.stdout = out;
+        shellCommand.stderr = err;
+        callback && callback(code, out, err);
+    });
+}
+
 function formattedResponseText(type, data) {
     var s = String(data);
     return '<SHELLCOMMAND$' + type.toUpperCase() + s.length + '>' + s;
@@ -62,11 +79,25 @@ module.exports = function(route, app) {
         res.end(JSON.stringify({message: 'process with pid ' + pid + ' killed'}));
     });
 
+    app.post(route + 'exec', function(req, res) {
+        var command = req.body && req.body.command;
+        if (!command) { res.status(400).end(); return; }
+        if (shellCommand.process) { res.status(400).end((JSON.stringify({error: 'Shell command process still running!'}))); return; }
+        try {
+            runShellCommandExec({command: command, callback: function(code, out, err) {
+                res.end(JSON.stringify({code: code, out: out, err: err}));
+            }});
+        } catch(e) {
+             res.status(500).end(JSON.stringify({error: 'Error invoking shell: ' + e + '\n' + e.stack})); return;
+        }
+        if (!shellCommand.process) { res.status(400).end(JSON.stringify({error: 'Could not run ' + commandAndArgs})); return; }
+    });
+
     app.post(route, function(req, res) {
         var command = req.body && req.body.command,
             stdin = req.body && req.body.stdin;
         if (!command) { res.status(400).end(); return; }
-        if (shellCommand.process) { res.status(400).end({error: 'Shell command process still running!'}); return; }
+        if (shellCommand.process) { res.status(400).end(JSON.stringify({error: 'Shell command process still running!'})); return; }
         var commandAndArgs = [];
         if (typeof command === 'string') {
             commandAndArgs = command.split(' ');
@@ -76,9 +107,9 @@ module.exports = function(route, app) {
         try {
             runShellCommand({commandAndArgs: commandAndArgs, stdin: stdin});
         } catch(e) {
-             res.status(500).end({error: 'Error invoking shell: ' + e + '\n' + e.stack}); return;
+             res.status(500).end(JSON.stringify({error: 'Error invoking shell: ' + e + '\n' + e.stack})); return;
         }
-        if (!shellCommand.process) { res.status(400).end({error: 'Could not run ' + commandAndArgs}); return; }
+        if (!shellCommand.process) { res.status(400).end(JSON.stringify({error: 'Could not run ' + commandAndArgs})); return; }
 
         // make ir a streaming response:
         res.removeHeader('Content-Length');

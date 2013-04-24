@@ -787,7 +787,7 @@ lively.morphic.World.addMethods(
     },
     addStatusMessageMorph: function(morph, delay) {
         if (!this.statusMessages) this.statusMessages = [];
-        while (this.statusMessages.length >= 3) {
+        while (this.statusMessages.length >= Config.get('maxStatusMessages')) {
             this.statusMessages.shift().remove()
         }
 
@@ -821,7 +821,7 @@ lively.morphic.World.addMethods(
         var msgMorph = lively.newMorph({extent: pt(200, 68)});
         msgMorph.isEpiMorph = true;
         msgMorph.openInWorld()
-        msgMorph.applyStyle({adjustForNewBounds: true, clipMode: 'hidden'});
+        msgMorph.applyStyle({adjustForNewBounds: true, clipMode: 'hidden', enableGrabbing: false, enableDragging: true});
         msgMorph.name = 'messageMorph'
         msgMorph.addStyleClassName(msgMorph.name);
 
@@ -877,17 +877,22 @@ lively.morphic.World.addMethods(
         msgMorph.addScript(function onDoubleClick(evt) {
             var world = this.world();
             if (!world || this.isMaximized) return;
-            this.isMaximized = true
+            this.isMaximized = true;
+            this.addStyleClassName('maximized');
             this.stayOpen = true;
             world.statusMessages.remove(this);
-            var ext = this.get('messageText').getTextExtent();
-            this.get('messageText').setInputAllowed(true);
-            var visibleBounds = world.visibleBounds();
-            if (ext.y > visibleBounds.extent().y) ext.y = visibleBounds.extent().y - 20;
-            ext = this.getExtent().maxPt(ext);
-            // show(ext)
-            this.setExtent(ext);
-            this.align(this.bounds().center(), visibleBounds.center());
+            var self = this,
+                text = this.get('messageText');
+            text.applyStyle({allowInput: true, fixedWidth: false });
+            text.fit();
+            (function() {
+                var ext = text.getTextExtent().addXY(20,20),
+                    visibleBounds = world.visibleBounds();
+                if (ext.y > visibleBounds.extent().y) ext.y = visibleBounds.extent().y - 20;
+                ext = self.getExtent().maxPt(ext);
+                self.setExtent(ext);
+                self.align(self.bounds().center(), visibleBounds.center());
+            }).delay(0);
         });
 
         return msgMorph;

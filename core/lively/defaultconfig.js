@@ -422,7 +422,8 @@ Global.Config = {
 
             ["userNameURL", Config.location.protocol + '//' + Config.location.host + '/cgi/user.sh'],
 
-            ["lessAnnoyingWorldStatusMessages", true]
+            ["lessAnnoyingWorldStatusMessages", true],
+            ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."]
         ],
 
         'lively.morphic.Events', [

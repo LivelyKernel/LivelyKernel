@@ -2264,7 +2264,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     onMouseUp: Functions.False
 });
 
-lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.DragMoveTrait'),
+lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.DragMoveTrait').derive({override: ['onDrag','onDragStart']}),
 'documentation', {
     documentation: "Full-fledged windows with title bar, menus, etc"
 },

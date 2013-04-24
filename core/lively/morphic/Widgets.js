@@ -1450,7 +1450,11 @@ lively.morphic.World.addMethods(
           win.openInWorld();
           win.align(win.bounds().center(), win.world().visibleBounds().center());
         });
-    }
+    },
+    openGitControl: function() {
+        return this.openPartItem('GitControl', 'core/lively/ide/tools/');
+    },
+
 
 },
 'menu', {
@@ -1629,7 +1633,8 @@ lively.morphic.World.addMethods(
                 ['Text Editor', function() { require('lively.ide').toRun(function() { lively.ide.openFile(URL.source.toString()); }); }],
                 ['System Console', this.openSystemConsole.bind(this)],
                 ['SubserverViewer', this.openSubserverViewer.bind(this)],
-                ['ServerWorkspace', this.openServerWorkspace.bind(this)]
+                ['ServerWorkspace', this.openServerWorkspace.bind(this)],
+                ['GitControl', this.openGitControl.bind(this)]
             ]],
             ['Stepping', [
                 ['Start stepping',  function() { world.submorphs.each(

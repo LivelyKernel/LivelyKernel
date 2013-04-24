@@ -594,7 +594,7 @@ Trait('lively.PartsBin.PartTrait', {
         if (optPartsSpaceNamed && Object.isString(optPartsSpaceNamed))
             this.getPartsBinMetaInfo().setPartsSpaceName(optPartsSpaceNamed);
 
-        if (this.getPartsBinMetaInfo().partsSpaceName &&
+        if (false && this.getPartsBinMetaInfo().partsSpaceName &&
             !this.getPartsBinMetaInfo().partsSpaceName.startsWith("PartsBin")) {
                 alertOK("resetting partsSpaceName of " + this)
                 delete this.getPartsBinMetaInfo().partsSpaceName

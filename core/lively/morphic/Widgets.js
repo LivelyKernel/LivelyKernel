@@ -1984,6 +1984,10 @@ lively.morphic.List.addMethods(
         this.renderContextDispatch('selectAllAt', [idx]);
         this.updateSelectionAndLineNoProperties(idx);
     },
+    saveSelectAt: function(idx) {
+        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
+    },
+
     deselectAt: function(idx) { this.renderContextDispatch('deselectAt', idx) },
 
     updateSelectionAndLineNoProperties: function(selectionIdx) {

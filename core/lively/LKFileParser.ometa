@@ -328,7 +328,7 @@ copRefinement =
 traitDef =
 	pos:p "Trait(" nameString:n restKlassDef:spec ")" spacesNoNl nl* traitSubElement*:subs spaces defEnd
 	-> { this._fragment(n, 'traitDef', p, this.pos()-1, spec.classElems.concat(subs)) },
-realTraitReference = "Trait(" nameString:n ")" -> n,
+realTraitReference = "Trait(" nameString:n ")" ( '.' somethingBigRelated | empty ) -> n,
 
 traitSubElement =
 	pos:p spaces '.' traitApplication:spec

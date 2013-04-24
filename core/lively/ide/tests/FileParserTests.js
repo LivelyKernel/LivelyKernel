@@ -87,6 +87,19 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.assertDescriptorsAreValid([descriptor]);
     },
 
+    testParseClassWithDerivedTrait: function() {   // Object.subclass with derived trait
+        var src = 'lively.xyz.ABC.TheClass.subclass(\'SomeClass\', Trait(\'SomeTrait\').derive({foo: [\'bar\']}), {});';
+        this.sut.src = src;
+        var descriptor = this.sut.parseClass();
+            this.assert(descriptor, 'no descriptor');
+            this.assertEquals(descriptor.name, 'SomeClass');
+        this.assertEquals(descriptor.superclassName, 'lively.xyz.ABC.TheClass');
+        this.assertEquals(descriptor.traits[0], 'SomeTrait');
+        this.assertIdentity(descriptor.startIndex, 0);
+        this.assertIdentity(descriptor.stopIndex, src.length - 1);
+        this.assertDescriptorsAreValid([descriptor]);
+    },
+
     testParseClassWithRealTrait2: function() {   // Object.subclass
         var src = 'lively.xyz.ABC.TheClass.subclass(\'SomeClass\', Trait(\'SomeTrait\'));'
         this.sut.src = src;

@@ -14055,7 +14055,7 @@ var Editor = require("./editor").Editor;
 
     this.getCopyText = function() {
         var text = "";
-        if (this.inMultiSelectMode) {
+        if (this.inMultiSelectMode && !this.inVirtualSelectionMode) {
             var ranges = this.multiSelect.rangeList.ranges;
             text = [];
             for (var i = 0; i < ranges.length; i++) {
@@ -14065,7 +14065,7 @@ var Editor = require("./editor").Editor;
         } else if (!this.selection.isEmpty()) {
             text = this.session.getTextRange(this.getSelectionRange());
         }
-
+        this._emit("copy", text);
         return text;
     };
     this.onPaste = function(text) {
@@ -14079,7 +14079,7 @@ var Editor = require("./editor").Editor;
         var lines = text.split(/\r\n|\r|\n/);
         var ranges = this.selection.rangeList.ranges;
 
-        if (lines.length > ranges.length || (lines.length <= 2 || !lines[1]))
+        if (lines.length > ranges.length || (lines.length < 2 || !lines[1]))
             return this.commands.exec("insertstring", this, text);
 
         for (var i = ranges.length; i--; ) {
@@ -15383,6 +15383,14 @@ exports.handler.attach = function(editor) {
         this.session.$emacsMark = p;
     }
 
+    editor.pushEmacsMark = function(p, activate) {
+        var prevMark = this.session.$emacsMark;
+        if (prevMark)
+            this.session.$emacsMarkRing.push(prevMark);
+        if (activate) this.session.$emacsMark = p;
+        else this.session.$emacsMarkRing.push(p);
+    }
+
     editor.getLastEmacsMark = function(p) {
         return this.session.$emacsMark || this.session.$emacsMarkRing.reverse()[0];
     }
@@ -15394,6 +15402,8 @@ exports.handler.attach = function(editor) {
     editor.commands.addCommands(commands);
     exports.handler.platform = editor.commands.platform;
     editor.$emacsModeHandler = this;
+    editor.addEventListener('copy', this.onCopy);
+    editor.addEventListener('paste', this.onPaste);
 };
 
 exports.handler.detach = function(editor) {
@@ -15404,6 +15414,8 @@ exports.handler.detach = function(editor) {
     editor.removeEventListener("changeSession", $kbSessionChange);
     editor.unsetStyle("emacs-mode");
     editor.commands.removeCommands(commands);
+    editor.removeEventListener('copy', this.onCopy);
+    editor.removeEventListener('paste', this.onPaste);
 };
 
 var $kbSessionChange = function(e) {
@@ -15440,6 +15452,17 @@ combinations.forEach(function(c) {
     });
     eMods[hashId] = c.toLowerCase() + "-";
 });
+
+exports.handler.onCopy = function(e, editor) {
+    if (editor.$handlesEmacsOnCopy) return;
+    editor.$handlesEmacsOnCopy = true;
+    exports.handler.commands.killRingSave.exec(editor);
+    delete editor.$handlesEmacsOnCopy;
+}
+
+exports.handler.onPaste = function(e, editor) {
+    editor.pushEmacsMark(editor.getCursorPosition());
+}
 
 exports.handler.bindKey = function(key, command) {
     if (!key)
@@ -15621,38 +15644,44 @@ exports.handler.addCommands({
     selectRectangularRegion:  function(editor) {
         editor.multiSelect.toggleBlockSelection();
     },
-    setMark:  function(editor) {
-        var markMode = editor.emacsMarkMode();
-        var useCuaMarkMode = true;
-        if (markMode && useCuaMarkMode) {
-            editor.clearSelection();
-            editor.setEmacsMarkMode(null);
-
-            return;
-        }
-        if (markMode) {
-            var cp = editor.getCursorPosition();
-            if (editor.selection.isEmpty() &&
-                markMode.row == cp.row && markMode.column == cp.column) {
+    setMark:  {
+        exec: function(editor) {
+            var markMode = editor.emacsMarkMode(),
+                useCuaMarkMode = true;
+            if (useCuaMarkMode && (markMode || !editor.selection.isEmpty())) {
+                editor.clearSelection();
                 editor.setEmacsMarkMode(null);
                 return;
             }
-        }
-        markMode = editor.getCursorPosition();
-        editor.setEmacsMarkMode(markMode);
-        editor.selection.setSelectionAnchor(markMode.row, markMode.column);
+            if (markMode) {
+                var cp = editor.getCursorPosition();
+                if (editor.selection.isEmpty() &&
+                    markMode.row == cp.row && markMode.column == cp.column) {
+                    editor.setEmacsMarkMode(null);
+                    return;
+                }
+            }
+            markMode = editor.getCursorPosition();
+            editor.setEmacsMarkMode(markMode);
+            editor.selection.setSelectionAnchor(markMode.row, markMode.column);
+        },
+        readonly: true,
+        multiSelectAction: "forEach"
     },
     exchangePointAndMark: {
         exec: function(editor) {
-            var range = editor.selection.getRange();
+            var sel = editor.selection;
+            var range = sel.getRange();
             if (range.isEmpty()) {
                 var lastMark = editor.getLastEmacsMark();
-                lastMark && range.setStart(lastMark.row, lastMark.column);
+                show('select to %o', lastMark)
+                sel.selectToPosition(lastMark);
+                return;
             }
             editor.selection.setSelectionRange(range, !editor.selection.isBackwards());
         },
         readonly: true,
-        multiselectAction: "forEach"
+        multiSelectAction: "forEach"
     },
     killWord: {
         exec: function(editor, dir) {
@@ -15669,15 +15698,20 @@ exports.handler.addCommands({
             editor.session.remove(range);
             editor.clearSelection();
         },
-        multiselectAction: "forEach"
+        multiSelectAction: "forEach"
     },
     killLine: function(editor) {
         editor.setEmacsMarkMode(null);
         var pos = editor.getCursorPosition();
         if (pos.column == 0 &&
             editor.session.doc.getLine(pos.row).length == 0) {
+            // If an already empty line is killed, remove
+            // the line entirely
             editor.selection.selectLine();
         } else {
+            // otherwise just remove from the current cursor position
+            // to the end (but don't delete the selection if it's before
+            // the cursor)
             editor.clearSelection();
             editor.selection.selectLineEnd();
         }
@@ -15689,7 +15723,10 @@ exports.handler.addCommands({
         editor.clearSelection();
     },
     yank: function(editor) {
-        editor.onPaste(exports.killRing.get());
+        var text = editor.inMultiSelectMode ?
+            exports.killRing.get(editor.selection.getAllRanges().length) :
+            exports.killRing.get();
+        editor.onPaste(text || '');
         editor.keyBinding.$data.lastCommand = "yank";
     },
     yankRotate: function(editor) {
@@ -15699,12 +15736,26 @@ exports.handler.addCommands({
         editor.onPaste(exports.killRing.rotate());
         editor.keyBinding.$data.lastCommand = "yank";
     },
-    killRegion: function(editor) {
-        exports.killRing.add(editor.getCopyText());
-        editor.commands.byName.cut.exec(editor);
+    killRegion: {
+        exec: function(editor) {
+            exports.killRing.add(editor.getCopyText());
+            editor.commands.byName.cut.exec(editor);
+        },
+        readonly: true,
+        multiSelectAction: "forEach"
     },
-    killRingSave: function(editor) {
-        exports.killRing.add(editor.getCopyText());
+    killRingSave: {
+        exec: function(editor) {
+            exports.killRing.add(editor.getCopyText());
+            (function() {
+                var sel = editor.selection,
+                    range = sel.getRange();
+                editor.pushEmacsMark(sel.isBackwards() ? range.end : range.start);
+                sel.clearSelection();
+            }).delay(0);
+        },
+        readonly: true,
+        multiSelectAction: "forEach"
     },
     keyboardQuit: function(editor) {
         editor.selection.clearSelection();
@@ -15729,8 +15780,9 @@ exports.killRing = {
         if (this.$data.length > 30)
             this.$data.shift();
     },
-    get: function() {
-        return this.$data[this.$data.length - 1] || "";
+    get: function(n) {
+        n = n || 1;
+        return this.$data.slice(this.$data.length-n, this.$data.length).reverse().join('\n');
     },
     pop: function() {
         if (this.$data.length > 1)

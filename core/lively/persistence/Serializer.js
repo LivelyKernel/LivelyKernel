@@ -1315,12 +1315,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         if (spec.externalScripts) this.addScripts(spec.externalScripts);
         this.addSerializedWorld(spec.serializedWorld, spec.title, spec.migrationLevel);
         return this.doc;
-    },
-    documentForWorldSerialization: function(spec) {
-        // This method creates a new HTML document that can be used to
-        // serialize a Lively world.
-        return new this().build(spec);
-    },
+    }
 },
 'helper', {
     createScriptEl: function (spec) {
@@ -1349,6 +1344,14 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
             .appendTo(this.head);
     }
 
+});
+
+Object.extend(lively.persistence.HTMLDocBuilder, {
+    documentForWorldSerialization: function(spec) {
+        // This method creates a new HTML document that can be used to
+        // serialize a Lively world.
+        return new this().build(spec);
+    }
 });
 
 Object.extend(lively.persistence, {

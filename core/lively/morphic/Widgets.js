@@ -2372,8 +2372,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 
     alignAllHandles: function() {
         if (this.isCollapsed()) return;
-        var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
-        handles.invoke('alignWithWindow');
+        this.reframeHandle && this.reframeHandle.alignWithWindow();
+        this.bottomReframeHandle && this.bottomReframeHandle.alignWithWindow();
+        this.rightReframeHandle && this.rightReframeHandle.alignWithWindow();
     }
 
 },

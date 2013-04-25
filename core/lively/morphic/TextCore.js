@@ -2255,12 +2255,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     enableSyntaxHighlighting: function() {
-        var text = this;
-        require('lively.ide.SyntaxHighlighting').toRun(function() {
-            text.syntaxHighlightingWhileTyping = true;
-            text.highlightSyntaxDebounced();
-            connect(text, 'textString', text, 'highlightSyntaxDebounced');
-        })
+        this.syntaxHighlightingWhileTyping = true;
+        this.highlightSyntaxDebounced();
+        connect(this, 'textString', this, 'highlightSyntaxDebounced');
     },
 
     disableSyntaxHighlighting: function() {
@@ -2270,11 +2267,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     enableSyntaxHighlightingOnSave: function() {
-        var text = this;
-        require('lively.ide.SyntaxHighlighting').toRun(function() {
-            text.syntaxHighlightingOnSave = true;
-            connect(text, 'savedTextString', text, 'highlightSyntaxDebounced');
-        });
+        this.syntaxHighlightingOnSave = true;
+        connect(this, 'savedTextString', this, 'highlightSyntaxDebounced');
     },
 
     disableSyntaxHighlightingOnSave: function() {

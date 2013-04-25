@@ -221,7 +221,8 @@ Object.subclass('TestCase',
     },
     assertEqualState: function(leftObj, rightObj, msg, noProtoLookup) {
         // have leftObj and rightObj equal properties?
-        msg = msg ? msg : leftObj + " != " + rightObj + " because ";
+        Objects.inspect(leftObj, {maxDepth: 1})
+        msg = msg || Strings.format("%s != %s because ", leftObj, rightObj);
         this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
         if (leftObj == rightObj) return;
         if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
@@ -239,7 +240,10 @@ Object.subclass('TestCase',
             }
             case Array: {
                 this.assertEquals(leftObj.length, rightObj.length, msg +
-                                  Strings.format(' (length %s vs. %s)', leftObj.length, rightObj.length));
+                                  Strings.format(' (length %s!=%s\n%s vs. %s)',
+                                      leftObj.length, rightObj.length,
+                                      Objects.inspect(leftObj, {maxDepth: 1}),
+                                      Objects.inspect(rightObj, {maxDepth: 1})));
                 for (var i = 0; i < leftObj.length; i++) {
                     this.assertEqualState(leftObj[i], rightObj[i],
                                           msg + " [" + i + "]", noProtoLookup);

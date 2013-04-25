@@ -229,5 +229,38 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
     }
 
 });
+TestCase.subclass('lively.ide.tests.CommandLineInterface.AnsiColorParser',
+'testing', {
+
+    testParseSimpleColors: function() {
+        var string = "hello\033[31mworld\033[0m",
+            expectedTextSpec = {
+                string: 'helloworld',
+                ranges: [[0,5, {}], [5, 10, {color: Color.red}]]},
+            result = lively.ide.CommandLineInterface.toStyleSpec(string);
+        this.assertEqualState(expectedTextSpec, result);
+    },
+
+    testParseTwoTextAttributes: function() {
+        var string = "hello\033[4;31mwor\033[44mld\033[0m",
+            expectedTextSpec = {
+                string: 'helloworld',
+                ranges: [
+                    [0, 5, {}],
+                    [5,8, {textDecoration: 'underline', color: Color.red}],
+                    [8,10, {textDecoration: 'underline', color: Color.red, backgroundColor: Color.blue}]]},
+            result = lively.ide.CommandLineInterface.toStyleSpec(string);
+        this.assertEqualState(expectedTextSpec, result);
+    },
+
+    testAnsiAttributesCanDealWithMissingEnd: function() {
+        var string = "\033[31mhelloworld",
+            expectedTextSpec = {
+                string: 'helloworld',
+                ranges: [[0,10, {color: Color.red}]]},
+            result = lively.ide.CommandLineInterface.toStyleSpec(string);
+        this.assertEqualState(expectedTextSpec, result);
+    }
+});
 
 }) // end of module

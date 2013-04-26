@@ -1,5 +1,5 @@
-module('lively.LKFileParser').requires('ometa.parser').toRun(function() {
-{LKFileParser=Object.delegated(Parser,{
+module('lively.LKFileParser').requires('ometa.lively').toRun(function() {
+{LKFileParser=objectThatDelegatesTo(Parser,{
 "isLKParser":function(){var $elf=this;return true},
 "halt":function(){var $elf=this;return dbgOn(true)},
 "log":function(){var $elf=this,msg;return (function(){msg=this._apply("anything");return (function (){console.log(msg);return true}).call(this)}).call(this)},

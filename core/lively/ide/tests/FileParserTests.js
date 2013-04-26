@@ -951,7 +951,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     setUp: function($super) {
         $super();
         this.ometaParser = this.sut.ometaParser;
-        this.chunkParser = Object.delegated(ChunkParser, {});
+        this.chunkParser = objectThatDelegatesTo(ChunkParser, {});
         this.debugFunction = function(src, grammarInstance, errorIndex) {
             var startIndex = Math.max(0, errorIndex - 100);
             var stopIndex = Math.min(src.length, errorIndex + 100);

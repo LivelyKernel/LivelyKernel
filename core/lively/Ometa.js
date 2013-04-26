@@ -23,7 +23,7 @@
  */
 
 
-module('lively.Ometa').requires('lively.Network', 'ometa.ometa-base', 'ometa.lk-parser-extensions').toRun(function() {
+module('lively.Ometa').requires('lively.Network', 'ometa.lively').toRun(function() {
 
 /*
     An OMeta Workspace like http://www.cs.ucla.edu/~awarth/ometa/.
@@ -43,7 +43,7 @@ Object.extend(OMetaSupport, {
 
     translateAndWrite: function(sourceFileName, destFileName, additionalRequirements) {
 	    var requirementsString = additionalRequirements ? ",'" + additionalRequirements.join("','") + "'" : "",
-            str = Strings.format('module(\'%s\').requires(\'ometa.parser\'%s).toRun(function() {\n%s\n});',
+            str = Strings.format('module(\'%s\').requires(\'ometa.lively\'%s).toRun(function() {\n%s\n});',
                                  destFileName.replace(/\.js$/, '').replace(/\//g, '.'),
                                  requirementsString,
                                  OMetaSupport.translateToJs(OMetaSupport.fileContent(sourceFileName)));
@@ -59,9 +59,12 @@ Object.extend(OMetaSupport, {
     },
 
     translateToJs: function(src) {
-        var ometaSrc = OMetaSupport.matchAllWithGrammar(LKOMetaJSParser, "topLevel", src);
+        var ometaSrc = OMetaSupport.matchAllWithGrammar(BSOMetaJSParser, "topLevel", src);
         if (!ometaSrc) throw new Error('Problem in translateToJs: Cannot create OMeta Ast from source');
-        var jsSrc = OMetaSupport.matchWithGrammar(LKOMetaJSTranslator, "trans", ometaSrc);
+        var jsSrc = OMetaSupport.matchWithGrammar(BSOMetaJSTranslator, "trans", ometaSrc);
+        // var ometaSrc = OMetaSupport.matchAllWithGrammar(LKOMetaJSParser, "topLevel", src);
+        // if (!ometaSrc) throw new Error('Problem in translateToJs: Cannot create OMeta Ast from source');
+        // var jsSrc = OMetaSupport.matchWithGrammar(LKOMetaJSTranslator, "trans", ometaSrc);
         return jsSrc;
     },
 

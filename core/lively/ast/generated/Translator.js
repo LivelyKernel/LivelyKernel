@@ -1,5 +1,5 @@
-module('lively.ast.generated.Translator').requires('ometa.parser').toRun(function() {
-JSTranslator=Object.delegated(Parser,{
+module('lively.ast.generated.Translator').requires('ometa.lively').toRun(function() {
+JSTranslator=objectThatDelegatesTo(Parser,{
 "trans":function(){var $elf=this,t,ans;return (function(){this._form((function(){return (function(){t=this._apply("anything");return ans=this._applyWithArgs("apply",t)}).call(this)}));return ans}).call(this)},
 "begin":function(){var $elf=this,pos,children;return (function(){pos=this._apply("anything");children=this._many((function(){return this._apply("trans")}));this._apply("end");return new lively.ast.Sequence(pos,children)}).call(this)},
 "number":function(){var $elf=this,pos,value;return (function(){pos=this._apply("anything");value=this._apply("anything");return new lively.ast.Number(pos,value)}).call(this)},

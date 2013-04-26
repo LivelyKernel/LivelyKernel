@@ -1122,7 +1122,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         eval(translated);
         var content = Strings.format(
             'module(\'lively.ast.generated.Translator\').' +
-                'requires(\'ometa.parser\').toRun(function() {\n%s\n});', translated)
+                'requires(\'ometa.lively\').toRun(function() {\n%s\n});', translated)
         this.writeToFile('Translator.ometa', source);
         this.writeToFile('Translator.js', content);
     },

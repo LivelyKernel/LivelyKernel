@@ -1451,6 +1451,10 @@ lively.morphic.World.addMethods(
           win.align(win.bounds().center(), win.world().visibleBounds().center());
         });
     },
+    openOMetaWorkspace: function() {
+        return this.openPartItem('OMetaWorkspace', 'core/lively/ide/tools/');
+    },
+
     openGitControl: function() {
         return this.openPartItem('GitControl', 'core/lively/ide/tools/');
     },
@@ -1625,6 +1629,7 @@ lively.morphic.World.addMethods(
             ['Parts', this.morphMenuDefaultPartsItems()],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],
+                ['OMeta Workspace', this.openOMetaWorkspace.bind(this)],
                 ['System Code Browser', this.openSystemBrowser.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
                 ['BuildSpecEditor', this.openBuildSpecEditor.bind(this)],

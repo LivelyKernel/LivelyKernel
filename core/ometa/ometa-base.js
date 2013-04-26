@@ -1,29 +1,4 @@
 /*
-  Copyright (c) 2007, 2008 Alessandro Warth <awarth@cs.ucla.edu>
-
-  Permission is hereby granted, free of charge, to any person
-  obtaining a copy of this software and associated documentation
-  files (the "Software"), to deal in the Software without
-  restriction, including without limitation the rights to use,
-  copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following
-  conditions:
-
-  The above copyright notice and this permission notice shall be
-  included in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-  OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-/*
   new syntax:
     #foo and `foo	match the string object 'foo' (it's also accepted in my JS)
     'abc'		match the string object 'abc'
@@ -37,22 +12,22 @@
 
 /*
 ometa M {
-  number = number:n digit:d -> { n * 10 + Global.digitValue(d) }
-         | digit:d          -> { Global.digitValue(d) }
+  number = number:n digit:d -> { n * 10 + d.digitValue() }
+         | digit:d          -> { d.digitValue() }
 }
 
 translates to...
 
-M = Object.delegated(OMeta,{
+M = objectThatDelegatesTo(OMeta, {
   number: function() {
             return this._or(function() {
                               var n = this._apply("number"),
                                   d = this._apply("digit")
-                              return n * 10 + Global.digitValue(d)
+                              return n * 10 + d.digitValue()
                             },
                             function() {
                               var d = this._apply("digit")
-                              return Global.digitValue(d)
+                              return d.digitValue()
                             }
                            )
           }
@@ -60,8 +35,6 @@ M = Object.delegated(OMeta,{
 M.matchAll("123456789", "number")
 */
 
-module('ometa.ometa-base').requires('ometa.lib').toRun(function() {
-  
 // the failure exception
 
 fail = { toString: function() { return "match failed" } }
@@ -70,42 +43,57 @@ fail = { toString: function() { return "match failed" } }
 
 function OMInputStream(hd, tl) {
   this.memo = { }
+  this.lst  = tl.lst
+  this.idx  = tl.idx
   this.hd   = hd
   this.tl   = tl
 }
 OMInputStream.prototype.head = function() { return this.hd }
 OMInputStream.prototype.tail = function() { return this.tl }
+OMInputStream.prototype.type = function() { return this.lst.constructor }
+OMInputStream.prototype.upTo = function(that) {
+  var r = [], curr = this
+  while (curr != that) {
+    r.push(curr.head())
+    curr = curr.tail()
+  }
+  return this.type() == String ? r.join('') : r
+}
 
-function OMInputStreamEnd(idx) {
+function OMInputStreamEnd(lst, idx) {
   this.memo = { }
+  this.lst = lst
   this.idx = idx
 }
+OMInputStreamEnd.prototype = objectThatDelegatesTo(OMInputStream.prototype)
 OMInputStreamEnd.prototype.head = function() { throw fail }
 OMInputStreamEnd.prototype.tail = function() { throw fail }
 
-Array.prototype.toOMInputStream  = function() { return makeArrayOMInputStream(this, 0) }
-String.prototype.toOMInputStream = Array.prototype.toOMInputStream
+// This is necessary b/c in IE, you can't say "foo"[idx]
+Array.prototype.at  = function(idx) { return this[idx] }
+String.prototype.at = String.prototype.charAt
 
-function makeArrayOMInputStream(arr, idx) { return idx < arr.length ? new ArrayOMInputStream(arr, idx) : new OMInputStreamEnd(idx) }
-
-function ArrayOMInputStream(arr, idx) {
+function ListOMInputStream(lst, idx) {
   this.memo = { }
-  this.arr  = arr
+  this.lst  = lst
   this.idx  = idx
-  this.hd   = arr[idx]
+  this.hd   = lst.at(idx)
 }
-ArrayOMInputStream.prototype.head = function() { return this.hd }
-ArrayOMInputStream.prototype.tail = function() {
-  if (this.tl == undefined)
-    this.tl = makeArrayOMInputStream(this.arr, this.idx + 1)
-  return this.tl
-}
+ListOMInputStream.prototype = objectThatDelegatesTo(OMInputStream.prototype)
+ListOMInputStream.prototype.head = function() { return this.hd }
+ListOMInputStream.prototype.tail = function() { return this.tl || (this.tl = makeListOMInputStream(this.lst, this.idx + 1)) }
+
+function makeListOMInputStream(lst, idx) { return new (idx < lst.length ? ListOMInputStream : OMInputStreamEnd)(lst, idx) }
+
+Array.prototype.toOMInputStream  = function() { return makeListOMInputStream(this, 0) }
+String.prototype.toOMInputStream = function() { return makeListOMInputStream(this, 0) }
 
 function makeOMInputStreamProxy(target) {
-  return Object.delegated(target,{
+  return objectThatDelegatesTo(target, {
     memo:   { },
     target: target,
-    tail:   function() { return makeOMInputStreamProxy(target.tail()) }
+    tl: undefined,
+    tail:   function() { return this.tl || (this.tl = makeOMInputStreamProxy(target.tail())) }
   })
 }
 
@@ -116,16 +104,15 @@ Failer.prototype.used = false
 
 // the OMeta "class" and basic functionality
 
-Global.OMeta = {
+OMeta = {
   _apply: function(rule) {
     var memoRec = this.input.memo[rule]
     if (memoRec == undefined) {
       var origInput = this.input,
           failer    = new Failer()
+      if (this[rule] === undefined)
+        throw 'tried to apply undefined rule "' + rule + '"'
       this.input.memo[rule] = failer
-      if (!this[rule]) {
-        throw new Error('Can\'t find rule ' + rule);
-      };
       this.input.memo[rule] = memoRec = {ans: this[rule].call(this), nextInput: this.input}
       if (failer.used) {
         var sentinel = this.input
@@ -156,17 +143,25 @@ Global.OMeta = {
 
   // note: _applyWithArgs and _superApplyWithArgs are not memoized, so they can't be left-recursive
   _applyWithArgs: function(rule) {
-    for (var idx = arguments.length - 1; idx > 0; idx--)
+    var ruleFn = this[rule]
+    var ruleFnArity = ruleFn.length
+    for (var idx = arguments.length - 1; idx >= ruleFnArity + 1; idx--) // prepend "extra" arguments in reverse order
       this._prependInput(arguments[idx])
-    return this[rule].call(this)
+    return ruleFnArity == 0 ?
+             ruleFn.call(this) :
+             ruleFn.apply(this, Array.prototype.slice.call(arguments, 1, ruleFnArity + 1))
   },
   _superApplyWithArgs: function(recv, rule) {
-    for (var idx = arguments.length - 1; idx > 1; idx--)
+    var ruleFn = this[rule]
+    var ruleFnArity = ruleFn.length
+    for (var idx = arguments.length - 1; idx > ruleFnArity + 2; idx--) // prepend "extra" arguments in reverse order
       recv._prependInput(arguments[idx])
-    return this[rule].call(recv)
+    return ruleFnArity == 0 ?
+             ruleFn.call(recv) :
+             ruleFn.apply(recv, Array.prototype.slice.call(arguments, 2, ruleFnArity + 2))
   },
   _prependInput: function(v) {
-    this.input = new OMInputStream(v, this.input);
+    this.input = new OMInputStream(v, this.input)
   },
 
   // if you want your grammar (and its subgrammars) to memoize parameterized rules, invoke this method on it:
@@ -184,9 +179,12 @@ Global.OMeta = {
       this.input = newInput
     }
     this._applyWithArgs = function(rule) {
-      for (var idx = arguments.length - 1; idx > 0; idx--)
+      var ruleFnArity = this[rule].length
+      for (var idx = arguments.length - 1; idx >= ruleFnArity + 1; idx--) // prepend "extra" arguments in reverse order
         this._prependInput(arguments[idx])
-      return this._apply(rule)
+      return ruleFnArity == 0 ?
+               this._apply(rule) :
+               this[rule].apply(this, Array.prototype.slice.call(arguments, 1, ruleFnArity + 1))
     }
   },
 
@@ -223,34 +221,40 @@ Global.OMeta = {
     throw fail
   },
   _xor: function(ruleName) {
-    var origInput = this.input, idx = 1, numMatches = 0, ans
+    var origInput = this.input, idx = 1, newInput, ans
     while (idx < arguments.length) {
       try {
         this.input = origInput
         ans = arguments[idx].call(this)
-        numMatches += 1
+        if (newInput)
+          throw 'more than one choice matched by "exclusive-OR" in ' + ruleName
+        newInput = this.input
       }
       catch (f) {
         if (f != fail)
           throw f
       }
-      idx += 1
+      idx++
     }
-    if      (numMatches == 0) throw fail
-    else if (numMatches == 1) return ans
-    else                      throw 'more than one choice matched by "exclusive-OR" in ' + ruleName
+    if (newInput) {
+      this.input = newInput
+      return ans
+    }
+    else
+      throw fail
   },
   disableXORs: function() {
-    this._xor = function(ruleName) {
-      var origInput = this.input
-      for (var idx = 1; idx < arguments.length; idx++)
-        try { this.input = origInput; return arguments[idx].call(this) }
-        catch (f) {
-          if (f != fail)
-            throw f
-        }
-      throw fail
+    this._xor = this._or
+  },
+  _opt: function(x) {
+    var origInput = this.input, ans
+    try { ans = x.call(this) }
+    catch (f) {
+      if (f != fail)
+        throw f
+      this.input = origInput
     }
+    return ans
   },
   _many: function(x) {
     var ans = arguments[1] != undefined ? [arguments[1]] : []
@@ -269,15 +273,62 @@ Global.OMeta = {
   _many1: function(x) { return this._many(x, x.call(this)) },
   _form: function(x) {
     var v = this._apply("anything")
-    if (!v || !Global.isSequenceable(v))
+    if (!isSequenceable(v))
       throw fail
     var origInput = this.input
-    this.input = makeArrayOMInputStream(v, 0)
+    this.input = v.toOMInputStream()
     var r = x.call(this)
     this._apply("end")
     this.input = origInput
     return v
   },
+  _consumedBy: function(x) {
+    var origInput = this.input
+    x.call(this)
+    return origInput.upTo(this.input)
+  },
+  _idxConsumedBy: function(x) {
+    var origInput = this.input
+    x.call(this)
+    return {fromIdx: origInput.idx, toIdx: this.input.idx}
+  },
+  _interleave: function(mode1, part1, mode2, part2 /* ..., moden, partn */) {
+    var currInput = this.input, ans = []
+    for (var idx = 0; idx < arguments.length; idx += 2)
+      ans[idx / 2] = (arguments[idx] == "*" || arguments[idx] == "+") ? [] : undefined
+    while (true) {
+      var idx = 0, allDone = true
+      while (idx < arguments.length) {
+        if (arguments[idx] != "0")
+          try {
+            this.input = currInput
+            switch (arguments[idx]) {
+              case "*": ans[idx / 2].push(arguments[idx + 1].call(this));                       break
+              case "+": ans[idx / 2].push(arguments[idx + 1].call(this)); arguments[idx] = "*"; break
+              case "?": ans[idx / 2] =    arguments[idx + 1].call(this);  arguments[idx] = "0"; break
+              case "1": ans[idx / 2] =    arguments[idx + 1].call(this);  arguments[idx] = "0"; break
+              default:  throw "invalid mode '" + arguments[idx] + "' in OMeta._interleave"
+            }
+            currInput = this.input
+            break
+          }
+          catch (f) {
+            if (f != fail)
+              throw f
+            // if this (failed) part's mode is "1" or "+", we're not done yet
+            allDone = allDone && (arguments[idx] == "*" || arguments[idx] == "?")
+          }
+        idx += 2
+      }
+      if (idx == arguments.length) {
+        if (allDone)
+          return ans
+        else
+          throw fail
+      }
+    }
+  },
+  _currIdx: function() { return this.input.idx },
 
   // some basic rules
   anything: function() {
@@ -292,22 +343,18 @@ Global.OMeta = {
     return this.input.idx
   },
   empty: function() { return true },
-  apply: function() {
-    var r = this._apply("anything")
+  apply: function(r) {
     return this._apply(r)
   },
-  foreign: function() {
-    var g   = this._apply("anything"),
-        r   = this._apply("anything"),
-        gi  = Object.delegated(g,{input: makeOMInputStreamProxy(this.input)})
-    var ans = gi._apply(r)
+  foreign: function(g, r) {
+    var gi  = objectThatDelegatesTo(g, {input: makeOMInputStreamProxy(this.input)}),
+        ans = gi._apply(r)
     this.input = gi.input.target
     return ans
   },
 
   //  some useful "derived" rules
-  exactly: function() {
-    var wanted = this._apply("anything")
+  exactly: function(wanted) {
     if (wanted === this._apply("anything"))
       return wanted
     throw fail
@@ -352,17 +399,17 @@ Global.OMeta = {
   },
   digit: function() {
     var r = this._apply("char")
-    this._pred(Global.isDigit(r))
+    this._pred(r >= "0" && r <= "9")
     return r
   },
   lower: function() {
     var r = this._apply("char")
-    this._pred(Global.isLower(r))
+    this._pred(r >= "a" && r <= "z")
     return r
   },
   upper: function() {
     var r = this._apply("char")
-    this._pred(Global.isUpper(r))
+    this._pred(r >= "A" && r <= "Z")
     return r
   },
   letter: function() {
@@ -373,22 +420,43 @@ Global.OMeta = {
     return this._or(function() { return this._apply("letter") },
                     function() { return this._apply("digit")  })
   },
-  firstAndRest: function()  {
-    var first = this._apply("anything"),
-        rest  = this._apply("anything")
+  firstAndRest: function(first, rest)  {
      return this._many(function() { return this._apply(rest) }, this._apply(first))
   },
-  seq: function() {
-    var xs = this._apply("anything")
+  seq: function(xs) {
     for (var idx = 0; idx < xs.length; idx++)
-      this._applyWithArgs("exactly", xs[idx])
+      this._applyWithArgs("exactly", xs.at(idx))
     return xs
   },
-  notLast: function() {
-    var rule = this._apply("anything"),
-        r    = this._apply(rule)
+  notLast: function(rule) {
+    var r = this._apply(rule)
     this._lookahead(function() { return this._apply(rule) })
     return r
+  },
+  listOf: function(rule, delim) {
+    return this._or(function() {
+                      var r = this._apply(rule)
+                      return this._many(function() {
+                                          this._applyWithArgs("token", delim)
+                                          return this._apply(rule)
+                                        },
+                                        r)
+                    },
+                    function() { return [] })
+  },
+  token: function(cs) {
+    this._apply("spaces")
+    return this._applyWithArgs("seq", cs)
+  },
+  fromTo: function (x, y) {
+    return this._consumedBy(function() {
+                              this._applyWithArgs("seq", x)
+                              this._many(function() {
+                                this._not(function() { this._applyWithArgs("seq", y) })
+                                this._apply("char")
+                              })
+                              this._applyWithArgs("seq", y)
+                            })
   },
 
   initialize: function() { },
@@ -399,14 +467,10 @@ Global.OMeta = {
     var realArgs = [rule]
     for (var idx = 0; idx < args.length; idx++)
       realArgs.push(args[idx])
-    var m = Object.delegated(this,{input: input, _ruleStack: [], _originalInput: input})
+    var m = objectThatDelegatesTo(this, {input: input})
     m.initialize()
-    try {
-      var result = realArgs.length == 1 ? m._apply.call(m, realArgs[0]) : m._applyWithArgs.apply(m, realArgs);
-      // if (m.input.arr)
-      //  console.log('Not all input processed: ' + m.input.arr.toArray().slice(m.input.idx));
-      return result;
-    } catch (f) {
+    try { return realArgs.length == 1 ? m._apply.call(m, realArgs[0]) : m._applyWithArgs.apply(m, realArgs) }
+    catch (f) {
       if (f == fail && matchFailed != undefined) {
         var input = m.input
         if (input.idx != undefined) {
@@ -424,146 +488,14 @@ Global.OMeta = {
   },
   matchAll: function(listyObj, rule, args, matchFailed) {
     return this._genericMatch(listyObj.toOMInputStream(), rule, args, matchFailed)
+  },
+  createInstance: function() {
+    var m = objectThatDelegatesTo(this)
+    m.initialize()
+    m.matchAll = function(listyObj, aRule) {
+      this.input = listyObj.toOMInputStream()
+      return this._apply(aRule)
+    }
+    return m
   }
 }
-
-// Chunk Parser rkrk
-Global.ChunkParser = {
-  
-  start: function(ometaParser, chunkStart, chunkEnd) {
-    this.ometaParser = ometaParser;
-    this.isString = (chunkStart === chunkEnd) && (chunkStart === '\'' || chunkStart === '\"');
-    this.chunkStart = chunkStart;
-    this.chunkEnd = chunkEnd;
-    this.chunkEndFound = false;
-    this.next = null;
-    this.counter = 0;
-    this.result = [];
-    this.parseStart();
-    // dbgOn(true);
-    do { this.makeStep() } while (!this.parseRest());
-    return this.result;
-  },
-  
-  parseStart: function() {
-    this.result.push(this.ometaParser._applyWithArgs('exactly', this.chunkStart));
-  },
-  
-  makeStep: function() {
-    this.next = this.ometaParser._apply("anything");
-    this.result.push(this.next);
-    this.nextNext = this.ometaParser.input.hd;
-    return this.next;
-  },
-
-  backup: function() {
-    this.backupRecorded = true;
-    this.backupInput = this.ometaParser.input;
-    this.backupNext = this.next;
-    this.backupNextNext = this.nextNext;
-    this.backupCounter = this.counter;
-    this.backupResult = this.result;
-  },
-  
-  useBackup: function() {
-    if (!this.backupRecorded) throw dbgOn(new Error('Using Chunk parser backup but did not record it!'));
-    this.ometaParser.input = this.backupInput;
-    this.next = this.backupNext;
-    this.nextNext = this.backupNextNext;
-    this.counter = this.backupCounter;
-    this.result = this.backupResult;
-  },
-  
-  parseEscapedChar: function() {
-    while (this.next === '\\') {
-        this.makeStep();
-        this.makeStep();
-    }
-  },
-
-  parseComment: function() {
-    if (this.next !== '/') return false;
-    var comment1Opened = this.nextNext === '/';
-    var comment2Opened = this.nextNext === '*'
-    if (!comment1Opened && !comment2Opened) return;
-    this.makeStep(); this.makeStep();
-    while (true) { // this seems to crash Safari/Webkit, using do while below
-      this.parseEscapedChar();
-      if (comment1Opened && (this.next === '\n' || this.next === '\r')) return;
-      if (comment2Opened && this.next === '*' && this.nextNext === '/' && this.makeStep()) return;
-      this.makeStep();
-    }
-  },
-  
-  parseString: function() {
-    var string1Opened;
-    var string2Opened;
-	if (this.chunkStart === '\'' || this.chunkStart === '"') return;
-    if (this.next === '\'') string1Opened = true;
-    if (this.next === '"') string2Opened = true;
-    if (!string1Opened && !string2Opened) return;
-    this.makeStep();
-    while (true) { // this seems to crash Safari/Webkit
-      this.parseEscapedChar()
-      if (string1Opened && this.next === '\'') return;
-      if (string2Opened && this.next === '"') return;
-      this.makeStep();
-    }
-  },
-
-  parseRegex: function() {
-    var regexOpen = this.next === '/' && this.nextNext !== '*' && this.nextNext !== '/';
-    if (!regexOpen) return;
-    this.backup();
-    this.makeStep();
-    while (true) {
-      this.parseEscapedChar();
-      // Assume regex are on one line
-      if (this.next === '\n' || this.next === '\r') {
-        this.useBackup();
-        return;
-      }
-      if (this.next === '/') return;
-      this.makeStep();
-    }
-  },
-  
-  parseRest: function() {
-    this.parseEscapedChar();
-    if (!this.isString) {
-	    this.parseRegex();
-	    this.parseString();
-	    this.parseComment();
-    }
-    if (this.next === this.chunkEnd && this.counter === 0) // end
-      return true;
-    if (this.next === this.chunkEnd) { // end of another chunk
-      this.counter--;
-      return false;
-    }
-    if (this.next === this.chunkStart) // begin of another chunk
-      this.counter++;
-    return false;
-  }
-  
-};
-
-OMeta.basicChunk = function() {
-  var chunkStart = this._apply("anything"),
-      chunkEnd   = this._apply("anything");
-  if (!this.chunkParser)
-    this.chunkParser = Object.delegated(ChunkParser,{});
-    //this.chunkParser = Object.delegated(Object,ChunkParser, {});
-  return this.chunkParser.start(this, chunkStart, chunkEnd);
-}
-
-// exports rkrk
-Global.fail = fail;
-Global.OMInputStream = OMInputStream;
-Global.OMInputStreamEnd = OMInputStreamEnd;
-Global.makeArrayOMInputStream = makeArrayOMInputStream;
-Global.ArrayOMInputStream = ArrayOMInputStream;
-Global.makeOMInputStreamProxy = makeOMInputStreamProxy;
-Global.Failer = Failer;
-
-}); // end of module

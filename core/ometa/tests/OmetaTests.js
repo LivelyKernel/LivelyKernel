@@ -6,7 +6,7 @@ TestCase.subclass('ometa.tests.OmetaTests.TextTest', {
         var names = Object.keys(spec).select(function(ea) { return spec.hasOwnProperty(ea) });
         return names.all(function(ea) { return style[ea] == spec[ea]});
     },
-    
+
     assertTextStyle: function(text, spec, beginPos, length, msg) {
         var endPos = length ? beginPos + length - 1: beginPos;
         Array.range(beginPos, endPos).each(function(i) {
@@ -16,7 +16,7 @@ TestCase.subclass('ometa.tests.OmetaTests.TextTest', {
                                 + ' character: ' + text.string[i] + ' -- ' + msg);
         }, this);
     },
-    
+
     // to test assertion
     testThisTest: function() {
         var style = {style: 'bold', fontSize: 4, color: Color.red};
@@ -27,7 +27,7 @@ TestCase.subclass('ometa.tests.OmetaTests.TextTest', {
 });
 
 
-TestCase.subclass('ometa.tests.OmetaTests.OmetaTest', {             
+TestCase.subclass('ometa.tests.OmetaTests.OmetaTest', {
     testBSOMetaJSParser: function() {
         var s = "3+ 4";
         var tree = LKOMetaJSParser.matchAll(s, "topLevel");
@@ -41,13 +41,13 @@ TestCase.subclass('ometa.tests.OmetaTests.OmetaTest', {
         var result= LKOMetaJSTranslator.match(tree, "trans");
         this.assertEquals(String(result), "((3) + (4))");
     },
-    
+
     testOmetaSampleInterpreter: function() {
         var calcSrc = LKOMetaJSParser.matchAll(ometa.tests.OmetaTests.ometaSampleInterpeter, "topLevel");
         var result = eval(LKOMetaJSTranslator.match(calcSrc, "trans"));
         this.assertEquals(result, 42);
     },
-    
+
     testEvalOmeta: function() {
         this.assertEquals(OMetaSupport.ometaEval(ometa.tests.OmetaTests.ometaSampleInterpeter), 42)
     },
@@ -74,7 +74,8 @@ Object.extend(ometa.tests.OmetaTests, {
   expr     = addExpr\n\
 }\n\
 \n\
-Calc.matchAll('6*(4+3)', 'expr')",
+Calc.matchAll('6*(4+3)', 'expr')"
 
 });
+
 });

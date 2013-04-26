@@ -61,7 +61,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         }
         this.label.beLabel(this.style.label);
         this.label.setTextStylingMode(true);
-        this.label.disableHalos();
+        this.label.disableEvents();
         return this.label;
     },
 

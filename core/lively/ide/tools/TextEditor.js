@@ -4,9 +4,6 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     _Extent: pt(600, 400),
     className: "lively.morphic.Window",
     contentOffset: lively.pt(4.0,22.0),
-    layout: {
-        adjustForNewBounds: true
-    },
     state: "expanded",
     submorphs: [{
         _BorderWidth: 1,
@@ -46,7 +43,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             grabbingEnabled: false,
             label: "save",
             layout: {
-                resizeWidth: true
+                scaleHorizontal: true
             },
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
@@ -66,8 +63,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             isPressed: false,
             label: "load",
             layout: {
-                moveHorizontal: true,
-                resizeWidth: false
+                scaleHorizontal: true
             },
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
@@ -80,64 +76,42 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             _Position: lively.pt(600.0,30.0),
             className: "lively.morphic.Button",
             name: 'removeButton',
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            droppingEnabled: false,
-            grabbingEnabled: false,
-            isPressed: false,
+            // droppingEnabled: false,
+            // grabbingEnabled: false,
             label: "remove",
             layout: {
-                moveHorizontal: true,
-                resizeWidth: false
-            },
-            sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false
+                scaleHorizontal: true
+            }
         },{
             _FontFamily: "Monaco",
             className: "lively.morphic.CodeEditor",
             name: 'editor',
-            fixedHeight: true,
-            fixedWidth: true,
             grabbingEnabled: false,
             layout: {
                 resizeHeight: true,
                 resizeWidth: true
             },
             sourceModule: "lively.ide.CodeEditor",
-            textString: "emtpy"
+            textString: ""
         }],
     }],
     titleBar: "TextEditor",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         $super();
-        this.applyLayout();
-    },
-    getLayouter: function getLayouter() {
-        return {
-            onSubmorphAdded: function() {},
-            onSubmorphRemoved: function() {},
-            handlesSubmorphResized: function() { return false; },
-            layout: function(win, submorphs) {
-                if (win.inLayoutCycle) return;
-                win.inLayoutCycle = true;
-                var urlText = win.get('urlText'),
-                    editor = win.get('editor'),
-                    loadButton = win.get('loadButton'),
-                    saveButton = win.get('saveButton'),
-                    removeButton = win.get('removeButton'),
-                    container = win.get('container');
-                container.setBounds(win.innerBounds().insetByRect(lively.rect(win.contentOffset, pt(4,4))));
-                urlText.setBounds(container.getExtent().withY(18).extentAsRectangle());
-                var third = container.getExtent().x/3, pos = urlText.bounds().bottomLeft();
-                loadButton.setBounds(pos.extent(pt(third, 22)));
-                saveButton.setBounds(pos.withX(third).extent(pt(third, 22)));
-                removeButton.setBounds(pos.withX(2*third).extent(pt(third, 22)));
-                editor.setBounds(lively.rect(loadButton.bounds().bottomLeft(), container.innerBounds().bottomRight()));
-                win.inLayoutCycle = false;
-            }
-        }
+        var win = this,
+            urlText = win.get('urlText'),
+            editor = win.get('editor'),
+            loadButton = win.get('loadButton'),
+            saveButton = win.get('saveButton'),
+            removeButton = win.get('removeButton'),
+            container = win.get('container');
+        container.setBounds(win.innerBounds().insetByRect(lively.rect(win.contentOffset, pt(4,4))));
+        urlText.setBounds(container.getExtent().withY(18).extentAsRectangle());
+        var third = container.getExtent().x/3, pos = urlText.bounds().bottomLeft();
+        loadButton.setBounds(pos.extent(pt(third, 22)));
+        saveButton.setBounds(pos.withX(third).extent(pt(third, 22)));
+        removeButton.setBounds(pos.withX(2*third).extent(pt(third, 22)));
+        editor.setBounds(lively.rect(loadButton.bounds().bottomLeft(), container.innerBounds().bottomRight()));
     },
     connectionRebuilder: function connectionRebuilder() {
         var urlText = this.get('urlText'),
@@ -146,20 +120,14 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             saveButton = this.get('saveButton'),
             removeButton = this.get('removeButton'),
             container = this.get('container');
-        lively.bindings.connect(loadButton, 'fire', this, 'loadFile')
-        lively.bindings.connect(removeButton, 'fire', this, 'removeFile')
+        lively.bindings.connect(urlText, 'savedTextString', this, 'loadFile');
+        lively.bindings.connect(loadButton, 'fire', this, 'loadFile');
+        lively.bindings.connect(removeButton, 'fire', this, 'removeFile');
         lively.bindings.connect(saveButton, 'fire', this, 'saveFile');
         lively.bindings.connect(editor, 'savedTextString', this, 'saveFile');
-    },
-    getWebResource: function getWebResource() {
-        return new URL(this.get('urlText').textString).asWebResource();
-    },
-    loadFile: function loadFile() {
-        var webR = this.getWebResource();
-        connect(webR, 'content', this.get('editor'), 'textString');
-        connect(webR, 'status', this.get('editor'), 'setTextMode', {updater: function($upd, status) {
-            if (!status.isDone()) return;
-            var ext = this.sourceObj.getURL().extension();
+        lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
+        lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
+            var ext = this.sourceObj.getFileExtension();
             switch(ext) {
                 case "css": $upd("css"); return;
                 case "diff": $upd("diff"); return;
@@ -172,9 +140,63 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 default: $upd("text");
             }
         }});
+    },
+    getLocation: function getLocation(asString) {
+        var string = this.get('urlText').textString;
+        if (asString) return string;
+        try {
+            return new URL(string);
+        } catch(e) {
+            return string;
+        }
+    },
+    getFileExtension: function getFileExtension() {
+        return this.getLocation(true).split('.').last();
+    },
+    getWebResource: function getWebResource() {
+        var loc = this.getLocation();
+        return loc.isURL && loc.asWebResource();
+    },
+    loadFile: function loadFile() {
+        var location = this.getLocation();
+        if (location.isURL) {
+            this.loadFileNetwork();
+        } else {
+            this.loadFileFileSystem();
+        }
+    },
+    loadFileFileSystem: function loadFileFileSystem() {
+        var self = this, path = this.getLocation(true);
+        require("lively.ide.CommandLineInterface").toRun(function() {
+            lively.ide.CommandLineInterface.readFile(path, function(err, content) {
+                if (err) { self.message(Strings.format("Could not read file.\nError: %s", err)); return; }
+                lively.bindings.signal(self, 'contentLoaded', content);
+            });
+        });
+    },
+    loadFileNetwork: function loadFileNetwork() {
+        var webR = this.getWebResource();
+        connect(webR, 'content', this, 'contentLoaded');
         webR.beAsync().forceUncached().get();
     },
     saveFile: function saveFile() {
+        var loc = this.getLocation();
+        if (loc.isURL) {
+            this.saveFileNetwork();
+        } else {
+            this.saveFileFileSystem();
+        }
+    },
+    saveFileFileSystem: function saveFileFileSystem() {
+        var self = this, path = this.getLocation(true);
+        require("lively.ide.CommandLineInterface").toRun(function() {
+            lively.ide.CommandLineInterface.writeFile(path, content, function(err) {
+                if (err) { self.message(Strings.format("Could not write file.\nError: %s", err)); return; }
+                lively.bindings.signal(self, 'contentStored');
+            });
+        });        
+    },
+    saveFileNetwork: function saveFileNetwork() {
         var webR = this.getWebResource();
         webR.statusMessage(webR.getURL() + ' saved', webR.getURL() + ' could not be saved!');
         webR.beAsync().put(this.get('editor').textString);
@@ -187,7 +209,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     openURL: function openURL(url) {
         this.get('urlText').textString = String(url);
         this.loadFile();
-    }
+    },
+    message: function(msg) { this.get('editor').setStatusMessage(m) }
 });
 
 }) // end of module

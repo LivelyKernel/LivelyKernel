@@ -1629,7 +1629,6 @@ lively.morphic.World.addMethods(
             ['Parts', this.morphMenuDefaultPartsItems()],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],
-                ['OMeta Workspace', this.openOMetaWorkspace.bind(this)],
                 ['System Code Browser', this.openSystemBrowser.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
                 ['BuildSpecEditor', this.openBuildSpecEditor.bind(this)],
@@ -1637,6 +1636,7 @@ lively.morphic.World.addMethods(
                 ['Method Finder', this.openMethodFinder.bind(this)],
                 ['Text Editor', function() { require('lively.ide').toRun(function() { lively.ide.openFile(URL.source.toString()); }); }],
                 ['System Console', this.openSystemConsole.bind(this)],
+                ['OMeta Workspace', this.openOMetaWorkspace.bind(this)],
                 ['SubserverViewer', this.openSubserverViewer.bind(this)],
                 ['ServerWorkspace', this.openServerWorkspace.bind(this)],
                 ['GitControl', this.openGitControl.bind(this)]

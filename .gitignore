@@ -1,3 +1,6 @@
+# Cruft #
+.DS_Store
+
 # Scripts #
 workspace/
 

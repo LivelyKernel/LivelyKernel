@@ -456,7 +456,8 @@ lively.morphic.Button.addMethods(
             defaultValue: '',
             getter: function(morph, val) { return val.textString || ''; },
             recreate: function(instance, spec) { instance.ensureLabel(spec.label); }
-        }
+        },
+        style: {defaultValue: lively.morphic.Button.prototype.style}
     }
 });
 

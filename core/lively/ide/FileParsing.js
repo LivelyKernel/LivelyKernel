@@ -464,13 +464,13 @@ Object.subclass('CodeParser', {
 
     ometaRules: [],
 
-    grammarFile: 'LKFileParser.txt',
+    grammarFile: 'LKFileParser.ometa',
 
     initialize: function(forceNewCompile) {
         var prototype = forceNewCompile || !Global['LKFileParser'] ?
             OMetaSupport.fromFile(this.grammarFile) :
             LKFileParser;
-        this.ometaParser = Object.delegated(prototype, {_owner: this});
+        this.ometaParser = objectThatDelegatesTo(prototype, {_owner: this});
     },
 
     giveHint: Functions.Null,

@@ -115,6 +115,10 @@ lively.morphic.Morph.addMethods(
     setPositionTopLeft: function(pos) {
           this.setPosition(this.getOrigin().addPt(pos));
     },
+    setPositionCentered: function(pos) {
+        this.setPosition(pos.subPt(this.innerBounds().center()));
+    },
+
 
     getLayoutableSubmorphs: function() {
         // reject is damn slow..., optimize it!

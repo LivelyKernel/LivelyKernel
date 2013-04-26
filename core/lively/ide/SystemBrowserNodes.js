@@ -377,6 +377,26 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
 },
 'selection', {
     onSelect: function() { this.browser.currentModuleName = this.target.name }
+},
+'evaluation', {
+    evalSource: function(newSource) {
+        if (!this.browser.evaluate) return false;
+        var currentModule, moduleName = this.browser.currentModuleName;
+        if (moduleName && !moduleName.include('undefined')) {
+            currentModule = module(moduleName);
+        };
+        try {
+            currentModule && currentModule.activate();
+            Global.eval(newSource);
+        } catch (er) {
+            console.log("error evaluating module:" + er);
+            throw(er);
+        } finally {
+            currentModule && currentModule.deactivate();
+        }
+        console.log('Successfully evaluated module');
+        return true;
+    }
 });
 
 lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteOmetaFragmentNode', {

@@ -311,7 +311,8 @@ Object.subclass('lively.Module',
         if (libSpec.loadTest()) return; // skip polling if load tests already succeeds
         if (!this.libLoadTests) this.libLoadTests = [];
         this.libLoadTests.push(libSpec.loadTest);
-        JSLoader.loadJs(String(libSpec.url || libSpec.uri));
+        var url = libSpec.url || libSpec.uri;
+        url && JSLoader.loadJs(String(url));
         this.initLibLoadTester();
     },
 

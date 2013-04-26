@@ -62,9 +62,6 @@ Object.extend(OMetaSupport, {
         var ometaSrc = OMetaSupport.matchAllWithGrammar(BSOMetaJSParser, "topLevel", src);
         if (!ometaSrc) throw new Error('Problem in translateToJs: Cannot create OMeta Ast from source');
         var jsSrc = OMetaSupport.matchWithGrammar(BSOMetaJSTranslator, "trans", ometaSrc);
-        // var ometaSrc = OMetaSupport.matchAllWithGrammar(LKOMetaJSParser, "topLevel", src);
-        // if (!ometaSrc) throw new Error('Problem in translateToJs: Cannot create OMeta Ast from source');
-        // var jsSrc = OMetaSupport.matchWithGrammar(LKOMetaJSTranslator, "trans", ometaSrc);
         return jsSrc;
     },
 

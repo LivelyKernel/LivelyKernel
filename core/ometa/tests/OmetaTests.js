@@ -30,21 +30,21 @@ TestCase.subclass('ometa.tests.OmetaTests.TextTest', {
 TestCase.subclass('ometa.tests.OmetaTests.OmetaTest', {
     testBSOMetaJSParser: function() {
         var s = "3+ 4";
-        var tree = LKOMetaJSParser.matchAll(s, "topLevel");
+        var tree = BSOMetaJSParser.matchAll(s, "topLevel");
         this.assert(tree, " is defined");
         this.assertEquals(tree.toString(), "[begin, [binop, +, [number, 3], [number, 4]]]");
     },
 
     testBSOMetaJSTranslator: function() {
         var s = "3+ 4";
-        var tree = LKOMetaJSParser.matchAll(s, "topLevel");
-        var result= LKOMetaJSTranslator.match(tree, "trans");
+        var tree = BSOMetaJSParser.matchAll(s, "topLevel");
+        var result= BSOMetaJSTranslator.match(tree, "trans");
         this.assertEquals(String(result), "((3) + (4))");
     },
 
     testOmetaSampleInterpreter: function() {
-        var calcSrc = LKOMetaJSParser.matchAll(ometa.tests.OmetaTests.ometaSampleInterpeter, "topLevel");
-        var result = eval(LKOMetaJSTranslator.match(calcSrc, "trans"));
+        var calcSrc = BSOMetaJSParser.matchAll(ometa.tests.OmetaTests.ometaSampleInterpeter, "topLevel");
+        var result = eval(BSOMetaJSTranslator.match(calcSrc, "trans"));
         this.assertEquals(result, 42);
     },
 
@@ -54,13 +54,13 @@ TestCase.subclass('ometa.tests.OmetaTests.OmetaTest', {
 
 	testOMetaUnderstandsNewExpr: function() {
 		var src = 'ometa Test { foo { new lively.Text() } }';
-		this.assert(OMetaSupport.matchAllWithGrammar(LKOMetaJSParser, "topLevel", src));
+		this.assert(OMetaSupport.matchAllWithGrammar(BSOMetaJSParser, "topLevel", src));
 	}
 });
 
 Object.extend(ometa.tests.OmetaTests, {
-	ometaSampleInterpeter: "        ometa Calc {  \n\
-  digit    = super(#digit):d          -> digitValue(d),\n\
+    ometaSampleInterpeter: "        ometa Calc {  \n\
+  digit    = super(#digit):d          -> d.digitValue(),\n\
   number   = number:n digit:d         -> (n * 10 + d) \n\
            | digit,\n\
   addExpr  = addExpr:x '+' mulExpr:y  -> (x + y) \n\

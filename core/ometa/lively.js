@@ -1,3 +1,6 @@
+// FIXME rk 2013-04-26
+// we need the right order of libs to be loaded, this should eventually be
+// supported by lively.Module>>requireLib
 var allOMetaDependenciesLoaded = false;
 var dependencies = [
     {url: Config.codeBase + 'ometa/lib.js', loadTest: function() { return typeof objectThatDelegatesTo !== 'undefined'; }},
@@ -8,14 +11,13 @@ var dependencies = [
     {url: Config.codeBase + 'ometa/bs-js-compiler.js', loadTest: function() { return typeof BSJSParser !== 'undefined'; }},
     {url: Config.codeBase + 'ometa/bs-ometa-js-compiler.js', loadTest: function() { return typeof BSOMetaJSParser !== 'undefined'; }},
     {url: Config.codeBase + 'ometa/bs-ometa-optimizer.js', loadTest: function() { return typeof BSOMetaOptimizer !== 'undefined'; }},
-    // {url: Config.codeBase + 'ometa/lk-parser-extensions.js', loadTest: function() { return typeof LKJSParser !== 'undefined'; }}
+    {url: Config.codeBase + 'ometa/lk-parser-extensions.js', loadTest: function() { return typeof LKJSParser !== 'undefined'; }}
 ];
 
 dependencies.doAndContinue(function(next, lib) {
-    lively.$.getScript(lib.url);
+    JSLoader.loadJs(lib.url);
     var interval = Global.setInterval(function() {
         if (!lib.loadTest()) return;
-        console.log('..... %s loaded........', lib.url);
         Global.clearInterval(interval);
         next();
     }, 50);

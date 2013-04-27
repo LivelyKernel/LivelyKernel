@@ -624,6 +624,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         opacity: 0.95
     },
     isEpiMorph: true,
+    isMenu: true,
     removeOnMouseOut: false
 },
 'initializing', {

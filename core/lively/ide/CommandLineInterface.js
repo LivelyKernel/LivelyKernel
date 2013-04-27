@@ -195,17 +195,21 @@ Object.extend(lively.ide.CommandLineInterface, {
         */
         thenDo = thenDo || Functions.Null;
         var results = {};
-        commands.doAndContinue(function(next, ea) {
+        commands.doAndContinue(function(next, ea, i) {
             // run either with exec by setting ea.isExec truthy, otherwise with run (spawn)
-            var cmd = ea.command,
-                runCommand = ea.isExec ? this.exec : this.run;
-            if (!ea.isExec) {
+            var cmd = ea.command, runCommand;
+            if (ea.isExec) runCommand = this.exec;
+            else if (ea.readFile) { runCommand = this.readFile; cmd = ea.readFile; }
+            else if (ea.writeFile) { runCommand = this.writeFile; cmd = ea.writeFile; ea.options = ea.options || {}; if (ea.content) ea.options.content = ea.content; }
+            else runCommand = this.run;
+            if (runCommand === this.run) {
                 cmd = cmd.replace(/\$\{([^\}]+)\}/g, function(_, variable) {
                     return results[variable] && results[variable].isShellCommand ?
                         results[variable].resultString() : (results[variable] || ''); });
             }
             runCommand.call(this, cmd, ea.options || {}, function(cmd) {
-                results[ea.name] = ea.transform ? ea.transform(cmd) : cmd;
+                var name = ea.name || String(i);
+                results[name] = ea.transform ? ea.transform(cmd) : cmd;
                 next();
             });
         }, thenDo.curry(results), this);
@@ -220,6 +224,34 @@ Object.extend(lively.ide.CommandLineInterface, {
     
     setWorkingDirectory: function(dir) {
         throw new Error('not yet implemented');
+    },
+
+    readFile: function(path, options, thenDo) {
+        options = options || {};
+        var cmd = this.run('cat ' + path);
+        if (options.onInput) lively.bindings.connect(cmd, 'stdout', options, 'onInput');
+        if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
+        if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
+        return cmd;
+    },
+
+    writeFile: function(path, options, thenDo) {
+        options = options || {};
+        options.content = options.content || '';
+        var cmd = this.run('tee ' + path, {stdin: options.content});
+        if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
+        if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
+        return cmd;
+    },
+
+    diff: function(string1, string2, thenDo) {
+        return lively.ide.CommandLineInterface.runAll([
+            {command: 'mkdir -p diff-tmp/'},
+            {writeFile: 'diff-tmp/a', content: string1},
+            {writeFile: 'diff-tmp/b', content: string2},
+            {name: 'diff', command: 'git diff --no-index --histogram diff-tmp/a diff-tmp/b'},
+            {command: 'rm -rfd diff-tmp/'}
+        ], function(result) { thenDo(result.diff.resultString(true)); });
     },
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

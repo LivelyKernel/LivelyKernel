@@ -504,26 +504,23 @@ lively.morphic.Morph.addMethods(
 
     setStyleClassNamesHTML: function (ctx) {
         var classNames = this.getStyleClassNames();
-        if (classNames && classNames.length && classNames.length > 0) {
+        if (classNames && classNames.length > 0) {
             classNames = classNames.join(' ');
-            //$(ctx.morphNode).attr('class', classNames);
-            $(ctx.shapeNode).attr('class', classNames);
+            ctx.shapeNode.setAttribute('class', classNames);
         } else {
-            //$(ctx.morphNode).removeAttr('class');
-            $(ctx.shapeNode).removeAttr('class');
+            ctx.shapeNode.removeAttribute('class');
         }
     },
 
     setNodeMorphIdHTML: function(ctx) {
-        $(ctx.shapeNode).attr('data-lively-morphid', this.id);
+        ctx.shapeNode.setAttribute('data-lively-morphid', this.id);
     },
 
     setStyleIdHTML: function (ctx, id) {
-        var $node = $(ctx.shapeNode);
         if (id) {
-            $node.attr('id', id);
+            ctx.shapeNode.setAttribute('id', id);
         } else {
-            $node.removeAttr('id');
+            ctx.shapeNode.removeAttribute('id');
         }
     },
 

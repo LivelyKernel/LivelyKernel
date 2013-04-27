@@ -15,6 +15,9 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             resizeHeight: true,
             resizeWidth: true
         },
+        onWindowGetsFocus: function onWindowGetsFocus() {
+            this.get('editor').focus();
+        },
         submorphs: [{
             className: "lively.morphic.Text",
             name: 'urlText',
@@ -86,6 +89,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             _FontFamily: "Monaco",
             className: "lively.morphic.CodeEditor",
             name: 'editor',
+            evalEnabled: false,
             grabbingEnabled: false,
             layout: {
                 resizeHeight: true,

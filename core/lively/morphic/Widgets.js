@@ -3327,7 +3327,7 @@ Object.extend(lively.ide, {
                 if (!String(url).startsWith('http')) url = URL.codeBase.withFilename(url);
                 editor.openURL(url);
             }
-            editor.openInWorld($world.positionForNewMorph(editor));
+            editor.openInWorld($world.positionForNewMorph(editor)).comeForward();
         });
     }
 });

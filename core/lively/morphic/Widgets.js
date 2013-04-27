@@ -2469,16 +2469,16 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         if (this.isInFront()) { if (callGetsFocus) { inner.onWindowGetsFocus(this); }; return; }
 
         // step 2: make me the frontmost morph of the world
-        var textsAndLists = [], scrolls = [];
+        var scrolledMorphs = [], scrolls = [];
         this.withAllSubmorphsDo(function(ea) {
-            if (!ea.isList && !ea.isText) return;
-            textsAndLists.push(ea);
-            scrolls.push(ea.getScroll());
+            var scroll = ea.getScroll();
+            if (!scroll[0] && !scroll[1]) return;
+            scrolledMorphs.push(ea); scrolls.push(scroll);
         });
         this.owner.addMorphFront(this); // come forward
         this.alignAllHandles();
         (function() {
-            textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
+            scrolledMorphs.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
             if (callGetsFocus) { inner.onWindowGetsFocus(this); }
         }).bind(this).delay(0);
     },
@@ -2487,12 +2487,18 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         var wasInFront = this.isActive();
         if (wasInFront) return false; // was: $super(evt);
         this.comeForward();
-        if (this.morphsContainingPoint(evt.getPosition()).detect(function(ea) {
-            return ea.accessibleInInactiveWindow || true })) return false;
+        // rk 2013-04-27: disable accessibleInInactiveWindow test for now
+        // this test is not used and windows seem to work fine without it
+        // the code for that feature was:
+        // if (this.morphsContainingPoint(evt.getPosition()).detect(function(ea) {
+        //     return ea.accessibleInInactiveWindow || true })) return false;
+        // this.cameForward = true; // for stopping the up as well
+        // evt.world.clickedOnMorph = null; // dont initiate drag, FIXME, global state!
+        // evt.stop(); // so that text, lists that are automatically doing things are not modified
+        // return true;
         this.cameForward = true; // for stopping the up as well
         evt.world.clickedOnMorph = null; // dont initiate drag, FIXME, global state!
-        evt.stop(); // so that text, lists that are automatically doing things are not modified
-        return true;
+        return false;
     },
     onMouseUp: function(evt) {
         if (!this.cameForward) return false;

@@ -2498,14 +2498,12 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         // evt.stop(); // so that text, lists that are automatically doing things are not modified
         // return true;
         this.cameForward = true; // for stopping the up as well
-        evt.world.clickedOnMorph = null; // dont initiate drag, FIXME, global state!
         return false;
     },
     onMouseUp: function(evt) {
         if (!this.cameForward) return false;
         this.cameForward = false;
-        evt.stop();
-        return true;
+        return false;
     },
 
     wantsToBeDroppedInto: function(dropTarget) {

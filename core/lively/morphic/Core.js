@@ -656,7 +656,6 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         var morphBefore = morph.isControlMorph() ?
                 this.firstHand() : (optMorphBefore || this.bottomMostControl()),
             r = $super(morph, morphBefore);
-        this.updateScrollFocus();
         return r;
     }
 },

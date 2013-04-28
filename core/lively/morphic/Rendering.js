@@ -71,7 +71,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
     svgRect: function() { return NodeFactory.create('rect') },
     svgEllipse: function() { return NodeFactory.create('ellipse')  },
     svgGroup: function() { return NodeFactory.create('g') },
-    htmlRect: function() { return XHTMLNS.create('div') },
+    htmlRect: function() { return document.createElement('div') },
     htmlCanvas: function() {
         var canvas = XHTMLNS.create('canvas');
         canvas.style.left = '0px'

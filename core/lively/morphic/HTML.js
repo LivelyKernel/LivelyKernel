@@ -246,6 +246,7 @@ lively.morphic.Morph.addMethods(
     },
     initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = ctx.domInterface.htmlRect();
+        ctx.morphNode.classNames = 'morphNode';
         this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
         this.setPivotPointHTML(ctx, this.getPivotPoint())
@@ -744,10 +745,9 @@ lively.morphic.List.addMethods(
 },
 'node creation', {
     createListNodeHTML: function() {
-        var node = XHTMLNS.create('select');
+        var node = document.createElement('select');
         node.size = 2; // hmm 1 is drop downlist, any value hight is normal list
-        node.style.cssText = 'white-space: pre';
-        node.className = 'visibleSelection';
+        node.className = 'visibleSelection listNode';
         return node;
     },
     getListExtentHTML: function(ctx) {

@@ -4042,7 +4042,8 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 if (options.list) this.get('target').setList(options.list);
                 if (options.selection) this.get('target').setSelection(options.selection);
                 if (options.extent) this.setExtent(options.extent);
-                this.applyLayout();
+                this.get('Label').fit();
+                this.applyLayout()
             },
             getLayouter: function getLayouter() {
                 return {

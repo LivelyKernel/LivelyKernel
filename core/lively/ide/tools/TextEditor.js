@@ -172,9 +172,10 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     loadFileFileSystem: function loadFileFileSystem() {
         var self = this, path = this.getLocation(true);
         require("lively.ide.CommandLineInterface").toRun(function() {
-            lively.ide.CommandLineInterface.readFile(path, function(err, content) {
+            lively.ide.CommandLineInterface.readFile(path, {}, function(cmd) {
+                var err = cmd.getCode() && cmd.getStderr();
                 if (err) { self.message(Strings.format("Could not read file.\nError: %s", err)); return; }
-                lively.bindings.signal(self, 'contentLoaded', content);
+                lively.bindings.signal(self, 'contentLoaded', cmd.getStdout());
             });
         });
     },
@@ -192,9 +193,10 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         }
     },
     saveFileFileSystem: function saveFileFileSystem() {
-        var self = this, path = this.getLocation(true);
+        var self = this, path = this.getLocation(true), content = this.get('editor').textString;
         require("lively.ide.CommandLineInterface").toRun(function() {
-            lively.ide.CommandLineInterface.writeFile(path, content, function(err) {
+            lively.ide.CommandLineInterface.writeFile(path, {content: content}, function(cmd) {
+                var err = cmd.getCode() && cmd.getStderr();
                 if (err) { self.message(Strings.format("Could not write file.\nError: %s", err)); return; }
                 lively.bindings.signal(self, 'contentStored');
             });
@@ -214,7 +216,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         this.get('urlText').textString = String(url);
         this.loadFile();
     },
-    message: function(msg) { this.get('editor').setStatusMessage(m) }
+    message: function(msg) { this.get('editor').setStatusMessage(msg); }
 });
 
 }) // end of module

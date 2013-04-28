@@ -1,0 +1,115 @@
+util=require('util')
+i=util.inspect;
+
+function uuid() {
+    var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); }).toUpperCase();
+    return id;
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+i(global.sessionTrackerData);
+
+var trackerData = global.sessionTrackerData;
+
+function initTrackerData(server) {
+    if (trackerData) return trackerData;
+    return trackerData = global.sessionTrackerData = {
+        currentServer: {
+            id: uuid(),
+            server: server,
+            sessions: []
+        }
+    }
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// sandboxing for testing
+var origTrackerData;
+function sandboxSetup(server) {
+    if (trackerData.isSandbox) return;
+    console.log('Creating sandbox');
+    origTrackerData = trackerData;
+    trackerData = global.sessionTrackerData = {
+        isSandbox: true,
+        currentServer: {
+            id: uuid(),
+            server: server,
+            sessions: []
+        }
+    }
+}
+function sandboxTearDown() {
+    if (!trackerData.isSandbox) return;
+    console.log('Removing sandbox');
+    trackerData = global.sessionTrackerData = origTrackerData;
+    origTrackerData = null;
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+function setupWebsocketHandler(baseRoute, subserver) {
+    var websockets = subserver.handler.server.websocketHandler,
+        route = baseRoute + 'connect',
+        connections = {}; // we allow only one connection for this route
+
+    function removeConnection(c) {
+        if (!c) return;
+        var id = typeof c === 'string' ? c : c.id;
+        c = connections[id];
+        c.close();
+        delete connections[id];
+    }
+
+    function removeConnections() {
+        Object.keys(connections).forEach(function(c) { removeConnection(c); });
+    }
+
+    function newConnection(request) {
+        // removeConnection();
+        var c = request.accept();
+        c.on('close', function(msg) { console.log('closed'); });
+        setTimeout(c.close.bind(c), 5000);
+        return c;
+    }
+
+    websockets.registerSubhandler({path: route, handler: function(req) {
+        var c = newConnection(req);
+        c.on('message', function(evt) {
+            c.send('server received "' + evt.utf8Data + '"');
+        });
+        return !!c;
+    }});
+
+    subserver.on('close', function() {
+        removeConnections();
+        websockets.unregisterSubhandler({path: route});
+    });
+
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/*
+global.sessionTrackerData.currentServer.sessions = []
+*/
+
+module.exports = function(route, app, subserver) {
+    initTrackerData(subserver.handler.server);
+    setupWebsocketHandler(route, subserver);
+
+    app.post(route + 'sandbox', function(req, res) {
+        if (req.body.start) {
+            sandboxSetup(subserver.handler.server);
+            res.json({message: 'Sandbox created'}).end();
+        } else if (req.body.stop) {
+            sandboxTearDown();
+            res.json({message: 'Sandbox removed'}).end();
+        } else {
+            res.status(400).json({error: 'Cannot deal with sandbox request'}).end();
+        }
+    });
+
+    app.get(route, function(req, res) {
+        res.end("SessionTracker is running!");
+    });
+}

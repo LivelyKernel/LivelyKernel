@@ -65,4 +65,29 @@ TestCase.subclass('lively.tests.BaseTests.StringsFormatTableTest', {
 
 });
 
+TestCase.subclass('lively.tests.BaseTests.StringsMD5Test', {
+
+    testMD5: function() {
+        // test suite from RFC 1321
+        var testData = [
+             {input: '',
+             expected: 'd41d8cd98f00b204e9800998ecf8427e'},
+            {input: 'a',
+             expected: '0cc175b9c0f1b6a831c399e269772661'},
+            {input: 'abc',
+             expected: '900150983cd24fb0d6963f7d28e17f72'},
+            {input: 'message digest',
+             expected: 'f96b697d7cb7938d525a2f31aaf161d0'},
+            {input: 'abcdefghijklmnopqrstuvwxyz',
+             expected: 'c3fcd3d76192e4007dfb496cca67e13b'},
+            {input: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+             expected: 'd174ab98d277d9f5a5611c2c9f419d9f'},
+            {input: '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
+             expected: '57edf4a22be3c955ac49da2e2107b67a'}
+        ];
+        testData.forEach(function(data, i) {
+            this.assertEquals(data.expected, Strings.md5(data.input));
+        }, this);
+    }
+});
 }) // end of module

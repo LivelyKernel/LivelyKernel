@@ -2193,9 +2193,15 @@ Object.extend(lively.morphic.Events, {
         },
         unregister: function(type, handler) {
             var handlers = this.handlers[type];
-            if (handlers) { 
-                if (handler) handlers.remove(handler);
-                else handlers.clear();
+            if (handlers) {
+                if (!handler) {
+                    handlers.clear();
+                } else {
+                    if (typeof handler === 'string') {
+                        handler = handlers.detect(function(func) { return func.name === handler });
+                    }
+                    handlers.remove(handler);
+                }
             }
             if (!handlers || handlers.length === 0) window.removeEventListener(type, this.dispatchGlobalEvent, true);
             this.handlers[type] = handlers;

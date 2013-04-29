@@ -1290,7 +1290,12 @@ Object.subclass('WebResource',
     },
 
     getName: function() { return this.getURL().filename(); },
-    isCollection: function() { return !this.getURL().isLeaf() }
+    isCollection: function() { return !this.getURL().isLeaf() },
+    getJSON: function() {
+        try {
+            return JSON.parse(this.content);
+        } catch(e) { return {error: e} }
+    }
 },
 'configuration', {
     isSync: function() { return this._isSync; },

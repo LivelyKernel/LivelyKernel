@@ -1,12 +1,10 @@
-module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively.persistence.BuildSpec').toRun(function() {
+module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively.morphic.Events', 'lively.persistence.BuildSpec').toRun(function() {
 
 (function installKeyEventHandler() {
-    $("body").off('keydown');
     var winSwitcher;
-    $("body").bind('keydown', function(evt) {
-        // lively.morphic.EventHandler.prototype.patchEvent(evt);
-        if (evt.keyCode === 116 // F5
-        || (evt.keyCode === 192 && (evt.ctrlKey || evt.metaKey))) {
+    lively.morphic.Events.GlobalEvents.register('keydown', function windowSwitcher(evt) {
+        var keys = evt.getKeyString();
+        if (keys === 'F5' || keys === "Command-`" || keys === "Control-`") {
             evt.stopPropagation();
             winSwitcher = winSwitcher || new lively.ide.WindowNavigation.WindowManager().createSwitcher();
             winSwitcher.open({invokingEvent: evt});
@@ -16,7 +14,7 @@ module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively
             evt.stopPropagation();
             return true;
         }
-        return undefined;
+        return undefined;        
     });
 })();
 

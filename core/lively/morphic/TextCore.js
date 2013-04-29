@@ -269,7 +269,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fontFamily: 'Helvetica',
         textColor: Config.get('textColor'),
         fontSize: 10,
-        padding: Rectangle.inset(4, 2)
+        padding: Rectangle.inset(4, 2),
+        whiteSpaceHandling: 'normal',
+        wordBreak: 'normal'
     },
 
     autoAdjustPadding: true,
@@ -305,6 +307,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (spec.lineHeight !== undefined) this.setLineHeight(spec.lineHeight);
         if (spec.display !== undefined) this.setDisplay(spec.display);
         if (spec.whiteSpaceHandling !== undefined) this.setWhiteSpaceHandling(spec.whiteSpaceHandling);
+        if (spec.wordBreak !== undefined) this.setWordBreak(spec.wordBreak);
         if (spec.syntaxHighlighting !== undefined) spec.syntaxHighlighting ? this.enableSyntaxHighlighting() : this.disableSyntaxHighlighting();
         if (spec.emphasize !== undefined) this.emphasizeAll(spec.emphasize);
         return this;
@@ -397,8 +400,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
     setFixedWidth: function(bool) {
         this.fixedWidth = bool;
-        this.setWhiteSpaceHandling(bool ? 'pre-wrap' : 'pre');
-        this.setWordBreak(bool ? 'break-all' : null);
         this.fit();
     },
     setFixedHeight: function(bool) {

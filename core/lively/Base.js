@@ -441,7 +441,7 @@ Object.extend(Global, {
         // also call as: throw dbgOn(new Error(....))
         return cond;
     },
-
+    // comment
     assert: function assert(value, message) {
         if (value) { return; }
         // capture the stack

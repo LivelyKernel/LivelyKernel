@@ -1513,7 +1513,6 @@ lively.morphic.World.addMethods(
     processCommandKeys: function($super, evt) {
         var key = evt.getKeyChar();
         if (key) key = key.toLowerCase();
-
         if (evt.isShiftDown()) {  // shifted commands here...
             switch (key) {
                 case "f": {
@@ -2180,6 +2179,38 @@ Object.extend(lively.morphic.Events, {
                         return window.MutationObserver
                             || window.WebKitMutationObserver
                             || window.MozMutationObserver; })()
+});
+
+Object.extend(lively.morphic.Events, {
+    GlobalEvents: {
+        handlers: {},
+        register: function(type, handler) {
+            var handlers = this.handlers[type];
+            if (!handlers) handlers = [];
+            if (handlers.length === 0) window.addEventListener(type, this.dispatchGlobalEvent, true);
+            handlers.push(handler);
+            this.handlers[type] = handlers;
+        },
+        unregister: function(type, handler) {
+            var handlers = this.handlers[type];
+            if (handlers) { 
+                if (handler) handlers.remove(handler);
+                else handlers.clear();
+            }
+            if (!handlers || handlers.length === 0) window.removeEventListener(type, this.dispatchGlobalEvent, true);
+            this.handlers[type] = handlers;
+        },
+        dispatchGlobalEvent: function(evt) {
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            var handlers = lively.morphic.Events.GlobalEvents.handlers[evt.type];
+            var stopped = false;
+            for (var i = 0, len = handlers.length; i < len; i ++) {
+                stopped = handlers[i](evt);
+                if (stopped) return stopped;
+            }
+            return undefined;
+        }
+    }
 });
 
 (function setupEventExeriments() {

@@ -15,10 +15,10 @@ var trackerData = global.sessionTrackerData;
 function initTrackerData(server) {
     if (trackerData) return trackerData;
     return trackerData = global.sessionTrackerData = {
-        currentServer: {
+        local: {
             id: uuid(),
             server: server,
-            sessions: []
+            sessions: {}
         }
     }
 }
@@ -32,7 +32,7 @@ function sandboxSetup(server) {
     origTrackerData = trackerData;
     trackerData = global.sessionTrackerData = {
         isSandbox: true,
-        currentServer: {
+        local: {
             id: uuid(),
             server: server,
             sessions: []
@@ -47,6 +47,19 @@ function sandboxTearDown() {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+var webSocketHandler = {
+    register: function(connection, sender, req) {
+        var sessions = trackerData.local.sessions,
+            session = sessions[req.sessionId] = sessions[req.sessionId] || {};
+        util._extend(session, req.data);
+    },
+    getSessions: function(connection, sender, req) {
+        var sessions = trackerData.local.sessions || {},
+            sessionList = Object.keys(sessions).map(function(id) { return sessions[id]; });
+        connection.send({action: req.action, data: sessionList});
+    }
+}
 
 function setupWebsocketHandler(baseRoute, subserver) {
     var websockets = subserver.handler.server.websocketHandler,
@@ -69,6 +82,30 @@ function setupWebsocketHandler(baseRoute, subserver) {
         // removeConnection();
         var c = request.accept();
         c.on('close', function(msg) { console.log('closed'); });
+        c.on('message', function(msg) {
+            console.log('got message %s', i(msg));
+            var data;
+            try {
+                data = JSON.parse(msg.utf8Data);
+            } catch(e) {
+                console.log('Could not read incomin message %s', i(msg));
+                return;
+            }
+            var action = data.action, sender = data.sender;
+            if (!action) { console.log('Could not extract action from incoming message %s', i(msg)); return; }
+            if (!sender) { console.log('Could not extract sender from incoming message %s', i(msg)); return; }
+            if (!webSocketHandler[action]) { console.log('Could not handle %s from message %s', action, i(msg)); return; }
+            try {
+                webSocketHandler[action](c, sender, data);
+            } catch(e) {
+                console.error('Error when dealing with %s requested from %s:\n%s: %s',
+                    action, sender, e, e.stack);
+            }
+        });
+        c.send = function(data) {
+            if (typeof data !== 'string') data = JSON.stringify(data);
+            this.sendUTF(data);
+        }
         setTimeout(c.close.bind(c), 5000);
         return c;
     }

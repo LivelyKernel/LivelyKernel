@@ -1006,7 +1006,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
                               fixedWidth: false, fixedHeight: false});
         this.text.setTextString('aaa');
         this.assertEqualsEpsilon(pt(30, 18), this.text.getTextExtent(), 'setup does not work');
-        this.text.applyStyle({fixedWidth: true});
+        this.text.applyStyle({fixedWidth: true, wordBreak: 'break-all'});
         this.text.setExtent(pt(20,15));
         // text's span is 16 then, but text itself 20
         this.assertEqualsEpsilon(pt(20, 36), this.text.getTextExtent(), 'no line break');
@@ -1047,7 +1047,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
         this.epsilon = 2;
         this.text.applyStyle({fontFamily: 'Courier', fontSize: 12,
                               fixedWidth: true, fixedHeight: false,
-                              clipMode: 'visible'});
+                              clipMode: 'visible', wordBreak: 'break-all'});
         // actually should not be neccessary, but this is the feature we want to implement...
         this.text.setExtent(pt(50,50));
         this.text.textString = 'aaa';

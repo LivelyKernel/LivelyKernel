@@ -1267,10 +1267,11 @@ lively.morphic.World.addMethods(
         if (!Config.get('useAceEditor')) { return $proceed(evt); }
         var window = this.addCodeEditor({
             title: "Workspace",
-            content: "nothing",
-            syntaxHighlighting: !0,
+            content: "3 + 4",
+            syntaxHighlighting: true,
             theme: Config.aceWorkspaceTheme
         });
+        window.selectAll();
         return window;
     }),
 

@@ -1390,9 +1390,10 @@ lively.morphic.World.addMethods(
 
     openWorkspace: function(evt) {
         var text = this.addTextWindow({title: 'Workspace',
-            content: 'nothing', syntaxHighlighting: true})
+            content: '3 + 4', syntaxHighlighting: true})
         text.accessibleInInactiveWindow = true;
         text.setFontFamily('Monaco,monospace');
+        text.selectAll();
         return text;
     },
     openAboutBox: function() {

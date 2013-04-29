@@ -5,16 +5,15 @@ module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively
     lively.morphic.Events.GlobalEvents.register('keydown', function windowSwitcher(evt) {
         var keys = evt.getKeyString();
         if (keys === 'F5' || keys === "Command-`" || keys === "Control-`") {
-            evt.stopPropagation();
+            if (winSwitcher && winSwitcher.world()) return false;
             winSwitcher = winSwitcher || new lively.ide.WindowNavigation.WindowManager().createSwitcher();
             winSwitcher.open({invokingEvent: evt});
-            return true;
+            evt.stop(); return true;
         }
         if (evt.keyCode === Event.KEY_ESC && evt.metaKey && $world.closeActiveWindow()) {
-            evt.stopPropagation();
-            return true;
+            evt.stop(); return true;
         }
-        return undefined;        
+        return undefined;
     });
 })();
 

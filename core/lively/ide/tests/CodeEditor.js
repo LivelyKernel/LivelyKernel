@@ -115,5 +115,37 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
     }
 
 });
+lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection',
+'testing', {
+    testCreateFloatingAnnotation: function() {
+        var e = this.editor;
+        e.textString = "baz { 1+2 }  bar";
+        var ann = e.addFloatingAnnotation({start: {row: 0, column: 6}, end: {row: 0, column: 9}});
+        this.assertEquals('1+2', ann.getTextString());
+        e.insertTextStringAt(0, 'hello');
+        this.assertEquals('1+2', ann.getTextString(), 'not floating');
+        e.insertTextStringAt({row: 0, column: 9+5}, '3');
+        this.assertEquals('1+23', ann.getTextString(), 'not floating');
+        e.textString = e.textString; // currently resetting the textString will collapse start and end 
+        this.assertEquals('', ann.getTextString(), 'not floating');
+        // this.assert(!ann.isAttached, 'annotations still marked as attached');
+    },
+
+    testAddEvalMarker: function() {
+        var e = this.editor;
+        e.textString = 'hello: 1+2';
+        var marker = new lively.morphic.CodeEditorEvalMarker(e, {start: {row: 0, column: 7}, end: {row: 0, column: 10}});
+        this.assertEquals('1+2', marker.getTextString(), 'marker textstring');
+        this.assertEquals('1+2', marker.getOriginalExpression());
+        var result = marker.evalAndInsert();
+        this.assertEquals(3, result, 'eval result');
+        this.assertEquals('hello: 3', e.textString, 'editor textstring');
+        this.assertEquals('1+2', marker.getOriginalExpression(), 'marker expr after eval');
+        this.assertEquals('3', marker.getTextString(), 'marker textstring after eval');
+        marker.restoreText();
+        this.assertEquals('1+2', marker.getTextString(), 'marker restore');
+    }
+
+});
 
 }) // end of module

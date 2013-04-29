@@ -10,7 +10,7 @@ module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morp
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
 })();
 
-lively.ide.ace = {
+lively.ide.ace = Object.extend(ace, {
 
     modules: function(optPrefix, shorten) {
         // return ace modules, optionally filtered by optPrefix. If shorten is
@@ -63,7 +63,7 @@ lively.ide.ace = {
         return this.availableThemes().include(themeName) ?
             "ace/theme/" + themeName : null
     }
-}
+});
 
 lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 'settings', {
@@ -792,15 +792,24 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
+    getSelectionRangeAce: function() {
+        return this.withAceDo(function(ed) { return ed.selection.getRange(); });
+    },
+
     selectAll: function() {
         this.withAceDo(function(ed) { ed.selectAll(); });
     },
 
-    getSelectionOrLineString: function() {
-        var editor = this.aceEditor, sel = editor.selection;
-        if (!sel) return "";
-        if (sel.isEmpty()) this.selectCurrentLine();
-        var range =  editor.getSelectionRange();
+    getSelectionOrLineString: function(optRange) {
+        var range, editor = this.aceEditor;
+        if (optRange) {
+            range = optRange;
+        } else {
+            var sel = editor.selection;
+            if (!sel) return "";
+            if (sel.isEmpty()) this.selectCurrentLine();
+            range =  editor.getSelectionRange();
+        }
         return editor.session.getTextRange(range);
     },
     selectCurrentLine: function() {
@@ -851,8 +860,67 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             });
             ed.selection.addRange(foundRange);
         });
-    }
+    },
+    addFloatingAnnotation: function(range) {
+        var Range = lively.ide.ace.require('ace/range').Range,
+            ann = {
+                doNotSerialize: ['start', 'end'],
+                isAttached: false,
+                persistentRange: {start: range.start, end: range.end},
+                editor: this,
+                attach: function() {
+                    if (this.isAttached) this.detach();
+                    this.setRange(this.persistentRange);
+                    this.isAttached = true;
+                    return this;
+                },
+                detach: function() {
+                    this.isAttached = false;
+                    this.start && this.start.detach();
+                    this.end && this.end.detach();
+                    return this;
+                },
+                getRange: function() {
+                    return Range.fromPoints(this.start, this.end);
+                },
+                setRange: function(range) {
+                    var self = this;
+                    this.editor.withAceDo(function(ed) {
+                        self.start && self.start.detach();
+                        self.start = ed.session.doc.createAnchor(range.start);
+                        self.end && self.end.detach();
+                        self.end = ed.session.doc.createAnchor(range.end);
+                    });                    
+                },
+                getTextString: function() {
+                    return this.editor.getSelectionOrLineString(this.getRange());
+                },
+                replace: function(string) {
+                    if (!this.isAttached) return this;
+                    var self = this, range = this.getRange();
+                    this.editor.withAceDo(function(ed) {
+                        var newEnd = ed.session.replace(range, string);
+                        self.setRange({start: range.start, end: newEnd});
+                    });
+                }
+            };
+        return ann.attach();
+    },
 
+    addOrResetEvalMarker: function(evt) {
+        var range = this.getSelectionRangeAce();
+        if (range.isEmpty()) {
+            if (lively.morphic.CodeEditorEvalMarker.lastMarker)
+                lively.morphic.CodeEditorEvalMarker.lastMarker.restoreText();
+            return;
+        }
+        var marker = new lively.morphic.CodeEditorEvalMarker(this, range),
+            oldMarker = lively.morphic.CodeEditorEvalMarker.lastMarker;
+        oldMarker && oldMarker.detach();
+        lively.morphic.CodeEditorEvalMarker.lastMarker = marker;
+        marker.evalAndInsert();
+        alertOK('Eval marker added');
+    }
 },
 'text morph syntax highlighter interface', {
     enableSyntaxHighlighting: function() { this.setTextMode('javascript'); },
@@ -1042,6 +1110,67 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setStatusMessage(String(e), Color.red);
     }
 });
+
+Object.subclass('lively.morphic.CodeEditorEvalMarker',
+'initialization', {
+    initialize: function(codeEditor, range) {
+        this.annotation = codeEditor.addFloatingAnnotation(range);
+        this.originalExpression = this.annotation.getTextString();
+    },
+    detach: function() { this.restoreText(); this.annotation.detach(); return this; },
+    attach: function() { this.annotation.attach(); return this; },
+    restoreText: function() {
+        if (this.getTextString() !== this.getOriginalExpression())
+            this.annotation.replace(this.getOriginalExpression());
+    }
+},
+'accessing', {
+    getTextString: function() {
+        return this.annotation.getTextString();
+    },
+    getOriginalExpression: function() {
+        return this.originalExpression;
+    }
+},
+'evaluation', {
+    evaluateOriginalExpression: function() {
+        console.log('EvalMarker evaluating %s' + this.getOriginalExpression());
+        try {
+            return Global.eval(this.getOriginalExpression() || '');
+        } catch(e) { return e; }        
+    },
+
+    evalAndInsert: function() {
+        var result = this.evaluateOriginalExpression();
+        this.annotation.replace(String(result));
+        return result;
+    }
+});
+
+Object.extend(lively.morphic.CodeEditorEvalMarker, {
+    updateLastMarker: function() {
+        var evalMarker = this.lastMarker;
+        if (!evalMarker) return;
+        evalMarker.evalAndInsert();
+    }
+});
+
+(function installEvalMarkerKeyHandler() {
+    lively.morphic.Events.GlobalEvents.register('keydown', function evalMarkerKeyHandler(evt) {
+        var keys = evt.getKeyString();
+        if (keys === 'Command-Shift-M' || keys === "Control-Shift-M") {
+            var focused = lively.morphic.Morph.prototype.focusedMorph();
+            if (!focused || !focused.isAceEditor) return false;
+            focused.addOrResetEvalMarker(evt);
+            evt.stop(); return true;
+        }
+        if (keys === 'Command-M' || keys === 'Control-M') {
+            lively.morphic.CodeEditorEvalMarker.updateLastMarker();
+            evt.stop(); return true;
+        }
+        return false;
+    });
+})();
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // command line support

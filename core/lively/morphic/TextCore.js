@@ -269,9 +269,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fontFamily: 'Helvetica',
         textColor: Config.get('textColor'),
         fontSize: 10,
-        padding: Rectangle.inset(4, 2),
-        whiteSpaceHandling: 'normal',
-        wordBreak: 'normal'
+        padding: Rectangle.inset(4, 2)
     },
 
     autoAdjustPadding: true,
@@ -437,13 +435,19 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     fit: function() {
         // expensive operation, only do when we are in world since we cannot
         // figure out the real bounds before we are in DOM anyway
+
         this.setTextNodeToFitMorphExtent();
         if (!this.world()) return;
 
         var isClip = this.isClip(),
             fixedWidth = isClip || this.fixedWidth,
-            fixedHeight = isClip || this.fixedWidth;
+            fixedHeight = isClip || this.fixedWidth,
+            whiteSpaceHandling = this.getWhiteSpaceHandling();
+
         if (this.fixedWidth && this.fixedHeight) return;
+
+        // we need "pre" for finding out how long a line really is...
+        if (whiteSpaceHandling !== 'pre') this.setWhiteSpaceHandling('pre');
 
         var owners = this.ownerChain();
         for (var i = 0; i < owners.length; i++) {
@@ -466,6 +470,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (width !== extent.x || height !== extent.y) {
             this.setExtent(pt(width, height));
         }
+
+        this.setWhiteSpaceHandling(whiteSpaceHandling);
     },
 
     setTextNodeToFitMorphExtent: function() {
@@ -1799,16 +1805,18 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'experimentation', {
     setWhiteSpaceHandling: function(modeString) {
+        // values: "normal", "nowrap", "pre", "pre-line", "pre-wrap", "inherit"
         return this.morphicSetter('WhiteSpaceHandling', modeString);
     },
     getWhiteSpaceHandling: function(modeString) {
         return this.morphicGetter('WhiteSpaceHandling') || 'pre-wrap';
     },
     setWordBreak: function(modeString) {
+        // values supported: "normal", "break-all", "hyphenate"
         return this.morphicSetter('WordBreak', modeString);
     },
     getWordBreak: function() {
-        return this.morphicGetter('WordBreak');
+        return this.morphicGetter('WordBreak') || 'normal';
     },
     getTextElements: function() {
         // returns js objects for subnodes of this.renderContext().textNode

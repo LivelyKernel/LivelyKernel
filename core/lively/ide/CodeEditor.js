@@ -909,17 +909,20 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     addOrResetEvalMarker: function(evt) {
         var range = this.getSelectionRangeAce();
-        if (range.isEmpty()) {
-            if (lively.morphic.CodeEditorEvalMarker.lastMarker)
-                lively.morphic.CodeEditorEvalMarker.lastMarker.restoreText();
-            return;
-        }
-        var marker = new lively.morphic.CodeEditorEvalMarker(this, range),
-            oldMarker = lively.morphic.CodeEditorEvalMarker.lastMarker;
-        oldMarker && oldMarker.detach();
-        lively.morphic.CodeEditorEvalMarker.lastMarker = marker;
-        marker.evalAndInsert();
-        alertOK('Eval marker added');
+        return range.isEmpty() ? this.resetEvalMarker() : this.addEvalMarker();
+    },
+
+    addEvalMarker: function() {
+        var range = this.getSelectionRangeAce();
+        if (range.isEmpty()) return;
+        var marker = lively.morphic.CodeEditorEvalMarker.setCurrentMarker(this, range);
+        marker.evalAndInsert();      
+    },
+
+    resetEvalMarker: function() {
+        if (lively.morphic.CodeEditorEvalMarker.currentMarker)
+            lively.morphic.CodeEditorEvalMarker.currentMarker.restoreText();
+        return;
     }
 },
 'text morph syntax highlighter interface', {
@@ -1141,17 +1144,23 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
     },
 
     evalAndInsert: function() {
-        var result = this.evaluateOriginalExpression();
-        this.annotation.replace(String(result));
-        return result;
+        var self = this, delay = this.annotation.editor.evalMarkerDelay;
+        function doEval() {
+            var result = self.evaluateOriginalExpression();
+            self.annotation.replace(String(result));
+            return result;
+        }
+        return delay ? doEval.delay(delay/1000) : doEval();
     }
 });
 
 Object.extend(lively.morphic.CodeEditorEvalMarker, {
     updateLastMarker: function() {
-        var evalMarker = this.lastMarker;
-        if (!evalMarker) return;
-        evalMarker.evalAndInsert();
+        this.currentMarker && this.currentMarker.evalAndInsert();
+    },
+    setCurrentMarker: function(editor, range) {
+        if (this.currentMarker) this.currentMarker.detach();
+        return this.currentMarker = new this(editor, range);
     }
 });
 

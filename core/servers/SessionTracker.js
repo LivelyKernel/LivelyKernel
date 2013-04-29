@@ -11,16 +11,25 @@ function uuid() {
 i(global.sessionTrackerData);
 
 var trackerData = global.sessionTrackerData;
+var connections = trackerData && trackerData.connections;
 
 function initTrackerData(server) {
     if (trackerData) return trackerData;
-    return trackerData = global.sessionTrackerData = {
+    trackerData = global.sessionTrackerData = {
+        connections: {},
         local: {
             id: uuid(),
             server: server,
             sessions: {}
         }
     }
+    connections = trackerData && trackerData.connections;
+}
+
+function resetTrackerData(server) {
+    removeConnections();
+    global.sessionTrackerData = trackerData = null;
+    initTrackerData(server);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -32,51 +41,94 @@ function sandboxSetup(server) {
     origTrackerData = trackerData;
     trackerData = global.sessionTrackerData = {
         isSandbox: true,
+        connections: {},
         local: {
             id: uuid(),
             server: server,
             sessions: []
         }
     }
+    connections = trackerData.connections;
 }
 function sandboxTearDown() {
     if (!trackerData.isSandbox) return;
     console.log('Removing sandbox');
     trackerData = global.sessionTrackerData = origTrackerData;
+    connections = trackerData.connections;
     origTrackerData = null;
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+function removeConnection(c) {
+    if (!c) return;
+    var id = typeof c === 'string' ? c : c.id;
+    c = connections[id];
+    delete connections[id];
+    if (!c) return;
+    c.close();
+}
+
+function removeConnections() {
+    Object.keys(connections).forEach(function(c) { removeConnection(c); });
+}
+
+function getConnection(id) {
+    return connections[id];
+}
+
+function addConnection(id, c) {
+    if (connections[id] && connections[id] !== c)
+        removeConnection(connections[id]);
+    return connections[id] = c;
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 var webSocketHandler = {
+
     register: function(connection, sender, req) {
         var sessions = trackerData.local.sessions,
-            session = sessions[req.sessionId] = sessions[req.sessionId] || {};
+            session = sessions[req.sender] = sessions[req.sender] || {};
         util._extend(session, req.data);
+        addConnection(req.data.id, connection);
+        connection.send({action: req.action, data: {message: 'OK'}});
     },
+
+    unregister: function(connection, sender, req) {
+        var sessions = trackerData.local.sessions;
+        delete sessions[req.sender];
+        removeConnection(req.sender);
+        connection.close();
+    },
+
     getSessions: function(connection, sender, req) {
         var sessions = trackerData.local.sessions || {},
             sessionList = Object.keys(sessions).map(function(id) { return sessions[id]; });
         connection.send({action: req.action, data: sessionList});
+    },
+
+    remoteEval: function(connection, sender, req) {
+        var sessions = trackerData.local.sessions || {},
+            target = req.data.target;
+        var targetConnection = getConnection(target);
+        if (!targetConnection) {
+            console.log('%s connections: %s', target, i(connections, false, 1));
+            connection.send({action: req.action, data: {error: 'Target connection not found', target: req.data.target}});
+            return;
+        }
+        targetConnection.send({action: 'remoteEvalRequest', data: {origin: req.sender, expr: req.data.expr}});
+    },
+
+    remoteEvalRequest: function(connection, sender, req) {
+        var originConnection = getConnection(req.data.origin);
+        if (!originConnection) return;
+        originConnection.send({action: 'remoteEval', data: req.data});
     }
 }
 
 function setupWebsocketHandler(baseRoute, subserver) {
     var websockets = subserver.handler.server.websocketHandler,
-        route = baseRoute + 'connect',
-        connections = {}; // we allow only one connection for this route
-
-    function removeConnection(c) {
-        if (!c) return;
-        var id = typeof c === 'string' ? c : c.id;
-        c = connections[id];
-        c.close();
-        delete connections[id];
-    }
-
-    function removeConnections() {
-        Object.keys(connections).forEach(function(c) { removeConnection(c); });
-    }
+        route = baseRoute + 'connect';
 
     function newConnection(request) {
         // removeConnection();
@@ -106,7 +158,7 @@ function setupWebsocketHandler(baseRoute, subserver) {
             if (typeof data !== 'string') data = JSON.stringify(data);
             this.sendUTF(data);
         }
-        setTimeout(c.close.bind(c), 5000);
+        setTimeout(c.close.bind(c), 20 * 1000);
         return c;
     }
 
@@ -144,6 +196,17 @@ module.exports = function(route, app, subserver) {
         } else {
             res.status(400).json({error: 'Cannot deal with sandbox request'}).end();
         }
+    });
+
+    app.post(route + 'reset', function(req, res) {
+        resetTrackerData(subserver.handler.server);
+        res.status(200).json({message: 'OK'}).end();
+    });
+
+    app.get(route + 'sessions', function(req, res) {
+        var sessions = trackerData.local.sessions,
+            list = Object.keys(sessions).map(function(id) { return sessions[id]; });
+        res.status(200).json(list).end();
     });
 
     app.get(route, function(req, res) {

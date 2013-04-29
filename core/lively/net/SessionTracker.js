@@ -24,6 +24,16 @@ Object.extend(lively.net.SessionTracker, {
     },
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // server management
+    resetServer: function() {
+        return this.getWebResource('reset').beSync().post('reset').content;
+    },
+
+    getSessions: function() {
+        return this.getWebResource('sessions').beSync().get().getJSON();
+    },
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // simple session logic
     registerCurrentSession: function() {
         if (!this.sessionId) this.sessionId = Strings.newUUID();
@@ -33,13 +43,37 @@ Object.extend(lively.net.SessionTracker, {
             user: $world.getUserName(true)
         });
     },
-    withSessionsDo: function(func) {
+
+    unregisterCurrentSession: function() {
+        if (this.sessionId) this.send('unregister', {id: this.sessionId});
+        this.connection && this.connection.close();
+        this.sessionId = null;
+    },
+
+    remoteEval: function(targetId, expression, thenDo) {
         var con = this.getConnection();
-        lively.bindings.connect(con, 'messageReceived', {cb: func}, 'cb', {
-            updater: function($upd, data) { if (data.action === 'getSessions') $upd(data); },
+        lively.bindings.connect(con, 'messageReceived', {cb: thenDo}, 'cb', {
+            updater: function($upd, data) { if (data.action === 'remoteEval') $upd(data); },
             converter: function(data) { return data.data },
             removeAfterUpdate: true});
-        this.send('getSessions');
+        this.send('remoteEval', {target: targetId, expr: expression});
+    },
+    openForRemoteEvalRequests: function() {
+        var con = this.getConnection();
+        lively.bindings.connect(con, 'messageReceived', this, 'doRemoteEval', {
+            updater: function($upd, data) { if (data.action === 'remoteEvalRequest') $upd(data); },
+            converter: function(data) { return data.data },
+            removeAfterUpdate: false});
+    },
+    doRemoteEval: function(data) {
+        // show('doRemoteEval %o', data);
+        var result;
+        try {
+            result = eval(data.expr);
+        } catch(e) {
+            result = e + '\n' + e.stack;
+        }
+        this.send('remoteEvalRequest', {result: result, origin: data.origin})
     },
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // websocket interaction
@@ -55,6 +89,7 @@ Object.extend(lively.net.SessionTracker, {
         if (this.connection) return this.connection;
         return this.connection = {
             uri: this.baseURL.withFilename('connect').toString().replace(/^http/, 'ws'),
+            tracker: this,
             open: false,
             messages: [],
             socket: null,
@@ -78,7 +113,10 @@ Object.extend(lively.net.SessionTracker, {
                     CLOSED:       3,    // The connection is closed or couldn't be opened.
                     onerror: function(evt) { lively.bindings.signal(self, 'error', evt); },
                     onopen: function(evt) { this.opened = true; },
-                    onclose: function(evt) { this.opened = false; },
+                    onclose: function(evt) {
+                        this.opened = false;
+                        self.tracker.sessionId && self.tracker.registerCurrentSession();
+                    },
                     onmessage: function(evt) {
                         var data = JSON.parse(evt.data);
                         self.messages.push(data);
@@ -95,5 +133,16 @@ Object.extend(lively.net.SessionTracker, {
     }
 
 });
+
+(function setupSessionTrackerConnection() {
+    lively.whenLoaded(function() {
+        lively.net.SessionTracker.registerCurrentSession();
+        lively.net.SessionTracker.openForRemoteEvalRequests();
+        Global.addEventListener('beforeunload', function(evt) {
+            lively.net.SessionTracker.unregisterCurrentSession();
+        }, true);
+
+    });
+})();
 
 }) // end of module

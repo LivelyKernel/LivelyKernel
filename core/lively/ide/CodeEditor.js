@@ -628,10 +628,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         function upHandler(evt) {
             document.removeEventListener("mouseup", upHandler, true);
             lively.morphic.EventHandler.prototype.patchEvent(evt);
+            if (menuOpened) { evt.world.clickedOnMorph = null; evt.stop(); return true; }
             [self].concat(self.ownerChain()).reverse().forEach(function(ea) {
                 ea.onMouseUpEntry(evt); });
         }
         document.addEventListener("mouseup", upHandler, true);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var menuOpened = false;
+        if (evt.isCtrlDown() || evt.isRightMouseButtonDown()) {
+            lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
+            evt.stop();
+            return true;
+        }
         return $super(evt);
     },
 
@@ -1055,9 +1063,27 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     setClipMode: Functions.Null
 },
 'morph menu', {
-    morphMenuItems: function($super) {
-        var items = ['CodeEditor...', []], otherItems = $super(), editor = this;
+    codeEditorMenuItems: function() {
+        var editor = this, items = [], self = this, world = this.world(),
+            range = this.getSelectionRangeAce();
 
+        // eval marker
+        var evalMarkerItems = ['Eval marker', []];
+        items.push(evalMarkerItems);
+        if (!range.isEmpty()) {
+            evalMarkerItems[1].push(['Mark expression', function() {
+                self.addEvalMarker(); }]);
+        }
+        evalMarkerItems[1].push(['Reset mark expression', function() {
+            self.restEvalMarker(); }]);
+        evalMarkerItems[1].push(['Set eval marker eval delay', function() {
+            world.prompt('Please enter delay in milliseconds', function(input) {
+                input = Number(input);
+                self.evalMarkerDelay = input || null;
+            }, '200');
+        }]);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // themes
         var currentTheme = this.getTheme(),
             themeItems = lively.ide.ace.availableThemes().map(function(theme) {
             var themeString = Strings.format('[%s] %s',
@@ -1065,6 +1091,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                                              theme);
             return [themeString, function(evt) { editor.setTheme(theme); }]; });
 
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // text modes
         var currentTextMode = this.getTextMode(),
             modeItems = lively.ide.ace.availableTextModes().map(function(mode) {
                 var modeString = Strings.format('[%s] %s',
@@ -1072,15 +1100,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                                                  mode);
                 return [modeString, function(evt) { editor.setTextMode(mode); }]; });
 
-        items[1].push(["themes", themeItems]);
-        items[1].push(["modes", modeItems]);
+        items.push(["themes", themeItems]);
+        items.push(["modes", modeItems]);
 
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // line wrapping
         var usesWrap = editor.getLineWrapping();
-        items[1].push([Strings.format("[%s] line wrapping", usesWrap ? 'X' : ' '), function() {
+        items.push([Strings.format("[%s] line wrapping", usesWrap ? 'X' : ' '), function() {
             editor.setLineWrapping(!usesWrap); }]);
 
-        otherItems.push(items);
-        return otherItems;
+        return items;
+    },
+    morphMenuItems: function($super) {
+        return $super().concat([['CodeEditor...', this.codeEditorMenuItems()]]);
     }
 },
 'messaging', {

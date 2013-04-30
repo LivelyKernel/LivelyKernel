@@ -896,6 +896,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.draggingEnabled = this.grabbingEnabled = false;
         var labelExtent = this.label.getExtent();
         this.setExtent(pt(labelExtent.x + 10, labelExtent.y + 10));
+        this.setClipMode('hidden');
         this.addCloseButton();
     },
 
@@ -927,6 +928,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         var extraSpace = this.closeButton ? 30 : 10;
         this.setExtent(pt(this.label.getExtent().x + extraSpace, this.label.getExtent().y + 10));
         this.getTabBar().rearrangeTabs();
+        this.setToolTip(aString);
     },
     getLabel: function() {
         return this.label.textString;

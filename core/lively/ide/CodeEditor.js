@@ -915,9 +915,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return ann.attach();
     },
 
-    addOrResetEvalMarker: function(evt) {
+    addOrRemoveEvalMarker: function(evt) {
         var range = this.getSelectionRangeAce();
-        return range.isEmpty() ? this.resetEvalMarker() : this.addEvalMarker();
+        return range.isEmpty() ? this.removeEvalMarker() : this.addEvalMarker();
     },
 
     addEvalMarker: function() {
@@ -927,9 +927,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         marker.evalAndInsert();      
     },
 
-    resetEvalMarker: function() {
+    removeEvalMarker: function() {
         if (lively.morphic.CodeEditorEvalMarker.currentMarker)
-            lively.morphic.CodeEditorEvalMarker.currentMarker.restoreText();
+            lively.morphic.CodeEditorEvalMarker.currentMarker.detach();
         return;
     }
 },
@@ -1074,8 +1074,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             evalMarkerItems[1].push(['Mark expression', function() {
                 self.addEvalMarker(); }]);
         }
-        evalMarkerItems[1].push(['Reset mark expression', function() {
-            self.restEvalMarker(); }]);
+        evalMarkerItems[1].push(['Remove eval marker', function() {
+            self.removeEvalMarker(); }]);
         evalMarkerItems[1].push(['Set eval marker eval delay', function() {
             world.prompt('Please enter delay in milliseconds', function(input) {
                 input = Number(input);
@@ -1170,8 +1170,9 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
 'evaluation', {
     evaluateOriginalExpression: function() {
         console.log('EvalMarker evaluating %s' + this.getOriginalExpression());
+        var ed = this.annotation.editor;
         try {
-            return Global.eval(this.getOriginalExpression() || '');
+            return ed.boundEval(this.getOriginalExpression() || '');
         } catch(e) { return e; }        
     },
 
@@ -1197,12 +1198,13 @@ Object.extend(lively.morphic.CodeEditorEvalMarker, {
 });
 
 (function installEvalMarkerKeyHandler() {
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "evalMarkerKeyHandler");
     lively.morphic.Events.GlobalEvents.register('keydown', function evalMarkerKeyHandler(evt) {
         var keys = evt.getKeyString();
         if (keys === 'Command-Shift-M' || keys === "Control-Shift-M") {
             var focused = lively.morphic.Morph.prototype.focusedMorph();
             if (!focused || !focused.isAceEditor) return false;
-            focused.addOrResetEvalMarker(evt);
+            focused.addOrRemoveEvalMarker(evt);
             evt.stop(); return true;
         }
         if (keys === 'Command-M' || keys === 'Control-M') {

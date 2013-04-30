@@ -1,4 +1,4 @@
-module('lively.net.SessionTracker').requires().toRun(function() {
+module('lively.net.SessionTracker').requires('lively.Network').toRun(function() {
 
 Object.extend(lively.net.SessionTracker, {
     // basic networking
@@ -7,6 +7,32 @@ Object.extend(lively.net.SessionTracker, {
         var url = this.baseURL;
         if (subServiceName) url = url.withFilename(subServiceName);
         return url.asWebResource();
+    },
+
+    getWebSocket: function() {
+        if (this.webSocket) return this.webSocket;
+        var url = this.baseURL.withFilename('connect');
+        this.webSocket = new lively.net.WebSocket(url);
+        this.webSocket.enableMessageSignals();
+        lively.bindings.connect(this.webSocket, 'opened', {opened: function() {
+            if (!this.webSocket) return;
+            lively.bindings.connect(this.webSocket, 'closed', this, 'registerCurrentSession', {
+                updater: function($upd) { if (tracker.sessionId) { $upd(); } },
+                varMapping: {tracker: this},
+                removeAfterUpdate: true
+            });
+        }.bind(this)}, 'opened');
+
+        return this.webSocket;
+    },
+
+    send: function(action, jso) {
+        if (!this.sessionId) { throw new Error('Need sessionId to interact with SessionTracker!') };
+        this.getWebSocket().send({
+            sender: this.sessionId,
+            action: action,
+            data: jso || {}
+        });
     },
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -46,92 +72,36 @@ Object.extend(lively.net.SessionTracker, {
 
     unregisterCurrentSession: function() {
         if (this.sessionId) this.send('unregister', {id: this.sessionId});
-        this.connection && this.connection.close();
+        this.resetConnection();
         this.sessionId = null;
     },
 
+    resetConnection: function() {
+        this.webSocket && this.webSocket.close();
+        this.webSocket = null;
+    },
+
+    openForRemoteEvalRequests: function() {
+        lively.bindings.connect(this.getWebSocket(), 'remoteEvalRequest', this, 'doRemoteEval');
+    },
+
     remoteEval: function(targetId, expression, thenDo) {
-        var con = this.getConnection();
-        lively.bindings.connect(con, 'messageReceived', {cb: thenDo}, 'cb', {
-            updater: function($upd, data) { if (data.action === 'remoteEval') $upd(data); },
-            converter: function(data) { return data.data },
-            removeAfterUpdate: true});
+        // we send a remote eval request
+        lively.bindings.connect(this.getWebSocket(), 'remoteEval', {cb: thenDo}, 'cb', {removeAfterUpdate: true});
         this.send('remoteEval', {target: targetId, expr: expression});
     },
-    openForRemoteEvalRequests: function() {
-        var con = this.getConnection();
-        lively.bindings.connect(con, 'messageReceived', this, 'doRemoteEval', {
-            updater: function($upd, data) { if (data.action === 'remoteEvalRequest') $upd(data); },
-            converter: function(data) { return data.data },
-            removeAfterUpdate: false});
-    },
-    doRemoteEval: function(data) {
-        // show('doRemoteEval %o', data);
+
+    doRemoteEval: function(msg) {
+        // we answer a remote eval request
+        // show('doRemoteEval %o', msg);
         var result;
         try {
-            result = eval(data.expr);
+            result = eval(msg.data.expr);
         } catch(e) {
             result = e + '\n' + e.stack;
         }
-        this.send('remoteEvalRequest', {result: result, origin: data.origin})
-    },
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    // websocket interaction
-    send: function(action, jso) {
-        if (!this.sessionId) { throw new Error('Need sessionId to interact with SessionTracker!') };
-        this.getConnection().send({
-            sender: this.sessionId,
-            action: action,
-            data: jso || {}
-        });
-    },
-    getConnection: function() {
-        if (this.connection) return this.connection;
-        return this.connection = {
-            uri: this.baseURL.withFilename('connect').toString().replace(/^http/, 'ws'),
-            tracker: this,
-            open: false,
-            messages: [],
-            socket: null,
-            send: function(data) {
-                if (!this.socket || this.socket.isClosed()) { this.openSocket(); }
-                if (!this.socket.isOpen()) { this.retrySendIn(data, 20); return; }
-                if (typeof data !== 'string') data = JSON.stringify(data);
-                return this.socket.send(data);
-            },
-            close: function() { if (this.socket && !this.socket.isClosed()) this.socket.close() },
-            retrySendIn: function(data, time) {
-                Global.setTimeout(this.send.bind(this, data), time);
-            },
-            openSocket: function() {
-                var self = this;
-                this.socket = Object.extend(new WebSocket(this.uri, 'lively-session-tracker'), {
-                    // readystate
-                    CONNECTING:   0,    // The connection is not yet open.
-                    OPEN:         1,    // The connection is open and ready to communicate.
-                    CLOSING:      2,    // The connection is in the process of closing.
-                    CLOSED:       3,    // The connection is closed or couldn't be opened.
-                    onerror: function(evt) { lively.bindings.signal(self, 'error', evt); },
-                    onopen: function(evt) { this.opened = true; },
-                    onclose: function(evt) {
-                        this.opened = false;
-                        self.tracker.sessionId && self.tracker.registerCurrentSession();
-                    },
-                    onmessage: function(evt) {
-                        var data = JSON.parse(evt.data);
-                        self.messages.push(data);
-                        lively.bindings.signal(self, 'messageReceived', data);
-                    },
-                    isOpen: function() { return this.readyState === this.OPEN; },
-                    isClosed: function() { return this.readyState >= this.CLOSING; }
-                });
-            }
-        }
-    },
-    resetConnection: function() {
-        this.connection = null;
+        this.send('remoteEvalRequest', {result: result, origin: msg.data.origin})
     }
-
 });
 
 (function setupSessionTrackerConnection() {

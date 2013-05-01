@@ -1793,12 +1793,11 @@ lively.morphic.World.addMethods(
 
     onScroll: function(evt) {
         // This is a fix for the annoying bug that cost us a keynote...
-        var node = this.renderContext().morphNode;
-        // var scrollTop = node.scrollTop,
-            // scrollLeft = node.scrollLeft;
-        // Global.scroll(scrollTop, scrollLeft)
-        node.scrollTop = 0
-        node.scrollLeft = 0
+        var ctx = this.renderContext();
+        ctx.morphNode.scrollTop = 0;
+        ctx.morphNode.scrollLeft = 0;
+        ctx.shapeNode.scrollTop = 0;
+        ctx.shapeNode.scrollLeft = 0;
     },
     correctForDragOffset: function(evt) {
         return false;

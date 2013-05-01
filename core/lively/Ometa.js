@@ -101,7 +101,7 @@ Object.extend(OMetaSupport, {
     handleError: function(src, rule, grammarInstance, errorIndex) {},
 
     fileContent: function(fileName) {
-        var url = URL.codeBase.withFilename(fileName);
+        var url = URL.root.withFilename(fileName);
         return new WebResource(url).get().content;
     },
 

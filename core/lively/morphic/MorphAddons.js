@@ -903,10 +903,10 @@ lively.morphic.World.addMethods(
     }
 },
 'auth', {
-    getUserName: function() {
+    getUserName: function(noninteractive) {
         var userName = lively.LocalStorage.get('UserName')
         if (userName && userName !== 'undefined') return userName;
-        userName = this.requestUserName();
+        if (!noninteractive) userName = this.requestUserName();
         if (userName && userName !== 'undefined') {
             lively.LocalStorage.set('UserName', userName);
             return userName;

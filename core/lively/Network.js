@@ -30,7 +30,7 @@
  * inherited from the browser.
  */
 
-module('lively.Network').requires('lively.bindings', 'lively.Data').toRun(function(thisModule) {
+module('lively.Network').requires('lively.bindings', 'lively.Data', 'lively.net.WebSockets').toRun(function(thisModule) {
 
 Object.subclass('URL', {
     isURL: true,

@@ -31,6 +31,7 @@ Object.subclass('lively.net.WebSocket',
         this.socket = null;
         this.reopenClosedConnection = options.enableReconnect || false;
         this._open = false;
+        this.sendTimeout = options.timeout || 3 * 1000; // when to stop trying to send
         this.protocol = options.protocol ? options.protocol : null;
     },
 
@@ -94,7 +95,13 @@ Object.subclass('lively.net.WebSocket',
         if (!this.isClosed()) this.socket.close();
     },
 
-    retrySendIn: function(data, time) {
+    retrySendIn: function(data, waitTimeForNextAttempt, startTime) {
+        startTime = startTime || Date.now();
+        waitTimeForNextAttempt = waitTimeForNextAttempt || 100;
+        if (this.sendTimeout && Date.now() - startTime > this.sendTimeout) {
+            this.onError({error: 'send attempt timedout', type: 'timeout'});
+            return;
+        }
         Global.setTimeout(this.send.bind(this, data), time || 100);
     }
 

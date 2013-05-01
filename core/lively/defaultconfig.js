@@ -396,7 +396,7 @@ Config.addOptions(
     ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
     ["showModuleDefStack", true, "so modules know where they were required from"],
     ["loadUserConfig", true, "for sth like jens/config.js, used in lively.bootstrap"],
-    ["modulePaths", ["users"], "root URLs of module lookup"],
+    ["modulePaths", ["apps", "users"], "root URLs of module lookup"],
     ["warnIfAppcacheError", true, "In case a world is loaded without being able to reach the application cache (probably because the server cannot be reached) show a warning on world load."],
 
     ["disableScriptCaching", true],

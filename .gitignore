@@ -3,6 +3,7 @@
 
 # Scripts #
 workspace/
+localconfig.js
 
 # Worlds #
 *.html

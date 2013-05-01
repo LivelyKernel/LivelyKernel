@@ -102,7 +102,7 @@ Object.subclass('lively.net.WebSocket',
             this.onError({error: 'send attempt timedout', type: 'timeout'});
             return;
         }
-        Global.setTimeout(this.send.bind(this, data), time || 100);
+        Global.setTimeout(this.send.bind(this, data), waitTimeForNextAttempt);
     }
 
 },

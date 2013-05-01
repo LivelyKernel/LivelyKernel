@@ -7,6 +7,7 @@ function WebSocketServer() {
     this.connections = [];
     this.debug = true;
     this.route = '';
+    this.requiresSender = false;
 }
 
 util._extend(WebSocketServer.prototype, {
@@ -43,8 +44,8 @@ util._extend(WebSocketServer.prototype, {
                 return;
             }
             var action = data.action, sender = data.sender;
+            if (this.requiresSender && !sender) { console.log('%s could not extract sender from incoming message %s', server, i(msg)); return; }
             if (!action) { console.log('%s could not extract action from incoming message %s', server, i(msg)); return; }
-            if (!sender) { console.log('%s could not extract sender from incoming message %s', server, i(msg)); return; }
             if (!server[action]) { console.log('%s could not handle %s from message %s', server, action, i(msg)); return; }
             try {
                 server[action](c, sender, data);

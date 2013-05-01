@@ -1,45 +1,22 @@
-// this code can be used on the client to initiate a websocket connection:
-// url = URL.root.withFilename('lively-websocket-example').toString().replace('http', 'ws');
-// ws = Object.extend(new WebSocket(url.toString(), 'lively-sync'), {
-//     onerror: function(evt) { show('websocket error %o', evt) },
-//     onopen: function(evt) {
-//         ws.send('Hello server?')
-//     },
-//     onclose: function(evt) { show('connection to %o closed', evt.target.URL); },
-//     onmessage: function(evt) {
-//         show('got message: %o', evt.data);
-//         ws.close();
-//     }
-// });
+// for client side code see
+// lively.ide.browse("lively.net.WebSocket", "example", "lively.net.WebSockets");
 
+var inspect = require("util").inspect;
+var WebSocketServer = require('./support/websockets').WebSocketServer;
+var webSocketHandler = util._extend(new WebSocketServer(), {
+    debug: true, // logs infos
+    helloWorld: function(c, sender, req) {
+        console.log("Got message %s", inspect(req.data));
+        c.send({action: 'helloWorldReply', data: 'message from server'});
+        c.close();
+    }
+});
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// register routes
 module.exports = function(route, app, subserver) {
-    var websockets = subserver.handler.server.websocketHandler,
-        route = '/lively-websocket-example',
-        connection = null; // we allow only one connection for this route
-
-    function removeConnection() {
-        if (!connection) return;
-        connection.close();
-        connection = null;
-    }
-
-    function newConnection(request) {
-        removeConnection();
-        var c = connection = request.accept();
-        c.on('close', function(msg) { if (connection === c) connection = null; });
-        return c;
-    }
-    
-    websockets.registerSubhandler({path: route, handler: function(req) {
-        var c = newConnection(req);
-        c.on('message', function(evt) {
-            c.send('server received "' + evt.utf8Data + '"');
-        });
-        return !!connection;
-    }});
-
-    subserver.on('close', function() {
-        removeConnection();
-        websockets.unregisterSubhandler({path: route});
+    webSocketHandler.listen(route + 'connect', subserver);
+    app.get(route, function(req, res) {
+        res.end("WebSocketExample is running!");
     });
 }

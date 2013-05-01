@@ -1,12 +1,25 @@
 module('lively.net.WebSockets').requires().toRun(function() {
 
 Object.subclass('lively.net.WebSocket',
+'documentation', {
+    example: function() {
+        // This is a very simple wrapper for the native WebSocket object.
+        // It will internally use a WebSocket object and manage (re)opening
+        // connections on its own
+        // For the server code see the WebSocketExample subserver
+        var url = new URL(Config.nodeJSURL + '/WebSocketExample/connect');
+        var ws = new lively.net.WebSocket(url, {protocol: 'lively-json'});
+        connect(ws, 'closed', Global, 'show', {converter: function() { return 'websocket closed'; }});
+        connect(ws, 'helloWorldReply', Global, 'show');
+        ws.send({action: 'helloWorld', data: 'message from Lively'});
+    }
+},
 'properties', {
     CONNECTING:   0,
     OPEN:         1,
     CLOSING:      2,
     CLOSED:       3,
-    doNotSerialize: ['socket']
+    doNotSerialize: ['socket', '_open']
 },
 'initializing', {
     initialize: function(uri, options) {
@@ -18,13 +31,11 @@ Object.subclass('lively.net.WebSocket',
         this.socket = null;
         this.reopenClosedConnection = options.enableReconnect || false;
         this._open = false;
+        this.protocol = options.protocol ? options.protocol : null;
     },
 
     enableReconnect: function() { this.reopenClosedConnection = true; },
-    disableReconnect: function() { this.reopenClosedConnection = false; },
-
-    enableMessageSignals: function(dispatchMapping) { this.messageSignals = true; },
-    disableMessageSignals: function(dispatchMapping) { this.messageSignals = false; }
+    disableReconnect: function() { this.reopenClosedConnection = false; }
 },
 'events', {
     onError: function(evt) {
@@ -44,7 +55,7 @@ Object.subclass('lively.net.WebSocket',
     onMessage: function(evt) {
         this.messages.push(evt.data);
         lively.bindings.signal(this, 'message', evt.data);
-        if (!this.messageSignals) return;
+        if (this.protocol !== 'lively-json') return;
         try {
             var msg = JSON.parse(evt.data);
             if (msg && msg.action) lively.bindings.signal(this, msg.action, msg);

@@ -78,6 +78,9 @@ var browserTests = [
     'lively.tests.CoreTests',
     "lively.tests.HelperTests",
 
+    // network
+    'lively.net.tests.SessionTracker',
+
     // lang support
     "lively.lang.tests.ExtensionTests",
     "lively.lang.tests.WorkerTests",

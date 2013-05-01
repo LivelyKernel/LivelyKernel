@@ -106,7 +106,7 @@ Object.extend(OMetaSupport, {
     },
 
     writeGrammar: function(fileName, src) {
-        var url = URL.codeBase.withFilename(fileName);
+        var url = URL.root.withFilename(fileName);
         return new WebResource(url).put(src);
     }
 });

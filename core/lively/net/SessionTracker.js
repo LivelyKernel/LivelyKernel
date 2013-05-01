@@ -12,8 +12,7 @@ Object.extend(lively.net.SessionTracker, {
     getWebSocket: function() {
         if (this.webSocket) return this.webSocket;
         var url = this.baseURL.withFilename('connect');
-        this.webSocket = new lively.net.WebSocket(url);
-        this.webSocket.enableMessageSignals();
+        this.webSocket = new lively.net.WebSocket(url, {protocol: "lively-json"});
         lively.bindings.connect(this.webSocket, 'opened', {opened: function() {
             if (!this.webSocket) return;
             lively.bindings.connect(this.webSocket, 'closed', this, 'registerCurrentSession', {

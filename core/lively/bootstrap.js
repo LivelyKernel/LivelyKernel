@@ -639,10 +639,11 @@
                 return;
             }
             var source = this.getSync(url);
+            if (!source) { console.warn('Could not load %s', url); return; }
             try {
                 eval(source);
             } catch (e) {
-                console.error('Error when loading ' + url + ': ' + e + '\n' + e.stack);
+                console.error('Error when loading %s: %s\n%s', url, e, e.stack);
             }
             if (typeof onLoadCb === 'function') onLoadCb();
         },
@@ -660,7 +661,6 @@
             if (onLoadCb) script.onload = onLoadCb;
             script.setAttributeNS(null, 'async', true);
         },
-
 
         loadCombinedModules: function(combinedFileUrl, callback, hash) {
             // If several modules are combined in one file they can be loaded
@@ -870,7 +870,8 @@
         },
 
         getSync: function(url, forceUncached) {
-            return this.getSyncReq(url, forceUncached).responseText;
+            var req = this.getSyncReq(url, forceUncached);
+            return req.status < 400 ? req.responseText : null;
         },
 
         getSyncStatus: function(url, forceUncached) {
@@ -897,7 +898,6 @@
             'lively/lang/Date.js',
             'lively/lang/Worker.js',
             'lively/defaultconfig.js',
-            'lively/localconfig.js',
             'lively/Base.js',
             'lively/ModuleSystem.js'
         ],
@@ -956,18 +956,6 @@
         bootstrapFiles: bootstrapFiles,
         codeBase: codeBase,
         rootPath: rootPath,
-        modulePaths: (function setModulePaths() {
-            if (!Global.Config) { Global.Config = {}; }
-            // FIXME this is webwerkstatt specific
-            var defaultPaths = ['users/', 'projects/', 'documentation/',
-                                'server/'];
-            if (Config.modulePaths === undefined) {
-                Config.modulePaths = defaultPaths;
-            } else {
-                Config.modulePaths = Config.modulePaths.concat(defaultPaths);
-            }
-            return Config.modulePaths;
-        })(),
 
         installWatcher: function(target, propName, haltWhenChanged) {
             // observe slots, for debugging
@@ -1226,6 +1214,7 @@
             Global.addEventListener('DOMContentLoaded', initBrowserBootstrap, true);
             return;
         }
+        Global.removeEventListener('DOMContentLoaded', initBrowserBootstrap, true);
         setupExitWarning();
         if (Global.document) {
             Global.LivelyMigrationSupport.setDocumentMigrationLevel(document);
@@ -1248,7 +1237,6 @@
             'lively/lang/Date.js',
             'lively/lang/Worker.js',
             'lively/defaultconfig.js',
-            'lively/localconfig.js',
             'lively/Base.js',
             'lively/ModuleSystem.js'
         ];
@@ -1281,39 +1269,52 @@
     }
 
     function initOnAppCacheLoad(whenCacheLoaded) {
-        var runCallbackInvoked = false;
+        var appCache = Global.applicationCache;
+        LoadingScreen.add('Checking Cache');
+        toggleAppcacheHandlers();
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var runCallbackCalled = false;
         function runCallback() {
-            runCallbackInvoked = true;
+            if (runCallbackCalled) return;
+            runCallbackCalled = true;
+            toggleAppcacheHandlers();
             whenCacheLoaded && whenCacheLoaded();
         }
-        LoadingScreen.add('Checking Cache');
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-        console.log('Installing appcache event handlers...');
-        var appCache = Global.applicationCache;
-
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var cacheHandlersInstalled = false;
+        function toggleAppcacheHandlers() {
+            var method = cacheHandlersInstalled ? 'removeEventListener' : 'addEventListener';
+            if (!cacheHandlersInstalled) {
+                console.log('Installing appcache event handlers...');
+            }
+            cacheHandlersInstalled = !cacheHandlersInstalled;
+            appCache[method]('checking', onChecking, false);
+            appCache[method]('downloading', onDownloading, false);
+            appCache[method]('progress', onProgress, false);
+            appCache[method]('updateready', onUpdateready, false);
+            appCache[method]('error', onError, false);
+            appCache[method]('noupdate', onNoupdate, false);
+            appCache[method]('cached', onCached, false);
+            appCache[method]('obsolete', onObsolete, false);
+        }
         // Checking for an update. Always the first event fired in the sequence.
-        appCache.addEventListener('checking', function(evt) {
+        function onChecking(evt) {
             console.log('Checking if there are new sources to load...');
-        }, false);
-
+        }
         // An update was found. The browser is fetching resources.
-        appCache.addEventListener('downloading', function(evt) {
+        function onDownloading(evt) {
             console.log('downloading');
             LoadingScreen.setLogoText('Fetching Cache Content');
-        }, false);
-
+        }
         // Fired for each resource listed in the manifest as it is being fetched.
-        appCache.addEventListener('progress', function(evt) {
+        function onProgress(evt) {
             if (!evt.lengthComputable) return;
             LoadingScreen.setLogoText('Fetching Cache Content '
                                      + (evt.loaded + 1)
                                      + '/' + evt.total);
-        }, false);
-
+        }
         // Fired when the manifest resources have been newly redownloaded.
-        appCache.addEventListener('updateready', function(evt) {
+        function onUpdateready(evt) {
             console.log('updateready');
             var isLoaded = Global.lively
                         && lively.morphic
@@ -1329,39 +1330,37 @@
             }
             // we have to reload the whole page to get the new sources
             document.location.reload();
-        }, false);
-
+        }
         // The manifest returns 404 or 410, the download failed,
         // or the manifest changed while the download was in progress.
-        appCache.addEventListener('error', function(evt) {
+        function onError(evt) {
             console.log('Error occured while loading the application cache.');
             LoadingScreen.setLogoText('Cache Error');
             lively.whenLoaded(function(world) {
                 if (!Config.get("warnIfAppcacheError")) return;
+                var serverExists = URL.root.asWebResource().beSync().head().status.isSuccess();
+                if (serverExists) return;
                 world.confirm("While loading Lively we found out that the Lively\n"
                              + "server is not available. You can continue to use\n"
                              + "the system but server-dependent services might not\n"
                              + "be accessible. Please check the server.\n");
             })
             runCallback();
-        }, false);
-
+        }
         // Fired after the first download of the manifest.
-        appCache.addEventListener('noupdate', function(evt) {
+        function onNoupdate(evt) {
             console.log('noupdate');
             LoadingScreen.setLogoText('No updates');
             runCallback();
-        }, false);
-
+        }
         // Fired after the first cache of the manifest.
-        appCache.addEventListener('cached', function(evt) {
+        function onCached(evt) {
             console.log('Sources are now cached.');
             runCallback();
-        }, false);
-
+        }
         // Fired if the manifest file returns a 404 or 410.
         // This results in the application cache being deleted.
-        appCache.addEventListener('obsolete', function(evt) { console.log('obsolete'); }, false);
+        function onObsolete(evt) { console.log('obsolete'); }
     }
 
     // -=-=-=-=-=-=-=-

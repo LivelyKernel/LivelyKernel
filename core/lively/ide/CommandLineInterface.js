@@ -130,7 +130,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
         var cmdLineInterface = this,
-            webR = cmdLineInterface.commandLineServerURL.withFilename('exec').asWebResource().beAsync(),
+            webR = cmdLineInterface.commandLineServerURL.withFilename('exec').asWebResource(),
             cmd = {
                 isShellCommand: true,
                 _stdout: '',
@@ -141,13 +141,15 @@ Object.extend(lively.ide.CommandLineInterface, {
                     cmdLineInterface.commandInProgress = this;
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) { if (status.isDone()) $upd(status); }});
+                    if (options.sync) webR.beSync();
+                    else webR.beAsync();
                     webR.post(JSON.stringify({command: commandString}), 'application/json');
                 },
 
                 endRequest: function(status) {
                     cmdLineInterface.commandInProgress = null;
                     try {
-                        result = JSON.parse(webR.content);
+                        result = JSON.parse(status.transport.responseText);
                         this._code = result.code;
                         this._stderr = result.err;
                         this._stdout = result.out;
@@ -169,6 +171,12 @@ Object.extend(lively.ide.CommandLineInterface, {
         if (!cmdLineInterface.commandInProgress) cmd.startRequest();
         else cmdLineInterface.scheduleCommand(cmd);
         return cmd;
+    },
+
+    execSync: function(commandString, options) {
+        options = options || {};
+        options.sync = true;
+        return this.exec(commandString, options, null);
     },
 
     kill: function() {
@@ -486,6 +494,10 @@ Object.subclass("lively.ide.FilePatchHunk",
 
 Object.extend(lively.ide.FilePatchHunk, {
     read: function(patchString) { return new this().read(patchString); }
+});
+
+Object.extend(lively, {
+    shell: lively.ide.CommandLineInterface
 });
 
 }) // end of module

@@ -1076,12 +1076,23 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
         evalMarkerItems[1].push(['Remove eval marker', function() {
             self.removeEvalMarker(); }]);
-        evalMarkerItems[1].push(['Set eval marker eval delay', function() {
-            world.prompt('Please enter delay in milliseconds', function(input) {
-                input = Number(input);
-                self.evalMarkerDelay = input || null;
-            }, '200');
-        }]);
+        
+        var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
+        if (marker) {
+            if (marker.doesContinousEval()) {
+                evalMarkerItems[1].push(['Disable eval interval', function() {
+                    marker.stopContinousEval();
+                }]);                
+            } else {
+                evalMarkerItems[1].push(['Set eval interval', function() {
+                    world.prompt('Please enter the interval time in milliseconds', function(input) {
+                        input = Number(input);
+                        marker.startContinousEval(input);
+                        self.evalMarkerDelay = input || null;
+                    }, '200');
+                }]);
+            }
+        }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // themes
         var currentTheme = this.getTheme(),
@@ -1152,7 +1163,12 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
         this.annotation = codeEditor.addFloatingAnnotation(range);
         this.originalExpression = this.annotation.getTextString();
     },
-    detach: function() { this.restoreText(); this.annotation.detach(); return this; },
+    detach: function() {
+        this.stopContinousEval();
+        this.restoreText();
+        this.annotation.detach();
+        return this;
+    },
     attach: function() { this.annotation.attach(); return this; },
     restoreText: function() {
         if (this.getTextString() !== this.getOriginalExpression())
@@ -1184,7 +1200,20 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
             return result;
         }
         return delay ? doEval.delay(delay/1000) : doEval();
-    }
+    },
+    
+    stopContinousEval: function() {
+        Global.clearInterval(this.stepInterval);
+        delete this.stepInterval;
+    },
+
+    startContinousEval: function(time) {
+        this.stopContinousEval();
+        var ed = this.annotation.editor;
+        this.stepInterval = Global.setInterval(this.evalAndInsert.bind(this), time || 500);
+    },
+
+    doesContinousEval: function() { return !!this.stepInterval; }
 });
 
 Object.extend(lively.morphic.CodeEditorEvalMarker, {

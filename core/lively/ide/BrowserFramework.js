@@ -681,7 +681,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
     ensureSourceNotAccidentlyDeleted: function (callback) {
         // checks if the source code has unsaved changes if it hasn't or if the
-        // user wants to discard them then run the callback 
+        // user wants to discard them then run the callback
         // otherwise do nothing
         var browser = this;
         if (!browser.hasUnsavedChanges()) {
@@ -772,8 +772,17 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
     },
 
     onKeyDown: function(evt) {
-        if (!this.navigateBrowserPanes(evt)) return false;
-        evt.stop(); return true;
+        // Command-U / Control-U to reset the souce view
+        if (evt.isCommandKey() && evt.getKeyChar().toLowerCase() === 'u') {
+            var browser = this.ownerWidget, node = browser.selectedNode();
+            browser.ensureSourceNotAccidentlyDeleted(function() {
+                browser.allChanged(false, node);
+                browser.setStatusMessage('resetting ' + node.getName());
+            });
+            evt.stop(); return true;
+        }
+        if (this.navigateBrowserPanes(evt)) { evt.stop(); return true; }
+        return false;
     },
     navigateBrowserPanes: function(evt) {
         var evtString = Event.pressedKeyString(evt),

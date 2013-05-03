@@ -3,11 +3,14 @@ module('lively.ide.SystemCodeBrowser').requires('lively.ide.BrowserFramework', '
 // ===========================================================================
 // Browsing js files and OMeta
 // ===========================================================================
-lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
+lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
+'settings', {
 
     documentation: 'Browser for source code parsed from js files',
     viewTitle: "SystemBrowser",
     isSystemBrowser: true,
+},
+'initializing', {
 
     initialize: function($super) {
         $super();
@@ -39,8 +42,10 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
         connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL', {converter: function() {
             return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory(); }});
         this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
-    },
+    }
 
+},
+'accessing', {
     getTargetURL: function() {
         if (!this.targetURL) this.targetURL = this.sourceDatabase().codeBaseURL;
         return this.targetURL;
@@ -118,8 +123,28 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
 
     sourceDatabase: function() {
         return this.rootNode().target;
+    }
+},
+'browser actions', {
+    getSelectedModule: function() {
+        var currentModule, moduleName = this.currentModuleName;
+        if (!moduleName || moduleName.include('undefined')) return null;
+        var isFilePath = /^\/?([^\/\.]+(\/|\.js$))+/.test(moduleName);
+        if (isFilePath) moduleName = moduleName.replace(/\..*$/, '').replace(/\//g, '.');
+        return lively.lookup(moduleName);
     },
 
+    withCurrentModuleActiveDo: function(func) {
+        var currentModule = this.getSelectedModule();
+        try {
+            currentModule && currentModule.activate();
+            return func.call(this);
+        } catch (er) {
+            throw(er);
+        } finally {
+            currentModule && currentModule.deactivate();
+        }
+    }
 });
 
 Object.extend(lively.ide.SystemBrowser, {

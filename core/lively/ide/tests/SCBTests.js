@@ -158,17 +158,18 @@ lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests
 },
 'testing', {
 
-	  testCopFragmentWholeLayerEvaluate: function() {
-		    this.browser.buildView();
-		    this.buildCopTestSource();
-		    var node = this.copNode;
-		    var klass = Object.subclass('CopBrowserNodeDummy');
-		    var src = 'cop.create("testLayer").refineClass(CopBrowserNodeDummy, { m: function() { return 23 } });'
-		    node.newSource(src);
-		    withLayers([testLayer], function() {
-			      this.assertEquals(23, new klass().m());
-		    }.bind(this))
-	  },
+	testCopFragmentWholeLayerEvaluate: function() {
+		this.browser.buildView();
+		this.buildCopTestSource();
+		var node = this.copNode;
+		var klass = Object.subclass('CopBrowserNodeDummy');
+		var src = 'cop.create("testLayer").refineClass(CopBrowserNodeDummy, { m: function() { return 23 } });'
+        debugger
+		node.newSource(src);
+		withLayers([testLayer], function() {
+			this.assertEquals(23, new klass().m());
+		}.bind(this))
+	},
 	  testCopFragmentPartialClassEvaluate: function() {
 		    this.browser.buildView();
 		    this.buildCopTestSource();
@@ -308,17 +309,18 @@ lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests
 		    this.assertIdentity(this.m1, browser.nodesInPane('Pane4')[0].target);
 	  },
 
-	  testBrowserKnowsCurrentModule: function() {
-		    if (Global.Foo) Foo.remove();
-		    this.buildTestSource();
-		    this.browser.buildView()
-		    this.browser.selectNodeNamed('dummySource.js');
-		    this.browser.selectNodeNamed('Foo');
-		    var n  = this.browser.selectedNode();
-		    n.evalSource(n.sourceString());
-		    this.assert(Global.Foo, 'Class Foo could not be evaled');
-		    this.assertIdentity(Foo.sourceModule, module('dummySource'));
-	  },
+	testBrowserKnowsCurrentModule: function() {
+		if (Global.Foo) Foo.remove();
+		this.buildTestSource();
+		this.browser.buildView()
+		this.browser.selectNodeNamed('dummySource.js');
+		this.browser.selectNodeNamed('Foo');
+		this.assertIdentity(module('dummySource'), this.browser.getSelectedModule());
+		var n = this.browser.selectedNode();
+		n.evalSource(n.sourceString());
+		this.assert(Global.Foo, 'Class Foo could not be evaled');
+		this.assertIdentity(Foo.sourceModule, module('dummySource'));
+	},
 
     testNextNode: function() {
 		    this.buildTestSource();

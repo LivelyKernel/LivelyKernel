@@ -381,19 +381,14 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
 'evaluation', {
     evalSource: function(newSource) {
         if (!this.browser.evaluate) return false;
-        var currentModule, moduleName = this.browser.currentModuleName;
-        if (moduleName && !moduleName.include('undefined')) {
-            currentModule = module(moduleName);
-        };
-        try {
-            currentModule && currentModule.activate();
-            Global.eval(newSource);
-        } catch (er) {
-            console.log("error evaluating module:" + er);
-            throw(er);
-        } finally {
-            currentModule && currentModule.deactivate();
-        }
+        this.browser.withCurrentModuleActiveDo(function() {
+            try {
+                Global.eval(newSource);
+            } catch (er) {
+                console.log("error evaluating module:" + er);
+                throw(er);
+            }
+        });
         console.log('Successfully evaluated module');
         return true;
     }
@@ -442,12 +437,14 @@ ometaNodes.forEach(function(ea) { console.log(ea.target.name) });
     evalSource: function(newSource) {
         var def = OMetaSupport.translateToJs(newSource);
         if (!def) throw(dbgOn(new Error('Cannot translate!')));
-        try {
-            eval(def);
-        } catch (er) {
-            console.log("error evaluating: " + er);
-            throw(er)
-        }
+        this.browser.withCurrentModuleActiveDo(function() {
+            try {
+                eval(def);
+            } catch (er) {
+                console.log("error evaluating: " + er);
+                throw(er)
+            }
+        });
         console.log('Successfully evaluated OMeta definition');
         return true;
     },
@@ -540,19 +537,14 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
 
     evalSource: function(newSource) {
         if (!this.browser.evaluate) return false;
-        var currentModule, moduleName = this.browser.currentModuleName;
-        if (moduleName && !moduleName.include('undefined')) {
-            currentModule = module(moduleName);
-        };
-        try {
-            currentModule && currentModule.activate();
-            eval(newSource);
-        } catch (er) {
-            console.log("error evaluating class:" + er);
-            throw(er)
-        } finally {
-            currentModule && currentModule.deactivate();
-        }
+        this.browser.withCurrentModuleActiveDo(function() {
+            try {
+                eval(newSource);
+            } catch (er) {
+                console.log("error evaluating class:" + er);
+                throw(er)
+            }
+        });
         console.log('Successfully evaluated class');
         return true;
     },
@@ -720,13 +712,15 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         } else {
             def = ownerName + ".addMethods({\n" + methodString +'\n});';
         }
-        try {
-            console.log('Going to eval ' + def);
-            eval(def);
-        } catch (er) {
-            console.log("error evaluating method " + methodString + ': ' + er);
-            throw(er)
-        }
+        this.browser.withCurrentModuleActiveDo(function() {
+            try {
+                console.log('Going to eval ' + def);
+                eval(def);
+            } catch (er) {
+                console.log("error evaluating method " + methodString + ': ' + er);
+                throw(er)
+            }
+        });
         console.log('Successfully evaluated #' + methodName);
         return true;
     },
@@ -761,13 +755,15 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CopFragmentNode', {
     },
 
     evalSource: function(newSource) {
-            if (!this.browser.evaluate) return false;
-        try {
-            eval(newSource);
-        } catch (er) {
-            console.log("error evaluating layer:" + er);
-            throw(er)
-        }
+        if (!this.browser.evaluate) return false;
+        this.browser.withCurrentModuleActiveDo(function() {
+            try {
+                eval(newSource);
+            } catch (er) {
+                console.log("error evaluating layer:" + er);
+                throw(er)
+            }
+        });
         console.log('Successfully evaluated layer');
         return true;
     },
@@ -784,11 +780,13 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CopRefineFragmentNode', {
 
     evalSource: function(newSource) {
         var source = Strings.format('cop.create("%s")%s', this.parent.getName(), newSource);
-        try {
-            eval(source);
-        } catch (er) {
-            this.statusMessage('Could not eval ' + this.asString() + ' because ' + e, Color.red, 5)
-        }
+        this.browser.withCurrentModuleActiveDo(function() {
+            try {
+                eval(source);
+            } catch (er) {
+                this.statusMessage('Could not eval ' + this.asString() + ' because ' + e, Color.red, 5)
+            }
+        }.bind(this));
         this.statusMessage('Successfully evaled ' + this.asString(), Color.green, 3)
         return true;
     },
@@ -817,12 +815,14 @@ lively.ide.FileFragmentNode.subclass('lively.ide.TraitFragmentNode', {
      },
 
     evalSource: function(newSource) {
-        try {
-            eval(newSource);
-        } catch (er) {
-            console.warn("error evaluating Trait:" + er);
-            throw(er)
-        }
+        this.browser.withCurrentModuleActiveDo(function() {
+            try {
+                eval(newSource);
+            } catch (er) {
+                console.warn("error evaluating Trait:" + er);
+                throw(er)
+            }
+        });
         console.log('Successfully evaluated layer');
         return true;
     },

@@ -48,7 +48,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.assertEquals('me\nco', this.editor.getSelectionOrLineString());
     },
 
-    xtestHasUnsavedChanges: function() {
+    testHasUnsavedChanges: function() {
         var e = this.editor;
         e.textString = "some\ncontent";
         this.assert(e.hasUnsavedChanges(), '0');

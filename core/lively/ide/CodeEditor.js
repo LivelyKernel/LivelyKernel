@@ -772,8 +772,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'text morph save content interface', {
     hasUnsavedChanges: function() {
-        // return this.savedTextString !== this.textString;
-        return false;
+        return this.savedTextString !== this.textString;
     }
 },
 'text morph event interface', {

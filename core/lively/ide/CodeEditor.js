@@ -584,8 +584,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var world = this.world();
         if (!world) return;
         this.withAceDo(function(ed) {
+            // Note we should be able simply to pass in this.findFirst
             world.prompt('Enter text or regexp to search for.', function(input) {
-                if (!input) { ed.focus(); return };
+                if (!input) { ed.focus(); return }
                 var regexpMatch = input.match(/^\/(.*)\/$/),
                     needle = regexpMatch && regexpMatch[1] ? new RegExp(regexpMatch[1], "") : input;
                 ed.focus();
@@ -600,6 +601,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             }, this.getCurrentSearchTerm());
         });
     },
+
+
 
     findNext: function() {
         this.withAceDo(function(ed) {
@@ -724,8 +727,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     doit: function(printResult, editor) {
-        var text = this.getSelectionOrLineString(),
+        var text = this.getSelectionMaybeInComment(),
             result = this.tryBoundEval(text);
+        show('zort'+text)
         if (printResult) {
             this.printObject(editor, result);
             return;
@@ -819,6 +823,25 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
         return editor.session.getTextRange(range);
     },
+    getSelectionMaybeInComment: function() {
+        // If click is in comment, just select that part
+        var editor = this.aceEditor, range = this.getSelectionRangeAce();
+        var pos = range.start;
+        var text = this.getSelectionOrLineString();
+        if (!range.isEmpty()) return text;
+        range = this.getSelectionRangeAce();
+
+        // Look for JS comment
+        var ix = 0, txt = '';
+        text.replace(/\/\/(.*)/, function(match, _, idx) {
+            ix = idx; txt = match.slice(2); })
+        if (ix===0 || ix>pos.column-2) return text;  // No comment, or after selection
+        
+        pos.column = ix+2
+        range.setStart(pos);
+        return editor.session.getTextRange(range);
+    },
+
     selectCurrentLine: function() {
         this.withAceDo(function(ed) {
             var selStart = ed.selection.getSelectionAnchor();

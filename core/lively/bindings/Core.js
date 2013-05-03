@@ -132,7 +132,7 @@ Object.subclass('AttributeConnection',
 
     activate: function() { this.isActive = true },
 
-    deactivate: function() { this.isActive = false }
+    deactivate: function() { delete this.isActive; }
 
 },
 'connecting', {
@@ -241,7 +241,7 @@ Object.subclass('AttributeConnection',
                      + newValue + ':\n' + e + '\n' + e.stack);
             }
         } finally {
-            this.isActive = false;
+            delete this.isActive;
         }
 
         return null;
@@ -602,26 +602,39 @@ Object.extend(lively.bindings, {
         helper.whenDefined(source);
     },
     noUpdate: function(noUpdateSpec, func) {
-        var obj = noUpdateSpec.sourceObj,
-            attr = noUpdateSpec.sourceAttribute,
-            targetObj = noUpdateSpec.targetObj,
-            targetAttr = noUpdateSpec.targetAttribute,
-            filter = targetObj && targetAttr ?
-                function(ea) { return ea.getSourceAttrName() === attr
-                                   && targetObj === ea.getTargetObj()
-                                   && targetAttr === ea.getTargetMethodName(); }:
-                function(ea) { return ea.getSourceAttrName() === attr; },
-            conns = obj.attributeConnections.select(filter),
-            result;
-        conns.invoke('activate');
-        try {
-            result = func();
-        } finally {
-            conns.invoke('deactivate');
+        var globalNoUpdate = false, result;
+        if (!func && Object.isFunction(noUpdateSpec)) {
+            func = noUpdateSpec; globalNoUpdate = true; }
+        if (globalNoUpdate) { // rather a hack for now
+            lively.bindings.AttributeConnection.prototype.isActive = true;
+            try {
+                result = func();
+            } finally {
+                delete lively.bindings.AttributeConnection.prototype.isActive;
+            }
+        } else {
+            var obj = noUpdateSpec.sourceObj,
+                attr = noUpdateSpec.sourceAttribute,
+                targetObj = noUpdateSpec.targetObj,
+                targetAttr = noUpdateSpec.targetAttribute,
+                filter = targetObj && targetAttr ?
+                    function(ea) { return ea.getSourceAttrName() === attr
+                                       && targetObj === ea.getTargetObj()
+                                       && targetAttr === ea.getTargetMethodName(); }:
+                    function(ea) { return ea.getSourceAttrName() === attr; },
+                conns = obj.attributeConnections.select(filter);
+            conns.invoke('activate');
+            try {
+                result = func();
+            } finally {
+                conns.invoke('deactivate');
+            }
         }
         return result;
-    }
+    },
 
+    // moving classes into Namespace
+    AttributeConnection: AttributeConnection
 
 });
 

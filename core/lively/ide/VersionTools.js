@@ -23,7 +23,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
         panel.applyStyle({adjustForNewBounds: true, resizeWidth: true, resizeHeight: true, fill: Color.gray});
 
         m = panel.urlPane.innerMorph();
-        m.noEval = true;
         m.plugTo(this, {savedTextString: '->setTarget'});
         m.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true, fontSize: 9});
 

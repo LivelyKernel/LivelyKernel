@@ -50,7 +50,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
                 list = pane.innerMorph();
             pane.applyStyle({scaleProportional: true});
             lively.bindings.connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
-                updater: function($upd, v) { $upd(v, this.sourceObj) }});
+                updater: function($upd, v) {
+                    var browser = this.targetObj, list = this.sourceObj;
+                    browser.ensureSourceNotAccidentlyDeleted($upd.curry(v, list));
+                }});
             list.plugTo(browser, {
                 getSelection: '->get' + paneName + 'Selection',
                 getList: '->get' + paneName + 'Content',
@@ -61,13 +64,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
                 getMenu: '->get' + paneName + 'Menu'
             })
             pane.addMenuButton();
-             list.withAllSubmorphsDo(function() {
-                if (this.constructor == lively.morphic.Slider || !this.onMouseDown) return;
-                this.onMouseDown = this.onMouseDown.wrap(function(proceed, evt) {
-                    browser.ensureSourceNotAccidentlyDeleted(proceed.curry(evt));
-                });
-            })
-
             // overwriting event handlers so that list items can be selected using keys
             // and focus is still on the list and not the source pane
             list.addScript(function onDownPressed(evt) {
@@ -98,22 +94,25 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         });
 
         codeEditor.evalEnabled = false;
-        codeEditor.noEval = true;
 
         if (codeEditor.enableSyntaxHighlighting) {
             codeEditor.enableSyntaxHighlighting();
         }
 
         codeEditor.plugTo(this, {
-            setTextString: {dir: '<-', name: 'setSourceString'},
+            setTextString: {dir: '<-', name: 'setSourceString', options: {
+                updater: function($upd, val) {
+                    $upd(val);
+                    var sourcePane = this.targetObj;
+                    lively.bindings.noUpdate(function() {
+                        sourcePane.savedTextString = val; });
+                }}},
             // pass codeEditor (sourceObj of connection) in setSourceString as
             // the "source" of that update:
-            savedTextString: {dir: '->', name: 'setSourceString', options: {updater: function($upd, val) { $upd(val, this.sourceObj); }}}
+            savedTextString: {dir: '->', name: 'setSourceString', options: {
+                updater: function($upd, val) { $upd(val, this.sourceObj); }}}
         });
         this.setSourceString('-----');
-
-        codeEditor.linkToStyles(["Browser_codePane"]);
-        codeEditor.linkToStyles(["Browser_codePaneText"]);
     },
 
     buildView: function (extent) {
@@ -145,8 +144,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (!locInput) return;
         locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, scaleProportional: true, padding: Rectangle.inset(1)});
         locInput.evalEnabled = false;
-        locInput.noEval = true;
-        locInput.linkToStyles(["Browser_locationInput"])
     },
 
     setupResizers: function() {
@@ -663,11 +660,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
     commandMenuSpec: function(pane) {
         var result = this.commands()
-            .collect(function(ea) { return new ea(this) }, this)
-            .select(function(ea) { return ea.wantsMenu() && ea.isActive(pane) })
-            .inject([], function(all, ea) { return all.concat(ea.trigger()) });
-        if (result.length > 0)
-            result.unshift(['-------']);
+            .collect(function(ea) { return new ea(this); }, this)
+            .select(function(ea) { return ea.wantsMenu() && ea.isActive(pane); })
+            .inject([], function(all, ea) { return all.concat(ea.trigger()); });
+        if (result.length > 0) result.unshift(['-------']);
         return result;
     },
 
@@ -683,18 +679,18 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.world().confirm(question, callback.bind(this));
     },
 
-    ensureSourceNotAccidentlyDeleted: function(callback) {
+    ensureSourceNotAccidentlyDeleted: function (callback) {
         // checks if the source code has unsaved changes if it hasn't or if the
-        // user wants to discard them then run the callback
+        // user wants to discard them then run the callback 
         // otherwise do nothing
-        if (!this.hasUnsavedChanges()) {
-            callback.apply(this);
+        var browser = this;
+        if (!browser.hasUnsavedChanges()) {
+            callback.apply(browser);
             return;
         }
-        this.confirm('There are unsaved changes. Discard them?',
-            function(answer) { answer && callback.apply(this) });
+        browser.confirm('There are unsaved changes. Discard them?',
+            function(answer) { answer && callback.apply(browser); });
     }
-
 },
 'source pane', {
     selectStringInSourcePane: function(string) {

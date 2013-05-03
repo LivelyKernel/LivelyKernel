@@ -1766,8 +1766,9 @@ lively.morphic.World.addMethods(
 },
 'dialogs', {
     openDialog: function(dialog) {
-        var win = this.getActiveWindow();
-        dialog.openIn(this, this.visibleBounds().topLeft());
+        var focusedMorph = lively.morphic.Morph.focusedMorph(),
+            win = this.getActiveWindow();
+        dialog.openIn(this, this.visibleBounds().topLeft(), focusedMorph);
         this.addModal(dialog.panel, win ? win.targetMorph : this);
         return dialog;
     },
@@ -2677,6 +2678,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     connections: ['result']
 },
 'properties', {
+    doNotSerialize: ['lastFocusedMorph'],
     initialViewExtent: pt(300, 90),
     inset: 4
 },
@@ -2685,6 +2687,11 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         this.result = null;
         this.message = message || '?';
         if (callback) this.setCallback(callback);
+    },
+
+    openIn: function($super, owner, pos) {
+        this.lastFocusedMorph = lively.morphic.Morph.focusedMorph();
+        return $super(owner, pos);
     },
 
     buildPanel: function(bounds) {
@@ -2764,6 +2771,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     triggerCallback: function(resultBool) {
         this.removeTopLevel();
         if (this.callback) this.callback(resultBool);
+        if (this.lastFocusedMorph) this.lastFocusedMorph.focus();
     },
 });
 
@@ -2776,13 +2784,13 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',
         var panel = $super(extent);
 
         lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
-            converter: function() { return false }});
+            converter: function() { return false; }});
         lively.bindings.connect(this.okButton, 'fire', this, 'result', {
-            converter: function() { return true }});
+            converter: function() { return true; }});
         lively.bindings.connect(panel, 'onEscPressed', this, 'result', {
-            converter: function() { return false }});
+            converter: function(evt) { Global.event && Global.event.stop(); return false; }});
         lively.bindings.connect(panel, 'onEnterPressed', this, 'result', {
-            converter: function() { return true }});
+            converter: function(evt) { Global.event && Global.event.stop(); return true; }});
 
         return panel;
     },

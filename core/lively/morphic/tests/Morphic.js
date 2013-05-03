@@ -723,7 +723,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AppTests',
         dialog.inputText.setTextString('test input')
         dialog.okButton.simulateButtonClick();
         this.assertEquals('test input', answer, 'ok button does not work')
-    },
+    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CanvasRenderingTests',

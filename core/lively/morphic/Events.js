@@ -1217,6 +1217,10 @@ handleOnCapture);
 
 });
 
+Object.extend(lively.morphic.Morph, {
+    focusedMorph: function() { return lively.morphic.Morph.prototype.focusedMorph(); }
+});
+
 lively.morphic.Text.addMethods(
 'event settings', {
     accessibleInInactiveWindow: false,

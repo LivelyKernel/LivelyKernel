@@ -60,23 +60,26 @@ Object.extend(Array.prototype, {
         return results;
     },
 
-    include: Array.prototype.indexOf ?
-        function(object) { return this.indexOf(object) !== -1 } :
-        function(object) {
-            for (var i = 0, len = this.length; i < len; i++) {
-                if (this[i] == object) return true; }
-            return false;
-        },
+    include: (function () {
+        return Array.prototype.indexOf ?
+            function(object) { return this.indexOf(object) !== -1 } :
+            function(object) {
+                for (var i = 0, len = this.length; i < len; i++) {
+                    if (this[i] == object) return true; }
+                return false; }
+    })(),
 
-    inject: Array.prototype.reduce ?
-        function(memo, iterator, context) {
-            if (context) iterator = iterator.bind(context);
-            return this.reduce(iterator, memo);
-        } : function(memo, iterator, context) {
-            this.forEach(function(value, index) {
-                memo = iterator.call(context, memo, value, index); });
-            return memo;
-        },
+    inject: (function () {
+        return Array.prototype.reduce ?
+            function(memo, iterator, context) {
+                if (context) iterator = iterator.bind(context);
+                return this.reduce(iterator, memo);
+            } : function(memo, iterator, context) {
+                this.forEach(function(value, index) {
+                    memo = iterator.call(context, memo, value, index); });
+                return memo;
+            }
+    })(),
 
     invoke: function(method, arg1, arg2, arg3, arg4, arg5, arg6) {
         var result = new Array(this.length);

@@ -362,18 +362,12 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
-
-        moveDelta =  this.tranformMoveDeltaDependingOnHaloPosition(evt, moveDelta, 'topRight')
-
-        var transform = this.targetMorph.owner.getGlobalTransform();
-        var oldPos = transform.transformPoint(pt(0,0)),
-            newPos = oldPos.addPt(moveDelta);
-        var newPos = transform.inverse().transformPoint(newPos);
-
-        var newTargetPos = this.targetMorph.getPosition().addPt(newPos)
+        var newTargetPos = evt.getPositionIn(this.targetMorph.owner);
+        newTargetPos = newTargetPos.subPt(this.targetMorph.dragHandOffset);
         if (evt.isAltDown()) {
             newTargetPos = newTargetPos.griddedBy(this.targetMorph.getGridPoint())
         }
+
         this.setInfo('pos: ' + newTargetPos)
         this.lastHaloPosition = this.getPosition();
         this.targetMorph.setPosition(newTargetPos);
@@ -391,9 +385,8 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
         this.targetMorph.showHalos();
     },
     dragStartAction: function(evt) {
-        // this.startPos = evt.getPosition();
         this.compensateDragTriggerDistance(evt);
-        this.targetMorph.distanceToDragEvent = evt.getPosition().subPt(this.targetMorph.getPositionInWorld());
+        this.targetMorph.dragHandOffset = evt.getPositionIn(this.targetMorph);
         this.targetMorph.removeHalosWithout(this.world(), [this, this.getBoundsHalo()]);
     },
 });

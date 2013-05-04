@@ -571,13 +571,13 @@ Trait('ScrollableTrait',
 Trait('lively.morphic.DragMoveTrait',
 'event handling', {
     onDrag: function(evt) {
-        var movedBy = evt.getPosition().subPt(this.prevDragPos);
-        this.prevDragPos = evt.getPosition();
-        this.moveBy(movedBy);
+        if (!this.owner) return false;
+        var pos = evt.getPositionIn(this.owner);
+        this.setPosition(pos.subPt(this.dragHandOffset));
         return true;
     },
     onDragStart: function(evt) {
-        this.prevDragPos = evt.getPosition();
+        this.dragHandOffset = evt.getPositionIn(this);
         return true;
     }
 });

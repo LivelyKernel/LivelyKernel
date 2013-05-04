@@ -1242,10 +1242,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         }
         // FIXME: handled in Morph>>onMouseDown. remove.
         if (!evt.isLeftMouseButtonDown()) return false;
-        if (evt.isCommandKey()) { // for halos
-            evt.stop();
-            return true;
-        }
 
         if (this.isFocused()) {
             this.priorSelectionRange = this.getSelectionRange();  // save for onMouseUp

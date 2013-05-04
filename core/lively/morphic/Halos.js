@@ -386,7 +386,7 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
     },
     dragStartAction: function(evt) {
         this.compensateDragTriggerDistance(evt);
-        this.targetMorph.dragHandOffset = evt.getPositionIn(this.targetMorph);
+        this.targetMorph.dragHandOffset = evt.getPosition().subPt(this.targetMorph.getPosition());
         this.targetMorph.removeHalosWithout(this.world(), [this, this.getBoundsHalo()]);
     },
 });

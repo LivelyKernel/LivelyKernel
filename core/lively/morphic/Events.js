@@ -995,11 +995,9 @@ handleOnCapture);
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
 
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    // rk 2013-05-04: Currently locking does not work
-    // this code below was left here to document how the EventExperiments
-    // implemented locking
-    isLocked: function() { return false },
+    isLocked: function() {
+        return !this.isUnlocked && (this.isLockOwner || this.owner && this.owner.isLocked());
+    },
     lock: function() {
         this.withAllSubmorphsDo(function(ea) { ea.resetLocking() });
         this.isLockOwner = true;
@@ -1008,13 +1006,12 @@ handleOnCapture);
 
     unlock: function() {
         this.withAllSubmorphsDo(function(ea) { ea.resetLocking() });
-        // this.addWithLayer(lively.morphic.GrabbingLayer)
+        this.isUnlocked = true;
     },
 
     resetLocking: function() {
-        this.isLockOwner = false;
-        // this.removeWithLayer(lively.morphic.GrabbingLayer);
-        // this.removeWithoutLayer(lively.morphic.GrabbingLayer);
+        delete this.isLockOwner;
+        delete this.isUnlocked;
     },
 
     lockOwner: function() {
@@ -1023,6 +1020,7 @@ handleOnCapture);
 
     isGrabbable: function(evt) {
         // return false to inhibit grabbing by the hand
+        if (this.isLocked() && !this.isLockOwner) return false;
         return this.grabbingEnabled || this.grabbingEnabled === undefined;
     },
 
@@ -1082,7 +1080,8 @@ handleOnCapture);
     },
 
     grabMe: function(evt) {
-        return this.grabbingEnabled && evt.hand.grabMorph(this, evt);
+        return (!this.isLocked() || this.isLockOwner) && this.grabbingEnabled
+            && evt.hand.grabMorph(this, evt);
     },
 
     getGrabShadow: function (local) {

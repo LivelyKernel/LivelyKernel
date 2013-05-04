@@ -370,6 +370,10 @@ Object.subclass('lively.morphic.Morph',
             this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
         }
         this.renderContextDispatch('removeMorph');
+    },
+
+    removeAllMorphs: function() {
+        this.submorphs.clone().invoke('remove')
     }
 
 },

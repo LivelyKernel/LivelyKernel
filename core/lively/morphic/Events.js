@@ -987,13 +987,44 @@ handleOnCapture);
     },
 
 },
-'grabbing and dropping', {
+'grabbing, dragging, dropping', {
     enableGrabbing: function() { this.grabbingEnabled = true; },
     disableGrabbing: function() { this.grabbingEnabled = false },
     enableDropping: function() { this.droppingEnabled = true; },
     disableDropping: function() { this.droppingEnabled = false },
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // rk 2013-05-04: Currently locking does not work
+    // this code below was left here to document how the EventExperiments
+    // implemented locking
+    isLocked: function() { return false },
+    lock: function() {
+        this.withAllSubmorphsDo(function(ea) { ea.resetLocking() });
+        this.isLockOwner = true;
+        // this.addWithoutLayer(lively.morphic.GrabbingLayer);
+    },
+
+    unlock: function() {
+        this.withAllSubmorphsDo(function(ea) { ea.resetLocking() });
+        // this.addWithLayer(lively.morphic.GrabbingLayer)
+    },
+
+    resetLocking: function() {
+        this.isLockOwner = false;
+        // this.removeWithLayer(lively.morphic.GrabbingLayer);
+        // this.removeWithoutLayer(lively.morphic.GrabbingLayer);
+    },
+
+    lockOwner: function() {
+        return this.ownerChain().detect(function(ea) { return ea.isLockOwner; });
+    },
+
+    isGrabbable: function(evt) {
+        // return false to inhibit grabbing by the hand
+        return this.grabbingEnabled || this.grabbingEnabled === undefined;
+    },
 
     howDroppingWorks: function() {
         // How does dropping morphs work? When morphs are carried by a HandMorph (i.e.
@@ -2240,71 +2271,6 @@ Object.extend(lively.morphic.Events, {
 
 (function setupEventExeriments() {
     // FIXME remove!!!
-
-lively.morphic.Morph.addMethods(
-'grabbing and dragging', {
-    isLocked: function() { return true },
-    lock: function() {
-        this.withAllSubmorphsDo(function(ea) { ea.resetLocking() });
-        this.isLockOwner = true;
-        // this.addWithoutLayer(lively.morphic.GrabbingLayer);
-    },
-    unlock: function() {
-        this.withAllSubmorphsDo(function(ea) { ea.resetLocking() });
-        // this.addWithLayer(lively.morphic.GrabbingLayer)
-    },
-    resetLocking: function() {
-        this.isLockOwner = false;
-        // this.removeWithLayer(lively.morphic.GrabbingLayer);
-        // this.removeWithoutLayer(lively.morphic.GrabbingLayer);
-    },
-    lockOwner: function() {
-        return this.ownerChain().detect(function(ea) { return ea.isLockOwner });
-    }
-
-//
-// cop.create('lively.morphic.GrabbingDefaultLayer')
-// .refineClass(lively.morphic.Morph, {
-//     onDragStart: function(evt) {
-//         if (!this.isLocked()) return cop.proceed(evt);
-//         if (cop.proceed(evt)) return true;
-//         if (this.isLockOwner) { evt.hand.grabMorph(this); return true };
-//         var lockOwner = this.lockOwner();
-//         if (lockOwner && !lockOwner.isWorld) {
-//             evt.hand.grabMorph(lockOwner); return true }
-//         return false
-//     }
-// }).beGlobal();
-//
-// // grabbing behavior
-// cop.create('lively.morphic.GrabbingLayer')
-// .refineClass(lively.morphic.Morph, {
-//     isLocked: function() { return false },
-//     onDragStart: function(evt) {
-//         if (cop.proceed(evt)) return;
-//         evt.hand.grabMorph(this);
-//     }
-// })
-// .refineClass(lively.morphic.Text, {
-//     onDragStart: function(evt) {
-//         if (cop.proceed(evt)) return;
-//         if (!this.isGrabbable()) return;
-//         var grabMe = !this.allowInput;
-//         if (!grabMe) {
-//             // only grab when in outer area of bounds
-//             var bounds = this.innerBounds(),
-//                 smallerBounds = bounds.insetBy(6),
-//                 pos = this.localize(evt.getPosition());
-//             grabMe = bounds.containsPoint(pos) && !smallerBounds.containsPoint(pos);
-//         }
-//         grabMe && evt.hand.grabMorph(this);
-//     }
-// });
-
-});
-
 })();
-
-
 
 }) // end of module

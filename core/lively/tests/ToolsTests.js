@@ -91,12 +91,10 @@ TestCase.subclass('lively.tests.ToolsTests.KeyboardTest', {
 		keyWatcher.setFill(Color.red);
 
 		var label = new lively.morphic.Text(keyWatcher.bounds().translatedBy(0,50));
-        label.takesKeyboardFocus = Functions.False;
         label.onKeyDown = Functions.False;
         label.onKeyPress = Functions.False;
 
         keyWatcher.addMorph(label);
-        keyWatcher.takesKeyboardFocus = Functions.True;
         keyWatcher.onKeyDown = function(evt) {
             console.log('PRESS');
             if (evt.rawEvent.ctrlKey) console.log('Ctrl key pressed');

@@ -334,9 +334,6 @@ lively.morphic.Morph.addMethods(
     },
 },
 'removing', {
-    removeAllMorphs: function() {
-        this.submorphs.clone().invoke('remove')
-    },
 
     removeAndDropSubmorphs: function() {
         // Removes the morph and lets all its child morphs drop to its owner
@@ -352,13 +349,6 @@ lively.morphic.Morph.addMethods(
         } else {
             throw('Cannot remove '+this+' with a submorph drop. It has no owner.');
         }
-    }
-},
-'events', {
-    takesKeyboardFocus: function() {},
-    isGrabbable: function(evt) {
-        // return false to inhibit grabbing by the hand
-        return this.grabbingEnabled || this.grabbingEnabled === undefined;
     }
 },
 'copying', {

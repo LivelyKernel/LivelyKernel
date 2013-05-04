@@ -436,17 +436,11 @@ Global.Class = {
 
 Object.extend(Global, {
     dbgOn: function dbgOn(cond, optMessage) {
-        if (optMessage) console.log(optMessage);
-        if (cond) debugger; // note that rhino has issues with this keyword
+        if (cond && optMessage) console.warn(optMessage);
+        if (cond) debugger;
         // also call as: throw dbgOn(new Error(....))
         return cond;
     },
     // comment
-    assert: function assert(value, message) {
-        if (value) { return; }
-        // capture the stack
-        var stack;
-        try { throw new Error() } catch(e) { stack = e.stack || '' };
-        alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack);
-    }
+    assert: console.assert
 });

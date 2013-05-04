@@ -2178,13 +2178,12 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 });
 
 Object.extend(lively.morphic.Events, {
-    MutationObserver: (function() {
-                        return window.MutationObserver
-                            || window.WebKitMutationObserver
-                            || window.MozMutationObserver; })()
-});
 
-Object.extend(lively.morphic.Events, {
+    MutationObserver: (function() {
+        return window.MutationObserver
+            || window.WebKitMutationObserver
+            || window.MozMutationObserver; })(),
+
     GlobalEvents: {
         handlers: {},
         register: function(type, handler) {
@@ -2225,6 +2224,24 @@ Object.extend(lively.morphic.Events, {
 (function setupEventExeriments() {
     // FIXME remove!!!
     module('lively.morphic.EventExperiments').load();
+});
+
+(function installDefaultGlobalKeys() {
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "esc");
+    lively.morphic.Events.GlobalEvents.register('keydown', function esc(evt) {
+        var keys = evt.getKeyString();
+        if (keys === 'Esc') {
+            // Global Escape will drop grabbed morphs, remove menus, close halos
+            var focused = lively.morphic.Morph.focusedMorph(),
+                world = focused && focused.world() || lively.morphic.World.current(),
+                h = world.firstHand();
+            if (h.submorphs) h.dropContentsOn(world);
+            h.removeOpenMenu(evt);
+            world.removeHalosOfCurrentHaloTarget()
+            evt.stop(); return true;
+        }
+        return undefined;
+    });
 })();
 
 }) // end of module

@@ -438,6 +438,7 @@ Config.addOptions(
 ],
 
 'lively.morphic.Debugging', [
+    ["captureThatOnAltClick", true, 'Alt/Option click assigns morph to "that" pointer.'],
     ["ignoreAdvice", false, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
     ["showLivelyConsole", false, "Open up our console"],
     ["debugExtras", false, "Enable advanced debugging options"],

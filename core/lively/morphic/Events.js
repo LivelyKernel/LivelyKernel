@@ -185,13 +185,16 @@ Object.subclass('lively.morphic.EventHandler',
         if (evt.hasLivelyPatch) return evt;
 
         evt.getTargetMorph = function() {
+            if (this._targetMorph) return this._targetMorph;
             var node = evt.target;
             while (node) {
                 if (node.getAttribute
                  && node.getAttribute('data-lively-node-type') === 'morph-node') break;
                 node = node.parentNode;
             }
-            return node && lively.$(node).data('morph');
+            var m = node && lively.$(node).data('morph');
+            while (m && m.eventsAreIgnored) { m = m.owner; }
+            return this._targetMorph = m;
         }
 
         evt.hasLivelyPatch = true;
@@ -709,45 +712,15 @@ handleOnCapture);
 
     triggerEvent: function(evt) {
         return this.renderContextDispatch('triggerEvent', evt);
-    },
+    }
+},
+'mouse events', {
 
     onMouseDown: function(evt) {
         return false;
     },
 
     onMouseDownEntry: function(evt) {
-        // checkMouseUpEntry if mouse is on the scrollbar
-        var suppressScrollbarClick = (this.showsVerticalScrollBar()
-                                    || this.showsHorizontalScrollBar())
-                                  && this.isGrabbable();
-        if (suppressScrollbarClick) {
-            var scrollbarExtent = this.getScrollBarExtent(),
-                extent = this.getExtent();
-            //console.log("You clicked on: "+this.name);
-            //console.log(this.grabbingEnabled);
-            //console.log("evt.offsetX: "+ (evt.offsetX) + "    extent.x- scrollbarExtent.x: " +(extent.x- scrollbarExtent.x));
-            //console.log("evt.offsetY: "+ (evt.offsetY)+"    extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
-            // FIXME: not the perfect solution for text edit scroll morphs
-            if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  ||
-                (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
-                return false;
-            }
-
-        }
-
-        if (this.showsMorphMenu
-          && !this.eventsAreIgnored
-          && evt.isRightMouseButtonDown() // only world morph is present?
-          && this.world().morphsContainingPoint(evt.getPosition()).length === 1) {
-            this.world().worldMenuOpened = true;
-            this.showMorphMenu(evt);
-            return false;
-        }
-
-        if (this.isHalo) {
-            evt.hand.haloLastClickedOn = this;
-        }
-
         // This is like clickedOnMorph, but also takes into consideration
         // Halos, Morphs ignoring events etc. For internal use.
         evt.hand.internalClickedOnMorph = this;
@@ -758,7 +731,6 @@ handleOnCapture);
         evt.world.clickedOnMorphTime = Date.now();
 
         return this.onMouseDown(evt);
-
     },
 
     onMouseUp: function(evt) { return false; },
@@ -775,38 +747,11 @@ handleOnCapture);
             evt.world.eventStartPos = null;
         }).delay(0);
 
-        if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
-            // special behavior for world menu:
-            // you can navigate the world menu with a pressed right mouse button
-            if (this.isWorld) {
-                if (this.worldMenuOpened) {
-                    this.worldMenuOpened = false;
-                    return this.onMouseUp(evt); // open a menu item
-                } else {
-                    this.worldMenuOpened = true;
-                    this.showMorphMenu(evt);
-                    return true;
-                }
-            } else {
-                this.showMorphMenu(evt);
-                return true;
-            }
-        }
-
-        if (internalCompleteClick) {
-            var invokeHalos = this.halosEnabled &&
-                ((evt.isLeftMouseButtonDown() && evt.isCommandKey())
-               || (this.showsHalosOnRightClick && evt.isRightMouseButtonDown()));
-            if (invokeHalos) {
-                this.toggleHalos(evt);
-                return false;
-            }
-        }
-
         // From this point, events can be ignored (grab, onClick, ...)
         if (this.eventsAreIgnored && !this.isHalo) return false;
 
-        if (completeClick && evt.isLeftMouseButtonDown() && this.grabMe(evt)) return true;
+        if (completeClick && evt.isLeftMouseButtonDown()
+        && !this.isScrollbarClick(evt) && this.grabMe(evt)) return true;
 
         return this.onMouseUp(evt);
     },
@@ -858,6 +803,13 @@ handleOnCapture);
         return nativeMenu;
     },
 
+    isScrollbarClick: function(evt) {
+        var hasScrollbars = this.showsVerticalScrollBar() || this.showsHorizontalScrollBar();
+        if (!hasScrollbars) return false;
+        var scrollbarExtent = this.getScrollBarExtent(), extent = this.getExtent();
+        return (evt.offsetX > extent.x - scrollbarExtent.x) && (evt.offsetX < extent.x)
+            || (evt.offsetY > extent.y - scrollbarExtent.y) && (evt.offsetY < extent.y);
+    }
 },
 'keyboard events', {
     onKeyDown: function(evt) {
@@ -1304,20 +1256,12 @@ lively.morphic.List.addMethods(
 },
 'mouse events', {
     onMouseDown: function(evt) {
-        if (evt.isCommandKey()) {
-            evt.preventDefault()
-            return false;
-        }
-
-        if (evt.isRightMouseButtonDown()) {
-            // delayed because when owner is a window and comes forward the window
-            // would be also in front of the new menu
+        if (evt.isRightMouseButtonDown() || evt.isCtrlDown()) {
             var sel = this.selection ? this.selection.string : this.selection;
-            lively.morphic.Menu.openAt.curry(evt.getPosition(), sel, this.getMenu()).delay(0.1);
-            evt.stop();
-            return true;
+            lively.morphic.Menu.openAt(evt.getPosition(), sel, this.getMenu());
+            this.focus();
+            evt.stop(); return true;
         }
-
         return false;
     },
     onMouseUp: function (evt) {
@@ -1341,10 +1285,6 @@ lively.morphic.List.addMethods(
     },
     onMouseUpEntry: function ($super, evt) {
         var completeClick = evt.world && evt.world.clickedOnMorph === this;
-
-        if (completeClick && evt.isRightMouseButtonDown()) {
-            return false;
-        }
         return $super(evt)
     },
     onMouseOver: function(evt) {
@@ -1574,6 +1514,13 @@ lively.morphic.World.addMethods(
     onMouseDown: function($super, evt) {
         this.eventStartPos = evt.getPosition();
 
+        if (evt.isCommandKey()) { evt.stop(); return true;}
+
+        var target = evt.getTargetMorph();
+        if (target && !target.isHalo) { this.removeHalosOfCurrentHaloTarget(); }
+        if (target && this.captureThat(evt, target)) return true;
+        if (target && this.openMenuFor(evt, target)) return true;
+
         // remove the selection when clicking into the world...
          if (this.selectionMorph && this.selectionMorph.owner
             && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
@@ -1582,29 +1529,17 @@ lively.morphic.World.addMethods(
 
         return false;
     },
-    onMouseUp: function (evt) {
-        if (evt.isAltDown() && this.clickedOnMorph) {
-            if (!Global.thats) Global.thats = [];
-            // thats: select multiple morphs
-            // reset when clicked in world
 
-            if (this.clickedOnMorph === this) {
-                Global.thats = [];
-                alertOK('thats array emptied');
-            } else {
-                Global.thats.pushIfNotIncluded(this.clickedOnMorph);
-            }
-            // "that" construct from Antero Taivalsaari's Lively Qt
-            Global.that = this.clickedOnMorph;
-            Global.that.show && Global.that.show();
-            return true;
+    onMouseUp: function (evt) {
+        if (this.stopOnMouseUp) {
+            delete this.stopOnMouseUp;
+            evt.stop(); return true;
         }
 
         evt.hand.removeOpenMenu(evt);
-        if (!evt.isCommandKey() && (!this.clickedOnMorph || !this.clickedOnMorph.isHalo)
-                                && !this.ignoreHalos) {
-            this.removeHalosOfCurrentHaloTarget();
-        }
+
+        var target = evt.getTargetMorph();
+        if (this.toggleHalosFor(evt, target)) return true;
 
         var activeWindow = this.getActiveWindow();
         if (activeWindow && (!this.clickedOnMorph ||
@@ -1641,7 +1576,7 @@ lively.morphic.World.addMethods(
         // dargging was initiated before, just call onDrag
         if (this.draggedMorph) {
             this.draggedMorph.onDrag && this.draggedMorph.onDrag(evt);
-            return false;
+            return true;
         }
 
         // try to initiate dragging and call onDragStart
@@ -1654,7 +1589,7 @@ lively.morphic.World.addMethods(
             if (evt.hand.submorphs.length > 0) return false;
             if (!targetMorph.isGrabbable(evt)) return false;  // Don't drag world, etc
             evt.hand.grabMorph(targetMorph);
-            return false;
+            evt.stop(); return true;
         }
 
         // handle copy on shift+move
@@ -1668,7 +1603,7 @@ lively.morphic.World.addMethods(
             targetMorph.owner.addMorph(copy); // FIXME for setting the right position
             evt.hand.grabMorph(copy);
             targetMorph = copy;
-            return false;
+            evt.stop(); return true;
         }
 
         // handle dragStart
@@ -1687,27 +1622,15 @@ lively.morphic.World.addMethods(
             }
             this.draggedMorph = targetMorph;
             this.draggedMorph.onDragStart && this.draggedMorph.onDragStart(evt);
-        } else if (targetMorph === this) { // world handles selections
+            evt.stop(); return true;
+        } else if (targetMorph === this && !this.worldMenuOpened) { // world handles selections
             this.draggedMorph = this;
             this.onDragStart(evt);
+            evt.stop(); return true;
         }
         return false;
     },
-    dispatchDrop: function(evt) {
-        if (evt.hand.submorphs.length === 0) return false;
-        var morphStack = this.morphsContainingPoint(evt.getPosition()),
-            carriedMorphs = evt.hand.submorphs.select(function(ea) { return !ea.isGrabShadow }),
-            dropTarget = morphStack.detect(function(ea) {
-                return ea.droppingEnabled && !ea.eventsAreIgnored &&
-                    carriedMorphs.all(function(toBeDropped) {
-                        return ea.wantsDroppedMorph(toBeDropped)
-                            && toBeDropped.wantsToBeDroppedInto(ea); }); });
-        if (!dropTarget) {
-            alert('found nothing to drop onto');
-            return false;
-        }
-        return evt.hand.dropContentsOn(dropTarget, evt);
-    },
+
     onMouseWheel: function($super, evt) {
         if (!evt.isCommandKey()) return $super(evt);
         evt.preventDefault();
@@ -1742,6 +1665,61 @@ lively.morphic.World.addMethods(
         return true
     },
 
+    dispatchDrop: function(evt) {
+        if (evt.hand.submorphs.length === 0) return false;
+        var morphStack = this.morphsContainingPoint(evt.getPosition()),
+            carriedMorphs = evt.hand.submorphs.select(function(ea) { return !ea.isGrabShadow }),
+            dropTarget = morphStack.detect(function(ea) {
+                return ea.droppingEnabled && !ea.eventsAreIgnored &&
+                    carriedMorphs.all(function(toBeDropped) {
+                        return ea.wantsDroppedMorph(toBeDropped)
+                            && toBeDropped.wantsToBeDroppedInto(ea); }); });
+        if (!dropTarget) {
+            alert('found nothing to drop onto');
+            return false;
+        }
+        return evt.hand.dropContentsOn(dropTarget, evt);
+    },
+
+    captureThat: function(evt, clickTarget) {
+        // "that" construct from Antero Taivalsaari's Lively Qt
+        if (!clickTarget || !evt.isAltDown() 
+         || !Config.get('captureThatOnAltClick')) return false;
+
+        // thats: select multiple morphs
+        // reset when clicked in world
+        if (!Global.thats) Global.thats = [];
+
+        if (clickTarget === this) { // not hit a submorph
+            Global.thats = [];
+            alertOK('thats array emptied');
+        } else {
+            Global.thats.pushIfNotIncluded(clickTarget);
+        }
+
+        Global.that = clickTarget;
+        Global.that.show && Global.that.show();
+        this.stopOnMouseUp = true;
+        evt.stop(); return true;
+    },
+
+    openMenuFor: function(evt, clickTarget) {
+        if (!clickTarget.showsMorphMenu
+          || clickTarget.eventsAreIgnored
+          || (!evt.isRightMouseButtonDown() && !evt.isCtrlDown())) return false;
+        this.worldMenuOpened = true;
+        clickTarget.showMorphMenu(evt);
+        evt.stop(); return true;
+    },
+
+    toggleHalosFor: function(evt, target) {
+        if (!target.halosEnabled) return false;
+        if ((!evt.isLeftMouseButtonDown() || !evt.isCommandKey())) return false;
+        target.toggleHalos(evt);
+        evt.stop(); return true;
+    }
+},
+'HTML 5 drag and drop', {
     onHTML5DragEnter: function(evt) {
         evt.stop();
         return true;
@@ -1775,7 +1753,7 @@ lively.morphic.World.addMethods(
         return true;
     }
 },
-'window related', {
+'browser window related', {
     onWindowResize: function(evt) {
         this.cachedWindowBounds = null;
     },

@@ -244,10 +244,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 'mouse events', {
 
     onMouseUp: function(evt) {
-        if (evt.hand.haloLastClickedOn === this) {
-            return this.clickAction(evt);
-        }
-        return false;
+        return evt.getTargetMorph() === this ? this.clickAction(evt) : false;
     },
     onDragStart: function(evt) {
         this.prevDragPos = evt.getPosition();

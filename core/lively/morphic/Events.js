@@ -777,7 +777,10 @@ handleOnCapture);
     dragTriggerDistance: 5, // the distance the mouse has to move before dragStart is triggered
 
     onDragStart: function(evt) {
-        if (!this.eventsAreIgnored) this.isBeingDragged = true;
+        if (this.eventsAreIgnored) return false;
+        this.isBeingDragged = true;
+        if (this.isGrabbable()) { evt.hand.grabMorph(this); return true; }
+        return false;
     },
     onDragEnd: function(evt) {
         if (this.eventsAreIgnored) { return }
@@ -1243,6 +1246,21 @@ lively.morphic.Text.addMethods(
 
     doKeyCopy: Functions.Null,
     doKeyPaste: Functions.Null
+},
+'mouse events', {
+    onDragStart: function($super, evt) {
+        if (!this.isGrabbable()) return false;
+        var grabMe = !this.allowInput;
+        if (!grabMe) {
+            // only grab when in outer area of bounds
+            var bounds = this.innerBounds(),
+                smallerBounds = bounds.insetBy(6),
+                pos = this.localize(evt.getPosition());
+            grabMe = bounds.containsPoint(pos) && !smallerBounds.containsPoint(pos);
+        }
+        grabMe && evt.hand.grabMorph(this);
+        return true;
+    }
 });
 
 lively.morphic.List.addMethods(

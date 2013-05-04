@@ -219,6 +219,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
         if (!cbs) return;
+        dbgOn(
+            this.aceEditorAfterSetupCallbacks === this.constructor.prototype.aceEditorAfterSetupCallbacks,
+            'contagious aceEditorAfterSetupCallbacks bug occured');
         delete this.aceEditorAfterSetupCallbacks;
         cbs.invoke('call', this, e);
     },
@@ -475,7 +478,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     withAceDo: function(doFunc) {
         if (this.aceEditor) return doFunc.call(this, this.aceEditor);
-        if (!this.aceEditorAfterSetupCallbacks) this.aceEditorAfterSetupCallbacks = [];
+        if (!this.hasOwnProperty('aceEditorAfterSetupCallbacks')) this.aceEditorAfterSetupCallbacks = [];
         this.aceEditorAfterSetupCallbacks.push(doFunc);
         return undefined;
     },

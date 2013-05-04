@@ -142,6 +142,19 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection
             this.assertEquals(ea.expected, text, '' + i + ': ' + r);
         }, this);
     },
+    testDoitWillEvaluateLogicalLine: function() {
+        var e = this.editor;
+         // make editor really small
+        e.setExtent(pt(100, 100));
+        // create a long line
+        e.textString = Array.range(1,100).map(function() { return 1; }).join('+');
+        // null select at line start
+        e.setSelectionRange([0,0]);
+        e.doit(true);
+        var selectedResult = e.getSelectionOrLineString();
+        this.assertEquals('100', selectedResult);
+    },
+
 
     testCreateFloatingAnnotation: function() {
         var e = this.editor;

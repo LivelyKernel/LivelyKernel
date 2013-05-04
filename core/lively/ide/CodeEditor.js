@@ -498,9 +498,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     getCursorPosition: function() {
+        var pos = this.getCursorPositionAce();
+        return lively.pt(pos.column, pos.row);
+    },
+
+    getCursorPositionAce: function() {
         return this.withAceDo(function(ed) {
-            var pos = ed.getCursorPosition();
-            return lively.pt(pos.column, pos.row); });
+            return ed.getCursorPosition(); });
+    },
+
+    getCursorPositionScreenAce: function() {
+        return this.withAceDo(function(ed) {
+            return ed.getCursorPositionScreen(); });
     },
 
     moveToMatching: function(forward, shouldSelect, moveAnyway) {
@@ -718,6 +727,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     printObject: function(editor, obj) {
+        editor = editor || this.aceEditor;
         var sel = editor.selection;
         sel && sel.clearSelection();
         var start = sel && sel.getCursor();
@@ -851,17 +861,17 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return  (idx === -1 || pos.column < idx) ? text : text.slice(idx+2);
     },
 
-    selectCurrentLine: function() {
-        this.withAceDo(function(ed) {
-            var selStart = ed.selection.getSelectionAnchor();
-            ed.navigateLineStart();
-            var lineStartPos = ed.getCursorPosition();
-            if (selStart.column === lineStartPos.column && selStart.row == lineStartPos.row) {
-                // for switching between real line start and pos after spaces
-                ed.navigateLineStart();
-            }
-            ed.selection.selectLineEnd();
-        });
+    selectCurrentLine: function(reverse) {
+        var pos = this.getCursorPositionAce(),
+            sel = this.getSelection(),
+            range = sel.getLineRange(pos.row, true/*exclude last char*/);
+        if (range.isEqual(sel.getRange())) {
+            // toggle between line selection including starting spaces and
+            // line selection without starting spaces
+            sel.moveCursorLineStart()
+            range.setStart(sel.getCursor());
+        }
+        sel.setSelectionRange(range, reverse);
     },
 
     multiSelectNext: function() {

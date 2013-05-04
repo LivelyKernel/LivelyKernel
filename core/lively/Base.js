@@ -441,6 +441,11 @@ Object.extend(Global, {
         // also call as: throw dbgOn(new Error(....))
         return cond;
     },
-    // comment
-    assert: console.assert
+    assert: function assert(value, message) {
+        if (value) { return; }
+        // capture the stack
+        var stack;
+        try { throw new Error() } catch(e) { stack = e.stack || '' };
+        alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack);
+    }
 });

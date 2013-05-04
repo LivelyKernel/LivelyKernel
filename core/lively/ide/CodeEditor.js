@@ -189,6 +189,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getGrabShadow: function() { return null; }
 },
 'ace', {
+
     initializeAce: function(force) {
         // 1) create ace editor object
         if (this.aceEditor && !force) return;
@@ -480,12 +481,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     loadAceModule: function(moduleName, callback) {
-        return ace.require('./config').loadModule(moduleName, callback);
+        return lively.ide.ace.require('./config').loadModule(moduleName, callback);
     },
 
-    indexToPosition: function(absPos) {
-        return this.withAceDo(function(ed) { return ed.session.doc.indexToPosition(absPos); });
-    }
+    indexToPosition: function(absPos) { return this.getDocument().indexToPosition(absPos); },
+
+    getSession: function(absPos) { return this.withAceDo(function(ed) { return ed.session; }); },
+
+    getDocument: function(absPos) { return this.getSession().getDocument(); }
 
 },
 'ace interface', {
@@ -718,7 +721,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var sel = editor.selection;
         sel && sel.clearSelection();
         var start = sel && sel.getCursor();
-        editor.onPaste(String(obj));
+        var string = obj instanceof Error ? obj.stack || obj : String(obj);
+        editor.onPaste(string);
         var end = start && sel.getCursor();
         if (start && end) {
             sel.moveCursorToPosition(start);
@@ -729,7 +733,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     doit: function(printResult, editor) {
         var text = this.getSelectionMaybeInComment(),
             result = this.tryBoundEval(text);
-        show('zort'+text)
         if (printResult) {
             this.printObject(editor, result);
             return;
@@ -761,8 +764,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var obj = this.evalSelection();
         if (obj) lively.morphic.inspect(obj);
     },
-    printInspectMaxDepth: 1,
 
+    printInspectMaxDepth: 1,
 
     printInspect: function() {
         this.withAceDo(function(ed) {
@@ -786,25 +789,36 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     onWindowGetsFocus: function(window) { this.focus(); }
 },
 'text morph selection interface', {
+
+    getSelection: function() {
+        return this.withAceDo(function(ed) { return ed.selection });
+    },
+
     setSelectionRange: function(startIdx, endIdx) {
-        this.withAceDo(function(ed) {
-            var doc = ed.session.doc,
-                start = doc.indexToPosition(startIdx),
-                end = doc.indexToPosition(endIdx)
-            ed.selection.setRange({start: start, end: end});
-        });
+        var doc = this.getDocument(),
+            start = doc.indexToPosition(startIdx),
+            end = doc.indexToPosition(endIdx);
+        this.getSelection().setRange({start: start, end: end});
     },
 
     getSelectionRange: function() {
-        return this.withAceDo(function(ed) {
-            var range = ed.selection.getRange(),
-                doc = ed.session.doc;
-            return [doc.positionToIndex(range.start), doc.positionToIndex(range.end)];
-        });
+        var range = this.getSelectionRangeAce(),
+            doc = this.getDocument();
+        return [doc.positionToIndex(range.start), doc.positionToIndex(range.end)];
     },
 
     getSelectionRangeAce: function() {
         return this.withAceDo(function(ed) { return ed.selection.getRange(); });
+    },
+
+    setSelectionRangeAce: function(range, reverse) {
+        var Range = lively.ide.ace.require("ace/range").Range;
+        if (!(range instanceof Range)) range = Range.fromPoints(range.start, range.end);
+        return this.withAceDo(function(ed) { return ed.selection.setRange(range, reverse); });
+    },
+
+    getTextRange: function(range) {
+        return this.getSession().getTextRange(this.getSelectionRangeAce());
     },
 
     selectAll: function() {
@@ -823,23 +837,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
         return editor.session.getTextRange(range);
     },
+
     getSelectionMaybeInComment: function() {
         // If click is in comment, just select that part
-        var editor = this.aceEditor, range = this.getSelectionRangeAce();
-        var pos = range.start;
-        var text = this.getSelectionOrLineString();
-        if (!range.isEmpty()) return text;
-        range = this.getSelectionRangeAce();
+        var range = this.getSelectionRangeAce(),
+            isNullSelection = range.isEmpty(),
+            pos = range.start,
+            text = this.getSelectionOrLineString();
+        if (!isNullSelection) return text;
 
-        // Look for JS comment
-        var ix = 0, txt = '';
-        text.replace(/\/\/(.*)/, function(match, _, idx) {
-            ix = idx; txt = match.slice(2); })
-        if (ix===0 || ix>pos.column-2) return text;  // No comment, or after selection
-        
-        pos.column = ix+2
-        range.setStart(pos);
-        return editor.session.getTextRange(range);
+        // text now equals the text of the current line, now look for JS comment
+        var idx = text.indexOf('//');
+        return  (idx === -1 || pos.column < idx) ? text : text.slice(idx+2);
     },
 
     selectCurrentLine: function() {
@@ -854,7 +863,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             ed.selection.selectLineEnd();
         });
     },
-
 
     multiSelectNext: function() {
         this.multiSelect({backwards: false});

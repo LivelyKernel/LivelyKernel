@@ -117,6 +117,32 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
 });
 lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection',
 'testing', {
+
+    testSelectionInComment: function() {
+        var e = this.editor, text;
+        e.textString = ['1', '2 // 22', '3 // 33 // 333', ''].join('\n');
+        var testTable = [
+            // first line
+            {range: [0,0,0,0], expected: '1'},
+            {range: [0,0,0,1], expected: '1'},
+            // second line
+            {range: [1,0,1,1], expected: '2'},
+            {range: [1,1,1,1], expected: '2 // 22'},
+            {range: [1,5,1,5], expected: ' 22'}, // strip out everthing before the comment
+            {range: [1,4,1,6], expected: ' 2'},
+            {range: [1,4,1,6], expected: ' 2'},
+            // third line
+            {range: [2,5,2,5], expected: ' 33 // 333'}];
+        testTable.forEach(function(ea, i) {
+            var r = ea.range;
+            e.setSelectionRangeAce({
+                start: {row: r[0], column: r[1]},
+                end:   {row: r[2], column: r[3]}});
+            text = e.getSelectionMaybeInComment();
+            this.assertEquals(ea.expected, text, '' + i + ': ' + r);
+        }, this);
+    },
+
     testCreateFloatingAnnotation: function() {
         var e = this.editor;
         e.textString = "baz { 1+2 }  bar";

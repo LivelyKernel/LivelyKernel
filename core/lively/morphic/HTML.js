@@ -210,15 +210,17 @@ lively.morphic.Morph.addMethods(
     },
 
     showsHorizontalScrollBarHTML: function(ctx) {
-        if (!ctx.shapeNode) return false;
-        var fullHeight = ctx.shapeNode.offsetHeight - this.getBorderWidth()*2,
-            innerHeight = ctx.shapeNode.clientHeight;
+        var node = this.getScrollableNode();
+        if (!node) return false;
+        var fullHeight = node.offsetHeight - this.getBorderWidth()*2,
+            innerHeight = node.clientHeight;
         return innerHeight > 0 && fullHeight !== innerHeight;
     },
     showsVerticalScrollBarHTML: function(ctx) {
-        if (!ctx.shapeNode) return false;
-        var fullWidth = ctx.shapeNode.offsetWidth - this.getBorderWidth()*2,
-            innerWidth = ctx.shapeNode.clientWidth;
+        var node = this.getScrollableNode();
+        if (!node) return false;
+        var fullWidth = node.offsetWidth - this.getBorderWidth()*2,
+            innerWidth = node.clientWidth;
         return innerWidth > 0 && fullWidth !== innerWidth;
     },
     getScrollBarExtentHTML: function(ctx) {

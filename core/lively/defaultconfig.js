@@ -136,13 +136,13 @@ Global.Config = {
         }
     },
 
-    loadUserConfigModule: function() {
+    loadUserConfigModule: function(optUsername) {
         if (!this.get("loadUserConfig")) return;
         if (!lively.LocalStorage.isAvailable()) {
             console.warn('cannot load user config because cannot access localStorage!')
             return;
         }
-        var userName = lively.LocalStorage.get('UserName');
+        var userName = optUsername || lively.LocalStorage.get('UserName');
         if (!userName || userName === "undefined") return;
         var fileName = LivelyLoader.codeBase + '../users/' + userName + "/config.js",
             config = this;

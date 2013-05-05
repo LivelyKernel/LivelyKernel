@@ -2272,8 +2272,4 @@ Object.extend(lively.morphic.Events, {
     });
 });
 
-(function setupEventExeriments() {
-    // FIXME remove!!!
-})();
-
 }) // end of module

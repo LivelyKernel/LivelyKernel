@@ -83,9 +83,10 @@ Object.subclass('lively.net.WebSocket',
         });
     },
 
-    send: function(data) {
+    send: function(data, options) {
+        options = options || {};
         if (this.isClosed()) this.connect();
-        if (!this.isOpen()) { this.retrySendIn(data, 20); return; }
+        if (!this.isOpen()) { this.retrySendIn(data, options); return; }
         if (typeof data !== 'string') data = JSON.stringify(data);
         return this.socket.send(data);
     },
@@ -95,14 +96,15 @@ Object.subclass('lively.net.WebSocket',
         if (!this.isClosed()) this.socket.close();
     },
 
-    retrySendIn: function(data, waitTimeForNextAttempt, startTime) {
-        startTime = startTime || Date.now();
-        waitTimeForNextAttempt = waitTimeForNextAttempt || 100;
-        if (this.sendTimeout && Date.now() - startTime > this.sendTimeout) {
-            this.onError({error: 'send attempt timedout', type: 'timeout'});
+    retrySendIn: function(data, options) {
+        options = options || {};
+        options.startTime = options.startTime || Date.now();
+        options.retryDelay = options.retryDelay || 100;
+        if (this.sendTimeout && Date.now() - options.startTime > this.sendTimeout) {
+            this.onError({error: 'send attempt timed out', type: 'timeout'});
             return;
         }
-        Global.setTimeout(this.send.bind(this, data), waitTimeForNextAttempt);
+        Global.setTimeout(this.send.bind(this, data, options), options.retryDelay);
     }
 
 },

@@ -1458,6 +1458,7 @@ lively.morphic.World.addMethods(
             lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("WorldCSS"), "applyWorldCSS", {});
             newEditor.replaceTextMorph(oldEditor);
         }
+        editor.comeForward();
         return editor;
     },
 

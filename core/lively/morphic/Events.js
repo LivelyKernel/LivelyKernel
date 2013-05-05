@@ -1080,7 +1080,11 @@ handleOnCapture);
     },
 
     grabMe: function(evt) {
-        return (!this.isLocked() || this.isLockOwner) && this.grabbingEnabled
+        var world = this.world(),
+            movedTooFar = world && this.dragTriggerDistance && world.eventStartPos
+                       && world.eventStartPos.dist(evt.getPosition()) > this.dragTriggerDistance;
+        return !movedTooFar && (!this.isLocked() || this.isLockOwner)
+            && this.isGrabbable() && !this.draggingEnabled
             && evt.hand.grabMorph(this, evt);
     },
 
@@ -1584,10 +1588,10 @@ lively.morphic.World.addMethods(
             evt.stop(); return true;
         }
 
-        evt.hand.removeOpenMenu(evt);
-
         var target = evt.getTargetMorph();
         if (this.toggleHalosFor(evt, target)) return true;
+
+        evt.hand.removeOpenMenu(evt);
 
         var activeWindow = this.getActiveWindow();
         if (activeWindow && (!this.clickedOnMorph ||
@@ -2188,13 +2192,13 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         this.setPosition(pos);
         if (!this.carriesGrabbedMorphs) return;
         var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
-            topmostMorph = this.world().getTopmostMorph(evt.getPosition()),
-            layouter = topmostMorph.getLayouter();
+            topmostMorph = this.world().getTopmostMorph(evt.getPosition());
         if (!carriedMorph
           || !topmostMorph
           || !topmostMorph.isLayoutable
           || !topmostMorph.wantsDroppedMorph(carriedMorph)
           || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) { return; }
+        var layouter = topmostMorph.getLayouter();
         if (layouter && layouter.displaysPlaceholders()) {
             layouter.showPlaceholderFor(carriedMorph, evt);
         } else if (carriedMorph.placeholder) {

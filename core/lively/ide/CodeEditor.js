@@ -1328,7 +1328,7 @@ lively.morphic.World.addMethods(
         var bounds = (options.extent || lively.pt(500, 200)).extentAsRectangle(),
             title = options.title || 'Code editor',
             editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
-            pane = this.internalAddWindow(editor, options.title, options.position);;
+            pane = this.internalAddWindow(editor, options.title, options.position);
         editor.applyStyle({resizeWidth: true, resizeHeight: true});
         editor.accessibleInInactiveWindow = true;
         if (options.theme) editor.setTheme(options.theme);
@@ -1345,6 +1345,7 @@ lively.morphic.World.addMethods(
             syntaxHighlighting: true,
             theme: Config.aceWorkspaceTheme
         });
+        window.owner.comeForward();
         window.selectAll();
         return window;
     }),
@@ -1411,6 +1412,7 @@ lively.morphic.World.addMethods(
         lively.bindings.disconnectAll(textMorph);
         textMorph.remove();
         owner.reset();
+        objectEditor.comeForward();
         return objectEditor;
     }),
 
@@ -1439,6 +1441,7 @@ lively.morphic.World.addMethods(
             lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("CSSApplyButton"), "onFire");
             newEditor.replaceTextMorph(oldEditor);
         }
+        editor.comeForward();
         return editor;
     },
 

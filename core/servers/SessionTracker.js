@@ -1,5 +1,6 @@
 util=require('util')
-i=function(obj, depth, showAll) { return util.inspect(obj, showAll, typeof depth === 'number' ? depth : 1); };
+
+global.i=function(obj, depth, showAll) { return util.inspect(obj, showAll, typeof depth === 'number' ? depth : 1); };
 
 function uuid() {
     var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -8,91 +9,36 @@ function uuid() {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-global.sessionTrackerData
-
-
-var trackerData = global.sessionTrackerData;
-
-function initTrackerData(server) {
-    if (trackerData) return trackerData;
-    trackerData = global.sessionTrackerData = {
-        local: {
-            id: uuid(),
-            hostname: require('os').hostname(),
-            server: server,
-            sessions: {}
-        }
-    }
-}
-
-function resetTrackerData(server) {
-    webSocketHandler && webSocketHandler.removeConnections();
-    global.sessionTrackerData = trackerData = null;
-    initTrackerData(server);
-}
-
-function getSessionList() {
-    var sessions = trackerData.local.sessions || {};
-    return Object.keys(sessions).map(function(id) { return sessions[id]; });
-}
-
+// session actions, when messages come in they specify in
+// their "action" parameter what they want to do. This is
+// the table that defines what functions are behind those
+// actions.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// sandboxing for testing
-var origTrackerData;
-function sandboxSetup(server) {
-    if (trackerData.isSandbox) return;
-    console.log('Creating sandbox');
-    origTrackerData = trackerData;
-    trackerData = global.sessionTrackerData = {
-        isSandbox: true,
-        local: {
-            id: uuid(),
-            hostname: require('os').hostname(),
-            server: server,
-            sessions: []
-        }
-    }
-}
+var sessionActions = {
 
-function sandboxTearDown() {
-    if (!trackerData.isSandbox) return;
-    console.log('Removing sandbox');
-    trackerData = global.sessionTrackerData = origTrackerData;
-    origTrackerData = null;
-}
-
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// webSocketHandler.removeConnections()
-
-WebSocketServer = require('./support/websockets').WebSocketServer;
-var webSocketHandler = global.webSocketHandler = global.webSocketHandler ||new WebSocketServer();
-util._extend(global.webSocketHandler, {
-
-    debug: true,
-
-    register: function(connection, sender, req) {
-        var sessions = trackerData.local.sessions,
+    register: function(sessionServer, connection, sender, req) {
+        var sessions = sessionServer.trackerData.local.sessions,
             session = sessions[req.sender] = sessions[req.sender] || {};
         util._extend(session, req.data);
         connection.id = req.data.id;
         connection.send({action: req.action, data: {message: 'OK'}});
     },
 
-    unregister: function(connection, sender, req) {
-        var sessions = trackerData.local.sessions;
+    unregister: function(sessionServer, connection, sender, req) {
+        var sessions = sessionServer.trackerData.local.sessions;
         delete sessions[req.sender];
-        this.removeConnection(req.sender);
+        sessionServer.websocketServer.removeConnection(req.sender);
         connection.close();
     },
 
-    getSessions: function(connection, sender, req) {
+    getSessions: function(sessionServer, connection, sender, req) {
         connection.send({action: req.action, data: getSessionList()});
     },
 
-    remoteEval: function(connection, sender, req) {
-        var sessions = trackerData.local.sessions || {},
+    remoteEval: function(sessionServer, connection, sender, req) {
+        var sessions = sessionServer.trackerData.local.sessions || {},
             target = req.data.target;
-        var targetConnection = this.getConnection(target);
+        var targetConnection = sessionServer.websocketServer.getConnection(target);
         if (!targetConnection) {
             connection.send({action: req.action, data: {error: 'Target connection not found', target: req.data.target}});
             return;
@@ -100,28 +46,103 @@ util._extend(global.webSocketHandler, {
         targetConnection.send({action: 'remoteEvalRequest', data: {origin: req.sender, expr: req.data.expr}});
     },
 
-    remoteEvalRequest: function(connection, sender, req) {
-        var originConnection = this.getConnection(req.data.origin);
+    remoteEvalRequest: function(sessionServer, connection, sender, req) {
+        var originConnection = sessionServer.websocketServer.getConnection(req.data.origin);
         if (!originConnection) return;
         originConnection.send({action: 'remoteEval', data: req.data});
     }
-});
+}
+
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-/*
-global.sessionTrackerData.currentServer.sessions = []
-*/
+// SessionTracker
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+var WebSocketServer = require('./support/websockets').WebSocketServer
+
+function SessionTracker(baseRoute, subServer) {
+    this.route = baseRoute + 'connect';
+    this.subserver = subServer;
+    this.websocketServer = new WebSocketServer();
+    this.initTrackerData();
+}
+
+(function() {
+
+    this.listen = function() {
+        var sessionTracker = this,
+            actions = Object.keys(sessionActions).reduce(function(actions, name) { 
+            actions[name] = sessionActions[name].bind(null, sessionTracker);
+            return actions;
+        }, {});
+        this.websocketServer.listen({
+            route: this.route,
+            actions: actions, 
+            subserver: this.subserver
+        });
+    }
+
+    this.shutdown = function() {
+        this.websocketServer && this.websocketServer.removeConnections();
+    }
+
+    this.initTrackerData = function() {
+        this.trackerData = {
+            local: {
+                id: uuid(),
+                hostname: require('os').hostname(),
+                sessions: {}
+            }
+        }
+    }
+
+    this.resetTrackerData = function() {
+        this.shutdown();
+        this.initTrackerData();
+    }
+    
+    this.getSessionList = function() {
+        var sessions = this.trackerData.local.sessions || {};
+        return Object.keys(sessions).map(function(id) { return sessions[id]; });
+    }
+ 
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // sandboxing for testing
+    this.sandboxSetup = function() {
+        if (this.trackerData.isSandbox) return;
+        console.log('Creating sandbox');
+        this.initTrackerData();
+        this.trackerData.isSandbox = true;
+    }
+    
+    this.sandboxTearDown = function() {
+        if (!this.trackerData.isSandbox) return;
+        console.log('Removing sandbox');
+        this.resetTrackerData();
+    }
+
+}).call(SessionTracker.prototype);
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// setup HTTP / websocket interface
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 module.exports = function(route, app, subserver) {
-    initTrackerData(subserver.handler.server);
-    webSocketHandler.listen(route + 'connect', subserver);
+    global.tracker = new SessionTracker(route, subserver);
+    global.tracker.listen()
 
+    // sandboxing for tests
+    var originalTracker = global.tracker;
     app.post(route + 'sandbox', function(req, res) {
         if (req.body.start) {
-            sandboxSetup(subserver.handler.server);
+            global.tracker = new SessionTracker(route, subserver);
+            global.tracker.sandboxSetup();
+            global.tracker.listen();
             res.json({message: 'Sandbox created'}).end();
         } else if (req.body.stop) {
-            sandboxTearDown();
+            global.tracker.sandboxTearDown();
+            global.tracker = originalTracker;
+            global.tracker.listen();
             res.json({message: 'Sandbox removed'}).end();
         } else {
             res.status(400).json({error: 'Cannot deal with sandbox request'}).end();
@@ -129,15 +150,15 @@ module.exports = function(route, app, subserver) {
     });
 
     app.post(route + 'reset', function(req, res) {
-        resetTrackerData(subserver.handler.server);
+        global.tracker.resetTrackerData();
         res.json({message: 'OK'}).end();
     });
 
     app.get(route + 'sessions', function(req, res) {
-        res.json(getSessionList()).end();
+        res.json(global.tracker.getSessionList()).end();
     });
 
     app.get(route, function(req, res) {
-        res.json({webSocketHandler: webSocketHandler.toString(), sessions: getSessionList()}).end();
+        res.json({tracker: global.tracker.toString(), sessions: global.tracker.getSessionList()}).end();
     });
 }

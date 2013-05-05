@@ -2,11 +2,13 @@ module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively
 
 (function installKeyEventHandler() {
     var winSwitcher;
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "windowSwitcher");
     lively.morphic.Events.GlobalEvents.register('keydown', function windowSwitcher(evt) {
         var keys = evt.getKeyString();
         if (keys === 'F5' || keys === "Command-`" || keys === "Control-`") {
             if (winSwitcher && winSwitcher.world()) return false;
-            winSwitcher = winSwitcher || new lively.ide.WindowNavigation.WindowManager().createSwitcher();
+            winSwitcher = new lively.ide.WindowNavigation.WindowManager().createSwitcher();
+            // winSwitcher = winSwitcher || new lively.ide.WindowNavigation.WindowManager().createSwitcher();
             winSwitcher.open({invokingEvent: evt});
             evt.stop(); return true;
         }
@@ -161,7 +163,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                 var w = lively.morphic.World.current(),
                     mgr = new lively.ide.WindowNavigation.WindowManager(w),
                     windows = mgr.getWindows().reverse(),
-                    sel = windows[0] && windows[0].isActive() ? 1 : 0;
+                    sel = windows[0] && windows[0].isActive() && windows.length > 1 ? 1 : 0;
 
                 this.state = {
                     timeOpened: Date.now(),

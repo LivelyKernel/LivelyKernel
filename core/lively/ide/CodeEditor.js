@@ -93,7 +93,7 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 },
 'HTML rendering', {
     getExtentHTML: function($super, ctx) {
-        if (!this.aceEditor) return $super(ctx);
+        if (!this.aceEditor) return this.extent || $super(ctx);
         var borderW = this.getBorderWidth(),
             aceSize = this.aceEditor.renderer.$size;
         return lively.pt(aceSize.width + borderW, aceSize.height + borderW);
@@ -179,10 +179,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     onrestore: function($super) {
         $super();
-        if (this.storedTextString) {
+        if (!this.storedTextString) return;
+        // wait for ace to be initialized before throwing away the stored string
+        // this way we can still return it in textString getter in the meantime
+        this.withAceDo(function(ed) {
             this.textString = this.storedTextString;
             delete this.storedTextString;
-        }
+        });
     }
 },
 'accessing', {
@@ -983,6 +986,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'text morph interface', {
 
     set textString(string) {
+        if (!this.aceEditor) this.storedString = string;
         this.withAceDo(function(ed) {
             ed.selection.clearSelection();
             var pos = ed.getCursorPosition(),
@@ -998,7 +1002,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.withAceDo(function(ed) {
             var doc = ed.getSession().getDocument();
             return doc.getValue();
-        }) || "";
+        }) || this.storedString || '';
     },
 
     setTextString: function(string) { return this.textString = string; },

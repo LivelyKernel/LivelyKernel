@@ -35,6 +35,13 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         e2.openInWorld();
         this.assertHasText(e2, 'some content');
     },
+    testCopyHasStringEvenImmediatellyAfterCopy: function() {
+        this.editor.textString = "some content";
+        var e2 = this.editor.copy();
+        this.morphsToDelete.push(e2);
+        this.assertEquals('some content', e2.textString);
+    },
+
 
     testIndexToPosition: function() {
         this.editor.textString = "some\ncontent";

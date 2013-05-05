@@ -7,19 +7,28 @@ function WebSocketServer() {
     this.connections = [];
     this.debug = true;
     this.route = '';
+    this.actions = {};
     this.requiresSender = false;
 }
 
 util._extend(WebSocketServer.prototype, {
 
-    listen: function(route, subserver) {
-        this.route = route;
+    listen: function(options) {
+        // options: {route: STRING, subserver: OBJECT, websocketImpl: OBJECT, action: [OBJECT]}
+        // actions: key - func mapping to determine callbacks for lively-json
+        // protocol and the actions automatically extracted from messages send
+        // in this protocol
+        this.actions = options.actions;
+        this.route = options.route;
         var webSocketServer = this,
-            websockets = subserver.handler.server.websocketHandler;
-        websockets.registerSubhandler({path: route, handler: webSocketServer.accept.bind(webSocketServer)});
-        subserver.on('close', function() {
+            websockets = options.subserver.handler.server.websocketHandler;
+        websockets.registerSubhandler({
+            path: options.route,
+            handler: webSocketServer.accept.bind(webSocketServer)
+        });
+        options.subserver.on('close', function() {
             webSocketServer.removeConnections();
-            websockets.unregisterSubhandler({path: route});
+            websockets.unregisterSubhandler({path: options.route});
         });
         return webSocketServer;
     },
@@ -46,9 +55,9 @@ util._extend(WebSocketServer.prototype, {
             var action = data.action, sender = data.sender;
             if (this.requiresSender && !sender) { console.log('%s could not extract sender from incoming message %s', server, i(msg)); return; }
             if (!action) { console.log('%s could not extract action from incoming message %s', server, i(msg)); return; }
-            if (!server[action]) { console.log('%s could not handle %s from message %s', server, action, i(msg)); return; }
+            if (!server.actions[action]) { console.log('%s could not handle %s from message %s', server, action, i(msg)); return; }
             try {
-                server[action](c, sender, data);
+                server.actions[action](c, sender, data);
             } catch(e) {
                 console.error('Error when dealing with %s requested from %s:\n%s: %s',
                     action, sender, e, e.stack);

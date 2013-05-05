@@ -2221,30 +2221,31 @@ Object.extend(lively.morphic.Events, {
     }
 });
 
-(function setupEventExeriments() {
-    // FIXME remove!!!
-    module('lively.morphic.EventExperiments').load();
-});
-
 (function installDefaultGlobalKeys() {
     lively.morphic.Events.GlobalEvents.unregister('keydown', "esc");
     lively.morphic.Events.GlobalEvents.register('keydown', function esc(evt) {
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: true}),
             focused = lively.morphic.Morph.focusedMorph(),
             world = focused && focused.world() || lively.morphic.World.current();
+        if (!focused) { world.focus.bind(world).delay(); return undefined; }
         if (keys === 'Esc') {
             // Global Escape will drop grabbed morphs, remove menus, close halos
             var h = world.firstHand();
-            if (h.submorphs) h.dropContentsOn(world);
-            h.removeOpenMenu(evt);
-            world.removeHalosOfCurrentHaloTarget()
-            evt.stop(); return true;
+            if (h.submorphs.length > 0) { h.dropContentsOn(world); evt.stop(); return true; }
+            if (world.worldMenuOpened) { h.removeOpenMenu(evt); evt.stop(); return true; }
+            if (world.currentHaloTarget) { world.removeHalosOfCurrentHaloTarget(); evt.stop(); return true; }
+            return undefined;
         }
         if (world.showPressedKeys) {
             keys && keys.length > 0 && lively.log(keys);
         }
         return undefined;
     });
+})();
+
+(function setupEventExeriments() {
+    // FIXME remove!!!
+    module('lively.morphic.EventExperiments').load();
 })();
 
 }) // end of module

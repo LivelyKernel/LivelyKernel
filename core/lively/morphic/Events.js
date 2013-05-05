@@ -2229,16 +2229,19 @@ Object.extend(lively.morphic.Events, {
 (function installDefaultGlobalKeys() {
     lively.morphic.Events.GlobalEvents.unregister('keydown', "esc");
     lively.morphic.Events.GlobalEvents.register('keydown', function esc(evt) {
-        var keys = evt.getKeyString();
+        var keys = evt.getKeyString({ignoreModifiersIfNoCombo: true}),
+            focused = lively.morphic.Morph.focusedMorph(),
+            world = focused && focused.world() || lively.morphic.World.current();
         if (keys === 'Esc') {
             // Global Escape will drop grabbed morphs, remove menus, close halos
-            var focused = lively.morphic.Morph.focusedMorph(),
-                world = focused && focused.world() || lively.morphic.World.current(),
-                h = world.firstHand();
+            var h = world.firstHand();
             if (h.submorphs) h.dropContentsOn(world);
             h.removeOpenMenu(evt);
             world.removeHalosOfCurrentHaloTarget()
             evt.stop(); return true;
+        }
+        if (world.showPressedKeys) {
+            keys && keys.length > 0 && lively.log(keys);
         }
         return undefined;
     });

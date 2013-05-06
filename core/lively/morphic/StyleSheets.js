@@ -1031,7 +1031,7 @@ Object.subclass("lively.morphic.Sizzle",
                     var fn = this.selectors.pseudos[pseudo] || this.selectors.pseudos[pseudo.toLowerCase()];
 
                     if(!fn) {
-                        this.error("unsupported pseudo: " + pseudo);
+                        return this.error("unsupported pseudo: " + pseudo);
                     }
 
                     // The user may set fn.sizzleFilter to indicate

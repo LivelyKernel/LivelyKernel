@@ -32,6 +32,7 @@ Object.subclass('lively.net.WebSocket',
         this.reopenClosedConnection = options.enableReconnect || false;
         this._open = false;
         this.sendTimeout = options.timeout || 3 * 1000; // when to stop trying to send
+        this.messageQueue = [];
         this.protocol = options.protocol ? options.protocol : null;
     },
 
@@ -61,7 +62,7 @@ Object.subclass('lively.net.WebSocket',
             var msg = JSON.parse(evt.data);
             if (msg && msg.action) lively.bindings.signal(this, msg.action, msg);
         } catch(e) {
-            console.warn('%s failed to JSON parse message and dispatch %s: %s', this, evt.data, e);
+            console.warn(show('%s failed to JSON parse message and dispatch %s: %s', this, evt.data, e));
         }
     }
 },
@@ -84,19 +85,46 @@ Object.subclass('lively.net.WebSocket',
     },
 
     send: function(data, options) {
-        options = options || {};
+        if (typeof data !== 'string') {
+            if (!this._messageCounter) this._messageCounter = 0;
+            data.messageIndex = ++this._messageCounter;
+            data = JSON.stringify(data);
+        }
+        this.messageQueue.push(data);
+        this.deliverMessageQueue();
+    },
+
+    deliverMessageQueue: function(options) {
+        // guard:
+        if (this._sendInProgress) return;
+        this._sendInProgress = true; 
         if (this.isClosed()) this.connect();
-        if (!this.isOpen()) { this.retrySendIn(data, options); return; }
-        if (typeof data !== 'string') data = JSON.stringify(data);
-        return this.socket.send(data);
+
+        // send logic
+        var ws = this;
+        function doSend() {
+            try {
+                var msg;
+                while ((msg = ws.messageQueue.shift())) ws.socket.send(msg);
+            } finally {
+                delete ws._sendInProgress;
+            }
+        }
+
+        // delay and try again
+        options = options || {};
+        options.startTime = options.startTime || Date.now();
+        options.retryDelay = options.retryDelay || 100;
+        (function testConnectionAndTriggerSend() {
+            if (ws.isOpen()) { doSend(); return; }
+            if (ws.sendTimeout && Date.now() - options.startTime > ws.sendTimeout) {
+                ws.onError({error: 'send attempt timed out', type: 'timeout'}); return;
+            }
+            Global.setTimeout(testConnectionAndTriggerSend, options.retryDelay);
+        })();
     },
 
-    close: function() {
-        this.reopenClosedConnection = false;
-        if (!this.isClosed()) this.socket.close();
-    },
-
-    retrySendIn: function(data, options) {
+    retryDeliverMessageQueue: function(options) {
         options = options || {};
         options.startTime = options.startTime || Date.now();
         options.retryDelay = options.retryDelay || 100;
@@ -104,7 +132,12 @@ Object.subclass('lively.net.WebSocket',
             this.onError({error: 'send attempt timed out', type: 'timeout'});
             return;
         }
-        Global.setTimeout(this.send.bind(this, data, options), options.retryDelay);
+        Global.setTimeout(this.deliverMessageQueue.bind(this, options), options.retryDelay);
+    },
+
+    close: function() {
+        this.reopenClosedConnection = false;
+        if (!this.isClosed()) this.socket.close();
     }
 
 },

@@ -1,8 +1,112 @@
 var util = require('util');
 var i = util.inspect;
+var f = util.format;
+var EventEmitter = require('events').EventEmitter;
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// client
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+var j = require('path').join;
+var lifeStarDir = j(process.env.LK_SCRIPTS_ROOT, 'node_modules/life_star');
+var websocket = require(j(lifeStarDir, 'node_modules/websocket'));
+var Client = websocket.client;
 
+function WebSocketClient(url, protocol) {
+    EventEmitter.call(this);
+    this.setupClient();
+    this.url = url;
+    this.protocol = protocol;
+}
+
+util.inherits(WebSocketClient, EventEmitter);
+
+(function() {
+
+    this.setupClient = function() {
+        var self = this;
+        var c = this._client = new Client();
+
+        c.on('connectFailed', function(e) {
+            self.onConnectionFailed(e);
+        });
+        
+        c.on('connect', function(connection) {
+            connection.on('error', function(e) { self.onError(e); });
+            connection.on('close', function() { self.onClose() });
+            connection.on('message', function(message) { self.onMessage(message); });
+            self.onConnect(connection);
+        });
+    }
+
+    this.onConnect = function(connection) {
+        console.log('Connected %s', this.toString());
+        if (this.connection) this.connection.close();
+        this.connection = connection;
+        this.emit('connect', connection);
+    }
+
+    this.onConnectionFailed = function(err) {
+        console.warn('Could not connect %s:\n%s', this.toString(), err.toString());
+        this.emit("error", {message: 'connection failed', error: err});
+    }
+    
+    this.onError = function(err) {
+        console.warn('%s connection error %s', this.toString(), err);
+        this.emit("error", err);
+    }
+    
+    this.onClose = function() {
+        console.log('%s closed', this.toString());
+        this.emit("close");
+    }
+
+    this.onMessage = function(msg) {
+        var json;
+        try {
+            json = JSON.parse(msg.utf8Data)
+        } catch(e) {
+            this.onError(f('%s could not parse message %s', this, e));
+            return;
+        }
+        this.lastMessage = json;
+        this.emit("message", json);
+        console.log('...... emitting %s ', json.action, json.data)
+        json.action && json.data && this.emit(json.action, json.data);
+    }
+
+    this.connect = function() {
+        console.log('Connecting %s', this);
+        try {
+            return this._client.connect(this.url, this.protocol);
+        } catch(e) {
+            console.error(e);
+            this.onConnectionFailed(e);
+        }
+    }
+
+    this.close = function() {
+        return this.connection && this.connection.close();
+    }
+
+    this.send = function(data) {
+        try {
+            if (typeof data !== 'string') data = JSON.stringify(data);
+            return this.connection.send(data);
+        } catch(e) {
+            console.error('Send with %s failed: %s', this, e);
+        }
+        return false;
+    }
+
+    this.toString = function() {
+        return f('<WebSocketClient %s, %s>', this.url, this.connection);
+    }
+
+}).call(WebSocketClient.prototype);
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Server
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 function WebSocketServer() {
     this.connections = [];
     this.debug = true;
@@ -49,18 +153,21 @@ util._extend(WebSocketServer.prototype, {
         // a msg object should be valid JSON and follow the format:
         // {sender: ID, action: STRING, data: OBJECT}
         c.on('message', function(msg) {
-            server.debug && console.log('got websocket message %s', i(msg));
             var data;
             try {
                 data = JSON.parse(msg.utf8Data);
             } catch(e) {
-                console.log('%s could not read incoming message %s', server, i(msg));
+                console.warn('%s could not read incoming message %s', server, i(msg));
                 return;
             }
             var action = data.action, sender = data.sender;
-            if (this.requiresSender && !sender) { console.log('%s could not extract sender from incoming message %s', server, i(msg)); return; }
-            if (!action) { console.log('%s could not extract action from incoming message %s', server, i(msg)); return; }
-            if (!server.actions[action]) { console.log('%s could not handle %s from message %s', server, action, i(msg)); return; }
+            server.debug && console.log('\n%s received %s from %s %s\n',
+                server, action, sender,
+                data.messageIndex ? '('+data.messageIndex+')':'',
+                data.data);
+            if (this.requiresSender && !sender) { console.warn('%s could not extract sender from incoming message %s', server, i(msg)); return; }
+            if (!action) { console.warn('%s could not extract action from incoming message %s', server, i(msg)); return; }
+            if (!server.actions[action]) { console.warn('%s could not handle %s from message %s', server, action, i(msg)); return; }
             try {
                 server.actions[action](c, sender, data);
             } catch(e) {
@@ -69,8 +176,8 @@ util._extend(WebSocketServer.prototype, {
             }
         });
         c.send = function(data) {
+            server.debug && data.action && console.log('\n%s sending: %s to %s\n', server, data.action, c.id || 'unknown', data.data);
             if (typeof data !== 'string') data = JSON.stringify(data);
-            server.debug && console.log('%s sending %s', server, data);
             this.sendUTF(data);
         }
 
@@ -115,10 +222,10 @@ util._extend(WebSocketServer.prototype, {
     },
 
     toString: function() {
-        return util.format('WebSocketServer(%s, %s connections)', this.route, this.connections.length);
+        return f('WebSocketServer(%s, %s connections)', this.route, this.connections.length);
     }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-module.exports = {WebSocketServer: WebSocketServer};
+module.exports = {WebSocketServer: WebSocketServer, WebSocketClient: WebSocketClient};

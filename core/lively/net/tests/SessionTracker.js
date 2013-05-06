@@ -4,25 +4,25 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 'running', {
     setUp: function($super) {
         $super();
+        this.serverURL = URL.create(Config.nodeJSURL+'/SessionTrackerUnitTest/')
+        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL);
         this.sut = new lively.net.SessionTrackerConnection({
-            sessionTrackerURL: lively.net.SessionTracker.localSessionTrackerURL,
+            sessionTrackerURL: this.serverURL,
             username: 'SessionTrackerTestUser'
         });
-        this.sut.useSandbox();
     },
 
     tearDown: function($super) {
         $super();
         this.sut.unregisterCurrentSession();
-        this.sut.removeSandbox();
         this.sut.resetConnection();
+        lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL);
     }
 },
 'testing', {
     testRegisterCurrentWorld: function() {
         this.sut.registerCurrentSession();
-        this.delay(function() {
-            var sessions = this.sut.getSessions();
+        this.sut.getSessions(function(sessions) {
             var expected = [{
                 id: this.sut.sessionId,
                 worldURL: URL.source.toString(),
@@ -30,19 +30,29 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             }];
             this.assertEqualState(expected, sessions);
             this.done();
-        },700);
+        }.bind(this));
     },
 
     testUnregister: function() {
+        // second Connection for getting sessions
+        var secondSession = new lively.net.SessionTrackerConnection({
+            sessionTrackerURL: this.serverURL,
+            username: 'SessionTrackerTestUser2'
+        });
         this.sut.registerCurrentSession();
-        this.delay(function(sessions) {
+        this.delay(function() {
+            secondSession.registerCurrentSession();
             this.sut.unregisterCurrentSession();
-            this.delay(function(sessions) {
-                var sessions = this.sut.getSessions();
-                var expected = [];
+            secondSession.getSessions(function(sessions) { 
+                var expected = [{
+                    id: secondSession.sessionId,
+                    worldURL: URL.source.toString(),
+                    user: "SessionTrackerTestUser2"
+                }];
+                secondSession.unregisterCurrentSession();
                 this.assertEqualState(expected, sessions);
                 this.done();
-            }, 50);
+            }.bind(this));
         }, 50);
     },
 

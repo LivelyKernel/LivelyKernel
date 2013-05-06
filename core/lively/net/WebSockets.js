@@ -75,7 +75,7 @@ Object.subclass('lively.net.WebSocket',
         if (this.isOpen() || this.isConnecting()) return this;
         if (this.socket) this.socket.close();
         var self = this;
-        this.socket = Object.extend(new WebSocket(this.uri), {
+        this.socket = Object.extend(new WebSocket(this.uri, this.protocol), {
             onerror: function(evt) { return self.onError(evt); },
             onopen: function(evt) { return self.onOpen(evt); },
             onclose: function(evt) { return self.onClose(evt); },

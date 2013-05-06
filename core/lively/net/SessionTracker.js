@@ -48,8 +48,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         return this.getWebResource('reset').beSync().post('reset').content;
     },
 
-    getSessions: function() {
-        return this.getWebResource('sessions').beSync().get().getJSON();
+    getSessions: function(cb) {
+        // return this.getWebResource('sessions').beSync().get().getJSON();
+        this.send('getSessions', {id: this.sessionId});
+        lively.bindings.connect(this.getWebSocket(), 'getSessions', {callCb: cb}, 'callCb', {
+            converter: function(msg) { return msg && msg.data; }});
     },
 },
 'session management', {
@@ -76,7 +79,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
     registerCurrentSession: function() {
         if (!this.sessionId) this.sessionId = Strings.newUUID();
-        this.send('register', {
+        this.send('registerClient', {
             id: this.sessionId,
             worldURL: URL.source.toString(),
             user: this.username || 'anonymous'
@@ -84,7 +87,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     unregisterCurrentSession: function() {
-        if (this.sessionId) this.send('unregister', {id: this.sessionId});
+        if (this.sessionId) this.send('unregisterClient', {id: this.sessionId});
         this.resetConnection();
         this.sessionId = null;
     }
@@ -141,39 +144,54 @@ Object.subclass('lively.net.SessionTrackerConnection',
 Object.extend(lively.net.SessionTracker, {
 
     localSessionTrackerURL: URL.create(Config.nodeJSURL + '/').withFilename('SessionTracker/'),
+    _sessions: lively.net.SessionTracker._sessions || {},
 
-    getSession: function() {
-        return this._session;
+    getSession: function(optURL) {
+        return this._sessions[optURL || this.localSessionTrackerURL];
     },
 
-    createSession: function() {
-        if (this._session) return this._session;
+    createSession: function(optURL) {
+        var url = optURL || this.localSessionTrackerURL;
+        var s = this.getSession(url);
+        if (s) return s;
         var user = lively.morphic.World.current().getUserName(true);
         if (!user) {
             console.warn('Cannot register lively session because no user is logged in');
             return;
         }
-        var s = new lively.net.SessionTrackerConnection({
-            sessionTrackerURL: this.localSessionTrackerURL,
-            username: lively.morphic.World.current().getUserName(true)
-        });
+        s = new lively.net.SessionTrackerConnection({sessionTrackerURL: url, username: user});
         s.registerCurrentSession();
         s.openForRemoteEvalRequests();
-        this._onBrowserShutdown = Global.addEventListener('beforeunload', function(evt) {
-            lively.net.SessionTracker.closeSession();
-        }, true);
-        return this._session = s;
+        if (!this._onBrowserShutdown) {
+            this._onBrowserShutdown = Global.addEventListener('beforeunload', function(evt) {
+                lively.net.SessionTracker.closeSessions();
+            }, true);
+        }
+        return this._sessions[url] = s;
     },
 
-    closeSession: function() {
-        if (this._onBrowserShutdown) {
-            Global.removeEventListener('beforeunload', this._onBrowserShutdown);
-            delete this._onBrowserShutdown;
-        }
-        if (!this._session) return;
-        this._session.unregisterCurrentSession();
-        delete this._session;
+    closeSession: function(optURL) {
+        var url = optURL || this.localSessionTrackerURL;
+        if (!this._sessions[url]) return;
+        this._sessions[url].unregisterCurrentSession();
+        delete this._sessions[url];
+    },
+
+    closeSessions: function() {
+        Object.keys(this._sessions).forEach(function(url) {
+            this.closeSession(url); }, this)
+    },
+
+    createSessionTrackerServer: function(url) {
+        var msg = JSON.stringify({action: 'createServer', route: url.pathname});
+        this.localSessionTrackerURL.withFilename('server-manager').asWebResource().beSync().post(msg, 'application/json');
+    },
+
+    removeSessionTrackerServer: function(url) {
+        var msg = JSON.stringify({action: 'removeServer', route: url.pathname});
+        this.localSessionTrackerURL.withFilename('server-manager').asWebResource().beSync().post(msg, 'application/json');
     }
+
 });
 
 (function setupSessionTrackerConnection() {

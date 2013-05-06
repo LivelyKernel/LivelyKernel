@@ -2277,7 +2277,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     onMouseUp: Functions.False
 });
 
-lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.DragMoveTrait').derive({override: ['onDrag','onDragStart']}),
+lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.DragMoveTrait').derive({override: ['onDrag','onDragStart', 'onDragEnd']}),
 'documentation', {
     documentation: "Full-fledged windows with title bar, menus, etc"
 },
@@ -2595,25 +2595,29 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
     }
 },
 'event handling', {
-    onDragStart: function(evt) {
-        this.dragStartPoint = evt.mousePoint;
+
+    onDragStart: function($super, evt) {
+        this.startDragPos = evt.getPosition();
         this.originalTargetExtent = this.owner.getExtent();
+        evt.stop(); return true;
     },
 
-    onDrag: function(evt) {
-        var moveDelta = evt.mousePoint.subPt(this.dragStartPoint);
+    onDrag: function($super, evt) {
+        var moveDelta = evt.getPosition().subPt(this.startDragPos);
         if (this.type === 'bottom') { moveDelta.x = 0; }
         if (this.type === 'right') { moveDelta.y = 0; }
         var newExtent = this.originalTargetExtent.addPt(moveDelta);
         if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
         if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
         this.owner.setExtent(newExtent);
+        evt.stop(); return true;
     },
 
-    onDragEnd: function(evt) {
-        this.dragStartPoint = null;
-        this.originalTargetExtent = null;
+    onDragEnd: function($super, evt) {
+        delete this.originalTargetExtent;
+        delete this.startDragPos;
         this.owner.alignAllHandles();
+        evt.stop(); return true;
     }
 },
 'alignment', {

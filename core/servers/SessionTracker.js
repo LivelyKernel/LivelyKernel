@@ -16,7 +16,7 @@ function uuid() {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var sessionActions = {
 
-    register: function(sessionServer, connection, sender, req) {
+    registerClient: function(sessionServer, connection, sender, req) {
         var sessions = sessionServer.trackerData.local.sessions,
             session = sessions[req.sender] = sessions[req.sender] || {};
         util._extend(session, req.data);
@@ -24,7 +24,7 @@ var sessionActions = {
         connection.send({action: req.action, data: {message: 'OK'}});
     },
 
-    unregister: function(sessionServer, connection, sender, req) {
+    unregisterClient: function(sessionServer, connection, sender, req) {
         var sessions = sessionServer.trackerData.local.sessions;
         delete sessions[req.sender];
         sessionServer.websocketServer.removeConnection(req.sender);
@@ -32,7 +32,7 @@ var sessionActions = {
     },
 
     getSessions: function(sessionServer, connection, sender, req) {
-        connection.send({action: req.action, data: getSessionList()});
+        connection.send({action: req.action, data: sessionServer.getSessionList()});
     },
 
     remoteEval: function(sessionServer, connection, sender, req) {
@@ -60,9 +60,14 @@ var sessionActions = {
 
 var WebSocketServer = require('./support/websockets').WebSocketServer
 
-function SessionTracker(baseRoute, subServer) {
-    this.route = baseRoute + 'connect';
-    this.subserver = subServer;
+function SessionTracker(options) {
+    // options = {route: STRING, subserver: OBJECT || websocketImpl: OBJECT}
+    options = options || {};
+    this.route = options.route + 'connect';
+    this.subserver = options.subserver;
+    this.websocketImpl = this.subserver ?
+        this.subserver.handler.server.websocketHandler :
+        options.websocketImpl;
     this.websocketServer = new WebSocketServer();
     this.initTrackerData();
 }
@@ -78,12 +83,13 @@ function SessionTracker(baseRoute, subServer) {
         this.websocketServer.listen({
             route: this.route,
             actions: actions, 
-            subserver: this.subserver
+            subserver: this.subserver,
+            websocketImpl: this.websocketImpl
         });
     }
 
     this.shutdown = function() {
-        this.websocketServer && this.websocketServer.removeConnections();
+        this.websocketServer && this.websocketServer.close();
     }
 
     this.initTrackerData = function() {
@@ -128,14 +134,14 @@ function SessionTracker(baseRoute, subServer) {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 module.exports = function(route, app, subserver) {
-    global.tracker = new SessionTracker(route, subserver);
+    global.tracker = new SessionTracker({route: route, subserver: subserver});
     global.tracker.listen()
 
     // sandboxing for tests
     var originalTracker = global.tracker;
     app.post(route + 'sandbox', function(req, res) {
         if (req.body.start) {
-            global.tracker = new SessionTracker(route, subserver);
+            global.tracker = new SessionTracker({route: route, subserver: subserver});
             global.tracker.sandboxSetup();
             global.tracker.listen();
             res.json({message: 'Sandbox created'}).end();
@@ -144,6 +150,33 @@ module.exports = function(route, app, subserver) {
             global.tracker = originalTracker;
             global.tracker.listen();
             res.json({message: 'Sandbox removed'}).end();
+        } else {
+            res.status(400).json({error: 'Cannot deal with sandbox request'}).end();
+        }
+    });
+
+    global.sessionTrackerTestServers = global.sessionTrackerTestServers || {};
+    // i(global.sessionTrackerTestServers)
+    app.post(route + 'server-manager', function(req, res) {
+        if (!req.body) {res.status(400).end(); return; }
+        var servers = global.sessionTrackerTestServers;
+        var route = req.body.route;
+        if (req.body.action === 'createServer') {
+            var s = servers[route] = new SessionTracker({route: route, subserver: subserver});
+            s.listen();
+            var msg = 'Server on route ' + route + ' created'
+            console.log(msg);
+            res.json({message: msg}).end();
+        } else if (req.body.action === 'removeServer') {
+            var s = servers[route];
+            var msg;
+            delete servers[route];
+            if (s) {
+                s.shutdown();
+                msg = 'Server on route ' + route + ' shutdown'
+            } else { msg = 'Trying to shutdown server on ' + route + ' but found no server!' }
+            console.log(msg);
+            res.json({message: msg}).end();
         } else {
             res.status(400).json({error: 'Cannot deal with sandbox request'}).end();
         }
@@ -162,3 +195,6 @@ module.exports = function(route, app, subserver) {
         res.json({tracker: global.tracker.toString(), sessions: global.tracker.getSessionList()}).end();
     });
 }
+
+module.exports.SessionTracker = SessionTracker;
+

@@ -14,14 +14,14 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 
     tearDown: function($super) {
         $super();
-        this.sut.unregisterCurrentSession();
+        this.sut.unregister();
         this.sut.resetConnection();
         lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL);
     }
 },
 'testing', {
     testRegisterCurrentWorld: function() {
-        this.sut.registerCurrentSession();
+        this.sut.register();
         this.sut.getSessions(function(sessions) {
             var expected = [{
                 id: this.sut.sessionId,
@@ -39,17 +39,17 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             sessionTrackerURL: this.serverURL,
             username: 'SessionTrackerTestUser2'
         });
-        this.sut.registerCurrentSession();
+        this.sut.register();
         this.delay(function() {
-            secondSession.registerCurrentSession();
-            this.sut.unregisterCurrentSession();
+            secondSession.register();
+            this.sut.unregister();
             secondSession.getSessions(function(sessions) { 
                 var expected = [{
                     id: secondSession.sessionId,
                     worldURL: URL.source.toString(),
                     user: "SessionTrackerTestUser2"
                 }];
-                secondSession.unregisterCurrentSession();
+                secondSession.unregister();
                 this.assertEqualState(expected, sessions);
                 this.done();
             }.bind(this));
@@ -57,7 +57,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
     },
 
     testRemoteEval: function() {
-        this.sut.registerCurrentSession();
+        this.sut.register();
         this.sut.openForRemoteEvalRequests();
         Global.remoteEvalHappened = false;
         var expr = 'Global.remoteEvalHappened = true; 1 + 3';
@@ -71,16 +71,37 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 
 });
 
-lively.net.tests.SessionTracker.Register.subclass('lively.net.tests.SessionTracker.SessionFederation',
+AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.serverURL1 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest1/');
+        this.serverURL2 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest2/');
+        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL1);
+        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL2);
+        this.client1 = new lively.net.SessionTrackerConnection({
+            sessionTrackerURL: this.serverURL1, username: 'SessionTrackerTestUser1'});
+        this.client2 = new lively.net.SessionTrackerConnection({
+            sessionTrackerURL: this.serverURL2, username: 'SessionTrackerTestUser2'});
+    },
+
+    tearDown: function($super) {
+        $super();
+        this.client1.unregister();
+        this.client2.unregister();
+        lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL1);
+        lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL2);
+    }
+},
 'testing', {
     testRegisterCurrentWorld: function() {
-        // this.tracker.registerCurrentSession();
+        this.client1.register();
         // this.delay(function(sessions) {
         //     var sessions = this.tracker.getSessions();
         //     var expected = [{id: this.tracker.sessionId, worldURL: URL.source.toString(), user: $world.getUserName()}];
         //     this.assertEqualState(expected, sessions);
         // }, 60);
-            this.done();
+        this.done();
     }
 
 });

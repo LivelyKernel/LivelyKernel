@@ -69,7 +69,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
     connectionClosed: function() {
         console.log('%s closed', this.toString(true));
-        if (this.sessionId) this.registerCurrentSession();
+        if (this.sessionId) this.register();
         else lively.bindings.signal(this, 'closed');
     },
 
@@ -77,7 +77,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         console.log('connection error in %s:\n%o', this.toString(true), err);
     },
 
-    registerCurrentSession: function() {
+    register: function() {
         if (!this.sessionId) this.sessionId = Strings.newUUID();
         this.send('registerClient', {
             id: this.sessionId,
@@ -86,7 +86,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         });
     },
 
-    unregisterCurrentSession: function() {
+    unregister: function() {
         if (this.sessionId) this.send('unregisterClient', {id: this.sessionId});
         this.resetConnection();
         this.sessionId = null;
@@ -160,7 +160,7 @@ Object.extend(lively.net.SessionTracker, {
             return;
         }
         s = new lively.net.SessionTrackerConnection({sessionTrackerURL: url, username: user});
-        s.registerCurrentSession();
+        s.register();
         s.openForRemoteEvalRequests();
         if (!this._onBrowserShutdown) {
             this._onBrowserShutdown = Global.addEventListener('beforeunload', function(evt) {
@@ -173,7 +173,7 @@ Object.extend(lively.net.SessionTracker, {
     closeSession: function(optURL) {
         var url = optURL || this.localSessionTrackerURL;
         if (!this._sessions[url]) return;
-        this._sessions[url].unregisterCurrentSession();
+        this._sessions[url].unregister();
         delete this._sessions[url];
     },
 

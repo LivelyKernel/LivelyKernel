@@ -129,56 +129,59 @@ function SessionTracker(options) {
 
 }).call(SessionTracker.prototype);
 
+SessionTracker.servers = {}
+
+SessionTracker.createServer = function(options) {
+    options = options || {};
+    if (!options.route) {
+        console.error('Cannot create session tracker server without route!')
+        return null;
+    }
+    if (this.servers[options.route]) {
+        console.warn('Not creating new session tracker on route %s -- tracker already existing!', options.route)
+        return this.servers[options.route];
+    }
+    if (!options.subserver && !options.websocketImpl) {
+        console.error('To create a SessionTracker either a subserver or a websocketImpl is needed!')
+        return null;
+    }
+    var tracker = new this(options);
+    SessionTracker.servers[options.route] = tracker;
+    tracker.listen();
+    console.log('Session tracker on route %s created', options.route)
+    return tracker;
+}
+
+SessionTracker.removeServer = function(route) {
+    var tracker = this.servers[route];
+    if (!tracker) {
+        console.warn('Trying to shutdown session tracker on ' + route + ' but found no tracker!');
+        return false;
+    }
+    tracker.shutdown();
+    delete this.servers[route];
+    console.log('Session tracker route ' + route + ' shutdown');
+    return true;
+}
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // setup HTTP / websocket interface
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 module.exports = function(route, app, subserver) {
-    global.tracker = new SessionTracker({route: route, subserver: subserver});
-    global.tracker.listen()
+    SessionTracker.createServer({route: route, subserver: subserver});
 
-    // sandboxing for tests
-    var originalTracker = global.tracker;
-    app.post(route + 'sandbox', function(req, res) {
-        if (req.body.start) {
-            global.tracker = new SessionTracker({route: route, subserver: subserver});
-            global.tracker.sandboxSetup();
-            global.tracker.listen();
-            res.json({message: 'Sandbox created'}).end();
-        } else if (req.body.stop) {
-            global.tracker.sandboxTearDown();
-            global.tracker = originalTracker;
-            global.tracker.listen();
-            res.json({message: 'Sandbox removed'}).end();
-        } else {
-            res.status(400).json({error: 'Cannot deal with sandbox request'}).end();
-        }
-    });
-
-    global.sessionTrackerTestServers = global.sessionTrackerTestServers || {};
-    // i(global.sessionTrackerTestServers)
     app.post(route + 'server-manager', function(req, res) {
         if (!req.body) {res.status(400).end(); return; }
         var servers = global.sessionTrackerTestServers;
         var route = req.body.route;
         if (req.body.action === 'createServer') {
-            var s = servers[route] = new SessionTracker({route: route, subserver: subserver});
-            s.listen();
-            var msg = 'Server on route ' + route + ' created'
-            console.log(msg);
-            res.json({message: msg}).end();
+            SessionTracker.createServer({route: route, subserver: subserver});
+            res.end();
         } else if (req.body.action === 'removeServer') {
-            var s = servers[route];
-            var msg;
-            delete servers[route];
-            if (s) {
-                s.shutdown();
-                msg = 'Server on route ' + route + ' shutdown'
-            } else { msg = 'Trying to shutdown server on ' + route + ' but found no server!' }
-            console.log(msg);
-            res.json({message: msg}).end();
+            SessionTracker.removeServer(route);
+            res.end();
         } else {
-            res.status(400).json({error: 'Cannot deal with sandbox request'}).end();
+            res.status(400).json({error: 'Cannot deal with server-manager request'}).end();
         }
     });
 

@@ -1,4 +1,6 @@
 util=require('util')
+path=require('path')
+async=require('async')
 
 global.i=function(obj, depth, showAll) { return util.inspect(obj, showAll, typeof depth === 'number' ? depth : 1); };
 
@@ -21,7 +23,7 @@ var sessionActions = {
             session = sessions[req.sender] = sessions[req.sender] || {};
         util._extend(session, req.data);
         connection.id = req.data.id;
-        connection.send({action: req.action, data: {message: 'OK'}});
+        connection.send({action: req.action + 'Result', data: {success: true}});
     },
 
     unregisterClient: function(sessionServer, connection, sender, req) {
@@ -32,7 +34,9 @@ var sessionActions = {
     },
 
     getSessions: function(sessionServer, connection, sender, req) {
-        connection.send({action: req.action, data: sessionServer.getSessionList()});
+        sessionServer.getSessionList({}, function(sessions) {
+            connection.send({action: req.action, data: sessions});
+        })
     },
 
     remoteEval: function(sessionServer, connection, sender, req) {
@@ -50,6 +54,14 @@ var sessionActions = {
         var originConnection = sessionServer.websocketServer.getConnection(req.data.origin);
         if (!originConnection) return;
         originConnection.send({action: 'remoteEval', data: req.data});
+    },
+
+    initServerToServerConnect: function(sessionServer, connection, sender, req) {
+        var url = req.data.url;
+        sessionServer.serverToServerConnect(url, function(err, remoteClient) {
+            if (err) console.error(err);
+            connection.send({action: 'initServerToServerConnectResult', data: {success: !err}});
+        });
     }
 }
 
@@ -58,7 +70,8 @@ var sessionActions = {
 // SessionTracker
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-var WebSocketServer = require('./support/websockets').WebSocketServer
+var WebSocketServer = require('./support/websockets').WebSocketServer;
+var WebSocketClient = require('./support/websockets').WebSocketClient;
 
 function SessionTracker(options) {
     // options = {route: STRING, subserver: OBJECT || websocketImpl: OBJECT}
@@ -69,10 +82,13 @@ function SessionTracker(options) {
         this.subserver.handler.server.websocketHandler :
         options.websocketImpl;
     this.websocketServer = new WebSocketServer();
+    this.websocketClients = {}; // for connections to other servers
     this.initTrackerData();
 }
 
 (function() {
+
+    this.id = function() { return this.trackerData && this.trackerData.local.id; }
 
     this.listen = function() {
         var sessionTracker = this,
@@ -90,6 +106,7 @@ function SessionTracker(options) {
 
     this.shutdown = function() {
         this.websocketServer && this.websocketServer.close();
+        this.removeRemoteClients();
     }
 
     this.initTrackerData = function() {
@@ -107,9 +124,29 @@ function SessionTracker(options) {
         this.initTrackerData();
     }
     
-    this.getSessionList = function() {
-        var sessions = this.trackerData.local.sessions || {};
-        return Object.keys(sessions).map(function(id) { return sessions[id]; });
+    this.getSessionList = function(options, thenDo) {
+        var sessions = this.trackerData.local.sessions || {},
+            list = Object.keys(sessions).map(function(id) { return sessions[id]; }),
+            result = {local: list};
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var s2sConnections = this.websocketClients, id = this.id;
+        var tasks = Object.keys(s2sConnections).reduce(function(tasks, url) {
+            tasks[url] = function(callback) {
+                var connection = s2sConnections[url];
+                connection.send({action: 'getSessions', data: {id: id}});
+                connection.on('getSessions', function(sessions) {
+                    callback(null, sessions && sessions.local);
+                });
+            }
+            return tasks;
+        }, {});
+        async.parallel(tasks, function(err, serverToServerSessions) {
+            if (err) {
+                console.error('%s getSessionList: ', this, err);
+            }
+            if (serverToServerSessions) result = util._extend(result, serverToServerSessions);
+            thenDo(result);
+        });
     }
  
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -125,6 +162,42 @@ function SessionTracker(options) {
         if (!this.trackerData.isSandbox) return;
         console.log('Removing sandbox');
         this.resetTrackerData();
+    }
+
+    this.fixRemoteServerURL = function(url) {
+        // ensure that it ends with "/connect"
+        return url.replace(/(\/)?(connect)?$/, '') + '/connect';
+    }
+
+    this.serverToServerConnect = function(url, thenDo) {
+        // creates a connection to another lively session tracker
+        url = this.fixRemoteServerURL(url) ;
+        var client = this.websocketClients[url];
+        if (client) { if (!client.isOpen()) client.connect(); thenDo(null, client); return; }
+        try {
+            client = this.websocketClients[url] = new WebSocketClient(url, 'lively-json');
+            client.once('connect', function() { thenDo(null, client); });
+            client.on('close', function() { this.removeRemoteClient(url, client); }.bind(this));
+            client.connect();
+        } catch(e) {
+            console.error('serverToServerConnect ', e);
+            thenDo(e);
+        }
+    }
+
+    this.removeRemoteClient = function(url, client) {
+        var myClient = this.websocketClients[url];
+        if (myClient && client && myClient !== client) {
+            console.warn('%s discovered inconsistency in removeRemoteClient: removed client does not match specified client', this)
+            client && client.close();
+        }
+        myClient && myClient.close();
+        delete this.websocketClients[url];
+    }
+
+     this.removeRemoteClients = function() {
+        Object.keys(this.websocketClients).forEach(function(url) {
+            this.removeRemoteClient(url, this.websocketClients[url]); }, this);
     }
 
 }).call(SessionTracker.prototype);
@@ -168,7 +241,7 @@ SessionTracker.removeServer = function(route) {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 module.exports = function(route, app, subserver) {
-    SessionTracker.createServer({route: route, subserver: subserver});
+    global.tracker = SessionTracker.createServer({route: route, subserver: subserver});
 
     app.post(route + 'server-manager', function(req, res) {
         if (!req.body) {res.status(400).end(); return; }
@@ -191,11 +264,15 @@ module.exports = function(route, app, subserver) {
     });
 
     app.get(route + 'sessions', function(req, res) {
-        res.json(global.tracker.getSessionList()).end();
+        global.tracker.getSessionList({}, function(sessions) {
+            res.json(sessions).end();
+        });
     });
 
     app.get(route, function(req, res) {
-        res.json({tracker: global.tracker.toString(), sessions: global.tracker.getSessionList()}).end();
+        global.tracker.getSessionList({}, function(sessions) {
+            res.json({tracker: global.tracker.toString(), sessions: sessions}).end();
+        });
     });
 }
 

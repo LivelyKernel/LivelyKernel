@@ -50,7 +50,8 @@ Object.subclass('RealTrait',
         return this;
     },
     mixin: function() {
-        this.applyToClass = function(applyToClass, klass, options) {
+        var mixinTrait = this.derive({});
+        mixinTrait.applyToClass = function(applyToClass, klass, options) {
             if (!klass.mixinClass) {
                 var cls = klass.superclass.subclass();
                 klass.superclass = cls;
@@ -63,8 +64,8 @@ Object.subclass('RealTrait',
                 klass.addMethods(methods);
             }
             applyToClass.call(this, klass.mixinClass, options);
-        }.curry(this.applyToClass);
-        return this;
+        }.curry(mixinTrait.applyToClass);
+        return mixinTrait;
     }
 },
 'testing', {

@@ -28,7 +28,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
                 worldURL: URL.source.toString(),
                 user: "SessionTrackerTestUser"
             }];
-            this.assertEqualState(expected, sessions);
+            this.assertEqualState(expected, sessions.local);
             this.done();
         }.bind(this));
     },
@@ -50,7 +50,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
                     user: "SessionTrackerTestUser2"
                 }];
                 secondSession.unregister();
-                this.assertEqualState(expected, sessions);
+                this.assertEqualState(expected, sessions.local);
                 this.done();
             }.bind(this));
         }, 50);
@@ -61,8 +61,8 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         this.sut.openForRemoteEvalRequests();
         Global.remoteEvalHappened = false;
         var expr = 'Global.remoteEvalHappened = true; 1 + 3';
-        this.sut.remoteEval(this.sut.sessionId, expr, function(msg) {
-            this.assertEquals('4', msg.data.result);
+        this.sut.remoteEval(this.sut.sessionId, expr, function(result) {
+            this.assertEquals('4', result);
             this.assert(Global.remoteEvalHappened, 'remoteEvalHappened no set');
             delete Global.remoteEvalHappened;
             this.done();
@@ -95,13 +95,20 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
 },
 'testing', {
     testRegisterCurrentWorld: function() {
-        this.client1.register();
-        // this.delay(function(sessions) {
-        //     var sessions = this.tracker.getSessions();
-        //     var expected = [{id: this.tracker.sessionId, worldURL: URL.source.toString(), user: $world.getUserName()}];
-        //     this.assertEqualState(expected, sessions);
-        // }, 60);
-        this.done();
+        var c1 = this.client1, c2 = this.client2;
+        c1.register(); c2.register();
+        this.waitFor(function() { return c1.isConnected() && c2.isConnected(); }, 50, function() {
+            c1.initServerToServerConnect(this.serverURL2);
+            connect(c1.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone');
+        });
+        this.waitFor(function() { return !!this.serverToServerConnectDone; }, 100, function() {
+            c1.getSessions(function(sessions) {
+                var remoteSessions = sessions[this.serverURL2.toString().replace(/^http/, 'ws') + 'connect'],
+                    expected = [{id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'}];
+                this.assertEqualState(expected, remoteSessions);
+                this.done();
+            }.bind(this));            
+        });
     }
 
 });

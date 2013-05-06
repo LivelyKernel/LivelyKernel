@@ -19,7 +19,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         if (this.webSocket) return this.webSocket;
         var url = this.sessionTrackerURL.withFilename('connect');
         this.webSocket = new lively.net.WebSocket(url, {protocol: "lively-json"});
-        lively.bindings.connect(this.webSocket, 'opened', this, 'connectionEstablished');
+        lively.bindings.connect(this.webSocket, 'registerClientResult', this, 'connectionEstablished');
         lively.bindings.connect(this.webSocket, 'error', this, 'connectionError');
         return this.webSocket;
     },
@@ -28,18 +28,24 @@ Object.subclass('lively.net.SessionTrackerConnection',
         var ws = this.webSocket;
         if (!ws) return;
         // in case connection wasn't established yet
-        lively.bindings.disconnect(ws, 'opened', this, 'connectionEstablished');
+        lively.bindings.disconnect(ws, 'registerClientResult', this, 'connectionEstablished');
         ws.close();
         this.webSocket = null;
     },
 
     send: function(action, jso) {
         if (!this.sessionId) { throw new Error('Need sessionId to interact with SessionTracker!') }
+        jso = jso || {};
         this.getWebSocket().send({
             sender: this.sessionId,
             action: action,
-            data: jso || {}
+            data: jso
         });
+    },
+
+    isConnected: function() {
+        return this.webSocket && this.webSocket.isOpen()
+            && this._open && !!this.sessionId;
     }
 
 },
@@ -52,8 +58,9 @@ Object.subclass('lively.net.SessionTrackerConnection',
         // return this.getWebResource('sessions').beSync().get().getJSON();
         this.send('getSessions', {id: this.sessionId});
         lively.bindings.connect(this.getWebSocket(), 'getSessions', {callCb: cb}, 'callCb', {
-            converter: function(msg) { return msg && msg.data; }});
-    },
+            converter: function(msg) { return msg && msg.data; },
+            removeAfterUpdate: true});
+    }
 },
 'session management', {
 
@@ -65,9 +72,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         });
         console.log('%s established', this.toString(true));
         lively.bindings.signal(this, 'established');
+        this._open = true;
     },
 
     connectionClosed: function() {
+        this._open = false;
         console.log('%s closed', this.toString(true));
         if (this.sessionId) this.register();
         else lively.bindings.signal(this, 'closed');
@@ -90,6 +99,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         if (this.sessionId) this.send('unregisterClient', {id: this.sessionId});
         this.resetConnection();
         this.sessionId = null;
+    },
+
+    initServerToServerConnect: function(serverURL) {
+        var url = serverURL.toString().replace(/^http/, 'ws')
+        this.send('initServerToServerConnect', {url: url});
     }
 
 },
@@ -97,7 +111,9 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
     remoteEval: function(targetId, expression, thenDo) {
         // we send a remote eval request
-        lively.bindings.connect(this.getWebSocket(), 'remoteEval', {cb: thenDo}, 'cb', {removeAfterUpdate: true});
+        lively.bindings.connect(this.getWebSocket(), 'remoteEval', {cb: thenDo}, 'cb', {
+            converter: function(msg) { return msg && msg.data && msg.data.result; },
+            removeAfterUpdate: true});
         this.send('remoteEval', {target: targetId, expr: expression});
     },
 

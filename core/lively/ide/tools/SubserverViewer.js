@@ -212,9 +212,15 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             textMode: "javascript",
             theme: "twilight",
             boundEval: function boundEval(string) {
-            var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
-            return nodejsServer.post(string).content;
-        },
+                var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
+                return nodejsServer.post(string).content;
+            },
+            printInspect: function printInspect() {
+                var s = this.getSelectionMaybeInComment();
+                s = 'require("util").inspect(' + s + ', null, 0)';
+                var result = this.tryBoundEval(s);
+                this.printObject(null, result);
+            },
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "savedTextString", this.get("SubserverViewer"), "writeServerSource", {});
         }

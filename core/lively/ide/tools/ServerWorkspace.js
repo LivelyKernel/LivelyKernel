@@ -55,9 +55,15 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
     process.env.WORKSPACE_LK",
         theme: "twilight",
         boundEval: function boundEval(string) {
-        var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
-        return nodejsServer.post(string).content;
-    }
+            var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
+            return nodejsServer.post(string).content;
+        },
+        printInspect: function printInspect() {
+            var s = this.getSelectionMaybeInComment();
+            s = 'require("util").inspect(' + s + ', null, 0)';
+            var result = this.tryBoundEval(s);
+            this.printObject(null, result);
+        }
     }],
     titleBar: "ServerWorkspace",
     withoutLayers: "[[GrabbingLayer]]"

@@ -7,6 +7,7 @@ function WebSocketServer() {
     this.connections = [];
     this.debug = true;
     this.route = '';
+    this.subserver = null;
     this.actions = {};
     this.requiresSender = false;
 }
@@ -18,33 +19,37 @@ util._extend(WebSocketServer.prototype, {
         // actions: key - func mapping to determine callbacks for lively-json
         // protocol and the actions automatically extracted from messages send
         // in this protocol
+        var webSocketServer = this;
         this.actions = options.actions;
         this.route = options.route;
-        var webSocketServer = this,
-            websockets = options.subserver.handler.server.websocketHandler;
-        websockets.registerSubhandler({
+        this.subserver = options.subserver;
+        this.websocketImpl = options.websocketImpl || this.subserver.handler.server.websocketHandler;
+        this.websocketImpl.registerSubhandler({
             path: options.route,
             handler: webSocketServer.accept.bind(webSocketServer)
         });
-        options.subserver.on('close', function() {
-            webSocketServer.removeConnections();
-            websockets.unregisterSubhandler({path: options.route});
-        });
+        this.subserver && this.subserver.on('close', function() { webSocketServer.close(); });
         return webSocketServer;
     },
 
+    close: function() {
+        this.removeConnections();
+        if (!this.websocketImpl) return;
+        this.websocketImpl.unregisterSubhandler({path: this.route});
+    },
+
     accept: function(request) {
-        var c = request.accept(), server = this;
+        var c = request.accept('lively-json', request.origin), server = this;
 
         c.on('close', function(msg) {
-            server.debug && console.log('closed');
+            server.debug && console.log('a websocket connection was closed');
             server.removeConnection(c);
         });
 
         // a msg object should be valid JSON and follow the format:
         // {sender: ID, action: STRING, data: OBJECT}
         c.on('message', function(msg) {
-            server.debug && console.log('got message %s', i(msg));
+            server.debug && console.log('got websocket message %s', i(msg));
             var data;
             try {
                 data = JSON.parse(msg.utf8Data);

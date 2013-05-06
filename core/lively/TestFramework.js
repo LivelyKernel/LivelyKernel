@@ -488,7 +488,7 @@ TestCase.subclass('AsyncTestCase',
         (function() {
             try {
                 if (guardFunc.call(self)) {
-                    callback();
+                    callback.call(self);
                 } else {
                     if (!self.isDone()) {
                         self.waitFor(guardFunc, interval, callback);

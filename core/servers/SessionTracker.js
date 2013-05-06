@@ -1,6 +1,7 @@
 util=require('util')
 path=require('path')
-async=require('async')
+var j = require('path').join
+var async = require(j(process.env.LK_SCRIPTS_ROOT, 'node_modules/async'));
 
 global.i=function(obj, depth, showAll) { return util.inspect(obj, showAll, typeof depth === 'number' ? depth : 1); };
 

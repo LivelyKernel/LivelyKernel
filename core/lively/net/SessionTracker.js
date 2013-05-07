@@ -159,7 +159,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
 Object.extend(lively.net.SessionTracker, {
 
-    localSessionTrackerURL: URL.create(Config.nodeJSURL + '/').withFilename('SessionTracker/'),
+    localSessionTrackerURL: URL.create((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/').withFilename('SessionTracker/'),
     _sessions: lively.net.SessionTracker._sessions || {},
 
     getSession: function(optURL) {

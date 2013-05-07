@@ -19,46 +19,46 @@ function uuid() {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var sessionActions = {
 
-    registerClient: function(sessionServer, connection, sender, req) {
+    registerClient: function(sessionServer, connection, msg) {
         var sessions = sessionServer.trackerData.local.sessions,
-            session = sessions[req.sender] = sessions[req.sender] || {};
-        util._extend(session, req.data);
-        connection.id = req.data.id;
-        connection.send({action: req.action + 'Result', data: {success: true}});
+            session = sessions[msg.sender] = sessions[msg.sender] || {};
+        util._extend(session, msg.data);
+        connection.id = msg.data.id;
+        connection.send({action: msg.action + 'Result', data: {success: true}});
     },
 
-    unregisterClient: function(sessionServer, connection, sender, req) {
+    unregisterClient: function(sessionServer, connection, msg) {
         var sessions = sessionServer.trackerData.local.sessions;
-        delete sessions[req.sender];
-        sessionServer.websocketServer.removeConnection(req.sender);
+        delete sessions[msg.sender];
+        sessionServer.websocketServer.removeConnection(msg.sender);
         connection.close();
     },
 
-    getSessions: function(sessionServer, connection, sender, req) {
+    getSessions: function(sessionServer, connection, msg) {
         sessionServer.getSessionList({}, function(sessions) {
-            connection.send({action: req.action, data: sessions});
+            connection.send({action: msg.action, data: sessions});
         })
     },
 
-    remoteEval: function(sessionServer, connection, sender, req) {
+    remoteEval: function(sessionServer, connection, msg) {
         var sessions = sessionServer.trackerData.local.sessions || {},
-            target = req.data.target;
+            target = msg.data.target;
         var targetConnection = sessionServer.websocketServer.getConnection(target);
         if (!targetConnection) {
-            connection.send({action: req.action, data: {error: 'Target connection not found', target: req.data.target}});
+            connection.send({action: msg.action, data: {error: 'Target connection not found', target: msg.data.target}});
             return;
         }
-        targetConnection.send({action: 'remoteEvalRequest', data: {origin: req.sender, expr: req.data.expr}});
+        targetConnection.send({action: 'remoteEvalRequest', data: {origin: msg.sender, expr: msg.data.expr}});
     },
 
-    remoteEvalRequest: function(sessionServer, connection, sender, req) {
-        var originConnection = sessionServer.websocketServer.getConnection(req.data.origin);
+    remoteEvalRequest: function(sessionServer, connection, msg) {
+        var originConnection = sessionServer.websocketServer.getConnection(msg.data.origin);
         if (!originConnection) return;
-        originConnection.send({action: 'remoteEval', data: req.data});
+        originConnection.send({action: 'remoteEval', data: msg.data});
     },
 
-    initServerToServerConnect: function(sessionServer, connection, sender, req) {
-        var url = req.data.url;
+    initServerToServerConnect: function(sessionServer, connection, msg) {
+        var url = msg.data.url;
         sessionServer.serverToServerConnect(url, function(err, remoteClient) {
             if (err) console.error(err);
             connection.send({action: 'initServerToServerConnectResult', data: {success: !err}});
@@ -93,13 +93,13 @@ function SessionTracker(options) {
 
     this.listen = function() {
         var sessionTracker = this,
-            actions = Object.keys(sessionActions).reduce(function(actions, name) { 
+            actions = Object.keys(sessionActions).reduce(function(actions, name) {
             actions[name] = sessionActions[name].bind(null, sessionTracker);
             return actions;
         }, {});
         this.websocketServer.listen({
             route: this.route,
-            actions: actions, 
+            actions: actions,
             subserver: this.subserver,
             websocketImpl: this.websocketImpl
         });
@@ -124,7 +124,7 @@ function SessionTracker(options) {
         this.shutdown();
         this.initTrackerData();
     }
-    
+
     this.getSessionList = function(options, thenDo) {
         var sessions = this.trackerData.local.sessions || {},
             list = Object.keys(sessions).map(function(id) { return sessions[id]; }),
@@ -135,7 +135,8 @@ function SessionTracker(options) {
             tasks[url] = function(callback) {
                 var connection = s2sConnections[url];
                 connection.send({action: 'getSessions', data: {id: id}});
-                connection.on('getSessions', function(sessions) {
+                connection.on('getSessions', function(msg) {
+                    var sessions = msg.data;
                     callback(null, sessions && sessions.local);
                 });
             }
@@ -149,7 +150,7 @@ function SessionTracker(options) {
             thenDo(result);
         });
     }
- 
+
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // sandboxing for testing
     this.sandboxSetup = function() {
@@ -158,7 +159,7 @@ function SessionTracker(options) {
         this.initTrackerData();
         this.trackerData.isSandbox = true;
     }
-    
+
     this.sandboxTearDown = function() {
         if (!this.trackerData.isSandbox) return;
         console.log('Removing sandbox');
@@ -278,4 +279,3 @@ module.exports = function(route, app, subserver) {
 }
 
 module.exports.SessionTracker = SessionTracker;
-

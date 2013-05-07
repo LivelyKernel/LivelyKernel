@@ -13,9 +13,9 @@ var Client = websocket.client;
 
 function WebSocketClient(url, protocol) {
     EventEmitter.call(this);
-    this.setupClient();
     this.url = url;
     this.protocol = protocol;
+    this.setupClient();
 }
 
 util.inherits(WebSocketClient, EventEmitter);
@@ -70,8 +70,7 @@ util.inherits(WebSocketClient, EventEmitter);
         }
         this.lastMessage = json;
         this.emit("message", json);
-        console.log('...... emitting %s ', json.action, json.data)
-        json.action && json.data && this.emit(json.action, json.data);
+        json.action && json.data && this.emit(json.action, json);
     }
 
     this.connect = function() {
@@ -108,6 +107,7 @@ util.inherits(WebSocketClient, EventEmitter);
 // Server
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 function WebSocketServer() {
+    EventEmitter.call(this);
     this.connections = [];
     this.debug = true;
     this.route = '';
@@ -116,9 +116,11 @@ function WebSocketServer() {
     this.requiresSender = false;
 }
 
-util._extend(WebSocketServer.prototype, {
+util.inherits(WebSocketServer, EventEmitter);
 
-    listen: function(options) {
+(function() {
+
+    this.listen = function(options) {
         // options: {route: STRING, subserver: OBJECT, websocketImpl: OBJECT, action: [OBJECT]}
         // actions: key - func mapping to determine callbacks for lively-json
         // protocol and the actions automatically extracted from messages send
@@ -134,15 +136,15 @@ util._extend(WebSocketServer.prototype, {
         });
         this.subserver && this.subserver.on('close', function() { webSocketServer.close(); });
         return webSocketServer;
-    },
+    }
 
-    close: function() {
+    this.close = function() {
         this.removeConnections();
         if (!this.websocketImpl) return;
         this.websocketImpl.unregisterSubhandler({path: this.route});
-    },
+    }
 
-    accept: function(request) {
+    this.accept = function(request) {
         var c = request.accept('lively-json', request.origin), server = this;
 
         c.on('close', function(msg) {
@@ -167,9 +169,10 @@ util._extend(WebSocketServer.prototype, {
                 data.data);
             if (this.requiresSender && !sender) { console.warn('%s could not extract sender from incoming message %s', server, i(msg)); return; }
             if (!action) { console.warn('%s could not extract action from incoming message %s', server, i(msg)); return; }
+            server.emit(action, data);
             if (!server.actions[action]) { console.warn('%s could not handle %s from message %s', server, action, i(msg)); return; }
             try {
-                server.actions[action](c, sender, data);
+                server.actions[action](c, data);
             } catch(e) {
                 console.error('Error when dealing with %s requested from %s:\n%s: %s',
                     action, sender, e, e.stack);
@@ -181,12 +184,12 @@ util._extend(WebSocketServer.prototype, {
             this.sendUTF(data);
         }
 
-        this.addConnection(c);
+        this.addConnection(c, request);
 
         return c;
-    },
+    }
 
-    removeConnection: function(c) {
+    this.removeConnection = function(c) {
         if (!c) return;
         var id = typeof c === 'string' && c;
         if (id) {
@@ -197,34 +200,35 @@ util._extend(WebSocketServer.prototype, {
         var idx = this.connections.indexOf(c);
         if (idx === -1) return;
         this.connections.splice(idx, 1);
-    },
+    }
 
-    removeConnections: function() {
+    this.removeConnections = function() {
         this.connections.forEach(function(c) { this.removeConnection(c); }, this);
-    },
+    }
 
-    getConnection: function(id) {
+    this.getConnection = function(id) {
         return this.getConnections(id)[0];
-    },
+    }
 
-    getConnections: function(id) {
+    this.getConnections = function(id) {
         if (!id) return [].concat(this.connections);
         return this.connections.filter(function(c) { return c.id === id; })
-    },
+    }
 
-    addConnection: function(c) {
+    this.addConnection = function(c) {
         if (c.id) {
             var existing = this.getConnections(c.id);
             existing.forEach(function(ea) { this.removeConnection(ea); }, ea);
         }
         this.connections.push(c);
         return c;
-    },
+    }
 
-    toString: function() {
+    this.toString = function() {
         return f('WebSocketServer(%s, %s connections)', this.route, this.connections.length);
     }
-});
+
+}).call(WebSocketServer.prototype);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

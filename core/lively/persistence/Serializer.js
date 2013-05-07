@@ -1066,7 +1066,7 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
         return value && Object.isObject(value) && Object.isFunction(value.serializeExpr);
     },
     ignoreProp: function(obj, propName, value, copy) {
-        if (!this.canBeSerializedAsExpression(value)) return false;
+        if (!this.canBeSerializedAsExpression(value) || Object.isArray(obj)) return false;
         if (!copy[this.specialSerializeProperty]) {
             copy[this.specialSerializeProperty] = []
         };

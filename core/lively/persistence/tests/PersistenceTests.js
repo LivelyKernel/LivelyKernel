@@ -558,9 +558,20 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
         });
     },
     test04SpecialPropertyCleaned: function() {
-        var obj = {pos: lively.pt(1,2)};
-        var serialized = this.sut.serializeToJso(obj);
-        var deserialized = this.sut.deserializeJso(serialized);
+        var obj = {pos: lively.pt(1,2)},
+            serialized = this.sut.serializeToJso(obj),
+            deserialized = this.sut.deserializeJso(serialized);
+        this.assert(!deserialized.hasOwnProperty('__serializedExpressions__'));
+    },
+
+    test05ExprObjectsInArrays: function() {
+        var obj = {list: [lively.pt(1,2)]},
+            serialized = this.sut.serializeToJso(obj),
+            deserialized = this.sut.deserializeJso(serialized);
+        // FIXME actually we should expect a point here, since no class plugin
+        // is used it's just an object. Howver, expr should also work for
+        // arrays...
+        this.assertEqualState({x: 1, y:2}, deserialized.list[0]);
         this.assert(!deserialized.hasOwnProperty('__serializedExpressions__'));
     }
 });

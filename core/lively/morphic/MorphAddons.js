@@ -328,9 +328,10 @@ lively.morphic.Morph.addMethods(
         }
     },
     openInWorldCenter: function() {
-        //parallel functionality as in openPartItem
+        // redundant functionality as in openPartItem
         this.openInWorld();
         this.align(this.bounds().center(), $world.visibleBounds().center());
+        return this;
     },
 },
 'removing', {

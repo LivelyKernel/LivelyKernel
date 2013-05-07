@@ -19,7 +19,7 @@ Object.subclass('lively.net.WebSocket',
     OPEN:         1,
     CLOSING:      2,
     CLOSED:       3,
-    doNotSerialize: ['socket', '_open']
+    doNotSerialize: ['socket', 'callbacks']
 },
 'initializing', {
     initialize: function(uri, options) {
@@ -33,7 +33,13 @@ Object.subclass('lively.net.WebSocket',
         this._open = false;
         this.sendTimeout = options.timeout || 3 * 1000; // when to stop trying to send
         this.messageQueue = [];
+        this.callbacks = {};
         this.protocol = options.protocol ? options.protocol : null;
+    },
+
+    onrestore: function() {
+        this.callbacks = {};
+        this._open = false;
     },
 
     enableReconnect: function() { this.reopenClosedConnection = true; },
@@ -54,17 +60,47 @@ Object.subclass('lively.net.WebSocket',
         if (this._open && this.reopenClosedConnection) this.connect();
         this._open = false;
     },
+
     onMessage: function(evt) {
         this.messages.push(evt.data);
         lively.bindings.signal(this, 'message', evt.data);
         if (this.protocol !== 'lively-json') return;
+        var msg;
         try {
-            var msg = JSON.parse(evt.data);
-            if (msg && msg.action) lively.bindings.signal(this, msg.action, msg);
+            msg = JSON.parse(evt.data);
         } catch(e) {
             console.warn(show('%s failed to JSON parse message and dispatch %s: %s', this, evt.data, e));
+            return;
         }
+        msg && this.onLivelyJSONMessage(msg);
+    },
+
+    onLivelyJSONMessage: function(msg) {
+        // the lively-json protocol. Messages should be valid JSON in the form:
+        // msg = {
+        //   [messageId: NUMBER|STRING,] // optional identifier of the message
+        //   [inResponseTo: NUMBER|STRING,] // optional identifier of a message
+        //                                  // that this message answers
+        //   [messageIndex: NUMBER,] // Optional, might go away Really Soon,
+        //                           // currently used for debugging
+        //   action: STRING, // will specify what the receiver should do with
+        //                   // the message. Might be used as the key/name for
+        //                   // signaling data bindings or emitting events
+        //   data: OBJECT // the payload of the message
+        // }
+        var expectMore = !!msg.expectMoreResponses,
+            responseId = msg.inResponseTo,
+            callbacks = responseId && this.callbacks[responseId];
+        delete msg.expectMoreResponses;
+        delete msg.inResponseTo;
+        if (msg.action) lively.bindings.signal(this, msg.action, msg);
+        if (!callbacks) return;
+        callbacks.forEach(function(cb) { 
+            try { cb(msg, expectMore); } catch(e) { console.error(show('Error in websocket message callback')); }
+        });
+        if (!expectMore) callbacks.clear();
     }
+
 },
 'network', {
 
@@ -84,14 +120,34 @@ Object.subclass('lively.net.WebSocket',
         });
     },
 
-    send: function(data, options) {
+    send: function(data, options, callback) {
+        callback = Object.isFunction(options) ? options : callback;
+        options = Object.isFunction(options) ? {} : options;
+        var msg = this.queue(data, callback);
+        this.deliverMessageQueue(options);
+        return msg;
+    },
+
+    queue: function(data, callback) {
+        var msgString;
         if (typeof data !== 'string') {
             if (!this._messageCounter) this._messageCounter = 0;
             data.messageIndex = ++this._messageCounter;
-            data = JSON.stringify(data);
+            // hmm messageIndex is not really an id
+            data.messageId = data.messageId || data.messageIndex;
+            if (callback) {
+                var callbacks = this.callbacks[data.messageId] = this.callbacks[data.messageId] || [];
+                callbacks.push(callback);
+            }
+            msgString = JSON.stringify(data);
+        } else {
+            if (callback) {
+                console.warn(show('Websocket message callbacks are only supported for JSON messages!'));
+            }
+            msgString = data;
         }
-        this.messageQueue.push(data);
-        this.deliverMessageQueue();
+        this.messageQueue.push(msgString);
+        return data;
     },
 
     deliverMessageQueue: function(options) {

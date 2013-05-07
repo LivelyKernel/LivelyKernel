@@ -1657,17 +1657,17 @@ lively.morphic.World.addMethods(
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [
-                ['About this wiki', this.openAboutBox.bind(this)],
-                ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
-                ['View versions of this world', this.openVersionViewer.bind(this)],
+                ['Lively2Lively Inspector', function() {
+                    require('lively.net.tools.Lively2Lively').toRun(function() {
+                       lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter();
+                    });
+                }],
+                // ['About this wiki', this.openAboutBox.bind(this)],
+                // ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
+                // ['View versions of this world', this.openVersionViewer.bind(this)],
                 ['Download world', function() {
                     require('lively.persistence.StandAlonePackaging').toRun(function() {
                         lively.persistence.StandAlonePackaging.packageCurrentWorld();
-                    });
-                }],
-                ['Upload world to Dropbox', function() {
-                    require('apps.Dropbox').toRun(function() {
-                        DropboxAPI.uploadArchivedWorld();
                     });
                 }],
                 ['Delete world', this.interactiveDeleteWorldOnServer.bind(this)]

@@ -212,7 +212,7 @@ Object.extend(lively.net.SessionTracker, {
 
 (function setupSessionTrackerConnection() {
     lively.whenLoaded(function() {
-        false && lively.net.SessionTracker.closeSession();
+        lively.net.SessionTracker.createSession();
     });
 })();
 

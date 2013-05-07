@@ -126,7 +126,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         } catch(e) {
             result = e + '\n' + e.stack;
         }
-        this.send('remoteEvalRequest', {result: result, origin: msg.data.origin})
+        this.send('remoteEvalRequest', {result: String(result), origin: msg.data.origin})
     },
 
     openForRemoteEvalRequests: function() {

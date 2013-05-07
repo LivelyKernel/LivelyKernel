@@ -259,7 +259,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
                 exec: this.doit.bind(this, false),
                 multiSelectAction: "forEach",
-                readOnly: false // false if this command should not apply in readOnly mode
+                readOnly: true // false if this command should not apply in readOnly mode
             }, {
                 name: 'printit',
                 bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},

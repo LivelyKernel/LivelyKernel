@@ -482,18 +482,21 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
     },
 
     runTest: function() {
-        var klass = this.getTestClass(),
-            node = this.getSelectedNode(),
-            testSelector = node.isMemberNode && node.target.getName(),
-            test = new klass(),
-            tests = undefined;
-        if (testSelector) {
-            alertOK('Running test ' + klass.type + '>>' + testSelector);
-            tests = [new klass(test.result, testSelector)];
-        } else {
-            alertOK('Running all tests of ' + klass.type);
-        }
-        test.runAllThenDo(null, this.showTestResult.bind(this, klass.name, testSelector, test), tests);
+        var moduleName = this.browser.getSelectedModule().name();
+        require(moduleName).toRun(function() {
+            var klass = this.getTestClass(),
+                node = this.getSelectedNode(),
+                testSelector = node.isMemberNode && node.target.getName(),
+                test = klass && new klass(),
+                tests = undefined;
+            if (testSelector) {
+                alertOK('Running test ' + klass.type + '>>' + testSelector);
+                tests = [new klass(test.result, testSelector)];
+            } else {
+                alertOK('Running all tests of ' + klass.type);
+            }
+            test.runAllThenDo(null, this.showTestResult.bind(this, klass.name, testSelector, test), tests);
+        }.bind(this));
     },
 
     trigger: function() {

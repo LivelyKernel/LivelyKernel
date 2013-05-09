@@ -161,6 +161,11 @@ TracerStackNode.subclass('TracerTreeNode', {
         return str;
     },
 
+    printTraceStartMethod: function() {
+        var lines = String(this.method).split('\n');
+        return lines.join(' ').replace(/\s+/g, ' ');
+    },
+
     toString: function(major, minor) {
         if(!major) {major = "ticks";  minor = "tally"};
         return '(' + this[major].toString() + ' / ' + this[minor].toString() + ') ' + this.method.qualifiedMethodName();
@@ -264,7 +269,12 @@ Object.extend(lively.Tracing, {
         if (options.printToConsole) {
             console.log(context.fullString(options));
         } else if (options.openWindow) {
-            lively.morphic.World.current().addTextWindow(context.fullString(options));
+            lively.morphic.World.current().addCodeEditor({
+                title: "Trace for " + context.printTraceStartMethod().truncate(60),
+                content: context.fullString(options),
+                textMode: 'text',
+                gutter: false
+            });
         }
     },
 

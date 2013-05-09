@@ -35,7 +35,13 @@ lively.Worker = {
         function init(worker) {
             var bootstrapFiles = LivelyLoader.bootstrapFiles.map(function(url) {
                 return '/' + URL.create(url).relativePathFrom(URL.root); });
-            worker.postMessage({command: 'setup', options: {bootstrapFiles: bootstrapFiles}});
+            worker.postMessage({
+                command: 'setup',
+                options: {
+                    locationDirectory: JSLoader.currentDir(),
+                    bootstrapFiles: bootstrapFiles
+                }
+            });
             worker.onmessage = function(evt) {
                 if (evt.data.workerReady) { worker.ready = true; return; }
                 if (worker.onMessage) worker.onMessage(evt);
@@ -70,10 +76,7 @@ lively.Worker = {
                         importScripts(url);
                     },
                     currentDir: function () {
-                        return this.dirOfURL(location.href.toString());
-                    },
-                    dirOfURL: function (url) {
-                        return url.substring(0, url.lastIndexOf('/') + 1);
+                        return options.locationDirectory;
                     }
                 }
                 Global.LivelyMigrationSupport = {

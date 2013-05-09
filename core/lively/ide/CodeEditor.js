@@ -855,6 +855,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     getSelectionMaybeInComment: function() {
+    /*   If you click to the right of '//' in the following...
+    'wrong' // 'try this'.slice(4)  //should print 'this'
+    'http://zork'.slice(7)          //should print 'zork'
+    */
         // If click is in comment, just select that part
         var range = this.getSelectionRangeAce(),
             isNullSelection = range.isEmpty(),
@@ -864,7 +868,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
         // text now equals the text of the current line, now look for JS comment
         var idx = text.indexOf('//');
-        return  (idx === -1 || pos.column < idx) ? text : text.slice(idx+2);
+        if (idx === -1                          // Didn't find '//' comment
+            || pos.column < idx                 // the click was before the comment
+            || (idx>0 && (':"'+"'").indexOf(text[idx-1]) >=0)    // weird cases
+            ) return text;
+        show(idx);  show(range); show(this.getSelectionRangeAce());
+        range.start.column = idx+2; range.end.column = text.length;
+        this.setSelectionRangeAce(range)
+        return text.slice(idx+2);
     },
 
     selectCurrentLine: function(reverse) {

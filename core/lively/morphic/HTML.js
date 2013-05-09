@@ -806,7 +806,17 @@ lively.morphic.Shapes.Shape.addMethods(
         var child = ctx.morphNode.childNodes[0];
         if (!child) ctx.morphNode.appendChild(ctx.shapeNode)
         else ctx.morphNode.insertBefore(ctx.shapeNode, child)
+    },
+    reallyContainsPoint: function(pt) {
+        // Overridden for non-rectangular shapes like lines and ellipses
+        // Note assumes that pt is within this.bounds
+        return true
+    },
+    newMethod: function() {
+        // enter comment here
     }
+
+
 },
 'updating', {
     setPositionHTML: function(ctx, value) {
@@ -954,6 +964,19 @@ lively.morphic.Shapes.Ellipse.addMethods(
         // ellipses border radius are the radius of the ellipse itself
         return;
     },
+    reallyContainsPoint: function(p) {
+        // Check that p is really within the ellipse shape
+        // Note border width not yet taken into account
+        var bnds = this.getBounds();
+        var a = p.x/bnds.width, b = p.y/bnds.height;
+
+        // If it is filled, then any inside point is a hit
+        if (this.getFill() != null) return a*a + b*b <= 0.25; 
+
+        // Case of unfilled ellipse we allow outer ring
+        return a*a + b*b > 0.20 && a*a + b*b < 0.25;
+    }
+
 });
 
 lively.morphic.Shapes.Image.addMethods(
@@ -1095,6 +1118,38 @@ lively.morphic.Shapes.Path.addMethods(
         if (ctx.svgNode)
             ctx.domInterface.setFill(ctx.svgNode, value, this.getBounds());
     },
+    reallyContainsPoint: function(p) {
+        // Note border width not yet taken into account
+        var verts = this.vertices();
+        if (this.getFill() == null) {
+            // Check here for point p over segments of a polyline
+            var howNear = 4;  // Less than 4 pixels is considered "over"
+            for (var i = 1; i < verts.length; i++) {
+                var pNear = p.nearestPointOnLineBetween(verts[i-1], verts[i]);
+                if (pNear.dist(p) < howNear) return true; }  // Was "on" the path
+            return false;
+        }
+        // Check here for point p in a polygon
+        var counter = 0;
+        var p1 = verts[0];
+        for (var i = 1; i <= verts.length; i++) {
+            var p2 = verts[i % verts.length];
+            if (p.y > Math.min(p1.y, p2.y)) {
+            if (p.y <= Math.max(p1.y, p2.y)) {
+                if (p.x <= Math.max(p1.x, p2.x)) {
+                if (p1.y != p2.y) {
+                    var xinters = (p.y-p1.y)*(p2.x-p1.x)/(p2.y-p1.y)+p1.x;
+                    if (p1.x == p2.x || p.x <= xinters)
+                    counter ++;
+                }
+                }
+            }
+            }
+            p1 = p2;
+        }
+        return counter % 2 != 0;
+    },
+
     setBorderStyleHTML: function(ctx, value) {
         if (value == 'dashed')
             ctx.svgNode.setAttribute('stroke-dasharray', '7 4')

@@ -179,7 +179,9 @@ console.warn("ctls = " + Object.inspect(ctls));
 
 },
 'testing', {
-    containsPoint: function(p) { return this.bounds().containsPoint(p) },
+    containsPoint: function(p) { 
+        return this.bounds().containsPoint(p)
+    },
 },
 'normalizing', {
     normalize: function(hintX, hintY) {

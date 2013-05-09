@@ -722,6 +722,15 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt) {
+        if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
+            // Click point was not really on this path;  try next things below
+            var others = this.world().morphsContainingPoint(evt.getPosition());
+            for (var i=1; i<others.length; i++) {
+                if (!others[i].eventsAreIgnored) {
+                    return others[i].onMouseDownEntry(evt); }
+                }
+            return false;
+        }
         // checkMouseUpEntry if mouse is on the scrollbar
         var suppressScrollbarClick = (this.showsVerticalScrollBar()
                                     || this.showsHorizontalScrollBar())
@@ -770,6 +779,15 @@ handleOnCapture);
     onMouseUp: function(evt) { return false; },
 
     onMouseUpEntry: function(evt) {
+        if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
+            // Click point was not really on this path;  try next things below
+            var others = this.world().morphsContainingPoint(evt.getPosition());
+            for (var i=1; i<others.length; i++) {
+                if (!others[i].eventsAreIgnored) {
+                    return others[i].onMouseUpEntry(evt); }
+                }
+            return false;
+        }
         var world = evt.world,
             completeClick = world.clickedOnMorph === this,
             internalCompleteClick = evt.hand.internalClickedOnMorph === this;

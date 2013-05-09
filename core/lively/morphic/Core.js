@@ -32,7 +32,12 @@ Object.subclass('lively.morphic.Morph',
     makeStyleSpec: function() {
         // FIXME implement
         return {}
+    },
+    shapeContainsPoint: function(pt) {
+        // Need to check for non-rectangular shapes
+        return this.shape.reallyContainsPoint(pt)
     }
+
 },
 'accessing -- morph properties', {
     setPosition: function(value) {

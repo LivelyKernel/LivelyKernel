@@ -56,6 +56,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                 _code: '',
 
                 readInterval: function() {
+                    debugger
                     var xhr = webR.status && webR.status.transport;
                     if (!xhr) return;
                     this.read(xhr.responseText);
@@ -63,7 +64,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
                 startInterval: function() {
                     this.endInterval();
-                    this.interval = Global.setInterval(this.readInterval.bind(this), 50);
+                    this.interval = Global.setInterval(this.readInterval.bind(this), 200);
                 },
 
                 endInterval: function() {
@@ -71,6 +72,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                 },
 
                 read: function(string) {
+                    debugger;
                     var input = string.slice(this.streamPos, string.length),
                         headerMatch = input.match(/^<SHELLCOMMAND\$([A-Z]+)([0-9]+)>/);
                     if (!headerMatch) return;
@@ -91,14 +93,15 @@ Object.extend(lively.ide.CommandLineInterface, {
 
                 startRequest: function() {
                     cmdLineInterface.commandInProgress = this;
-                    webR.post(JSON.stringify({command: parsedCommand, stdin: options.stdin}), 'application/json');
-                    this.startInterval();
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) {
                             if (status.isDone()) $upd.curry(status).delay(0.1); }});
+                    webR.post(JSON.stringify({command: parsedCommand, stdin: options.stdin}), 'application/json');
+                    this.startInterval();
                 },
 
                 endRequest: function(status) {
+                    debugger;
                     cmdLineInterface.commandInProgress = null;
                     this.endInterval();
                     this.read(status.transport.responseText);
@@ -215,6 +218,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                     return results[variable] && results[variable].isShellCommand ?
                         results[variable].resultString() : (results[variable] || ''); });
             }
+            debugger;
             runCommand.call(this, cmd, ea.options || {}, function(cmd) {
                 var name = ea.name || String(i);
                 results[name] = ea.transform ? ea.transform(cmd) : cmd;

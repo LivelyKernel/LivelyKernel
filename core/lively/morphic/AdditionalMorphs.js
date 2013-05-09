@@ -70,7 +70,10 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
     }
 },
 'accessing', {
-    vertices: function() { return this.shape.vertices() }
+    vertices: function() { return this.shape.vertices() },
+
+
+
 },
 'vertex and control point computations', {
     pathBetweenRects: function(rect1, rect2) {

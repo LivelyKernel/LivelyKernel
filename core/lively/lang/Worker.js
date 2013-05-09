@@ -27,7 +27,7 @@ setTimeout(function() { worker.terminate(); }, 5000);
 
 lively.Worker = {
     isAvailable: !!window.Worker,
-
+    errors: [],
     create: function(taskFunc) {
         // This code is triggered in the UI process directly after the
         // creation of the worker and sends the setup message to the worker
@@ -35,27 +35,31 @@ lively.Worker = {
         // console.log function of the worker that is installed in
         // #workerSetupCode below
         function run(worker) {
-            var msgChannel = new MessageChannel();
-            worker.postMessage("setup", [msgChannel.port2]);
-            msgChannel.port1.onmessage = function(evt) {
+            worker.postMessage({command: 'setup'});
+            worker.onmessage = function(evt) {
                 var args = evt.data;
+                show(evt.data);
                 console.log.apply(console, args);
+            }
+            worker.errors = [];
+            worker.onerror = function(evt) {
+                worker.errors.push(evt);
             }
         }
 
         // This code is run inside the worker and initializes it. It installs
         // a console.log method since since this is not available by default.
         function workerSetupCode() {
-            self.onmessage = function(evt) {
-                if (evt.data !== "setup") return;
-                self.onmessage = null; // delete setup handler
-                self.console = {
-                    _port: evt.ports[0],
-                    log: function log() {
-                        var args = Array.prototype.slice.call(arguments);
-                        self.console._port.postMessage(args);
-                    }
+            self.realonmessage = function(evt) {
+                if (evt.data.command == "eval") {
+                    postMessage({response: "response", value: String(eval(evt.data.source))});
+                    return;
                 }
+            }
+
+            self.onmessage = function(evt) {
+                if (evt.data.command !== "setup") return;
+                self.onmessage = self.realonmessage; // delete setup handler
                 self.httpRequest = function (options) {
                     if (!options.url) {
                         console.log("Error, httpRequest needs url");
@@ -87,7 +91,37 @@ lively.Worker = {
             code = code.slice(0, code.lastIndexOf('}'));
             return code;
         }
+        
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // yoshiki and robert, May 8 2013: Inserted code that sets up the lively context
+        // and globals of Lively:
+        function initGlobals(bootstrapFiles) {
+            Global = this;
+            Global.window = Global;
+            Global.lively={};
+            Global.console = {
+                log: function() {}, error: function() {}, warn: function() {}
+            }
+            Global.JSLoader = {
+                loadJs: function(url, callback) {
+                    var match = url.match(/http:\/\/[^\/]+(\/?.*)/);
+                    if (match && match[1]) url = match[1];
+                    importScripts(url);
+                },
+                currentDir: function () {
+                    return this.dirOfURL(location.href.toString());
+                },
+                dirOfURL: function (url) {
+                    return url.substring(0, url.lastIndexOf('/') + 1);
+                }
+            }
+            Global.LivelyMigrationSupport = {
+                fixModuleName: function(n) { return n}
+            }
+            importScripts.apply(this, bootstrapFiles);
+        }
 
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // combine the task code extracted from taskFunc with the setup code
         var workerCode = extractCodeOfFunction(workerSetupCode),
             workerTaskCode = extractCodeOfFunction(taskFunc);
@@ -102,6 +136,13 @@ lively.Worker = {
         var worker = new Worker(codeFile.getURL().toString());
         run(worker);
         codeFile.del();
+        Strings.quote('foo')
+        var bootstrapFiles = LivelyLoader.bootstrapFiles.map(function(url) {
+            return Strings.quote('/' + URL.create(url).relativePathFrom(URL.root)); });
+        worker.postMessage({
+            command: "eval",
+            source: Strings.format('(%s).call(this, %s);',
+                    initGlobals, bootstrapFiles)});
         return worker;
     }
 }

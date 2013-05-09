@@ -79,6 +79,9 @@ Global.UserAgent = {
 // --------------------------
 (function savePreBootstrapConfig() {
     Global.ExistingConfig = Global.Config;
+    if (Global.ExistingConfig) {
+        delete Global.ExistingConfig._options;
+    }
 })();
 
 Global.Config = {

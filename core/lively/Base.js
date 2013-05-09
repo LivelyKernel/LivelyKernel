@@ -425,15 +425,6 @@ Global.Class = {
 
 };
 
-(function setupjQuery(Global) {
-    var lively = Global.lively,
-        jQuery = Global.jQuery;
-    // we still are adding jQuery to Global but this is DEPRECATED
-    // We need to be able to run with libraries requiring different jQuery versions
-    // so we will restrict "our" to lively.$ in the future
-    Global.$ = lively.$ = jQuery.noConflict(/*true -- really removes $*/);
-})(Global);
-
 Object.extend(Global, {
     dbgOn: function dbgOn(cond, optMessage) {
         if (cond && optMessage) console.warn(optMessage);

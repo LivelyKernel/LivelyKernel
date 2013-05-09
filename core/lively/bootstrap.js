@@ -742,7 +742,7 @@
         },
 
         loadAll: function(urls, cb) {
-            urls.reverse().reduce(function(loadPrevious, url) {
+            [].concat(urls).reverse().reduce(function(loadPrevious, url) {
                 return function() { Global.JSLoader.loadJs(url, loadPrevious); };
             }, function() { if (cb) cb(); })();
         },
@@ -886,8 +886,8 @@
     // TODO: Something is wrong with the lively-libs, use debug only to
     // activate loading on ios 5
     var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
+        libsFiles = [libsFile],
         bootstrapFiles = [
-            libsFile,
             'lively/Migration.js',
             'lively/JSON.js',
             'lively/lang/Object.js',
@@ -953,6 +953,7 @@
     // ------- generic load support ----------
     Global.LivelyLoader = {
         libsFile: libsFile,
+        libsFiles: libsFiles,
         bootstrapFiles: bootstrapFiles,
         codeBase: codeBase,
         rootPath: rootPath,
@@ -1028,7 +1029,17 @@
                 return;
             }
 
-            Global.JSLoader.resolveAndLoadAll(cb, this.bootstrapFiles, thenDoFunc);
+            Global.JSLoader.resolveAndLoadAll(cb, [this.libsFiles], function() {
+                (function setupjQuery(Global) {
+                    var lively = Global.lively,
+                        jQuery = Global.jQuery;
+                    // we still are adding jQuery to Global but this is DEPRECATED
+                    // We need to be able to run with libraries requiring different jQuery versions
+                    // so we will restrict "our" to lively.$ in the future
+                    Global.$ = lively.$ = jQuery.noConflict(/*true -- really removes $*/);
+                })(Global);
+                Global.JSLoader.resolveAndLoadAll(cb, Global.LivelyLoader.bootstrapFiles, thenDoFunc);
+            });
         }
 
     };
@@ -1227,19 +1238,7 @@
     function initNodejsBootstrap() {
         // remove libs, JSON:
         Global.LivelyLoader.bootstrapFiles = [
-            'lib/lively-libs-nodejs.js',
-            'lively/Migration.js',
-            'lively/lang/Object.js',
-            'lively/lang/Function.js',
-            'lively/lang/String.js',
-            'lively/lang/Array.js',
-            'lively/lang/Number.js',
-            'lively/lang/Date.js',
-            'lively/lang/Worker.js',
-            'lively/defaultconfig.js',
-            'lively/Base.js',
-            'lively/ModuleSystem.js'
-        ];
+            'lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
         var bootstrapModules = [
             'lively.lang.Closure',
             'lively.lang.UUID',

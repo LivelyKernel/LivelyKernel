@@ -872,7 +872,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             || pos.column < idx                 // the click was before the comment
             || (idx>0 && (':"'+"'").indexOf(text[idx-1]) >=0)    // weird cases
             ) return text;
-        show(idx);  show(range); show(this.getSelectionRangeAce());
+        
+        // Select and return the text between the comment slashes and end of method
         range.start.column = idx+2; range.end.column = text.length;
         this.setSelectionRangeAce(range)
         return text.slice(idx+2);

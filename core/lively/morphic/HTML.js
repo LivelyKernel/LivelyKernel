@@ -963,8 +963,8 @@ lively.morphic.Shapes.Ellipse.addMethods(
     reallyContainsPoint: function(p) {
         // Check that p is really within the ellipse shape
         // Note border width not yet taken into account
-        var bnds = this.getBounds();
-        var a = p.x/bnds.width, b = p.y/bnds.height;
+        var bnds = this.getBounds(), c = bnds.center();
+        var a = (p.x-c.x)/bnds.width, b = (p.y-c.y)/bnds.height;
 
         // If it is filled, then any inside point is a hit
         if (this.getFill() != null) return a*a + b*b <= 0.25; 

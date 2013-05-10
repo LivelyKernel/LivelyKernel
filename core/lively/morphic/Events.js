@@ -721,13 +721,17 @@ handleOnCapture);
         return false;
     },
 
-    onMouseDownEntry: function(evt) {
+    onMouseDownEntry: function(evt, allHits) {
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
-            // Click point was not really on this path;  try next things below
-            var others = this.world().morphsContainingPoint(evt.getPosition());
-            for (var i=1; i<others.length; i++) {
-                if (!others[i].eventsAreIgnored) {
-                    return others[i].onMouseDownEntry(evt); }
+            // Click point was not really on this morph;  try next thing below
+            if (!allHits) allHits = this.world().morphsContainingPoint(evt.getPosition());
+            var below = false;
+            // Call recursively on next morph below this one
+            for (var i=0; i<allHits.length; i++) {
+                if (below) {
+                    if (!allHits[i].eventsAreIgnored) {
+                        return allHits[i].onMouseDownEntry(evt, allHits); } }
+                else if (allHits[i] === this) below = true;
                 }
             return false;
         }
@@ -778,13 +782,17 @@ handleOnCapture);
 
     onMouseUp: function(evt) { return false; },
 
-    onMouseUpEntry: function(evt) {
+    onMouseUpEntry: function(evt, allHits) {
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
-            // Click point was not really on this path;  try next things below
-            var others = this.world().morphsContainingPoint(evt.getPosition());
-            for (var i=1; i<others.length; i++) {
-                if (!others[i].eventsAreIgnored) {
-                    return others[i].onMouseUpEntry(evt); }
+            // Click point was not really on this morph;  try next thing below
+            if (!allHits) allHits = this.world().morphsContainingPoint(evt.getPosition());
+            var below = false;
+            // Call recursively on next morph below this one
+            for (var i=0; i<allHits.length; i++) {
+                if (below) {
+                    if (!allHits[i].eventsAreIgnored) {
+                        return allHits[i].onMouseUpEntry(evt, allHits); } }
+                else if (allHits[i] === this) below = true;
                 }
             return false;
         }

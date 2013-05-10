@@ -111,7 +111,8 @@ util.inherits(WebSocketClient, EventEmitter);
 function WebSocketListener(options) {
     options = options || {
         autoAcceptConnections: false, // origin check
-        maxReceivedFrameSize: 128*Math.pow(2,10)
+        maxReceivedFrameSize: NaN, // default: 0x10000 64KiB // we don't want to care for now...
+        maxReceivedMessageSize: NaN // default: 0x100000 1MiB
     }
     var init = this.init.bind(this, options);
     var server = lifeStar.getServer();

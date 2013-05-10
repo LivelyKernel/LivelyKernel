@@ -1,15 +1,16 @@
-var util = require('util');
-var i = util.inspect;
-var f = util.format;
-var EventEmitter = require('events').EventEmitter;
+var util = require('util'),
+    i = util.inspect,
+    f = util.format,
+    j = require('path').join,
+    EventEmitter = require('events').EventEmitter,
+    lifeStarDir = j(process.env.LK_SCRIPTS_ROOT, 'node_modules/life_star'),
+    websocket = require(j(lifeStarDir, 'node_modules/websocket')),
+    lifeStar = require(lifeStarDir);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // client
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-var j = require('path').join;
-var lifeStarDir = j(process.env.LK_SCRIPTS_ROOT, 'node_modules/life_star');
-var websocket = require(j(lifeStarDir, 'node_modules/websocket'));
-var Client = websocket.client;
+var WebSocketClientImpl = websocket.client;
 
 function WebSocketClient(url, protocol) {
     EventEmitter.call(this);
@@ -24,7 +25,7 @@ util.inherits(WebSocketClient, EventEmitter);
 
     this.setupClient = function() {
         var self = this;
-        var c = this._client = new Client();
+        var c = this._client = new WebSocketClientImpl();
 
         c.on('connectFailed', function(e) {
             self.onConnectionFailed(e);
@@ -106,6 +107,86 @@ util.inherits(WebSocketClient, EventEmitter);
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Server
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+function WebSocketListener(options) {
+    options = options || {
+        autoAcceptConnections: false, // origin check
+        maxReceivedFrameSize: 128*Math.pow(2,10)
+    }
+    var init = this.init.bind(this, options);
+    var server = lifeStar.getServer();
+    if (server) init(server);
+    else lifeStar.on('start', init);
+    lifeStar.on('close', this.shutDown.bind(this));
+    this.requestHandler = {};
+}
+
+util.inherits(WebSocketListener, websocket.server);
+
+(function() {
+    
+    this.init = function(options, server) {
+        options = options || {};
+        if (this._started) this.shutDown();
+        var existingListener = server.websocketHandler;
+        if (existingListener) { server.removeAllListeners('upgrade'); }
+        options.httpServer = server;
+        websocket.server.call(this, options); // super call
+        this.on('request', this.dispatchRequest.bind(this));
+        this._started = true;
+    }
+
+    this.registerSubhandler = function(options) {
+      this.requestHandler[options.path] = options.handler;
+    }
+
+    this.unregisterSubhandler = function(options) {
+      if (options.path) {
+        delete this.requestHandler[options.path];
+      }
+    }
+
+    this.originIsAllowed = function(origin) { return true }
+    
+    this.findHandler = function(request) {
+        var path = request.resourceURL.path,
+            handler = this.requestHandler[path];
+        if (handler) return handler;
+        request.reject();
+        console.warn('Got websocket request to %s but found no handler for responding\n%s', path, i(request, null, 0));
+        return null;
+    }
+
+    this.shutDown = function(request) {
+        console.log('Stopping websocket listener');
+        Object.keys(this.requestHandler).forEach(function(path) {
+            this.unregisterSubhandler(path); }, this);
+        websocket.server.prototype.shutDown.call(this);
+    }
+
+    this.dispatchRequest = function(request) {
+        if (!this.originIsAllowed(request.origin)) {
+            request.reject();
+            console.log('Connection from origin %s rejected.', request.origin);
+            return;
+        }
+        var handler = this.findHandler(request);
+        try {
+            handler && handler(request);
+        } catch(e) {
+            console.warn('Error handling websocket request: %s', e);
+        }
+    }
+
+}).call(WebSocketListener.prototype);
+
+WebSocketListener.forLively = function() {
+    return this._instance = this._instance ?
+        this._instance : new WebSocketListener();
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 function WebSocketServer() {
     EventEmitter.call(this);
     this.connections = [];
@@ -129,7 +210,7 @@ util.inherits(WebSocketServer, EventEmitter);
         this.actions = options.actions;
         this.route = options.route;
         this.subserver = options.subserver;
-        this.websocketImpl = options.websocketImpl || this.subserver.handler.server.websocketHandler;
+        this.websocketImpl = WebSocketListener.forLively();
         this.websocketImpl.registerSubhandler({
             path: options.route,
             handler: webSocketServer.accept.bind(webSocketServer)
@@ -174,8 +255,8 @@ util.inherits(WebSocketServer, EventEmitter);
             try {
                 server.actions[action](c, data);
             } catch(e) {
-                console.error('Error when dealing with %s requested from %s:\n%s: %s',
-                    action, sender, e, e.stack);
+                console.error('Error when dealing with %s requested from %s:\n',
+                    action, sender, e.stack);
             }
         });
         c.send = function(data) {
@@ -230,6 +311,9 @@ util.inherits(WebSocketServer, EventEmitter);
 
 }).call(WebSocketServer.prototype);
 
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+// -=-=-=-
+// exports
+// -=-=-=-
 
 module.exports = {WebSocketServer: WebSocketServer, WebSocketClient: WebSocketClient};

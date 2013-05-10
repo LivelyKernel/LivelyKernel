@@ -4,10 +4,10 @@
 var inspect = require("util").inspect;
 var WebSocketServer = require('./support/websockets').WebSocketServer;
 var actions = {
-    helloWorld: function(c, sender, req) {
-        console.log("Got message %s", inspect(req.data));
-        c.send({action: 'helloWorldReply', data: 'message from server'});
-        c.close();
+    helloWorld: function(c, msg) {
+        console.log("Got message %s", inspect(msg));
+        c.send({action: 'helloWorldReply', data: 'received message, ' + msg.data.length + ' chars'});
+        setTimeout(c.close.bind(c), 5 * 1000);
     }
 };
 

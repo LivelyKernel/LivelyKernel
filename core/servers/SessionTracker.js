@@ -82,18 +82,15 @@ var sessionActions = {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // SessionTracker
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-var WebSocketServer = require('./support/websockets').WebSocketServer;
-var WebSocketClient = require('./support/websockets').WebSocketClient;
+var websockets = require('./support/websockets');
+var WebSocketServer = websockets.WebSocketServer;
+var WebSocketClient = websockets.WebSocketClient;
 
 function SessionTracker(options) {
-    // options = {route: STRING, subserver: OBJECT || websocketImpl: OBJECT}
+    // options = {route: STRING, subserver: OBJECT}
     options = options || {};
     this.route = options.route + 'connect';
     this.subserver = options.subserver;
-    this.websocketImpl = this.subserver ?
-        this.subserver.handler.server.websocketHandler :
-        options.websocketImpl;
     this.websocketServer = new WebSocketServer();
     this.websocketClients = {}; // for connections to other servers
     this.inactiveSessionRemovalTime = options.inactiveSessionRemovalTime || 60*1000;
@@ -113,8 +110,7 @@ function SessionTracker(options) {
         this.websocketServer.listen({
             route: this.route,
             actions: actions,
-            subserver: this.subserver,
-            websocketImpl: this.websocketImpl
+            subserver: this.subserver
         });
     }
 
@@ -229,9 +225,8 @@ SessionTracker.createServer = function(options) {
         console.warn('Not creating new session tracker on route %s -- tracker already existing!', options.route)
         return this.servers[options.route];
     }
-    if (!options.subserver && !options.websocketImpl) {
-        console.error('To create a SessionTracker either a subserver or a websocketImpl is needed!')
-        return null;
+    if (!options.subserver) {
+        console.warn('SessionTracker without subserver created!')
     }
     var tracker = new this(options);
     SessionTracker.servers[options.route] = tracker;

@@ -60,13 +60,13 @@ var sessionActions = {
             connection.send({action: msg.action, data: {error: 'Target connection not found', target: msg.data.target}});
             return;
         }
-        targetConnection.send({action: 'remoteEvalRequest', data: {origin: msg.sender, expr: msg.data.expr}});
+        targetConnection.send({action: 'remoteEvalRequest', data: {origin: msg.sender, expr: msg.data.expr, requestMessageId: msg.messageId}});
     },
 
     remoteEvalRequest: function(sessionServer, connection, msg) {
         var originConnection = sessionServer.websocketServer.getConnection(msg.data.origin);
         if (!originConnection) return;
-        originConnection.send({action: 'remoteEval', data: msg.data});
+        originConnection.send({action: 'remoteEval', inResponseTo: msg.data.requestMessageId, data: msg.data});
     },
 
     initServerToServerConnect: function(sessionServer, connection, msg) {
@@ -213,7 +213,7 @@ function SessionTracker(options) {
 
 }).call(SessionTracker.prototype);
 
-SessionTracker.servers = {}
+SessionTracker.servers = SessionTracker.servers || {}
 
 SessionTracker.createServer = function(options) {
     options = options || {};

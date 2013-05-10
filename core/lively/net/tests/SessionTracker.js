@@ -40,13 +40,12 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             cameOnline = true;
             this.sut.unregister();
         }.bind(this));
-        this.delay(function() {
-            this.assert(cameOnline, 'connection was never online?');
+        this.waitFor(function() { return cameOnline; }, 100, function() {
             var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
             this.assertEqualState({local: []}, sessions);
             this.done();
-        }, 200);
-    },
+        });
+},
 
     testLostConnectionIsRemoved: function() {
         var cameOnline = false;
@@ -56,15 +55,35 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             disconnectAll(this.sut.webSocket); // so that close does not trigger reconnect
             this.sut.webSocket.close();
         }.bind(this));
-        this.delay(function() {
+        this.waitFor(function() { return cameOnline; }, 100, function() {
             var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
             this.assertEquals(1, sessions.local.length, 'session removed to early?');
-        }, 200);
-        this.delay(function() {
-            var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-            this.assertEquals(0, sessions.local.length, 'session not removed');
+            this.delay(function() {
+                var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
+                this.assertEquals(0, sessions.local.length, 'session not removed');
+                this.done();
+            }, 600);
+        });
+    },
+
+    testAutoReconnectToRestartedServer: function() {
+        this.done();
+        return
+        this.sut.register();
+        this.sut.whenOnline(function() {
+            this.assert(this.sut.isConnected(), 'session not connected')
+            // lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL);
             this.done();
-        }, 700);
+        }.bind(this));
+        // this.delay(function() {
+        //     var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
+        //     this.assertEquals(1, sessions.local.length, 'session removed to early?');
+        // }, 200);
+        // this.delay(function() {
+        //     var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
+        //     this.assertEquals(0, sessions.local.length, 'session not removed');
+        //     this.done();
+        // }, 700);
     },
 
     testRemoteEval: function() {
@@ -105,7 +124,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
     }
 },
 'testing', {
-    testRegisterCurrentWorld: function() {
+    testConnect2Servers: function() {
         var c1 = this.client1, c2 = this.client2;
         c1.register(); c2.register();
         this.waitFor(function() { return c1.isConnected() && c2.isConnected(); }, 50, function() {

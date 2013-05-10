@@ -33,14 +33,14 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.webSocket = null;
     },
 
-    send: function(action, jso) {
+    send: function(action, jso, callback) {
         if (!this.sessionId) { throw new Error('Need sessionId to interact with SessionTracker!') }
         jso = jso || {};
         this.getWebSocket().send({
             sender: this.sessionId,
             action: action,
             data: jso
-        });
+        }, {}, callback);
     },
 
     isConnected: function() {
@@ -73,23 +73,22 @@ Object.subclass('lively.net.SessionTrackerConnection',
     connectionEstablished: function() {
         // In case we have removed the connection already
         if (!this.webSocket || !this.sessionId) return;
-        lively.bindings.connect(this.webSocket, 'closed', this, 'connectionClosed', {
-            removeAfterUpdate: true
-        });
-        console.log('%s established', this.toString(true));
-        lively.bindings.signal(this, 'established');
         this._open = true;
+        lively.bindings.connect(this.webSocket, 'closed', this, 'connectionClosed', {
+            removeAfterUpdate: true});
+        lively.bindings.signal(this, 'established');
+        console.log('%s established', this.toString(true));
     },
 
     connectionClosed: function() {
         this._open = false;
-        console.log('%s closed', this.toString(true));
         if (this.sessionId) this.register();
         else lively.bindings.signal(this, 'closed');
+        console.log('%s closed', this.toString(true));
     },
 
     connectionError: function(err) {
-        console.log('connection error in %s:\n%o', this.toString(true), err);
+        console.log(show('connection error in %s:\n%o', this.toString(true), err));
     },
 
     register: function() {
@@ -117,10 +116,8 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
     remoteEval: function(targetId, expression, thenDo) {
         // we send a remote eval request
-        lively.bindings.connect(this.getWebSocket(), 'remoteEval', {cb: thenDo}, 'cb', {
-            converter: function(msg) { return msg && msg.data && msg.data.result; },
-            removeAfterUpdate: true});
-        this.send('remoteEval', {target: targetId, expr: expression});
+        this.send('remoteEval', {target: targetId, expr: expression}, function(answer) {
+            answer && answer.data && thenDo(answer.data.result); });
     },
 
     doRemoteEval: function(msg) {
@@ -132,7 +129,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         } catch(e) {
             result = e + '\n' + e.stack;
         }
-        this.send('remoteEvalRequest', {result: String(result), origin: msg.data.origin})
+        this.send('remoteEvalRequest', {
+            result: String(result),
+            origin: msg.data.origin,
+            requestMessageId: msg.data.requestMessageId
+        });
     },
 
     openForRemoteEvalRequests: function() {

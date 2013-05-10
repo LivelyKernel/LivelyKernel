@@ -285,7 +285,7 @@ util.inherits(WebSocketServer, EventEmitter);
     }
 
     this.removeConnections = function() {
-        this.connections.forEach(function(c) { this.removeConnection(c); }, this);
+        [].concat(this.connections).forEach(function(c) { this.removeConnection(c); }, this);
     }
 
     this.getConnection = function(id) {

@@ -64,6 +64,12 @@ Object.subclass('lively.net.SessionTrackerConnection',
 },
 'session management', {
 
+    whenOnline: function(thenDo) {
+        if (this.isConnected()) { thenDo(); return; }
+        lively.bindings.connect(this, 'established', thenDo, 'call', {
+            removeAfterUpdate: true});
+    },
+
     connectionEstablished: function() {
         // In case we have removed the connection already
         if (!this.webSocket || !this.sessionId) return;
@@ -198,14 +204,19 @@ Object.extend(lively.net.SessionTracker, {
             this.closeSession(url); }, this)
     },
 
-    createSessionTrackerServer: function(url) {
-        var msg = JSON.stringify({action: 'createServer', route: url.pathname});
+    createSessionTrackerServer: function(url, options) {
+        options = Object.extend(options || {}, {route: url.pathname});
+        var msg = JSON.stringify({action: 'createServer', options: options});
         this.localSessionTrackerURL.withFilename('server-manager').asWebResource().beSync().post(msg, 'application/json');
     },
 
     removeSessionTrackerServer: function(url) {
         var msg = JSON.stringify({action: 'removeServer', route: url.pathname});
         this.localSessionTrackerURL.withFilename('server-manager').asWebResource().beSync().post(msg, 'application/json');
+    },
+
+    getServerStatus: function() {
+        return this.localSessionTrackerURL.asWebResource().get().getJSON();
     }
 
 });

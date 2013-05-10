@@ -170,7 +170,7 @@ Object.extend(lively.net.SessionTracker, {
         var url = optURL || this.localSessionTrackerURL;
         var s = this.getSession(url);
         if (s) return s;
-        var user = lively.morphic.World.current().getUserName(true);
+        var user = lively.morphic.World.current().getUserName(true) || 'unknown';
         if (!user) {
             console.warn('Cannot register lively session because no user is logged in');
             return;

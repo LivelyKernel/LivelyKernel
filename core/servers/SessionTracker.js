@@ -24,6 +24,18 @@ var sessionActions = {
             session = sessions[msg.sender] = sessions[msg.sender] || {};
         util._extend(session, msg.data);
         connection.id = msg.data.id;
+        connection.on('close', function() {
+            // remove the session registration after the connection closes
+            // give it some time because the connection might be just flaky and
+            // the client might come back
+            if (!sessions[msg.sender]) return; // unregistered
+            if (!sessionServer.inactiveSessionRemovalTime) return;
+            setTimeout(function() {
+                var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
+                if (!newConnection) delete sessions[msg.sender];
+            }, sessionServer.inactiveSessionRemovalTime);
+            console.log('need to invalidate session');
+        })
         connection.send({action: msg.action + 'Result', data: {success: true}});
     },
 
@@ -84,6 +96,7 @@ function SessionTracker(options) {
         options.websocketImpl;
     this.websocketServer = new WebSocketServer();
     this.websocketClients = {}; // for connections to other servers
+    this.inactiveSessionRemovalTime = options.inactiveSessionRemovalTime || 60*1000;
     this.initTrackerData();
 }
 
@@ -247,10 +260,13 @@ module.exports = function(route, app, subserver) {
 
     app.post(route + 'server-manager', function(req, res) {
         if (!req.body) {res.status(400).end(); return; }
-        var servers = global.sessionTrackerTestServers;
-        var route = req.body.route;
+        var servers = global.sessionTrackerTestServers,
+            options = req.body.options,
+            route = (options && options.route) || req.body.route;
         if (req.body.action === 'createServer') {
-            SessionTracker.createServer({route: route, subserver: subserver});
+            options = options || {};
+            options.route = route; options.subserver = subserver;
+            SessionTracker.createServer(options);
             res.end();
         } else if (req.body.action === 'removeServer') {
             SessionTracker.removeServer(route);
@@ -272,8 +288,14 @@ module.exports = function(route, app, subserver) {
     });
 
     app.get(route, function(req, res) {
-        global.tracker.getSessionList({}, function(sessions) {
-            res.json({tracker: global.tracker.toString(), sessions: sessions}).end();
+        // gather sessions from trackers on all routes
+        var tasks = Object.keys(SessionTracker.servers).reduce(function(tasks, route) {
+            var tracker = SessionTracker.servers[route];
+            tasks[route] = function(next) { tracker.getSessionList({}, function(sessions) { next(null, sessions); }); }
+            return tasks;
+        }, {});
+        async.parallel(tasks, function(err, trackerSessions) {
+            res.json(trackerSessions).end();
         });
     });
 }

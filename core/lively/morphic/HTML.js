@@ -811,11 +811,7 @@ lively.morphic.Shapes.Shape.addMethods(
         // Overridden for non-rectangular shapes like lines and ellipses
         // Note assumes that pt is within this.bounds
         return true
-    },
-    newMethod: function() {
-        // enter comment here
     }
-
 
 },
 'updating', {

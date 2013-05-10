@@ -1347,8 +1347,7 @@ lively.morphic.World.addMethods(
             pane = this.internalAddWindow(editor, options.title, options.position);
         editor.applyStyle({resizeWidth: true, resizeHeight: true});
         editor.accessibleInInactiveWindow = true;
-        if (options.theme) editor.setTheme(options.theme);
-        if (options.textMode) editor.setTextMode(options.textMode);
+        editor.applyStyle(options);
         editor.focus();
         return pane;
     },

@@ -90,18 +90,19 @@ Object.subclass('lively.morphic.Morph',
         // deprecated
         this.adjustOrigin(value);
     },
-    adjustOrigin: function(value) {
+    adjustOrigin: function(newOrigin, moveSubmorphs) {
         // changes the origin / pivot of the morph by offsetting the shape
         // without changing the morph's or submorphs' position on the screen
         var oldOrigin = this.getOrigin(),
-            delta = value.subPt(oldOrigin),
+            delta = newOrigin.subPt(oldOrigin),
             transform = this.getTransform(),
             oldTransformedOrigin = transform.transformPoint(oldOrigin),
-            newTransformedOrigin = transform.transformPoint(value),
+            newTransformedOrigin = transform.transformPoint(newOrigin),
             transformedDelta = newTransformedOrigin.subPt(oldTransformedOrigin);
 
         this.moveBy(transformedDelta);
-        this.shape.setPosition(value.negated());
+        this.shape.setPosition(newOrigin.negated());
+        if (moveSubmorphs) return;
         this.submorphs.forEach(function (ea) {ea.moveBy(transformedDelta.negated())});
     },
     getOrigin: function() { return this.shape.getPosition().negated() },
@@ -136,19 +137,24 @@ Object.subclass('lively.morphic.Morph',
     getToolTip: function() { return this.morphicGetter('ToolTip') }
 },
 'accessing -- shape properties', {
-    setExtent: function(value) {
+    setExtent: function(newExtent) {
         this.cachedBounds = null;
 
         var min = this.getMinExtent();
-        value.maxPt(min,value);
+        newExtent.maxPt(min,newExtent);
         this.priorExtent = this.getExtent();
-        this.shape.setExtent(value);
+        this.shape.setExtent(newExtent);
+        var origin = this.getOrigin();
+        if (!origin.eqPt(pt(0, 0))) {  // Adjust origin, especially for ellipses
+            var scalePt = pt(newExtent.x/this.priorExtent.x, newExtent.y/this.priorExtent.y);
+            this.adjustOrigin(origin.scaleByPt(scalePt), true);  // moveSubmorphs too
+        }
         if (this.layout && (this.layout.adjustForNewBounds || this.layout.layouter))
             this.adjustForNewBounds();
         if (this.owner && (typeof this.owner.submorphResized == 'function')) {
             this.owner.submorphResized(this);
         }
-        return value;
+        return newExtent;
     },
     getExtent: function() { return this.shape.getExtent() },
     setFill: function(value) { return this.shape.setFill(value) },

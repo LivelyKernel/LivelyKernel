@@ -52,13 +52,14 @@ Object.subclass('lively.net.WebSocket',
     },
     onOpen: function(evt) {
         this._open = true;
+        this.deliverMessageQueue();
         lively.bindings.signal(this, 'opened', evt);
     },
     onClose: function(evt) {
         lively.bindings.signal(this, 'closed', evt);
         // reopen makes only sense if connection was open before
         if (this._open && this.reopenClosedConnection) this.connect();
-        this._open = false;
+        else this._open = false;
     },
 
     onMessage: function(evt) {
@@ -151,12 +152,13 @@ Object.subclass('lively.net.WebSocket',
     },
 
     deliverMessageQueue: function(options) {
-        // guard:
         if (this._sendInProgress) return;
-        this._sendInProgress = true; 
-        if (this.isClosed()) this.connect();
+        if (this.isClosed()) {
+            // just reconnect, send will be triggered from onOpen
+            this.connect(); return; }
 
         // send logic
+        this._sendInProgress = true; 
         var ws = this;
         function doSend() {
             try {
@@ -178,17 +180,6 @@ Object.subclass('lively.net.WebSocket',
             }
             Global.setTimeout(testConnectionAndTriggerSend, options.retryDelay);
         })();
-    },
-
-    retryDeliverMessageQueue: function(options) {
-        options = options || {};
-        options.startTime = options.startTime || Date.now();
-        options.retryDelay = options.retryDelay || 100;
-        if (this.sendTimeout && Date.now() - options.startTime > this.sendTimeout) {
-            this.onError({error: 'send attempt timed out', type: 'timeout'});
-            return;
-        }
-        Global.setTimeout(this.deliverMessageQueue.bind(this, options), options.retryDelay);
     },
 
     close: function() {

@@ -67,23 +67,30 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
     },
 
     testAutoReconnectToRestartedServer: function() {
-        this.done();
-        return
+        var serverDown = false, serverRestarted = false;
+        this.assertEquals('disconnected', this.sut.status());
         this.sut.register();
         this.sut.whenOnline(function() {
             this.assert(this.sut.isConnected(), 'session not connected')
-            // lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL);
-            this.done();
+            this.assertEquals('connected', this.sut.status());
+            lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL);
+            serverDown = true;
         }.bind(this));
-        // this.delay(function() {
-        //     var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-        //     this.assertEquals(1, sessions.local.length, 'session removed to early?');
-        // }, 200);
-        // this.delay(function() {
-        //     var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-        //     this.assertEquals(0, sessions.local.length, 'session not removed');
-        //     this.done();
-        // }, 700);
+        this.waitFor(function() { return serverDown; }, 100, function() {
+            this.delay(function() {
+                this.assertEquals('connecting', this.sut.status());
+                lively.net.SessionTracker.createSessionTrackerServer(this.serverURL, {inactiveSessionRemovalTime: 1*500});
+                serverRestarted = true;
+            }, 200);
+        });
+        this.waitFor(function() { return serverRestarted; }, 100, function() {
+            this.sut.whenOnline(function() {
+                var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
+                // this.assertEquals('connected', this.sut.status());
+                this.assertEquals(1, sessions.local.length, 'session not re-registered');
+                this.done();
+            }.bind(this));
+        }, 700);
     },
 
     testRemoteEval: function() {

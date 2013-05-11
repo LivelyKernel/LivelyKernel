@@ -5,6 +5,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     initialize: function(options) {
         this.sessionTrackerURL = options.sessionTrackerURL;
         this.username = options.username;
+        this._status = 'disconnected';
     }
 },
 'net accessors', {
@@ -18,17 +19,19 @@ Object.subclass('lively.net.SessionTrackerConnection',
     getWebSocket: function() {
         if (this.webSocket) return this.webSocket;
         var url = this.sessionTrackerURL.withFilename('connect');
-        this.webSocket = new lively.net.WebSocket(url, {protocol: "lively-json"});
+        this.webSocket = new lively.net.WebSocket(url, {protocol: "lively-json", enableReconnect: true});
         lively.bindings.connect(this.webSocket, 'registerClientResult', this, 'connectionEstablished');
         lively.bindings.connect(this.webSocket, 'error', this, 'connectionError');
         return this.webSocket;
     },
 
     resetConnection: function() {
+        this._status = 'disconnected';
         var ws = this.webSocket;
         if (!ws) return;
         // in case connection wasn't established yet
         lively.bindings.disconnect(ws, 'registerClientResult', this, 'connectionEstablished');
+        lively.bindings.disconnect(ws, 'error', this, 'connectionError');
         ws.close();
         this.webSocket = null;
     },
@@ -44,8 +47,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     isConnected: function() {
-        return this.webSocket && this.webSocket.isOpen()
-            && this._open && !!this.sessionId;
+        return this._status === 'connected' && !!this.sessionId;
     }
 
 },
@@ -73,7 +75,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     connectionEstablished: function() {
         // In case we have removed the connection already
         if (!this.webSocket || !this.sessionId) return;
-        this._open = true;
+        this._status = 'connected';
         lively.bindings.connect(this.webSocket, 'closed', this, 'connectionClosed', {
             removeAfterUpdate: true});
         lively.bindings.signal(this, 'established');
@@ -81,14 +83,14 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     connectionClosed: function() {
-        this._open = false;
-        if (this.sessionId) this.register();
-        else lively.bindings.signal(this, 'closed');
+        if (this.sessionId && this.status() === 'connected') { this._status = 'connecting'; this.register(); }
+        else { this._status = 'disconnected'; lively.bindings.signal(this, 'closed'); }
         console.log('%s closed', this.toString(true));
     },
 
     connectionError: function(err) {
-        console.log(show('connection error in %s:\n%o', this.toString(true), err));
+        console.log('connection error in %s:\n%o', this.toString(true),
+            err && err.message ? err.message : err);
     },
 
     register: function() {
@@ -155,12 +157,13 @@ Object.subclass('lively.net.SessionTrackerConnection',
     }
 },
 'debugging', {
+    status: function() { return this._status; },
     toString: function(shortForm) {
         if (!this.webSocket || !this.webSocket.isOpen() || shortForm) {
             return Strings.format("Session connection to %s", this.sessionTrackerURL);
         }
-        return Strings.format("Open session connection to %s\n  id: %s\n  user: %s",
-            this.sessionTrackerURL, this.sessionId, this.username);
+        return Strings.format("Session %s to %s\n  id: %s\n  user: %s",
+            this.status(), this.sessionTrackerURL, this.sessionId, this.username);
     }
 });
 

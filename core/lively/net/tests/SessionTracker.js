@@ -4,13 +4,12 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 'running', {
     setUp: function($super) {
         $super();
-        this.setMaxWaitDelay(3*1000);
+        this.setMaxWaitDelay(5*1000);
         this.serverURL = URL.create(Config.nodeJSURL+'/SessionTrackerUnitTest/');
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL, {inactiveSessionRemovalTime: 1*500});
         this.sut = new lively.net.SessionTrackerConnection({
             sessionTrackerURL: this.serverURL,
-            username: 'SessionTrackerTestUser',
-            reconnectDelay: 0.3 * 1000
+            username: 'SessionTrackerTestUser'
         });
     },
 
@@ -114,7 +113,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
 'running', {
     setUp: function($super) {
         $super();
-        this.setMaxWaitDelay(3*1000);
+        this.setMaxWaitDelay(5*1000);
         this.serverURL1 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest1/');
         this.serverURL2 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest2/');
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL1);

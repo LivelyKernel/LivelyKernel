@@ -130,6 +130,7 @@ lively.morphic.Morph.addMethods(
         setRotation: 'setRotationHTML',
         setExtent: 'setExtentHTML',
         setScale: 'setScaleHTML',
+        setFixedPositioningMode: 'setFixedPositioningModeHTML',
         setVisible: 'setVisibleHTML',
         adjustOrigin: 'adjustOriginHTML',
         setPivotPoint: 'setPivotPointHTML',
@@ -172,8 +173,10 @@ lively.morphic.Morph.addMethods(
         if (ctx.morphNode)
             ctx.morphNode.style.visibility = bool ? '' : 'hidden';
     },
+
     adjustOriginHTML: function(ctx, value) {
     },
+
     setPivotPointHTML: function(ctx, value) {
         ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
     },
@@ -368,6 +371,11 @@ lively.morphic.Morph.addMethods(
         }
         return node === ctx.morphNode;
     }
+},
+'fixing', {
+    setFixedPositioningModeHTML: function(ctx, value) {
+        
+    },
 });
 
 lively.morphic.World.addMethods(

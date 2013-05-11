@@ -368,7 +368,7 @@ Object.subclass('lively.morphic.Morph',
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
         if (this.owner) {
-            if (this.isFixed) this.setFixed(false)
+            if (this.isFixed) this.setFixed(false);
             this.owner.removeMorph(this);
         }
         this.renderContextDispatch('remove');

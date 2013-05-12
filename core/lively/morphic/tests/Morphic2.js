@@ -262,6 +262,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
 'running', {
+
     setUp: function($super) {
         $super();
         this.text = new lively.morphic.Text(new Rectangle(0,0, 60, 200));
@@ -302,6 +303,22 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
 
         this.assertMatches([0,10], this.world.getScroll())
     },
+
+    test03ScrollIsPickedUpByBoundsWhenClipped: function() {
+        this.text.remove();
+        var owner = this.morph,
+            clipped = lively.morphic.Morph.makeRectangle(0,0,200, 220);
+        owner.openInWorld();
+        owner.applyStyle({fill: Color.red, position: pt(0,0), extent: pt(100,100), clipMode: 'scroll'});
+        owner.addMorph(clipped);
+        clipped.setPosition(pt(50,50));
+        this.assertEquals([0,0], owner.getScroll(), 'initial scroll');
+        owner.setScroll(500,500);
+        this.assertEquals([150, 170], owner.getScroll(), 'scroll of owner');
+        this.assertEquals(pt(50,50), clipped.getPosition(), 'pos in owner');
+        owner.cachedBounds = null
+        this.assertEquals(lively.rect(-150,-170,100,100), owner.bounds(), 'owner bounds');
+    }
 
 });
 

@@ -997,10 +997,6 @@ lively.morphic.World.addMethods(
     updateZoomLevel: function () {
         this.zoomLevel = this.calculateCurrentZoom();
         return this.zoomLevel
-    },
-    getScrollOffset: function () {
-        this.scrollOffset = this.visibleBounds().topLeft()
-        return this.scrollOffset;
     }
 });
 

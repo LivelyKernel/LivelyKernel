@@ -1841,11 +1841,16 @@ lively.morphic.World.addMethods(
 },
 'scrolling', {
     getScroll: function() {
-        return this.morphicGetter('Scroll') || [0,0];
+        var offset = this.getScrollOffset();
+        return [offset.x, offset.y];
     },
     setScroll: function(x, y) {
         // setScroll of Scrollable Trait does not work: window has no overflow
         return this.morphicSetter('Scroll', [x, y]);
+    },
+    getScrollOffset: function () {
+        this.scrollOffset = this.visibleBounds().topLeft();
+        return this.scrollOffset;
     }
 });
 

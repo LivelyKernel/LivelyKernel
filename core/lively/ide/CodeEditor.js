@@ -1460,7 +1460,7 @@ lively.morphic.World.addMethods(
         if (visibleBounds.containsRect(edBounds.translatedBy(alignPos))) {
             editor.setPosition(alignPos);
         } else {
-            editor.setPosition(this.positionForNewMorph(editor, morph));
+            editor.setPositionCentered(visibleBounds.center());
         }
         editor.setTarget(morph);
         if (Config.get('useAceEditor')) {

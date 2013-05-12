@@ -1728,15 +1728,15 @@ lively.morphic.World.addMethods(
     dispatchDrop: function(evt) {
         if (evt.hand.submorphs.length === 0) return false;
         var morphStack = this.morphsContainingPoint(evt.getPosition()),
-            carriedMorphs = evt.hand.submorphs.select(function(ea) { return !ea.isGrabShadow }),
+            carriedMorphs = evt.hand.submorphs.select(function(ea) { return !ea.isGrabShadow; }),
             dropTarget = morphStack.detect(function(ea) {
                 return ea.droppingEnabled && !ea.eventsAreIgnored &&
                     carriedMorphs.all(function(toBeDropped) {
                         return ea.wantsDroppedMorph(toBeDropped)
                             && toBeDropped.wantsToBeDroppedInto(ea); }); });
         if (!dropTarget) {
-            alert('found nothing to drop onto');
-            return false;
+            this.alert('found nothing to drop onto');
+            dropTarget = this;
         }
         return evt.hand.dropContentsOn(dropTarget, evt);
     },
@@ -2199,13 +2199,13 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         this.setPosition(pos);
         if (!this.carriesGrabbedMorphs) return;
         var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
-            topmostMorph = this.world().getTopmostMorph(evt.getPosition()),
-            layouter = topmostMorph.getLayouter();
+            topmostMorph = this.world().getTopmostMorph(evt.getPosition());
         if (!carriedMorph
           || !topmostMorph
           || !topmostMorph.isLayoutable
           || !topmostMorph.wantsDroppedMorph(carriedMorph)
           || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) { return; }
+        var layouter = topmostMorph.getLayouter();
         if (layouter && layouter.displaysPlaceholders()) {
             layouter.showPlaceholderFor(carriedMorph, evt);
         } else if (carriedMorph.placeholder) {

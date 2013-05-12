@@ -4,7 +4,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 'running', {
     setUp: function($super) {
         $super();
-        this.setMaxWaitDelay(5*1000);
+        this.setMaxWaitDelay(1*1000);
         this.serverURL = URL.create(Config.nodeJSURL+'/SessionTrackerUnitTest/');
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL, {inactiveSessionRemovalTime: 1*500});
         this.sut = new lively.net.SessionTrackerConnection({

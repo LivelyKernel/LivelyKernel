@@ -304,7 +304,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
         this.assertMatches([0,10], this.world.getScroll())
     },
 
-    test03ScrollIsPickedUpByBoundsWhenClipped: function() {
+    xtest03ScrollIsPickedUpByBoundsWhenClipped: function() {
         this.text.remove();
         var owner = this.morph,
             clipped = lively.morphic.Morph.makeRectangle(0,0,200, 220);

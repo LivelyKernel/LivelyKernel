@@ -27,7 +27,14 @@ Object.subclass('lively.net.WebSocket',
         uri = uri.isURL ? uri.toString() : uri;
         uri = uri.replace(/^http/, 'ws');
         this.uri = uri;
-        this.messages = [];
+        this._erroredCount = 0;
+        this._openedCount = 0;
+        this._closedCount = 0;
+        this._messageOutCounter = 0;
+        this._messageInCounter = 0;
+        this._lastMessagesOut = [];
+        this._lastMessagesIn = [];
+        this._lastErrors = [];
         this.socket = null;
         this.reopenClosedConnection = options.enableReconnect || false;
         this._open = false;
@@ -47,15 +54,19 @@ Object.subclass('lively.net.WebSocket',
 },
 'events', {
     onError: function(evt) {
+        this._erroredCount++;
+        this._lastErrors = this._lastErrors.concat(evt.message || evt).slice(-3);
         console.log('%s got error %s', this, evt.data ? evt.data : evt);
         lively.bindings.signal(this, 'error', evt);
     },
     onOpen: function(evt) {
+        this._openedCount++;
         this._open = true;
         this.deliverMessageQueue();
         lively.bindings.signal(this, 'opened', evt);
     },
     onClose: function(evt) {
+        this._closedCount++;
         lively.bindings.signal(this, 'closed', evt);
         // reopen makes only sense if connection was open before
         if (this._open && this.reopenClosedConnection) this.connect();
@@ -63,7 +74,8 @@ Object.subclass('lively.net.WebSocket',
     },
 
     onMessage: function(evt) {
-        this.messages.push(evt.data);
+        this._messageInCounter++;
+        this._lastMessagesIn = this._lastMessagesIn.concat(evt.data).slice(-3);
         lively.bindings.signal(this, 'message', evt.data);
         if (this.protocol !== 'lively-json') return;
         var msg;
@@ -132,8 +144,7 @@ Object.subclass('lively.net.WebSocket',
     queue: function(data, callback) {
         var msgString;
         if (typeof data !== 'string') {
-            if (!this._messageCounter) this._messageCounter = 0;
-            data.messageIndex = ++this._messageCounter;
+            data.messageIndex = ++this._messageOutCounter;
             // hmm messageIndex is not really an id
             data.messageId = data.messageId || data.messageIndex;
             if (callback) {
@@ -163,7 +174,11 @@ Object.subclass('lively.net.WebSocket',
         function doSend() {
             try {
                 var msg;
-                while ((msg = ws.messageQueue.shift())) ws.socket.send(msg);
+                while ((msg = ws.messageQueue.shift())) {
+                    ws.socket.send(msg);
+                    ws._messageOutCounter++;
+                    ws._lastMessagesOut = ws._lastMessagesOut.concat(msg).slice(-3);
+                }
             } finally {
                 delete ws._sendInProgress;
             }
@@ -190,8 +205,8 @@ Object.subclass('lively.net.WebSocket',
 },
 'debugging', {
     toString: function() {
-        return Strings.format('lively.net.WebSocket(%s, connection: %s, %s messages',
-            this.uri, this.isOpen() ? 'open' : 'closed', this.messages.length);
+        return Strings.format('lively.net.WebSocket(%s, connection: %s, %s received messages,  %s sent messages, ',
+            this.uri, this.isOpen() ? 'open' : 'closed', this._messageInCounter, this._messageOutCounter);
     }
 });
 

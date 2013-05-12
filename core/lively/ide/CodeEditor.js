@@ -1251,6 +1251,9 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
     }
 },
 'accessing', {
+    get textString() { return this.getTextString(); },
+    set textString(string) { return this.annotation.replace(string); },
+
     getTextString: function() {
         return this.annotation.getTextString();
     },
@@ -1263,8 +1266,10 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
         console.log('EvalMarker evaluating %s' + this.getOriginalExpression());
         var ed = this.annotation.editor;
         try {
+            Global.marker = this;
             return ed.boundEval(this.getOriginalExpression() || '');
-        } catch(e) { return e; }        
+        } catch(e) { return e;
+        } finally { delete Global.marker; }
     },
 
     evalAndInsert: function() {

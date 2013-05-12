@@ -620,7 +620,23 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
-
+    emphasizeRegex: function(regEx, optStyle) {
+        // Note the regex coming from the MethodFinder only provides for a single selection
+        // if we want multiple selection, I believe we need to extract the original
+        // search string from regEx, and then use:  search.match(/^\/(.*)\/$/),
+        // as in searchWithPrompt
+        this.withAceDo(function(ed) {
+                ed.focus();
+                ed.find({
+                    needle: regEx,
+                    preventScroll: false,
+                    skipCurrent: true,
+                    start: {column: 0, row: 0},
+                    wrap: false,
+                    animate: true
+                });
+        });
+    },
 
     findNext: function() {
         this.withAceDo(function(ed) {

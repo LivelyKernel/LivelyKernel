@@ -1134,7 +1134,7 @@ lively.morphic.Morph.addMethods(
         // morphic properties
         var morphicMenuItems = ['Morphic properties', []];
         items.push(morphicMenuItems);
-        ['grabbing', 'dragging', 'halos'].forEach(function(propName) {
+        ['grabbing', 'dragging', 'dropping', 'halos'].forEach(function(propName) {
             if (self[propName + 'Enabled'] || self[propName + 'Enabled'] == undefined) {
                 morphicMenuItems[1].push(["Disable " + propName.capitalize(), self['disable' + propName.capitalize()].bind(self)]);
             } else {

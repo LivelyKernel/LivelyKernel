@@ -48,7 +48,11 @@ var sessionActions = {
 
     getSessions: function(sessionServer, connection, msg) {
         sessionServer.getSessionList({}, function(sessions) {
-            connection.send({action: msg.action, data: sessions});
+            connection.send({
+                action: msg.action,
+                inResponseTo: msg.messageId,
+                data: sessions
+            });
         })
     },
 
@@ -57,16 +61,23 @@ var sessionActions = {
             target = msg.data.target;
         var targetConnection = sessionServer.websocketServer.getConnection(target);
         if (!targetConnection) {
-            connection.send({action: msg.action, data: {error: 'Target connection not found', target: msg.data.target}});
+            connection.send({
+                action: msg.action,
+                data: {
+                    error: 'Target connection not found',
+                    target: msg.data.target
+                }
+            });
             return;
         }
-        targetConnection.send({action: 'remoteEvalRequest', data: {origin: msg.sender, expr: msg.data.expr, requestMessageId: msg.messageId}});
-    },
-
-    remoteEvalRequest: function(sessionServer, connection, msg) {
-        var originConnection = sessionServer.websocketServer.getConnection(msg.data.origin);
-        if (!originConnection) return;
-        originConnection.send({action: 'remoteEval', inResponseTo: msg.data.requestMessageId, data: msg.data});
+        targetConnection.send(
+            {action: 'remoteEvalRequest', data: {origin: msg.sender, expr: msg.data.expr}},
+            function(answer) { connection.send({
+                action: 'remoteEval',
+                inResponseTo: msg.messageId,
+                data: answer.data
+            });
+        });
     },
 
     initServerToServerConnect: function(sessionServer, connection, msg) {
@@ -139,12 +150,10 @@ function SessionTracker(options) {
             list = Object.keys(sessions).map(function(id) { return sessions[id]; }),
             result = {local: list};
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        var s2sConnections = this.websocketClients, id = this.id;
+        var s2sConnections = this.websocketClients, id = this.id();
         var tasks = Object.keys(s2sConnections).reduce(function(tasks, url) {
             tasks[url] = function(callback) {
-                var connection = s2sConnections[url];
-                connection.send({action: 'getSessions', data: {id: id}});
-                connection.on('getSessions', function(msg) {
+                s2sConnections[url].send({action: 'getSessions', data: {id: id}}, function(msg) {
                     var sessions = msg.data;
                     callback(null, sessions && sessions.local);
                 });

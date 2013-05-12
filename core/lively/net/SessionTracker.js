@@ -38,13 +38,27 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
     send: function(action, jso, callback) {
         if (!this.sessionId) { throw new Error('Need sessionId to interact with SessionTracker!') }
-        jso = jso || {};
-        this.getWebSocket().send({
-            sender: this.sessionId,
-            action: action,
-            data: jso
-        }, {}, callback);
+        var msg;
+        if (arguments.length === 1) {
+            var options = arguments[0];
+            callback = options.callback;
+            msg = {
+                sender: this.sessionId,
+                action: options.action,
+                data: options.data || {}
+            }
+            if (options.inResponseTo) msg.inResponseTo = options.inResponseTo;
+        } else {
+            msg = {
+                sender: this.sessionId,
+                action: action,
+                data: jso
+            }
+        }
+        this.getWebSocket().send(msg, {}, callback);
     },
+
+
 
     isConnected: function() {
         return this._status === 'connected' && !!this.sessionId;
@@ -119,7 +133,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     remoteEval: function(targetId, expression, thenDo) {
         // we send a remote eval request
         this.send('remoteEval', {target: targetId, expr: expression}, function(answer) {
-            answer && answer.data && thenDo(answer.data.result); });
+            thenDo(answer && answer.data && answer.data.result); });
     },
 
     doRemoteEval: function(msg) {
@@ -131,10 +145,10 @@ Object.subclass('lively.net.SessionTrackerConnection',
         } catch(e) {
             result = e + '\n' + e.stack;
         }
-        this.send('remoteEvalRequest', {
-            result: String(result),
-            origin: msg.data.origin,
-            requestMessageId: msg.data.requestMessageId
+        this.send({
+            action: 'remoteEvalRequest',
+            inResponseTo: msg.messageId,
+            data: {result: String(result),origin: msg.data.origin}
         });
     },
 

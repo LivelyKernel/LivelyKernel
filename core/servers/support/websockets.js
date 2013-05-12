@@ -8,6 +8,61 @@ var util = require('util'),
     lifeStar = require(lifeStarDir);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// lively-json callback support
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+function addCallback(sender, msg, callback) {
+    if (!callback) return;
+    if (typeof msg === 'string') {
+        console.warn('Websocket message callbacks are only supported for JSON messages!');
+        return;
+    }
+    if (!sender._messageOutCounter) sender._messageOutCounter = 0;
+    if (!sender.callbacks) sender.callbacks = {};
+    msg.messageIndex = ++sender._messageOutCounter;
+    msg.messageId = msg.messageId || msg.messageIndex;
+    var callbacks = sender.callbacks[msg.messageId] = sender.callbacks[msg.messageId] || [];
+    callbacks.push(callback);
+    // console.log('adding callback %s for sender %s. Message:', callback, sender, msg);
+}
+
+function triggerActions(actions, connection, msg) {
+    if (!actions) return;
+    try {
+        actions[msg.action] && actions[msg.action](connection, msg);
+    } catch(e) {
+        console.error('Error when dealing with %s requested from %s:\n',
+            msg.action, msg.sender, e.stack);
+    }
+}
+
+function triggerCallbacks(receiver, msg) {
+    var expectMore = !!msg.expectMoreResponses,
+        responseId = msg.inResponseTo,
+        callbacks = responseId && receiver.callbacks && receiver.callbacks[responseId];
+    console.log('triggering callbacks for message:', receiver.callbacks, msg);
+    if (!callbacks) return;
+    callbacks.forEach(function(cb) { 
+        try { cb(msg, expectMore); } catch(e) { console.error(show('Error in websocket message callback')); }
+    });
+    if (!expectMore) callbacks.length = 0;
+}
+
+function onLivelyJSONMessage(receiver, connection, msg) {
+    if (typeof msg === 'string') { try { msg = JSON.parse(msg) } catch(e) { return } }
+    var action = msg.action, sender = msg.sender;
+    if (!action) return;
+    receiver.debug && console.log('\n%s received %s from %s %s\n',
+        receiver, action, sender,
+        msg.messageIndex ? '('+msg.messageIndex+')':'',
+        msg.data);
+    if (receiver.requiresSender && !sender) { console.error('%s could not extract sender from incoming message %s', receiver, i(msg)); return; }
+    if (!action) { console.warn('%s could not extract action from incoming message %s', receiver, i(msg)); return; }
+    receiver.emit && receiver.emit(action, msg);
+    triggerActions(receiver.actions, connection, msg);
+    triggerCallbacks(receiver, msg);
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // client
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var WebSocketClientImpl = websocket.client;
@@ -17,6 +72,7 @@ function WebSocketClient(url, protocol) {
     this.url = url;
     this.protocol = protocol;
     this.setupClient();
+    this.debug = true;
 }
 
 util.inherits(WebSocketClient, EventEmitter);
@@ -34,7 +90,7 @@ util.inherits(WebSocketClient, EventEmitter);
         c.on('connect', function(connection) {
             connection.on('error', function(e) { self.onError(e); });
             connection.on('close', function() { self.onClose() });
-            connection.on('message', function(message) { self.onMessage(message); });
+            connection.on('message', function(message, connection) { self.onMessage(message); });
             self.onConnect(connection);
         });
     }
@@ -61,7 +117,7 @@ util.inherits(WebSocketClient, EventEmitter);
         this.emit("close");
     }
 
-    this.onMessage = function(msg) {
+    this.onMessage = function(msg, connection) {
         var json;
         try {
             json = JSON.parse(msg.utf8Data)
@@ -71,7 +127,7 @@ util.inherits(WebSocketClient, EventEmitter);
         }
         this.lastMessage = json;
         this.emit("message", json);
-        json.action && json.data && this.emit(json.action, json);
+        onLivelyJSONMessage(this, connection, json);
     }
 
     this.connect = function() {
@@ -88,7 +144,9 @@ util.inherits(WebSocketClient, EventEmitter);
         return this.connection && this.connection.close();
     }
 
-    this.send = function(data) {
+    this.send = function(data, callback) {
+        addCallback(this, data, callback);
+        this.debug && console.warn('\n%s send ', this, data);
         try {
             if (typeof data !== 'string') data = JSON.stringify(data);
             return this.connection.send(data);
@@ -238,32 +296,21 @@ util.inherits(WebSocketServer, EventEmitter);
         // {sender: ID, action: STRING, data: OBJECT}
         c.on('message', function(msg) {
             var data;
+            server.emit('message', data);
             try {
                 data = JSON.parse(msg.utf8Data);
             } catch(e) {
                 console.warn('%s could not read incoming message %s', server, i(msg));
                 return;
             }
-            var action = data.action, sender = data.sender;
-            server.debug && console.log('\n%s received %s from %s %s\n',
-                server, action, sender,
-                data.messageIndex ? '('+data.messageIndex+')':'',
-                data.data);
-            if (this.requiresSender && !sender) { console.warn('%s could not extract sender from incoming message %s', server, i(msg)); return; }
-            if (!action) { console.warn('%s could not extract action from incoming message %s', server, i(msg)); return; }
-            server.emit(action, data);
-            if (!server.actions[action]) { console.warn('%s could not handle %s from message %s', server, action, i(msg)); return; }
-            try {
-                server.actions[action](c, data);
-            } catch(e) {
-                console.error('Error when dealing with %s requested from %s:\n',
-                    action, sender, e.stack);
-            }
+            onLivelyJSONMessage(server, c, data);
         });
-        c.send = function(data) {
-            server.debug && data.action && console.log('\n%s sending: %s to %s\n', server, data.action, c.id || 'unknown', data.data);
-            if (typeof data !== 'string') data = JSON.stringify(data);
-            this.sendUTF(data);
+
+        c.send = function(msg, callback) {
+            addCallback(server, msg, callback);
+            server.debug && msg.action && console.log('\n%s sending: %s to %s\n', server, msg.action, c.id || 'unknown', msg);
+            if (typeof msg !== 'string') msg = JSON.stringify(msg);
+            this.sendUTF(msg);
         }
 
         this.addConnection(c, request);

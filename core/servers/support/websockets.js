@@ -39,10 +39,10 @@ function triggerCallbacks(receiver, msg) {
     var expectMore = !!msg.expectMoreResponses,
         responseId = msg.inResponseTo,
         callbacks = responseId && receiver.callbacks && receiver.callbacks[responseId];
-    console.log('triggering callbacks for message:', receiver.callbacks, msg);
+    // console.log('triggering callbacks for message:', receiver.callbacks, msg);
     if (!callbacks) return;
     callbacks.forEach(function(cb) { 
-        try { cb(msg, expectMore); } catch(e) { console.error(show('Error in websocket message callback')); }
+        try { cb(msg, expectMore); } catch(e) { console.error('Error in websocket message callback:\n', e); }
     });
     if (!expectMore) callbacks.length = 0;
 }
@@ -146,7 +146,7 @@ util.inherits(WebSocketClient, EventEmitter);
 
     this.send = function(data, callback) {
         addCallback(this, data, callback);
-        this.debug && console.warn('\n%s send ', this, data);
+        this.debug && console.log('\n%s send ', this, data);
         try {
             if (typeof data !== 'string') data = JSON.stringify(data);
             return this.connection.send(data);

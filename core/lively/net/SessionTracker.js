@@ -132,8 +132,8 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
     remoteEval: function(targetId, expression, thenDo) {
         // we send a remote eval request
-        this.send('remoteEval', {target: targetId, expr: expression}, function(answer) {
-            thenDo(answer && answer.data && answer.data.result); });
+        this.send('remoteEvalRequest', {target: targetId, expr: expression}, function(answer) {
+            thenDo(answer); });
     },
 
     doRemoteEval: function(msg) {
@@ -146,7 +146,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
             result = e + '\n' + e.stack;
         }
         this.send({
-            action: 'remoteEvalRequest',
+            action: msg.action + 'Result',
             inResponseTo: msg.messageId,
             data: {result: String(result),origin: msg.data.origin}
         });

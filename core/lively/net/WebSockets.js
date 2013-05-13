@@ -104,12 +104,12 @@ Object.subclass('lively.net.WebSocket',
         var expectMore = !!msg.expectMoreResponses,
             responseId = msg.inResponseTo,
             callbacks = responseId && this.callbacks[responseId];
-        delete msg.expectMoreResponses;
-        delete msg.inResponseTo;
+        // delete msg.expectMoreResponses;
+        // delete msg.inResponseTo;
         if (msg.action) lively.bindings.signal(this, msg.action, msg);
         if (!callbacks) return;
         callbacks.forEach(function(cb) { 
-            try { cb(msg, expectMore); } catch(e) { console.error(show('Error in websocket message callback')); }
+            try { cb(msg, expectMore); } catch(e) { console.error(show('Error in websocket message callback\n%s', e)); }
         });
         if (!expectMore) callbacks.clear();
     }

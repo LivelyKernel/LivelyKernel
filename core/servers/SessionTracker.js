@@ -36,7 +36,7 @@ var sessionActions = {
             }, sessionServer.inactiveSessionRemovalTime);
             console.log('need to invalidate session');
         })
-        connection.send({action: msg.action + 'Result', data: {success: true}});
+        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
     },
 
     unregisterClient: function(sessionServer, connection, msg) {
@@ -56,35 +56,34 @@ var sessionActions = {
         })
     },
 
-    remoteEval: function(sessionServer, connection, msg) {
+    remoteEvalRequest: function(sessionServer, connection, msg) {
         var sessions = sessionServer.trackerData.local.sessions || {},
             target = msg.data.target;
-        var targetConnection = sessionServer.websocketServer.getConnection(target);
-        if (!targetConnection) {
-            connection.send({
-                action: msg.action,
-                data: {
-                    error: 'Target connection not found',
-                    target: msg.data.target
-                }
+        sessionServer.findConnection(target, function(err, targetConnection) {
+            if (err || !targetConnection) {
+                connection.send({
+                    action: msg.action + 'Result',
+                    inResponseTo: msg.messageId,
+                    data: {error: 'Failure finding target connection: ' + err, target: msg.data.target}
+                });
+                return;
+            }
+            targetConnection.send(
+                {action: msg.action, data: msg.data},
+                function(answer) { connection.send({
+                    action: msg.action + 'Result',
+                    inResponseTo: msg.messageId,
+                    data: answer.data
+                });
             });
-            return;
-        }
-        targetConnection.send(
-            {action: 'remoteEvalRequest', data: {origin: msg.sender, expr: msg.data.expr}},
-            function(answer) { connection.send({
-                action: 'remoteEval',
-                inResponseTo: msg.messageId,
-                data: answer.data
-            });
-        });
+        })
     },
 
     initServerToServerConnect: function(sessionServer, connection, msg) {
         var url = msg.data.url;
         sessionServer.serverToServerConnect(url, function(err, remoteClient) {
             if (err) console.error(err);
-            connection.send({action: 'initServerToServerConnectResult', data: {success: !err}});
+            connection.send({action: 'initServerToServerConnectResult', inResponseTo: msg.messageId, data: {success: !err}});
         });
     }
 }
@@ -99,6 +98,7 @@ var WebSocketClient = websockets.WebSocketClient;
 
 function SessionTracker(options) {
     // options = {route: STRING, subserver: OBJECT}
+    this.debug = true;
     options = options || {};
     this.route = options.route + 'connect';
     this.subserver = options.subserver;
@@ -146,10 +146,32 @@ function SessionTracker(options) {
     }
 
     this.getSessionList = function(options, thenDo) {
+        async.parallel([
+            this.getLocalSessionList.bind(this, options),
+            this.getRemoteSessionList.bind(this, options),
+        ], function(err, sessions) {
+            if (err) {
+                console.error('%s getSessionList: ', this, err);
+            }
+            var result = sessions[0]
+            util._extend(result, sessions[1]);
+            thenDo(result);
+        });
+    }
+
+    this.getLocalSessionList = function(options, thenDo) {
         var sessions = this.trackerData.local.sessions || {},
             list = Object.keys(sessions).map(function(id) { return sessions[id]; }),
             result = {local: list};
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        thenDo(null, result);
+    }
+
+    this.getRemoteSessionList = function(options, thenDo) {
+        // returns something like
+        // {'ws://localhost:9001/nodejs/SessionTrackerFederationTest2/connect': [
+        //     {user: 'SessionTrackerTestUser2',
+        //     worldURL: 'http://localhost:9001/lively2lively2.html',
+        //     id: 'E447959D-93DE-4CB3-81E7-7BBA91CDE6CD' }]}
         var s2sConnections = this.websocketClients, id = this.id();
         var tasks = Object.keys(s2sConnections).reduce(function(tasks, url) {
             tasks[url] = function(callback) {
@@ -162,11 +184,32 @@ function SessionTracker(options) {
         }, {});
         async.parallel(tasks, function(err, serverToServerSessions) {
             if (err) {
-                console.error('%s getSessionList: ', this, err);
+                console.error('%s getRemoteSessionList: ', this, err);
             }
-            if (serverToServerSessions) result = util._extend(result, serverToServerSessions);
-            thenDo(result);
-        });
+            thenDo(null, serverToServerSessions);
+        }.bind(this));
+    }
+
+    this.findConnection = function(id, thenDo) {
+        // 1) Local lookup:
+        var con = this.websocketServer.getConnection(id);
+        if (con) { thenDo(null, con); return }
+        this.debug && console.log('%s trying to find connection %s on remote tracker...', this, id);
+        this.getRemoteSessionList({}, function(err, remotes) {
+            if (err) { thenDo(err, null); return; }
+
+            this.debug && console.log('...got remote remotes: ', util.inspect(remotes));
+            for (var url in remotes) {
+                var sessions = remotes[url];
+                for (var i = 0; i < sessions.length; i++) {
+                    if (sessions[i].id !== id) continue;
+                    var webS = this.websocketClients[url];
+                    thenDo(!webS && 'connection not established', webS);
+                    return;
+                }
+            }
+            thenDo('not found', null);
+        }.bind(this));
     }
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

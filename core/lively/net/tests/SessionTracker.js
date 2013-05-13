@@ -100,7 +100,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         Global.remoteEvalHappened = false;
         var expr = 'Global.remoteEvalHappened = true; 1 + 3';
         this.sut.remoteEval(this.sut.sessionId, expr, function(result) {
-            this.assertEquals('4', result);
+            this.assertMatches({data: {result: '4'}}, result);
             this.assert(Global.remoteEvalHappened, 'remoteEvalHappened no set');
             delete Global.remoteEvalHappened;
             this.done();
@@ -147,6 +147,22 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
                 this.assertEqualState(expected, remoteSessions);
                 this.done();
             }.bind(this));            
+        });
+    },
+
+    testRemoteEvalWith2Servers: function() {
+        var c1 = this.client1, c2 = this.client2;
+        c1.register(); c2.register();
+        c2.openForRemoteEvalRequests();
+        this.waitFor(function() { return c1.isConnected() && c2.isConnected(); }, 50, function() {
+            c1.initServerToServerConnect(this.serverURL2);
+            connect(c1.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone');
+        });
+        this.waitFor(function() { return !!this.serverToServerConnectDone; }, 100, function() {
+            c1.remoteEval(c2.sessionId, '1+2', function(result) {
+                this.assertMatches({data: {result: "3"}}, result, 'remote eval result: ' + Objects.inspect(result));
+                this.done();
+            }.bind(this));
         });
     }
 

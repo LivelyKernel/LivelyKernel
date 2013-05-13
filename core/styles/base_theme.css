@@ -153,10 +153,10 @@
 
 .messageMorph .closeButton {
 	visibility: hidden;
-	line-height: 2;
-	margin-left: -2px;
-	font-size: 22pt;
-	text-shadow: 0px 0px 4px rgba(255, 255, 255, 0.5);
+	line-height: 3.6;
+	margin-left: 0px;
+	font-size: 12pt;
+	text-shadow: 0px 0px ✗4px rgba(255, 255, 255, 0.5);
 	color: white;
 }
 
@@ -176,7 +176,7 @@
 }
 
 .messageMorph:hover .messageText, .messageMorph.maximized .messageText {
-	margin-left: 15px;
+	margin-left: 0px;
 }
 
 .messageMorph.success {

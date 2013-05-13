@@ -1,5 +1,11 @@
 module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.Widgets', 'lively.morphic.Styles').toRun(function() {
 
+/*
+ * Extends the default morphic interface with convenience methods, methods that
+ * we are currently experimenting with, or methods that exist for compatibility
+ * to older morphs
+ */
+
 Object.extend(lively.morphic, {
 
     show: function(obj) {
@@ -753,8 +759,7 @@ lively.morphic.World.addMethods(
 },
 'logging', {
     setStatusMessage: function (msg, color, delay, callback, optStyle) {
-        var msgMorph = this.createStatusMessage(msg);
-        msgMorph.setMessage(msg, color);
+        var msgMorph = this.createStatusMessage(msg, {fill: color});
 
         // callbacks are currently not supported...
         if (false && callback) {
@@ -818,8 +823,11 @@ lively.morphic.World.addMethods(
 
         return morph;
     },
-    createStatusMessage: function(msg) {
-        var msgMorph = lively.newMorph({extent: pt(200, 68)});
+    createStatusMessage: function(msg, options) {
+        // Example:
+        // $world.createStatusMessage("Hello :)", {openAt: 'leftCenter'});
+        options = options || {};
+        var msgMorph = lively.newMorph({extent: options.extent || pt(200, 68)});
         msgMorph.isEpiMorph = true;
         msgMorph.openInWorld()
         msgMorph.applyStyle({adjustForNewBounds: true, clipMode: 'hidden', enableGrabbing: false, enableDragging: true});
@@ -838,7 +846,7 @@ lively.morphic.World.addMethods(
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-        var closeBtn = msgMorph.addMorph(new lively.morphic.Text(msgMorph.innerBounds().withWidth(30), '⊗'));
+        var closeBtn = msgMorph.addMorph(new lively.morphic.Text(msgMorph.innerBounds().withWidth(30), '✗'));
         closeBtn.align(closeBtn.bounds().topLeft(), msgMorph.innerBounds().topLeft())
         closeBtn.name = 'closeButton'
         closeBtn.addStyleClassName(closeBtn.name);
@@ -895,6 +903,19 @@ lively.morphic.World.addMethods(
                 self.align(self.bounds().center(), visibleBounds.center());
             }).delay(0);
         });
+
+        msg && msgMorph.setMessage(msg, options.fill);
+
+        if (options.openAt) {
+            // $world.visibleBounds().topLeft()
+            var myPos = msgMorph.bounds()[options.openAt](),
+                worldPos = this.visibleBounds().insetBy(50)[options.openAt]();
+            msgMorph.align(myPos, worldPos);
+        }
+
+        if (options.removeAfter) {
+            msgMorph.remove.bind(msgMorph).delay(options.removeAfter / 1000);
+        }
 
         return msgMorph;
     },

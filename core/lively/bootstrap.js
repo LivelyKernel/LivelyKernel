@@ -1267,19 +1267,11 @@
             && !!document.getElementsByTagName('html')[0].getAttribute('manifest');
     }
 
-    function initOnAppCacheLoad(whenCacheLoaded) {
+    function initOnAppCacheLoad(thenDo) {
         var appCache = Global.applicationCache;
-        // LoadingScreen.add('Checking Cache');
+        LoadingScreen.add();
         toggleAppcacheHandlers();
-        whenCacheLoaded && whenCacheLoaded();
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        var runCallbackCalled = false;
-        function runCallback() {
-            if (runCallbackCalled) return;
-            runCallbackCalled = true;
-            toggleAppcacheHandlers();
-            whenCacheLoaded && whenCacheLoaded();
-        }
+        thenDo && thenDo();
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         var cacheHandlersInstalled = false;
         function toggleAppcacheHandlers() {
@@ -1330,7 +1322,7 @@
                 var msg = 'A newer version of Lively is available.\n'
                         + 'You can safely continue to work or reload\n'
                         + 'this world to get the updates.'
-                world.createStatusMessage(msg, {extent: pt(280, 68), openAt: 'topRight'});
+                world.createStatusMessage(msg, {extent: pt(280, 68), openAt: 'topRight', removeAfter: 20*1000});
             });
             // LoadingScreen.setLogoText('New Sources Loaded');
             // // we have to reload the whole page to get the new sources

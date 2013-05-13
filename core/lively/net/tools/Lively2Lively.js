@@ -3,8 +3,8 @@ module('lively.net.tools.Lively2Lively').requires().toRun(function() {
 lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(838.0,386.0),
-    _Position: lively.pt(1140.0,1068.0),
-    cameForward: true,
+    _Position: lively.pt(399.0,272.5),
+    cameForward: false,
     className: "lively.morphic.Window",
     collapsedExtent: null,
     collapsedTransform: null,
@@ -49,6 +49,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _ClipMode: "auto",
             _Extent: lively.pt(180.0,310.0),
             _Fill: Color.rgb(243,243,243),
+            _FontFamily: "Helvetica",
             _FontSize: 10,
             _Position: lively.pt(10.0,40.0),
             _StyleClassNames: ["Morph","Box","List","SessionList"],
@@ -56,12 +57,20 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             doNotCopyProperties: [],
             doNotSerialize: [],
             grabbingEnabled: false,
-            itemList: [],
+            itemList: [{
+                isListItem: true,
+                string: "blank.html",
+                value: {
+                    id: "7BC6809A-2064-44C2-A654-4DEAD71904AA",
+                    user: "robertkrahn",
+                    worldURL: "http://lively-kernel.org/core/blank.html"
+                }
+            }],
             layout: {
                 resizeHeight: true
             },
             name: "SessionList",
-            selectedLineNo: 2,
+            selectedLineNo: 0,
             selection: null,
             sourceModule: "lively.morphic.Core",
             submorphs: [],
@@ -91,8 +100,8 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "updateSessions", {});
         },
             doAction: function doAction() {
-            
-        }
+                    
+                }
         },{
             _BorderColor: Color.rgb(95,94,95),
             _Extent: lively.pt(620.0,310.0),
@@ -102,9 +111,9 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _ShowGutter: true,
             _ShowInvisibles: false,
             _ShowPrintMargin: true,
-            _StyleClassNames: ["Morph","CodeEditor","ace_editor","emacs-mode","ace-chrome"],
+            _StyleClassNames: ["Morph","CodeEditor","ace_editor","emacs-mode","ace_nobold","ace-tm"],
             _TextMode: "javascript",
-            _Theme: "chrome",
+            _Theme: "",
             _setShowIndents: true,
             accessibleInInactiveWindow: true,
             className: "lively.morphic.CodeEditor",
@@ -118,50 +127,60 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             name: "RemoteWorkspace",
             selectedSession: null,
             sourceModule: "lively.ide.CodeEditor",
-            storedString: "3 + 4",
+            storedString: "// Text here gets evaluated in other Lively worlds",
             submorphs: [],
             textMode: "javascript",
-            textString: "// Text here gets evaluated in other Lively worlds",
+            textString: "// Text here gets evaluated in other Lively worlds\n\
+        \n\
+        1+2",
+            theme: "",
             boundEval: function boundEval(string) {
             if (!this.selectedSession) { lively.bindings.signal(self, 'evalResult', 'no remote session selected'); return; }
             var localSess = this.get('Lively2LivelyInspector').getLocalSession();
             var self = this;
-            localSess.remoteEval(this.selectedSession.id, string, function(r) {
-                lively.bindings.signal(self, 'evalResult', r);
+            localSess.remoteEval(this.selectedSession.id, string, function(msg) {
+                var result = 'something went wrong';
+                if (!msg || !msg.data) { result = 'remote eval failed'; }
+                else if (msg.data.error) { result = 'remote eval error: ' + msg.data.error; }
+                else result = msg.data.result;
+                lively.bindings.signal(self, 'evalResult', result);
             });
         },
             doit: function doit(printResult, editor) {
-            var text = this.getSelectionMaybeInComment();
-            if (printResult) {
-                connect(this, 'evalResult', this, 'printObject', {
-                    updater: function($upd, val) { $upd(null, val); },
-                    removeAfterUpdate: true
-                });
-            }
-            this.tryBoundEval(text);
-            if (printResult) return;
-            var sel = editor.selection;
-            if (sel && sel.isEmpty()) sel.selectLine();
-        },
+                    var text = this.getSelectionMaybeInComment();
+                    if (printResult) {
+                        connect(this, 'evalResult', this, 'printObject', {
+                            updater: function($upd, val) { $upd(null, val); },
+                            removeAfterUpdate: true
+                        });
+                    }
+                    this.tryBoundEval(text);
+                    if (printResult) return;
+                    var sel = editor.selection;
+                    if (sel && sel.isEmpty()) sel.selectLine();
+                },
             printInspect: function printInspect() {
-            var s = this.getSelectionMaybeInComment()
-            s = "Objects.inspect(" + s + ", {maxDepth: 0})";
-            connect(this, 'evalResult', this, 'printObject', {
-                updater: function($upd, val) { $upd(null, val); },
-                removeAfterUpdate: true
-            });
-            this.tryBoundEval(s);
-        }
+                    var s = this.getSelectionMaybeInComment()
+                    s = "Objects.inspect(" + s + ", {maxDepth: 0})";
+                    connect(this, 'evalResult', this, 'printObject', {
+                        updater: function($upd, val) { $upd(null, val); },
+                        removeAfterUpdate: true
+                    });
+                    this.tryBoundEval(s);
+                }
         },{
             _ClipMode: "hidden",
             _Extent: lively.pt(620.7,26.0),
             _FontFamily: "Arial, sans-serif",
             _FontSize: 11,
+            _HandStyle: null,
+            _InputAllowed: true,
             _MaxTextWidth: 120.695652,
             _MinTextWidth: 120.695652,
-            _Padding: lively.rect(5,5,0,0),
             _Position: lively.pt(200.0,10.0),
+            _TextColor: Color.rgb(64,64,64),
             _WordBreak: "break-all",
+            allowInput: true,
             className: "lively.morphic.Text",
             doNotSerialize: ["charsTyped"],
             droppingEnabled: false,
@@ -178,80 +197,82 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             textString: "no Lively world selected"
         }],
         getLocalSession: function getLocalSession() {
-        return lively.net.SessionTracker.createSession();
-    },
+            return lively.net.SessionTracker.createSession();
+        },
         getSessionTitle: function getSessionTitle(session) {
-        if (!session) return "no Lively world selected";
-        var maxLength = 90;
-        // making the title short enough to fit on the title line...
-        var user = session.user, worldName = session.worldURL;
-        // the user name should go on there in every case
-        var worldNameMaxLength = maxLength - user.length;
-        if (worldName.length > worldNameMaxLength) {
-            // if the url does not fit in the remaining space...
-            var url = URL.create(worldName);
-            var fn = url.filename();
-            // ...test if the file name portion does fit...
-            if (fn.length > worldNameMaxLength) {
-                // ...if not make the filename so short that it fits...
-                worldName = fn.truncate(worldNameMaxLength);
-            } else {
-                // ... otherwise put the filename on and put enough of the
-                // beginning of the url in the title as possibe (though,
-                // if the beginning would be shorter than 5 chars, leave it
-                // out)
-                worldName = worldName.slice(0,-fn.length);
-                worldName = worldName.truncate(worldNameMaxLength-fn.length);
-                if (worldName.length < 5) {
-                    worldName = "..." + fn;
+            if (!session) return "no Lively world selected";
+            var maxLength = 90;
+            // making the title short enough to fit on the title line...
+            var user = session.user, worldName = session.worldURL;
+            // the user name should go on there in every case
+            var worldNameMaxLength = maxLength - user.length;
+            if (worldName.length > worldNameMaxLength) {
+                // if the url does not fit in the remaining space...
+                var url = URL.create(worldName);
+                var fn = url.filename();
+                // ...test if the file name portion does fit...
+                if (fn.length > worldNameMaxLength) {
+                    // ...if not make the filename so short that it fits...
+                    worldName = fn.truncate(worldNameMaxLength);
                 } else {
-                    worldName += fn;
+                    // ... otherwise put the filename on and put enough of the
+                    // beginning of the url in the title as possibe (though,
+                    // if the beginning would be shorter than 5 chars, leave it
+                    // out)
+                    worldName = worldName.slice(0,-fn.length);
+                    worldName = worldName.truncate(worldNameMaxLength-fn.length);
+                    if (worldName.length < 5) {
+                        worldName = "..." + fn;
+                    } else {
+                        worldName += fn;
+                    }
                 }
             }
-        }
-        return worldName + ' (' + user + ')';
-    },
+            return worldName + ' (' + user + ')';
+        },
         reset: function reset() {
-        connect(this.get("RefreshButton"), 'fire', this, 'updateSessions');
-        connect(this.get("SessionList"), 'selection', this.get('RemoteWorkspace'), 'selectedSession');
-        connect(this.get("SessionList"), 'selection', this, 'setWorkspaceTarget');
-        this.get("SessionList").selection = null;
-        this.get("SessionList").setList([]);
-        this.get("RemoteWorkspace").textString = '// Text here gets evaluated in other Lively worlds';
-        this.get('Title').applyStyle({whitespaceHandling: 'pre', wordBreak: 'break-all'})
-        this.getPartsBinMetaInfo().addRequiredModule("lively.net.SessionTracker");
-    },
+            connect(this.get("RefreshButton"), 'fire', this, 'updateSessions');
+            connect(this.get("SessionList"), 'selection', this.get('RemoteWorkspace'), 'selectedSession');
+            connect(this.get("SessionList"), 'selection', this, 'setWorkspaceTarget');
+            this.get("SessionList").selection = null;
+            this.get("SessionList").setList([]);
+            this.get("RemoteWorkspace").textString = '// Text here gets evaluated in other Lively worlds';
+            this.get('Title').applyStyle({whitespaceHandling: 'pre', wordBreak: 'break-all'})
+            this.getPartsBinMetaInfo().addRequiredModule("lively.net.SessionTracker");
+        },
         setWorkspaceTarget: function setWorkspaceTarget(session) {
-        this.get('Title').textString = this.getSessionTitle(session);
-    },
+            this.get('Title').textString = this.getSessionTitle(session);
+        },
         updateSessions: function updateSessions() {
+        // lively.net.SessionTracker.closeSessions()
         var sessionListMorph = this.get('SessionList');
         var localSession = this.getLocalSession();
-        localSession.getSessions(function(sessions) {
-            var localSessions = sessions.local
-            var items = localSessions.map(function(sess) {
-                if (sess.id === localSession.sessionId) return null;
-                var url = new URL(sess.worldURL);
-                return {isListItem: true, string: url.filename(), value: sess};
-            }).compact();
-            sessionListMorph.setList(items);
-        });
+        if (localSession.isConnected()) {
+            localSession.getSessions(function(sessions) {
+                var localSessions = sessions.local
+                var items = localSessions.map(function(sess) {
+                    if (sess.id === localSession.sessionId) return null;
+                    var url = new URL(sess.worldURL);
+                    return {isListItem: true, string: url.filename(), value: sess};
+                }).compact();
+                sessionListMorph.setList(items);
+            });
+        } else {
+            sessionListMorph.setList([]);
+            sessionListMorph.selection = null;
+            thi.get('Title').textString = 'not connected';
+        }
     
-    // lively.net.SessionTracker.closeSessions()
-    
-    },
-    onLoad: function onLoad() {
-        this.updateSessions();
     }
     }],
-    onLoad: function onLoad() {
-        this.targetMorph.get('Lively2LivelyInspector').updateSessions();
-    },
+    titleBar: "Lively2LivelyInspector",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         $super();
         this.onLoad();
     },
-    titleBar: "Lively2LivelyInspector"
+    onLoad: function onLoad() {
+    this.targetMorph.updateSessions();
+    this.targetMorph.startStepping(30 * 1000, 'updateSessions');
+}
 });
-
 }) // end of module

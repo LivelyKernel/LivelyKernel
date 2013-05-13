@@ -1016,6 +1016,9 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.TileLayout',
 });
 
 lively.morphic.Layout.JournalLayout.subclass("lively.morphic.Layout.TreeLayout",
+'settings', {
+    resizeWithSubmorphs: true
+},
 'initializing', {
     initialize: function($super, container) {
         $super(container);
@@ -1024,6 +1027,13 @@ lively.morphic.Layout.JournalLayout.subclass("lively.morphic.Layout.TreeLayout",
         this.borderSize = {top: 0, right: 0, bottom: 0, left: indent};
         this.displaysPlaceholders = Functions.False;
         this.isDefered = false;
+    }
+},
+'layouting', {
+    orderedSubmorphs: function(submorphs) {
+        return submorphs.reject(function(ea) {
+            return ea.isEpiMorp || !ea.isLayoutable;
+        });
     }
 },
 'updating', {

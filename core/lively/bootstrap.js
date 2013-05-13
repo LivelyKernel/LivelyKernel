@@ -1269,8 +1269,9 @@
 
     function initOnAppCacheLoad(whenCacheLoaded) {
         var appCache = Global.applicationCache;
-        LoadingScreen.add('Checking Cache');
+        // LoadingScreen.add('Checking Cache');
         toggleAppcacheHandlers();
+        whenCacheLoaded && whenCacheLoaded();
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         var runCallbackCalled = false;
         function runCallback() {
@@ -1298,68 +1299,90 @@
         }
         // Checking for an update. Always the first event fired in the sequence.
         function onChecking(evt) {
-            console.log('Checking if there are new sources to load...');
+            console.log('Application cache is checking if there are new sources to load...');
         }
         // An update was found. The browser is fetching resources.
         function onDownloading(evt) {
-            console.log('downloading');
-            LoadingScreen.setLogoText('Fetching Cache Content');
+            console.log('Application cache is fetching content...');
+            // LoadingScreen.setLogoText('Fetching Cache Content');
         }
         // Fired for each resource listed in the manifest as it is being fetched.
         function onProgress(evt) {
             if (!evt.lengthComputable) return;
-            LoadingScreen.setLogoText('Fetching Cache Content '
-                                     + (evt.loaded + 1)
-                                     + '/' + evt.total);
+            console.log('...Application cache got ' + (evt.loaded + 1) + '/' + evt.total);
+            // LoadingScreen.setLogoText('Fetching Cache Content '
+            //                          + (evt.loaded + 1)
+            //                          + '/' + evt.total);
         }
         // Fired when the manifest resources have been newly redownloaded.
         function onUpdateready(evt) {
-            console.log('updateready');
-            var isLoaded = Global.lively
-                        && lively.morphic
-                        && lively.morphic.World
-                        && lively.morphic.World.current();
-            if (isLoaded) return;
-            LoadingScreen.setLogoText('New Sources Loaded');
-            try {
-                // FIXME rk 2013-03-06: sometimes this throws a DOM error?
-                appCache.swapCache();
-            } catch(e) {
-                console.error(e);
-            }
-            // we have to reload the whole page to get the new sources
-            document.location.reload();
+            console.log('Application cache successfully loaded new content.');
+            lively.whenLoaded(function(world) {
+                var msg = 'A newer version of Lively is available.\n'
+                        + 'You can safely continue to work or reload\n'
+                        + 'this world to get the updates.'
+                world.createStatusMessage(msg, {extent: pt(280, 68), openAt: 'topRight'});
+            });
+            // var isLoaded = Global.lively
+            //             && lively.morphic
+            //             && lively.morphic.World
+            //             && lively.morphic.World.current();
+            // if (isLoaded) return;
+            // LoadingScreen.setLogoText('New Sources Loaded');
+            // try {
+            //     // FIXME rk 2013-03-06: sometimes this throws a DOM error?
+            //     appCache.swapCache();
+            // } catch(e) {
+            //     console.error(e);
+            // }
+            // // we have to reload the whole page to get the new sources
+            // document.location.reload();
         }
         // The manifest returns 404 or 410, the download failed,
         // or the manifest changed while the download was in progress.
         function onError(evt) {
-            console.log('Error occured while loading the application cache.');
-            LoadingScreen.setLogoText('Cache Error');
-            lively.whenLoaded(function(world) {
-                if (!Config.get("warnIfAppcacheError")) return;
-                var serverExists = URL.root.asWebResource().beSync().head().status.isSuccess();
-                if (serverExists) return;
-                world.confirm("While loading Lively we found out that the Lively\n"
-                             + "server is not available. You can continue to use\n"
-                             + "the system but server-dependent services might not\n"
-                             + "be accessible. Please check the server.\n");
-            })
-            runCallback();
+            console.log('Error occured while loading the application cache: %s', evt);
+//             LoadingScreen.setLogoText('Cache Error');
+//             lively.whenLoaded(function(world) {
+//                 if (!Config.get("warnIfAppcacheError")) return;
+//                 var serverExists = URL.root.asWebResource().beSync().head().status.isSuccess();
+//                 if (serverExists) return;
+//                 world.confirm("While loading Lively we found out that the Lively\n"
+//                              + "server is not available. You can continue to use\n"
+//                              + "the system but server-dependent services might not\n"
+//                              + "be accessible. Please check the server.\n");
+//             })
+//             runCallback();
         }
+
         // Fired after the first download of the manifest.
         function onNoupdate(evt) {
             console.log('noupdate');
-            LoadingScreen.setLogoText('No updates');
-            runCallback();
+            lively.whenLoaded(function(world) {
+                var msg = "Lively is up-to-date."
+                world.createStatusMessage(msg, {openAt: 'topRight', removeAfter: 3000});
+            });
+            // LoadingScreen.setLogoText('No updates');
+            // runCallback();
         }
         // Fired after the first cache of the manifest.
         function onCached(evt) {
             console.log('Sources are now cached.');
-            runCallback();
+            // runCallback();
         }
         // Fired if the manifest file returns a 404 or 410.
         // This results in the application cache being deleted.
-        function onObsolete(evt) { console.log('obsolete'); }
+        function onObsolete(evt) {
+            console.log('Application cache not available');
+            lively.whenLoaded(function(world) {
+                var msg = "It appears that the Lively server is not\n"
+                        + "available. You can continue to use the\n"
+                        + "system but server-dependent services\n"
+                        + "might not be accessible.\n"
+                        + "Please check the server.\n"
+                world.createStatusMessage(msg, {extent: pt(280, 98), openAt: 'topRight'})
+            });
+        }
     }
 
     // -=-=-=-=-=-=-=-

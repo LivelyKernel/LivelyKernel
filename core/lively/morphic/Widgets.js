@@ -3698,15 +3698,20 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.updateItem(this.item);
     },
     updateItem: function(item) {
-        var oldItem = this.item;
-        if (oldItem) disconnect(oldItem, "changed", this, "update");
-        this.item = item;
-        if (item == null) { this.remove(); return; }
-        lively.bindings.connect(item, "changed", this, "update");
-        if (oldItem === item && item.onUpdate) item.onUpdate(this);
+        if (this.item !== item) {
+            var oldItem = this.item;
+            if (oldItem) {
+                lively.bindings.disconnect(oldItem, "changed", this, "update");
+            }
+            this.item = item;
+            if (item == null) { this.remove(); return; }
+            lively.bindings.connect(item, "changed", this, "update");
+        } else {
+            if (item.onUpdate) item.onUpdate(this);
+        }
         this.updateNode();
         if (this.childNodes) {
-            if (oldItem === item && item.onUpdateChildren) item.onUpdateChildren(this);
+            if (item.onUpdateChildren) item.onUpdateChildren(this);
             this.updateChildren();
         }
     },
@@ -3724,11 +3729,11 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     updateLabel: function() {
         var str = this.item.name, changed = false;
         if (this.item.description) str += "  " + this.item.description;
-        if (this.label.getTextNode().textContent !== str) {
+        if (this.label.textString !== str) {
             this.label.textString = this.item.name;
             if (this.item.description) {
                 var gray = {color: Color.web.darkgray};
-                this.label.appendRichText(" " + this.item.description, gray);
+                this.label.appendRichText("  " + this.item.description, gray);
             }
             changed = true;
         }
@@ -3742,7 +3747,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             this.label.setFill(null);
         if (!isSelected && this.item.isSelected)
             this.label.setFill(Color.rgb(218, 218, 218));
-        if (changed) this.label.growOrShrinkToFit();
+        if (changed) this.label.fit();
     },
     updateChildren: function() {
         if (!this.childNodes) return;
@@ -3792,22 +3797,14 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     createLabel: function() {
         var bounds = pt(0, 0).extent(pt(100, 20));
-        var name = this.item.name;
-        var label = new lively.morphic.Text(bounds, name);
-        if (this.item.style) {
-            label.firstTextChunk().styleText(this.item.style);
-            label.oldStyle = this.item.style;
-        }
-        if (this.item.description) {
-            var gray = {color: Color.web.darkgray};
-            label.appendRichText(" " + this.item.description, gray);
-        }
+        var label = new lively.morphic.Text(bounds);
         label.setBorderWidth(0);
         label.setFill(null);
         label.disableDragging();
         label.disableGrabbing();
         label.setInputAllowed(false);
         label.setHandStyle('default');
+        label.setWhiteSpaceHandling('pre');
         label.setFixedWidth(false);
         label.setFixedHeight(true);
         label.addScript(function onMouseDown(evt) {
@@ -3817,6 +3814,15 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         });
         if (this.item.isSelected) {
             label.setFill(Color.rgb(218, 218, 218));
+        }
+        label.textString = this.item.name;
+        if (this.item.style) {
+            label.emphasizeAll(this.item.style);
+            label.oldStyle = this.item.style;
+        }
+        if (this.item.description) {
+            var gray = {color: Color.web.darkgray};
+            label.appendRichText(" " + this.item.description, gray);
         }
         return label;
     },

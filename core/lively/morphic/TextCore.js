@@ -441,13 +441,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         var isClip = this.isClip(),
             fixedWidth = isClip || this.fixedWidth,
-            fixedHeight = isClip || this.fixedWidth,
-            whiteSpaceHandling = this.getWhiteSpaceHandling();
+            fixedHeight = isClip || this.fixedWidth;
 
         if (this.fixedWidth && this.fixedHeight) return;
-
-        // we need "pre" for finding out how long a line really is...
-        if (whiteSpaceHandling !== 'pre') this.setWhiteSpaceHandling('pre');
 
         var owners = this.ownerChain();
         for (var i = 0; i < owners.length; i++) {
@@ -470,8 +466,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (width !== extent.x || height !== extent.y) {
             this.setExtent(pt(width, height));
         }
-
-        this.setWhiteSpaceHandling(whiteSpaceHandling);
     },
 
     setTextNodeToFitMorphExtent: function() {

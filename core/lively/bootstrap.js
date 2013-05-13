@@ -1307,34 +1307,32 @@
             // LoadingScreen.setLogoText('Fetching Cache Content');
         }
         // Fired for each resource listed in the manifest as it is being fetched.
+        var progressPercentSteps = [25,50,75];
         function onProgress(evt) {
             if (!evt.lengthComputable) return;
-            console.log('...Application cache got ' + (evt.loaded + 1) + '/' + evt.total);
-            // LoadingScreen.setLogoText('Fetching Cache Content '
-            //                          + (evt.loaded + 1)
-            //                          + '/' + evt.total);
+            var progressPercent = evt.loaded*100 / evt.total;
+            if (progressPercent > progressPercentSteps.first()) {
+                var step = progressPercentSteps.shift();;
+                console.log('Application cache %s% loaded', step);
+            }
         }
+
         // Fired when the manifest resources have been newly redownloaded.
         function onUpdateready(evt) {
             console.log('Application cache successfully loaded new content.');
+            try {
+                // FIXME rk 2013-03-06: sometimes this throws a DOM error?
+                appCache.swapCache();
+            } catch(e) {
+                console.error(e);
+            }
             lively.whenLoaded(function(world) {
                 var msg = 'A newer version of Lively is available.\n'
                         + 'You can safely continue to work or reload\n'
                         + 'this world to get the updates.'
                 world.createStatusMessage(msg, {extent: pt(280, 68), openAt: 'topRight'});
             });
-            // var isLoaded = Global.lively
-            //             && lively.morphic
-            //             && lively.morphic.World
-            //             && lively.morphic.World.current();
-            // if (isLoaded) return;
             // LoadingScreen.setLogoText('New Sources Loaded');
-            // try {
-            //     // FIXME rk 2013-03-06: sometimes this throws a DOM error?
-            //     appCache.swapCache();
-            // } catch(e) {
-            //     console.error(e);
-            // }
             // // we have to reload the whole page to get the new sources
             // document.location.reload();
         }
@@ -1342,17 +1340,6 @@
         // or the manifest changed while the download was in progress.
         function onError(evt) {
             console.log('Error occured while loading the application cache: %s', evt);
-//             LoadingScreen.setLogoText('Cache Error');
-//             lively.whenLoaded(function(world) {
-//                 if (!Config.get("warnIfAppcacheError")) return;
-//                 var serverExists = URL.root.asWebResource().beSync().head().status.isSuccess();
-//                 if (serverExists) return;
-//                 world.confirm("While loading Lively we found out that the Lively\n"
-//                              + "server is not available. You can continue to use\n"
-//                              + "the system but server-dependent services might not\n"
-//                              + "be accessible. Please check the server.\n");
-//             })
-//             runCallback();
         }
 
         // Fired after the first download of the manifest.
@@ -1362,13 +1349,10 @@
                 var msg = "Lively is up-to-date."
                 world.createStatusMessage(msg, {openAt: 'topRight', removeAfter: 3000});
             });
-            // LoadingScreen.setLogoText('No updates');
-            // runCallback();
         }
         // Fired after the first cache of the manifest.
         function onCached(evt) {
             console.log('Sources are now cached.');
-            // runCallback();
         }
         // Fired if the manifest file returns a 404 or 410.
         // This results in the application cache being deleted.

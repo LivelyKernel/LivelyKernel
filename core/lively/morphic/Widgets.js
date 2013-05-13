@@ -3822,7 +3822,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
         if (this.item.description) {
             var gray = {color: Color.web.darkgray};
-            label.appendRichText(" " + this.item.description, gray);
+            label.appendRichText('  ' + this.item.description, gray);
         }
         return label;
     },

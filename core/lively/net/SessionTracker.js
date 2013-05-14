@@ -6,6 +6,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.sessionTrackerURL = options.sessionTrackerURL;
         this.username = options.username;
         this._status = 'disconnected';
+        this.registerTimeout = 15*1000; // ms
         this.activityTimeReportDelay = 10*1000; // ms
     }
 },
@@ -21,7 +22,6 @@ Object.subclass('lively.net.SessionTrackerConnection',
         if (this.webSocket) return this.webSocket;
         var url = this.sessionTrackerURL.withFilename('connect');
         this.webSocket = new lively.net.WebSocket(url, {protocol: "lively-json", enableReconnect: true});
-        lively.bindings.connect(this.webSocket, 'registerClientResult', this, 'connectionEstablished');
         lively.bindings.connect(this.webSocket, 'error', this, 'connectionError');
         return this.webSocket;
     },
@@ -72,11 +72,8 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     getSessions: function(cb) {
-        // return this.getWebResource('sessions').beSync().get().getJSON();
-        this.send('getSessions', {id: this.sessionId});
-        lively.bindings.connect(this.getWebSocket(), 'getSessions', {callCb: cb}, 'callCb', {
-            converter: function(msg) { return msg && msg.data; },
-            removeAfterUpdate: true});
+        this.send('getSessions', {id: this.sessionId}, function(msg) {
+            cb && cb(msg && msg.data); });
     }
 },
 'session management', {
@@ -110,12 +107,22 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     register: function() {
+        // sends a request to the session tracker to register a connection
+        // pointing to this session connection/id
         if (!this.sessionId) this.sessionId = Strings.newUUID();
+        var timeoutCheckPeriod = this.registerTimeout / 1000; // seconds
+        var session = this;
+        (function timeoutCheck() {
+            if (session.isConnected() || !this.sessionId) return;
+            session.webSocket && session.webSocket.close();
+            session.register();
+        }).delay(Numbers.random(timeoutCheckPeriod-5, timeoutCheckPeriod+5)); // to balance server load
         this.send('registerClient', {
             id: this.sessionId,
             worldURL: URL.source.toString(),
-            user: this.username || 'anonymous'
-        });
+            user: this.username || 'anonymous',
+            lastActivity: Global.LastEvent.timeStamp
+        }, this.connectionEstablished.bind(this));
     },
 
     unregister: function() {
@@ -125,10 +132,15 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.stopReportingActivities();
     },
 
-    initServerToServerConnect: function(serverURL) {
+    initServerToServerConnect: function(serverURL, cb) {
         var url = serverURL.toString().replace(/^http/, 'ws')
-        this.send('initServerToServerConnect', {url: url});
+        this.send('initServerToServerConnect', {url: url}, cb);
+    },
+    initServerToServerDisconnect: function(cb) {
+        this.send('initServerToServerDisconnect', {}, cb);
     }
+
+
 
 },
 'remote eval', {

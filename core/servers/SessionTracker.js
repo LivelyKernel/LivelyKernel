@@ -34,7 +34,6 @@ var sessionActions = {
                 var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
                 if (!newConnection) delete sessions[msg.sender];
             }, sessionServer.inactiveSessionRemovalTime);
-            console.log('need to invalidate session');
         })
         connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
     },

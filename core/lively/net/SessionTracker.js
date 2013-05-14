@@ -6,6 +6,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.sessionTrackerURL = options.sessionTrackerURL;
         this.username = options.username;
         this._status = 'disconnected';
+        this.activityTimeReportDelay = 10*1000; // ms
     }
 },
 'net accessors', {
@@ -93,6 +94,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         lively.bindings.connect(this.webSocket, 'closed', this, 'connectionClosed', {
             removeAfterUpdate: true});
         lively.bindings.signal(this, 'established');
+        this.startReportingActivities();
         console.log('%s established', this.toString(true));
     },
 
@@ -120,6 +122,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         if (this.sessionId) this.send('unregisterClient', {id: this.sessionId});
         this.resetConnection();
         this.sessionId = null;
+        this.stopReportingActivities();
     },
 
     initServerToServerConnect: function(serverURL) {
@@ -155,6 +158,23 @@ Object.subclass('lively.net.SessionTrackerConnection',
     openForRemoteEvalRequests: function() {
         lively.bindings.connect(this.getWebSocket(), 'remoteEvalRequest', this, 'doRemoteEval');
     },
+    startReportingActivities: function() {
+        var session = this;
+        function report() {
+            if (!Global.LastEvent || !session.sessionId) return;
+            Global.report && show('report!')
+            session.send('reportActivity', {lastActivity: Global.LastEvent.timeStamp}, function() {
+                session._reportActivitiesTimer = report.delay(session.activityTimeReportDelay/1000);
+            });
+        }
+        report();
+    },
+    stopReportingActivities: function() {
+        clearTimeout(this._reportActivitiesTimer);
+        delete this._reportActivitiesTimer;
+    },
+
+
 },
 'sandbox', {
     useSandbox: function() {

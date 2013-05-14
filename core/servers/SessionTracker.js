@@ -79,6 +79,13 @@ var sessionActions = {
         })
     },
 
+    reportActivity: function(sessionServer, connection, msg) {
+         var sessions = sessionServer.trackerData.local.sessions,
+            session = sessions[msg.sender] = sessions[msg.sender] || {};
+        session.lastActivity = msg.data.lastActivity;
+        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
+    },
+
     initServerToServerConnect: function(sessionServer, connection, msg) {
         var url = msg.data.url;
         sessionServer.serverToServerConnect(url, function(err, remoteClient) {

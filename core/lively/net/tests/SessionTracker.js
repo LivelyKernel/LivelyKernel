@@ -29,7 +29,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
                 worldURL: URL.source.toString(),
                 user: "SessionTrackerTestUser"
             }];
-            this.assertEqualState(expected, sessions.local);
+            this.assertMatches(expected, sessions.local);
             this.done();
         }.bind(this));
     },
@@ -105,6 +105,25 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             delete Global.remoteEvalHappened;
             this.done();
         }.bind(this));
+    },
+    testReportsLastActivity: function() {
+        this.sut.activityTimeReportDelay = 50; // ms
+        Global.LastEvent = {timeStamp: Date.now()}
+        this.sut.register();
+        var activity1, activity2;
+        this.sut.getSessions(function(sessions) {
+            activity1 = sessions.local[0].lastActivity;
+            Global.LastEvent.timeStamp++;
+        }.bind(this));
+        this.delay(function() {
+            this.sut.getSessions(function(sessions) {
+                activity2 = sessions.local[0].lastActivity;
+            }.bind(this));
+        }, 200);
+        this.delay(function() {
+            this.assert(activity1 < activity2, 'Activity not updated ' + activity1 + ' vs ' + activity2);
+            this.done();
+        }, 300);
     }
 
 });
@@ -144,7 +163,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             c1.getSessions(function(sessions) {
                 var remoteSessions = sessions[this.serverURL2.toString().replace(/^http/, 'ws') + 'connect'],
                     expected = [{id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'}];
-                this.assertEqualState(expected, remoteSessions);
+                this.assertMatches(expected, remoteSessions);
                 this.done();
             }.bind(this));            
         });

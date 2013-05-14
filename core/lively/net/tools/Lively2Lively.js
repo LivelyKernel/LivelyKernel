@@ -3,12 +3,12 @@ module('lively.net.tools.Lively2Lively').requires().toRun(function() {
 lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(650.0,386.0),
-    _Position: lively.pt(3213.5,548.0),
+    _Position: lively.pt(3348.5,593.0),
     _StyleClassNames: ["Morph","Window"],
     _StyleSheet: ".SessionList, .CodeEditor {\n\
     border: 1px solid #DDD;\n\
 }",
-    cameForward: true,
+    cameForward: false,
     className: "lively.morphic.Window",
     collapsedExtent: null,
     collapsedTransform: null,
@@ -33,7 +33,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         _Position: lively.pt(4.0,22.0),
         _StyleClassNames: ["Morph","Box","Lively2LivelyInspector"],
         _StyleSheet: ".Lively2LivelyInspector {\n\
-        background: white;\n\
+    	background: white;\n\
     }\n\
     \n\
     .SessionList select {\n\
@@ -70,7 +70,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 resizeWidth: true
             },
             name: "SessionList",
-            selectedLineNo: 0,
+            selectedLineNo: 3,
             selection: null,
             sourceModule: "lively.morphic.Core",
             submorphs: [],
@@ -207,9 +207,11 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     // var isThisSession = currentSess.sessionId === session.id;
         // the user name should go on there in every case
         var worldNameMaxLength = maxLength - user.length;
-        var lastActivity = 'last activity: ';
+        var lastActivity = '';
         if (session.lastActivity) {
-            lastActivity += new Date(session.lastActivity).format('HH:MM:ss');
+            show(session.lastActivity)
+            lastActivity += new Date(session.lastActivity).relativeTo(new Date());
+            show(lastActivity)
         }
         worldNameMaxLength -= lastActivity.length;
         var worldNameMaxLength = maxLength - user.length;

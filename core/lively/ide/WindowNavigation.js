@@ -49,7 +49,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
     createSwitcher: function() {
         return lively.BuildSpec('WindowSwitcher', {
             _ClipMode: "hidden",
-            _Extent: lively.pt(200,200),
+            _Extent: lively.pt(600,200),
             _Position: lively.pt(0,0),
             _PreviousBorderWidth: 1,
             _Rotation: 0,
@@ -67,7 +67,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                        + "  text-shadow: none !important;\n"
                        + "}\n"
                        + ".tab-list-item.selected {\n"
-                       + "  font-weight: bold;\n"
+                       + "  font-weight: normal;\n"
                        + "  background-color: rgba(1,1,1,0.4);\n"
                        + "  border-radius: 5px !important;\n"
                        + "  border: 0px white solid !important;\n"
@@ -89,14 +89,15 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                     var title = win.getTitle();
                     if (i <= 9) title = i + ' - ' + title
                     else title = '    ' + title;
+                    title = title.truncate(60);
                     var text = lively.morphic.Text.makeLabel(title, {
-                        extent: this.getExtent().withY(20),
-                        fixedHeight: false
+                        extent: this.getExtent().withY(30),
+                        fixedHeight: true, fixedWidth: true
                     });
                     this.addMorph(text);
+                    text.addStyleClassName('tab-list-item');
                     text.fit();
                     text.window = win;
-                    text.addStyleClassName('tab-list-item');
                     return text;
                 }, this);
 
@@ -106,8 +107,8 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                         ea.setPosition(pos);
                         pos = ea.bounds().bottomLeft();
                     });
-                    var listBounds = this.submorphBounds(this.getTransform()).extent();
-                    this.setExtent(listBounds);
+                    var listExtent = this.submorphBounds(this.getTransform()).extent();
+                    this.setExtent(listExtent);
                 }).bind(this).delay(0);
 
                 this.currentSel = null;

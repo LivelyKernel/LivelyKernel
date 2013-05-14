@@ -85,6 +85,12 @@ var sessionActions = {
             if (err) console.error(err);
             connection.send({action: 'initServerToServerConnectResult', inResponseTo: msg.messageId, data: {success: !err}});
         });
+    },
+
+    initServerToServerDisconnect: function(sessionServer, connection, msg) {
+        var remoteURLs = Object.keys(sessionServer.websocketClients);
+        sessionServer.removeRemoteClients();
+        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Connections to ' + remoteURLs.join(', ') + ' closed'}});
     }
 }
 

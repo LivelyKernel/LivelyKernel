@@ -201,7 +201,7 @@ Object.extend(lively.net.SessionTracker, {
         }
         s = new lively.net.SessionTrackerConnection({sessionTrackerURL: url, username: user});
         s.register();
-        s.openForRemoteEvalRequests();
+        if (Config.get("lively2livelyAllowRemoteEval")) s.openForRemoteEvalRequests();
         if (!this._onBrowserShutdown) {
             this._onBrowserShutdown = Global.addEventListener('beforeunload', function(evt) {
                 lively.net.SessionTracker.closeSessions();
@@ -241,7 +241,9 @@ Object.extend(lively.net.SessionTracker, {
 
 (function setupSessionTrackerConnection() {
     lively.whenLoaded(function() {
-        lively.net.SessionTracker.createSession();
+        var session = lively.net.SessionTracker.createSession(),
+            livelyCentral = Config.get('lively2livelyCentral');
+        livelyCentral && session.initServerToServerConnect(livelyCentral);
     });
 })();
 

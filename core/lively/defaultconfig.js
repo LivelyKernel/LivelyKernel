@@ -483,6 +483,10 @@ Config.addOptions(
 ],
 "lively.morphic.Windows", [
     ["useWindowSwitcher", true, "Use the window switcher (F5/CMD+`/CTRL+`)."]
+],
+"Lively2Lively", [
+    ["lively2livelyCentral", "http://lively-kernel.org:4009/nodejs/SessionTracker/"],
+    ["lively2livelyAllowRemoteEval", true]
 ]);
 
 })(Global.Config, Global.UserAgent, Global.ExistingConfig);

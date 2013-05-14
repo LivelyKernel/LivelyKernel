@@ -121,7 +121,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
             id: this.sessionId,
             worldURL: URL.source.toString(),
             user: this.username || 'anonymous',
-            lastActivity: Global.LastEvent.timeStamp
+            lastActivity: Global.LastEvent && Global.LastEvent.timeStamp
         }, this.connectionEstablished.bind(this));
     },
 
@@ -174,7 +174,6 @@ Object.subclass('lively.net.SessionTrackerConnection',
         var session = this;
         function report() {
             if (!Global.LastEvent || !session.sessionId) return;
-            Global.report && show('report!')
             session.send('reportActivity', {lastActivity: Global.LastEvent.timeStamp}, function() {
                 session._reportActivitiesTimer = report.delay(session.activityTimeReportDelay/1000);
             });

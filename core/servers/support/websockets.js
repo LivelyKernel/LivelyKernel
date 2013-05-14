@@ -160,6 +160,10 @@ util.inherits(WebSocketClient, EventEmitter);
         return f('<WebSocketClient %s, %s>', this.url, this.connection);
     }
 
+    this.isOpen = function() {
+        return this.connection && this.connection.state === 'open';
+    }
+
 }).call(WebSocketClient.prototype);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

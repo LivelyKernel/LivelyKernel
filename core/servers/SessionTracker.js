@@ -249,9 +249,9 @@ function SessionTracker(options) {
         // creates a connection to another lively session tracker
         url = this.fixRemoteServerURL(url) ;
         var client = this.websocketClients[url];
-        if (client) { if (!client.isOpen()) client.connect(); thenDo(null, client); return; }
+        if (!client) { client = this.websocketClients[url] = new WebSocketClient(url, 'lively-json'); }
+        if (client.isOpen()) { thenDo(null, client); return }
         try {
-            client = this.websocketClients[url] = new WebSocketClient(url, 'lively-json');
             client.once('connect', function() { thenDo(null, client); });
             client.on('close', function() { this.removeRemoteClient(url, client); }.bind(this));
             client.connect();

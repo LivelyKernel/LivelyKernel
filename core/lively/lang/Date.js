@@ -146,5 +146,33 @@ Object.extend(Date.prototype, {
         return otherDate
             && otherDate instanceof Date
             && otherDate.getTime() === this.getTime();
+    },
+    relativeTo: function(otherDate) {
+        if (!(otherDate instanceof Date)) return '';
+        if (otherDate < this) return '';
+        if (otherDate === this) return 'now';
+        var minuteString = 'min';
+        var secondString = 'sec';
+        var hourString = 'hour';
+        var diff = otherDate - this;
+        var secs = Math.round(diff/1000);
+        var minSecs = secs % 60;
+        var mins = Math.floor(secs/60)%60;
+        var hours = Math.floor(secs/60/60);
+        var result = '';
+        if (hours > 0) {
+            result += hours + ' ' + hourString;
+            result += hours > 1 ? 's ' : ' ';
+        }
+        if (mins > 0 && hours < 3) {
+            result += mins + ' ' + minuteString;
+            result += mins > 1 ? 's ' : ' ';
+        }
+        if (minSecs > 0 && mins < 3 && hours === 0) {
+            result += minSecs + ' ' + secondString;
+            result += minSecs > 1 ? 's ' : ' ';
+        }
+        result += 'ago';
+        return result;
     }
 });

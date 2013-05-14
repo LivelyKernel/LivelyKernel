@@ -6,7 +6,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.sessionTrackerURL = options.sessionTrackerURL;
         this.username = options.username;
         this._status = 'disconnected';
-        this.registerTimeout = 15*1000; // ms
+        this.registerTimeout = 60*1000; // ms
         this.activityTimeReportDelay = 10*1000; // ms
     }
 },
@@ -173,10 +173,12 @@ Object.subclass('lively.net.SessionTrackerConnection',
     startReportingActivities: function() {
         var session = this;
         function report() {
+            function next() { session._reportActivitiesTimer = report.delay(session.activityTimeReportDelay/1000); }
             if (!Global.LastEvent || !session.sessionId) return;
-            session.send('reportActivity', {lastActivity: Global.LastEvent.timeStamp}, function() {
-                session._reportActivitiesTimer = report.delay(session.activityTimeReportDelay/1000);
-            });
+            var timeStamp = Global.LastEvent.timeStamp;
+            if (timeStamp === session._lastReportedActivity) { next(); return; }
+            session._lastReportedActivity = timeStamp;
+            session.send('reportActivity', {lastActivity: timeStamp}, next);
         }
         report();
     },

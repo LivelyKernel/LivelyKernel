@@ -108,7 +108,10 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                         pos = ea.bounds().bottomLeft();
                     });
                     var listExtent = this.submorphBounds(this.getTransform()).extent();
+                    var visibleBounds = this.world().visibleBounds();
+                    listExtent = listExtent.minPt(visibleBounds.extent());
                     this.setExtent(listExtent);
+                    this.align(this.bounds().center(), visibleBounds.center());
                 }).bind(this).delay(0);
 
                 this.currentSel = null;

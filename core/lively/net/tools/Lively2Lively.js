@@ -3,7 +3,7 @@ module('lively.net.tools.Lively2Lively').requires().toRun(function() {
 lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(650.0,386.0),
-    _Position: lively.pt(2858.5,648.0),
+    _Position: lively.pt(3213.5,548.0),
     _StyleClassNames: ["Morph","Window"],
     _StyleSheet: ".SessionList, .CodeEditor {\n\
     border: 1px solid #DDD;\n\
@@ -70,7 +70,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 resizeWidth: true
             },
             name: "SessionList",
-            selectedLineNo: 1,
+            selectedLineNo: 0,
             selection: null,
             sourceModule: "lively.morphic.Core",
             submorphs: [],
@@ -193,6 +193,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             
         }
         }],
+        zoom: 1,
         getLocalSession: function getLocalSession() {
             return lively.net.SessionTracker.createSession();
         },
@@ -244,7 +245,17 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         if (!preview) {
             preview = new lively.morphic.HtmlWrapperMorph(pt(400,400));
             this.world().addFramedMorph(preview, this.get('SessionList').getSelectedItem().string);
-            preview.getWindow().openInWorldCenter();
+            var win = preview.getWindow();
+            win.openInWorldCenter();
+            var zoomInBtn = new lively.morphic.Button(lively.rect(0,0,20,20), '+');
+            var zoomOutBtn = new lively.morphic.Button(lively.rect(0,0,20,20), '-');
+            win.addMorph(zoomInBtn);
+            win.addMorph(zoomOutBtn);
+            zoomInBtn.align(zoomInBtn.getPosition(), preview.bounds().topLeft().addXY(10,10));
+            zoomOutBtn.align(zoomOutBtn.getPosition(), preview.bounds().topLeft().addXY(10,35));
+            connect(zoomInBtn, 'fire', preview, 'zoomIn');
+            connect(zoomOutBtn, 'fire', preview, 'zoomOut');
+            preview.zoom = 1;
         }
         preview.applyStyle({
             enableGrabbing: false, clipMode: 'auto',
@@ -253,6 +264,12 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         preview.name = 'lively2livelyPreview';
     
         preview.worldId = this.get('SessionList').selection.id;
+        preview.addScript(function setZoom(zoom) {
+            this.jQuery().children()
+                .css({'-webkit-transform': Strings.format('scale(%s,%s)', zoom,zoom)});        
+        });
+        preview.addScript(function zoomIn() { this.setZoom(this.zoom += 0.2); });
+        preview.addScript(function zoomOut() { this.setZoom(this.zoom -= 0.2); });
         preview.addScript(function update() {
             if (this.inUpdate) return;
             this.inUpdate = true;
@@ -273,10 +290,9 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                     try {
                         preview.jQuery().html('')
                         $(html)
-                            .css({
-                                '-webkit-transform': Strings.format('scale(%s,%s)', scale.x, scale.y),
-                                left: '0px', top: '0px'})
+                            .css({left: '0px', top: '0px'})
                             .appendTo(preview.jQuery());
+                        preview.setZoom(preview.zoom);
                     } finally {
                         preview.inUpdate = false;
                     }

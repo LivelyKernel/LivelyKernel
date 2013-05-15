@@ -292,7 +292,10 @@ util.inherits(WebSocketServer, EventEmitter);
         var c = request.accept('lively-json', request.origin), server = this;
 
         c.on('close', function(msg) {
-            server.debug && console.log('a websocket connection was closed');
+            if (server.debug) {
+                if (c.id) console.log('websocket %s closed', c.id)
+                else console.log('a websocket connection was closed');
+            }
             server.removeConnection(c);
         });
 

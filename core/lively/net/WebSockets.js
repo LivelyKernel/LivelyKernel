@@ -109,7 +109,11 @@ Object.subclass('lively.net.WebSocket',
         if (msg.action) lively.bindings.signal(this, msg.action, msg);
         if (!callbacks) return;
         callbacks.forEach(function(cb) { 
-            try { cb(msg, expectMore); } catch(e) { console.error(show('Error in websocket message callback\n%s', e)); }
+            try {
+                cb(msg, expectMore);
+            } catch(e) {
+                console.error(show('Error in websocket message callback\n%s', e.stack || e));
+            }
         });
         if (!expectMore) callbacks.clear();
     }

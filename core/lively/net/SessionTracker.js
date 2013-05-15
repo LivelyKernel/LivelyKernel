@@ -7,7 +7,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.username = options.username;
         this._status = 'disconnected';
         this.registerTimeout = 60*1000; // ms
-        this.activityTimeReportDelay = 10*1000; // ms
+        this.activityTimeReportDelay = 20*1000; // ms
     }
 },
 'net accessors', {
@@ -58,8 +58,6 @@ Object.subclass('lively.net.SessionTrackerConnection',
         }
         this.getWebSocket().send(msg, {}, callback);
     },
-
-
 
     isConnected: function() {
         return this._status === 'connected' && !!this.sessionId;
@@ -113,8 +111,8 @@ Object.subclass('lively.net.SessionTrackerConnection',
         var timeoutCheckPeriod = this.registerTimeout / 1000; // seconds
         var session = this;
         (function timeoutCheck() {
-            if (session.isConnected() || !this.sessionId) return;
-            session.webSocket && session.webSocket.close();
+            if (session.isConnected() || !session.sessionId) return;
+            session.resetConnection();
             session.register();
         }).delay(Numbers.random(timeoutCheckPeriod-5, timeoutCheckPeriod+5)); // to balance server load
         this.send('registerClient', {
@@ -132,15 +130,15 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.stopReportingActivities();
     },
 
-    initServerToServerConnect: function(serverURL, cb) {
+    initServerToServerConnect: function(serverURL, options, cb) {
+        options = options || {}
         var url = serverURL.toString().replace(/^http/, 'ws')
-        this.send('initServerToServerConnect', {url: url}, cb);
+        this.send('initServerToServerConnect', {url: url, options: options}, cb);
     },
+
     initServerToServerDisconnect: function(cb) {
         this.send('initServerToServerDisconnect', {}, cb);
     }
-
-
 
 },
 'remote eval', {
@@ -188,20 +186,6 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
 
-},
-'sandbox', {
-    useSandbox: function() {
-        // test support. Since the session tracker has global state
-        // we put it into a sandbox mode when running the tests
-        var webR = this.getWebResource('sandbox').beSync();
-        webR.post(JSON.stringify({start: true}), 'application/json');
-        lively.assert(webR.status.isSuccess(), 'Could not set lively.net.SessionTracker into sandbox mode?');
-    },
-    removeSandbox: function() {
-        var webR = this.getWebResource('sandbox').beSync();
-        webR.post(JSON.stringify({stop: true}), 'application/json');
-        lively.assert(webR.status.isSuccess(), 'Could not release lively.net.SessionTracker sandbox mode?');
-    }
 },
 'debugging', {
     status: function() { return this._status; },

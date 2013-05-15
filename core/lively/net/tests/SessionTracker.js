@@ -135,20 +135,32 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         this.setMaxWaitDelay(5*1000);
         this.serverURL1 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest1/');
         this.serverURL2 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest2/');
-        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL1);
-        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL2);
+        this.serverURL3 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest3/');
+        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL1, {
+            server2serverReconnectTimeout: 300
+        });
+        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL2, {
+            server2serverReconnectTimeout: 300
+        });
+        lively.net.SessionTracker.createSessionTrackerServer(this.serverURL3, {
+            server2serverReconnectTimeout: 300
+        });
         this.client1 = new lively.net.SessionTrackerConnection({
             sessionTrackerURL: this.serverURL1, username: 'SessionTrackerTestUser1'});
         this.client2 = new lively.net.SessionTrackerConnection({
             sessionTrackerURL: this.serverURL2, username: 'SessionTrackerTestUser2'});
+        this.client3 = new lively.net.SessionTrackerConnection({
+            sessionTrackerURL: this.serverURL3, username: 'SessionTrackerTestUser3'});
     },
 
     tearDown: function($super) {
         $super();
         this.client1.unregister();
         this.client2.unregister();
+        this.client3.unregister();
         lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL1);
         lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL2);
+        lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL3);
     }
 },
 'testing', {
@@ -168,6 +180,31 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             }.bind(this));            
         });
     },
+    testReconnectServerToServerConnection: function() {
+        var c1 = this.client1, c2 = this.client2;
+        c1.register(); c2.register();
+        this.waitFor(function() { return c1.isConnected() && c2.isConnected(); }, 50, function() {
+            c1.initServerToServerConnect(this.serverURL2);
+            connect(c1.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone');
+        });
+        this.waitFor(function() { return !!this.serverToServerConnectDone; }, 100, function() {
+            lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL2);
+            this.delay(function() { this.server2Shutdown = true; }, 200);
+        });
+        this.waitFor(function() { return !!this.server2Shutdown; }, 100, function() {
+            lively.net.SessionTracker.createSessionTrackerServer(this.serverURL2);
+        });
+        this.delay(function() {
+            c1.getSessions(function(sessions) {
+                var url = this.serverURL2.toString().replace(/^http/, 'ws') + 'connect';
+                var s = sessions[url];
+                this.assert(!!s, 'Not connected to server 2?');
+                this.assert(!s.error, 'session response got error: ' + s.error);
+                this.done();
+            }.bind(this));            
+        }, 700);
+    },
+
 
     testRemoteEvalWith2Servers: function() {
         var c1 = this.client1, c2 = this.client2;

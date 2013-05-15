@@ -117,6 +117,7 @@ function SessionTracker(options) {
     this.websocketServer = new WebSocketServer();
     this.websocketClients = {}; // for connections to other servers
     this.inactiveSessionRemovalTime = options.inactiveSessionRemovalTime || 60*1000;
+    this.server2serverReconnectTimeout = options.server2serverReconnectTimeout || 60*1000;
     this.initTrackerData();
 }
 
@@ -184,13 +185,18 @@ function SessionTracker(options) {
         //     {user: 'SessionTrackerTestUser2',
         //     worldURL: 'http://localhost:9001/lively2lively2.html',
         //     id: 'E447959D-93DE-4CB3-81E7-7BBA91CDE6CD' }]}
-        var s2sConnections = this.websocketClients, id = this.id();
+        var s2sConnections = this.websocketClients, id = this.id(), tracker = this;
         var tasks = Object.keys(s2sConnections).reduce(function(tasks, url) {
             tasks[url] = function(callback) {
-                s2sConnections[url].send({action: 'getSessions', data: {id: id}}, function(msg) {
-                    var sessions = msg.data;
-                    callback(null, sessions && sessions.local);
-                });
+                var con = s2sConnections[url];
+                if (con.isOpen()) {
+                    s2sConnections[url].send({action: 'getSessions', data: {id: id}}, function(msg) {
+                        var sessions = msg.data;
+                        callback(null, sessions && sessions.local);
+                    });
+                } else {
+                    callback(null, {error: 'not connected'});
+                }
             }
             return tasks;
         }, {});
@@ -224,55 +230,77 @@ function SessionTracker(options) {
         }.bind(this));
     }
 
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    // sandboxing for testing
-    this.sandboxSetup = function() {
-        if (this.trackerData.isSandbox) return;
-        console.log('Creating sandbox');
-        this.initTrackerData();
-        this.trackerData.isSandbox = true;
-    }
-
-    this.sandboxTearDown = function() {
-        if (!this.trackerData.isSandbox) return;
-        console.log('Removing sandbox');
-        this.resetTrackerData();
-    }
-
     this.fixRemoteServerURL = function(url) {
         // ensure that it ends with "/connect"
         return url.replace(/(\/)?(connect)?$/, '') + '/connect';
     }
 
     this.serverToServerConnect = function(url, thenDo) {
+        console.log('Connecting server2server: %s -> %s', this, url);
         // creates a connection to another lively session tracker
         url = this.fixRemoteServerURL(url) ;
-        var client = this.websocketClients[url];
+        var tracker = this, client = this.getServerToServerConnection(url);
         if (!client) { client = this.websocketClients[url] = new WebSocketClient(url, 'lively-json'); }
         if (client.isOpen()) { thenDo(null, client); return }
+        function initReconnect() {
+            if (client._trackerIsReconnecting) return;
+            client._trackerIsReconnecting = true;
+            var registeredClient = tracker.getServerToServerConnection(url);
+            tracker.removeRemoteClient(url, registeredClient);
+            if (!registeredClient) return;
+            tracker.startServerToServerConnectAttempt(url);            
+        }
         try {
             client.once('connect', function() { thenDo(null, client); });
-            client.on('close', function() { this.removeRemoteClient(url, client); }.bind(this));
+            client.on('close', function() {
+                console.warn('Server to server connection from %s to %s closed', tracker, url);
+                // if we haven't initiated the close, we will reconnect
+                // otherwise we are ok with the close and do nothing
+                initReconnect();
+            });
+            client.on('error', function(err) {
+                console.error('ServerToServer connection %s got error: ', url, err); 
+                initReconnect();
+            });
             client.connect();
         } catch(e) {
-            console.error('serverToServerConnect ', e);
+            console.error('server2server connection error (%s -> %s): ',this , url, e);
             thenDo(e);
         }
     }
 
     this.removeRemoteClient = function(url, client) {
-        var myClient = this.websocketClients[url];
+        var myClient = this.getServerToServerConnection(url);
+        delete this.websocketClients[url];
         if (myClient && client && myClient !== client) {
             console.warn('%s discovered inconsistency in removeRemoteClient: removed client does not match specified client', this)
             client && client.close();
         }
         myClient && myClient.close();
-        delete this.websocketClients[url];
     }
 
-     this.removeRemoteClients = function() {
+    this.startServerToServerConnectAttempt = function(url) {
+        console.log('%s attempting server2server connect with %s', this, url);
+        var tracker = this, timeout = this.server2serverReconnectTimeout || 60 * 1000;
+        setTimeout(function() {
+            tracker.serverToServerConnect(url, function(err, con) {
+                if (err) tracker.startServerToServerConnectAttempt(url);
+                else console.log('server2server connection between %s and %s established', tracker, url);
+            });
+        }, timeout);
+    }
+
+    this.getServerToServerConnection = function(url) {
+        return this.websocketClients[url];
+    }
+
+    this.removeRemoteClients = function() {
         Object.keys(this.websocketClients).forEach(function(url) {
             this.removeRemoteClient(url, this.websocketClients[url]); }, this);
+    }
+
+    this.toString = function() {
+        return util.format('SessionTracker(%s)', this.websocketServer);
     }
 
 }).call(SessionTracker.prototype);

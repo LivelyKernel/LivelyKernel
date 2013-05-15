@@ -322,7 +322,7 @@ Object.extend(lively.Tracing, {
 Object.extend(lively.Tracing, {
 
     excludedClasses: ["TracerTreeNode", "TracerStackNode", "Global", "String", "Object"],
-    excludedMethods: ["class Array>>from"],
+    excludedMethods: ["class Array>>from", "Function>>qualifiedMethodName"],
     excludedModules: ["lively.Tracing", "lively.ast.Parser", "lively.ast.generated.Nodes", "lively.ast.Interpreter", "lively.ast.Morphic"],
 
     instrumentMethod: function(obj, selector, propsToAdd) {
@@ -410,7 +410,6 @@ Object.extend(lively.Tracing, {
         // leave the constructor alone and other classes alone
         return !Class.isClass(method) &&
                 !method.isContextJSWrapper &&
-                (method.declaredClass + "." + selector) != "Function.qualifiedMethodName" &&
                 !this.excludedMethods.include([method.declaredClass, '>>', selector].join('')) &&
                 obj.hasOwnProperty(selector) &&
                 typeof(method) === 'function';

@@ -8,7 +8,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     _StyleSheet: ".SessionList, .CodeEditor {\n\
     border: 1px solid #DDD;\n\
 }",
-    cameForward: false,
+    cameForward: true,
     className: "lively.morphic.Window",
     collapsedExtent: null,
     collapsedTransform: null,
@@ -209,9 +209,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         var worldNameMaxLength = maxLength - user.length;
         var lastActivity = '';
         if (session.lastActivity) {
-            show(session.lastActivity)
             lastActivity += new Date(session.lastActivity).relativeTo(new Date());
-            show(lastActivity)
         }
         worldNameMaxLength -= lastActivity.length;
         var worldNameMaxLength = maxLength - user.length;

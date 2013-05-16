@@ -50,6 +50,16 @@
 	color: gray;
 }
 
+.Button .Text {
+	display: table;
+}
+
+.Button .Text span {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
 .Window {
 	background-color: rgba(244, 244, 244, 0.7);
 	box-shadow: 0px 4px 15px #666;

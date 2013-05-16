@@ -3709,11 +3709,11 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         } else {
             if (item.onUpdate) item.onUpdate(this);
         }
-        this.updateNode();
         if (this.childNodes) {
             if (item.onUpdateChildren) item.onUpdateChildren(this);
             this.updateChildren();
         }
+        this.updateNode();
     },
     updateNode: function() {
         if (this.node) {
@@ -3763,17 +3763,18 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var pageSize = this.childrenPerPage ? this.childrenPerPage : 100;
         var currentInterval = Math.ceil(this.childNodes.length / pageSize) * pageSize;
         currentInterval = Math.max(currentInterval , 100);
-        var childrenToShow = Math.min(this.item.children.length, currentInterval);
+        var numChildren = this.item.children ? this.item.children.length : 0;
+        var childrenToShow = Math.min(numChildren, currentInterval);
         for (var j = 0; j < childrenToShow; j++) {
             var item = this.item.children[j];
             if (this.childNodes.length > j && this.childNodes[j].item === item) {
                 this.childNodes[j].update();
             } else {
-                var after = this.childNodes[j - 1];
-                var newNode = this.createNodeAfter(item, after);
+                var newNode = this.createNodeBefore(item, this.childNodes[j]);
                 this.childNodes.pushAt(newNode, j);
             }
         }
+        if (!this.item.children) delete this.childNodes;
     }
 },
 'creating', {
@@ -3826,13 +3827,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
         return label;
     },
-    createNodeAfter: function(item, optOtherNode) {
+    createNodeBefore: function(item, optOtherNode) {
         var node = new lively.morphic.Tree(item, this);
         node.childrenPerPage = this.childrenPerPage;
-        if (optOtherNode) {
-            node.setPosition(optOtherNode.getPosition().addXY(0,1));
-        }
-        this.addMorph(node);
+        this.addMorph(node, optOtherNode);
         return node;
     },
 },
@@ -3854,15 +3852,14 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             if (this.showMoreNode) this.showMoreNode.remove();
             this.showMoreNode = null;
             var start = this.childNodes.length === 0 ? this : this.childNodes.last();
-            childrenToShow.reduce(function(previous, currentItem) {
-                var node = this.createNodeAfter(currentItem, previous);
+            childrenToShow.each(function(currentItem) {
+                var node = this.createNodeBefore(currentItem);
                 this.childNodes.push(node);
-                return node;
-            }.bind(this), start);
+            }, this);
             if (this.childNodes.length < this.item.children.length) {
                 var more = {name: "", description: "[show more]",
                             onSelect: this.showMoreChildren.bind(this)};
-                this.showMoreNode = this.createNodeAfter(more, this.childNodes.last());
+                this.showMoreNode = this.createNodeBefore(more);
             }
         });
     },

@@ -172,9 +172,9 @@ Object.subclass('lively.net.SessionTrackerConnection',
         var session = this;
         function report() {
             function next() { session._reportActivitiesTimer = report.delay(session.activityTimeReportDelay/1000); }
-            if (!Global.LastEvent || !session.sessionId) return;
+            if (!session.isConnected()) return;
             var timeStamp = Global.LastEvent.timeStamp;
-            if (timeStamp === session._lastReportedActivity) { next(); return; }
+            if (!timeStamp || timeStamp === session._lastReportedActivity) { next(); return; }
             session._lastReportedActivity = timeStamp;
             session.send('reportActivity', {lastActivity: timeStamp}, next);
         }

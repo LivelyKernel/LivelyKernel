@@ -220,8 +220,31 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
                 this.done();
             }.bind(this));
         });
-    }
-
-});
+    },
+    testConnect3Servers: function() {
+        // one server is the "central" ther others clients
+        var c1 = this.client1, c2 = this.client2, c3 = this.client3;
+        c1.register(); c2.register(); c3.register();
+        this.waitFor(function() { return c1.isConnected() && c2.isConnected() && c3.isConnected(); }, 50, function() {
+            c1.initServerToServerConnect(this.serverURL3);
+            c2.initServerToServerConnect(this.serverURL3);
+            connect(c1.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone1');
+            connect(c2.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone2');
+        });
+        this.waitFor(function() { return !!this.serverToServerConnectDone1 && !!this.serverToServerConnectDone2; }, 100, function() {
+            c3.getSessions(function(sessions) {
+                var expected = {};
+                expected[this.serverURL1.toString().replace(/^http/, 'ws') + 'connect'] = {
+                    id: c1.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'
+                }
+                expected[this.serverURL2.toString().replace(/^http/, 'ws') + 'connect'] = {
+                    id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'
+                }
+                show(sessions);
+                this.assertMatches(expected, sessions);
+                this.done();
+            }.bind(this));
+        });
+    },});
 
 }) // end of module

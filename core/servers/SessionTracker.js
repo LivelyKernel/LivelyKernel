@@ -156,6 +156,7 @@ function SessionTracker(options) {
         // attempt reconnects of closed sockets
         this.websocketServer && this.websocketServer.close();
         this.removeServerToServerConnections();
+        this.stopServerToServerSessionReport();
     }
 
     this.initTrackerData = function() {
@@ -261,11 +262,12 @@ function SessionTracker(options) {
             client._trackerIsReconnecting = true;
             var registeredClient = tracker.getServerToServerConnection(url);
             tracker.removeServerToServerConnection(url, registeredClient);
+            if (Object.keys(tracker.serverToServerConnections).length) tracker.stopServerToServerSessionReport();
             if (!registeredClient) return;
             tracker.startServerToServerConnectAttempt(url);            
         }
         try {
-            client.once('connect', function() { thenDo(null, client); });
+            client.once('connect', function() { tracker.startServerToServerSessionReport(); thenDo(null, client); });
             client.on('close', function() {
                 console.warn('Server to server connection from %s to %s closed', tracker, url);
                 // if we haven't initiated the close, we will reconnect
@@ -332,9 +334,27 @@ function SessionTracker(options) {
     }
 
     this.startServerToServerSessionReport = function() {
-        this._serverToServerSessionReportLoop = setTimeout(function() {
-            
-        })
+        var tracker = this;
+        function reportSessions(next, url, con) {
+            tracker.getLocalSessionList(null, function(err, sessions) {
+                if (!con.isOpen()) { next(null, {error: 'not connected'}); return; }
+                if (err) { next(null, {error: err}); return; }
+                con.send(
+                    {action: 'reportSessions', data: sessions},
+                    function(msg) { next(null, msg.data); });
+            });
+        }
+        function whenDone(err, reportResult) {
+            console.log("%s sending session reports: ", reportResult);
+            var delay = tracker.serverToServerSessionReportDelay || 5 * 60 * 1000;
+            tracker._serverToServerSessionReportLoop = setTimeout(tracker.startServerToServerSessionReport.bind(tracker), delay);
+        }
+        tracker.withServerToServerConnectionsDo(reportSessions, whenDone);
+    }
+
+    this.stopServerToServerSessionReport = function() {
+        clearTimeout(this._serverToServerSessionReportLoop);
+        delete this._serverToServerSessionReportLoop;
     }
 
     this.toString = function() {

@@ -177,7 +177,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         function report() {
             function next() { session._reportActivitiesTimer = report.delay(session.activityTimeReportDelay/1000); }
             if (!session.isConnected()) return;
-            var timeStamp = Global.LastEvent.timeStamp;
+            var timeStamp = Global.LastEvent && Global.LastEvent.timeStamp;
             if (!timeStamp || timeStamp === session._lastReportedActivity) { next(); return; }
             session._lastReportedActivity = timeStamp;
             session.send('reportActivity', {lastActivity: timeStamp}, next);

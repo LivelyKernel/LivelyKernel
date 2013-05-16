@@ -23,45 +23,55 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 'testing', {
     testRegisterCurrentWorld: function() {
         this.sut.register();
+        this.sut.whenOnline(function() {
+            this.assert(!!this.sut.trackerId, 'tracker id not in session tracker client');
+        }.bind(this));
         this.sut.getSessions(function(sessions) {
             var expected = [{
                 id: this.sut.sessionId,
                 worldURL: URL.source.toString(),
                 user: "SessionTrackerTestUser"
             }];
-            this.assertMatches(expected, sessions.local);
+            var sessionList = sessions[this.sut.trackerId];
+            this.assertMatches(expected, sessionList);
+            this.assert(!!sessionList[0].remoteAddress, 'ip not included');
             this.done();
         }.bind(this));
     },
 
     testUnregister: function() {
-        var cameOnline = false;
+        var cameOnline = false, id;
         this.sut.register();
         this.sut.whenOnline(function() {
             cameOnline = true;
+            id = this.sut.trackerId;
             this.sut.unregister();
         }.bind(this));
         this.waitFor(function() { return cameOnline; }, 100, function() {
-            var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-            this.assertEqualState({local: []}, sessions);
+            var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname],
+                expected = {}; expected[id] = [];
+            this.assertEqualState(expected, sessions);
+            this.assert(!this.sut.trackerId, 'tracker id not removed');
+            this.assert(!this.sut.sessionId, 'session id not removed');
             this.done();
         });
 },
 
     testLostConnectionIsRemoved: function() {
-        var cameOnline = false;
+        var cameOnline = false, id;
         this.sut.register();
         this.sut.whenOnline(function() {
             cameOnline = true;
             disconnectAll(this.sut.webSocket); // so that close does not trigger reconnect
+            id = this.sut.trackerId;
             this.sut.webSocket.close();
         }.bind(this));
         this.waitFor(function() { return cameOnline; }, 100, function() {
             var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-            this.assertEquals(1, sessions.local.length, 'session removed to early?');
+            this.assertEquals(1, sessions[id].length, 'session removed to early?');
             this.delay(function() {
                 var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-                this.assertEquals(0, sessions.local.length, 'session not removed');
+                this.assertEquals(0, sessions[id].length, 'session not removed');
                 this.done();
             }, 600);
         });
@@ -88,7 +98,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.sut.whenOnline(function() {
                 var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
                 // this.assertEquals('connected', this.sut.status());
-                this.assertEquals(1, sessions.local.length, 'session not re-registered');
+                this.assertEquals(1, sessions[this.sut.trackerId].length, 'session not re-registered');
                 this.done();
             }.bind(this));
         }, 700);
@@ -112,12 +122,12 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         this.sut.register();
         var activity1, activity2;
         this.sut.getSessions(function(sessions) {
-            activity1 = sessions.local[0].lastActivity;
+            activity1 = sessions[this.sut.trackerId][0].lastActivity;
             Global.LastEvent.timeStamp++;
         }.bind(this));
         this.delay(function() {
             this.sut.getSessions(function(sessions) {
-                activity2 = sessions.local[0].lastActivity;
+                activity2 = sessions[this.sut.trackerId][0].lastActivity;
             }.bind(this));
         }, 200);
         this.delay(function() {
@@ -173,7 +183,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         });
         this.waitFor(function() { return !!this.serverToServerConnectDone; }, 100, function() {
             c1.getSessions(function(sessions) {
-                var remoteSessions = sessions[this.serverURL2.toString().replace(/^http/, 'ws') + 'connect'],
+                var remoteSessions = sessions[c2.trackerId],
                     expected = [{id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'}];
                 this.assertMatches(expected, remoteSessions);
                 this.done();
@@ -196,8 +206,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         });
         this.delay(function() {
             c1.getSessions(function(sessions) {
-                var url = this.serverURL2.toString().replace(/^http/, 'ws') + 'connect';
-                var s = sessions[url];
+                var s = sessions[c2.trackerId];
                 this.assert(!!s, 'Not connected to server 2?');
                 this.assert(!s.error, 'session response got error: ' + s.error);
                 this.done();

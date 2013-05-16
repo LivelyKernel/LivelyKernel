@@ -67,10 +67,12 @@ function onLivelyJSONMessage(receiver, connection, msg) {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var WebSocketClientImpl = websocket.client;
 
-function WebSocketClient(url, protocol) {
+function WebSocketClient(url, options) {
+    options = options || {}
     EventEmitter.call(this);
     this.url = url;
-    this.protocol = protocol;
+    this.protocol = options.protocol;
+    this.id = options.id || null;
     this.setupClient();
     this.debug = true;
 }
@@ -146,9 +148,12 @@ util.inherits(WebSocketClient, EventEmitter);
 
     this.send = function(data, callback) {
         addCallback(this, data, callback);
-        this.debug && console.log('\n%s send ', this, data);
         try {
-            if (typeof data !== 'string') data = JSON.stringify(data);
+            if (typeof data !== 'string') {
+                if (this.id) data.sender = this.id;
+                data = JSON.stringify(data);
+            }
+            this.debug && console.log('\n%s send ', this, data);
             return this.connection.send(data);
         } catch(e) {
             console.error('Send with %s failed: %s', this, e);
@@ -157,7 +162,7 @@ util.inherits(WebSocketClient, EventEmitter);
     }
 
     this.toString = function() {
-        return f('<WebSocketClient %s, %s>', this.url, this.connection);
+        return f('<WebSocketClient %s, %s>', this.url, this.id);
     }
 
     this.isOpen = function() {
@@ -182,6 +187,7 @@ function WebSocketListener(options) {
     else lifeStar.on('start', init);
     lifeStar.on('close', this.shutDown.bind(this));
     this.requestHandler = {};
+    this.id = options.id || null;
 }
 
 util.inherits(WebSocketListener, websocket.server);
@@ -250,8 +256,10 @@ WebSocketListener.forLively = function() {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-function WebSocketServer() {
+function WebSocketServer(options) {
+    options = options || {};
     EventEmitter.call(this);
+    this.id = options.id || null;
     this.connections = [];
     this.debug = true;
     this.route = '';
@@ -315,8 +323,11 @@ util.inherits(WebSocketServer, EventEmitter);
 
         c.send = function(msg, callback) {
             addCallback(server, msg, callback);
+            if (typeof msg !== 'string') {
+                if (server.id) msg.sender = server.id;
+                msg = JSON.stringify(msg);
+            }
             server.debug && msg.action && console.log('\n%s sending: %s to %s\n', server, msg.action, c.id || 'unknown', msg);
-            if (typeof msg !== 'string') msg = JSON.stringify(msg);
             this.sendUTF(msg);
         }
 

@@ -3,6 +3,8 @@ module('lively.net.SessionTracker').requires('lively.Network').toRun(function() 
 Object.subclass('lively.net.SessionTrackerConnection',
 'initializing', {
     initialize: function(options) {
+        this.sessionId = null; // id of this session, defined when connected
+        this.trackerId = null; // id of the tracker endpoint on the server, defined when connected
         this.sessionTrackerURL = options.sessionTrackerURL;
         this.username = options.username;
         this._status = 'disconnected';
@@ -82,10 +84,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
             removeAfterUpdate: true});
     },
 
-    connectionEstablished: function() {
+    connectionEstablished: function(msg) {
         // In case we have removed the connection already
         if (!this.webSocket || !this.sessionId) return;
         this._status = 'connected';
+        this.trackerId = msg.data && msg.data.tracker && msg.data.tracker.id;
         lively.bindings.connect(this.webSocket, 'closed', this, 'connectionClosed', {
             removeAfterUpdate: true});
         lively.bindings.signal(this, 'established');
@@ -127,6 +130,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         if (this.sessionId) this.send('unregisterClient', {id: this.sessionId});
         this.resetConnection();
         this.sessionId = null;
+        this.trackerId = null;
         this.stopReportingActivities();
     },
 

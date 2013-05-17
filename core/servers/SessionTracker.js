@@ -123,7 +123,7 @@ var sessionActions = {
             }, sessionServer.inactiveSessionRemovalTime);
         });
         sessionServer.trackerData[id] = {sessions: msg.data[id]};
-        console.log('%s got reportSessions request, session reported: ', sessionServer, sessionServer.trackerData[id]);
+        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Sessions added to ' + sessionServer}});
     }
 }
 
@@ -423,9 +423,11 @@ function SessionTracker(options) {
     }
 
     this.startServerToServerSessionReport = function() {
+        console.log('%s initiaing serverToServerSessionReport', this);
         var tracker = this;
         function reportSessions(next, url, con) {
             if (!con.isOpen()) { next(null, {error: 'not connected'}); return; }
+            console.log('%s sending serverToServerSessionReport to %s', tracker, url);
             var sessions = tracker.getLocalSessions();
             con.send(
                 {action: 'reportSessions', data: util._extend(sessions, {trackerId: tracker.id()})},

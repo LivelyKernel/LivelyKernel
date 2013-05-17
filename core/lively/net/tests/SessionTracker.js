@@ -27,29 +27,30 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.assert(!!this.sut.trackerId, 'tracker id not in session tracker client');
         }.bind(this));
         this.sut.getSessions(function(sessions) {
-            var expected = [{
+            var expected = {
                 id: this.sut.sessionId,
                 worldURL: URL.source.toString(),
                 user: "SessionTrackerTestUser"
-            }];
-            var sessionList = sessions[this.sut.trackerId];
-            this.assertMatches(expected, sessionList);
-            this.assert(!!sessionList[0].remoteAddress, 'ip not included');
+            };
+            var localSessions = sessions[this.sut.trackerId];
+            this.assert(1, Object.keys(localSessions).length, 'more than one local session?')
+            this.assertMatches(expected, localSessions[this.sut.sessionId]);
+            this.assert(!!localSessions[this.sut.sessionId].remoteAddress, 'ip not included');
             this.done();
         }.bind(this));
     },
 
     testUnregister: function() {
-        var cameOnline = false, id;
+        var cameOnline = false, trackerId;
         this.sut.register();
         this.sut.whenOnline(function() {
             cameOnline = true;
-            id = this.sut.trackerId;
+            trackerId = this.sut.trackerId;
             this.sut.unregister();
         }.bind(this));
         this.waitFor(function() { return cameOnline; }, 100, function() {
             var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname],
-                expected = {}; expected[id] = [];
+                expected = {}; expected[trackerId] = {};
             this.assertEqualState(expected, sessions);
             this.assert(!this.sut.trackerId, 'tracker id not removed');
             this.assert(!this.sut.sessionId, 'session id not removed');
@@ -68,10 +69,10 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         }.bind(this));
         this.waitFor(function() { return cameOnline; }, 100, function() {
             var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-            this.assertEquals(1, sessions[id].length, 'session removed to early?');
+            this.assertEquals(1, Object.keys(sessions[id]).length, 'session removed to early?');
             this.delay(function() {
                 var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-                this.assertEquals(0, sessions[id].length, 'session not removed');
+                this.assertEquals(0, Object.keys(sessions[id]).length, 'session not removed');
                 this.done();
             }, 600);
         });
@@ -98,7 +99,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.sut.whenOnline(function() {
                 var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
                 // this.assertEquals('connected', this.sut.status());
-                this.assertEquals(1, sessions[this.sut.trackerId].length, 'session not re-registered');
+                this.assertEquals(1, Object.keys(sessions[this.sut.trackerId]).length, 'session not re-registered');
                 this.done();
             }.bind(this));
         }, 700);
@@ -122,12 +123,12 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         this.sut.register();
         var activity1, activity2;
         this.sut.getSessions(function(sessions) {
-            activity1 = sessions[this.sut.trackerId][0].lastActivity;
+            activity1 = sessions[this.sut.trackerId][this.sut.sessionId].lastActivity;
             Global.LastEvent.timeStamp++;
         }.bind(this));
         this.delay(function() {
             this.sut.getSessions(function(sessions) {
-                activity2 = sessions[this.sut.trackerId][0].lastActivity;
+                activity2 = sessions[this.sut.trackerId][this.sut.sessionId].lastActivity;
             }.bind(this));
         }, 200);
         this.delay(function() {
@@ -184,8 +185,9 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         this.waitFor(function() { return !!this.serverToServerConnectDone; }, 100, function() {
             c1.getSessions(function(sessions) {
                 var remoteSessions = sessions[c2.trackerId],
-                    expected = [{id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'}];
-                this.assertMatches(expected, remoteSessions);
+                    expected = {id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'};
+                this.assertEquals(1, Object.keys(remoteSessions).length, 'more than one session registered?');
+                this.assertMatches(expected, remoteSessions[c2.sessionId]);
                 this.done();
             }.bind(this));            
         });
@@ -231,10 +233,9 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         });
     },
     testConnect3Servers: function() {
-        this.done();
-        return;
         // one server is the "central" ther others clients
-        var c1 = this.client1, c2 = this.client2, c3 = this.client3;
+        var c1 = this.client1, c2 = this.client2, c3 = this.client3,
+            sessionTestsRun = 0, remoteEvalRun = 0;
         c1.register(); c2.register(); c3.register();
         this.waitFor(function() { return c1.isConnected() && c2.isConnected() && c3.isConnected(); }, 50, function() {
             c1.initServerToServerConnect(this.serverURL3);
@@ -243,18 +244,37 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             connect(c2.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone2');
         });
         this.waitFor(function() { return !!this.serverToServerConnectDone1 && !!this.serverToServerConnectDone2; }, 100, function() {
+            var expected = {};
+            expected[c1.trackerId] = {}; expected[c1.trackerId][c1.sessionId] = {
+                id: c1.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser1'};
+            expected[c2.trackerId] = {}; expected[c2.trackerId][c2.sessionId] = {
+                id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'};
+            expected[c3.trackerId] = {}; expected[c3.trackerId][c3.sessionId] = {
+                id: c3.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser3'};
             c3.getSessions(function(sessions) {
-                var expected = {};
-                expected[this.serverURL1.toString().replace(/^http/, 'ws') + 'connect'] = {
-                    id: c1.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'
-                }
-                expected[this.serverURL2.toString().replace(/^http/, 'ws') + 'connect'] = {
-                    id: c2.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser2'
-                }
-                show(sessions);
                 this.assertMatches(expected, sessions);
-                this.done();
+                sessionTestDone = true;
             }.bind(this));
+            c3.getSessions(function(sessions) {
+                this.assertMatches(expected, sessions);
+                sessionTestsRun++;
+            }.bind(this));
+            c2.getSessions(function(sessions) {
+                this.assertMatches(expected, sessions);
+                sessionTestsRun++;
+            }.bind(this));
+            c1.getSessions(function(sessions) {
+                this.assertMatches(expected, sessions);
+                sessionTestsRun++;
+            }.bind(this));
+            c3.openForRemoteEvalRequests();
+            c1.remoteEval(c3.sessionId, '1+2;', function(msg) {
+                this.assertEqualState({result: '3'}, msg.data, Objects.inspect(msg));
+                remoteEvalRun++;
+            }.bind(this));
+        });
+        this.waitFor(function() { return remoteEvalRun === 1; sessionTestsRun === 3; }, 100, function() {
+            this.done();
         });
     },});
 

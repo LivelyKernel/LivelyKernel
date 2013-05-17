@@ -148,14 +148,11 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         this.serverURL2 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest2/');
         this.serverURL3 = URL.create(Config.nodeJSURL+'/SessionTrackerFederationTest3/');
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL1, {
-            server2serverReconnectTimeout: 300
-        });
+            inactiveSessionRemovalTime: 200, server2serverReconnectTimeout: 200});
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL2, {
-            server2serverReconnectTimeout: 300
-        });
+            inactiveSessionRemovalTime: 200, server2serverReconnectTimeout: 200});
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL3, {
-            server2serverReconnectTimeout: 300
-        });
+            inactiveSessionRemovalTime: 200, server2serverReconnectTimeout: 200});
         this.client1 = new lively.net.SessionTrackerConnection({
             sessionTrackerURL: this.serverURL1, username: 'SessionTrackerTestUser1'});
         this.client2 = new lively.net.SessionTrackerConnection({
@@ -201,7 +198,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         });
         this.waitFor(function() { return !!this.serverToServerConnectDone; }, 100, function() {
             lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL2);
-            this.delay(function() { this.server2Shutdown = true; }, 200);
+            this.delay(function() { this.server2Shutdown = true; }, 100);
         });
         this.waitFor(function() { return !!this.server2Shutdown; }, 100, function() {
             lively.net.SessionTracker.createSessionTrackerServer(this.serverURL2);
@@ -244,6 +241,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             connect(c2.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone2');
         });
         this.waitFor(function() { return !!this.serverToServerConnectDone1 && !!this.serverToServerConnectDone2; }, 100, function() {
+            // test session state
             var expected = {};
             expected[c1.trackerId] = {}; expected[c1.trackerId][c1.sessionId] = {
                 id: c1.sessionId, worldURL: URL.source.toString(), user: 'SessionTrackerTestUser1'};
@@ -267,8 +265,20 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
                 this.assertMatches(expected, sessions);
                 sessionTestsRun++;
             }.bind(this));
-            c3.openForRemoteEvalRequests();
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // test messaging
+            c1.openForRemoteEvalRequests(); c2.openForRemoteEvalRequests(); c3.openForRemoteEvalRequests();
             c1.remoteEval(c3.sessionId, '1+2;', function(msg) {
+                this.assertEqualState({result: '3'}, msg.data, Objects.inspect(msg));
+                remoteEvalRun++;
+            }.bind(this));
+            // TODO make central -> local messages work
+            false && c3.remoteEval(c1.sessionId, '1+2;', function(msg) {
+                this.assertEqualState({result: '3'}, msg.data, Objects.inspect(msg));
+                remoteEvalRun++;
+            }.bind(this));
+            // TODO make local -> central -> local messages work
+            false && c1.remoteEval(c2.sessionId, '1+2;', function(msg) {
                 this.assertEqualState({result: '3'}, msg.data, Objects.inspect(msg));
                 remoteEvalRun++;
             }.bind(this));
@@ -276,6 +286,23 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         this.waitFor(function() { return remoteEvalRun === 1; sessionTestsRun === 3; }, 100, function() {
             this.done();
         });
+    },
+    testReportedSessionCleanup: function() {
+        var c1 = this.client1, c2 = this.client2;
+        c1.register(); c2.register();
+        this.waitFor(function() { return c1.isConnected() && c2.isConnected(); }, 50, function() {
+            c1.initServerToServerConnect(this.serverURL2);
+            connect(c1.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone1');
+        });
+        this.waitFor(function() { return !!this.serverToServerConnectDone1; }, 100, function() {
+            lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL1);
+        });
+        this.delay(function() {
+            c2.getSessions(function(sessions) {
+                this.assertEquals(1, Object.keys(sessions).length, 'Dead session not removed?');
+                this.done();
+            }.bind(this));            
+        }, 400);
     },});
 
 }) // end of module

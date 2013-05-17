@@ -141,7 +141,7 @@ function SessionTracker(options) {
     this.route = options.route + 'connect';
     this.subserver = options.subserver;
     this.trackerId = uuid();
-    this.websocketServer = new WebSocketServer({id: this.trackerId});
+    this.websocketServer = new WebSocketServer({sender: this.trackerId});
     this.serverToServerConnections = {}; // for connections to other servers
     this.inactiveSessionRemovalTime = options.inactiveSessionRemovalTime || 60*1000;
     this.server2serverReconnectTimeout = options.server2serverReconnectTimeout || 60*1000;
@@ -305,7 +305,7 @@ function SessionTracker(options) {
         // creates a connection to another lively session tracker
         url = this.fixRemoteServerURL(url) ;
         var tracker = this, client = this.getServerToServerConnection(url);
-        if (!client) { client = this.serverToServerConnections[url] = new WebSocketClient(url, {protocol: 'lively-json', id: this.trackerId}); }
+        if (!client) { client = this.serverToServerConnections[url] = new WebSocketClient(url, {protocol: 'lively-json', sender: this.trackerId}); }
         if (client.isOpen()) { thenDo(null, client); return }
         function initReconnect() {
             if (client._trackerIsReconnecting) return;

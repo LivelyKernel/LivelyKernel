@@ -72,7 +72,7 @@ function WebSocketClient(url, options) {
     EventEmitter.call(this);
     this.url = url;
     this.protocol = options.protocol;
-    this.id = options.id || null;
+    this.sender = options.sender || null;
     this.setupClient();
     this.debug = true;
 }
@@ -150,7 +150,7 @@ util.inherits(WebSocketClient, EventEmitter);
         addCallback(this, data, callback);
         try {
             if (typeof data !== 'string') {
-                if (this.id) data.sender = this.id;
+                if (this.sender && !data.sender) data.sender = this.sender;
                 data = JSON.stringify(data);
             }
             this.debug && console.log('\n%s send ', this, data);
@@ -162,7 +162,7 @@ util.inherits(WebSocketClient, EventEmitter);
     }
 
     this.toString = function() {
-        return f('<WebSocketClient %s, %s>', this.url, this.id);
+        return f('<WebSocketClient %s, sender %s>', this.url, this.sender);
     }
 
     this.isOpen = function() {
@@ -187,7 +187,6 @@ function WebSocketListener(options) {
     else lifeStar.on('start', init);
     lifeStar.on('close', this.shutDown.bind(this));
     this.requestHandler = {};
-    this.id = options.id || null;
 }
 
 util.inherits(WebSocketListener, websocket.server);
@@ -259,7 +258,7 @@ WebSocketListener.forLively = function() {
 function WebSocketServer(options) {
     options = options || {};
     EventEmitter.call(this);
-    this.id = options.id || null;
+    this.sender = options.sender || null;
     this.connections = [];
     this.debug = true;
     this.route = '';
@@ -324,7 +323,7 @@ util.inherits(WebSocketServer, EventEmitter);
         c.send = function(msg, callback) {
             addCallback(server, msg, callback);
             if (typeof msg !== 'string') {
-                if (server.id) msg.sender = server.id;
+                if (server.sender && !msg.sender) msg.sender = server.sender;
                 msg = JSON.stringify(msg);
             }
             server.debug && msg.action && console.log('\n%s sending: %s to %s\n', server, msg.action, c.id || 'unknown', msg);

@@ -3,7 +3,7 @@ module('lively.net.tools.Lively2Lively').requires().toRun(function() {
 lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(650.0,386.0),
-    _Position: lively.pt(3348.5,593.0),
+    _Position: lively.pt(3561.5,617.0),
     _StyleClassNames: ["Morph","Window"],
     _StyleSheet: ".SessionList, .CodeEditor {\n\
     border: 1px solid #DDD;\n\
@@ -70,7 +70,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 resizeWidth: true
             },
             name: "SessionList",
-            selectedLineNo: 3,
+            selectedLineNo: 4,
             selection: null,
             sourceModule: "lively.morphic.Core",
             submorphs: [],
@@ -324,8 +324,9 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         var localSession = this.getLocalSession();
         if (localSession.isConnected()) {
             localSession.getSessions(function(remotes) {
-                var items = Object.keys(remotes).map(function(url) {
-                    return remotes[url].map(function(sess) {
+                var items = Object.keys(remotes).map(function(trackerId) {
+                    return Object.keys(remotes[trackerId]).map(function(sessionId) {
+                        var sess = remotes[trackerId][sessionId];
                         return {isListItem: true, string: self.getSessionTitle(sess), value: sess};
                     });
                 }).flatten();

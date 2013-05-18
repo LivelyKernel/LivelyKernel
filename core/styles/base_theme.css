@@ -50,6 +50,17 @@
 	color: gray;
 }
 
+/* for centered button labels let the textNode use table layouting */
+.Button .Text > div {
+    display: table !important;
+}
+
+.Button .Text span {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
 .Window {
 	background-color: rgba(244, 244, 244, 0.7);
 	box-shadow: 0px 4px 15px #666;

@@ -50,8 +50,9 @@
 	color: gray;
 }
 
-.Button .Text {
-	display: table;
+/* for centered button labels let the textNode use table layouting */
+.Button .Text > div {
+    display: table !important;
 }
 
 .Button .Text span {

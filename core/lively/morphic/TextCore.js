@@ -511,8 +511,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var labelStyle = {
             fill: null,
             borderWidth: 0,
-            fixedWidth: false,
-            fixedHeight: true,
+            fixedWidth: false, fixedHeight: false,
             allowInput: false,
             clipMode: 'hidden',
             emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}

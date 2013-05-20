@@ -3690,6 +3690,7 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
         var handPos = this.localize(evt.getPosition());
 
         if (this.sliderKnob.bounds().containsPoint(handPos)) return false; // knob handles move
+        if (!this.innerBounds().containsPoint(handPos)) return false; // don't involve, eg, pins
 
         var inc = this.getSliderExtent(),
             newValue = this.getValue(),

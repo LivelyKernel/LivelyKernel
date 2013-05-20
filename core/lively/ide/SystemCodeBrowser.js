@@ -241,7 +241,8 @@ Object.extend(lively.ide, {
         } else {
             browser.setTargetURL(url);
         }
-
+        browser.panel.getWindow().comeForward();
+        return browser;
     },
 
     openSystemCodeBrowser: function() {

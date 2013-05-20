@@ -361,6 +361,7 @@ Object.subclass('lively.ide.FileFragment',
         browser.setTargetURL(URL.codeBase.withFilename(pathName));
 
         this.basicBrowseIt(browser);
+        browser.panel.getWindow().comeForward();
         return browser;
     },
 

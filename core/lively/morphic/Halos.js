@@ -700,7 +700,7 @@ lively.morphic.Halo.subclass('lively.morphic.StyleHalo',
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
-        $world.openStyleEditorFor(this.targetMorph, evt)
+        lively.morphic.World.current().openStyleEditorFor(this.targetMorph, evt);
     },
 });
 

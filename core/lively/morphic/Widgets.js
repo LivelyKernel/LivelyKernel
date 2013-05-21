@@ -1298,12 +1298,18 @@ lively.morphic.World.addMethods(
         return part;
     },
     openStyleEditorFor: function(morph, evt) {
-        var editor = this.openPartItem('StyleEditor', 'PartsBin/Tools');
-        editor.setTarget(morph);
-        var globalPos = morph.owner.getGlobalTransform().transformPoint(
-                morph.bounds().bottomLeft());
-        editor.align(editor.bounds().topLeft(),globalPos);
-        return editor;
+        module('lively.ide.tools.StyleEditor').load(true);
+        var styleEditorWindow = lively.BuildSpec('lively.ide.tools.StyleEditor').createMorph();
+        styleEditorWindow.setTarget(morph);
+        var alignPos = morph.getGlobalTransform().transformPoint(morph.innerBounds().bottomLeft()),
+            edBounds = styleEditorWindow.innerBounds(),
+            visibleBounds = this.visibleBounds();
+        if (visibleBounds.containsRect(edBounds.translatedBy(alignPos))) {
+            styleEditorWindow.setPosition(alignPos);
+        } else {
+            styleEditorWindow.setPositionCentered(visibleBounds.center());
+        }
+        return styleEditorWindow;
     },
     openObjectEditor: function() {
         return this.openPartItem('ObjectEditor', 'PartsBin/Tools');

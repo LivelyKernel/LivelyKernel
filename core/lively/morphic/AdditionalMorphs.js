@@ -741,7 +741,8 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         borderColor: Color.gray,
         enableDragging: false,
         enableGrabbing: false
-    }
+    },
+    isTabBar: true
 },
 'initializing', {
 

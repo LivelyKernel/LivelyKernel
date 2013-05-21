@@ -1452,17 +1452,8 @@ lively.morphic.World.addMethods(
         return objectEditor;
     }),
 
-    openStyleEditorFor: function(morph, evt) {
-        var editor = this.openPartItem('StyleEditor', 'PartsBin/Tools'),
-            alignPos = morph.getGlobalTransform().transformPoint(morph.innerBounds().bottomLeft()),
-            edBounds = editor.innerBounds(),
-            visibleBounds = this.visibleBounds();
-        if (visibleBounds.containsRect(edBounds.translatedBy(alignPos))) {
-            editor.setPosition(alignPos);
-        } else {
-            editor.setPositionCentered(visibleBounds.center());
-        }
-        editor.setTarget(morph);
+    openStyleEditorFor: lively.morphic.World.prototype.openStyleEditorFor.getOriginal().wrap(function(proceed, morph, evt) {
+        var editor = proceed(morph,evt);
         if (Config.get('useAceEditor')) {
             var oldEditor = editor.get("CSSCodePane"),
                 newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
@@ -1479,7 +1470,7 @@ lively.morphic.World.addMethods(
         }
         editor.comeForward();
         return editor;
-    },
+    }),
 
     openWorldCSSEditor: function () {
         var editor = this.openPartItem('WorldCSS', 'PartsBin/Tools');

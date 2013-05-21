@@ -3,7 +3,7 @@ module('lively.ide.tools.StyleEditor').requires('lively.morphic.Widgets').toRun(
 lively.BuildSpec('lively.ide.tools.StyleEditor', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(331.0,486.0),
-    _Position: lively.pt(833.0,102.0),
+    _Position: lively.pt(1088.0,305.0),
     cameForward: true,
     className: "lively.morphic.Window",
     collapsedExtent: null,
@@ -357,7 +357,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     connectionRebuilder: function connectionRebuilder() {
                     lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
                 function (bool) {
-                            	var style = {},
+                                var style = {},
                         			prop = this.sourceObj.layoutProperty;
                         		style[prop] = bool;
                         		return style
@@ -632,14 +632,10 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setLayouter", {});
                 },
                     setup: function setup() {
-                    var layoutClasses = [
-                            lively.morphic.Layout.HorizontalLayout,
+                    var layoutClasses = [lively.morphic.Layout.HorizontalLayout,
                             lively.morphic.Layout.TightHorizontalLayout,
                             lively.morphic.Layout.VerticalLayout,
-                            lively.morphic.Layout.JournalLayout,
-                            lively.morphic.Layout.TileLayout,
-                            lively.morphic.Layout.AccordionLayout,
-                            lively.morphic.Layout.GridLayout];
+                            lively.morphic.Layout.JournalLayout];
                 
                     var items = layoutClasses.collect(function(ea) {
                             return {isListItem: true, string: ea.name, value: ea.type} 
@@ -1011,7 +1007,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         droppingEnabled: true,
                         name: "borderWidthSlider",
                         sliderExtent: 0.1,
-                        sliderKnob: "<lively.morphic.SliderKnob#32A45...>",
+                        sliderKnob: "<lively.morphic.SliderKnob#9873D...>",
                         sourceModule: "lively.morphic.Widgets",
                         styleClass: ["slider_background_horizontal"],
                         submorphs: [{
@@ -1038,7 +1034,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
                             droppingEnabled: true,
                             hitPoint: lively.pt(298.0,651.0),
-                            slider: "<lively.morphic.Slider#AB731... - borderWidthSlider>",
+                            slider: "<lively.morphic.Slider#01C57... - borderWidthSlider>",
                             sourceModule: "lively.morphic.Widgets",
                             styleClass: ["slider_horizontal"],
                             submorphs: []
@@ -1078,7 +1074,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         droppingEnabled: true,
                         name: "borderRadiusSlider",
                         sliderExtent: 0.1,
-                        sliderKnob: "<lively.morphic.SliderKnob#4F885...>",
+                        sliderKnob: "<lively.morphic.SliderKnob#F7D8E...>",
                         sourceModule: "lively.morphic.Widgets",
                         styleClass: ["slider_background_horizontal"],
                         submorphs: [{
@@ -1105,7 +1101,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
                             droppingEnabled: true,
                             hitPoint: lively.pt(828.0,410.0),
-                            slider: "<lively.morphic.Slider#2DA0E... - borderRadiusSlider>",
+                            slider: "<lively.morphic.Slider#3642F... - borderRadiusSlider>",
                             sourceModule: "lively.morphic.Widgets",
                             styleClass: ["slider_horizontal"],
                             submorphs: []
@@ -1204,7 +1200,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         _Visible: true,
                         className: "lively.morphic.AwesomeColorField",
                         color: Color.rgb(0,0,0),
-                        colorDisplay: "<lively.morphic.Box#E1A30...>",
+                        colorDisplay: "<lively.morphic.Box#23C97...>",
                         doNotCopyProperties: [],
                         doNotSerialize: [],
                         isPressed: false,
@@ -1334,7 +1330,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         droppingEnabled: true,
                         name: "opacitySlider",
                         sliderExtent: 0.1,
-                        sliderKnob: "<lively.morphic.SliderKnob#645B1...>",
+                        sliderKnob: "<lively.morphic.SliderKnob#CA9B5...>",
                         sourceModule: "lively.morphic.Widgets",
                         styleClass: ["slider_background_horizontal"],
                         submorphs: [{
@@ -1362,7 +1358,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
                             droppingEnabled: true,
                             hitPoint: lively.pt(981.0,273.0),
-                            slider: "<lively.morphic.Slider#F3855... - opacitySlider>",
+                            slider: "<lively.morphic.Slider#788A4... - opacitySlider>",
                             sourceModule: "lively.morphic.Widgets",
                             styleClass: ["slider_horizontal"],
                             submorphs: []
@@ -1461,7 +1457,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         _Visible: true,
                         className: "lively.morphic.AwesomeColorField",
                         color: null,
-                        colorDisplay: "<lively.morphic.Box#16081...>",
+                        colorDisplay: "<lively.morphic.Box#3B2AB...>",
                         doNotCopyProperties: [],
                         doNotSerialize: [],
                         isPressed: false,
@@ -1574,7 +1570,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                 }],
                 tab: 0
             }],
-            tabBar: "<lively.morphic.TabBar#81648...>",
+            tabBar: "<lively.morphic.TabBar#F909A...>",
             tabBarStrategy: "lively.morphic.TabStrategyTop",
             tabPaneExtent: lively.pt(300.0,300.0)
         }],
@@ -1795,9 +1791,9 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
     }
     }],
     titleBar: "StyleEditorPane",
-    withoutLayers: "[[GrabbingLayer]]",
     setTarget: function setTarget(target) {
     this.get('StyleEditorPane').setTarget(target);
 }
-});
+})
+
 }) // end of module

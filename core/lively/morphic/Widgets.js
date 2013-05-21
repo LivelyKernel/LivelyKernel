@@ -1312,7 +1312,8 @@ lively.morphic.World.addMethods(
         return styleEditorWindow;
     },
     openObjectEditor: function() {
-        return this.openPartItem('ObjectEditor', 'PartsBin/Tools');
+        module('lively.ide.tools.ObjectEditor').load(true);
+        return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorld();
     },
     openObjectEditorFor: function(morph) {
         var part = this.openObjectEditor();

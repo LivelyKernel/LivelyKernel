@@ -1,4 +1,4 @@
-module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization", "lively.morphic.Widgets").toRun(function() {
+module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization", "lively.morphic.AdditionalMorphs").toRun(function() {
 
 Object.subclass('lively.persistence.SpecObject',
 'properties', {

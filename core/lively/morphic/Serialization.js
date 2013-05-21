@@ -17,6 +17,20 @@ URL.addMethods(
 'serialization', {
     serializeExpr: function() { return 'URL.create("' + this.toString() + '")'; }
 });
+lively.morphic.RadialGradient.addMethods(
+'serialization', {
+    serializeExpr: function() {
+        return Strings.format('lively.morphic.Gradient.create(%s)',
+            Objects.inspect({type: 'radial', stops: this.stops, focus: this.focus}));
+    }
+});
+lively.morphic.LinearGradient.addMethods(
+'serialization', {
+    serializeExpr: function() {
+        return Strings.format('lively.morphic.Gradient.create(%s)',
+            Objects.inspect({type: 'linear', stops: this.stops, vector: this.vector}));
+    }
+});
 
 lively.morphic.Shapes.Shape.addMethods(
 'copying', {

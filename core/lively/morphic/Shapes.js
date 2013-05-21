@@ -220,5 +220,16 @@ lively.morphic.Gradient.subclass('lively.morphic.RadialGradient',
     lighter: function(n) { return new this.constructor(this.getStopsLighter(n), this.focus) },
     darker: function() { return new this.constructor(this.getStopsDarker(), this.focus) },
 });
+Object.extend(lively.morphic.Gradient, {
+    create: function(spec) {
+        if (!spec) return null;
+        if (spec.type === 'linear') {
+            return new lively.morphic.LinearGradient(spec.stops, spec.vector);
+        } else if (spec.type === 'radial') {
+            return new lively.morphic.RadialGradient(spec.stops, spec.focus);
+        }
+        return null;
+    },
+});
 
 }) // end of module

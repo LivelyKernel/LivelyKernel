@@ -430,10 +430,10 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 },
 'initializing', {
     initialize: function($super, isChecked) {
-        $super(this.createShape());
+        $super(this.defaultShape());
         this.setChecked(isChecked);
     },
-    createShape: function() {
+    defaultShape: function() {
         // FIXME: render context dependent
         var node = XHTMLNS.create('input');
         node.type = 'checkbox';
@@ -1299,7 +1299,7 @@ lively.morphic.World.addMethods(
     },
     openStyleEditorFor: function(morph, evt) {
         module('lively.ide.tools.StyleEditor').load(true);
-        var styleEditorWindow = lively.BuildSpec('lively.ide.tools.StyleEditor').createMorph();
+        var styleEditorWindow = lively.BuildSpec('lively.ide.tools.StyleEditor').createMorph().openInWorld();
         styleEditorWindow.setTarget(morph);
         var alignPos = morph.getGlobalTransform().transformPoint(morph.innerBounds().bottomLeft()),
             edBounds = styleEditorWindow.innerBounds(),
@@ -2465,7 +2465,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     comeForward: function() {
         // adds the window before each other morph in owner
         // this resets the scroll in HTML, fix for now -- gather before and set it afterwards
-
         // step 1: highlight me and remove highlight from other windows
         if (!this.isActive()) {
             this.world().submorphs.forEach(function(ea) {
@@ -3458,7 +3457,8 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
     connections: {
         value: {}
     },
-    mss: 12  // "minimum slider size"
+    mss: 12,  // "minimum slider size"
+    isSlider: true
 },
 'initializing', {
     initialize: function($super, initialBounds, scaleIfAny) {
@@ -3573,6 +3573,7 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
 'settings', {
     style: {borderColor: Color.black, borderWidth: 1, fill: Color.gray, enableDragging: true},
     dragTriggerDistance: 0,
+    isSliderKnob: true
 },
 'initializing', {
     initialize: function($super, initialBounds, slider) {

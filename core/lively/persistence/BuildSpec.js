@@ -299,8 +299,9 @@ lively.morphic.Morph.addMethods(
         name: {},
         doNotSerialize: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
         doNotCopyProperties: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
-        grabbingEnabled: {defaultValue: true},
-        droppingEnabled: {defaultValue: true},
+        grabbingEnabled: {defaultValue: undefined},
+        draggingEnabled: {defaultValue: undefined},
+        droppingEnabled: {defaultValue: undefined},
         halosEnabled: {defaultValue: true},
         _ClipMode: {defaultValue: 'visible'},
         _StyleSheet: {getter: function(morph, val) { return !val || Object.isString(val) ? val : val.getText(); }},
@@ -311,6 +312,7 @@ lively.morphic.Morph.addMethods(
         _BorderColor: {defaultValue: Color.rgb(0,0,0), getter: function(morph) { return morph.getBorderColor(); }},
         _BorderWidth: {defaultValue: 0, getter: function(morph) { return morph.getBorderWidth(); }},
         _BorderStyle: {defaultValue: 'solid', getter: function(morph) { return morph.getBorderStyle(); }},
+        _BorderRadius: {defaultValue: 0, getter: function(morph) { return morph.getBorderRadius(); }},
         _Rotation: {defaultValue: 0},
         _Scale: {defaultValue: 1},
         // excludes:
@@ -540,6 +542,88 @@ Object.extend(lively.morphic.Morph, {
 
     fromSpecString: function(string) {
         return lively.persistence.SpecObject.fromString(object).createMorph();
+    }
+});
+
+lively.morphic.TabBar.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        tabContainer: {exclude: true},
+        tabs: {exclude: true}
+    },
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.tabContainer = this.owner;
+        this.tabs = this.submorphs.clone();
+    }
+});
+lively.morphic.TabContainer.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        tabBarStrategy: {
+            getter: function(morph, val) { return morph.tabBarStrategy.constructor.type; },
+            recreate: function(instance, spec) { instance.tabBarStrategy = new (lively.lookup(spec.tabBarStrategy))(); }
+        }
+    },
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.tabBar = this.submorphs.detect(function(ea) { return ea.isTabBar; });
+    }
+});
+lively.morphic.Tab.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        label: {
+            defaultValue: '',
+            getter: function(morph, val) { return val.textString || ''; },
+            exclude: true
+        },
+        pane: { // index of the pane in tabContainer.submorphs
+            defaultValue: -1,
+            getter: function(morph, val) { 
+                return morph.tabContainer.submorphs.indexOf(val); }
+        },
+        tabBar: {exclude: true},
+        tabContainer: {exclude: true}
+    },
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.tabContainer = this.ownerChain().detect(function(ea) { return ea.isTabContainer; });
+        this.pane = this.tabContainer.submorphs[this.pane];
+        this.tabBar = this.tabContainer.tabBar
+        debugger;
+        this.initializeLabel(this.label); 
+    }
+});
+lively.morphic.TabPane.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        tab: { // index of the tab in tabBar.submorphs
+            defaultValue: -1,
+            getter: function(morph, val) { return morph.tabBar.submorphs.indexOf(val); }
+        },
+        tabContainer: {exclude: true},
+        tabBar: {exclude: true}
+    },
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.tabContainer = this.ownerChain().detect(function(ea) { return ea.isTabContainer; })
+        this.tabBar = this.tabContainer.getTabBar();
+        this.tab = this.tabBar.submorphs[this.tab];
+    }
+});
+lively.morphic.Slider.addMethods(
+'UI builder', {
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.sliderKnob = this.submorphs.detect(function(ea) { return ea.isSliderKnob; });
+    }
+});
+lively.morphic.SliderKnob.addMethods(
+'UI builder', {
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.slider = this.ownerChain().detect(function(ea) { return ea.isSlider; });
     }
 });
 

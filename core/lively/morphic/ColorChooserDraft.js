@@ -294,12 +294,11 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
     initialize: function($super, bounds){
         var b = bounds || this.defaultBounds;
         $super(b, '');
-        this.colorDisplay = new lively.morphic.Box(b.insetBy(this.colorDisplayOffset));
+        var colorDisplay = new lively.morphic.Box(b.insetBy(this.colorDisplayOffset));
         this.removeAllMorphs(); // get rid of the default Text
-        this.addMorph(this.colorDisplay);
-        this.colorDisplay.disableHalos();
+        this.addMorph(colorDisplay);
         this.setColor(this.defaultColor);
-        this.colorDisplay.applyStyle({borderRadius: this.colorDisplayBorderRadius, resizeWidth: true, resizeHeight: true});
+        colorDisplay.applyStyle({borderRadius: this.colorDisplayBorderRadius, resizeWidth: true, resizeHeight: true});
         this.applyStyle({adjustForNewBounds: true});
     },
     setValue: function(bool) {
@@ -315,9 +314,10 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
             menu.setCallback(this, 'setColor');
         }
     },
-    setColor: function(color){
+    getColorDisplay: function() { return this.submorphs.detect(function(ea) { return ea instanceof lively.morphic.Box; }); },
+    setColor: function(color) {
         this.color = color;
-        this.colorDisplay.setFill(color);
+        this.getColorDisplay().setFill(color);
     }
 
 });

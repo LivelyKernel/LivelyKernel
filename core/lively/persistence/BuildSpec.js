@@ -146,6 +146,9 @@ Object.subclass('lively.persistence.SpecObject',
         options = options || {connectionRebuilders: []};
         depth = depth || 0;
 
+        var sourceMod = object.sourceModule && lively.module(object.sourceModule);
+        if (sourceMod && !sourceMod.isLoaded()) sourceMod.load(true);
+
         // helper for assigning retrieving attribute values of instance
         function set(key, val, buildSpecAttr) {
             // buildSpec #recreate
@@ -163,7 +166,7 @@ Object.subclass('lively.persistence.SpecObject',
         }
 
         // create new morph instance and initialize
-        var klass = Class.forName(object.className);
+        var klass = lively.lookup(object.className);
         if (!klass || !Object.isFunction(klass)) return null;
         var instance = new klass(this);
 

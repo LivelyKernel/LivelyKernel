@@ -159,6 +159,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Pri
                      + "    _Extent: lively.pt(100.0,100.0),\n"
                      + "    className: \"lively.morphic.Box\",\n"
                      + "    doNotSerialize: [\"_renderContext\",\"halos\",\"_isRendered\",\"priorExtent\",\"cachedBounds\"],\n"
+                     + "    droppingEnabled: true,\n"
                      + "    sourceModule: \"lively.morphic.Core\",\n"
                      + "    submorphs: [],\n"
                      + "    foo: function foo() { return 123; }\n"

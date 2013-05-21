@@ -95,21 +95,21 @@ lively.morphic.tests.LayoutTests.subclass('lively.morphic.tests.TileLayoutTest',
         container.applyStyle({extent: pt(100,100), fill: Color.red});
         l.setContainer(container);
         this.world.addMorph(container);
-        
+
         var m1 = container.addMorph(new lively.morphic.Morph()).applyStyle({extent: pt(25,20), fill: Color.random()}),
             m2 = container.addMorph(new lively.morphic.Morph()).applyStyle({extent: pt(25,20), fill: Color.random()}),
             m3 = container.addMorph(new lively.morphic.Morph()).applyStyle({extent: pt(25,20), fill: Color.random()});
-        
+
         l.setSpacing(0);
         this.assertEquals(m1.getPosition(), pt(50,0), 'm1, spacing 0');
         this.assertEquals(m2.getPosition(), pt(25,0), 'm2, spacing 0');
         this.assertEquals(m3.getPosition(), pt(0,0), 'm3, spacing 0');
-        
+
         l.setSpacing(10);
         this.assertEquals(m1.getPosition(), pt(0+10,10+20+10), 'm1, spacing 10');
         this.assertEquals(m2.getPosition(), pt(25+10+10,10), 'm2, spacing 10');
         this.assertEquals(m3.getPosition(), pt(0+10,10), 'm3, spacing 10');
-        
+
         l.setSpacing(20);
         this.assertEquals(m1.getPosition(), pt(0+20,5*20), 'm1, spacing 20');
         this.assertEquals(m2.getPosition(), pt(0+20,3*20), 'm2, spacing 20');

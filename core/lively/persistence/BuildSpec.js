@@ -35,6 +35,12 @@ Object.subclass('lively.persistence.SpecObject',
                 // pass
             } else if (value && Object.isFunction(value.serializeExpr)) {
                 // pass
+            } else if (value && value.isMorph) {
+                var morphRef = {isMorphRef: true};
+                if (value.name) {
+                    morphRef.name = value.name;
+                    value = morphRef;
+                }
             } else {
                 try { JSON.stringify(value); } catch(e) { value = Strings.print(value); }
             }
@@ -143,7 +149,7 @@ Object.subclass('lively.persistence.SpecObject',
         // properties are added to the morph. Certain "special" properties such
         // as the connections, submorphs, etc. are handled specifically
         var object = this.attributeStore;
-        options = options || {connectionRebuilders: []};
+        options = options || {connectionRebuilders: [], morphRefRebuilders: []};
         depth = depth || 0;
 
         var sourceMod = object.sourceModule && lively.module(object.sourceModule);
@@ -153,11 +159,14 @@ Object.subclass('lively.persistence.SpecObject',
         function set(key, val, buildSpecAttr) {
             // buildSpec #recreate
             if (buildSpecAttr && buildSpecAttr.recreate) {
-                buildSpecAttr.recreate(instance, object, key, val);
-                return;
-            }
+                buildSpecAttr.recreate(instance, object, key, val); return; }
             // scripts
             if (Object.isFunction(val) && val.name) { instance.addScript(val, key); return; }
+            // morphRef
+            if (val && val.isMorphRef) {
+                val.name && options.morphRefRebuilders.push(function() {
+                    instance[key] = instance.get(val.name); })
+                return; }
             if (!key.startsWith('_')) { instance[key] = val; return; }
             // normal attributes
             var setter = instance['set' + key.replace(/^_/, '').capitalize()];
@@ -223,6 +232,7 @@ Object.subclass('lively.persistence.SpecObject',
         // references of connections
         if (depth === 0) {
             options.connectionRebuilders.invoke('call', null);
+            options.morphRefRebuilders.invoke('call', null);
             instance.withAllSubmorphsDo(function(ea) { ea.onFromBuildSpecCreated(); });
         }
 
@@ -316,6 +326,7 @@ lively.morphic.Morph.addMethods(
         _BorderWidth: {defaultValue: 0, getter: function(morph) { return morph.getBorderWidth(); }},
         _BorderStyle: {defaultValue: 'solid', getter: function(morph) { return morph.getBorderStyle(); }},
         _BorderRadius: {defaultValue: 0, getter: function(morph) { return morph.getBorderRadius(); }},
+        _Opacity: {defaultValue: 1, getter: function(morph) { return morph.getOpacity(); }},
         _Rotation: {defaultValue: 0},
         _Scale: {defaultValue: 1},
         // excludes:

@@ -144,6 +144,17 @@ Functions.timeToRun(function() {
         var m = new lively.morphic.List(lively.rect(0,0,100,100), ['abc', 'def']);
         var recreated = m.buildSpec().createMorph();
         this.assertEqualState(['abc', 'def'], recreated.getList());
+    },
+
+    test13MorphRef: function() {
+        var m1 = lively.morphic.newMorph(), m2 = lively.morphic.newMorph();
+        m1.name = 'BarMorph'; m2.name = 'FooMorph';
+        m1.addMorph(m2);
+        m1.foo = m2;
+        m2.bar = m1;
+        var recreated = m1.buildSpec().createMorph();
+        this.assertIdentity(recreated.foo, recreated.submorphs[0]);
+        this.assertIdentity(recreated.foo.bar, recreated);
     }
 
 });

@@ -980,21 +980,24 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.TileLayout',
         var width = this.getOptimalWidth(container, submorphs),
             currentRowHeight = 0,
             currentRowWidth = 0,
-            previousRowHeight = this.getSpacing(),
-            i = 0;
+            spacing = this.getSpacing(),
+            previousRowHeight = spacing,
+            i = 0, rowSwitch = true;
 
         while (i < submorphs.length) {
             var submorphExtent = submorphs[i].getExtent();
-            if (currentRowWidth + submorphExtent.x <= width) {
+            if (rowSwitch || currentRowWidth + submorphExtent.x + 2*spacing <= width) {
+                rowSwitch = false;
                 submorphs[i].setPosition(pt(
-                        currentRowWidth + this.getSpacing(),
+                        currentRowWidth + spacing,
                         previousRowHeight));
                 currentRowHeight = Math.max(currentRowHeight, submorphExtent.y);
-                currentRowWidth += this.getSpacing() + submorphExtent.x;
+                currentRowWidth += spacing + submorphExtent.x;
                 i++;
             } else {
-                previousRowHeight += this.getSpacing() + currentRowHeight;
+                previousRowHeight += spacing + currentRowHeight;
                 currentRowWidth = currentRowHeight = 0;
+                rowSwitch = true;
             }
         }
     },

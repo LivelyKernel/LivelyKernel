@@ -42,20 +42,6 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
 
         this.assertEquals(child.getExtent().x, container.getExtent().x - 2*container.getLayouter().getBorderSize(), "expected child to fit into container");
     },
-    test03TileLayoutMovesFirstMorphToTopLeft: function() {
-        var container = new lively.morphic.Morph();
-        container.setExtent(new lively.Point(200,200));
-        container.setFill(Color.red);
-        var l = new lively.morphic.Layout.TileLayout();
-        container.setLayouter(l);
-        this.world.addMorph(container);
-
-        var m = new lively.morphic.Morph();
-
-        container.addMorph(m);
-
-        this.assertEquals(m.getPosition(), pt(l.getSpacing(), l.getSpacing()), 'TileLayout did not set correct position of first submorph');
-    },
     test04CalcActualLength: function() {
         var length = 100,
             minimumLength = 150,
@@ -90,6 +76,50 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
         this.assert(!placeholder.isBeingDragged);
         this.assertEquals(Color.gray, placeholder.getFill());
         this.assert(!placeholder.hasOwnProperty('foo'), 'placeholder is full copy');
+    }
+});
+lively.morphic.tests.LayoutTests.subclass('lively.morphic.tests.TileLayoutTest',
+'testing', {
+    test01TileLayoutMovesFirstMorphToTopLeft: function() {
+        var container = new lively.morphic.Morph();
+        container.applyStyle({extent: new lively.Point(200,200), fill: Color.red});
+        var l = new lively.morphic.Layout.TileLayout();
+        container.setLayouter(l);
+        this.world.addMorph(container);
+        var m = new lively.morphic.Morph();
+        container.addMorph(m);
+        this.assertEquals(m.getPosition(), pt(l.getSpacing(), l.getSpacing()), 'TileLayout did not set correct position of first submorph');
+    },
+    test02TileLayoutSpacing: function() {
+        var container = new lively.morphic.Morph(), l = new lively.morphic.Layout.TileLayout();
+        container.applyStyle({extent: pt(100,100), fill: Color.red});
+        l.setContainer(container);
+        this.world.addMorph(container);
+        
+        var m1 = container.addMorph(new lively.morphic.Morph()).applyStyle({extent: pt(25,20), fill: Color.random()}),
+            m2 = container.addMorph(new lively.morphic.Morph()).applyStyle({extent: pt(25,20), fill: Color.random()}),
+            m3 = container.addMorph(new lively.morphic.Morph()).applyStyle({extent: pt(25,20), fill: Color.random()});
+        
+        l.setSpacing(0);
+        this.assertEquals(m1.getPosition(), pt(50,0), 'm1, spacing 0');
+        this.assertEquals(m2.getPosition(), pt(25,0), 'm2, spacing 0');
+        this.assertEquals(m3.getPosition(), pt(0,0), 'm3, spacing 0');
+        
+        l.setSpacing(10);
+        this.assertEquals(m1.getPosition(), pt(0+10,10+20+10), 'm1, spacing 10');
+        this.assertEquals(m2.getPosition(), pt(25+10+10,10), 'm2, spacing 10');
+        this.assertEquals(m3.getPosition(), pt(0+10,10), 'm3, spacing 10');
+        
+        l.setSpacing(20);
+        this.assertEquals(m1.getPosition(), pt(0+20,5*20), 'm1, spacing 20');
+        this.assertEquals(m2.getPosition(), pt(0+20,3*20), 'm2, spacing 20');
+        this.assertEquals(m3.getPosition(), pt(0+20,20), 'm3, spacing 20');
+
+        // make it too narrow
+        container.applyStyle({extent: pt(20,100)});
+        this.assertEquals(m1.getPosition(), pt(0+20,5*20), 'm1, too narrow');
+        this.assertEquals(m2.getPosition(), pt(0+20,3*20), 'm2, too narrow');
+        this.assertEquals(m3.getPosition(), pt(0+20,20), 'm3, too narrow');
     }
 });
 

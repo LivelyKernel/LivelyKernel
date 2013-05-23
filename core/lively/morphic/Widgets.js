@@ -1313,7 +1313,7 @@ lively.morphic.World.addMethods(
     },
     openObjectEditor: function() {
         module('lively.ide.tools.ObjectEditor').load(true);
-        return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorld();
+        return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter();
     },
     openObjectEditorFor: function(morph) {
         var part = this.openObjectEditor();

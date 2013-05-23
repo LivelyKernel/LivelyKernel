@@ -76,6 +76,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             doNotSerialize: [],
             doitContext: null,
             droppingEnabled: true,
+            grabbingEnabled: false,
             hasRobertsKeys: true,
             lastSaveSource: "",
             layout: {

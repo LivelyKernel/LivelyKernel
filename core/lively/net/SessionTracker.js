@@ -170,17 +170,24 @@ Object.subclass('lively.net.SessionTrackerConnection',
     }
 
 },
-'remote eval', {
+'specific messages', {
 
     remoteEval: function(targetId, expression, thenDo) {
         this.sendTo(targetId, 'remoteEvalRequest', {expr: expression}, thenDo);
     },
 
-    openForRemoteEvalRequests: function() {
-        if (!this.actions) this.actions = {};
-        if (!this.actions.remoteEvalRequest)
-            this.actions.remoteEvalRequest = lively.net.SessionTracker.defaultActions.remoteEvalRequest;
+    openForRequests: function() {
+        if (!this.actions) this.actions = Object.extend({}, lively.net.SessionTracker.defaultActions);
         this.listen(this.actions);
+    },
+
+    sendObjectTo: function(targetId, obj, options, callback) {
+        if (!Object.isFunction(obj.copy)) { throw new Error('object needs to support #copy for being send'); }
+        var stringifiedCopy = obj.copy(true/*stringify*/);
+        if (!Object.isString(stringifiedCopy)) { throw new Error('object needs to return a string to copy(true)'); }
+        withObjectDo = options.withObjectDo;
+        if (Object.isFunction(withObjectDo)) withObjectDo = '(' + String(withObjectDo) + ')';
+        this.sendTo(targetId, 'copyObject', {object: stringifiedCopy, withObjectDo: withObjectDo}, callback);
     }
 
 },
@@ -221,15 +228,32 @@ Object.extend(lively.net.SessionTracker, {
 
     defaultActions: {
         remoteEvalRequest: function(msg, session) {
-            // we answer a remote eval request
-            // show('doRemoteEval %o', msg);
             var result;
-            try {
-                result = eval(msg.data.expr);
-            } catch(e) {
-                result = e + '\n' + e.stack;
+            if (!Config.get('lively2livelyAllowRemoteEval')) {
+                result = 'remote eval disabled';
+            } else {
+                // show('doRemoteEval %o', msg);
+                try {
+                    result = eval(msg.data.expr);
+                } catch(e) {
+                    result = e + '\n' + e.stack;
+                }
             }
             session.answer(msg, {result: String(result)});
+        },
+        copyObject: function(msg, session) {
+            var obj, result = '', error = null, withObjectDo = msg.data.withObjectDo;
+            try {
+                obj = lively.persistence.Serializer.deserialize(msg.data.object)
+                if (Object.isString(withObjectDo)) {
+                    withObjectDo = eval(withObjectDo);
+                    withObjectDo && withObjectDo(obj);
+                }
+                result = "Object successfully received";
+            } catch(e) {
+                error = e + '\n' + e.stack;
+            }
+            session.answer(msg, {result: String(result), error: error});
         }
     },
 
@@ -248,7 +272,7 @@ Object.extend(lively.net.SessionTracker, {
         }
         s = new lively.net.SessionTrackerConnection({sessionTrackerURL: url, username: user});
         s.register();
-        if (Config.get("lively2livelyAllowRemoteEval")) s.openForRemoteEvalRequests();
+        s.openForRequests();
         if (!this._onBrowserShutdown) {
             this._onBrowserShutdown = Global.addEventListener('beforeunload', function(evt) {
                 lively.net.SessionTracker.closeSessions();

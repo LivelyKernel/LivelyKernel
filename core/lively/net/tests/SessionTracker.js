@@ -107,7 +107,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 
     testRemoteEval: function() {
         this.sut.register();
-        this.sut.openForRemoteEvalRequests();
+        this.sut.openForRequests();
         Global.remoteEvalHappened = false;
         var expr = 'Global.remoteEvalHappened = true; 1 + 3';
         this.sut.remoteEval(this.sut.sessionId, expr, function(result) {
@@ -117,6 +117,21 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.done();
         }.bind(this));
     },
+    testCopy: function() {
+        this.sut.register();
+        this.sut.openForRequests();
+        var morph = lively.newMorph();
+        this.sut.sendObjectTo(this.sut.sessionId, morph, {withObjectDo: function(copy) { copy.name = 'remoteCopy'; copy.openInWorldCenter(); }}, function(result) {
+            var w = lively.morphic.World.current();
+            try {
+                this.assert(w.get('remoteCopy'));
+            } finally {
+                w.get('remoteCopy').remove();
+            }
+            this.done();
+        }.bind(this));
+    },
+
 
     testSendAndAnswerMessage: function() {
         var receivedMsg, received = 0, answered = 0, answerAnswered = 0;
@@ -236,7 +251,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
     testRemoteEvalWith2Servers: function() {
         var c1 = this.client1, c2 = this.client2;
         c1.register(); c2.register();
-        c2.openForRemoteEvalRequests();
+        c2.openForRequests();
         this.waitFor(function() { return c1.isConnected() && c2.isConnected(); }, 50, function() {
             c1.initServerToServerConnect(this.serverURL2);
             connect(c1.webSocket, 'initServerToServerConnectResult', this, 'serverToServerConnectDone');
@@ -286,7 +301,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             }.bind(this));
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             // test messaging
-            c1.openForRemoteEvalRequests(); c2.openForRemoteEvalRequests(); c3.openForRemoteEvalRequests();
+            c1.openForRequests(); c2.openForRequests(); c3.openForRequests();
             c1.remoteEval(c3.sessionId, '1+2;', function(msg) {
                 this.assertEqualState({result: '3'}, msg.data, Objects.inspect(msg));
                 remoteEvalRun++;

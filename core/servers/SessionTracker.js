@@ -113,16 +113,13 @@ var sessionActions = {
             });
         }
         var target = msg.target || msg.data.target;
-        if (!target) {
-            answer({error: 'Message does not specify target'});
-        }
+        if (!target) { answer({error: 'Message does not specify target'}); return; }
         sessionServer.findConnection(target, function(err, targetConnection) {
             if (err || !targetConnection) {
                 console.warn('%s remoteEvalRequest: Failure finding target connection: ' + err);
                 answer({error: 'Failure finding target connection: ' + err, target: msg.data.target})
                 return;
             }
-            console.log('sending to %s', target, msg);
             targetConnection.send({
                 action: msg.action,
                 data: msg.data,
@@ -339,7 +336,7 @@ function SessionTracker(options) {
         url = this.fixRemoteServerURL(url) ;
         var tracker = this, client = this.getServerToServerConnection(url) || new WebSocketClient(url, {protocol: 'lively-json', sender: this.trackerId});
         this.serverToServerConnections[url] = client;
-        if (client.isOpen()) { thenDo(null, client); return }
+        if (client.isOpen()) { console.log('Server to server connection to %s already open', url); thenDo(null, client); return }
         function initReconnect() {
             if (client._trackerIsReconnecting) return;
             if (tracker.getServerToServerConnection(url)) { // accidental close, we will reconnect

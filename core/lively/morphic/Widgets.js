@@ -1504,10 +1504,10 @@ lively.morphic.World.addMethods(
     },
 
     debuggingMenuItems: function(world) {
+        
         var items = [
             ['Reset world scale', this.resetScale.bind(this)],
-            ['Reset title bars', this.resetAllTitleBars.bind(this)],
-            ['Reset button labels', this.resetAllButtonLabels.bind(this)],
+            ['Check app cache', this.checkApplicationCache.bind(this)],
             ['World serialization info', function() {
                 require('lively.persistence.Debugging').toRun(function() {
                     var json = lively.persistence.Serializer.serialize(world),
@@ -1908,10 +1908,23 @@ lively.morphic.World.addMethods(
         this.setScale(1);
         this.firstHand().setScale(1)
     },
-    resetAllTitleBars: function() {
-        this.submorphs.select(function(ea) {
-            return ea instanceof lively.morphic.Window
-        }).invoke('resetTitleBar')
+    checkApplicationCache: function() {
+        var cache = lively.ApplicationCache,
+            pBar = this.addProgressBar(null, 'app cache'),
+            handlers = {    
+                onProgress: function(progress) {
+                    pBar && pBar.setValue(progress.evt.loaded/progress.evt.total);
+                },
+                done: function(progress) {
+                    disconnect(cache, 'progress', handlers, 'onProgress');
+                    disconnect(cache, 'noupdate', handlers, 'done');
+                    disconnect(cache, 'updateready', handlers, 'done');
+                    pBar && pBar.remove(); }
+            }
+        connect(cache, 'progress', handlers, 'onProgress');
+        connect(cache, 'noupdate', handlers, 'done');
+        connect(cache, 'updaetready', handlers, 'done');
+        cache.update();
     },
     resetAllButtonLabels: function() {
         this.withAllSubmorphsDo(function(ea) {

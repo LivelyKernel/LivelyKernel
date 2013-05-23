@@ -1260,96 +1260,110 @@
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // application cache related
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    function usesAppCache() {
-        var appCache = Global.applicationCache;
-        return appCache
-            && appCache.status !== appCache.UNCACHED
-            && !!document.getElementsByTagName('html')[0].getAttribute('manifest');
-    }
+    lively.ApplicationCache = {
+        appCache: Global.applicationCache,
+    
+        isActive: (function usesAppCache(appCache) {
+                return appCache
+                    && appCache.status !== appCache.UNCACHED
+                    && !!document.getElementsByTagName('html')[0].getAttribute('manifest');
+            })(Global.applicationCache),
+    
+        appCacheHandlersInstalled: false,
 
-    function initOnAppCacheLoad(thenDo) {
-        var appCache = Global.applicationCache;
-        LoadingScreen.add();
-        toggleAppcacheHandlers();
-        thenDo && thenDo();
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        var cacheHandlersInstalled = false;
-        function toggleAppcacheHandlers() {
-            var method = cacheHandlersInstalled ? 'removeEventListener' : 'addEventListener';
-            if (!cacheHandlersInstalled) {
-                console.log('Installing appcache event handlers...');
-            }
-            cacheHandlersInstalled = !cacheHandlersInstalled;
-            appCache[method]('checking', onChecking, false);
-            appCache[method]('downloading', onDownloading, false);
-            appCache[method]('progress', onProgress, false);
-            appCache[method]('updateready', onUpdateready, false);
-            appCache[method]('error', onError, false);
-            appCache[method]('noupdate', onNoupdate, false);
-            appCache[method]('cached', onCached, false);
-            appCache[method]('obsolete', onObsolete, false);
-        }
+        setupAppCacheHandlers: function(remove) {
+            if (this.appCacheHandlersInstalled && !remove) return;
+            if (!this.appCacheHandlersInstalled && remove) return;
+            var method = remove ? 'removeEventListener' : 'addEventListener';
+            console.log('%s appcache event handlers...', remove ? 'Uninstalling' : 'Installing');
+            ['checking','downloading','progress','updateready','error','noupdate','cached','obsolete'].forEach(function(evtName) {
+                var handlerName = 'on' + evtName.charAt(0).toUpperCase() + evtName.slice(1);
+                var handler = this['_'+handlerName] || (this['_'+handlerName] = this[handlerName].bind(this));
+                this.appCache[method](evtName, handler, false);
+            }, this);
+            this.appCacheHandlersInstalled = !remove;
+        },
+
+        update: function() { return this.appCache.update(); },
+
+        signal: function(type, evt, message) {
+            if (!lively.bindings || !lively.bindings.signal) return;
+            lively.bindings.signal(this, type, {evt: evt, message: message});
+        },
+
         // Checking for an update. Always the first event fired in the sequence.
-        function onChecking(evt) {
-            console.log('Application cache is checking if there are new sources to load...');
-        }
+        onChecking: function(evt) {
+            var msg = 'Application cache is checking if there are new sources to load...'
+            console.log(msg);
+            this.signal('checking', evt, msg);
+        },
+    
         // An update was found. The browser is fetching resources.
-        function onDownloading(evt) {
-            console.log('Application cache is fetching content...');
-            // LoadingScreen.setLogoText('Fetching Cache Content');
-        }
-        // Fired for each resource listed in the manifest as it is being fetched.
-        var progressPercentSteps = [25,50,75];
-        function onProgress(evt) {
+        onDownloading: function(evt) {
+            var msg = 'Application cache is fetching content...';
+            console.log(msg);
+            this.signal('checking', evt, msg);
+        },
+    
+        onProgress: function(evt) {
             if (!evt.lengthComputable) return;
-            var progressPercent = evt.loaded*100 / evt.total;
-            if (progressPercent > progressPercentSteps.first()) {
-                var step = progressPercentSteps.shift();;
-                console.log('Application cache %s% loaded', step);
-            }
-        }
-
+            var msg = 'Application cache progress ' + evt.loaded/evt.total;
+            this.signal('progress', evt, msg);
+        },
+    
         // Fired when the manifest resources have been newly redownloaded.
-        function onUpdateready(evt) {
+        onUpdateready: function(evt) {
             console.log('Application cache successfully loaded new content.');
+            this.appCache = Global.applicationCache;
             try {
                 // FIXME rk 2013-03-06: sometimes this throws a DOM error?
-                appCache.swapCache();
+                this.appCache.swapCache();
+                this.setupAppCacheHandlers(true);
+                this.appCache = Global.applicationCache;
+                this.setupAppCacheHandlers();
             } catch(e) {
                 console.error(e);
             }
+            var msg = 'A newer version of Lively is available.\n'
+                    + 'You can safely continue to work or reload\n'
+                    + 'this world to get the updates.';
+            this.signal('updateready', evt, msg);
             lively.whenLoaded(function(world) {
-                var msg = 'A newer version of Lively is available.\n'
-                        + 'You can safely continue to work or reload\n'
-                        + 'this world to get the updates.'
                 world.createStatusMessage(msg, {extent: pt(280, 68), openAt: 'topRight', removeAfter: 20*1000});
             });
-            // LoadingScreen.setLogoText('New Sources Loaded');
-            // // we have to reload the whole page to get the new sources
-            // document.location.reload();
-        }
+        },
+
         // The manifest returns 404 or 410, the download failed,
         // or the manifest changed while the download was in progress.
-        function onError(evt) {
-            console.log('Error occured while loading the application cache: %s', evt);
-        }
-
+        onError: function(evt) {
+            var msg = 'Error occured while loading the application cache: ' + evt;
+            console.log(msg)
+            this.signal('error', evt, msg);
+        },
+    
         // Fired after the first download of the manifest.
-        function onNoupdate(evt) {
+        onNoupdate: function(evt) {
             console.log('noupdate');
             lively.whenLoaded(function(world) {
                 var msg = "Lively is up-to-date."
                 world.createStatusMessage(msg, {openAt: 'topRight', removeAfter: 3000});
             });
-        }
+            this.signal('noupdate', evt, '');
+        },
+    
         // Fired after the first cache of the manifest.
-        function onCached(evt) {
-            console.log('Sources are now cached.');
-        }
+        onCached: function(evt) {
+            var msg = 'Sources are now cached.';
+            console.log(msg);
+            this.signal('cached', evt, msg);
+        },
+    
         // Fired if the manifest file returns a 404 or 410.
         // This results in the application cache being deleted.
-        function onObsolete(evt) {
-            console.log('Application cache not available');
+        onObsolete: function(evt) {
+            var msg = 'Application cache not available';
+            console.log(msg);
+            this.signal('obsolete', evt, msg);
             lively.whenLoaded(function(world) {
                 var msg = "It appears that the Lively server is not\n"
                         + "available. You can continue to use the\n"
@@ -1361,13 +1375,20 @@
         }
     }
 
+    function initOnAppCacheLoad(thenDo) {
+        var appCache = Global.applicationCache;
+        LoadingScreen.add();
+        lively.ApplicationCache.setupAppCacheHandlers();
+        thenDo && thenDo();
+    }
+
     // -=-=-=-=-=-=-=-
     // let it run
     // -=-=-=-=-=-=-=-
     (function startWorld(startupFunc) {
         if (browserDetector.isNodejs()) {
             initNodejsBootstrap();
-        } else if (usesAppCache()) {
+        } else if (lively.ApplicationCache.isActive) {
             initOnAppCacheLoad(initBrowserBootstrap);
         } else {
             initBrowserBootstrap();

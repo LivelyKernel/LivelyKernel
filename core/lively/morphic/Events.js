@@ -1140,7 +1140,9 @@ handleOnCapture);
 
         shadow.isGrabShadow = true;
         shadow.applyStyle({
-            fill: this.getFill() === null ? Color.gray : Color.gray.darker(), opacity: 0.5})
+            clipMode: this.getClipMode(),
+            fill: this.getFill() === null ? Color.gray : Color.gray.darker(),
+            opacity: 0.5});
         shadow.connections = [
             lively.bindings.connect(this, 'rotation', shadow, 'setRotation'),
             lively.bindings.connect(this, 'scale', shadow, 'setScale')];

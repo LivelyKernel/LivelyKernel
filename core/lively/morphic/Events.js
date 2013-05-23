@@ -770,6 +770,8 @@ handleOnCapture);
         // This is like clickedOnMorph, but also takes into consideration
         // Halos, Morphs ignoring events etc. For internal use.
         evt.hand.internalClickedOnMorph = this;
+        if (this.halosEnabled) evt.hand.haloTarget = this;
+        if (evt.isCommandKey()) return false;
 
         // do we pass the event to the user defined handler?
         if (this.eventsAreIgnored) return false;
@@ -798,7 +800,10 @@ handleOnCapture);
         }
         var world = evt.world,
             completeClick = world.clickedOnMorph === this,
-            internalCompleteClick = evt.hand.internalClickedOnMorph === this;
+            internalCompleteClick = evt.hand.internalClickedOnMorph === this,
+            invokeHalos = (evt.hand.haloTarget === this) && (
+                            (evt.isLeftMouseButtonDown() && evt.isCommandKey())
+                         || (this.showsHalosOnRightClick && evt.isRightMouseButtonDown()));
 
         // delayed so that the event onMouseUp event handlers that
         // are invoked after this point still have access
@@ -806,6 +811,11 @@ handleOnCapture);
             world.clickedOnMorph = null;
             evt.world.eventStartPos = null;
         }).delay(0);
+
+        if (invokeHalos) {
+            this.toggleHalos(evt);
+            return false;
+        }
 
         if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
             // special behavior for world menu:
@@ -822,16 +832,6 @@ handleOnCapture);
             } else {
                 this.showMorphMenu(evt);
                 return true;
-            }
-        }
-
-        if (internalCompleteClick) {
-            var invokeHalos = this.halosEnabled &&
-                ((evt.isLeftMouseButtonDown() && evt.isCommandKey())
-               || (this.showsHalosOnRightClick && evt.isRightMouseButtonDown()));
-            if (invokeHalos) {
-                this.toggleHalos(evt);
-                return false;
             }
         }
 

@@ -329,6 +329,10 @@ Object.subclass('Rectangle',
         return new Rectangle(this.x, this.y, this.width, p.y - this.y)
     },
 
+    withCenter: function(p) {
+        return new Rectangle(p.x-this.width/2,p.y-this.height/2,this.width,this.height);
+    },
+
     insetBy: function(d) {
         return new Rectangle(this.x + d, this.y + d, this.width - (d * 2), this.height - (d * 2));
     },

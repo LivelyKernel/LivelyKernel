@@ -30,7 +30,12 @@ TestCase.subclass('lively.morphic.tests.RectangleTests',
             r2 = lively.rect(20,5, 10, 10),
             line = r1.lineTo(r2);
         this.assertEquals(pt(10,6.25).lineTo(pt(20,8.75)), line);
+    },
+
+    testWithCenter: function() {
+        this.assertEquals(lively.rect(10,10,10,10), lively.rect(0,0, 10, 10).withCenter(pt(15,15)));
     }
+
 });
 
 TestCase.subclass('lively.morphic.tests.Line',

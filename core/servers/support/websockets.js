@@ -28,7 +28,8 @@ function addCallback(sender, msg, callback) {
 function triggerActions(actions, connection, msg) {
     if (!actions) return;
     try {
-        actions[msg.action] && actions[msg.action](connection, msg);
+        if (actions[msg.action]) actions[msg.action](connection, msg);
+        else if (actions.messageNotUnderstood) actions.messageNotUnderstood(connection, msg);
     } catch(e) {
         console.error('Error when dealing with %s requested from %s:\n',
             msg.action, msg.sender, e.stack);

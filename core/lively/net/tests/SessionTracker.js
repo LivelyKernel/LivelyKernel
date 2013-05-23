@@ -117,6 +117,25 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.done();
         }.bind(this));
     },
+
+    testSendAndAnswerMessage: function() {
+        var receivedMsg, received = 0, answered = 0, answerAnswered = 0;
+        this.sut.register({
+            hello: function(msg) {
+                received++; receivedMsg = msg;
+                this.sut.answer(msg, {bar: 'hehe'});
+            }.bind(this)
+        });
+        this.sut.sendTo(this.sut.sessionId, 'hello', {foo: 1}, function(result) {
+            answerMsg = result; answered++; });
+        this.waitFor(function() { return answered > 0; }, 100, function() {
+            this.assert(received, 'no message received');
+            this.assertMatches({action: 'hello', data: {foo: 1}}, receivedMsg, "receivedMessage");
+            this.assertMatches({action: 'helloResult', data: {bar: 'hehe'}}, answerMsg, "receivedMessage");
+            this.done();
+        });
+    },
+
     testReportsLastActivity: function() {
         this.sut.activityTimeReportDelay = 50; // ms
         Global.LastEvent = {timeStamp: Date.now()}

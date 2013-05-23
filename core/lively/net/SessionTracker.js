@@ -25,6 +25,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         var url = this.sessionTrackerURL.withFilename('connect');
         this.webSocket = new lively.net.WebSocket(url, {protocol: "lively-json", enableReconnect: true});
         lively.bindings.connect(this.webSocket, 'error', this, 'connectionError');
+        if (this.actions) this.listen(this.actions);
         return this.webSocket;
     },
 
@@ -51,6 +52,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
                 data: options.data || {}
             }
             if (options.inResponseTo) msg.inResponseTo = options.inResponseTo;
+            if (options.target) msg.target = options.target;
         } else {
             msg = {
                 sender: this.sessionId,
@@ -58,7 +60,29 @@ Object.subclass('lively.net.SessionTrackerConnection',
                 data: jso
             }
         }
-        this.getWebSocket().send(msg, {}, callback);
+        return this.getWebSocket().send(msg, {}, callback);
+    },
+
+    sendTo: function(targetId, action, data, callback) {
+        return this.send({action: action, data: data, target: targetId, callback: callback});
+    },
+
+    answer: function(msg, data, callback) {
+        if (!msg.messageId) { throw new Error('Cannot answer message without messageId!'); }
+        if (!msg.sender) { throw new Error('Cannot answer message without sender!'); }
+        return this.send({inResponseTo: msg.messageId, action: msg.action+'Result', data: data, target: msg.sender, callback: callback});
+    },
+
+    listen: function(actions) {
+        var ws = this.webSocket;
+        ws && this.actions && Object.keys(this.actions).forEach(function(actionName) {
+            lively.bindings.disconnect(ws, actionName, this.actions, actionName); }, this);
+        this.actions = actions;
+        ws && actions && Object.keys(actions).forEach(function(actionName) {
+            lively.bindings.connect(ws, actionName, actions, actionName, {
+                updater: function($upd, msg) { $upd(msg, session); },
+                varMapping: {session: this}});
+            }, this);
     },
 
     isConnected: function() {
@@ -107,7 +131,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
             err && err.message ? err.message : err);
     },
 
-    register: function() {
+    register: function(actions) {
         // sends a request to the session tracker to register a connection
         // pointing to this session connection/id
         if (!this.sessionId) this.sessionId = Strings.newUUID();
@@ -118,6 +142,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
             session.resetConnection();
             session.register();
         }).delay(Numbers.random(timeoutCheckPeriod-5, timeoutCheckPeriod+5)); // to balance server load
+        actions && this.whenOnline(this.listen.bind(this, actions));
         this.send('registerClient', {
             id: this.sessionId,
             worldURL: URL.source.toString(),
@@ -148,30 +173,18 @@ Object.subclass('lively.net.SessionTrackerConnection',
 'remote eval', {
 
     remoteEval: function(targetId, expression, thenDo) {
-        // we send a remote eval request
-        this.send('remoteEvalRequest', {target: targetId, expr: expression}, function(answer) {
-            thenDo(answer); });
-    },
-
-    doRemoteEval: function(msg) {
-        // we answer a remote eval request
-        // show('doRemoteEval %o', msg);
-        var result;
-        try {
-            result = eval(msg.data.expr);
-        } catch(e) {
-            result = e + '\n' + e.stack;
-        }
-        this.send({
-            action: msg.action + 'Result',
-            inResponseTo: msg.messageId,
-            data: {result: String(result),origin: msg.data.origin}
-        });
+        this.sendTo(targetId, 'remoteEvalRequest', {expr: expression}, thenDo);
     },
 
     openForRemoteEvalRequests: function() {
-        lively.bindings.connect(this.getWebSocket(), 'remoteEvalRequest', this, 'doRemoteEval');
-    },
+        if (!this.actions) this.actions = {};
+        if (!this.actions.remoteEvalRequest)
+            this.actions.remoteEvalRequest = lively.net.SessionTracker.defaultActions.remoteEvalRequest;
+        this.listen(this.actions);
+    }
+
+},
+'reporting', {
     startReportingActivities: function() {
         var session = this;
         function report() {
@@ -184,12 +197,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         }
         report();
     },
+
     stopReportingActivities: function() {
         clearTimeout(this._reportActivitiesTimer);
         delete this._reportActivitiesTimer;
-    },
-
-
+    }
 },
 'debugging', {
     status: function() { return this._status; },
@@ -206,6 +218,20 @@ Object.extend(lively.net.SessionTracker, {
 
     localSessionTrackerURL: URL.create((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/').withFilename('SessionTracker/'),
     _sessions: lively.net.SessionTracker._sessions || {},
+
+    defaultActions: {
+        remoteEvalRequest: function(msg, session) {
+            // we answer a remote eval request
+            // show('doRemoteEval %o', msg);
+            var result;
+            try {
+                result = eval(msg.data.expr);
+            } catch(e) {
+                result = e + '\n' + e.stack;
+            }
+            session.answer(msg, {result: String(result)});
+        }
+    },
 
     getSession: function(optURL) {
         return this._sessions[optURL || this.localSessionTrackerURL];

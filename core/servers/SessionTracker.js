@@ -60,29 +60,6 @@ var sessionActions = {
         })
     },
 
-    remoteEvalRequest: function(sessionServer, connection, msg) {
-        var target = msg.data.target;
-        sessionServer.findConnection(target, function(err, targetConnection) {
-            if (err || !targetConnection) {
-                console.warn('%s remoteEvalRequest: Failure finding target connection: ' + err);
-                connection.send({
-                    action: msg.action + 'Result',
-                    inResponseTo: msg.messageId,
-                    data: {error: 'Failure finding target connection: ' + err, target: msg.data.target}
-                });
-                return;
-            }
-            targetConnection.send(
-                {action: msg.action, data: msg.data},
-                function(answer) { connection.send({
-                    action: msg.action + 'Result',
-                    inResponseTo: msg.messageId,
-                    data: answer.data
-                });
-            });
-        })
-    },
-
     reportActivity: function(sessionServer, connection, msg) {
          var sessions = sessionServer.getLocalSessions()[sessionServer.id()],
             session = sessions[msg.sender] = sessions[msg.sender] || {};
@@ -124,6 +101,35 @@ var sessionActions = {
         });
         sessionServer.trackerData[id] = {sessions: msg.data[id]};
         connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Sessions added to ' + sessionServer}});
+    },
+
+    messageNotUnderstood: function(sessionServer, connection, msg) {
+        // generic dispatch
+        function answer(data) {
+            connection.send({
+                action: msg.action + 'Result',
+                inResponseTo: msg.messageId,
+                data: data
+            });
+        }
+        var target = msg.target || msg.data.target;
+        if (!target) {
+            answer({error: 'Message does not specify target'});
+        }
+        sessionServer.findConnection(target, function(err, targetConnection) {
+            if (err || !targetConnection) {
+                console.warn('%s remoteEvalRequest: Failure finding target connection: ' + err);
+                answer({error: 'Failure finding target connection: ' + err, target: msg.data.target})
+                return;
+            }
+            console.log('sending to %s', target, msg);
+            targetConnection.send({
+                action: msg.action,
+                data: msg.data,
+                sender: msg.sender,
+                target: msg.target
+            }, function(result) { answer(result.data); });
+        });
     }
 }
 

@@ -1642,7 +1642,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },
             
             tag: function(tags) {
-                var tags = (typeof tags === 'string') ? [tags] : tags;
+                tags = (typeof tags === 'string') ? [tags] : tags;
                 this.setProperty("tags", tags);
                 return true; 
             }  
@@ -1652,19 +1652,19 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         generateSourceForConnection: function generateSourceForConnection(connection) {
         var c = connection, targetObject = this.target;
         if (!c.getTargetObj() || !c.getTargetObj().name || 
-        	!c.getSourceObj() || !c.getSourceObj().name) return String(c);
+            !c.getSourceObj() || !c.getSourceObj().name) return String(c);
     
-    	var optConfig = []
-    	if (c.converterString)
-    		optConfig.push("converter: \n\t" + c.converterString)
-    	if (c.updaterString)
-    		optConfig.push("updater: \n\t" + c.updaterString)
-    	return Strings.format('connect(%s, "%s", %s, "%s", {%s});', 
-    			this.generateTargetCode(targetObject, c.getSourceObj()),
-    			c.getSourceAttrName(),
-    			this.generateTargetCode(targetObject, c.getTargetObj()),
-    			c.getTargetMethodName(),
-    			optConfig.join(','));
+        var optConfig = [];
+        if (c.converterString)
+            optConfig.push("converter: \n\t" + c.converterString);
+        if (c.updaterString)
+            optConfig.push("updater: \n\t" + c.updaterString);
+        return Strings.format('connect(%s, "%s", %s, "%s", {%s});', 
+            this.generateTargetCode(targetObject, c.getSourceObj()),
+            c.getSourceAttrName(),
+            this.generateTargetCode(targetObject, c.getTargetObj()),
+            c.getTargetMethodName(),
+            optConfig.join(','));
     
     },
         generateSourceForScript: function generateSourceForScript(scriptName) {
@@ -1683,19 +1683,19 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         return annotation + scriptSource + tagScript;
     },
         generateTargetCode: function generateTargetCode(baseObject, targetObject) {
-    	var name = targetObject.name;
-    	if (baseObject === targetObject) 
-    		return "this";
-    	else if (baseObject[name] ===  targetObject) 
-    		return "this." + name;
-    	else if (baseObject.testObject ===  targetObject) 
-    		return "this.testObject";
-    	else if (baseObject.get(name) === targetObject) 
-    		return 'this.get("' + name + '")';
-    	else if (targetObject instanceof Morph) 
-    		return '$morph("' + name + '")';
-    	else 
-    		return "????";
+        var name = targetObject.name;
+        if (baseObject === targetObject) 
+            return "this";
+        else if (baseObject[name] ===  targetObject) 
+            return "this." + name;
+        else if (baseObject.testObject ===  targetObject) 
+            return "this.testObject";
+        else if (baseObject.get(name) === targetObject) 
+            return 'this.get("' + name + '")';
+        else if (targetObject instanceof lively.morphic.Morph) 
+            return '$morph("' + name + '")';
+        else 
+            return "????";
     },
         hasUnsavedChanges: function hasUnsavedChanges() {
         return this.scriptPane.hasChanged();
@@ -1723,7 +1723,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 if (that.owner.state === "shutdown") delete that.owner.state;
                 that.owner.remove = that.owner.__proto__.remove;
                 if (confirmed) that.owner.remove();
-            }
+            };
             this.confirmUnsavedChanges(callback);
         } 
     },
@@ -1750,10 +1750,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         return printString;
     },
         reset: function reset() {
-        this.scriptPane = this.get('ObjectEditorScriptPane')
-        this.scriptList = this.get('ObjectEditorScriptList')
-        this.connectionList = this.get('ObjectEditorConnectionList')
-        this.morphSelector = this.get('ObjectEditorMorphSelector')
+        this.scriptPane = this.get('ObjectEditorScriptPane');
+        this.scriptList = this.get('ObjectEditorScriptList');
+        this.connectionList = this.get('ObjectEditorConnectionList');
+        this.morphSelector = this.get('ObjectEditorMorphSelector');
         
         this.target = null;
         this.currentTag = null;
@@ -1851,13 +1851,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
     
         var selectedScripts = Functions.own(obj).
-    	select(function(name) { return obj[name].getOriginal().hasLivelyClosure }).
-    	sortBy(function(name) { return name.toLowerCase() });
+        select(function(name) { return obj[name].getOriginal().hasLivelyClosure }).
+        sortBy(function(name) { return name.toLowerCase() });
     
         if (!this.currentTag) return selectedScripts;
     
         var that = this;
-        var selectedScripts = selectedScripts.select(function(scriptName) {
+        selectedScripts = selectedScripts.select(function(scriptName) {
             return obj[scriptName].tags && 
                 obj[scriptName].tags.indexOf(that.currentTag) !== -1;
         });

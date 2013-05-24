@@ -38,6 +38,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         currentTag: null,
         doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
         droppingEnabled: true,
+        grabbingEnabled: false,
         layout: {
             adjustForNewBounds: true,
             resizeHeight: true,
@@ -182,6 +183,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 name: "ObjectEditor"
             },
             droppingEnabled: true,
+            grabbingEnabled: false,
             isCopyMorphRef: true,
             itemList: [],
             layout: {
@@ -249,6 +251,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             doNotCopyProperties: [],
             doNotSerialize: [],
             droppingEnabled: true,
+            grabbingEnabled: false,
             isCopyMorphRef: true,
             itemList: [],
             layout: {

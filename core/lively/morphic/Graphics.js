@@ -1121,7 +1121,10 @@ Object.subclass("Color",
 },
 'printing', {
     toString: function() {
-        return this.toRGBAString();
+        function floor(x) { return Math.floor(x*255.99) };
+        return this.a === 1 ?
+            "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")" :
+            this.toRGBAString();
     },
 
     toRGBAString: function() {

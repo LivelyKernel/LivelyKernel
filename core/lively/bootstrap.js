@@ -1260,15 +1260,15 @@
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // application cache related
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    lively.ApplicationCache = {
+    Global.lively.ApplicationCache = {
         appCache: Global.applicationCache,
-    
+
         isActive: (function usesAppCache(appCache) {
                 return appCache
                     && appCache.status !== appCache.UNCACHED
                     && !!document.getElementsByTagName('html')[0].getAttribute('manifest');
             })(Global.applicationCache),
-    
+
         appCacheHandlersInstalled: false,
 
         setupAppCacheHandlers: function(remove) {
@@ -1297,20 +1297,20 @@
             console.log(msg);
             this.signal('checking', evt, msg);
         },
-    
+
         // An update was found. The browser is fetching resources.
         onDownloading: function(evt) {
             var msg = 'Application cache is fetching content...';
             console.log(msg);
             this.signal('checking', evt, msg);
         },
-    
+
         onProgress: function(evt) {
             if (!evt.lengthComputable) return;
             var msg = 'Application cache progress ' + evt.loaded/evt.total;
             this.signal('progress', evt, msg);
         },
-    
+
         // Fired when the manifest resources have been newly redownloaded.
         onUpdateready: function(evt) {
             console.log('Application cache successfully loaded new content.');
@@ -1340,7 +1340,7 @@
             console.log(msg)
             this.signal('error', evt, msg);
         },
-    
+
         // Fired after the first download of the manifest.
         onNoupdate: function(evt) {
             console.log('noupdate');
@@ -1350,14 +1350,14 @@
             });
             this.signal('noupdate', evt, '');
         },
-    
+
         // Fired after the first cache of the manifest.
         onCached: function(evt) {
             var msg = 'Sources are now cached.';
             console.log(msg);
             this.signal('cached', evt, msg);
         },
-    
+
         // Fired if the manifest file returns a 404 or 410.
         // This results in the application cache being deleted.
         onObsolete: function(evt) {

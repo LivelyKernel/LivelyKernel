@@ -1856,7 +1856,7 @@ lively.morphic.Box.subclass('lively.morphic.FlapHandle',
                 {offset: 0.9, color: bright},
                 {offset: 0.93, color: dark},
                 {offset: 1, color: dark}
-            ], 'northSouth'),
+            ], 'northsouth'),
             al = this.getAlignment(),
             borderRadius = (al === 'left' || al === 'bottom') ? "8px 8px 0px 0px" : "0px 0px 8px 8px";;
         return {

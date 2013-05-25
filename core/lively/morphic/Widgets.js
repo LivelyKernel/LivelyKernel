@@ -2138,6 +2138,138 @@ lively.morphic.DropDownList.addMethods(
         $super(bounds, optItems);
     },
 });
+lively.morphic.Box.subclass('lively.morphic.MorphList',
+'settings', {
+    style: {
+        fill: Color.gray.lighter(3),
+        borderColor: Color.gray.lighter(),
+        borderWidth: 1,
+        borderStyle: 'outset',
+    },
+    isList: true
+},
+'initializing', {
+    initialize: function($super, items) {
+        $super(new Rectangle(0,0, 100,100));
+        this.itemMorphs = [];
+        this.setList(items || []);
+    }
+},
+'morph menu', {
+    getMenu: function() { /*FIXME actually menu items*/ return [] }
+},
+'list interface', {
+    renderFunction: function(listItem) {
+        if (!listItem) return listItem = {isListItem: true, string: 'invalid list item: ' + listItem};
+        if (listItem.morph) return listItem.morph;
+        var string = listItem.string || String(listItem);
+        return new lively.morphic.Text(lively.rect(0,0,100,20), string);
+    },
+    updateList: function(items) {
+        if (!items) items = [];
+        this.itemList = items;
+        this.itemMorphs = items.collect(function(ea) { return this.renderFunction(ea); }, this);
+        this.removeAllMorphs();
+        this.itemMorphs.forEach(function(ea) { this.addMorph(ea); }, this);
+    },
+    addItem: function(item) {
+        // this.updateList(this.itemList.concat([item]));
+    },
+
+    selectAt: function(idx) {
+        // if (!this.isMultipleSelectionList) this.clearSelections();
+        // this.renderContextDispatch('selectAllAt', [idx]);
+        // this.updateSelectionAndLineNoProperties(idx);
+    },
+    saveSelectAt: function(idx) {
+        // this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
+    },
+
+    deselectAt: function(idx) {
+        // this.renderContextDispatch('deselectAt', idx)
+    },
+
+    updateSelectionAndLineNoProperties: function(selectionIdx) {
+        // var item = this.itemList[selectionIdx];
+        // this.selectedLineNo = selectionIdx;
+        // this.selection = item && (item.value !== undefined) ? item.value : item;
+    },
+
+    setList: function(items) {
+        return this.updateList(items);
+    },
+    getList: function() {
+        return this.itemList;
+    },
+    getValues: function() {
+        return this.getList().collect(function(ea) { return ea.isListItem ? ea. value : ea});
+    },
+
+    setSelection: function(sel) {
+        // this.selectAt(this.find(sel));
+    },
+    getSelection: function() { return this.selection },
+    getItem: function(value) {
+        // return this.itemList[this.find(value)];
+    },
+    removeItemOrValue: function(itemOrValue) {
+        // var idx = this.find(itemOrValue), item = this.itemList[idx];
+        // this.updateList(this.itemList.without(item));
+        // return item;
+    },
+
+    getSelectedItem: function() {
+        // return this.selection && this.selection.isListItem ?
+        //     this.selection : this.itemList[this.selectedLineNo];
+    },
+    moveUpInList: function(itemOrValue) {
+        // if (!itemOrValue) return;
+        // var idx = this.find(itemOrValue);
+        // if (idx === undefined) return;
+        // this.changeListPosition(idx, idx-1);
+    },
+    moveDownInList: function(itemOrValue) {
+        // if (!itemOrValue) return;
+        // var idx = this.find(itemOrValue);
+        // if (idx === undefined) return;
+        // this.changeListPosition(idx, idx+1);
+    },
+    clearSelections: function() {
+        // this.renderContextDispatch('clearSelections');
+    }
+},
+'multiple selection support', {
+    enableMultipleSelections: function() {
+        // this.isMultipleSelectionList = true;
+        // this.renderContextDispatch('enableMultipleSelections');
+    },
+    getSelectedItems: function() {
+        // var items = this.itemList;
+        // return this.getSelectedIndexes().collect(function(i) { return items[i] });
+    },
+
+    getSelectedIndexes: function() {
+        //return this.renderContextDispatch('getSelectedIndexes');
+    },
+
+    getSelections: function() {
+        // return this.getSelectedItems().collect(function(ea) { return ea.isListItem ? ea.value : ea; })
+    },
+    setSelections: function(arr) {
+        // var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
+        // this.selectAllAt(indexes);
+    },
+    setSelectionMatching: function(string) {
+        // for (var i = 0; i < this.itemList.length; i++) {
+        //     var itemString = this.itemList[i].string || String(this.itemList[i]);
+        //     if (string == itemString) this.selectAt(i);
+        // }
+    },
+    selectAllAt: function(indexes) {
+        // this.renderContextDispatch('selectAllAt', indexes)
+    }
+
+});
 
 lively.morphic.Button.subclass("lively.morphic.WindowControl",
 'documentation', {
@@ -2606,6 +2738,10 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         $super(extent.extentAsRectangle());
         this.type = type;
         this.addStyleClassName('reframe-handle ' + type);
+        var style = {};
+        if (this.type === 'right' || this.type === 'corner') { style.moveHorizontal = true; }
+        if (this.type === 'bottom' || this.type === 'corner') { style.moveVertical = true; }
+        this.applyStyle(style);
     }
 },
 'event handling', {

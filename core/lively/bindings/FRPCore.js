@@ -42,6 +42,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.checker = checker || this.basicChecker;
         this.isContinuous = isContinuous || false;
         this.setLastTime(0);
+        return this;
     },
     setCode: function(aString) {
         this.code = aString;
@@ -51,6 +52,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     beContinuous: function(val) {
         this.currentValue = val;
         this.isContinuous = true;
+        return this;
     },
     
     installTo: function(object, name) {
@@ -106,13 +108,47 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.start = null;
         return this;
     },
+    delayE: function(event, interval) {
+        this.setUp("delayE", [this.ref(event)],
+            function(space, evaluator) {
+                var val = space.frpGet(this.event);
+                var lastTime = space.lookup(this.event).lastTime;
+                if (lastTime > this.lastTime) {
+                    this.pastValues.push({value: val, time: lastTime});
+                }
+                if (this.pastValues.length === 0) {
+                    return undefined;
+                }
+                var t = evaluator.currentTime - space.frpGet(this.interval);
+                while (this.pastValues.length > 1) {
+                    if (this.pastValues[1].time > t) {
+                        break;
+                    }
+                    this.pastValues.shift();    
+                }
+                return this.pastValues[0].time <= t
+                    ? this.pastValues.shift().value
+                    : undefined;
+            },
+            function(space, time, evaluator) {
+                return this.basicChecker(space, time, evaluator)
+                    || this.pastValues.length > 0
+                        && this.pastValues[0].time <= (time - space.frpGet(this.interval));
+            });
+        this.event = this.ref(event);
+        this.pastValues = [];
+        this.interval = interval;
+        return this;
+    },
 
     collector: function(event, initialValue, func) {
         this.setUp("collectE", [this.ref(event)],
             function(space, evaluator) {
                 return (space.frpGet(this.func))
                     (space.frpGet(this.event),
-                    (this.currentValue === undefined ? space.frpGet(this.initialValue) : this.currentValue))},
+                    (this.currentValue === undefined
+                        ? space.frpGet(this.initialValue)
+                        : this.currentValue))},
             null,
             true);
         this.initialValue = initialValue;
@@ -200,7 +236,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                 changed = true;
             }
         }
-    	if (time > this.lastCheckTime) {
+        if (time > this.lastCheckTime) {
 			this.lastCheckTime = time;
 		}
         return changed;

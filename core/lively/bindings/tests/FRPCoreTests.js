@@ -171,6 +171,69 @@ function(t) {return t * 3}).finalize([]);
         this.assertEquals(timer.done, true);
         evaluator.evaluateAt(12000);
         this.assertEquals(timer.currentValue, 10000);
+    },
+
+    testDelay: function() {
+        var obj = {};
+        var evaluator = this.newEvaluator();
+        evaluator.installTo(obj);
+
+        var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
+        timer.installTo(obj, "timer");
+        var delayer = this.newStream().delayE("timer", 3000).setCode("timer.delayE(3000)").finalize([]);
+        delayer.installTo(obj);
+    
+        evaluator.reset();
+        evaluator.addStreamsFrom(obj);
+        evaluator.sort();
+
+        evaluator.evaluateAt(1000);
+        this.assertEquals(timer.currentValue, 0);
+        this.assertEquals(delayer.currentValue, undefined);
+        evaluator.evaluateAt(2000);
+        this.assertEquals(timer.currentValue, 1000);
+        this.assertEquals(delayer.currentValue, undefined);
+        evaluator.evaluateAt(3000);
+        this.assertEquals(timer.currentValue, 2000);
+        this.assertEquals(delayer.currentValue, undefined);
+        evaluator.evaluateAt(4000);
+        this.assertEquals(timer.currentValue, 3000);
+        this.assertEquals(delayer.currentValue, 0);
+        evaluator.evaluateAt(5000);
+        this.assertEquals(timer.currentValue, 4000);
+        this.assertEquals(delayer.currentValue, 1000);
+        evaluator.evaluateAt(6000);
+        this.assertEquals(timer.currentValue, 5000);
+        this.assertEquals(delayer.currentValue, 2000);
+        evaluator.evaluateAt(7000);
+        this.assertEquals(timer.currentValue, 6000);
+        this.assertEquals(delayer.currentValue, 3000);
+        evaluator.evaluateAt(8000);
+        this.assertEquals(timer.currentValue, 7000);
+        this.assertEquals(delayer.currentValue, 4000);
+        evaluator.evaluateAt(9000);
+        this.assertEquals(timer.currentValue, 8000);
+        this.assertEquals(delayer.currentValue, 5000);
+        evaluator.evaluateAt(10000);
+        this.assertEquals(timer.currentValue, 9000);
+        this.assertEquals(delayer.currentValue, 6000);
+        this.assertEquals(timer.done, false);
+        evaluator.evaluateAt(11000);
+        this.assertEquals(timer.currentValue, 10000);
+        this.assertEquals(delayer.currentValue, 7000);
+        this.assertEquals(timer.done, true);
+        evaluator.evaluateAt(12000);
+        this.assertEquals(timer.currentValue, 10000);
+        this.assertEquals(delayer.currentValue, 8000);
+        evaluator.evaluateAt(13000);
+        this.assertEquals(timer.currentValue, 10000);
+        this.assertEquals(delayer.currentValue, 9000);
+        evaluator.evaluateAt(14000);
+        this.assertEquals(timer.currentValue, 10000);
+        this.assertEquals(delayer.currentValue, 10000);
+        evaluator.evaluateAt(15000);
+        this.assertEquals(timer.currentValue, 10000);
+        this.assertEquals(delayer.currentValue, 10000);
     }
 
 

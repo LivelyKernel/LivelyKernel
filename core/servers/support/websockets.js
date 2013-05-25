@@ -26,7 +26,7 @@ function addCallback(sender, msg, callback) {
 }
 
 function triggerActions(actions, connection, msg) {
-    if (!actions) return;
+    if (!actions || msg.inResponseTo) return;
     try {
         if (actions[msg.action]) actions[msg.action](connection, msg);
         else if (actions.messageNotUnderstood) actions.messageNotUnderstood(connection, msg);
@@ -55,7 +55,7 @@ function onLivelyJSONMessage(receiver, connection, msg) {
     receiver.debug && console.log('\n%s received %s from %s %s\n',
         receiver, action, sender,
         msg.messageIndex ? '('+msg.messageIndex+')':'',
-        msg.data);
+        msg);
     if (receiver.requiresSender && !sender) { console.error('%s could not extract sender from incoming message %s', receiver, i(msg)); return; }
     if (!action) { console.warn('%s could not extract action from incoming message %s', receiver, i(msg)); return; }
     receiver.emit && receiver.emit(action, msg);
@@ -93,7 +93,7 @@ util.inherits(WebSocketClient, EventEmitter);
         c.on('connect', function(connection) {
             connection.on('error', function(e) { self.onError(e); });
             connection.on('close', function() { self.onClose() });
-            connection.on('message', function(message, connection) { self.onMessage(message); });
+            connection.on('message', function(message) { self.onMessage(message, connection); });
             self.onConnect(connection);
         });
     }

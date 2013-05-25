@@ -302,12 +302,12 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             // test messaging
             c1.openForRequests(); c2.openForRequests(); c3.openForRequests();
-            c1.remoteEval(c3.sessionId, '1+2;', function(msg) {
+            false && c1.remoteEval(c3.sessionId, '1+2;', function(msg) {
                 this.assertEqualState({result: '3'}, msg.data, Objects.inspect(msg));
                 remoteEvalRun++;
             }.bind(this));
             // TODO make central -> local messages work
-            false && c3.remoteEval(c1.sessionId, '1+2;', function(msg) {
+            c3.remoteEval(c1.sessionId, '1+2;', function(msg) {
                 this.assertEqualState({result: '3'}, msg.data, Objects.inspect(msg));
                 remoteEvalRun++;
             }.bind(this));

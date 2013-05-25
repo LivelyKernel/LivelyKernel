@@ -105,6 +105,7 @@ var sessionActions = {
 
     messageNotUnderstood: function(sessionServer, connection, msg) {
         // generic dispatch
+console.log('%s messageNotUnderstood from %s: ', sessionServer, connection.id, msg);
         function answer(data) {
             connection.send({
                 action: msg.action + 'Result',
@@ -168,17 +169,24 @@ function SessionTracker(options) {
 
     this.id = function() { return this.trackerId }
 
+    this.getActions = function(informFunc) {
+        var sessionTracker = this;
+        return Object.keys(sessionActions).reduce(function(actions, name) {
+            if (informFunc) {
+                actions[name] = function(con, msg) { informFunc(sessionTracker, con, msg); sessionActions[name](sessionTracker, con, msg) };
+            } else {
+                actions[name] = sessionActions[name].bind(null, sessionTracker);
+            }
+            return actions;
+        }, {});
+    }
+
     this.listen = function() {
         // accepting/connecting with local or server-to-server socket requests
         // this.websocketServer holds a list of those connections
-        var sessionTracker = this,
-            actions = Object.keys(sessionActions).reduce(function(actions, name) {
-            actions[name] = sessionActions[name].bind(null, sessionTracker);
-            return actions;
-        }, {});
         this.websocketServer.listen({
             route: this.route,
-            actions: actions,
+            actions: this.getActions(),
             subserver: this.subserver
         });
     }
@@ -290,11 +298,19 @@ function SessionTracker(options) {
 
     this.findConnection = function(id, thenDo) {
         // looks up 1) local 2) remote connections with id
+        this.debug && console.log('%s trying to find connection %s...', this, id);
         var con = this.websocketServer.getConnection(id);
-        if (con) { thenDo(null, con); return }
-        this.debug && console.log('%s trying to find connection %s among reported sessions...', this, id);
+        if (con) {
+            this.debug && console.log('... found connection in websocketServer, %s -> %s', this.id(), con.id);
+            thenDo(null, con); return }
+        this.debug && console.log('... searching among reported sessions...');
         var trackerIdsAndSessions = this.getLocalSessions({});
         for (var trackerId in trackerIdsAndSessions) {
+            if (id === trackerId) {
+                var con = this.getServerToServerConnectionById(trackerId);
+                thenDo(!con && 'not found', con);
+                return;
+            }
             var sessions = trackerIdsAndSessions[trackerId];
             for (var sessionId in sessions) {
                 if (sessionId !== id) continue;
@@ -361,6 +377,7 @@ function SessionTracker(options) {
                 console.error('ServerToServer connection %s got error: ', url, err); 
                 initReconnect();
             });
+            client.actions = tracker.getActions(function(sessionServer, con, msg) { console.log('%s action invoked ', client, msg); });
             client.connect();
         } catch(e) {
             console.error('server2server connection error (%s -> %s): ',this , url, e);

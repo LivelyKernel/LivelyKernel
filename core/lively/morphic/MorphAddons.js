@@ -510,50 +510,102 @@ lively.morphic.Morph.addMethods(
 'fixing', {
     setFixed: function(optFixed) {
         // Fixes the morph at the current position and zoom when called with true or no parameter, and unfixes it when called with false.
-        var world = lively.morphic.World.current();
         var fixed = optFixed || (optFixed === false? false : true);
-        if(fixed && this.owner !== world) {
-            return;
+        if (fixed && this.owner !== this.world()) return;
+        if (fixed) {
+            this.disableGrabbing();
+            this.world().addMorph(this);
         }
-        this.isFixed = fixed;
-        if(fixed) {
-            this.fixedScale = this.getScale() * world.getZoomLevel();
-            this.fixedPosition = this.getPosition().subPt(world.visibleBounds().topLeft()).scaleBy(world.getZoomLevel());
-
-            this.startStepping(100, "updateZoomScale");
-            this.startStepping(100, "updateScrollPosition");
+        this.setFixedInPosition(fixed);
+        this.setFixedInSize(fixed);
+        if (fixed) {
+            this.isFixed = fixed;
         } else {
-            this.stopSteppingScriptNamed("updateZoomScale");
-            this.stopSteppingScriptNamed("updateScrollPosition");
+            delete this.isFixed;
+            this.world().addMorph(this); //sending it to the back positions
         }
     },
     setFixedInSize: function(optFixed) {
-        // Fixes the morph in the current zoom when called with true or no parameter, and unfixes it when called with false.
-        var fixed = optFixed || (optFixed === false? false : true);
-        if(fixed && this.owner !== lively.morphic.World.current()) {
+        // Keeps the morph scale when zooming the world
+        var fixed = optFixed || (optFixed === false? false : true); // because its public
+        if(fixed && this.owner !== this.world()) {
             return;
         }
-        this.isFixed = fixed;
         if(fixed) {
-            this.fixedScale = this.getScale() * lively.morphic.World.current().getZoomLevel();
             this.startStepping(100, "updateZoomScale");
+            this.fixedScale = this.getScale() * this.world().getZoomLevel();
         }
         else {
-            this.stopSteppingScriptNamed("updateZoomLevel");
+            this.stopSteppingScriptNamed("updateZoomScale");
+            delete this.fixedScale;
         }
+    },
+    setFixedInPosition: function(optFixed) {
+        // Keeps a morph fixed on screen
+        var fixed = optFixed || (optFixed === false? false : true); // because its public
+        if (fixed && this.owner !== this.world()) {
+            return;
+        }
+        var pos = this.getPosition().subPt(this.world().getScrollOffset());
+        if (fixed) {
+            this.setPosition(pos); //sanitize getPosition while fixed
+        }
+        this.updatePositionStyleAttribtues(fixed, pos);
+        if (fixed) {
+            this.fixedPosition = pos;
+            this.cachedBounds = undefined
+        } else {
+            this.setPosition(this.getPosition()); // refresh lively position
+            delete this.fixedPosition;
+        }
+    },
+    updatePositionStyleAttribtues: function(fixed, pos) {
+        this.world().removeWebkitTransform(); // Known webkit bug: 3D don't work with fixed postitioning
+        var morphnode = this.renderContext().morphNode,
+            style = morphnode.getAttribute('style'),
+            positionTargetString = fixed? 'position: fixed;' : 'position: absolute;',
+            newStyle = style.replace(/position\:[^;]*\;/g, positionTargetString)
+            if (fixed) {
+                newStyle = newStyle.replace(/left\:[^;]*\;/g, 'left: ' + pos.x + 'px;')
+                        .replace(/top\:[^;]*\;/g, 'top: ' + pos.y + 'px;');
+            }
+        morphnode.setAttribute('style', newStyle);
     },
 
-    updateZoomScale: function(newZoom) {
-        if(this.fixedScale) {
-            var newZoom = newZoom || lively.morphic.World.current().updateZoomLevel();
-            this.setScale(this.fixedScale/newZoom);
+    updateZoomScale: function(zoom) {
+        if (!this.isFixed) return;
+        var oldZoom = this.world().zoomLevel;
+        zoom = zoom || this.world().calculateCurrentZoom();
+        if (zoom === oldZoom) return
+        this.world().updateZoomLevel(zoom)
+        this.fixedScale && this.setScale(this.fixedScale/zoom);
+        this.fixedPosition && this.updateFixedPositionAfterScale();
+    },
+
+    updateFixedPositionAfterScale: function() {
+        var pos = this.fixedPosition.scaleBy(1/this.world().getZoomLevel());
+        this.updatePositionStyleAttribtues(true, pos);
+    },
+
+    removeWebkitTransform: function() {
+        var node = this.renderContext().morphNode,
+            style = node.getAttribute('style'),
+            newStyle = style.replace(/\-webkit\-transform[^;]*\; /g, '');
+        node.setAttribute('style', newStyle);
+    },
+
+    setPositionWhileFixed: function(position, optTime) {
+        if (optTime) {
+            var self = this;
+            this.setFixed(false);
+            var callback = function () { self.setFixed(true); }
+            this.setPositionAnimated.bind(this, position, optTime, callback).delay(0);
+        } else {
+            this.setFixed(false);
+            this.setPosition(position);
+            this.setFixed(true);
         }
-    },
-    updateScrollPosition: function(newPosition) {
-        var world = lively.morphic.World.current(),
-            newPosition = newPosition || world.getScrollOffset();
-        this.setPosition(this.fixedPosition.scaleBy(1/world.zoomLevel).addPt(newPosition));
-    },
+    }
 },
 'fullscreen', {
     enterFullScreen: function(beTopLeft) {
@@ -1015,8 +1067,8 @@ lively.morphic.World.addMethods(
             return window.outerWidth / window.innerWidth;
         }
     },
-    updateZoomLevel: function () {
-        this.zoomLevel = this.calculateCurrentZoom();
+    updateZoomLevel: function (optZoom) {
+        this.zoomLevel = optZoom || this.calculateCurrentZoom();
         return this.zoomLevel
     }
 });
@@ -1176,14 +1228,17 @@ lively.morphic.Morph.addMethods({
         var offset = 5,
             flapBounds = this.determineFlapBounds(alignment, morph, offset),
             scaleFactor = this.isWorld? this.getZoomLevel() : 1,
-            flap = new lively.morphic.Flap(alignment, this, flapBounds);
-        flap.addMorph(morph);
+            flap = new lively.morphic.Flap(alignment, this, flapBounds),
+            scrollContainer = new lively.morphic.Box(this.getBounds());
+        scrollContainer.setClipMode('scroll')
+        scrollContainer.addMorph(this);
+        flap.addMorph(scrollContainer);
         flap.setFixed(false);
         flap.setScale(1/scaleFactor);
         flap.setFixed(true);
         this.adjustHandlePosition(flap);
-        morph.setScale(scaleFactor);
-        morph.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
+        scrollContainer.setScale(scaleFactor);
+        scrollContainer.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
         return flap;
     },
     determineFlapBounds: function(alignment, morph, offset) {

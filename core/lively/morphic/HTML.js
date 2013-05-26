@@ -130,6 +130,7 @@ lively.morphic.Morph.addMethods(
         setRotation: 'setRotationHTML',
         setExtent: 'setExtentHTML',
         setScale: 'setScaleHTML',
+        setFixedPositioningMode: 'setFixedPositioningModeHTML',
         setVisible: 'setVisibleHTML',
         adjustOrigin: 'adjustOriginHTML',
         setPivotPoint: 'setPivotPointHTML',
@@ -172,8 +173,10 @@ lively.morphic.Morph.addMethods(
         if (ctx.morphNode)
             ctx.morphNode.style.visibility = bool ? '' : 'hidden';
     },
+
     adjustOriginHTML: function(ctx, value) {
     },
+
     setPivotPointHTML: function(ctx, value) {
         ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
     },
@@ -246,6 +249,7 @@ lively.morphic.Morph.addMethods(
     },
     initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = ctx.domInterface.htmlRect();
+        ctx.morphNode.classNames = 'morphNode';
         this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
         this.setPivotPointHTML(ctx, this.getPivotPoint())
@@ -367,6 +371,11 @@ lively.morphic.Morph.addMethods(
         }
         return node === ctx.morphNode;
     }
+},
+'fixing', {
+    setFixedPositioningModeHTML: function(ctx, value) {
+        
+    },
 });
 
 lively.morphic.World.addMethods(
@@ -744,10 +753,9 @@ lively.morphic.List.addMethods(
 },
 'node creation', {
     createListNodeHTML: function() {
-        var node = XHTMLNS.create('select');
+        var node = document.createElement('select');
         node.size = 2; // hmm 1 is drop downlist, any value hight is normal list
-        node.style.cssText = 'white-space: pre';
-        node.className = 'visibleSelection';
+        node.className = 'visibleSelection listNode';
         return node;
     },
     getListExtentHTML: function(ctx) {

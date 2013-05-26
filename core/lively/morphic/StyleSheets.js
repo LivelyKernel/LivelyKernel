@@ -539,12 +539,14 @@ lively.morphic.Morph.addMethods(
         } else {
             styleClassNames = styleClassNames ? styleClassNames.clone() : [];
         }
-        // add real class types to the classnames too
-        for (var type = this.constructor; type !== Object; type = type.superclass) {
-            if (styleClassNames.indexOf(type.name) === -1) {
-                styleClassNames.unshift(type.name); }
+         if (!this.constructor.prototype._realClassNamesForCSS) {
+            var names = [];
+            for (var type = this.constructor; type !== Object; type = type.superclass) {
+                names.unshift(type.name);
+            }
+            this.constructor.prototype._realClassNamesForCSS = names;
         }
-        // each class has to be in the return array only once
+        styleClassNames.pushAll(this.constructor.prototype._realClassNamesForCSS);
         return styleClassNames;
     },
 
@@ -605,7 +607,7 @@ lively.morphic.Morph.addMethods(
             delete this._StyleClassNames;
         } else  {
             if (Object.isString(classNames)) {
-                classNames = classNames.split(' ').invoke('trim');
+                classNames = classNames.invoke('trim').split(' ');
             }
             this.morphicSetter('StyleClassNames', classNames);
         }

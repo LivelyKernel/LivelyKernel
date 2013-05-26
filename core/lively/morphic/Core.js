@@ -44,7 +44,12 @@ Object.subclass('lively.morphic.Morph',
         this.cachedBounds = null;
         return this.morphicSetter('Position', value);
     },
-    getPosition: function() { return this.morphicGetter('Position') || pt(0,0) },
+    getPosition: function() {
+        var pos = this.morphicGetter('Position') || pt(0,0);
+        return this.fixedPosition ?
+            pos.addPt(this.world().getScrollOffset()).scaleBy(1/this.world().getZoomLevel()) :
+            pos;
+    },
     setRotation: function(value) {
         this.cachedBounds = null;
         return this.morphicSetter('Rotation', value);
@@ -62,22 +67,20 @@ Object.subclass('lively.morphic.Morph',
     },
     getBounds: function() {
         if (this.cachedBounds) return this.cachedBounds;
-
         var tfm = this.getTransform(),
             bounds = this.innerBounds();
-
         bounds = tfm.transformRectToRect(bounds);
-
         if (!this.isClip()) {
             var subBounds = this.submorphBounds(tfm);
             if (subBounds) bounds = bounds.union(subBounds);
         }
-
-        return this.cachedBounds = bounds;
+        if (!this.isFixed) this.cachedBounds = bounds;
+        return bounds;
     },
     globalBounds: function() {
         return this.owner ?
-            this.owner.getGlobalTransform().transformRectToRect(this.bounds()) : this.bounds();
+            this.owner.getGlobalTransform().transformRectToRect(this.bounds()) :
+            this.bounds();
     },
 
     innerBounds: function() { return this.shape.getBounds() },
@@ -365,6 +368,7 @@ Object.subclass('lively.morphic.Morph',
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
         if (this.owner) {
+            if (this.isFixed) this.setFixed(false);
             this.owner.removeMorph(this);
         }
         this.renderContextDispatch('remove');
@@ -617,6 +621,15 @@ Object.subclass('lively.morphic.Morph',
     jQuery: function() {
         return jQuery(this.jQueryNode());
     }
+},
+'controls', {
+    beControl: function (optBool) {
+        if (optBool === false) delete this.isControl;
+        else this.isControl = true;
+    },
+    isControlMorph: function () {
+        return this.isHand || this.isHalo || this.isMenu || this.isFixed || this.isControl;
+    }
 });
 
 lively.morphic.Morph.subclass('lively.morphic.World',
@@ -639,15 +652,28 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 },
 'accessing -- morphic relationship', {
     addMorph: function($super, morph, optMorphBefore) {
-        // my first hand is almost the topmost morph
-        var r = $super(morph, optMorphBefore);
-        $super(this.firstHand());
+        // I keep certain controls in front
+        var morphBefore = morph.isControlMorph() ?
+                this.firstHand() : (optMorphBefore || this.bottomMostControl()),
+            r = $super(morph, morphBefore);
         return r;
     }
 },
 'accessing', {
     world: function() { return this },
-    firstHand: function() { return this.hands && this.hands[0] },
+    firstHand: function() {
+        return this.hands && this.hands[0]
+    },
+
+    bottomMostControl: function() {
+        for (var i = 0; i < this.submorphs.length; i++) { // ensuring correct order
+            var m = this.submorphs[i]
+            // importance order
+            if (m.isControlMorph()) return m;
+        }
+        return null;
+    },
+
     windowBounds:  function () {
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
 

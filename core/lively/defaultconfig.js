@@ -485,8 +485,9 @@ Config.addOptions(
     ["useWindowSwitcher", true, "Use the window switcher (F5/CMD+`/CTRL+`)."]
 ],
 "Lively2Lively", [
-    ["lively2livelyCentral", "http://lively-kernel.org:4009/nodejs/SessionTracker/"],
-    ["lively2livelyAllowRemoteEval", true]
+    ['lively2livelyAutoStart', true, 'Whether to automatically connect to a session tracker server and enable Lively-to-Lively connections.'],
+    ["lively2livelyCentral", "http://lively-kernel.org:4009/nodejs/SessionTracker/", 'Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate.'],
+    ["lively2livelyAllowRemoteEval", true, 'Allow eval actions from other Lively worlds.']
 ]);
 
 })(Global.Config, Global.UserAgent, Global.ExistingConfig);

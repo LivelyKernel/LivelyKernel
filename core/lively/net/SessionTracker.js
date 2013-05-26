@@ -312,6 +312,7 @@ Object.extend(lively.net.SessionTracker, {
 
 (function setupSessionTrackerConnection() {
     lively.whenLoaded(function() {
+        if (!Config.get('lively2livelyAutoStart')) return;
         var session = lively.net.SessionTracker.createSession(),
             livelyCentral = Config.get('lively2livelyCentral');
         livelyCentral && session.initServerToServerConnect(livelyCentral);

@@ -25,7 +25,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         var url = this.sessionTrackerURL.withFilename('connect');
         this.webSocket = new lively.net.WebSocket(url, {protocol: "lively-json", enableReconnect: true});
         lively.bindings.connect(this.webSocket, 'error', this, 'connectionError');
-        if (this.actions) this.listen(this.actions);
+        this.listen();
         return this.webSocket;
     },
 
@@ -34,7 +34,6 @@ Object.subclass('lively.net.SessionTrackerConnection',
         var ws = this.webSocket;
         if (!ws) return;
         // in case connection wasn't established yet
-        lively.bindings.disconnect(ws, 'registerClientResult', this, 'connectionEstablished');
         lively.bindings.disconnect(ws, 'error', this, 'connectionError');
         ws.close();
         this.webSocket = null;
@@ -73,16 +72,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         return this.send({inResponseTo: msg.messageId, action: msg.action+'Result', data: data, target: msg.sender, callback: callback});
     },
 
-    listen: function(actions) {
+    listen: function() {
         var ws = this.webSocket;
-        ws && this.actions && Object.keys(this.actions).forEach(function(actionName) {
-            lively.bindings.disconnect(ws, actionName, this.actions, actionName); }, this);
-        this.actions = actions;
-        ws && actions && Object.keys(actions).forEach(function(actionName) {
-            lively.bindings.connect(ws, actionName, actions, actionName, {
-                updater: function($upd, msg) { $upd(msg, session); },
-                varMapping: {session: this}});
-            }, this);
+        lively.bindings.connect(ws, 'lively-message', this, 'dispatchLivelyMessage', {
+            updater: function($upd, msg) { $upd(msg, session); },
+            varMapping: {session: this}});
     },
 
     isConnected: function() {
@@ -142,7 +136,8 @@ Object.subclass('lively.net.SessionTrackerConnection',
             session.resetConnection();
             session.register();
         }).delay(Numbers.random(timeoutCheckPeriod-5, timeoutCheckPeriod+5)); // to balance server load
-        actions && this.whenOnline(this.listen.bind(this, actions));
+        actions && (this.actions = actions);
+        this.whenOnline(this.listen.bind(this));
         this.send('registerClient', {
             id: this.sessionId,
             worldURL: URL.source.toString(),
@@ -172,13 +167,24 @@ Object.subclass('lively.net.SessionTrackerConnection',
 },
 'specific messages', {
 
+    dispatchLivelyMessage: function(msg, session) {
+        var actions = this.getActions(),
+            action = actions[msg.action];
+        if (action) action(msg, session);
+        else if (actions.messageNotUnderstood) actions.messageNotUnderstood(msg, session);
+    },
+
+    getActions: function() {
+        return Object.extend(Object.extend({}, this.constructor.defaultActions), this.actions);
+    },
+
     remoteEval: function(targetId, expression, thenDo) {
         this.sendTo(targetId, 'remoteEvalRequest', {expr: expression}, thenDo);
     },
 
     openForRequests: function() {
         if (!this.actions) this.actions = Object.extend({}, lively.net.SessionTracker.defaultActions);
-        this.listen(this.actions);
+        this.listen();
     },
 
     sendObjectTo: function(targetId, obj, options, callback) {

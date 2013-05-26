@@ -91,31 +91,40 @@ Object.subclass('lively.net.WebSocket',
     onLivelyJSONMessage: function(msg) {
         // the lively-json protocol. Messages should be valid JSON in the form:
         // msg = {
-        //   [messageId: NUMBER|STRING,] // optional identifier of the message
-        //   [inResponseTo: NUMBER|STRING,] // optional identifier of a message
-        //                                  // that this message answers
-        //   [messageIndex: NUMBER,] // Optional, might go away Really Soon,
-        //                           // currently used for debugging
+        //   messageId: NUMBER|STRING, // optional identifier of the message
         //   action: STRING, // will specify what the receiver should do with
         //                   // the message. Might be used as the key/name for
         //                   // signaling data bindings or emitting events
-        //   data: OBJECT // the payload of the message
+        //   data: OBJECT, // the payload of the message
+        //   sender: STRING, // sender id
+        //   target: STRING, // target id
+        //   [inResponseTo: NUMBER|STRING,] // optional identifier of a message
+        //                                  // that this message answers
+        //   [expectMoreResponses: BOOL,] // if this is an answer then this can
+        //                                // this can be true and the answer
+        //                                // callback will be trigered multiple
+        //                                // times, "streaming response"
+        //   [messageIndex: NUMBER,]  // Optional, might go away Really Soon,
+        //                           // currently used for debugging
+        //   [route: ARRAY]  // Ids(?) of websocket handlers that routed this
+        //                   // msg
         // }
-        var expectMore = !!msg.expectMoreResponses,
-            responseId = msg.inResponseTo,
-            callbacks = responseId && this.callbacks[responseId];
-        // delete msg.expectMoreResponses;
-        // delete msg.inResponseTo;
-        if (msg.action) lively.bindings.signal(this, msg.action, msg);
-        if (!callbacks) return;
-        callbacks.forEach(function(cb) { 
-            try {
-                cb(msg, expectMore);
-            } catch(e) {
-                console.error(show('Error in websocket message callback\n%s', e.stack || e));
-            }
-        });
-        if (!expectMore) callbacks.clear();
+        var responseId = msg.inResponseTo;
+        if (responseId) { // it is a message that is an answer
+            var callbacks = responseId && this.callbacks[responseId];
+            if (!callbacks) return;
+            var expectMore = !!msg.expectMoreResponses;
+            callbacks.forEach(function(cb) { 
+                try {
+                    cb(msg, expectMore);
+                } catch(e) {
+                    console.error(show('Error in websocket message callback\n%s', e.stack || e));
+                }
+            });
+            if (!expectMore) callbacks.clear();
+        } else { // an initiating message
+            lively.bindings.signal(this, 'lively-message', msg);
+        }
     }
 
 },

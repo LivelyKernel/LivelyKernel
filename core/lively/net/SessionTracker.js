@@ -128,7 +128,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     register: function(actions) {
         // sends a request to the session tracker to register a connection
         // pointing to this session connection/id
-        if (!this.sessionId) this.sessionId = Strings.newUUID();
+        if (!this.sessionId) this.sessionId = 'client-session:' + Strings.newUUID();
         var timeoutCheckPeriod = this.registerTimeout / 1000; // seconds
         var session = this;
         (function timeoutCheck() {

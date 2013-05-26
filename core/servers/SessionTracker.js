@@ -157,7 +157,7 @@ function SessionTracker(options) {
     options = options || {};
     this.route = options.route + 'connect';
     this.subserver = options.subserver;
-    this.trackerId = uuid();
+    this.trackerId = 'tracker-' + uuid();
     this.websocketServer = new WebSocketServer({sender: this.trackerId});
     this.serverToServerConnections = {}; // for connections to other servers
     this.inactiveSessionRemovalTime = options.inactiveSessionRemovalTime || 60*1000;

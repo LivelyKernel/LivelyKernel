@@ -158,8 +158,7 @@ Object.subclass('lively.net.WebSocket',
         var msgString;
         if (typeof data !== 'string') {
             data.messageIndex = ++this._messageOutCounter;
-            // hmm messageIndex is not really an id
-            data.messageId = data.messageId || data.messageIndex;
+            data.messageId = 'client-msg:' + Strings.newUUID();
             if (callback) {
                 var callbacks = this.callbacks[data.messageId] = this.callbacks[data.messageId] || [];
                 callbacks.push(callback);

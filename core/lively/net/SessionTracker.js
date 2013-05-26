@@ -90,7 +90,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     getSessions: function(cb) {
-        this.send('getSessions', {id: this.sessionId}, function(msg) {
+        this.sendTo(this.trackerId, 'getSessions', {}, function(msg) {
             cb && cb(msg && msg.data); });
     }
 },
@@ -147,7 +147,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     unregister: function() {
-        if (this.sessionId) this.send('unregisterClient', {id: this.sessionId});
+        if (this.sessionId) this.sendTo(this.trackerId, 'unregisterClient', {});
         this.resetConnection();
         this.sessionId = null;
         this.trackerId = null;
@@ -157,11 +157,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
     initServerToServerConnect: function(serverURL, options, cb) {
         options = options || {}
         var url = serverURL.toString().replace(/^http/, 'ws')
-        this.send('initServerToServerConnect', {url: url, options: options}, cb);
+        this.sendTo(this.trackerId, 'initServerToServerConnect', {url: url, options: options}, cb);
     },
 
     initServerToServerDisconnect: function(cb) {
-        this.send('initServerToServerDisconnect', {}, cb);
+        this.sendTo(this.trackerId, 'initServerToServerDisconnect', {}, cb);
     }
 
 },
@@ -206,7 +206,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
             var timeStamp = Global.LastEvent && Global.LastEvent.timeStamp;
             if (!timeStamp || timeStamp === session._lastReportedActivity) { next(); return; }
             session._lastReportedActivity = timeStamp;
-            session.send('reportActivity', {lastActivity: timeStamp}, next);
+            session.sendTo(session.trackerId, 'reportActivity', {lastActivity: timeStamp}, next);
         }
         report();
     },

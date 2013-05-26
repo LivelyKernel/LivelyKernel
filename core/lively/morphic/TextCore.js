@@ -2701,6 +2701,21 @@ Object.subclass('lively.morphic.TextChunk',
 Object.subclass('lively.morphic.TextEmphasis',
 'documentation', {
     README: function() {
+        // supported attributes:
+        // data: OBJECT,
+        // hover: {inAction: FUNCTION, outAction: FUNCTION},
+        // doit: FUNCTION,
+        // uri: STRING, // URL, a link
+        // fontWeight: "normal"|"bold",
+        // italics: "normal"|"italic",
+        // fontFamily: STRING, // name of font family, e.g. Arial or sans-serif
+        // color: COLOR,
+        // backgroundColor: COLOR,
+        // textDecoration: "normal"|"underline",
+        // textAlign: "left"|"center"|"right",
+        // fontSize: NUMBER,
+        // textShadow: null|POINT|STRING // e.g. pt(4,2) or when a String it should be a css text shadow spec
+
         // When extending TextEmphasis with new attribute:
         // 1. add new entry with set/get/equals/apply in styleAttributes make
         //    sure you implement #equals in the newly added styleAttribute!

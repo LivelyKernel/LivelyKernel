@@ -101,34 +101,8 @@ var sessionActions = {
         });
         sessionServer.trackerData[id] = {sessions: msg.data[id]};
         connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Sessions added to ' + sessionServer}});
-    },
-
-    messageNotUnderstood: function(sessionServer, connection, msg) {
-        // generic dispatch
-console.log('%s messageNotUnderstood from %s: ', sessionServer, connection.id, msg);
-        function answer(data) {
-            connection.send({
-                action: msg.action + 'Result',
-                inResponseTo: msg.messageId,
-                data: data
-            });
-        }
-        var target = msg.target || msg.data.target;
-        if (!target) { answer({error: 'Message does not specify target'}); return; }
-        sessionServer.findConnection(target, function(err, targetConnection) {
-            if (err || !targetConnection) {
-                console.warn('%s remoteEvalRequest: Failure finding target connection: ' + err);
-                answer({error: 'Failure finding target connection: ' + err, target: msg.data.target})
-                return;
-            }
-            targetConnection.send({
-                action: msg.action,
-                data: msg.data,
-                sender: msg.sender,
-                target: msg.target
-            }, function(result) { answer(result.data); });
-        });
     }
+
 }
 
 
@@ -167,6 +141,9 @@ function SessionTracker(options) {
 
 (function() {
 
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // initialization
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     this.id = function() { return this.trackerId }
 
     this.getActions = function(informFunc) {
@@ -184,6 +161,9 @@ function SessionTracker(options) {
     this.listen = function() {
         // accepting/connecting with local or server-to-server socket requests
         // this.websocketServer holds a list of those connections
+        this._dispatchLivelyMessageFromServer = this._dispatchLivelyMessageFromServer
+                                             || this.dispatchLivelyMessageFromServer.bind(this);
+        this.websocketServer.on('lively-message', this._dispatchLivelyMessageFromServer);
         this.websocketServer.listen({
             route: this.route,
             actions: this.getActions(),
@@ -194,6 +174,8 @@ function SessionTracker(options) {
     this.shutdown = function() {
         // really close the tracker, ensures that the tracker will not
         // attempt reconnects of closed sockets
+        if (this._dispatchLivelyMessageFromServer)
+            tracker.websocketServer.removeListener('lively-message', this._dispatchLivelyMessageFromServer);
         this.websocketServer && this.websocketServer.close();
         this.removeServerToServerConnections();
         this.stopServerToServerSessionReport();
@@ -214,6 +196,57 @@ function SessionTracker(options) {
         this.shutdown();
         this.initTrackerData();
     }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // message dispatch
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    this.dispatchLivelyMessage = function(msg, connection) {
+        if (msg.target && msg.target !== this.trackerId) {
+            this.routeMessage(msg, connection); return; }
+        var actions = this.getActions(),
+            action = actions[msg.action];
+        if (action) action(connection, msg);
+        else if (actions.messageNotUnderstood) actions.messageNotUnderstood(connection, msg);
+    }
+
+    this.dispatchLivelyMessageFromServer = function(msg, connection) {
+        this.dispatchLivelyMessage(msg, connection);
+    }
+
+    this.dispatchLivelyMessageFromServerToServerConnection = function(msg, connection) {
+        this.dispatchLivelyMessage(msg, connection);
+    }
+
+    this.routeMessage = function(msg, connection) {
+        console.log('%s routing %s to %s', this, msg.action, msg.target);
+        function answer(response) {
+            console.log('%s got answer from routed message %s: ', tracker, msg.messageId, response);
+            debugger;
+            connection.send({
+                action: msg.action + 'Result',
+                inResponseTo: msg.messageId,
+                data: response.data,
+                target: msg.sender,
+                messageId: response.messageId
+            });
+        }
+        var tracker = this, target = msg.target || msg.data.target;
+        if (!target) { answer({data: {error: 'Message does not specify target'}}); return; }
+        this.findConnection(target, function(err, targetConnection) {
+            if (err || !targetConnection) {
+                console.warn('%s failed to route message: Failure finding target connection: ', this, err);
+                answer({data: {error: 'Failure finding target connection: ' + err, target: target}})
+                return; }
+            targetConnection.send({
+                action: msg.action,
+                data: msg.data,
+                sender: msg.sender,
+                target: target,
+                messageId: msg.messageId
+            }, answer);
+        });
+    }
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
     this.getSessionList = function(options, thenDo) {
         // session list of both local and remote sessions
@@ -302,7 +335,7 @@ function SessionTracker(options) {
         var con = this.websocketServer.getConnection(id);
         if (con) {
             this.debug && console.log('... found connection in websocketServer, %s -> %s', this.id(), con.id);
-            thenDo(null, con); return }
+            thenDo(null, con); return; }
         this.debug && console.log('... searching among reported sessions...');
         var trackerIdsAndSessions = this.getLocalSessions({});
         for (var trackerId in trackerIdsAndSessions) {
@@ -377,7 +410,9 @@ function SessionTracker(options) {
                 console.error('ServerToServer connection %s got error: ', url, err); 
                 initReconnect();
             });
-            client.actions = tracker.getActions(function(sessionServer, con, msg) { console.log('%s action invoked ', client, msg); });
+            tracker._dispatchLivelyMessageFromServerToServerConnection = tracker._dispatchLivelyMessageFromServerToServerConnection
+                                                                      || tracker.dispatchLivelyMessageFromServerToServerConnection.bind(tracker);
+            client.on('lively-message', tracker._dispatchLivelyMessageFromServerToServerConnection);
             client.connect();
         } catch(e) {
             console.error('server2server connection error (%s -> %s): ',this , url, e);

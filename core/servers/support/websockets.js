@@ -8,6 +8,15 @@ var util = require('util'),
     lifeStar = require(lifeStarDir);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// helper
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+function uuid() { // helper
+    var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8); return v.toString(16); }).toUpperCase();
+    return id;
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // lively-json callback support
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 function addCallback(sender, msg, callback) {
@@ -19,19 +28,21 @@ function addCallback(sender, msg, callback) {
     if (!sender._messageOutCounter) sender._messageOutCounter = 0;
     if (!sender.callbacks) sender.callbacks = {};
     msg.messageIndex = ++sender._messageOutCounter;
-    msg.messageId = msg.messageId || msg.messageIndex;
+    msg.messageId = msg.messageId || (sender ? sender.toString() + '-' : '') + 'msg:' + uuid();
     var callbacks = sender.callbacks[msg.messageId] = sender.callbacks[msg.messageId] || [];
     callbacks.push(callback);
     // console.log('adding callback %s for sender %s. Message:', callback, sender, msg);
 }
 
-function triggerActions(actions, connection, msg) {
-    if (!actions || msg.inResponseTo) return;
+function triggerActions(receiver, connection, msg) {
+    if (!receiver) {
+        console.warn('no receiver for msg ', msg);
+        return;
+    }
     try {
-        if (actions[msg.action]) actions[msg.action](connection, msg);
-        else if (actions.messageNotUnderstood) actions.messageNotUnderstood(connection, msg);
+        receiver.emit && receiver.emit('lively-message', msg, connection);
     } catch(e) {
-        console.error('Error when dealing with %s requested from %s:\n',
+        console.error('Error when dealing with %s requested from %s:\n%s',
             msg.action, msg.sender, e.stack);
     }
 }
@@ -57,10 +68,28 @@ function onLivelyJSONMessage(receiver, connection, msg) {
         msg.messageIndex ? '('+msg.messageIndex+')':'',
         msg);
     if (receiver.requiresSender && !sender) { console.error('%s could not extract sender from incoming message %s', receiver, i(msg)); return; }
-    if (!action) { console.warn('%s could not extract action from incoming message %s', receiver, i(msg)); return; }
-    receiver.emit && receiver.emit(action, msg);
-    triggerActions(receiver.actions, connection, msg);
-    triggerCallbacks(receiver, msg);
+    if (!action) { console.warn('%s could not extract action from incoming message %s', receiver, i(msg)); }
+    if (msg.inResponseTo) triggerCallbacks(receiver, msg);
+    else triggerActions(receiver, connection, msg);
+}
+
+function sendLivelyMessage(sender, connection, msg, callback) {
+    try {
+        addCallback(sender, msg, callback);
+        sender.debug && msg.action && console.log('\n%s sending: %s to %s\n', sender, msg.action, connection.id || 'unknown', msg);
+        if (typeof msg !== 'string') {
+            if (sender.sender && !msg.sender) msg.sender = sender.sender;
+            msg = JSON.stringify(msg);
+        }
+        var sendMethod;
+        if (connection._send) sendMethod = '_send'; // we wrapped it
+        else if (connection.sendUTF) sendMethod = 'sendUTF';
+        else sendMethod = 'send';
+        return connection[sendMethod](msg);
+    } catch(e) {
+        console.error('Send with %s failed: %s', sender, e);
+    }
+    return false;
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -86,14 +115,16 @@ util.inherits(WebSocketClient, EventEmitter);
         var self = this;
         var c = this._client = new WebSocketClientImpl();
 
-        c.on('connectFailed', function(e) {
-            self.onConnectionFailed(e);
-        });
+        c.on('connectFailed', function(e) { self.onConnectionFailed(e); });
         
         c.on('connect', function(connection) {
             connection.on('error', function(e) { self.onError(e); });
             connection.on('close', function() { self.onClose() });
             connection.on('message', function(message) { self.onMessage(message, connection); });
+            connection._send = connection.send;
+            connection.send = function(msg, callback) {
+                return sendLivelyMessage(self, connection, msg, callback);
+            }
             self.onConnect(connection);
         });
     }
@@ -143,23 +174,10 @@ util.inherits(WebSocketClient, EventEmitter);
         }
     }
 
-    this.close = function() {
-        return this.connection && this.connection.close();
-    }
+    this.close = function() { return this.connection && this.connection.close(); }
 
     this.send = function(data, callback) {
-        addCallback(this, data, callback);
-        try {
-            if (typeof data !== 'string') {
-                if (this.sender && !data.sender) data.sender = this.sender;
-                data = JSON.stringify(data);
-            }
-            this.debug && console.log('\n%s send ', this, data);
-            return this.connection.send(data);
-        } catch(e) {
-            console.error('Send with %s failed: %s', this, e);
-        }
-        return false;
+        sendLivelyMessage(this, this.connection, data, callback);
     }
 
     this.toString = function() {
@@ -175,10 +193,10 @@ util.inherits(WebSocketClient, EventEmitter);
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Server
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 function WebSocketListener(options) {
     options = options || {
         autoAcceptConnections: false, // origin check
+        // FIXME better use Infinity
         maxReceivedFrameSize: NaN, // default: 0x10000 64KiB // we don't want to care for now...
         maxReceivedMessageSize: NaN // default: 0x100000 1MiB
     }
@@ -264,7 +282,6 @@ function WebSocketServer(options) {
     this.debug = true;
     this.route = '';
     this.subserver = null;
-    this.actions = {};
     this.requiresSender = false;
 }
 
@@ -273,12 +290,10 @@ util.inherits(WebSocketServer, EventEmitter);
 (function() {
 
     this.listen = function(options) {
-        // options: {route: STRING, subserver: OBJECT, websocketImpl: OBJECT, action: [OBJECT]}
-        // actions: key - func mapping to determine callbacks for lively-json
+        // options: {route: STRING, subserver: OBJECT, websocketImpl: OBJECT}
         // protocol and the actions automatically extracted from messages send
         // in this protocol
         var webSocketServer = this;
-        this.actions = options.actions;
         this.route = options.route;
         this.subserver = options.subserver;
         this.websocketImpl = WebSocketListener.forLively();
@@ -321,15 +336,7 @@ util.inherits(WebSocketServer, EventEmitter);
             onLivelyJSONMessage(server, c, data);
         });
 
-        c.send = function(msg, callback) {
-            addCallback(server, msg, callback);
-            if (typeof msg !== 'string') {
-                if (server.sender && !msg.sender) msg.sender = server.sender;
-                msg = JSON.stringify(msg);
-            }
-            server.debug && msg.action && console.log('\n%s sending: %s to %s\n', server, msg.action, c.id || 'unknown', msg);
-            this.sendUTF(msg);
-        }
+        c.send = function(msg, callback) { return sendLivelyMessage(server, c, msg, callback); }
 
         this.addConnection(c, request);
 
@@ -382,4 +389,7 @@ util.inherits(WebSocketServer, EventEmitter);
 // exports
 // -=-=-=-
 
-module.exports = {WebSocketServer: WebSocketServer, WebSocketClient: WebSocketClient};
+module.exports = {
+    WebSocketServer: WebSocketServer,
+    WebSocketClient: WebSocketClient
+};

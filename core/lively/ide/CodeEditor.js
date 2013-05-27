@@ -125,7 +125,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     evalEnabled: true,
-    isAceEditor: true
+    isAceEditor: true,
+    isCodeEditor: true
 },
 'initializing', {
     initialize: function($super, bounds, stringOrOptions) {
@@ -458,6 +459,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 }
             }]);
 
+        this.aceEditor.commands.bindKey("Tab", function(editor) {
+            var success = codeEditor.getSnippets().getSnippetManager().expandWithTab(editor);
+            if (!success)
+                editor.execCommand("indent");
+        });
+
         if (Object.isFunction(Config.codeEditorUserKeySetup)) {
             Config.codeEditorUserKeySetup(this);
             // update existing editors when #codeEditorUserKeySetup changes:
@@ -595,6 +602,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }) || 'text';
     }
 
+},
+'snippets', {
+    getSnippets: function() {
+        return this.constructor.snippets || new lively.morphic.CodeEditorSnippets();
+    }
 },
 'search and find', {
 
@@ -1231,6 +1243,33 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setStatusMessage(String(e), Color.red);
     }
 });
+
+Object.subclass('lively.morphic.CodeEditorSnippets',
+'initializing', {
+    initialize: function() {}
+},
+'snippet management', {
+    readSnippetsFromURL: function(url) {
+        var source = new URL(url).asWebResource().beSync().get().content;
+        return this.addSnippetsFromSource(source);
+    },
+    addSnippetsFromSource: function(source) {
+        // FIXME only tabs accepted?
+        source = source.replace(/    /g, "\t");
+        var snippets = this.getSnippetManager().parseSnippetFile(source);
+        return this.getSnippetManager().register(snippets, "javascript");
+    },
+    getSnippetManager: function() {
+        return lively.ide.ace.require("ace/snippets").snippetManager;
+    }
+});
+
+(function setupSnippets() {
+    var snippets = lively.morphic.CodeEditor.snippets;
+    if (snippets) return;
+    snippets = lively.morphic.CodeEditor.snippets = new lively.morphic.CodeEditorSnippets();
+    snippets.readSnippetsFromURL(URL.codeBase.withFilename('lively/ide/snippets/javascript.snippets'));
+})();
 
 Object.subclass('lively.morphic.CodeEditorEvalMarker',
 'initialization', {

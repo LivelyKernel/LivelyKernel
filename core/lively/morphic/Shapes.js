@@ -199,8 +199,9 @@ lively.morphic.Gradient.subclass('lively.morphic.LinearGradient',
 },
 'accessing', {
     setVector: function(vector) {
-        this.vector = Object.isString(vector) ?
-            this.vectors[vector.toLowerCase()] : this.vectors.northsouth;
+        if (!vector) this.vector = this.vectors.northsouth;
+        else if (Object.isString(vector)) this.vector = this.vectors[vector.toLowerCase()]
+        else this.vector = vector;
     },
 },
 'convenience', {

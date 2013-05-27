@@ -1758,14 +1758,17 @@ lively.morphic.World.addMethods(
         var minScale = 0.1, maxScale = 10;
         if (oldScale < minScale && wheelDelta < 0) return false;
         if (oldScale > maxScale && wheelDelta > 0) return false;
-        var scaleDelta = 1 + wheelDelta / 2800;
+        var scaleDelta = 1 + (wheelDelta / 2800) + (this._lastZoomAttemptDelta || 0);
 
         var newScale = oldScale * scaleDelta;
         newScale = Math.max(Math.min(newScale, maxScale), minScale);
-        if (Numbers.between(newScale, 0.9, 1.1)) newScale = newScale.detent(1, 0.01);
-        if (Numbers.between(newScale, 0.98, 1.1)) newScale = 1
-        if (newScale !== oldScale) this.setScale(newScale);
-
+        if (Numbers.between(newScale, 0.98, 1.02)) newScale = 1
+        if (newScale !== oldScale) {
+            this.setScale(newScale);
+            this._lastZoomAttemptDelta = 0;
+        } else {
+            this._lastZoomAttemptDelta = (1 - scaleDelta) + (this._lastZoomAttemptDelta || 0);
+        }
         // actually this should be a layoutChanged but implementing
         // layoutChanged in WorldMorph is expensive since it is always called when a
         // submorph's layout is changed (owner chain propagation)
@@ -1788,16 +1791,15 @@ lively.morphic.World.addMethods(
                 messageMorph = lively.newMorph({klass: lively.morphic.Text});
                 messageMorph.name = 'zoomStatus';
                 messageMorph.applyStyle({extent: pt(160, 80), clipMode: "hidden", fontSize: 42, fill: Color.rgba(255,255,255,0.6), borderWidth: 0, borderRadius: 20});
-                messageMorph.align(messageMorph.bounds().center(), messageMorph.innerBounds().center());
                 messageMorph.removeLater = Functions.debounce(1*1000, function() { this.remove(); });
+                messageMorph.openInWorld();
             }
             messageMorph.textString = Math.round(newScale*100) + '%';
             messageMorph.removeLater();
-            messageMorph.openInWorldCenter();
             messageMorph.setScale(1/newScale);
+            messageMorph.align(messageMorph.bounds().center(), this.visibleBounds().center());
         }
     },
-
 
     onHTML5DragEnter: function(evt) {
         evt.stop();

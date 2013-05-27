@@ -388,6 +388,8 @@ Global.Functions = {
     // Underscore is distributed under the MIT license.
 
     throttle: function(func, wait) {
+        // exec func at most once every wait ms even when called more often
+        // useful to calm down eagerly running updaters and such
         var context, args, timeout, throttling, more, result,
             whenDone = Functions.debounce(wait, function() { more = throttling = false; });
         return function() {
@@ -410,6 +412,11 @@ Global.Functions = {
     },
 
     debounce: function(wait, func, immediate) {
+        // Execute func after wait milliseconds elapsed since invocation. 
+        // E.g. to exec something after receiving an input stream
+        // with immediate truthy exec immediately but when called before
+        // wait ms are done nothing happens. E.g. to not exec a user invoked
+        // action twice accidentally
         var timeout;
         return function() {
             var context = this, args = arguments;

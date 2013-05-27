@@ -134,17 +134,20 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
 
     createModuleFile: function(url) {
         var content = '';
-        if (url.filename().endsWith('.ometa')) {
+        var extension = URL.source.extension();
+        if (extension === '') {
+            extension = 'js';
+            url = new URL(url.toString() + '.js')
+        }
+        if (extension === 'ometa') {
             content = this.ometaTemplate();
-        } else {
-            if (!url.filename().endsWith('.js'))
-                url = new URL(url.toString() + '.js');
+        } else if (extension === 'js') {
             content = this.moduleTemplateFor(url);
         }
         var webR = new WebResource(url).beSync();
         if (webR.exists()) {
             this.world().alert('File ' + url + ' already exists!');
-            return null
+            return null;
         }
         webR.put(content);
         return url.filename();

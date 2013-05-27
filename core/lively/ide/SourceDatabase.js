@@ -70,8 +70,8 @@ Object.subclass('lively.ide.ModuleWrapper',
     },
 
     parserMethodMapping: {
-        js: 'parseJs',
-        ometa: 'parseOmeta'
+        "js": 'parseJs',
+        "ometa": 'parseOmeta'
     },
 
     parse: function(source, optSourceDB) {
@@ -180,6 +180,45 @@ Object.subclass('lively.ide.ModuleWrapper',
     }
 
 });
+lively.ide.ModuleWrapper.subclass('lively.ide.FileWrapper',
+'documentation', {
+    documentation: 'Similar to a module wrapper but for plain files if unsupported types. Allows reading/writing them but no parsing support.'
+},
+'initialization', {
+
+    initialize: function(fileName, source, isVirtual) {
+        if (!fileName) {
+            throw new Error('Cannot create FileWrapper without fileName!');
+        }
+        this._fileName = fileName;
+        this._cachedSource = source || null;
+        this._isVirtual = isVirtual; // isVirtual means that there is no file for this module
+        this.lastModifiedDate = null;
+    }
+
+},
+'accessing', {
+    type: function() { return this._fileName.split('.').last(); },
+    ast: function() { return this; },
+    isVirtual: function() { return this._isVirtual },
+    moduleName: function() { return this._fileName },
+    fileName: function() { return this._fileName },
+    fileURL: function() { return URL.codeBase.withFilename(this.fileName()); },
+},
+'parsing', {
+    retrieveSourceAndParse: function(optSourceDB) { return this.ast(); }
+},
+'file fragment compatibility', {
+    getFileString: function() {
+        return this.getSource();
+    },
+    getSourceCode: function() { return this.getSource(); },
+
+    getName: function() { return this.fileName(); },
+    putSourceCode: function(source) {
+        this.setSource(source, true/*sync*/, true);
+    }
+});
 
 Object.extend(lively.ide.ModuleWrapper, {
 
@@ -195,7 +234,12 @@ Object.extend(lively.ide.ModuleWrapper, {
         }
         moduleName = moduleName.substring(0, moduleName.lastIndexOf('.'));
         moduleName = moduleName.replace(/\//g, '.');
-        return new lively.ide.ModuleWrapper(moduleName, type, null, isVirtual);
+        try {
+            return new lively.ide.ModuleWrapper(moduleName, type, null, isVirtual);
+        } catch(e) {
+            console.warn('Cannot create ModuleWrapper for ' + fn);
+            return new lively.ide.FileWrapper(fn, null, isVirtual);
+        }
     },
 
     newVirtualModuleId: function() { return "virtual-module.x" + Strings.newUUID() }
@@ -399,22 +443,16 @@ Object.subclass('AnotherSourceDatabase', {
     interestingLKFileNames: function(url) {
         try {
             var webR = new WebResource(url).beSync(),
-                fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL() }),
+                fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL(); }),
                 fileNames = this.mapURLsToRelativeModulePaths(fileURLs),
-                acceptedFileNames = /.*\.(st|js|ometa)$/,
-                rejects = ['JSON.js'];
-
-            fileNames = fileNames
-                        .select(function(ea) { return acceptedFileNames.test(ea) })
-                        .reject(function(ea) { return rejects.include(ea) })
-                        .uniq();
-            return fileNames;
-
+                acceptedFileNames = /.*\.(st|js|ometa|css|snippets?|tmsnippets?)$/;
+            return fileNames
+                    .select(function(ea) { return acceptedFileNames.test(ea); })
+                    .uniq();
         } catch(e) {
             console.error('interestingLKFileNames: ' + e);
             return [];
         }
-
     },
     mapURLsToRelativeModulePaths: function(urls) {
         return urls.collect(function(ea) {

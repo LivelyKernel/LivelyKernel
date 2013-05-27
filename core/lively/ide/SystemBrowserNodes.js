@@ -57,6 +57,12 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
             } else if (fn.endsWith('.ometa')) {
                 moduleNodes.push(new lively.ide.CompleteOmetaFragmentNode(
                     srcDb.rootFragmentForModule(fn), b, this, fn));
+            } else if (fn.endsWith('.css')) {
+                moduleNodes.push(new lively.ide.CompleteCSSFragmentNode(
+                    srcDb.rootFragmentForModule(fn), b, this, fn));
+            } else if (fn.match(/\.(tm)?snippets$/)) {
+                moduleNodes.push(new lively.ide.CompleteSnippet(
+                    srcDb.rootFragmentForModule(fn), b, this, fn));
             }
         };
         moduleNodes = moduleNodes.sortBy(function(node) { return node.asString().toLowerCase() });
@@ -279,7 +285,16 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     sourceString: function($super) {
         this.loadModule();
         return this.target.getFileString();
-    }
+    },
+    getSourceCodeMode: function() {
+        var ff = this.browser.selectedNode().target;
+        var fileName = ff.getFileName && ff.getFileName();
+        !fileName && (fileName = ff.fileName);
+        if (!fileName) return 'text';
+        if (fileName.match(/\.js$/)) return 'javascript';
+        return 'text';
+    },
+
 },
 'conversion', {
 
@@ -376,7 +391,11 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     }
 },
 'selection', {
-    onSelect: function() { this.browser.currentModuleName = this.target.name }
+    onSelect: function() {
+        this.browser.currentModuleName = this.target.name;
+        var codeEditor = this.browser.sourceInput();
+        if (codeEditor.isCodeEditor) codeEditor.setTextMode(this.getSourceCodeMode());
+    }
 },
 'evaluation', {
     evalSource: function(newSource) {
@@ -837,6 +856,83 @@ lively.ide.FileFragmentNode.subclass('lively.ide.TraitElemFragmentNode', {
         return true;
     },
 
+});
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// CSS support
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteCSSFragmentNode', {
+
+    menuSpec: function($super) {
+        return [];
+    },
+
+    childNodes: function() {
+        return [];
+    },
+
+    evalSource: function(newSource) {
+        return false;
+    },
+
+    onSelect: function() {
+        this.browser.currentModuleName = null;
+        var codeEditor = this.browser.sourceInput();
+        if (codeEditor.isCodeEditor) codeEditor.setTextMode('css');
+    }
+});
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Snippets for the CodeEditor, TextMate style
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteSnippet', {
+
+    menuSpec: function($super) {
+        var menu = [];
+
+        // if (!this.target) return menu;
+        var browser = this.browser, node = this;
+
+        menu.unshift(['reparse', this.reparse.bind(this) ]);
+
+        menu.unshift(['remove', function() {
+            $world.confirm("Do you really want to delete " + node.moduleName, function(bool) {
+                if (bool) {
+                   browser.sourceDatabase().removeFile(node.moduleName);
+                   browser.rootNode().removeFile(node.moduleName);
+                   browser.allChanged()
+                }
+            })
+        }]);
+
+        return menu;
+    },
+
+    childNodes: function() {
+        return [];
+    },
+
+    evalSource: function(newSource) {
+        var url = this.target.fileURL();
+        if (!url) {
+            this.statusMessage('Cannot parse snippet rules, found no url for ' + this.target, Color.red, 6); return false; }
+        var snippets = lively.morphic.CodeEditor.snippets;
+        if (!snippets) {
+            this.statusMessage('Cannot parse snippet rules, found no snippet handler', Color.red, 6); return false; }
+        try {
+            snippets.readSnippetsFromURL(url);
+        } catch(e) {
+            this.statusMessage('Error parsing snippets:\n' + e, Color.red, 6);
+            return false;
+        }
+        return true;
+    },
+
+    onSelect: function() {
+        this.browser.currentModuleName = null;
+        var codeEditor = this.browser.sourceInput();
+        if (codeEditor.isCodeEditor) codeEditor.setTextMode('snippets');
+    }
 });
 
 }) // end of module

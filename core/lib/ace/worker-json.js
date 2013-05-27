@@ -25,13 +25,13 @@ window.normalizeModule = function(parentId, moduleName) {
     if (moduleName.charAt(0) == ".") {
         var base = parentId.split("/").slice(0, -1).join("/");
         moduleName = base + "/" + moduleName;
-
+        
         while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
             var previous = moduleName;
             moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
         }
     }
-
+    
     return moduleName;
 };
 
@@ -53,11 +53,11 @@ window.require = function(parentId, id) {
         }
         return module.exports;
     }
-
+    
     var chunks = id.split("/");
     chunks[0] = require.tlns[chunks[0]] || chunks[0];
     var path = chunks.join("/") + ".js";
-
+    
     require.id = id;
     importScripts(path);
     return require(parentId, id);
@@ -78,9 +78,9 @@ window.define = function(id, deps, factory) {
         id = require.id;
     }
 
-    if (id.indexOf("text!") === 0)
+    if (id.indexOf("text!") === 0) 
         return;
-
+    
     var req = function(deps, factory) {
         return require(id, deps, factory);
     };
@@ -106,13 +106,13 @@ window.initSender = function initSender() {
 
     var EventEmitter = require("ace/lib/event_emitter").EventEmitter;
     var oop = require("ace/lib/oop");
-
+    
     var Sender = function() {};
-
+    
     (function() {
-
+        
         oop.implement(this, EventEmitter);
-
+                
         this.callback = function(data, callbackId) {
             postMessage({
                 type: "call",
@@ -120,7 +120,7 @@ window.initSender = function initSender() {
                 data: data
             });
         };
-
+    
         this.emit = function(name, data) {
             postMessage({
                 type: "event",
@@ -128,9 +128,9 @@ window.initSender = function initSender() {
                 data: data
             });
         };
-
+        
     }).call(Sender.prototype);
-
+    
     return new Sender();
 }
 
@@ -145,13 +145,13 @@ window.onmessage = function(e) {
         else
             throw new Error("Unknown command:" + msg.command);
     }
-    else if (msg.init) {
+    else if (msg.init) {        
         initBaseUrls(msg.tlns);
         require("ace/lib/es5-shim");
         sender = initSender();
         var clazz = require(msg.module)[msg.classname];
         main = new clazz(sender);
-    }
+    } 
     else if (msg.event && sender) {
         sender._emit(msg.event, msg.data);
     }
@@ -190,7 +190,7 @@ EventEmitter._dispatchEvent = function(eventName, e) {
         if (e.propagationStopped)
             break;
     }
-
+    
     if (defaultHandler && !e.defaultPrevented)
         return defaultHandler(e, this);
 };
@@ -218,7 +218,7 @@ EventEmitter.setDefaultHandler = function(eventName, callback) {
     var handlers = this._defaultHandlers
     if (!handlers)
         handlers = this._defaultHandlers = {_disabled_: {}};
-
+    
     if (handlers[eventName]) {
         var old = handlers[eventName];
         var disabled = handlers._disabled_[eventName];
@@ -226,7 +226,7 @@ EventEmitter.setDefaultHandler = function(eventName, callback) {
             handlers._disabled_[eventName] = disabled = [];
         disabled.push(old);
         var i = disabled.indexOf(callback);
-        if (i != -1)
+        if (i != -1) 
             disabled.splice(i, 1);
     }
     handlers[eventName] = callback;
@@ -236,7 +236,7 @@ EventEmitter.removeDefaultHandler = function(eventName, callback) {
     if (!handlers)
         return;
     var disabled = handlers._disabled_[eventName];
-
+    
     if (handlers[eventName] == callback) {
         var old = handlers[eventName];
         if (disabled)
@@ -375,7 +375,7 @@ if ([1,2].splice(0).length != 2) {
             return a;
         }
         var array = [], lengthBefore;
-
+        
         array.splice.apply(array, makeArray(20));
         array.splice.apply(array, makeArray(26));
 
@@ -416,7 +416,7 @@ if ([1,2].splice(0).length != 2) {
 
             var removed = this.slice(pos, pos+removeCount);
             var insert = slice.call(arguments, 2);
-            var add = insert.length;
+            var add = insert.length;            
             if (pos === length) {
                 if (add) {
                     this.push.apply(this, insert);
@@ -1048,13 +1048,13 @@ ace.define('ace/worker/mirror', ['require', 'exports', 'module' , 'ace/document'
 
 var Document = require("../document").Document;
 var lang = require("../lib/lang");
-
+    
 var Mirror = exports.Mirror = function(sender) {
     this.sender = sender;
     var doc = this.doc = new Document("");
-
+    
     var deferredUpdate = this.deferredUpdate = lang.delayedCall(this.onUpdate.bind(this));
-
+    
     var _self = this;
     sender.on("change", function(e) {
         doc.applyDeltas(e.data);
@@ -1063,25 +1063,25 @@ var Mirror = exports.Mirror = function(sender) {
 };
 
 (function() {
-
+    
     this.$timeout = 500;
-
+    
     this.setTimeout = function(timeout) {
         this.$timeout = timeout;
     };
-
+    
     this.setValue = function(value) {
         this.doc.setValue(value);
         this.deferredUpdate.schedule(this.$timeout);
     };
-
+    
     this.getValue = function(callbackId) {
         this.sender.callback(this.doc.getValue(), callbackId);
     };
-
+    
     this.onUpdate = function() {
     };
-
+    
 }).call(Mirror.prototype);
 
 });
@@ -1868,7 +1868,7 @@ exports.copyArray = function(array){
     for (var i=0, l=array.length; i<l; i++) {
         if (array[i] && typeof array[i] == "object")
             copy[i] = this.copyObject( array[i] );
-        else
+        else 
             copy[i] = array[i];
     }
     return copy;
@@ -1878,7 +1878,7 @@ exports.deepCopy = function (obj) {
     if (typeof obj != "object") {
         return obj;
     }
-
+    
     var copy = obj.constructor();
     for (var key in obj) {
         if (typeof obj[key] == "object") {

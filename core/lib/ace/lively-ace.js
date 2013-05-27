@@ -16813,7 +16813,6 @@ exports.handler.addCommands({
             var mark = editor.emacsMark(),
                 transientMarkModeActive = true;
             if (transientMarkModeActive && (mark || !editor.selection.isEmpty())) {
-                editor.pushEmacsMark(editor.getCursorPosition());
                 editor.pushEmacsMark();
                 editor.clearSelection();
                 return;
@@ -17022,6 +17021,8 @@ oop.inherits(IncrementalSearch, Search);
         if (reset) {
             e.moveCursorToPosition(this.$startPos);
             this.$currentPos = this.$startPos;
+        } else {
+            e.pushEmacsMark && e.pushEmacsMark(this.$startPos, false);
         }
         this.highlight(null);
         return Range.fromPoints(this.$currentPos, this.$currentPos);
@@ -27012,13 +27013,13 @@ var JavaHighlightRules = require("./java_highlight_rules").JavaHighlightRules;
 
 var Mode = function() {
     JavaScriptMode.call(this);
-
+    
     this.$tokenizer = new Tokenizer(new JavaHighlightRules().getRules());
 };
 oop.inherits(Mode, JavaScriptMode);
 
 (function() {
-
+    
     this.createWorker = function(session) {
         return null;
     };
@@ -27521,7 +27522,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -27534,11 +27535,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -27548,7 +27549,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -27559,26 +27560,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -28521,7 +28522,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -28534,11 +28535,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -28548,7 +28549,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -28559,26 +28560,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -28879,7 +28880,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -28890,7 +28891,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29028,7 +29029,7 @@ var JsonHighlightRules = function() {
             }
         ]
     };
-
+    
 };
 
 oop.inherits(JsonHighlightRules, TextHighlightRules);
@@ -29099,7 +29100,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -29112,11 +29113,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -29126,7 +29127,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -29137,26 +29138,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -29457,7 +29458,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -29468,7 +29469,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29509,14 +29510,14 @@ oop.inherits(Mode, TextMode);
             indent += tab;
         return indent;
     };
-
+    
     this.checkOutdent = function(state, line, input) {
         if (! /^\s+$/.test(line))
             return false;
 
         return /^\s*[\}\)]/.test(input);
     };
-
+    
     this.autoOutdent = function(state, doc, row) {
         var line = doc.getLine(row);
         var match = line.match(/^(\s*[\}\)])/);
@@ -29558,22 +29559,22 @@ oop.inherits(Mode, TextMode);
 
 exports.Mode = Mode;
 });
-
+ 
 ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace/mode/xquery/JSONiqTokenizer'], function(require, exports, module) {
-
+  
   var JSONiqTokenizer = require("./JSONiqTokenizer").JSONiqTokenizer;
-
+  
   var TokenHandler = function(code) {
-
+      
     var input = code;
-
+    
     this.tokens = [];
-
+ 
     this.reset = function(code) {
       input = input;
       this.tokens = [];
     };
-
+    
     this.startNonterminal = function(name, begin) {};
 
     this.endNonterminal = function(name, end) {};
@@ -29596,7 +29597,7 @@ ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace
     var keywords = keys.map(
       function(val) { return { name: "'" + val + "'", token: "keyword" }; }
     );
-
+    
     var ncnames = keys.map(
       function(val) { return { name: "'" + val + "'", token: "text", next: function(stack){ stack.pop(); } }; }
     );
@@ -29606,7 +29607,7 @@ ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace
     var xmlcomment = "comment";
     var pi = "xml-pe";
     var pragma = "constant.buildin";
-
+    
     var Rules = {
       start: [
         { name: "'(#'", token: pragma, next: function(stack){ stack.push("Pragma"); } },
@@ -29723,26 +29724,26 @@ ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace
         { name: "QuotChar", token: "string" }
       ]
     };
-
+    
 exports.JSONiqLexer = function() {
-
+  
   this.tokens = [];
-
+  
   this.getLineTokens = function(line, state, row) {
     state = (state === "start" || !state) ? '["start"]' : state;
     var stack = JSON.parse(state);
     var h = new TokenHandler(line);
     var tokenizer = new JSONiqTokenizer(line, h);
     var tokens = [];
-
+    
     while(true) {
       var currentState = stack[stack.length - 1];
       try {
-
+        
         h.tokens = [];
         tokenizer["parse_" + currentState]();
         var info = null;
-
+        
         if(h.tokens.length > 1 && h.tokens[0].name === "WS") {
           tokens.push({
             type: "text",
@@ -29750,7 +29751,7 @@ exports.JSONiqLexer = function() {
           });
           h.tokens.splice(0, 1);
         }
-
+        
         var token = h.tokens[0];
         var rules  = Rules[currentState];
         for(var k = 0; k < rules.length; k++) {
@@ -29760,19 +29761,19 @@ exports.JSONiqLexer = function() {
             break;
           }
         }
-
+        
         if(token.name === "EOF") { break; }
         if(token.value === "") { throw "Encountered empty string lexical rule."; }
-
+        
         tokens.push({
           type: info === null ? "text" : (typeof(info.token) === "function" ? info.token(token.value) : info.token),
           value: token.value
         });
-
+        
         if(info && info.next) {
-          info.next(stack);
+          info.next(stack);    
         }
-
+      
       } catch(e) {
         if(e instanceof tokenizer.ParseException) {
           var index = 0;
@@ -29786,11 +29787,11 @@ exports.JSONiqLexer = function() {
           };
         } else {
           throw e;
-        }
+        }  
       }
     }
-
-
+   
+    
     if(this.tokens[row] !== undefined) {
       var cachedLine = this.lines[row];
       var begin = sharedStart([line, cachedLine]);
@@ -29818,7 +29819,7 @@ exports.JSONiqLexer = function() {
       state: JSON.stringify(stack)
     };
   };
-
+  
   function sharedStart(A) {
     var tem1, tem2, s, A = A.slice(0).sort();
     tem1 = A[0];
@@ -31673,12 +31674,12 @@ function hasType(token, type) {
     });
     return hasType;
 }
-
+ 
   var XQueryBehaviour = function () {
-
+      
       this.inherit(CstyleBehaviour, ["braces", "parens", "string_dquotes"]); // Get string behaviour
       this.inherit(XmlBehaviour); // Get xml behaviour
-
+      
       this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -31739,7 +31740,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -31752,11 +31753,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -31766,7 +31767,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -31777,26 +31778,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -32061,9 +32062,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-
+    
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-
+    
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -32108,7 +32109,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-
+    
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -32198,7 +32199,7 @@ ace.define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , '
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LatexHighlightRules = function() {
+var LatexHighlightRules = function() {   
     this.$rules = {
         "start" : [{
             token : "keyword",
@@ -32362,7 +32363,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -32373,7 +32374,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -32410,7 +32411,7 @@ oop.inherits(Mode, TextMode);
 
     this.lineCommentStart = "//";
     this.blockComment = {start: "/*", end: "*/"};
-
+    
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
         var tokens = this.$tokenizer.getLineTokens(line, state).tokens;
@@ -32448,30 +32449,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var LessHighlightRules = function() {
-
+    
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
-             "background-size|binding|border-bottom-colors|border-left-colors|" +
-             "border-right-colors|border-top-colors|border-end|border-end-color|" +
-             "border-end-style|border-end-width|border-image|border-start|" +
-             "border-start-color|border-start-style|border-start-width|box-align|" +
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
-             "font-feature-settings|font-language-override|force-broken-image-icon|" +
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
-             "outline-offset|outline-radius|outline-radius-bottomleft|" +
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
-             "text-decoration-style|transform|transform-origin|transition|" +
-             "transition-delay|transition-duration|transition-property|" +
+        
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
+             "background-size|binding|border-bottom-colors|border-left-colors|" + 
+             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
+             "border-end-style|border-end-width|border-image|border-start|" + 
+             "border-start-color|border-start-style|border-start-width|box-align|" + 
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
+             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
+             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
+             "text-decoration-style|transform|transform-origin|transition|" + 
+             "transition-delay|transition-duration|transition-property|" + 
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-
+        
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -32505,11 +32506,11 @@ var LessHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-
+        
         return ret;
-
+        
     })() );
-
+    
 
 
     var functions = lang.arrayToMap(
@@ -32547,22 +32548,22 @@ var LessHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-
+    
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|" +
         "@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|" +
         "def|end|declare|when|not|and").split("|")
     );
-
+    
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -32811,7 +32812,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -32824,11 +32825,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -32838,7 +32839,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -32849,26 +32850,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -33169,7 +33170,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33180,7 +33181,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33205,15 +33206,15 @@ var LispHighlightRules = require("./lisp_highlight_rules").LispHighlightRules;
 
 var Mode = function() {
     var highlighter = new LispHighlightRules();
-
+    
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+       
     this.lineCommentStart = ";";
-
+    
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -33239,7 +33240,7 @@ var LispHighlightRules = function() {
         "support.function": supportFunctions
     }, "identifier", true);
 
-    this.$rules =
+    this.$rules = 
         {
     "start": [
         {
@@ -33261,7 +33262,7 @@ var LispHighlightRules = function() {
         {
             token : "constant.numeric", // hex
             regex : "0[xX][0-9a-fA-F]+(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
-        },
+        }, 
         {
             token : "constant.numeric", // float
             regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
@@ -33659,7 +33660,7 @@ exports.LuceneHighlightRules = LuceneHighlightRules;
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33670,7 +33671,7 @@ exports.LuceneHighlightRules = LuceneHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33684,7 +33685,7 @@ exports.LuceneHighlightRules = LuceneHighlightRules;
  *
  *
  * Contributor(s):
- *
+ * 
  *
  *
  * ***** END LICENSE BLOCK ***** */
@@ -33701,13 +33702,13 @@ var FoldMode = require("./folding/coffee").FoldMode;
 var Mode = function() {
     var highlighter = new MakefileHighlightRules();
     this.foldingRules = new FoldMode();
-
+    
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+       
     this.lineCommentStart = "#";
 }).call(Mode.prototype);
 
@@ -33728,7 +33729,7 @@ var MakefileHighlightRules = function() {
         "invalid.deprecated": "debugger"
     }, "string");
 
-    this.$rules =
+    this.$rules = 
         {
     "start": [
         {
@@ -33765,11 +33766,11 @@ var MakefileHighlightRules = function() {
         {
             token: keywordMapper,
             regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
-        },
+        }, 
         {
             token: "string",
             regex : "\\w+"
-        },
+        }, 
         {
             token : "string.interpolated.backtick.makefile",
             regex : "`",
@@ -33972,7 +33973,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33983,7 +33984,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34011,7 +34012,7 @@ var MarkdownFoldMode = require("./folding/markdown").FoldMode;
 
 var Mode = function() {
     var highlighter = new MarkdownHighlightRules();
-
+    
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
@@ -34019,15 +34020,15 @@ var Mode = function() {
       "xml-": XmlMode,
       "html-": HtmlMode
     });
-
+    
     this.foldingRules = new MarkdownFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+   
     this.lineCommentStart = ">";
-
+    
     this.getNextLineIndent = function(state, line, tab) {
         if (state == "listblock") {
             var match = /^(\s*)(?:([-+*])|(\d+)\.)(\s+)/.exec(line);
@@ -34539,7 +34540,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -34552,11 +34553,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -34566,7 +34567,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -34577,26 +34578,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -34912,7 +34913,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+    
     this.blockComment = {start: "<!--", end: "-->"};
 
 }).call(Mode.prototype);
@@ -34937,11 +34938,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity",
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
+                token : "constant.character.entity", 
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
             }
         ],
-
+        
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -34953,7 +34954,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-
+    
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -34982,7 +34983,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
         },
         {defaultToken : "string"}
     ];
@@ -34993,7 +34994,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-
+        
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -35001,7 +35002,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list"
+        next : name + "_embed_attribute_list" 
     }, {
         token: "empty",
         regex: "",
@@ -35010,7 +35011,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-
+    
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -35054,9 +35055,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-
+    
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-
+    
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -35101,7 +35102,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-
+    
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -35142,7 +35143,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-
+    
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -35153,13 +35154,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-
+        
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-
+        
         var match = tag.match(this.tagRe);
         var column = 0;
 
@@ -35176,10 +35177,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-
+            
         var value = "";
         var start;
-
+        
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -35201,15 +35202,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-
+        
         return null;
     };
-
+    
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-
+            
         var value = "";
         var end;
 
@@ -35234,13 +35235,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-
+        
         return null;
     };
-
+    
     this._pop = function(stack, tag) {
         while (stack.length) {
-
+            
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -35256,17 +35257,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-
+    
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-
+        
         if (!firstTag.match)
             return null;
-
+        
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-
+        
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -35282,7 +35283,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-
+                
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -35299,7 +35300,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-
+            
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -35309,7 +35310,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-
+                
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -35322,7 +35323,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-
+        
     };
 
 }).call(FoldMode.prototype);
@@ -35345,13 +35346,13 @@ var Mode = function() {
     var highlighter = new HtmlHighlightRules();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$behaviour = new HtmlBehaviour();
-
+    
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode,
         "css-": CssMode
     });
-
+    
     this.foldingRules = new HtmlFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -35764,7 +35765,7 @@ var HtmlHighlightRules = function() {
             token : "constant.character.entity",
             regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         }],
-
+    
         cdata : [ {
             token : "text",
             regex : "\\]\\]>",
@@ -35779,11 +35780,11 @@ var HtmlHighlightRules = function() {
             defaultToken : "comment"
         } ]
     };
-
+    
     xmlUtil.tag(this.$rules, "tag", "start", tagMap);
     xmlUtil.tag(this.$rules, "style", "css-start", tagMap);
     xmlUtil.tag(this.$rules, "script", "js-start", tagMap);
-
+    
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -35793,7 +35794,7 @@ var HtmlHighlightRules = function() {
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
-
+    
     this.embedRules(CssHighlightRules, "css-", [{
         token: "meta.tag",
         regex: "<\\/(?=style)",
@@ -35831,7 +35832,7 @@ function hasType(token, type) {
 var HtmlBehaviour = function () {
 
     this.inherit(XmlBehaviour); // Get xml behaviour
-
+    
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -35939,7 +35940,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-
+    
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -35955,13 +35956,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-
+        
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-
+        
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-
+        
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -36069,7 +36070,7 @@ var MarkdownHighlightRules = function() {
         }, {
             include : "basic"
         }],
-
+        
         "header" : [{
             regex: "$",
             next : "start"
@@ -36257,7 +36258,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36268,7 +36269,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36480,13 +36481,12 @@ var keywords = (
 oop.inherits(MatlabHighlightRules, TextHighlightRules);
 
 exports.MatlabHighlightRules = MatlabHighlightRules;
-});
-/* ***** BEGIN LICENSE BLOCK *****
+});/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36497,7 +36497,7 @@ exports.MatlabHighlightRules = MatlabHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36524,7 +36524,7 @@ var Mode = function() {
 };
 oop.inherits(Mode, TextMode);
 
-(function() {
+(function() {       
     this.lineCommentStart = ["--", "#"]; // todo space
     this.blockComment = {start: "/*", end: "*/"};
 
@@ -36553,7 +36553,7 @@ var MysqlHighlightRules = function() {
         "variable.language": variable
     }, "identifier", true);
 
-
+    
     function string(rule) {
         var start = rule.start;
         var escapeSeq = rule.escape;
@@ -36571,7 +36571,7 @@ var MysqlHighlightRules = function() {
     this.$rules = {
         "start" : [ {
             token : "comment", regex : "(?:-- |#).*$"
-        },
+        },  
         string({start: '"', escape: /\\[0'"bnrtZ\\%_]?/}),
         string({start: "'", escape: /\\[0'"bnrtZ\\%_]?/}),
         DocCommentHighlightRules.getStartRule("doc-start"),
@@ -36732,19 +36732,19 @@ var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PrologHighlightRules = function() {
 
-    this.$rules = { start:
+    this.$rules = { start: 
        [ { include: '#comment' },
          { include: '#basic_fact' },
          { include: '#rule' },
          { include: '#directive' },
          { include: '#fact' } ],
-      '#atom':
+      '#atom': 
        [ { token: 'constant.other.atom.prolog',
            regex: '\\b[a-z][a-zA-Z0-9_]*\\b' },
          { token: 'constant.numeric.prolog',
            regex: '-?\\d+(?:\\.\\d+)?' },
          { include: '#string' } ],
-      '#basic_elem':
+      '#basic_elem': 
        [ { include: '#comment' },
          { include: '#statement' },
          { include: '#constants' },
@@ -36753,42 +36753,42 @@ var PrologHighlightRules = function() {
          { include: '#list' },
          { include: '#atom' },
          { include: '#variable' } ],
-      '#basic_fact':
-       [ { token:
+      '#basic_fact': 
+       [ { token: 
             [ 'entity.name.function.fact.basic.prolog',
               'punctuation.end.fact.basic.prolog' ],
            regex: '([a-z]\\w*)(\\.)' } ],
-      '#builtins':
+      '#builtins': 
        [ { token: 'support.function.builtin.prolog',
            regex: '\\b(?:\n\t\t\t\t\t\tabolish|abort|ancestors|arg|ascii|assert[az]|\n\t\t\t\t\t\tatom(?:ic)?|body|char|close|conc|concat|consult|\n\t\t\t\t\t\tdefine|definition|dynamic|dump|fail|file|free|\n\t\t\t\t\t\tfree_proc|functor|getc|goal|halt|head|head|integer|\n\t\t\t\t\t\tlength|listing|match_args|member|next_clause|nl|\n\t\t\t\t\t\tnonvar|nth|number|cvars|nvars|offset|op|\n\t\t\t\t\t\tprint?|prompt|putc|quoted|ratom|read|redefine|\n\t\t\t\t\t\trename|retract(?:all)?|see|seeing|seen|skip|spy|\n\t\t\t\t\t\tstatistics|system|tab|tell|telling|term|\n\t\t\t\t\t\ttime|told|univ|unlink_clause|unspy_predicate|\n\t\t\t\t\t\tvar|write\n\t\t\t\t\t)\\b' } ],
-      '#comment':
-       [ { token:
+      '#comment': 
+       [ { token: 
             [ 'punctuation.definition.comment.prolog',
               'comment.line.percentage.prolog' ],
            regex: '(%)(.*$)' },
          { token: 'punctuation.definition.comment.prolog',
            regex: '/\\*',
-           push:
+           push: 
             [ { token: 'punctuation.definition.comment.prolog',
                 regex: '\\*/',
                 next: 'pop' },
               { defaultToken: 'comment.block.prolog' } ] } ],
-      '#constants':
+      '#constants': 
        [ { token: 'constant.language.prolog',
            regex: '\\b(?:true|false|yes|no)\\b' } ],
-      '#directive':
+      '#directive': 
        [ { token: 'keyword.operator.directive.prolog',
            regex: ':-',
-           push:
+           push: 
             [ { token: 'meta.directive.prolog', regex: '\\.', next: 'pop' },
               { include: '#comment' },
               { include: '#statement' },
               { defaultToken: 'meta.directive.prolog' } ] } ],
-      '#expr':
+      '#expr': 
        [ { include: '#comments' },
          { token: 'meta.expression.prolog',
            regex: '\\(',
-           push:
+           push: 
             [ { token: 'meta.expression.prolog', regex: '\\)', next: 'pop' },
               { include: '#expr' },
               { defaultToken: 'meta.expression.prolog' } ] },
@@ -36796,23 +36796,23 @@ var PrologHighlightRules = function() {
          { token: 'punctuation.control.and.prolog', regex: ',' },
          { token: 'punctuation.control.or.prolog', regex: ';' },
          { include: '#basic_elem' } ],
-      '#fact':
-       [ { token:
+      '#fact': 
+       [ { token: 
             [ 'entity.name.function.fact.prolog',
               'punctuation.begin.fact.parameters.prolog' ],
            regex: '([a-z]\\w*)(\\()(?!.*:-)',
-           push:
-            [ { token:
+           push: 
+            [ { token: 
                  [ 'punctuation.end.fact.parameters.prolog',
                    'punctuation.end.fact.prolog' ],
                 regex: '(\\))(\\.)',
                 next: 'pop' },
               { include: '#parameter' },
               { defaultToken: 'meta.fact.prolog' } ] } ],
-      '#list':
+      '#list': 
        [ { token: 'punctuation.begin.list.prolog',
            regex: '\\[(?=.*\\])',
-           push:
+           push: 
             [ { token: 'punctuation.end.list.prolog',
                 regex: '\\]',
                 next: 'pop' },
@@ -36820,7 +36820,7 @@ var PrologHighlightRules = function() {
               { token: 'punctuation.separator.list.prolog', regex: ',' },
               { token: 'punctuation.concat.list.prolog',
                 regex: '\\|',
-                push:
+                push: 
                  [ { token: 'meta.list.concat.prolog',
                      regex: '(?=\\s*\\])',
                      next: 'pop' },
@@ -36828,10 +36828,10 @@ var PrologHighlightRules = function() {
                    { defaultToken: 'meta.list.concat.prolog' } ] },
               { include: '#basic_elem' },
               { defaultToken: 'meta.list.prolog' } ] } ],
-      '#operators':
+      '#operators': 
        [ { token: 'keyword.operator.prolog',
            regex: '\\\\\\+|\\bnot\\b|\\bis\\b|->|[><]|[><\\\\:=]?=|(?:=\\\\|\\\\=)=' } ],
-      '#parameter':
+      '#parameter': 
        [ { token: 'variable.language.anonymous.prolog',
            regex: '\\b_\\b' },
          { token: 'variable.parameter.prolog',
@@ -36839,16 +36839,16 @@ var PrologHighlightRules = function() {
          { token: 'punctuation.separator.parameters.prolog', regex: ',' },
          { include: '#basic_elem' },
          { token: 'invalid.illegal.invalidchar.prolog', regex: '[^\\s]' } ],
-      '#rule':
+      '#rule': 
        [ { token: 'meta.rule.prolog',
            regex: '(?=[a-z]\\w*.*:-)',
-           push:
+           push: 
             [ { token: 'punctuation.rule.end.prolog',
                 regex: '\\.',
                 next: 'pop' },
               { token: 'meta.rule.signature.prolog',
                 regex: '(?=[a-z]\\w*.*:-)',
-                push:
+                push: 
                  [ { token: 'meta.rule.signature.prolog',
                      regex: '(?=:-)',
                      next: 'pop' },
@@ -36856,7 +36856,7 @@ var PrologHighlightRules = function() {
                      regex: '[a-z]\\w*(?=\\(|\\s*:-)' },
                    { token: 'punctuation.rule.parameters.begin.prolog',
                      regex: '\\(',
-                     push:
+                     push: 
                       [ { token: 'punctuation.rule.parameters.end.prolog',
                           regex: '\\)',
                           next: 'pop' },
@@ -36865,7 +36865,7 @@ var PrologHighlightRules = function() {
                    { defaultToken: 'meta.rule.signature.prolog' } ] },
               { token: 'keyword.operator.definition.prolog',
                 regex: ':-',
-                push:
+                push: 
                  [ { token: 'meta.rule.definition.prolog',
                      regex: '(?=\\.)',
                      next: 'pop' },
@@ -36873,10 +36873,10 @@ var PrologHighlightRules = function() {
                    { include: '#expr' },
                    { defaultToken: 'meta.rule.definition.prolog' } ] },
               { defaultToken: 'meta.rule.prolog' } ] } ],
-      '#statement':
+      '#statement': 
        [ { token: 'meta.statement.prolog',
            regex: '(?=[a-z]\\w*\\()',
-           push:
+           push: 
             [ { token: 'punctuation.end.statement.parameters.prolog',
                 regex: '\\)',
                 next: 'pop' },
@@ -36884,7 +36884,7 @@ var PrologHighlightRules = function() {
               { include: '#atom' },
               { token: 'punctuation.begin.statement.parameters.prolog',
                 regex: '\\(',
-                push:
+                push: 
                  [ { token: 'meta.statement.parameters.prolog',
                      regex: '(?=\\))',
                      next: 'pop' },
@@ -36892,10 +36892,10 @@ var PrologHighlightRules = function() {
                    { include: '#basic_elem' },
                    { defaultToken: 'meta.statement.parameters.prolog' } ] },
               { defaultToken: 'meta.statement.prolog' } ] } ],
-      '#string':
+      '#string': 
        [ { token: 'punctuation.definition.string.begin.prolog',
            regex: '\'',
-           push:
+           push: 
             [ { token: 'punctuation.definition.string.end.prolog',
                 regex: '\'',
                 next: 'pop' },
@@ -36903,12 +36903,12 @@ var PrologHighlightRules = function() {
               { token: 'constant.character.escape.quote.prolog',
                 regex: '\'\'' },
               { defaultToken: 'string.quoted.single.prolog' } ] } ],
-      '#variable':
+      '#variable': 
        [ { token: 'variable.language.anonymous.prolog',
            regex: '\\b_\\b' },
          { token: 'variable.other.prolog',
            regex: '\\b[A-Z_][a-zA-Z0-9_]*\\b' } ] }
-
+    
     this.normalizeRules();
 };
 
@@ -36983,7 +36983,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36994,7 +36994,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37055,27 +37055,27 @@ oop.inherits(Mode, TextMode);
         "break": 1,
         "continue": 1
     };
-
+    
     this.checkOutdent = function(state, line, input) {
         if (input !== "\r\n" && input !== "\r" && input !== "\n")
             return false;
 
         var tokens = this.$tokenizer.getLineTokens(line.trim(), state).tokens;
-
+        
         if (!tokens)
             return false;
         do {
             var last = tokens.pop();
         } while (last && (last.type == "comment" || (last.type == "text" && last.value.match(/^\s+$/))));
-
+        
         if (!last)
             return false;
-
+        
         return (last.type == "keyword" && outdents[last.value]);
     };
 
     this.autoOutdent = function(state, doc, row) {
-
+        
         row += 1;
         var indent = this.$getIndent(doc.getLine(row));
         var tab = doc.getTabString();
@@ -37290,7 +37290,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  */
 ace.define('ace/mode/r', ['require', 'exports', 'module' , 'ace/range', 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/text_highlight_rules', 'ace/mode/r_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/unicode'], function(require, exports, module) {
-
+   
 
    var Range = require("../range").Range;
    var oop = require("../lib/oop");
@@ -37706,7 +37706,7 @@ ace.define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , '
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LatexHighlightRules = function() {
+var LatexHighlightRules = function() {   
     this.$rules = {
         "start" : [{
             token : "keyword",
@@ -37777,7 +37777,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -37788,7 +37788,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37817,7 +37817,7 @@ var Mode = function() {
 };
 oop.inherits(Mode, TextMode);
 
-(function() {
+(function() {   
     this.lineCommentStart = "//";
 }).call(Mode.prototype);
 
@@ -37850,7 +37850,7 @@ var SassHighlightRules = function() {
             token: "support.type",
             regex: /^\s*:[\w\-]+\s/
         });
-
+        
         this.$rules.comment = [
             {regex: /^\s*/, onMatch: function(value, currentState, stack) {
                 if (stack[1] === -1)
@@ -37882,30 +37882,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ScssHighlightRules = function() {
-
+    
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
-             "background-size|binding|border-bottom-colors|border-left-colors|" +
-             "border-right-colors|border-top-colors|border-end|border-end-color|" +
-             "border-end-style|border-end-width|border-image|border-start|" +
-             "border-start-color|border-start-style|border-start-width|box-align|" +
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
-             "font-feature-settings|font-language-override|force-broken-image-icon|" +
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
-             "outline-offset|outline-radius|outline-radius-bottomleft|" +
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
-             "text-decoration-style|transform|transform-origin|transition|" +
-             "transition-delay|transition-duration|transition-property|" +
+        
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
+             "background-size|binding|border-bottom-colors|border-left-colors|" + 
+             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
+             "border-end-style|border-end-width|border-image|border-start|" + 
+             "border-start-color|border-start-style|border-start-width|box-align|" + 
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
+             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
+             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
+             "text-decoration-style|transform|transform-origin|transition|" + 
+             "transition-delay|transition-duration|transition-property|" + 
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-
+        
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -37939,17 +37939,17 @@ var ScssHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-
+        
         return ret;
-
+        
     })() );
-
+    
 
 
     var functions = lang.arrayToMap(
         ("hsl|hsla|rgb|rgba|url|attr|counter|counters|abs|adjust_color|adjust_hue|" +
-         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" +
-         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" +
+         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" + 
+         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" + 
          "nth|opacify|opacity|percentage|quote|red|round|saturate|saturation|" +
          "scale_color|transparentize|type_of|unit|unitless|unqoute").split("|")
     );
@@ -37982,20 +37982,20 @@ var ScssHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-
+    
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|def|end|declare").split("|")
     )
-
+    
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -38219,7 +38219,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -38230,7 +38230,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -38244,7 +38244,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  *
  * Contributor(s):
- *
+ * 
  * NalaGinrut@gmail.com
  *
  * ***** END LICENSE BLOCK ***** */
@@ -38259,15 +38259,15 @@ var SchemeHighlightRules = require("./scheme_highlight_rules").SchemeHighlightRu
 
 var Mode = function() {
     var highlighter = new SchemeHighlightRules();
-
+    
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+       
     this.lineCommentStart = ";";
-
+    
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -38292,7 +38292,7 @@ var SchemeHighlightRules = function() {
         "support.function": supportFunctions
     }, "identifier", true);
 
-    this.$rules =
+    this.$rules = 
         {
     "start": [
         {
@@ -38314,7 +38314,7 @@ var SchemeHighlightRules = function() {
         {
             "token" : "constant.numeric", // hex
             "regex" : "#[xXoObB][0-9a-fA-F]+"
-        },
+        }, 
         {
             "token" : "constant.numeric", // float
             "regex" : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?"
@@ -38363,7 +38363,7 @@ exports.SchemeHighlightRules = SchemeHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -38374,7 +38374,7 @@ exports.SchemeHighlightRules = SchemeHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -38408,7 +38408,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+   
     this.lineCommentStart = "//";
     this.blockComment = {start: "/*", end: "*/"};
 
@@ -38449,30 +38449,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ScssHighlightRules = function() {
-
+    
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
-             "background-size|binding|border-bottom-colors|border-left-colors|" +
-             "border-right-colors|border-top-colors|border-end|border-end-color|" +
-             "border-end-style|border-end-width|border-image|border-start|" +
-             "border-start-color|border-start-style|border-start-width|box-align|" +
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
-             "font-feature-settings|font-language-override|force-broken-image-icon|" +
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
-             "outline-offset|outline-radius|outline-radius-bottomleft|" +
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
-             "text-decoration-style|transform|transform-origin|transition|" +
-             "transition-delay|transition-duration|transition-property|" +
+        
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
+             "background-size|binding|border-bottom-colors|border-left-colors|" + 
+             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
+             "border-end-style|border-end-width|border-image|border-start|" + 
+             "border-start-color|border-start-style|border-start-width|box-align|" + 
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
+             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
+             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
+             "text-decoration-style|transform|transform-origin|transition|" + 
+             "transition-delay|transition-duration|transition-property|" + 
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-
+        
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -38506,17 +38506,17 @@ var ScssHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-
+        
         return ret;
-
+        
     })() );
-
+    
 
 
     var functions = lang.arrayToMap(
         ("hsl|hsla|rgb|rgba|url|attr|counter|counters|abs|adjust_color|adjust_hue|" +
-         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" +
-         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" +
+         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" + 
+         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" + 
          "nth|opacify|opacity|percentage|quote|red|round|saturate|saturation|" +
          "scale_color|transparentize|type_of|unit|unitless|unqoute").split("|")
     );
@@ -38549,20 +38549,20 @@ var ScssHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-
+    
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|def|end|declare").split("|")
     )
-
+    
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -38837,7 +38837,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -38850,11 +38850,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -38864,7 +38864,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -38875,26 +38875,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -39195,7 +39195,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -39206,7 +39206,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39236,7 +39236,7 @@ oop.inherits(Mode, TextMode);
 
 (function() {
 
-
+   
     this.lineCommentStart = "#";
 
     this.getNextLineIndent = function(state, line, tab) {
@@ -39482,7 +39482,7 @@ var SnippetGroupHighlightRules = function() {
 			return this.tokenName;
 		}, tokenName: "text", regex: "^(?!\t)", next: "start"},
 	])
-
+	
 };
 
 oop.inherits(SnippetGroupHighlightRules, TextHighlightRules);
@@ -39599,7 +39599,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -39610,7 +39610,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39717,7 +39717,7 @@ exports.SqlHighlightRules = SqlHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -39728,7 +39728,7 @@ exports.SqlHighlightRules = SqlHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39756,15 +39756,15 @@ var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
     XmlMode.call(this);
-
+    
     this.highlighter = new SvgHighlightRules();
     this.$tokenizer = new Tokenizer(this.highlighter.getRules());
-
+    
     this.$embeds = this.highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode
     });
-
+    
     this.foldingRules = new MixedFoldMode(new XmlFoldMode({}), {
         "js-": new CStyleFoldMode()
     });
@@ -39777,7 +39777,7 @@ oop.inherits(Mode, XmlMode);
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
-
+    
 
 }).call(Mode.prototype);
 
@@ -39803,7 +39803,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+    
     this.blockComment = {start: "<!--", end: "-->"};
 
 }).call(Mode.prototype);
@@ -39828,11 +39828,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity",
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
+                token : "constant.character.entity", 
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
             }
         ],
-
+        
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -39844,7 +39844,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-
+    
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -39873,7 +39873,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
         },
         {defaultToken : "string"}
     ];
@@ -39884,7 +39884,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-
+        
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -39892,7 +39892,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list"
+        next : name + "_embed_attribute_list" 
     }, {
         token: "empty",
         regex: "",
@@ -39901,7 +39901,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-
+    
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -39945,9 +39945,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-
+    
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-
+    
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -39992,7 +39992,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-
+    
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -40022,7 +40022,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -40035,11 +40035,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -40049,7 +40049,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -40060,26 +40060,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -40356,7 +40356,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-
+    
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -40367,13 +40367,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-
+        
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-
+        
         var match = tag.match(this.tagRe);
         var column = 0;
 
@@ -40390,10 +40390,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-
+            
         var value = "";
         var start;
-
+        
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -40415,15 +40415,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-
+        
         return null;
     };
-
+    
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-
+            
         var value = "";
         var end;
 
@@ -40448,13 +40448,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-
+        
         return null;
     };
-
+    
     this._pop = function(stack, tag) {
         while (stack.length) {
-
+            
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -40470,17 +40470,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-
+    
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-
+        
         if (!firstTag.match)
             return null;
-
+        
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-
+        
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -40496,7 +40496,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-
+                
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -40513,7 +40513,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-
+            
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -40523,7 +40523,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-
+                
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -40536,7 +40536,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-
+        
     };
 
 }).call(FoldMode.prototype);
@@ -41083,9 +41083,9 @@ var SvgHighlightRules = function() {
         regex : "<(?=script)",
         next : "script"
     });
-
+    
     xmlUtil.tag(this.$rules, "script", "js-start");
-
+    
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -41124,7 +41124,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-
+    
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -41140,13 +41140,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-
+        
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-
+        
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-
+        
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -41324,7 +41324,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -41335,7 +41335,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -41362,7 +41362,7 @@ var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutd
 
 var Mode = function() {
     var highlighter = new TypeScriptHighlightRules();
-
+    
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
@@ -41872,7 +41872,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -41885,11 +41885,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -41899,7 +41899,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -41910,26 +41910,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -42239,7 +42239,7 @@ var TypeScriptHighlightRules = function() {
         {
             token: ["keyword.operator.ts", "text", "variable.parameter.function.ts", "text"],
             regex: "\\b(module)(\\s*)([a-zA-Z0-9_?.$][\\w?.$]*)(\\s*\\{)"
-        },
+        }, 
         {
             token: ["storage.type.variable.ts", "text", "keyword.other.ts", "text"],
             regex: "(super)(\\s*\\()([a-zA-Z0-9,_?.$\\s]+\\s*)(\\))"
@@ -42251,15 +42251,15 @@ var TypeScriptHighlightRules = function() {
         {
             token: ["variable.parameter.function.ts", "text", "variable.parameter.function.ts"],
             regex: "([a-zA-Z0-9_?.$][\\w?.$]*)(\\s*:\\s*)([a-zA-Z0-9_?.$][\\w?.$]*)"
-        },
+        },  
         {
             token: ["keyword.operator.ts"],
             regex: "(?:\\b(constructor|declare|interface|as|AS|public|private|class|extends|export|super)\\b)"
-        },
+        }, 
         {
             token: ["storage.type.variable.ts"],
             regex: "(?:\\b(this\\.|string\\b|bool\\b|number)\\b)"
-        },
+        }, 
         {
             token: ["keyword.operator.ts", "storage.type.variable.ts", "keyword.operator.ts", "storage.type.variable.ts"],
             regex: "(class)(\\s+[a-zA-Z0-9_?.$][\\w?.$]*\\s+)(extends)(\\s+[a-zA-Z0-9_?.$][\\w?.$]*\\s+)?"
@@ -42271,7 +42271,7 @@ var TypeScriptHighlightRules = function() {
     ];
 
     var JSRules = new JavaScriptHighlightRules().getRules();
-
+    
     JSRules.start = tsRules.concat(JSRules.start);
     this.$rules = JSRules;
 };
@@ -42279,13 +42279,12 @@ var TypeScriptHighlightRules = function() {
 oop.inherits(TypeScriptHighlightRules, JavaScriptHighlightRules);
 
 exports.TypeScriptHighlightRules = TypeScriptHighlightRules;
-});
-/* ***** BEGIN LICENSE BLOCK *****
+});/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -42296,7 +42295,7 @@ exports.TypeScriptHighlightRules = TypeScriptHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -42329,7 +42328,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+    
     this.blockComment = {start: "<!--", end: "-->"};
 
 }).call(Mode.prototype);
@@ -42354,11 +42353,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity",
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
+                token : "constant.character.entity", 
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
             }
         ],
-
+        
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -42370,7 +42369,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-
+    
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -42399,7 +42398,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
         },
         {defaultToken : "string"}
     ];
@@ -42410,7 +42409,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-
+        
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -42418,7 +42417,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list"
+        next : name + "_embed_attribute_list" 
     }, {
         token: "empty",
         regex: "",
@@ -42427,7 +42426,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-
+    
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -42471,9 +42470,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-
+    
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-
+    
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -42518,7 +42517,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-
+    
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -42548,7 +42547,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-
+    
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -42561,11 +42560,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-
+    
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-
+    
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -42575,7 +42574,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -42586,26 +42585,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-
+    
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-
+    
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-
+    
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-
+    
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -42882,7 +42881,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-
+    
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -42893,13 +42892,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-
+        
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-
+        
         var match = tag.match(this.tagRe);
         var column = 0;
 
@@ -42916,10 +42915,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-
+            
         var value = "";
         var start;
-
+        
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -42941,15 +42940,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-
+        
         return null;
     };
-
+    
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-
+            
         var value = "";
         var end;
 
@@ -42974,13 +42973,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-
+        
         return null;
     };
-
+    
     this._pop = function(stack, tag) {
         while (stack.length) {
-
+            
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -42996,17 +42995,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-
+    
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-
+        
         if (!firstTag.match)
             return null;
-
+        
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-
+        
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -43022,7 +43021,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-
+                
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -43039,7 +43038,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-
+            
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -43049,7 +43048,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-
+                
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -43062,7 +43061,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-
+        
     };
 
 }).call(FoldMode.prototype);
@@ -43073,7 +43072,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43084,7 +43083,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43118,7 +43117,7 @@ oop.inherits(Mode, TextMode);
 (function() {
 
     this.lineCommentStart = "#";
-
+    
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
 
@@ -43161,10 +43160,10 @@ var YamlHighlightRules = function() {
                 regex : "#.*$"
             }, {
                 token : "list.markup",
-                regex : /^(?:-{3}|\.{3})\s*(?=#|$)/
+                regex : /^(?:-{3}|\.{3})\s*(?=#|$)/     
             },  {
                 token : "list.markup",
-                regex : /^\s*[\-?](?:$|\s)/
+                regex : /^\s*[\-?](?:$|\s)/     
             }, {
                 token: "constant",
                 regex: "!![\\w//]+"
@@ -43359,7 +43358,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 });
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
- *
+ * 
  * Copyright 2011 Irakli Gozalishvili. All rights reserved.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -43564,7 +43563,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43575,7 +43574,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43725,7 +43724,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43736,7 +43735,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43851,7 +43850,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43862,7 +43861,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43991,7 +43990,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44002,7 +44001,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44139,7 +44138,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44150,7 +44149,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44267,7 +44266,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44278,7 +44277,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44421,7 +44420,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44432,7 +44431,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44568,7 +44567,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44579,7 +44578,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44715,7 +44714,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44726,7 +44725,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE

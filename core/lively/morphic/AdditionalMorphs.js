@@ -6,6 +6,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     initialize: function($super, optBounds) {
         $super(this.createShape());
         this.setExtent(optBounds || this.defaultBounds);
+        this.disableDropping();    // because children are not shown 
     },
     createShape: function() {
         var node = this.renderContextDispatch('createCanvasNode');

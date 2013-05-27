@@ -274,6 +274,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         });
     },
     testConnect3Servers: function() {
+        this.setMaxWaitDelay(8*1000);
         // one server is the "central" ther others clients
         var c1 = this.client1, c2 = this.client2, c3 = this.client3,
             sessionTestsRun = 0, remoteEvalRun = 0,

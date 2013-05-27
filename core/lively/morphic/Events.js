@@ -1758,14 +1758,13 @@ lively.morphic.World.addMethods(
         var minScale = 0.1, maxScale = 10;
         if (oldScale < minScale && wheelDelta < 0) return false;
         if (oldScale > maxScale && wheelDelta > 0) return false;
-        var scaleDelta = 1 + wheelDelta / 3000;
+        var scaleDelta = 1 + wheelDelta / 2800;
 
         var newScale = oldScale * scaleDelta;
         newScale = Math.max(Math.min(newScale, maxScale), minScale);
-        this.setScale(newScale);
-
-        // show indicator for current zoom
-        if (showZoom) show(newScale);
+        if (Numbers.between(newScale, 0.9, 1.1)) newScale = newScale.detent(1, 0.01);
+        if (Numbers.between(newScale, 0.98, 1.1)) newScale = 1
+        if (newScale !== oldScale) this.setScale(newScale);
 
         // actually this should be a layoutChanged but implementing
         // layoutChanged in WorldMorph is expensive since it is always called when a
@@ -1776,9 +1775,27 @@ lively.morphic.World.addMethods(
         // p is the current mouse position. If we wouldn't move the window the new mouse pos would be scaledP.
         // We calculate the vector from scaledP to p and scale that by the current scale factor
         // We end up with a vector that can be used to scroll the screen to zoom in/out
-        var scaledP = zoomPoint.scaleBy(1/scaleDelta),
-            translatedP = zoomPoint.subPt(scaledP).scaleBy(this.getScale());
-        this.scrollBy(translatedP.x, translatedP.y);
+        if (newScale !== oldScale) {
+            var scaledP = zoomPoint.scaleBy(1/scaleDelta),
+                translatedP = zoomPoint.subPt(scaledP).scaleBy(this.getScale());
+            this.scrollBy(translatedP.x, translatedP.y);
+        }
+
+        // show indicator for current zoom
+        if (showZoom) {
+            var messageMorph = this.get('zoomStatus');
+            if (!messageMorph) {
+                messageMorph = lively.newMorph({klass: lively.morphic.Text});
+                messageMorph.name = 'zoomStatus';
+                messageMorph.applyStyle({extent: pt(160, 80), clipMode: "hidden", fontSize: 42, fill: Color.rgba(255,255,255,0.6), borderWidth: 0, borderRadius: 20});
+                messageMorph.align(messageMorph.bounds().center(), messageMorph.innerBounds().center());
+                messageMorph.removeLater = Functions.debounce(1*1000, function() { this.remove(); });
+            }
+            messageMorph.textString = Math.round(newScale*100) + '%';
+            messageMorph.removeLater();
+            messageMorph.openInWorldCenter();
+            messageMorph.setScale(1/newScale);
+        }
     },
 
 

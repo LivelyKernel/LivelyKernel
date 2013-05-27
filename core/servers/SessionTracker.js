@@ -47,24 +47,10 @@ var sessionActions = {
 
     unregisterClient: function(sessionServer, connection, msg) {
         sessionServer.removeLocalSessionOf(msg.sender);
+        connection.send({
+            action: msg.action + 'Result',
+            inResponseTo: msg.messageId, data: {success: true}});
         connection.close();
-    },
-
-    getSessions: function(sessionServer, connection, msg) {
-        sessionServer.getSessionList(msg.data.options, function(sessions) {
-            connection.send({
-                action: msg.action,
-                inResponseTo: msg.messageId,
-                data: sessions
-            });
-        })
-    },
-
-    reportActivity: function(sessionServer, connection, msg) {
-         var sessions = sessionServer.getLocalSessions()[sessionServer.id()],
-            session = sessions[msg.sender] = sessions[msg.sender] || {};
-        session.lastActivity = msg.data.lastActivity;
-        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
     },
 
     initServerToServerConnect: function(sessionServer, connection, msg) {
@@ -79,6 +65,18 @@ var sessionActions = {
         var remoteURLs = Object.keys(sessionServer.serverToServerConnections);
         sessionServer.removeServerToServerConnections();
         connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Connections to ' + remoteURLs.join(', ') + ' closed'}});
+    },
+
+    getSessions: function(sessionServer, connection, msg) {
+        // send the sessions accessible from this tracker. includes local sessions,
+        // reported sessions
+        sessionServer.getSessionList(msg.data.options, function(sessions) {
+            connection.send({
+                action: msg.action,
+                inResponseTo: msg.messageId,
+                data: sessions
+            });
+        })
     },
 
     reportSessions: function(sessionServer, connection, msg) {
@@ -101,6 +99,14 @@ var sessionActions = {
         });
         sessionServer.trackerData[id] = {sessions: msg.data[id]};
         connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Sessions added to ' + sessionServer}});
+    },
+
+    reportActivity: function(sessionServer, connection, msg) {
+        // lively session sends infos about last user activity from time to time
+         var sessions = sessionServer.getLocalSessions()[sessionServer.id()],
+            session = sessions[msg.sender] = sessions[msg.sender] || {};
+        session.lastActivity = msg.data.lastActivity;
+        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
     }
 
 }
@@ -121,7 +127,7 @@ var sessionActions = {
 // directly processed by the tracker and do not require
 // connections to other sessions.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-var websockets = require('./support/websockets');
+var websockets = require(path.join(process.env.WORKSPACE_LK, 'core/servers/support/websockets'));
 var WebSocketServer = websockets.WebSocketServer;
 var WebSocketClient = websockets.WebSocketClient;
 
@@ -207,6 +213,13 @@ function SessionTracker(options) {
             action = actions[msg.action];
         if (action) action(connection, msg);
         else if (actions.messageNotUnderstood) actions.messageNotUnderstood(connection, msg);
+        else connection.send({
+            action: msg.action + 'Result',
+            inResponseTo: msg.messageId,
+            data: {error: 'cannot dispatch message'},
+            target: msg.sender,
+            messageId: response.messageId
+        });
     }
 
     this.dispatchLivelyMessageFromServer = function(msg, connection) {
@@ -261,7 +274,18 @@ function SessionTracker(options) {
                 console.error('%s getSessionList: ', this, err);
             }
             var result = sessions[0];
-            if (!options.onlyLocal) util._extend(result, sessions[1]);
+            if (options.onlyLocal) { thenDo(result); return; }
+            // sessions[1] looks like [{
+            //  url: {
+            //    connection: WEBSOCKET_CONNECTION,
+            //    remoteTrackerId: ID,
+            //    trackersWithSessions: {trackerId: {sessionId: {session_spec}}}
+            //  }}]
+            // flatten it so that {trackerId: {sessionId: {sess spec}*}}
+            Object.keys(sessions[1]).forEach(function(url) {
+                var remote = sessions[1][url];
+                util._extend(result, remote.trackersWithSessions)
+            });
             thenDo(result);
         });
     }
@@ -308,66 +332,63 @@ function SessionTracker(options) {
                                          // want to send requests to the tracker just based on the id.
                                          // This should actually got into the connect-to-remote-tracker
                                          // logic
-                    next(null, {remoteTrackerId: msg.sender, sessions: msg.data}); });
+                    next(null, {remoteTrackerId: msg.sender, trackersWithSessions: msg.data, connection: con}); });
         }, function(err, serverToServerSessions) {
-            // #withServerToServerConnectionsDo gives us a map of tracker urls to
-            // their sessions (from possibly multiple trackers) as described above.
-            // take those and flatten them into a map so that
-            // result = {trackerId: {sessionId: {/*session spec*/}}
             if (err) { console.error('%s getServerToServerSessionList: ', this, err); }
-            var result = Object.keys(serverToServerSessions || {}).reduce(function(result, url) {
+            // sanity check
+            Object.keys(serverToServerSessions || {}).forEach(function(url) {
                 if (serverToServerSessions[url].error) {
                     console.warn('%s cannot get server2server sessions from %s because of %s', tracker, url, serverToServerSessions[url].error);
-                    return result;
+                    delete serverToServerSessions[url];
                 }
-                var trackerIdAndSessions = serverToServerSessions[url].sessions;
-                Object.keys(trackerIdAndSessions).forEach(function(trackerId) {
-                    result[trackerId] = trackerIdAndSessions[trackerId]; });
-                return result;
-            }, {});
-            thenDo(err, result);
+            });
+            thenDo(err, serverToServerSessions);
         });
     }
 
     this.findConnection = function(id, thenDo) {
         // looks up 1) local 2) remote connections with id
-        this.debug && console.log('%s trying to find connection %s...', this, id);
-        var con = this.websocketServer.getConnection(id);
+        var tracker = this;
+        log(3, '%s trying to find connection %s...', tracker, id);
+        var con = tracker.websocketServer.getConnection(id);
         if (con) {
-            this.debug && console.log('... found connection in websocketServer, %s -> %s', this.id(), con.id);
+            log(3, '... found connection in websocketServer, %s -> %s', tracker.id(), con.id);
             thenDo(null, con); return; }
-        this.debug && console.log('... searching among reported sessions...');
-        var trackerIdsAndSessions = this.getLocalSessions({});
+        log(3, '... searching among reported sessions...');
+        var trackerIdsAndSessions = tracker.getLocalSessions({});
         for (var trackerId in trackerIdsAndSessions) {
             if (id === trackerId) {
-                var con = this.getServerToServerConnectionById(trackerId);
+                var con = tracker.getServerToServerConnectionById(trackerId);
                 thenDo(!con && 'not found', con);
                 return;
             }
             var sessions = trackerIdsAndSessions[trackerId];
             for (var sessionId in sessions) {
                 if (sessionId !== id) continue;
-                this.findConnection(trackerId, thenDo);
+                tracker.findConnection(trackerId, thenDo);
                 return;
             }
         }
-        this.debug && console.log('%s trying to find connection %s on remote tracker...', this, id);
+        log(3, '%s trying to find connection %s on remote tracker...', tracker, id);
         // FIXME finding remote connections currently only works because ids to
         // remote tracker connections are assigned #getServerToServerSessionList
         // see comment in #getServerToServerSessionList for more detail
-        this.getServerToServerSessionList({}, function(err, remotes) {
+        tracker.getServerToServerSessionList({}, function(err, remotes) {
             if (err) { thenDo(err, null); return; }
-            for (var remoteTrackerId in remotes) {
-                var sessions = remotes[remoteTrackerId];
-                for (var sessionId in sessions) {
-                    if (sessionId !== id) continue;
-                    var webS = this.getServerToServerConnectionById(remoteTrackerId);
-                    thenDo(!webS && 'connection not established', webS);
-                    return;
+            for (var url in remotes) {
+                var remote = remotes[url];
+                for (var remoteTrackerId in remote.trackersWithSessions) {
+                    var sessions = remote.trackersWithSessions[remoteTrackerId];
+                    for (var sessionId in sessions) {
+                        if (sessionId !== id) continue;
+                        var connection = remote.connection || tracker.getServerToServerConnectionById(remoteTrackerId);
+                        thenDo(!connection && 'connection not established', connection);
+                        return;
+                    }
                 }
             }
             thenDo('not found', null);
-        }.bind(this));
+        });
     }
 
     this.fixRemoteServerURL = function(url) {
@@ -380,25 +401,30 @@ function SessionTracker(options) {
         // lively tracker at url. The other lively tracker will add this
         // connection simply as another client connection into his
         // websocketServer object
-        console.log('Connecting server2server: %s -> %s', this, url);
+        log(2, 'Connecting server2server: %s -> %s', this, url);
         // creates a connection to another lively session tracker
         url = this.fixRemoteServerURL(url) ;
-        var tracker = this, client = this.getServerToServerConnection(url) || new WebSocketClient(url, {protocol: 'lively-json', sender: this.trackerId});
+        var tracker = this, client = this.getServerToServerConnection(url) 
+                                  || new WebSocketClient(url, {
+                                        protocol: 'lively-json',
+                                        sender: this.trackerId,
+                                        debugLevel: this.debug
+                                    });
         this.serverToServerConnections[url] = client;
-        if (client.isOpen()) { console.log('Server to server connection to %s already open', url); thenDo(null, client); return }
+        if (client.isOpen()) { log(2, 'Server to server connection to %s already open', url); thenDo(null, client); return }
         function initReconnect() {
             if (client._trackerIsReconnecting) return;
             if (tracker.getServerToServerConnection(url)) { // accidental close, we will reconnect
                 client._trackerIsReconnecting = true;
                 tracker.startServerToServerConnectAttempt(url);            
             } else { // close ok with us, cleanup
-                console.log('%s removes server2server connection %s', tracker, url);
+                log(2, '%s removes server2server connection %s', tracker, url);
                 tracker.removeServerToServerConnection(url, client);
             }
             if (Object.keys(tracker.serverToServerConnections).length === 0) tracker.stopServerToServerSessionReport();
         }
         try {
-            client.once('connect', function() {
+            client.once('connect', function(connection) {
                 client._trackerIsReconnecting = false; tracker.startServerToServerSessionReport(); thenDo(null, client); });
             client.on('close', function() {
                 console.warn('Server to server connection from %s to %s closed', tracker, url);
@@ -484,9 +510,11 @@ function SessionTracker(options) {
             if (!con.isOpen()) { next(null, {error: 'not connected'}); return; }
             console.log('%s sending serverToServerSessionReport to %s', tracker, url);
             var sessions = tracker.getLocalSessions();
-            con.send(
-                {action: 'reportSessions', data: util._extend(sessions, {trackerId: tracker.id()})},
-                function(msg) { next(null, msg.data); });
+            con.send({
+                action: 'reportSessions', 
+                target: con.connection && con.connection.id,
+                data: util._extend(sessions, {trackerId: tracker.id()})
+            },function(msg) { next(null, msg.data); });
         }
         function whenDone(err, reportResult) {
             console.log("%s sending session reports: ", reportResult);

@@ -204,6 +204,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         e.on('blur', function() { morph._isFocused = false; });
         node.setAttribute('id', 'ace-editor');
         e.session.setUseSoftTabs(Config.get("useSoftTabs"));
+        this.disableTextResizeOnZoom(e);
 
         // 2) let the shape know about the editor, this let's us do some optimizations
         this.getShape().aceEditor = e;
@@ -228,6 +229,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             'contagious aceEditorAfterSetupCallbacks bug occured');
         delete this.aceEditorAfterSetupCallbacks;
         cbs.invoke('call', this, e);
+    },
+
+    disableTextResizeOnZoom: function(aceEditor) {
+        aceEditor.renderer.updateFontSize();
+        Global.clearInterval(aceEditor.renderer.$textLayer.$pollSizeChangesTimer);
     },
 
     addCommands: function(commands) {

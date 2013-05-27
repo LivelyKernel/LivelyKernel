@@ -15712,7 +15712,8 @@ var screenToTextBlockCoordinates = function(x, y) {
 var HashHandler = require("./hash_handler").HashHandler;
 exports.handler = new HashHandler();
 
-exports.handler.isEmacs = true
+exports.handler.isEmacs = true;
+exports.handler.$id = "ace/keyboard/emacs";
 
 var initialized = false;
 var $formerLongWords;
@@ -15752,17 +15753,14 @@ exports.handler.attach = function(editor) {
     $formerLineStart = editor.session.$useEmacsStyleLineStart;
     editor.session.$useEmacsStyleLineStart = true;
 
-    editor.session.$emacsMark = null;
+    editor.session.$emacsMark = null; // the active mark
     editor.session.$emacsMarkRing = editor.session.$emacsMarkRing || [];
 
-    editor.emacsMarkMode = function() {
+    editor.emacsMark = function() {
         return this.session.$emacsMark;
     }
 
-    editor.setEmacsMarkMode = function(p) {
-        var prevMark = this.session.$emacsMark;
-        if (prevMark)
-            this.session.$emacsMarkRing.push(prevMark);
+    editor.setEmacsMark = function(p) {
         this.session.$emacsMark = p;
     }
 
@@ -15770,12 +15768,18 @@ exports.handler.attach = function(editor) {
         var prevMark = this.session.$emacsMark;
         if (prevMark)
             this.session.$emacsMarkRing.push(prevMark);
-        if (activate) this.session.$emacsMark = p;
+        if (!p || activate) this.setEmacsMark(p)
         else this.session.$emacsMarkRing.push(p);
     }
 
+    editor.popEmacsMark = function() {
+        var mark = this.emacsMark();
+        if (mark) { this.setEmacsMark(null); return mark; }
+        return this.session.$emacsMarkRing.pop();
+    }
+
     editor.getLastEmacsMark = function(p) {
-        return this.session.$emacsMark || this.session.$emacsMarkRing.reverse()[0];
+        return this.session.$emacsMark || this.session.$emacsMarkRing.slice(-1)[0];
     }
 
     editor.on("click", $resetMarkMode);
@@ -15855,17 +15859,20 @@ exports.handler.bindKey = function(key, command) {
     key.split("|").forEach(function(keyPart) {
         keyPart = keyPart.toLowerCase();
         ckb[keyPart] = command;
-        keyPart = keyPart.split(" ")[0];
-        if (!ckb[keyPart])
-            ckb[keyPart] = "null";
+        var keyParts = keyPart.split(" ").slice(0,-1);
+        keyParts.reduce(function(keyMapKeys, keyPart, i) {
+            var prefix = keyMapKeys[i-1] ? keyMapKeys[i-1] + ' ' : '';
+            return keyMapKeys.concat([prefix + keyPart]);
+        }, []).forEach(function(keyPart) {
+            if (!ckb[keyPart]) ckb[keyPart] = "null";
+        });
     }, this);
-};
-
+}
 
 exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     var editor = data.editor;
     if (hashId == -1) {
-        editor.setEmacsMarkMode(null);
+        editor.pushEmacsMark();
         if (data.count) {
             var str = Array(data.count + 1).join(key);
             data.count = null;
@@ -15881,6 +15888,8 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         if (count) {
             data.count = count;
             return {command: "null"};
+        } else if (data.universalArgument) {
+            data.count = 4;
         }
     }
     data.universalArgument = false;
@@ -15900,7 +15909,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         args = command.args;
         if (command.command) command = command.command;
         if (command === "goorselect") {
-            command = editor.emacsMarkMode() ? args[1] : args[0];
+            command = editor.emacsMark() ? args[1] : args[0];
             args = null;
         }
     }
@@ -15909,7 +15918,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
         if (command === "insertstring" ||
             command === "splitline" ||
             command === "togglecomment") {
-            editor.setEmacsMarkMode(null);
+            editor.pushEmacsMark();
         }
         command = this.commands[command] || editor.commands.commands[command];
         if (!command) return undefined;
@@ -15921,15 +15930,20 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     if (data.count) {
         var count = data.count;
         data.count = 0;
-        return {
-            args: args,
-            command: {
-                exec: function(editor, args) {
-                    for (var i = 0; i < count; i++)
-                        command.exec(editor, args);
+        if (!command || !command.handlesCount) {
+            return {
+                args: args,
+                command: {
+                    exec: function(editor, args) {
+                        for (var i = 0; i < count; i++)
+                            command.exec(editor, args);
+                    }
                 }
-            }
-        };
+            };
+        } else {
+            if (!args) args = {}
+            if (typeof args === 'object') args.count = count;
+        }
     }
 
     return {command: command, args: args};
@@ -16028,42 +16042,58 @@ exports.handler.addCommands({
         editor.multiSelect.toggleBlockSelection();
     },
     setMark:  {
-        exec: function(editor) {
-            var markMode = editor.emacsMarkMode(),
-                useCuaMarkMode = true;
-            if (useCuaMarkMode && (markMode || !editor.selection.isEmpty())) {
-                editor.clearSelection();
-                editor.setEmacsMarkMode(null);
+        exec: function(editor, args) {
+            if (args && args.count) {
+                var mark = editor.popEmacsMark();
+                mark && editor.selection.moveCursorToPosition(mark);
                 return;
             }
-            if (markMode) {
+
+            var mark = editor.emacsMark(),
+                transientMarkModeActive = true;
+            if (transientMarkModeActive && (mark || !editor.selection.isEmpty())) {
+                editor.pushEmacsMark(editor.getCursorPosition());
+                editor.pushEmacsMark();
+                editor.clearSelection();
+                return;
+            }
+
+            if (mark) {
                 var cp = editor.getCursorPosition();
                 if (editor.selection.isEmpty() &&
-                    markMode.row == cp.row && markMode.column == cp.column) {
-                    editor.setEmacsMarkMode(null);
+                    mark.row == cp.row && mark.column == cp.column) {
+                    editor.pushEmacsMark();
                     return;
                 }
             }
-            markMode = editor.getCursorPosition();
-            editor.setEmacsMarkMode(markMode);
-            editor.selection.setSelectionAnchor(markMode.row, markMode.column);
+            mark = editor.getCursorPosition();
+            editor.setEmacsMark(mark);
+            editor.selection.setSelectionAnchor(mark.row, mark.column);
         },
         readonly: true,
+        handlesCount: true,
         multiSelectAction: "forEach"
     },
     exchangePointAndMark: {
-        exec: function(editor) {
+        exec: function(editor, args) {
             var sel = editor.selection;
+            if (args.count) {
+                var pos = editor.getCursorPosition();
+                sel.clearSelection();
+                sel.moveCursorToPosition(editor.popEmacsMark());
+                editor.pushEmacsMark(pos);
+                return;
+            }
+            var lastMark = editor.getLastEmacsMark();
             var range = sel.getRange();
             if (range.isEmpty()) {
-                var lastMark = editor.getLastEmacsMark();
-                show('select to %o', lastMark)
                 sel.selectToPosition(lastMark);
                 return;
             }
-            editor.selection.setSelectionRange(range, !editor.selection.isBackwards());
+            sel.setSelectionRange(range, !sel.isBackwards());
         },
         readonly: true,
+        handlesCount: true,
         multiSelectAction: "forEach"
     },
     killWord: {
@@ -16084,17 +16114,12 @@ exports.handler.addCommands({
         multiSelectAction: "forEach"
     },
     killLine: function(editor) {
-        editor.setEmacsMarkMode(null);
+        editor.pushEmacsMark(null);
         var pos = editor.getCursorPosition();
         if (pos.column == 0 &&
             editor.session.doc.getLine(pos.row).length == 0) {
-            // If an already empty line is killed, remove
-            // the line entirely
             editor.selection.selectLine();
         } else {
-            // otherwise just remove from the current cursor position
-            // to the end (but don't delete the selection if it's before
-            // the cursor)
             editor.clearSelection();
             editor.selection.selectLineEnd();
         }
@@ -16106,10 +16131,7 @@ exports.handler.addCommands({
         editor.clearSelection();
     },
     yank: function(editor) {
-        var text = editor.inMultiSelectMode ?
-            exports.killRing.get(editor.selection.getAllRanges().length) :
-            exports.killRing.get();
-        editor.onPaste(text || '');
+        editor.onPaste(exports.killRing.get() || '');
         editor.keyBinding.$data.lastCommand = "yank";
     },
     yankRotate: function(editor) {
@@ -16130,19 +16152,18 @@ exports.handler.addCommands({
     killRingSave: {
         exec: function(editor) {
             exports.killRing.add(editor.getCopyText());
-            (function() {
+            set(function() {
                 var sel = editor.selection,
                     range = sel.getRange();
                 editor.pushEmacsMark(sel.isBackwards() ? range.end : range.start);
                 sel.clearSelection();
-            }).delay(0);
+            }, 0);
         },
-        readonly: true,
-        multiSelectAction: "forEach"
+        readonly: true
     },
     keyboardQuit: function(editor) {
         editor.selection.clearSelection();
-        editor.setEmacsMarkMode(null);
+        editor.setEmacsMark(null);
     },
     focusCommandLine: function(editor, arg) {
         if (editor.showCommandLine)

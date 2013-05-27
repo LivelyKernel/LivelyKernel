@@ -1747,20 +1747,25 @@ lively.morphic.World.addMethods(
     },
     onMouseWheel: function($super, evt) {
         if (!evt.isCommandKey()) return $super(evt);
-        evt.preventDefault();
-
-        var wheelDelta = evt.wheelDelta,
-            oldScale = this.getScale();
+        this.doZoomBy(evt.wheelDelta, evt.getPosition(), true);
+        evt.preventDefault(); return true;
+    },
+    doZoomBy: function(wheelDelta, zoomPoint, showZoom) {
+        // wheelDelta from mouse event, zoomPoint is the global position to
+        // zoom in/out (center of transformation)
+        var oldScale = this.getScale();
 
         var minScale = 0.1, maxScale = 10;
         if (oldScale < minScale && wheelDelta < 0) return false;
         if (oldScale > maxScale && wheelDelta > 0) return false;
         var scaleDelta = 1 + wheelDelta / 3000;
 
-        // this.scaleBy(scaleDelta);
         var newScale = oldScale * scaleDelta;
         newScale = Math.max(Math.min(newScale, maxScale), minScale);
-        this.setScale(newScale)
+        this.setScale(newScale);
+
+        // show indicator for current zoom
+        if (showZoom) show(newScale);
 
         // actually this should be a layoutChanged but implementing
         // layoutChanged in WorldMorph is expensive since it is always called when a
@@ -1771,13 +1776,11 @@ lively.morphic.World.addMethods(
         // p is the current mouse position. If we wouldn't move the window the new mouse pos would be scaledP.
         // We calculate the vector from scaledP to p and scale that by the current scale factor
         // We end up with a vector that can be used to scroll the screen to zoom in/out
-        var p = evt.getPosition(),
-            scaledP = p.scaleBy(1/scaleDelta),
-            translatedP = p.subPt(scaledP).scaleBy(this.getScale());
-        Global.scrollBy(translatedP.x, translatedP.y)
-
-        return true
+        var scaledP = zoomPoint.scaleBy(1/scaleDelta),
+            translatedP = zoomPoint.subPt(scaledP).scaleBy(this.getScale());
+        this.scrollBy(translatedP.x, translatedP.y);
     },
+
 
     onHTML5DragEnter: function(evt) {
         evt.stop();
@@ -1853,6 +1856,10 @@ lively.morphic.World.addMethods(
         // setScroll of Scrollable Trait does not work: window has no overflow
         return this.morphicSetter('Scroll', [x, y]);
     },
+    scrollBy: function(x,y) {
+        Global.scrollBy(x,y);
+    },
+
     getScrollOffset: function () {
         this.scrollOffset = this.visibleBounds().topLeft();
         return this.scrollOffset;

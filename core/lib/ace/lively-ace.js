@@ -16847,9 +16847,10 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
 
     var modifier = eMods[hashId];
     if (modifier == "c-" || data.universalArgument) {
+        var prevCount = String(data.count || 0);
         var count = parseInt(key[key.length - 1]);
-        if (count) {
-            data.count = count;
+        if (typeof count === 'number' && !isNaN(count)) {
+            data.count = parseInt(prevCount + count);
             return {command: "null"};
         } else if (data.universalArgument) {
             data.count = 4;

@@ -1113,6 +1113,16 @@ lively.morphic.Morph.addMethods(
 "CSSTransitions", {
 
     withCSSTransitionDo: function(morphModifyFunc, duration, whenDone) {
+        return this.withCSSTransitionForAllMorphsDo(
+            [this], morphModifyFunc, duration, whenDone);
+    },
+    withCSSTransitionForAllSubmorphsDo: function(morphModifyFunc, duration, whenDone) {
+        var morphs = this.withAllSubmorphsDo(Functions.K);
+        return this.withCSSTransitionForAllMorphsDo(
+            morphs, morphModifyFunc, duration, whenDone);
+    },
+
+    withCSSTransitionForAllMorphsDo: function(morphs, morphModifyFunc, duration, whenDone) {
         // FIXME move HTML specific stuff to HTML.js!
         var prefix = lively.Config.get('html5CssPrefix'),
             durationProp = prefix === "-moz-" ?
@@ -1125,24 +1135,33 @@ lively.morphic.Morph.addMethods(
                     case '-o-'     : return "oTransitionEnd";
                     default        : return "transitionend";
                 }
-            })(),
-            morphNode = this.renderContext().morphNode,
-            shapeNode = this.renderContext().shapeNode,
-            remover = (function(evt) {
-                morphNode.style[transitionProp] = "";
-                morphNode.style[durationProp] = "";
-                shapeNode.style[transitionProp] = "";
-                shapeNode.style[durationProp] = "";
-                morphNode.removeEventListener(endEvent, remover, false);
-                whenDone && whenDone.call(this);
-            }).bind(this);
-        morphNode.addEventListener(endEvent, remover, false);
-        morphNode.style[transitionProp] = "all";
-        shapeNode.style[transitionProp] = "all";
-        morphNode.style[durationProp] = duration + "ms";
-        shapeNode.style[durationProp] = duration + "ms";
+            })();
+        function behaveAnimated(morph) { 
+            var morphNode = morph.renderContext().morphNode,
+                shapeNode = morph.renderContext().shapeNode;
+            morphNode.style[transitionProp] = "all";
+            shapeNode.style[transitionProp] = "all";
+            morphNode.style[durationProp] = duration + "ms";
+            shapeNode.style[durationProp] = duration + "ms";
+        }
+        function behaveNormal(morph) { 
+            var morphNode = morph.renderContext().morphNode,
+                shapeNode = morph.renderContext().shapeNode;
+            morphNode.style[transitionProp] = "";
+            morphNode.style[durationProp] = "";
+            shapeNode.style[transitionProp] = "";
+            shapeNode.style[durationProp] = "";
+        }
+        var remover = (function(evt) {
+            morphs.forEach(function(ea) { behaveNormal(ea); });
+            this.renderContext().morphNode.removeEventListener(endEvent, remover, false);
+            whenDone && whenDone.call(this);
+        }).bind(this);
+        this.renderContext().morphNode.addEventListener(endEvent, remover, false);
+        morphs.forEach(function(ea) { behaveAnimated(ea); });
         morphModifyFunc.call(this);
     },
+
 
     moveByAnimated: function(delta, time, callback) {
         this.withCSSTransitionDo(this.moveBy.curry(delta), time, callback);

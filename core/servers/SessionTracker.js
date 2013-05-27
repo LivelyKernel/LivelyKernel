@@ -10,6 +10,17 @@ function uuid() { // helper
     return id;
 }
 
+var debugLevel = 1;
+
+var debugThreshold = 1;
+function log(/*level, msg, arguments*/) {
+    // the smaller logLevel the more important the message
+    var args = Array.prototype.slice.call(arguments);
+    var logLevel = typeof args[0] === 'number' ? args.shift() : 1;
+    if (logLevel > debugThreshold) return;
+    console.log.apply(console, args);
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // session actions, when messages come in they specify in
 // their "action" parameter what they want to do. This is
@@ -33,7 +44,7 @@ var sessionActions = {
             setTimeout(function() {
                 var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
                 if (!newConnection) {
-                    console.log('%s removes local session of %s', sessionServer, msg.sender);
+                    log(2, '%s removes local session of %s', sessionServer, msg.sender);
                     delete sessions[msg.sender];
                 }
             }, sessionServer.inactiveSessionRemovalTime);
@@ -92,7 +103,7 @@ var sessionActions = {
             setTimeout(function() {
                 var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
                 if (!newConnection) {
-                    console.log('%s removes reported session of %s', sessionServer, id);
+                    log(2, '%s removes reported session of %s', sessionServer, id);
                     delete sessionServer.trackerData[id];
                 }
             }, sessionServer.inactiveSessionRemovalTime);
@@ -133,12 +144,12 @@ var WebSocketClient = websockets.WebSocketClient;
 
 function SessionTracker(options) {
     // options = {route: STRING, subserver: OBJECT}
-    this.debug = true;
+    this.debug = debugLevel;
     options = options || {};
     this.route = options.route + 'connect';
     this.subserver = options.subserver;
     this.trackerId = 'tracker-' + uuid();
-    this.websocketServer = new WebSocketServer({sender: this.trackerId});
+    this.websocketServer = new WebSocketServer({sender: this.trackerId, debugLevel: this.debug});
     this.serverToServerConnections = {}; // for connections to other servers
     this.inactiveSessionRemovalTime = options.inactiveSessionRemovalTime || 60*1000;
     this.server2serverReconnectTimeout = options.server2serverReconnectTimeout || 60*1000;
@@ -231,10 +242,9 @@ function SessionTracker(options) {
     }
 
     this.routeMessage = function(msg, connection) {
-        console.log('%s routing %s to %s', this, msg.action, msg.target);
+        log(3, '%s routing %s to %s', this, msg.action, msg.target);
         function answer(response) {
-            console.log('%s got answer from routed message %s: ', tracker, msg.messageId, response);
-            debugger;
+            log(3, '%s got answer from routed message %s: ', tracker, msg.messageId, response);
             connection.send({
                 action: msg.action + 'Result',
                 inResponseTo: msg.messageId,
@@ -247,7 +257,7 @@ function SessionTracker(options) {
         if (!target) { answer({data: {error: 'Message does not specify target'}}); return; }
         this.findConnection(target, function(err, targetConnection) {
             if (err || !targetConnection) {
-                console.warn('%s failed to route message: Failure finding target connection: ', this, err);
+                console.warn('%s failed to route message: Failure finding target connection: ', tracker, err);
                 answer({data: {error: 'Failure finding target connection: ' + err, target: target}})
                 return; }
             targetConnection.send({
@@ -447,12 +457,12 @@ function SessionTracker(options) {
     }
 
     this.startServerToServerConnectAttempt = function(url) {
-        console.log('%s attempting server2server connect with %s', this, url);
+        log(3, '%s attempting server2server connect with %s', this, url);
         var tracker = this, timeout = this.server2serverReconnectTimeout || 60 * 1000;
         setTimeout(function() {
             tracker.serverToServerConnect(url, function(err, con) {
                 if (err) tracker.startServerToServerConnectAttempt(url);
-                else console.log('server2server connection between %s and %s established', tracker, url);
+                else log(1, 'server2server connection between %s and %s established', tracker, url);
             });
         }, timeout);
     }
@@ -504,12 +514,12 @@ function SessionTracker(options) {
     }
 
     this.startServerToServerSessionReport = function() {
-        console.log('%s initiaing serverToServerSessionReport', this);
+        log(3, '%s initiaing serverToServerSessionReport', this);
         var tracker = this;
         function reportSessions(next, url, con) {
             if (!con.isOpen()) { next(null, {error: 'not connected'}); return; }
-            console.log('%s sending serverToServerSessionReport to %s', tracker, url);
             var sessions = tracker.getLocalSessions();
+            log(3, '%s sending serverToServerSessionReport to %s', tracker, url, sessions);
             con.send({
                 action: 'reportSessions', 
                 target: con.connection && con.connection.id,
@@ -517,7 +527,6 @@ function SessionTracker(options) {
             },function(msg) { next(null, msg.data); });
         }
         function whenDone(err, reportResult) {
-            console.log("%s sending session reports: ", reportResult);
             var delay = tracker.serverToServerSessionReportDelay || 5 * 60 * 1000;
             tracker._serverToServerSessionReportLoop = setTimeout(tracker.startServerToServerSessionReport.bind(tracker), delay);
         }
@@ -559,7 +568,7 @@ SessionTracker.createServer = function(options) {
     var tracker = new this(options);
     SessionTracker.servers[options.route] = tracker;
     tracker.listen();
-    console.log('Session tracker on route %s created', options.route)
+    log(1, 'Session tracker on route %s created', options.route)
     return tracker;
 }
 
@@ -572,7 +581,7 @@ SessionTracker.removeServer = function(route) {
     }
     tracker.shutdown();
     delete this.servers[route];
-    console.log('Session tracker route ' + route + ' shutdown');
+    log(1, 'Session tracker route ' + route + ' shutdown');
     return true;
 }
 

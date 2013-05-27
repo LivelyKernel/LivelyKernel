@@ -16,6 +16,15 @@ function uuid() { // helper
     return id;
 }
 
+var debugThreshold = 1;
+function log(/*level, msg, arguments*/) {
+    // the smaller logLevel the more important the message
+    var args = Array.prototype.slice.call(arguments);
+    var logLevel = typeof args[0] === 'number' ? args.shift() : 1;
+    if (logLevel > debugThreshold) return;
+    console.log.apply(console, args);
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // lively-json callback support
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -31,7 +40,7 @@ function addCallback(sender, msg, callback) {
     msg.messageId = msg.messageId || (sender ? sender.toString() + '-' : '') + 'msg:' + uuid();
     var callbacks = sender.callbacks[msg.messageId] = sender.callbacks[msg.messageId] || [];
     callbacks.push(callback);
-    // console.log('adding callback %s for sender %s. Message:', callback, sender, msg);
+    // log(this.debugLevel, 'adding callback %s for sender %s. Message:', callback, sender, msg);
 }
 
 function triggerActions(receiver, connection, msg) {
@@ -51,7 +60,7 @@ function triggerCallbacks(receiver, msg) {
     var expectMore = !!msg.expectMoreResponses,
         responseId = msg.inResponseTo,
         callbacks = responseId && receiver.callbacks && receiver.callbacks[responseId];
-    // console.log('triggering callbacks for message:', receiver.callbacks, msg);
+    // log(this.debugLevel, 'triggering callbacks for message:', receiver.callbacks, msg);
     if (!callbacks) return;
     callbacks.forEach(function(cb) { 
         try { cb(msg, expectMore); } catch(e) { console.error('Error in websocket message callback:\n', e); }
@@ -63,7 +72,7 @@ function onLivelyJSONMessage(receiver, connection, msg) {
     if (typeof msg === 'string') { try { msg = JSON.parse(msg) } catch(e) { return } }
     var action = msg.action, sender = msg.sender;
     if (!action) return;
-    receiver.debug && console.log('\n%s received %s from %s %s\n',
+    log(receiver.debugLevel+1, '\n%s received %s from %s %s\n',
         receiver, action, sender,
         msg.messageIndex ? '('+msg.messageIndex+')':'',
         msg);
@@ -76,7 +85,7 @@ function onLivelyJSONMessage(receiver, connection, msg) {
 function sendLivelyMessage(sender, connection, msg, callback) {
     try {
         addCallback(sender, msg, callback);
-        sender.debug && msg.action && console.log('\n%s sending: %s to %s\n', sender, msg.action, connection.id || 'unknown', msg);
+        msg.action && log(sender.debugLevel+1, '\n%s sending: %s to %s\n', sender, msg.action, connection.id || 'unknown', msg);
         if (typeof msg !== 'string') {
             if (sender.sender && !msg.sender) msg.sender = sender.sender;
             msg = JSON.stringify(msg);
@@ -104,7 +113,7 @@ function WebSocketClient(url, options) {
     this.protocol = options.protocol;
     this.sender = options.sender || null;
     this.setupClient();
-    this.debug = true;
+    this.debugLevel = options.debugLevel || 1;
 }
 
 util.inherits(WebSocketClient, EventEmitter);
@@ -130,7 +139,7 @@ util.inherits(WebSocketClient, EventEmitter);
     }
 
     this.onConnect = function(connection) {
-        console.log('Connected %s', this.toString());
+        log(this.debugLevel, 'Connected %s', this.toString());
         if (this.connection) this.connection.close();
         this.connection = connection;
         this.emit('connect', connection);
@@ -147,7 +156,7 @@ util.inherits(WebSocketClient, EventEmitter);
     }
     
     this.onClose = function() {
-        console.log('%s closed', this.toString());
+        log(this.debugLevel, '%s closed', this.toString());
         this.emit("close");
     }
 
@@ -165,7 +174,7 @@ util.inherits(WebSocketClient, EventEmitter);
     }
 
     this.connect = function() {
-        console.log('Connecting %s', this);
+        log(this.debugLevel, 'Connecting %s', this);
         try {
             return this._client.connect(this.url, this.protocol);
         } catch(e) {
@@ -245,7 +254,7 @@ util.inherits(WebSocketListener, websocket.server);
     }
 
     this.shutDown = function(request) {
-        console.log('Stopping websocket listener');
+        log(this.debugLevel, 'Stopping websocket listener');
         Object.keys(this.requestHandler).forEach(function(path) {
             this.unregisterSubhandler(path); }, this);
         websocket.server.prototype.shutDown.call(this);
@@ -254,7 +263,7 @@ util.inherits(WebSocketListener, websocket.server);
     this.dispatchRequest = function(request) {
         if (!this.originIsAllowed(request.origin)) {
             request.reject();
-            console.log('Connection from origin %s rejected.', request.origin);
+            log(this.debugLevel, 'Connection from origin %s rejected.', request.origin);
             return;
         }
         var handler = this.findHandler(request);
@@ -279,7 +288,7 @@ function WebSocketServer(options) {
     EventEmitter.call(this);
     this.sender = options.sender || null;
     this.connections = [];
-    this.debug = true;
+    this.debugLevel = options.debugLevel || 1;
     this.route = '';
     this.subserver = null;
     this.requiresSender = false;
@@ -315,10 +324,8 @@ util.inherits(WebSocketServer, EventEmitter);
         var c = request.accept('lively-json', request.origin), server = this;
 
         c.on('close', function(msg) {
-            if (server.debug) {
-                if (c.id) console.log('websocket %s closed', c.id)
-                else console.log('a websocket connection was closed');
-            }
+            if (c.id) log(this.debugLevel, 'websocket %s closed', c.id)
+            else log(this.debugLevel, 'a websocket connection was closed');
             server.removeConnection(c);
         });
 

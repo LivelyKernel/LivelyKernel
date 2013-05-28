@@ -428,7 +428,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 'rendering', {
 
     growOrShrinkToFit: function() {
-        if (this.getExtent() != this.getTextExtent()) {
+        if (!this.getExtent().eqPt(this.getTextExtent())) {
             this.setExtent(this.getTextExtent());
         }
     },

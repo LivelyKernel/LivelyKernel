@@ -181,7 +181,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         this.setPosition(this.computePositionAtTarget(this.targetMorph));
     },
     computePositionAtTarget: function(targetMorph) {
-        targetMorph = targetMorph || this.targetMorph;
+        targetMorph = targetMorph && targetMorph.owner ? targetMorph : this.targetMorph;
         var world = targetMorph.world(),
             owner = targetMorph.owner;
         if (!world && !owner) return pt(0,0);

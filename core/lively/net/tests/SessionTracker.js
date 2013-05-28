@@ -178,6 +178,24 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.assertEquals('foo', receivedData.data);
             this.done()
         });
+    },
+    testGetUsers: function() {
+        var result, ts = Global.LastEvent.timeStamp;
+        this.sut.register();
+        this.sut.getUserInfo(function(users) { result = users; });
+        this.waitFor(function() { return !!result; }, 10, function() {
+            var expected = {
+                SessionTrackerTestUser: [{
+                    id: this.sut.sessionId,
+                    tracker: this.sut.trackerId,
+                    worldURL: URL.source.toString(),
+                    lastActivity: ts,
+                    remoteAddress: result.SessionTrackerTestUser[0].remoteAddress
+                }]
+            }
+            this.assertEqualState(expected, result, '...' + Objects.inspect(result));
+            this.done()
+        });
     }
 
 });

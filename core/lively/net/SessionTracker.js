@@ -116,6 +116,29 @@ Object.subclass('lively.net.SessionTrackerConnection',
             while ((cb = self._getSessionsQueue.shift())) cb && cb(sessions);
         });
     },
+    getUserInfo: function(thenDo) {
+        // flatten the session data and group by user so that it becomes
+        // easier to consume
+        this.getSessions(function(sessions) {
+            var result = {};
+            for (var trackerId in sessions) {
+                for (var sessionId in sessions[trackerId]) {
+                    if (!sessions[trackerId]) { continue; }
+                    var session = sessions[trackerId][sessionId];
+                    var sessionList = result[session.user] || (result[session.user] = []);
+                    sessionList.push({
+                        id: sessionId,
+                        tracker: trackerId,
+                        worldURL: session.worldURL,
+                        lastActivity: session.lastActivity,
+                        remoteAddress: session.remoteAddress
+                    });
+                }
+            }
+            thenDo(result);
+        });
+    },
+
 },
 'session management', {
 

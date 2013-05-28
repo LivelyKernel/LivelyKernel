@@ -317,11 +317,17 @@ Object.extend(lively.net.SessionTracker, {
 });
 
 (function setupSessionTrackerConnection() {
-    lively.whenLoaded(function() {
+    lively.whenLoaded(function(world) {
         if (!Config.get('lively2livelyAutoStart')) return;
         var session = lively.net.SessionTracker.createSession(),
             livelyCentral = Config.get('lively2livelyCentral');
         livelyCentral && session.initServerToServerConnect(livelyCentral);
+        if (Config.get('lively2livelyEnableConnectionIndicator')) {
+            require('lively.net.tools.Lively2Lively').toRun(function() {
+                if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();
+                lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
+            });
+        }
     });
 })();
 

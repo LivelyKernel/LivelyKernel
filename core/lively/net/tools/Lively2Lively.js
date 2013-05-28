@@ -1,5 +1,177 @@
 module('lively.net.tools.Lively2Lively').requires().toRun(function() {
 
+lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
+    _BorderRadius: 20,
+    _Extent: lively.pt(120.0,30.0),
+    _Fill: Color.rgba(255,255,255,0.8),
+    _HandStyle: "pointer",
+    _Position: lively.pt(1761.6,-10.0),
+    className: "lively.morphic.Box",
+    currentMenu: null,
+    doNotSerialize: ["currentMenu"],
+    droppingEnabled: true,
+    fixedPosition: lively.pt(1761.6,-10.0),
+    fixedScale: 1,
+    isFixed: true,
+    menu: null,
+    name: "Lively2LivelyStatus",
+    sourceModule: "lively.morphic.Core",
+    statusText: {
+        isMorphRef: true,
+        name: "statusText"
+    },
+    submorphs: [{
+        _Align: "center",
+        _ClipMode: "hidden",
+        _Extent: lively.pt(87.0,20.0),
+        _FontFamily: "Helvetica",
+        _HandStyle: "pointer",
+        _InputAllowed: false,
+        _Position: lively.pt(16.5,12.0),
+        _TextColor: Color.rgb(127,230,127),
+        allowInput: false,
+        className: "lively.morphic.Text",
+        doNotSerialize: ["charsTyped"],
+        emphasis: [[0,9,{
+            fontWeight: "normal",
+            italics: "normal"
+        }]],
+        evalEnabled: false,
+        eventsAreIgnored: true,
+        fixedHeight: true,
+        fixedWidth: true,
+        isLabel: true,
+        name: "statusText",
+        sourceModule: "lively.morphic.TextCore",
+        style: {
+            align: "center",
+            allowInput: false,
+            clipMode: "hidden",
+            extent: lively.pt(87.0,20.0),
+            fixedHeight: true,
+            fixedWidth: true,
+            fontFamily: "Helvetica",
+            handStyle: "pointer",
+            position: lively.pt(6.5,12.0),
+            textColor: Color.rgb(127,230,127)
+        },
+        submorphs: [],
+        textString: "Connected"
+    }],
+    alignInWorld: function alignInWorld() {
+    this.setFixed(false);
+    var worldB = this.world().visibleBounds();
+    var x = worldB.width / 100 * 98; // 98% to the right
+    this.align(
+        this.worldPoint(this.innerBounds().topRight()),
+        worldB.topLeft().addXY(x, -10));
+    this.setFixed(true);
+    this.statusText.align(this.statusText.bounds().center(), this.innerBounds().bottomCenter().addXY(0,-8));
+    this.menu && this.menu.align(
+        this.menu.bounds().bottomCenter(),
+        this.statusText.bounds().topCenter().addXY(0, -15));
+},
+    collapse: function collapse() {
+    // this.collapse()
+    this.withCSSTransitionForAllSubmorphsDo(function() {
+        this.setExtent(lively.pt(120.0,30.0));
+        this.alignInWorld();
+    }, 500, function() {
+        if (this.menu) {
+            this.menu.remove();
+            this.menu = null;
+        }
+    });
+},
+    expand: function expand() {
+    var self = this;
+    var items = [
+        ['open chat', function() {
+            self.collapse();
+        }],
+        ['open inspector', function() {
+            lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter();
+            self.collapse();
+        }]
+    ];
+    this.menu = new lively.morphic.Menu(null, items);
+    this.menu.openIn(this, pt(0,0), false);
+    this.menu.setBounds(lively.rect(8,-49,124,46));
+    this.withCSSTransitionForAllSubmorphsDo(function() {
+        this.setExtent(pt(140, 95));
+        this.alignInWorld();
+    }, 500, function() {});
+},
+    onConnect: function onConnect() {
+    this.statusText.textString = 'Connected';
+    this.statusText.applyStyle({textColor: Color.green.lighter()});
+},
+    onConnecting: function onConnecting() {
+    this.statusText.textString = 'Connecting';
+    this.statusText.applyStyle({textColor: Color.gray});
+},
+    onDisconnect: function onDisconnect() {
+    // this.onDisconnect()
+    this.statusText.textString = 'Disconnected'
+    this.statusText.applyStyle({textColor: Color.red});
+},
+    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        $super();
+        this.onLoad();
+    },
+    onLoad: function onLoad() {
+    this.startStepping(5*1000, 'update');
+    this.openInWorld();
+    this.alignInWorld();
+    this.onConnecting();
+    this.update();
+    this.statusText.setHandStyle('pointer');
+},
+    onMouseDown: function onMouseDown(evt) {
+    if (evt.getTargetMorph() !== this.statusText && evt.getTargetMorph() !== this) {
+        return false;
+    }
+    if (this.menu) {
+        this.collapse();
+    } else {
+        this.expand();
+    }
+    evt.stop(); return true;
+},
+    reset: function reset() {
+    this.setExtent(lively.pt(100.0,30.0));
+    this.statusText = lively.morphic.Text.makeLabel('Disconnected', {align: 'center', textColor: Color.green, fill: null});
+    // this.statusText = this.get('statusText')
+    this.addMorph(this.statusText);
+    this.statusText.name = 'statusText'
+    this.setFixed(true);
+    this.isEpiMorph = true;
+    this.setHandStyle('pointer');
+    this.statusText.setHandStyle('pointer');
+    this.startStepping(5*1000, 'update');
+    this.grabbingEnabled = false;
+    this.lock();
+    this.doNotSerialize = ['currentMenu']
+    this.currentMenu = null;
+    this.buildSpec();
+},
+    session: function session() {
+    return lively.net.SessionTracker.getSession();
+},
+    update: function update() {
+    var s = this.session();
+    switch (s && s.status()) {
+        case null:
+        case 'disconnected': this.onDisconnect(); break;
+        case 'connected': this.onConnect(); break;
+        case 'connecting': this.onConnecting(); break;
+    }
+}
+})
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// -----
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(650.0,386.0),
@@ -32,7 +204,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         _Position: lively.pt(4.0,22.0),
         _StyleClassNames: ["Morph","Box","Lively2LivelyInspector"],
         _StyleSheet: ".Lively2LivelyInspector {\n\
-    	background: white;\n\
+        background: white;\n\
     }\n\
     \n\
     .SessionList select {\n\

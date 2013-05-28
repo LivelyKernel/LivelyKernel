@@ -139,7 +139,7 @@ regex /^\s*([^\.]+)?/\.?(sub)?class/
 snippet Oe
     Object.extend(${1:obj}, {$0});
 # collection iter
-regex /^\s*([^\.]+)?/\.?((iter|forEa?c?h?)|(select|collect|reject))/
+regex /^\s*([^\.]+)?/\.?((iter|forEa?c?h?)|(select|collect|reject|detect))/
     ${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(function(${3:ea}) { ${0:${M4?return :}}; }${4:, this});
 # 
 snippet for-

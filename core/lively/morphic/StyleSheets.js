@@ -567,6 +567,9 @@ lively.morphic.Morph.addMethods(
             classNameOrNames : [classNameOrNames]);
         this.setStyleClassNames(ownClassNames);
     },
+    hasStyleClassName: function(className) {
+        return this.getStyleClassNames().include(className);
+    },
 
     setStyleId: function (id) {
         // TODO: warn if another morph in the world

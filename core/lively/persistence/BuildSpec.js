@@ -355,7 +355,8 @@ lively.morphic.Morph.addMethods(
         isLockOwner: {exclude: true},
         isInLayoutCycle: {exclude: true},
         modalMorph: {exclude: true},
-        currentMenu: {exclude: true}
+        currentMenu: {exclude: true},
+        layout: {exlude: true}
     },
 
     getBuildSpecProperties: function(rawProps) {

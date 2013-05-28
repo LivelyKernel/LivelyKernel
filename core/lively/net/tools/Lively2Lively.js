@@ -69,7 +69,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     this.statusText.align(this.statusText.bounds().center(), this.innerBounds().bottomCenter().addXY(0,-8));
     this.menu && this.menu.align(
         this.menu.bounds().bottomCenter(),
-        this.statusText.bounds().topCenter().addXY(0, -15));
+        this.statusText.bounds().topCenter().addXY(0, -12));
 },
     collapse: function collapse() {
     // this.collapse()
@@ -89,6 +89,11 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         ['open chat', function() {
             self.collapse();
         }],
+        ['reset connection', function() {
+            lively.net.SessionTracker.resetSession();
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            self.collapse();
+        }],
         ['open inspector', function() {
             lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter();
             self.collapse();
@@ -96,9 +101,9 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     ];
     this.menu = new lively.morphic.Menu(null, items);
     this.menu.openIn(this, pt(0,0), false);
-    this.menu.setBounds(lively.rect(8,-49,124,46));
+    this.menu.setBounds(lively.rect(8,-45,124,23*3));
     this.withCSSTransitionForAllSubmorphsDo(function() {
-        this.setExtent(pt(140, 95));
+        this.setExtent(pt(140, 115));
         this.alignInWorld();
     }, 500, function() {});
 },

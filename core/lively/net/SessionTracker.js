@@ -312,8 +312,16 @@ Object.extend(lively.net.SessionTracker, {
 
     getServerStatus: function() {
         return this.localSessionTrackerURL.asWebResource().get().getJSON();
-    }
+    },
 
+    resetSession: function() {
+        var s = this.getSession();
+        s && s.isConnected() && s.initServerToServerDisconnect();
+        this.closeSessions();
+        s = this.createSession();
+        livelyCentral = Config.get('lively2livelyCentral');
+        livelyCentral && s.initServerToServerConnect(livelyCentral);
+    }
 });
 
 (function setupSessionTrackerConnection() {

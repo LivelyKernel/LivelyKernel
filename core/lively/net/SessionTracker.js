@@ -322,7 +322,11 @@ Object.extend(lively.net.SessionTracker, {
             console.warn('Cannot register lively session because no user is logged in');
             return;
         }
-        s = new lively.net.SessionTrackerConnection({sessionTrackerURL: url, username: user});
+        s = new lively.net.SessionTrackerConnection({
+            sessionTrackerURL: url,
+            username: user,
+            getSessionsCacheInvalidationTimeout: 10*1000
+        });
         s.register();
         s.openForRequests();
         if (!this._onBrowserShutdown) {
@@ -361,21 +365,25 @@ Object.extend(lively.net.SessionTracker, {
     },
 
     resetSession: function() {
+        // s=lively.net.SessionTracker.resetSession()
         var s = this.getSession();
         s && s.isConnected() && s.initServerToServerDisconnect();
         this.closeSessions();
         s = this.createSession();
         livelyCentral = Config.get('lively2livelyCentral');
         livelyCentral && s.initServerToServerConnect(livelyCentral);
+        return s;
     }
 });
 
 (function setupSessionTrackerConnection() {
     lively.whenLoaded(function(world) {
         if (!Config.get('lively2livelyAutoStart')) return;
-        var session = lively.net.SessionTracker.createSession(),
-            livelyCentral = Config.get('lively2livelyCentral');
-        livelyCentral && session.initServerToServerConnect(livelyCentral);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // 1) connect to tracker
+        var session = lively.net.SessionTracker.resetSession();
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // start UI
         if (Config.get('lively2livelyEnableConnectionIndicator')) {
             require('lively.net.tools.Lively2Lively').toRun(function() {
                 if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();

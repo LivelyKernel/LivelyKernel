@@ -8,8 +8,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.sessionTrackerURL = options.sessionTrackerURL;
         this.username = options.username;
         this._status = 'disconnected';
-        this.registerTimeout = 60*1000; // ms
-        this.activityTimeReportDelay = 20*1000; // ms
+        this.registerTimeout = options.registerTimeout || 60*1000; // ms
+        this.activityTimeReportDelay = options.activityTimeReportDelay || 20*1000; // ms
+        // a value other than null will enable session caching, i.e.
+        // this.getSessions will only do a request at most as specified by timeout
+        this.getSessionsCacheInvalidationTimeout = options.getSessionsCacheInvalidationTimeout || null;
     }
 },
 'net accessors', {
@@ -90,9 +93,29 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     getSessions: function(cb) {
+        // if timeout specified throttle requests so that they happen at most
+        // timeout-often
+        var to = this.getSessionsCacheInvalidationTimeout;
+        if (to && this._getSessionsCachedResult) {
+            cb && cb(this._getSessionsCachedResult); return; }
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // queue requests
+        var self = this;
+        if (!this._getSessionsQueue) this._getSessionsQueue = [];
+        this._getSessionsQueue.push(cb);
+        if (this._getSessionsInProgress) return;
+        // start request if currently no one ongoing
+        this._getSessionsInProgress = true;
         this.sendTo(this.trackerId, 'getSessions', {}, function(msg) {
-            cb && cb(msg && msg.data); });
-    }
+            self._getSessionsInProgress = false;
+            var sessions = msg && msg.data; cb;
+            if (to) {
+                self._getSessionsCachedResult = sessions;
+                (function() { self._getSessionsCachedResult = null; }).delay(to/1000);
+            }
+            while ((cb = self._getSessionsQueue.shift())) cb && cb(sessions);
+        });
+    },
 },
 'session management', {
 

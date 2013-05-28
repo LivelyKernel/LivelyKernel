@@ -306,6 +306,11 @@ Object.extend(lively.net.SessionTracker, {
                 error = e + '\n' + e.stack;
             }
             session.answer(msg, {result: String(result), error: error});
+        },
+        chatMessage: function(msg, session) {
+            lively.log('Got chat message from %s: %s', msg.data.user, msg.data.message);
+            session.answer(msg, {message: 'chat message received', error: null});
+        },
         messageNotUnderstood: function(msg, session) {
             show('Lively2Lively message not understood:\n%o', msg);
         }

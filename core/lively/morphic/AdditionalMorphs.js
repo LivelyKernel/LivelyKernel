@@ -41,8 +41,8 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     getContextHTML: function(ctx, optContext) {
         return ctx.shapeNode ? ctx.shapeNode.getContext(optContext|| '2d') : null;
     },
-    appendHTML: function($super, ctx) {
-       $super(ctx);
+    appendHTML: function($super, ctx, optMorphAfter) {
+       $super(ctx, optMorphAfter);
        this.adaptCanvasSizeHTML(ctx);
     },
     createCanvasNodeHTML: function(ctx) {

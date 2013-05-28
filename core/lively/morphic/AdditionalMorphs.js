@@ -30,7 +30,11 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
             ctx.clearRect(0, 0, width, height);
             ctx.restore();
         }
+    },
+    onCanvasChanged: function() {
+        // canvas created or loaded or size changed, need to redraw contents
     }
+
 },
 'HTML rendering', {
     htmlDispatchTable: {
@@ -54,6 +58,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
             y = $node.height();
         $node.attr('width', x);
         $node.attr('height', y);
+        this.onCanvasChanged();
     }
 });
 

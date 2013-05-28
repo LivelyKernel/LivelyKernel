@@ -306,6 +306,8 @@ Object.extend(lively.net.SessionTracker, {
                 error = e + '\n' + e.stack;
             }
             session.answer(msg, {result: String(result), error: error});
+        messageNotUnderstood: function(msg, session) {
+            show('Lively2Lively message not understood:\n%o', msg);
         }
     },
 

@@ -121,6 +121,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         lineWrapping: Config.get('aceDefaultLineWrapping'),
         invisibles: Config.get('aceDefaultShowInvisibles'),
         printMargin: Config.get('aceDefaultShowPrintMargin'),
+        showActiveLine: Config.get('aceDefaultShowActiveLine'),
         showIndents: Config.get('aceDefaultShowIndents')
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
@@ -165,6 +166,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.invisibles !== undefined) this.setShowInvisibles(spec.invisibles);
         if (spec.printMargin !== undefined) this.setShowPrintMargin(spec.printMargin);
         if (spec.showIndents !== undefined) this.setShowIndents(spec.showIndents);
+        if (spec.showActiveLine !== undefined) this.setShowActiveLine(spec.showActiveLine);
         return this;
     }
 },
@@ -219,6 +221,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowPrintMargin(this.getShowPrintMargin());
         this.setShowInvisibles(this.getShowInvisibles());
         this.setShowIndents(this.getShowIndents());
+        this.setShowActiveLine(this.getShowActiveLine());
         this._StyleClassNames = this.jQuery().attr('class').split(' ');
 
         // 4) run after setup callbacks
@@ -1140,6 +1143,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getShowIndents: function() {
         return this._setShowIndents || this.withAceDo(function(ed) {
             return ed.getDisplayIndentGuides(); });
+    },
+
+    setShowActiveLine: function(bool) {
+        this.withAceDo(function(ed) { ed.setHighlightActiveLine(bool); });
+        return this._setShowActiveLine = bool;
+    },
+    getShowActiveLine: function() {
+        return this._setShowActiveLine || this.withAceDo(function(ed) {
+            return ed.getHighlightActiveLine(); });
     }
 
 },

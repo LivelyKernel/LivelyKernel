@@ -470,7 +470,8 @@ Config.addOptions(
     ['aceDefaultShowInvisibles', false, "Indicators for whitespace / non-print chars."],
     ['aceDefaultShowPrintMargin', true, "Show a vertical line at the print margin column."],
     ['aceDefaultShowIndents', true, "Indicators for indents in the beginning of lines."],
-    ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"]
+    ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"],
+    ['aceDefaultShowActiveLine', false, "Current line is highlighted"]
 ],
 
 'lively.morphic.StyleSheets', [

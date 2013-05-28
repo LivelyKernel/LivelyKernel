@@ -2153,7 +2153,37 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         $super(new Rectangle(0,0, 100,100));
         this.itemMorphs = [];
         this.setList(items || []);
-    }
+        this.initializeLayout();
+    },
+    initializeLayout: function(layoutStyle) {
+        // layoutStyle: {
+        //   type: "tiling"|"horizontal"|"vertical",
+        //   spacing: NUMBER,
+        //   border: NUMBER
+        // }
+        var defaultLayout = {
+            type: 'tiling',
+            border: 0, spacing: 20
+        }
+        layoutStyle = Object.extend(defaultLayout, layoutStyle || {});
+        this.applyStyle({
+            fill: Color.white, borderWidth: 0,
+            borderColor: Color.black, clipMode: 'auto',
+            resizeWidth: true, resizeHeight: true
+        })
+        var klass;
+        switch (layoutStyle.type) {
+            case 'vertical': klass = lively.morphic.Layout.VerticalLayout; break;
+            case 'horizontal': klass = lively.morphic.Layout.HorizontalLayout; break;
+            case 'tiling': klass = lively.morphic.Layout.TileLayout; break;
+            default: klass = lively.morphic.Layout.TileLayout; break;
+        }
+        layouter = new klass(this);
+        layouter.setBorderSize(layoutStyle.border);
+        layouter.setSpacing(layoutStyle.spacing);
+        this.setLayouter(layouter);
+    },
+
 },
 'morph menu', {
     getMenu: function() { /*FIXME actually menu items*/ return [] }

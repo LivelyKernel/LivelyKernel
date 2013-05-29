@@ -128,7 +128,7 @@ function(t) {return t * 3}).finalize([]);
         var timer = this.newStream().timerE(1000).setCode("timerE(1000)").finalize([]);
         timer.installTo(obj, "timer");
 
-        var collector = this.newStream().collector("timer", {now: 1, prev: 0},
+        var collector = this.newStream().collectE("timer", {now: 1, prev: 0},
             function(newVal, oldVal) {return {now: oldVal.now + oldVal.prev, prev: oldVal.now}}).setCode("timer.collectE({now: 1, prev: 0}, function(newVal, oldVal) {return {now: oldVal.now + oldVal.prev, prev: oldVal.now}}").finalize([]);
         collector.installTo(obj, "collector");
 
@@ -181,62 +181,105 @@ function(t) {return t * 3}).finalize([]);
         var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
         timer.installTo(obj, "timer");
         var delayer = this.newStream().delayE("timer", 3000).setCode("timer.delayE(3000)").finalize([]);
-        delayer.installTo(obj);
+        delayer.installTo(obj, "delayer");
     
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
-
-        evaluator.evaluateAt(1000);
-        this.assertEquals(timer.currentValue, 0);
-        this.assertEquals(delayer.currentValue, undefined);
-        evaluator.evaluateAt(2000);
-        this.assertEquals(timer.currentValue, 1000);
-        this.assertEquals(delayer.currentValue, undefined);
-        evaluator.evaluateAt(3000);
-        this.assertEquals(timer.currentValue, 2000);
-        this.assertEquals(delayer.currentValue, undefined);
-        evaluator.evaluateAt(4000);
-        this.assertEquals(timer.currentValue, 3000);
-        this.assertEquals(delayer.currentValue, 0);
-        evaluator.evaluateAt(5000);
-        this.assertEquals(timer.currentValue, 4000);
-        this.assertEquals(delayer.currentValue, 1000);
-        evaluator.evaluateAt(6000);
-        this.assertEquals(timer.currentValue, 5000);
-        this.assertEquals(delayer.currentValue, 2000);
-        evaluator.evaluateAt(7000);
-        this.assertEquals(timer.currentValue, 6000);
-        this.assertEquals(delayer.currentValue, 3000);
-        evaluator.evaluateAt(8000);
-        this.assertEquals(timer.currentValue, 7000);
-        this.assertEquals(delayer.currentValue, 4000);
-        evaluator.evaluateAt(9000);
-        this.assertEquals(timer.currentValue, 8000);
-        this.assertEquals(delayer.currentValue, 5000);
-        evaluator.evaluateAt(10000);
-        this.assertEquals(timer.currentValue, 9000);
-        this.assertEquals(delayer.currentValue, 6000);
-        this.assertEquals(timer.done, false);
-        evaluator.evaluateAt(11000);
-        this.assertEquals(timer.currentValue, 10000);
-        this.assertEquals(delayer.currentValue, 7000);
+        var i;
+        for (i = 1000; i <= 3000; i += 1000) {
+            evaluator.evaluateAt(i);
+            this.assertEquals(timer.currentValue, i - 1000);
+            this.assertEquals(delayer.currentValue, undefined);
+        }
+        for (i = 4000; i <= 11000; i += 1000) {
+            evaluator.evaluateAt(i);
+            this.assertEquals(timer.currentValue, i - 1000);
+            this.assertEquals(delayer.currentValue, i - 4000);
+        }
         this.assertEquals(timer.done, true);
-        evaluator.evaluateAt(12000);
-        this.assertEquals(timer.currentValue, 10000);
-        this.assertEquals(delayer.currentValue, 8000);
-        evaluator.evaluateAt(13000);
-        this.assertEquals(timer.currentValue, 10000);
-        this.assertEquals(delayer.currentValue, 9000);
-        evaluator.evaluateAt(14000);
-        this.assertEquals(timer.currentValue, 10000);
-        this.assertEquals(delayer.currentValue, 10000);
-        evaluator.evaluateAt(15000);
-        this.assertEquals(timer.currentValue, 10000);
-        this.assertEquals(delayer.currentValue, 10000);
+        for (i = 12000; i <= 15000; i += 1000) {
+            evaluator.evaluateAt(i);
+            this.assertEquals(timer.currentValue, 10000);
+            this.assertEquals(delayer.currentValue, (i - 4000 < 10000 ? i - 4000 : 10000));
+        }
+    },
+    testNat: function() {
+        var obj = {};
+        var evaluator = this.newEvaluator();
+        evaluator.installTo(obj);
+
+        var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
+        timer.installTo(obj, "timer");
+        var nat = this.newStream().expr([],
+            function() {return this.owner.nat.lastValue + 1}, true, 0).finalize([this.ref("timer")]);
+        nat.installTo(obj, "nat");
+    
+        evaluator.reset();
+        evaluator.addStreamsFrom(obj);
+        evaluator.sort();
+        var i;
+        for (i = 1000; i <= 10000; i += 1000) {
+            evaluator.evaluateAt(i);
+            this.assertEquals(timer.currentValue, i - 1000);
+            this.assertEquals(nat.currentValue, i / 1000);
+        }
+    },
+    testEvenOdd: function() {
+        var obj = {};
+        var evaluator = this.newEvaluator();
+        evaluator.installTo(obj);
+
+        var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
+        timer.installTo(obj, "timer");
+        var nat = this.newStream().expr([],
+            function() {return this.owner.nat.lastValue + 1}, true, 0).finalize([this.ref("timer")]);
+        nat.installTo(obj, "nat");
+
+        var even = this.newStream().expr([this.ref("nat")],
+            function(n) {return n % 2 === 0}, true, true).finalize([]);
+        even.installTo(obj, "even");
+
+        var evenInner = this.newStream().expr([this.ref("nat")],
+            function(n) {return n % 2 === 0}, true, true).finalize([]);
+
+        var odd = this.newStream().expr([this.ref("_t1")],
+            function(e) {return !e}, true, false).finalize([this.ref("nat")]);
+        odd.addSubExpression("_t1", evenInner);
+        odd.installTo(obj, "odd");
+
+        evaluator.reset();
+        evaluator.addStreamsFrom(obj);
+        evaluator.sort();
+        var i;
+        for (i = 1000; i <= 10000; i += 1000) {
+            evaluator.evaluateAt(i);
+            this.assertEquals(timer.currentValue, i - 1000);
+            this.assertEquals(even.currentValue, (i / 1000) % 2 === 0);
+            this.assertEquals(odd.currentValue, ((i / 1000) % 2 !== 0));
+        }
+    },
+    testMergeE: function() {
+        var obj = {};
+        var evaluator = this.newEvaluator();
+        evaluator.installTo(obj);
+
+        var timer1 = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
+        timer1.installTo(obj, "timer1");
+        var timer2 = this.newStream().durationE(500, 10000).setCode("durationE(500, 2000)").finalize([]);
+        timer2.installTo(obj, "timer12");
+        var mergeE = this.newStream().mergeE("timer1", "timer2").finalize([]);
+        mergeE.installTo(obj, "mergeE");
+
+        evaluator.reset();
+        evaluator.addStreamsFrom(obj);
+        evaluator.sort();
+
+        evaluator.evaluateAt(500);
+        this.assertEquals(mergeE.currentValue, 0);
+        evaluator.evaluateAt(1000);
+        this.assert(mergeE.currentValue === 500 || mergeE.currentValue === 1000);
     }
-
-
 },
 'support', {
     newEvaluator: function() {

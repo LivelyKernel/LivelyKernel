@@ -70,7 +70,8 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     uninstall: function() {
         this.owner.__evaluator.uninstallStream(this);
     },
-
+},
+'combinators', {
     timerE: function(interval) {
         this.setUp("timerE", [],
             function(space, evaluator) {return this.ceilTime(evaluator.currentTime, this.interval)},
@@ -141,7 +142,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         return this;
     },
 
-    collector: function(event, initialValue, func) {
+    collectE: function(event, initialValue, func) {
         this.setUp("collectE", [this.ref(event)],
             function(space, evaluator) {
                 return (space.frpGet(this.func))
@@ -154,11 +155,27 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.initialValue = initialValue;
         this.func = func;
         this.event = this.ref(event);
-        return this;        
+        return this;
     },
 
-    expr: function(arguments, expression, isContinuous) {
+    mergeE: function() {
+        var ary = [];
+        for (var i = 0; i < arguments.length; i++) {
+            ary[i] = this.ref(arguments[i]);
+        }
+        this.setUp("mergeE", ary,
+            function(space, evaluator) {
+                return evaluator.arguments[this.id][0];
+            },
+            this.mergeEChecker);
+        return this;
+    },
+
+    expr: function(arguments, expression, isContinuous, initialValue) {
         this.setUp("exprE", arguments, null, null, isContinuous);
+        if (initialValue !== undefined) {
+            this.currentValue = this.lastValue = initialValue;
+        }
         this.expression = expression;
         return this;
     },
@@ -168,8 +185,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             this.beContinuous(initialValue);
         }
         return this;
-    }
-
+    },
 },
 'evaluation', {
     addSubExpression: function(id, stream) {
@@ -266,6 +282,25 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         return result === null ? false : result;
     },
+
+    mergeEChecker: function(space, time, evaluator) {
+    // The checker for mergeE().  For mergeE, an undefined in sources is allowed.
+        var dependencies = evaluator.dependencies[this.id];
+        var result = null;
+        var args = evaluator.arguments[this.id];
+        for (var i = 0; i < dependencies.length; i++) {
+            var src = dependencies[i];
+            if (this.isEventStream(src)
+                && (this.isEarlierThan(src) && src.currentValue !== undefined)) {
+                    if (result === null) {
+                        result = true;
+                        args[0] = src.currentValue
+                    }
+            }
+        }
+        return result === null ? false : result;
+    },
+
     basicUpdater: function(space, evaluator) {
     // The updater for the expr type
         return this.expression.apply(this, evaluator.arguments[this.id]);
@@ -306,6 +341,9 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
     ceilTime: function(time, interval) {
         return Math.floor(time / interval) * interval;
+    },
+    sync: function() {
+		this.lastValue = this.currentValue;
     },
 
     isEventStream: function(v) {
@@ -421,6 +459,11 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.currentTime = time;
         for (var i = 0; i < this.results.length; i++) {
             changed = this.results[i].maybeEvalAt(time, this) || changed;
+        }
+        if (changed) {
+            for (i = 0; i < this.results.length; i++) {
+                this.results[i].sync();
+            }
         }
         return changed;
     },

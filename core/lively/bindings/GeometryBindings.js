@@ -157,6 +157,7 @@ lively.morphic.Morph.addMethods(
         name: {},
         position: { map: '_Position'},
         rotation: { map: '_Rotation'},
+        setRotation: {},
         scale: { map: '_Scale'},
         setScale: {},
 

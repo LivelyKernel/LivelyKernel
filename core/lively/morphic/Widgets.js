@@ -3758,7 +3758,7 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
 },
 'mouse events', {
     onDragStart: function($super, evt) {
-        this.hitPoint = evt.getPosition();
+        this.hitPoint = this.owner.localize(evt.getPosition());
         return true;
     },
     onDrag: function($super, evt) {
@@ -3766,12 +3766,12 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
         if (!this.hitPoint) return; // we were not clicked on...
 
         // Compute the value from a new mouse point, and emit it
-        var delta = evt.getPosition().subPt(this.hitPoint),
+        var delta = this.owner.localize(evt.getPosition()).subPt(this.hitPoint),
             p = this.bounds().topLeft().addPt(delta),
             bnds = this.slider.innerBounds(),
             ext = this.slider.getSliderExtent();
 
-        this.hitPoint = evt.getPosition()
+        this.hitPoint = this.owner.localize(evt.getPosition());
         if (this.slider.vertical()) {
             // thickness of elevator in pixels
             var elevPix = Math.max(ext*bnds.height,this.slider.mss),

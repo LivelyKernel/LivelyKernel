@@ -62,13 +62,24 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         object.__evaluator.installStream(this);
         object[name] = this;
         this.owner = object;
+        this.streamName = name;
         if (this.isContinuous) {
             this.setLastTime(-1);
         }
+        if (!this.owner.hasOwnProperty("connections")) {
+            this.owner.connections = {};
+        }
+        this.owner.connections[name] = {map: name + ".currentValue"};
+        this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n)");
     },
 
     uninstall: function() {
         this.owner.__evaluator.uninstallStream(this);
+        delete this.owner[this.streamName];
+        delete this.owner["_" + this.streamName];
+        delete this.owner.connections[this.streamNamename];
+        delete this.owner;
+        delete this.streamName;
     },
 },
 'combinators', {
@@ -468,7 +479,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         return changed;
     },
     resetSortedResults: function() {
-        this.results = null;
+        this.reset();
     },
     installTo: function(object) {
         object.__startTime = Date.now();
@@ -523,5 +534,13 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
 });
 
 lively.bindings.FRPCore.Evaluator.allTimers = [];
+
+lively.morphic.Morph.addMethods({
+    openFRPInspector: function() {
+        var inspectorWindow = $world.openPartItem('FRPInspector', 'PartsBin/Tools');
+        var inspector = inspectorWindow.get("FRPInspector");
+        inspector.setTarget(this);
+    }
+})
 
 }); // end of module

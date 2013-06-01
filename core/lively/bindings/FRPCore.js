@@ -36,7 +36,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.type = type;
         this.updater = updater || this.basicUpdater;
         this.sources = srcs;
-        this.dependencies = srcs.clone();
+        this.dependencies = srcs.filter(function(e) {return this.isStreamRef(e)}.bind(this))
         this.currentValue = undefined;
         this.lastValue = undefined;
         this.checker = checker || this.basicChecker;
@@ -69,7 +69,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         if (!this.owner.hasOwnProperty("connections")) {
             this.owner.connections = {};
         }
-        this.owner.connections[name] = {map: name + ".currentValue"};
+        this.owner.connections[name] = {map: name + ".connectionTrigger"};
         this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n)");
     },
 
@@ -210,8 +210,8 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.subExpressions.push(this.ref(id));
         this[id] = stream;
     },
-    
-    finalize: function(collection) {
+
+    addDependencies: function(collection) {
     // Make sure that subExpressions field at least has a value.
     // collection is a collection of additional dependencies.
         if (!this.subExpressions) {
@@ -229,6 +229,29 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             }
         }.bind(this));
         return this;
+    },
+
+    finalize: function(collection, maybe) {
+        debugger;
+        if (!this.subExpressions || this.subExpressions.length === 0) {
+            if (this.type === undefined) {
+                if (collection.length === 0) {
+                    return maybe;
+                }
+                return this.expr([collection.pop()], function(n) {return n});
+            }
+            this.addDependencies(collection);
+            return this;
+        }
+        var top = this[this.subExpressions.pop().ref];
+        top.subExpressions = this.subExpressions || [];
+        for (var k in this) {
+            if (this.hasOwnProperty(k) && k.match('^_t')) {
+                top[k] = this[k];
+            }
+        }
+        top.addDependencies(collection);
+        return top;
     },
 
     evalSubExpression: function(time, space, evaluator) {
@@ -354,6 +377,11 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         return Math.floor(time / interval) * interval;
     },
     sync: function() {
+    // refresh the last value cache at the end of evaluation cycle.
+    // the connectionTrigger is the field to trigger the lively connector.
+        if (this.connectionTrigger !== this.currentValue) {
+            this.connectionTrigger = this.currentValue;
+        }
 		this.lastValue = this.currentValue;
     },
 
@@ -541,6 +569,29 @@ lively.morphic.Morph.addMethods({
         var inspector = inspectorWindow.get("FRPInspector");
         inspector.setTarget(this);
     }
-})
+});
+
+ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
+'interface', {
+    serializeObj: function(obj) {
+        if (!(obj instanceof lively.bindings.FRPCore.EventStream)) {
+            return null;
+        }
+        return {
+            isSerializedStream: true, 
+            type: obj.type,
+            currentValue: (obj.isContinuous ? this.currentValue : undefined),
+            isContinuous: obj.isContinuous,
+            code: obj.code
+        };
+    },
+    deserializeObj: function(copy) {
+        if (copy && copy.isSerializedStream) {
+            if (copy.type === "value") {
+                return new lively.bindings.FRPCore.EventStream().value(copy.currentValue);
+            }
+        }
+    }
+});
 
 }); // end of module

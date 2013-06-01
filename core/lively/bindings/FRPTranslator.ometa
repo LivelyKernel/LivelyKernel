@@ -1,0 +1,38 @@
+ometa FRPTranslator {
+    start       = (empty -> (function() {
+                    this.id = 0;
+                    this.dependents = [];
+                    this.result = new StringBuffer();
+                    this.result.nextPutAll("(function () {var strm = new lively.bindings.FRPCore.EventStream(); ");
+    }.bind(this))()) trans
+        -> ((function() {
+            this.result.nextPutAll("return strm.finalize([");
+            this.result.nextPutAll(this.dependents.join(", "));
+            this.result.nextPutAll("])})();");
+            return this.result.contents()}.bind(this))()),
+    trans       = [:t apply(t):ans]      -> ans,
+    curlyTrans  = [#begin curlyTrans:r]  -> r
+                | [#begin trans*:rs]     -> ('{' + rs.join(';') + '}')
+                | trans:r                -> ('{' + r + '}'),
+    binop = :op trans:ll trans:rr        -> ((function() {
+                                            var id = this.nextId();
+                                            var strmDef = this.makeExpr([ll[0], rr[0]],
+                                                'function(arg1, arg2) {return arg1 ' + op + ' arg2}');
+                                            var deps = ll[1].clone().concat(rr[1]);
+                                            this.addSubExpression(id, strmDef, deps);
+                                            return [this.ref(id), deps]}.bind(this))()),
+    func = anything:args curlyTrans:body -> (['(function (' + args.join(',') + ')' + body + ')', false]),
+    call = [#get #durationE] trans:ll trans:rr -> ((function() {
+                                                    var id = this.nextId();
+                                                    var strmDef = this.makeDurationE(ll[0], rr[0]);
+                                                    var deps = ll[1].clone().concat(rr[1]);
+                                                    this.addSubExpression(id, strmDef, deps);
+                                                    return [this.ref(id), deps]}.bind(this))()),
+    get = (anything:n ?(n.constructor === String)) -> ((function() {
+                                                        this.dependents.push(this.ref(n));
+                                                        return [this.ref(n), [n]]}.bind(this))()),
+    number = (anything:n ?(n.constructor === Number)) -> ((function() {
+                                                        return [Objects.inspect(n), []]}.bind(this))()),
+    begin = trans
+
+};

@@ -134,22 +134,6 @@ Object.subclass('lively.ast.Interpreter.Frame',
         this.continueTriggered = false
     }
 },
-'accessing for UI', {
-    listItemsForIntrospection: function() {
-        var items = Properties.forEachOwn(this.mapping, function(name, value) {
-            return {
-                isListItem: true,
-                string: name + ': ' + String(value).truncate(50),
-                value: value
-            };
-        });
-        if (this.containingScope) {
-            items.push({isListItem: true, string: '[[containing scope]]'});
-            items.pushAll(this.containingScope.listItemsForIntrospection());
-        }
-        return items;
-    }
-},
 'program counter', {
     halt: function() {
         this.unbreak();

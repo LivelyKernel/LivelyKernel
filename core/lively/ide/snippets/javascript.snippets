@@ -1,9 +1,15 @@
 # Function
 snippet fun
-	function ${1?:function_name}(${2}) { ${3:/*body*/}; }
+	function ${1?:function_name}(${2}) {
+		${3:/*body*/};
+	}
 # Anonymous Function
-regex /((=)\s*|(:)\s*|(\()|\b)/f/(\))?/
+regex /((=)\s*|(:)\s*|(\()|\b)/f/
 name f
+	function($2) {${0:$TM_SELECTED_TEXT}}${M2?;}${M3?,}
+# Anonymous Function
+regex /((=)\s*|(:)\s*|(\()|\b)/f2/(\))?/
+name f2
 	function${M1?: ${1:functionName}}($2) {${0:$TM_SELECTED_TEXT}}${M2?;}${M3?,}${M4?)}
 # Immediate function
 trigger \(?f\(
@@ -129,18 +135,18 @@ snippet sdf
 # class
 name subclass
 regex /^\s*([^\.]+)?/\.?(sub)?class/
-    ${M1?:${1:Object}}.subclass("${2:Name}",
-    "initializing", {
-        initialize: function(${3})  {
-            ${0}
-        }
-    });
+	${M1?:${1:Object}}.subclass("${2:Name}",
+	"initializing", {
+		initialize: function(${3})  {
+			${0}
+		}
+	});
 # Object.extend
 snippet Oe
-    Object.extend(${1:obj}, {$0});
+	Object.extend(${1:obj}, {$0});
 # collection iter
-regex /^\s*([^\.]+)?/\.?((iter|forEa?c?h?)|(select|collect|reject|detect))/
-    ${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(function(${3:ea}) { ${0:${M4?return :}}; }${4:, this});
+regex /^\s*(\.?[^\.]+)+/\.?((iter|forEa?c?h?)|(select|collect|reject|detect))/
+	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(function(${3:ea}) { ${0:${M4?return :}}; }${4:, this});
 # 
 snippet for-
 	for (var ${1:i} = ${2:Things}.length; ${1:i}--; ) {

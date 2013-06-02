@@ -663,6 +663,18 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
         var result = func.forInterpretation().call();
         this.assertEquals("object", result);
     },
+    test38NestedFunctionBinding: function() {
+        var func = function(){
+            var createClosure = function(i) {
+                return function() { return i; };
+            };
+            var a = createClosure(2);
+            var b = createClosure(3);
+            return a() + b();
+        };
+        var result = func.forInterpretation().call();
+        this.assertEquals(5, result);
+    }
 });
 
 TestCase.subclass('lively.ast.tests.AstTests.ExecutionStateReifierTest',

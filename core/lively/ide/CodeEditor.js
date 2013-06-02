@@ -122,7 +122,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         invisibles: Config.get('aceDefaultShowInvisibles'),
         printMargin: Config.get('aceDefaultShowPrintMargin'),
         showActiveLine: Config.get('aceDefaultShowActiveLine'),
-        showIndents: Config.get('aceDefaultShowIndents')
+        showIndents: Config.get('aceDefaultShowIndents'),
+        softTabs: Config.get('useSoftTabs')
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     evalEnabled: true,
@@ -167,6 +168,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.printMargin !== undefined) this.setShowPrintMargin(spec.printMargin);
         if (spec.showIndents !== undefined) this.setShowIndents(spec.showIndents);
         if (spec.showActiveLine !== undefined) this.setShowActiveLine(spec.showActiveLine);
+        if (spec.softTabs !== undefined) this.setSoftTabs(spec.softTabs);
         return this;
     }
 },
@@ -205,7 +207,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         e.on('focus', function() { morph._isFocused = true; });
         e.on('blur', function() { morph._isFocused = false; });
         node.setAttribute('id', 'ace-editor');
-        e.session.setUseSoftTabs(Config.get("useSoftTabs"));
         this.disableTextResizeOnZoom(e);
 
         // 2) let the shape know about the editor, this let's us do some optimizations
@@ -221,6 +222,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowPrintMargin(this.getShowPrintMargin());
         this.setShowInvisibles(this.getShowInvisibles());
         this.setShowIndents(this.getShowIndents());
+        this.setSoftTabs(this.getSoftTabs());
         this.setShowActiveLine(this.getShowActiveLine());
         this._StyleClassNames = this.jQuery().attr('class').split(' ');
 
@@ -1110,7 +1112,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     getLineWrapping: function() {
-        return this._LineWrapping || this.withAceDo(function(ed) {
+        return this.hasOwnProperty("_LineWrapping") ? this._LineWrapping : this.withAceDo(function(ed) {
             return ed.session.getUseWrapMode(); });
     },
     setLineWrapping: function(bool) {
@@ -1123,7 +1125,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this._ShowInvisibles = bool;
     },
     getShowInvisibles: function() {
-        return this._ShowInvisibles || this.withAceDo(function(ed) {
+        return this.hasOwnProperty("_ShowInvisibles") ? this._ShowInvisibles : this.withAceDo(function(ed) {
             return ed.getShowInvisibles(); });
     },
 
@@ -1132,26 +1134,35 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this._ShowPrintMargin = bool;
     },
     getShowPrintMargin: function() {
-        return this._ShowPrintMargin || this.withAceDo(function(ed) {
+        return this.hasOwnProperty("_ShowPrintMargin") ? this._ShowPrintMargin : this.withAceDo(function(ed) {
             return ed.getShowPrintMargin(); });
     },
 
     setShowIndents: function(bool) {
         this.withAceDo(function(ed) { ed.setDisplayIndentGuides(bool); });
-        return this._setShowIndents = bool;
+        return this._ShowIndents = bool;
     },
     getShowIndents: function() {
-        return this._setShowIndents || this.withAceDo(function(ed) {
+        return this.hasOwnProperty("_ShowIndents") ? this._ShowIndents : this.withAceDo(function(ed) {
             return ed.getDisplayIndentGuides(); });
     },
 
     setShowActiveLine: function(bool) {
         this.withAceDo(function(ed) { ed.setHighlightActiveLine(bool); });
-        return this._setShowActiveLine = bool;
+        return this._ShowActiveLine = bool;
     },
     getShowActiveLine: function() {
-        return this._setShowActiveLine || this.withAceDo(function(ed) {
+        return this.hasOwnProperty("_ShowActiveLine") ? this._ShowActiveLine : this.withAceDo(function(ed) {
             return ed.getHighlightActiveLine(); });
+    },
+
+    setSoftTabs: function(bool) {
+        this.withAceDo(function(ed) { ed.session.setUseSoftTabs(bool); });
+        return this._SoftTabs = bool;
+    },
+    getSoftTabs: function() {
+        return this.hasOwnProperty("_SoftTabs") ? this._SoftTabs : this.withAceDo(function(ed) {
+            return ed.session.getUseSoftTabs(); });
     }
 
 },
@@ -1220,10 +1231,17 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         items.push(["modes", modeItems]);
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // line wrapping
-        var usesWrap = editor.getLineWrapping();
-        items.push([Strings.format("[%s] line wrapping", usesWrap ? 'X' : ' '), function() {
-            editor.setLineWrapping(!usesWrap); }]);
+        [{name: "ShowGutter", menuString: "show line numbers"},
+         {name: "ShowInvisibles", menuString: "show whitespace"},
+         {name: "ShowPrintMargin", menuString: "show print margin"},
+         {name: "ShowActiveLine", menuString: "show active line"},
+         {name: "ShowIndents", menuString: "show indents"},
+         {name: "SoftTabs", menuString: "use soft tabs"},
+         {name: "LineWrapping", menuString: "line wrapping"}].forEach(function(itemSpec) { 
+            var enabled = editor["get"+itemSpec.name]();
+            items.push([Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
+                editor['set'+itemSpec.name](!enabled); }]);
+        });
 
         return items;
     },

@@ -492,6 +492,10 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
                 testSelector = node.isMemberNode && node.target.getName(),
                 test = klass && new klass(),
                 tests = undefined;
+            if (!klass) {
+                alert('Cannot run tests of %s, klass not found!', node);
+                return;
+            }
             if (testSelector) {
                 alertOK('Running test ' + klass.type + '>>' + testSelector);
                 tests = [new klass(test.result, testSelector)];

@@ -388,11 +388,11 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
         var node = this.parseJS('(function(a) { return a + 1 })(2)', 'expr');
         this.assertEquals(3, node.startInterpretation());
     },
-    test07Closue: function() {
+    test07Closure: function() {
         var node = this.parseJS('var a = 6; (function(b) { return a / b })(3)');
         this.assertEquals(2, node.startInterpretation());
     },
-    test08RealClosue: function() {
+    test08RealClosure: function() {
         var node = this.parseJS('var foo = function(){var a = 1; return function() {return a}}; foo()()');
         this.assertEquals(1, node.startInterpretation());
     },

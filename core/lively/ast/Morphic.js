@@ -53,9 +53,11 @@ cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
 lively.morphic.Text.addMethods(
 'debugging', {
     debugSelection: function() {
-        var str = "function(){\n" + this.getSelectionOrLineString() + "\n}",
-            fun = Function.fromString(str).forInterpretation(),
+        var str = this.getSelectionOrLineString(),
+            src = "function(){\n" + str + "\n}",
+            fun = Function.fromString(src).forInterpretation(),
             ctx = this.getDoitContext() || this;
+        fun.ast.source = " ".times(12) + '\n' + str + '  ';
         try {
             return fun.startHalted().apply(ctx, []);
         } catch(e) {

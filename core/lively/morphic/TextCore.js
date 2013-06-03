@@ -1724,11 +1724,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return result;
     },
 
-    boundEval: function (str) {
-        // Evaluate the string argument in a context in which "this" may be supplied by the modelPlug
+    boundEval: function (__evalStatement) {
+        // Evaluate the string argument in a context in which "this" is
+        // determined by the reuslt of #getDoitContext
         var ctx = this.getDoitContext() || this,
-            interactiveEval = function(text) { return eval(text) };
-        return interactiveEval.call(ctx, str);
+            interactiveEval = function() { return eval(__evalStatement) };
+        return interactiveEval.call(ctx);
     },
     tryBoundEval: function(str) {
         try { return this.boundEval(str) } catch(e) { this.showError(e); return null }

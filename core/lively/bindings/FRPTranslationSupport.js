@@ -4,6 +4,7 @@ Object.extend(FRPTranslator, {
         return 'new lively.bindings.FRPCore.StreamRef(' + Objects.inspect(n) + ')';
     },
     addSubExpression: function(id, strmDef, deps) {
+        this.hasSubExpression = true;
         this.result.nextPutAll('var ' + id);
         this.result.nextPutAll(' = ');
         this.result.nextPutAll(strmDef);

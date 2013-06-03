@@ -71,6 +71,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         this.owner.connections[name] = {map: name + ".connectionTrigger"};
         this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n)");
+        return this;
     },
 
     uninstall: function() {
@@ -192,10 +193,10 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
     value: function(initialValue) {
         this.setUp("value", [], null, null);
-        if (initialValue === undefined) {
+        if (initialValue !== undefined) {
             this.beContinuous(initialValue);
         }
-        return this;
+        return this.finalize([]);
     },
 },
 'evaluation', {
@@ -232,7 +233,6 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
 
     finalize: function(collection, maybe) {
-        debugger;
         if (!this.subExpressions || this.subExpressions.length === 0) {
             if (this.type === undefined) {
                 if (collection.length === 0) {
@@ -394,14 +394,29 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
     ref: function(name, last) {
         return new lively.bindings.FRPCore.StreamRef(name, last);
-    }
+    },
+});
 
+Object.extend(lively.bindings.FRPCore.EventStream, {
+    fromString: function(aString) {
+        var tree = OMetaSupport.matchAllWithGrammar(BSOMetaJSParser, "topLevel", aString);
+        var code = FRPTranslator.match(tree, "start");
+        var strm = eval(code);
+        if (!this.isEventStream(strm)) {
+            strm = new lively.bindings.FRPCore.EventStream().value(strm);
+        }
+        strm.setCode(aString);
+        return strm;
+    },
+    isEventStream: function (v) {
+        return v instanceof lively.bindings.FRPCore.EventStream;
+    }
 });
 
 lively.bindings.FRPCore.EventStream.nextId = 0;
 
 Object.subclass('lively.bindings.FRPCore.Evaluator',
-'all', {
+'initialization', {
     initialize: function($super) {
         this.reset();
         this.deletedNode = null;
@@ -417,8 +432,18 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.dependencies = {};
         this.endNodes = {};
         return this;
-        
     },
+    onstore: function() {
+        this.reset();
+    },
+    installTo: function(object) {
+        object.__startTime = Date.now();
+        object.__evaluator = this;
+        this.object = object;
+        return this;
+    },
+},
+'evaluation', {
     addDependencies: function(elem, top) {
         var srcs = this.sources[elem.id] = [];
         var deps = this.dependencies[elem.id] = [];
@@ -509,12 +534,6 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
     resetSortedResults: function() {
         this.reset();
     },
-    installTo: function(object) {
-        object.__startTime = Date.now();
-        object.__evaluator = this;
-        this.object = object;
-    },
-
     installStream: function(strm) {
     // For a timer, it starts the timer.
     // The evaluator is reset as the network may change.
@@ -530,7 +549,8 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         }
         this.resetSortedResults();
    },
-
+},
+'timers', {
     addTimer: function(timer) {
         if (this.syncWithRealTime) {
             this.timers.push(timer);
@@ -577,20 +597,39 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
         if (!(obj instanceof lively.bindings.FRPCore.EventStream)) {
             return null;
         }
+        debugger;
         return {
-            isSerializedStream: true, 
+            isSerializedStream: true,
             type: obj.type,
-            currentValue: (obj.isContinuous ? this.currentValue : undefined),
+            owner: obj.owner,
+            currentValue: (obj.isContinuous ? obj.currentValue : undefined),
             isContinuous: obj.isContinuous,
-            code: obj.code
+            code: obj.code,
+            streamName: obj.streamName
         };
     },
     deserializeObj: function(copy) {
         if (copy && copy.isSerializedStream) {
             if (copy.type === "value") {
                 return new lively.bindings.FRPCore.EventStream().value(copy.currentValue);
+            } else {
+                return lively.bindings.FRPCore.EventStream.fromString(copy.code);
             }
         }
+    },
+    afterDeserializeObj: function (obj) {
+        if (this.isEventStream(obj)) {
+            debugger;
+            if (obj.owner) {
+                return obj.installTo(obj.owner, obj.streamName);
+            }
+        }
+        return null;
+    },
+},
+'private', {
+    isEventStream: function(obj) {
+        return obj instanceof lively.bindings.FRPCore.EventStream;
     }
 });
 

@@ -2,14 +2,20 @@ ometa FRPTranslator {
     start       = (empty -> (function() {
                     this.id = 0;
                     this.dependents = [];
+                    this.hasSubExpression = false;
                     this.result = new StringBuffer();
                     this.result.nextPutAll("(function () {var strm = new lively.bindings.FRPCore.EventStream(); ");
-    }.bind(this))()) trans
+    }.bind(this))()) trans:t
         -> ((function() {
-            this.result.nextPutAll("return strm.finalize([");
-            this.result.nextPutAll(this.dependents.join(", "));
-            this.result.nextPutAll("])})();");
-            return this.result.contents()}.bind(this))()),
+            if (this.hasSubExpression) {
+                this.result.nextPutAll("return strm.finalize([");
+                this.result.nextPutAll(this.dependents.join(", "));
+                this.result.nextPutAll("])})();");
+                return this.result.contents()
+            } else {
+                return t[0]
+            }
+                }.bind(this))()),
     trans       = [:t apply(t):ans]      -> ans,
     curlyTrans  = [#begin curlyTrans:r]  -> r
                 | [#begin trans*:rs]     -> ('{' + rs.join(';') + '}')

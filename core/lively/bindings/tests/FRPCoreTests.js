@@ -1,6 +1,6 @@
-module('lively.bindings.FRPCoreTests').requires('lively.TestFramework', 'lively.bindings.FRPCore').toRun(function() {
+module('lively.bindings.tests.FRPCoreTests').requires('lively.TestFramework', 'lively.bindings.FRPCore').toRun(function() {
 
-TestCase.subclass('lively.bindings.FRPCoreTests.FRPTests',
+TestCase.subclass('lively.bindings.tests.FRPCoreTests.FRPTests',
 
 'tests', {
     testTimer: function() {

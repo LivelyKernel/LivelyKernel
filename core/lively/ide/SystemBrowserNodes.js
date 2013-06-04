@@ -416,8 +416,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
 lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteOmetaFragmentNode', {
 
     menuSpec: function($super) {
-        var menu = $super();
-        var fileName = this.moduleName;
+        var menu = $super(), fileName = this.moduleName, browser = this.browser;
         if (!this.target) return menu;
         var world = lively.morphic.World.current();
         menu.unshift(['Translate grammar', function() {
@@ -428,9 +427,14 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteOmetaFragmentNo
                     world.prompt(
                         'Additional requirements (comma separated)?',
                         function(requirementsString) {
-                            var requirments = requirementsString ? requirementsString.split(',') : null;
-                            OMetaSupport.translateAndWrite(fileName, input, requirments) }
-                    );
+                            var requirments = requirementsString ? requirementsString.split(',') : null,
+                                source = lively.ide.ModuleWrapper.forFile(fileName).getSource(),
+                                compiled = OMetaSupport.translate(source, requirments, input),
+                                targetFile = lively.ide.ModuleWrapper.forFile(input);
+                            targetFile.setSource(compiled, true);
+                            alertOK('... written to ' + targetFile.fileName());
+                            browser.allChanged();
+                        });
                 },
                 fileName.slice(0, fileName.indexOf('.'))
             ) }]);

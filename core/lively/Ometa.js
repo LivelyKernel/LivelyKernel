@@ -42,16 +42,29 @@ Object.extend(OMetaSupport, {
     },
 
     translateAndWrite: function(sourceFileName, destFileName, additionalRequirements) {
-	    var requirementsString = additionalRequirements ? ",'" + additionalRequirements.join("','") + "'" : "",
+        var requirementsString = additionalRequirements ? ",'" + additionalRequirements.join("','") + "'" : "",
             str = Strings.format('module(\'%s\').requires(\'ometa.lively\'%s).toRun(function() {\n%s\n});',
                                  destFileName.replace(/\.js$/, '').replace(/\//g, '.'),
                                  requirementsString,
                                  OMetaSupport.translateToJs(OMetaSupport.fileContent(sourceFileName)));
-    OMetaSupport.writeGrammar(destFileName, str);
-    lively.morphic.World.current().setStatusMessage(
-        Strings.format('Successfully compiled OMeta grammar %s to %s', sourceFileName, destFileName),
-        Color.green, 3);
+        OMetaSupport.writeGrammar(destFileName, str);
+        lively.morphic.World.current().setStatusMessage(
+            Strings.format('Successfully compiled OMeta grammar %s to %s', sourceFileName, destFileName),
+            Color.green, 3);
     },
+    translate: function(source, additionalRequirements, destFileName) {
+        destFileName = destFileName || 'anonymousOMetaModule';
+        var requirementsString = additionalRequirements ? ",'" + additionalRequirements.join("','") + "'" : "",
+            str = Strings.format('module(\'%s\').requires(\'ometa.lively\'%s).toRun(function() {\n%s\n});',
+                                 destFileName.replace(/\.js$/, '').replace(/\//g, '.'),
+                                 requirementsString,
+                                 OMetaSupport.translateToJs(source));
+        lively.morphic.World.current().setStatusMessage(
+            Strings.format('Successfully compiled OMeta grammar %s', source.truncate(300)),
+            Color.green, 3);
+        return str;
+    },
+
 
     ometaEval: function(src) {
         var jsSrc = OMetaSupport.translateToJs(src);

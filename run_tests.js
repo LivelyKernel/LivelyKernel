@@ -89,6 +89,8 @@ var browserTests = [
     "lively.persistence.tests.MassMorphCreation",
 
     //bindings
+    "lively.bindings.tests.FRPCoreTests",
+    "lively.bindings.tests.FRPSerialization",
     "lively.bindings.tests.GeometryBindingTests",
 
     // ide / SCB

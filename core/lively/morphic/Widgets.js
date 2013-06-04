@@ -381,40 +381,33 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 },
 'inline image', {
     convertToBase64: function() {
-        var urlString = this.getImageURL();
-
-        var type = urlString.substring(urlString.lastIndexOf('.') + 1, urlString.length)
-        if (type == 'jpg') type = 'jpeg'
-        if (!['gif', 'jpeg', 'png', 'tiff'].include(type)) type = 'gif'
-
+        var urlString = this.getImageURL(),
+            type = urlString.substring(urlString.lastIndexOf('.') + 1, urlString.length);
+        if (type == 'jpg') type = 'jpeg';
+        if (!['gif', 'jpeg', 'png', 'tiff'].include(type)) type = 'gif';
         if (false && Global.btoa) {
             // FIXME actually this should work but the encoding result is wrong...
             // maybe the binary image content is not loaded correctly because of encoding?
             urlString = URL.makeProxied(urlString);
-            var content = new WebResource(urlString).get(null, 'image/' + type).content
-
-            var fixedContent = content.replace(/./g, function(m) {
-                return String.fromCharCode(m.charCodeAt(0) & 0xff);
-            });
-            var encoded = btoa(fixedContent);
+            var content = new WebResource(urlString).get(null, 'image/' + type).content,
+                fixedContent = content.replace(/./g, function(m) {
+                    return String.fromCharCode(m.charCodeAt(0) & 0xff);
+                }),
+                encoded = btoa(fixedContent);
             this.setImageURL('data:image/' + type + ';base64,' + encoded);
         } else {
-            if (!urlString.startsWith('http'))
-                urlString = URL.source.getDirectory().withFilename(urlString).toString()
-            require('server.nodejs.WebInterface').toRun(function() { // FIXME
-                var encoded = this.encodeOnServer(urlString)
-                if (!encoded || encoded == '')
-                    lively.morphic.World.current().alert('Cannot convert image with url ' + urlString + ' to base64');
-                else
-                    this.setImageURL('data:image/' + type + ';base64,' + encoded);
-            }.bind(this));
+            var image = this;
+            if (!urlString.startsWith('http')) {
+                urlString = URL.source.getDirectory().withFilename(urlString).toString();
+            }
+            require('lively.ide.CommandLineInterface').toRun(function() { // FIXME
+                var cmd = 'curl --silent "' + urlString + '" | openssl base64'
+                lively.ide.CommandLineInterface.exec(cmd, function(cmd) {
+                    image.setImageURL('data:image/' + type + ';base64,' + cmd.getStdout());
+                });
+            });
         }
-    },
-    encodeOnServer: function(urlString) {
-        var cmd = 'curl --silent "' + urlString + '" | openssl base64',
-            result = new CommandLineServerInterface().beSync().runCommand(cmd).result;
-        return result && result.stdout ? result.stdout : '';
-    },
+    }
 });
 Object.extend(lively.morphic.Image, {
     fromURL: function(url, optBounds) {

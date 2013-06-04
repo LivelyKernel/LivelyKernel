@@ -19,15 +19,15 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     // type is either a pre-defined combinator ("timerE", "collectE", etc) or
     // generic "exprE", that is used for everything else.
     //
-    // sources is a list of (StreamsRef | value) that is used to compute 
+    // sources is a list of (StreamsRef | value) that is used to compute
     // the new value of the stream.  a value is allowed when a sub term is not
     // a stream, but a value.
-    // 
+    //
     // depenencies is a list of (StreamRef) that is used to determine whether
     // this stream should be updated.  Usually, dependencies are a super-set of
     // sources.
     //
-    // currentValue is the currentValue of the stream.  Last Value is the 
+    // currentValue is the currentValue of the stream.  Last Value is the
     // last value.
     //
     // checker and updater are functions to determine the stream should be updated,
@@ -36,7 +36,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.type = type;
         this.updater = updater || this.basicUpdater;
         this.sources = srcs;
-        this.dependencies = srcs.filter(function(e) {return this.isStreamRef(e)}.bind(this))
+        this.dependencies = srcs.filter(function(e) { return this.isStreamRef(e); }, this);
         this.currentValue = undefined;
         this.lastValue = undefined;
         this.checker = checker || this.basicChecker;
@@ -54,7 +54,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.isContinuous = true;
         return this;
     },
-    
+
     installTo: function(object, name) {
     // Install this into the owner object under the name
     // When the stream is continuous, the potential dependents will be evaluated
@@ -137,7 +137,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                     if (this.pastValues[1].time > t) {
                         break;
                     }
-                    this.pastValues.shift();    
+                    this.pastValues.shift();
                 }
                 return this.pastValues[0].time <= t
                     ? this.pastValues.shift().value
@@ -339,7 +339,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     // The updater for the expr type
         return this.expression.apply(this, evaluator.arguments[this.id]);
     },
-    
+
     frpSet: function(val) {
         this.currentValue = val;
         this.setLastTime(this.owner.__evaluator.currentTime+1);
@@ -394,7 +394,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
     ref: function(name, last) {
         return new lively.bindings.FRPCore.StreamRef(name, last);
-    },
+    }
 });
 
 Object.extend(lively.bindings.FRPCore.EventStream, {
@@ -465,7 +465,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
     },
     addStreamsFrom: function(object) {
     // An entry point to gather all streams in object.  For each top-level
-    // stream, its sub expressions are visited. 
+    // stream, its sub expressions are visited.
         for (var k in object) {
             var v = object[k];
             if (this.isEventStream(v) && !this.sources[v.id]) {
@@ -476,7 +476,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
                 for (i = 0; i < v.subExpressions.length; i++) {
                     var s = v.lookup(v.subExpressions[i]);
                     this.addDependencies(s, v);
-                }  
+                }
             }
         }
     },
@@ -609,13 +609,10 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
         };
     },
     deserializeObj: function(copy) {
-        if (copy && copy.isSerializedStream) {
-            if (copy.type === "value") {
-                return new lively.bindings.FRPCore.EventStream().value(copy.currentValue);
-            } else {
-                return lively.bindings.FRPCore.EventStream.fromString(copy.code);
-            }
-        }
+        if (!copy || !copy.isSerializedStream) return null
+        return copy.type === "value" ?
+            new lively.bindings.FRPCore.EventStream().value(copy.currentValue) :
+            lively.bindings.FRPCore.EventStream.fromString(copy.code);
     },
     afterDeserializeObj: function (obj) {
         if (this.isEventStream(obj)) {
@@ -625,7 +622,7 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
             }
         }
         return null;
-    },
+    }
 },
 'private', {
     isEventStream: function(obj) {

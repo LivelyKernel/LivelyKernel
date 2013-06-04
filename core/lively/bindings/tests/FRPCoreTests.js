@@ -33,7 +33,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
 
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
-        result = evaluator.sort();
+        var result = evaluator.sort();
 
         evaluator.evaluateAt(3500);
         this.assertEquals(expr1.currentValue, -3000);
@@ -48,16 +48,19 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         var timer = this.newStream().timerE(1000).setCode("timerE(1000)").finalize([]);
         timer.installTo(obj, "timer");
 
-        var expr1 = this.newStream().expr([this.ref("timer")],
-function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
+        var expr1 = this.newStream().expr(
+            [this.ref("timer")],
+            function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         expr1.installTo(obj, "expr1");
 
-        var expr2 = this.newStream().expr([this.ref("timer")],
-function(t) {return t * 3}).setCode("timer * 3").finalize([]);
+        var expr2 = this.newStream().expr(
+            [this.ref("timer")],
+            function(t) {return t * 3}).setCode("timer * 3").finalize([]);
         expr2.installTo(obj, "expr2");
 
-        var expr3 = this.newStream().expr([this.ref("expr1"), this.ref("expr2")],
-function(x, y) {return x + y}).setCode("expr1 + expr2").finalize([]);
+        var expr3 = this.newStream().expr(
+            [this.ref("expr1"), this.ref("expr2")],
+            function(x, y) {return x + y}).setCode("expr1 + expr2").finalize([]);
         expr3.installTo(obj, "expr3");
 
         evaluator.reset();
@@ -78,12 +81,14 @@ function(x, y) {return x + y}).setCode("expr1 + expr2").finalize([]);
         var timer = this.newStream().timerE(1000).setCode("timerE(1000)").finalize([]);
         timer.installTo(obj, "timer");
 
-        var expr1 = this.newStream().expr([this.ref("_t1")],
-function(t) {return 0 - t}).setCode("0 - (timer * 3)").finalize([this.ref("timer")]);
+        var expr1 = this.newStream().expr(
+            [this.ref("_t1")],
+            function(t) {return 0 - t}).setCode("0 - (timer * 3)").finalize([this.ref("timer")]);
         expr1.installTo(obj, "expr1");
 
-        var expr2 = this.newStream().expr([this.ref("timer")],
-function(t) {return t * 3}).finalize([]);
+        var expr2 = this.newStream().expr(
+            [this.ref("timer")],
+            function(t) {return t * 3}).finalize([]);
         expr1.addSubExpression("_t1", expr2);
 
         evaluator.reset();
@@ -103,12 +108,14 @@ function(t) {return t * 3}).finalize([]);
         var timer = this.newStream().timerE(1000).setCode("timerE(1000)").finalize([]);
         timer.installTo(obj, "timer");
 
-        var expr1 = this.newStream().expr([100, this.ref("_t1")],
-function(c, t) {return c - t}).setCode("100 - (timer * 3)").finalize([this.ref("timer")]);
+        var expr1 = this.newStream().expr(
+            [100, this.ref("_t1")],
+            function(c, t) {return c - t}).setCode("100 - (timer * 3)").finalize([this.ref("timer")]);
         expr1.installTo(obj, "expr1");
 
-        var expr2 = this.newStream().expr([this.ref("timer")],
-function(t) {return t * 3}).finalize([]);
+        var expr2 = this.newStream().expr(
+            [this.ref("timer")],
+            function(t) {return t * 3}).finalize([]);
         expr1.addSubExpression("_t1", expr2);
 
         evaluator.reset();
@@ -182,7 +189,7 @@ function(t) {return t * 3}).finalize([]);
         timer.installTo(obj, "timer");
         var delayer = this.newStream().delayE("timer", 3000).setCode("timer.delayE(3000)").finalize([]);
         delayer.installTo(obj, "delayer");
-    
+
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
@@ -214,7 +221,7 @@ function(t) {return t * 3}).finalize([]);
         var nat = this.newStream().expr([],
             function() {return this.owner.nat.lastValue + 1}, true, 0).finalize([this.ref("timer")]);
         nat.installTo(obj, "nat");
-    
+
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
@@ -293,4 +300,5 @@ function(t) {return t * 3}).finalize([]);
     }
 
 });
+
 }); // end of module

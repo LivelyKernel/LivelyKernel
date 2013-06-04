@@ -8,10 +8,9 @@ TestCase.subclass('lively.bindings.tests.FRPSerialization.SerializationTests',
         var strm = lively.bindings.FRPCore.EventStream.fromString("a+b");
         strm.installTo(src, "adder");
 
-        s = lively.persistence.Serializer.createObjectGraphLinearizer();
+        var s = lively.persistence.Serializer.createObjectGraphLinearizer();
         s.addPlugin(new lively.bindings.FRPCore.EventStreamPlugin());
-        out = s.serialize(src);
-        result = s.deserialize(out);
+        var out = s.serialize(src), result = s.deserialize(out);
 
         this.assertEquals(result.adder.constructor, lively.bindings.FRPCore.EventStream);
         this.assertEquals(result.adder.sources.length, 2);
@@ -19,6 +18,7 @@ TestCase.subclass('lively.bindings.tests.FRPSerialization.SerializationTests',
         this.assertEquals(result.adder.code, "a+b");
         this.assertEquals(result.adder.currentValue, undefined);
     },
+
     testEvalationResults: function() {
         var src = {};
         new lively.bindings.FRPCore.Evaluator().installTo(src);
@@ -33,17 +33,16 @@ TestCase.subclass('lively.bindings.tests.FRPSerialization.SerializationTests',
         this.assertEquals(src.adder.currentValue, 7);
         strm.beContinuous(7);
 
-        s = lively.persistence.Serializer.createObjectGraphLinearizer();
+        var s = lively.persistence.Serializer.createObjectGraphLinearizer();
         s.addPlugin(new lively.bindings.FRPCore.EventStreamPlugin());
-        out = s.serialize(src);
-        result = s.deserialize(out);
-       
+        var out = s.serialize(src), result = s.deserialize(out);
+
         this.assertEquals(result.adder.currentValue, 7);
         this.assertEquals(result.a.type, "value");
         this.assertEquals(result.a.currentValue, "3");
         this.assertEquals(result.b.currentValue, "4");
-
-    },
+    }
 
 });
+
 });

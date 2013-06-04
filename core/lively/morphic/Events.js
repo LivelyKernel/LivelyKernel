@@ -770,8 +770,7 @@ handleOnCapture);
         // This is like clickedOnMorph, but also takes into consideration
         // Halos, Morphs ignoring events etc. For internal use.
         evt.hand.internalClickedOnMorph = this;
-        if (this.halosEnabled && (evt.isRightMouseButtonDown() ||
-                                  evt.isLeftMouseButtonDown() && evt.isCommandKey())) {
+        if (this.halosEnabled && (evt.isLeftMouseButtonDown() && evt.isCommandKey())) {
             evt.hand.haloTarget = this;
             return false;
         }

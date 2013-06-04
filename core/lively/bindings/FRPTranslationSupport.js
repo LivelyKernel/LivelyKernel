@@ -1,3 +1,4 @@
+module('lively.bindings.FRPTranslationSupport').requires('lively.bindings.FRPTranslator').toRun(function() {
 
 Object.extend(FRPTranslator, {
     ref: function(n) {
@@ -25,4 +26,6 @@ Object.extend(FRPTranslator, {
         return 'new lively.bindings.FRPCore.EventStream().durationE(' +
                 interval + ', ' + duration + ')';
     }
-})
+});
+
+}); // end of module

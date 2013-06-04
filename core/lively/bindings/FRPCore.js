@@ -1,4 +1,4 @@
-module('lively.bindings.FRPCore').requires().toRun(function() {
+module('lively.bindings.FRPCore').requires('lively.persistence.Serializer', 'lively.morphic', 'lively.bindings.FRPTranslationSupport').toRun(function() {
 
 Object.subclass('lively.bindings.FRPCore.StreamRef',
 // StreamRef represents the loose-coupled variable name.

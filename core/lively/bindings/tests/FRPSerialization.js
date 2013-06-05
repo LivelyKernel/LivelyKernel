@@ -25,7 +25,6 @@ TestCase.subclass('lively.bindings.tests.FRPSerialization.SerializationTests',
         var strm = lively.bindings.FRPCore.EventStream.fromString("a+b");
         strm.installTo(src, "adder");
         var a = lively.bindings.FRPCore.EventStream.fromString("3");
-        debugger;
         var b = lively.bindings.FRPCore.EventStream.fromString("4");
         a.installTo(src, "a");
         b.installTo(src, "b");

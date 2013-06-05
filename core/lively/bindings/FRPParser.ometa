@@ -1,0 +1,13 @@
+ometa FRPParser <: BSOMetaJSParser {
+    primExprHd  = "(" expr:e ")"                                    -> e
+                | "this"                                            -> [#this]
+                | "name":n exactly("'")                             -> [#getLast, n]
+                | "name":n                                          -> [#get, n]
+                | "number":n                                        -> [#number, n]
+                | "string":s                                        -> [#string, s]
+                | "function" funcRest
+                | "new" "name":n "(" listOf(#expr, ','):as ")"      -> [#new, n].concat(as)
+                | "[" listOf(#expr, ','):es "]"                     -> [#arr].concat(es)
+                | json
+                | re
+}

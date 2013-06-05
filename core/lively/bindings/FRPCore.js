@@ -399,7 +399,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
 
 Object.extend(lively.bindings.FRPCore.EventStream, {
     fromString: function(aString) {
-        var tree = OMetaSupport.matchAllWithGrammar(BSOMetaJSParser, "topLevel", aString);
+        var tree = OMetaSupport.matchAllWithGrammar(FRPParser, "topLevel", aString);
         var code = FRPTranslator.match(tree, "start");
         var strm = eval(code);
         if (!this.isEventStream(strm)) {
@@ -597,7 +597,6 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
         if (!(obj instanceof lively.bindings.FRPCore.EventStream)) {
             return null;
         }
-        debugger;
         return {
             isSerializedStream: true,
             type: obj.type,
@@ -616,7 +615,6 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
     },
     afterDeserializeObj: function (obj) {
         if (this.isEventStream(obj)) {
-            debugger;
             if (obj.owner) {
                 return obj.installTo(obj.owner, obj.streamName);
             }

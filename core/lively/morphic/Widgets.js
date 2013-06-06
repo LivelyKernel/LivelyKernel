@@ -3094,6 +3094,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         $super(initialBounds);
         this.applyStyle(this.style);
         this.selectedMorphs = [];
+        this.selectionIndicators = [];
         this.setBorderStylingMode(true);
         this.setAppearanceStylingMode(true);
     },
@@ -3102,7 +3103,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     withoutPropagationDo: function(func) {
         // emulate COP
         this.propagate = false;
-        func()
+        func.call(this);
         this.propagate = true;
     },
     isPropagating: function() {
@@ -3137,7 +3138,12 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
 'copying', {
     copy: function($super) {
         this.isEpiMorph = false;
-        try { return this.addSelectionWhile($super) } finally { this.isEpiMorph = true }
+        var selOwner = this.owner, copied;
+        try { copied = this.addSelectionWhile($super); } finally { this.isEpiMorph = true }
+        this.reset();
+        this.selectedMorphs = copied.selectedMorphs.clone();
+        copied.reset();
+        return this;
     },
 },
 'selection handling', {
@@ -3148,11 +3154,14 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         var world = this.world();
         if (!world || !this.isPropagating()) return func();
 
-        for (var i = 0; i < this.selectedMorphs.length; i++)
+        var owners = [];
+        for (var i = 0; i < this.selectedMorphs.length; i++) {
+            owners[i] = this.selectedMorphs[i].owner;
             this.addMorph(this.selectedMorphs[i]);
+        }
         try { return func() } finally {
             for (var i = 0; i < this.selectedMorphs.length; i++)
-                this.world().addMorph(this.selectedMorphs[i]);
+                owners[i].addMorph(this.selectedMorphs[i]);
         }
     },
 },
@@ -3163,7 +3172,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         this.removeOnlyIt();
     },
     removeOnlyIt: function() {
-        if ( this.myWorld == null ) {
+        if (this.myWorld == null) {
             this.myWorld = this.world();
         }
         // this.myWorld.currentSelection = null;
@@ -3312,21 +3321,19 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
 'grabbing', {
     grabByHand: function(hand) {
         this.withoutPropagationDo(function() {
-            hand.addMorph(this)
-        }.bind(this))
-        for (var i = 0; i < this.selectedMorphs.length; i++) {
-            // alert("grab " + this.selectedMorphs[i])
-            this.addMorph(this.selectedMorphs[i]);
-        }
+            hand.addMorph(this);
+            for (var i = 0; i < this.selectedMorphs.length; i++) {
+                hand.addMorph(this.selectedMorphs[i]);
+            }
+        })
     },
     dropOn: function(morph) {
-        // alert("drop " + this + " on " + morph)
-        // morph.addMorph(this)
-        for (var i = 0; i < this.selectedMorphs.length; i++) {
-            morph.addMorph(this.selectedMorphs[i]);
-        }
-        this.removeSelecitonIndicators();
-        this.removeOnlyIt();
+        this.withoutPropagationDo(function() {
+            morph.addMorph(this);
+            for (var i = 0; i < this.selectedMorphs.length; i++) {
+                morph.addMorph(this.selectedMorphs[i]);
+            }
+        });
     },
 
 },
@@ -3348,7 +3355,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
                 this.selectedMorphs[i].moveBy(delta);
             }
         }
-        $super(pos);
+        return $super(pos);
     },
 
 },
@@ -3363,44 +3370,36 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     },
 
     selectMorphs: function(selectedMorphs) {
-        this.owner.selectionMorph.selectedMorphs = selectedMorphs
+        if (!this.owner) lively.morphic.World.current().addMorph(this);
+        this.selectedMorphs = selectedMorphs;
 
-        // finding pos, starting with max values
-        var topLeft = this.bounds().bottomRight(),
-            bottomRight = this.bounds().topLeft(),
-            self = this;
-
+        // add selection indicators for all selected morphs
         this.removeSelecitonIndicators();
         selectedMorphs.forEach(function(ea) {
-            var innerBounds = ea.getTransform().inverse().
-                transformRectToRect(ea.bounds().insetBy(-4));
-            var bounds = ea.getTransform().transformRectToRect(innerBounds);
-            topLeft = bounds.topLeft().minPt(topLeft);
-            bottomRight = bounds.bottomRight().maxPt(bottomRight);
-
-            var selectionIndicator =
-                new lively.morphic.Morph.makeRectangle(innerBounds);
-            selectionIndicator.name = 'Selection of ' + ea
+            var innerBounds = ea.getTransform().inverse().transformRectToRect(ea.bounds().insetBy(-4)),
+                bounds = ea.getTransform().transformRectToRect(innerBounds),
+                selectionIndicator = new lively.morphic.Morph.makeRectangle(innerBounds);
+            selectionIndicator.name = 'Selection of ' + ea;
             selectionIndicator.isEpiMorph = true;
             selectionIndicator.isSelectionIndicator = true;
             selectionIndicator.setBorderStylingMode(true);
             selectionIndicator.setAppearanceStylingMode(true);
             selectionIndicator.addStyleClassName('selection-indicator');
             ea.addMorph(selectionIndicator);
-            self.selectionIndicators.push(selectionIndicator);
-        })
-    this.withoutPropagationDo(function() {
-        this.setPosition(topLeft);
-        this.setExtent(bottomRight.subPt(topLeft));
-        // this.adjustOrigin(this.getExtent().scaleBy(0.5))
-    }.bind(this))
+            this.selectionIndicators.push(selectionIndicator);
+        }, this);
 
+        // resize selection morphs so ot fits selection indicators
+        var bnds = this.selectionIndicators.invoke('globalBounds'),
+            selBounds = bnds.slice(1).inject(bnds[0], function(bounds, selIndicatorBounds) {
+                return bounds.union(selIndicatorBounds); });
+        this.withoutPropagationDo(function() { this.setBounds(selBounds); });
     },
 
     removeSelecitonIndicators: function() {
         if (this.selectionIndicators)
             this.selectionIndicators.invoke('remove');
-        this.selectionIndicators = [];
+        this.selectionIndicators.clear();
     },
     makeGroup: function() {
         if (!this.selectedMorphs) return;
@@ -3443,6 +3442,16 @@ Trait('SelectionMorphTrait',
 'selection', {
     getSelectedMorphs: function() {
         return this.selectionMorph.selectedMorphs
+    },
+    setSelectedMorphs: function(morphs) {
+        if (!morphs || morphs.length === 0) { this.resetSelection(); return; }
+        if (!this.selectionMorph) this.resetSelection();
+        this.selectionMorph.selectMorphs(morphs);
+        this.selectionMorph.showHalos();
+        return morphs;
+    },
+    hasSelection: function() {
+        return this.selectionMorph && !!this.selectionMorph.owner;
     },
 
     onDragStart: function(evt) {

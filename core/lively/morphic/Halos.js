@@ -6,7 +6,8 @@ lively.morphic.Morph.addMethods(
     enableHalos: function() { this.halosEnabled = true },
     disableHalos: function() { this.halosEnabled = false },
     showHalos: function() {
-        if (this.showsHalos || !this.world() || !this.halosEnabled) return;
+        if (!this.world() || !this.halosEnabled) return;
+        if (this.showsHalos) { this.halos.invoke('alignAtTarget'); return; }
         this.showsHalos = true;
         this.halos = this.getHalos();
         this.world().showHalosFor(this, this.halos);
@@ -58,10 +59,19 @@ lively.morphic.Morph.addMethods(
     },
 
     toggleHalos: function(evt) {
+        var currentTarget = evt.world.currentHaloTarget, morphWithHalos;
+        if (evt.isShiftDown()) {
+            if (this.isSelection || this.isSelectionIndicator) { this.morphBeneath(evt.getPosition()).toggleHalos(evt); return; }
+            var world = this.world();
+            var selectedMorphs = world.hasSelection() ? world.getSelectedMorphs() : [currentTarget].compact();
+            if (selectedMorphs.include(this)) selectedMorphs.remove(this);
+            else selectedMorphs.push(this);
+            this.world().setSelectedMorphs(selectedMorphs);
+            return;
+        }
         // toggles halo through the mophs that are stacked beneath evt.getPosition()
-        var currentTarget = evt.world.currentHaloTarget;
         if (currentTarget && currentTarget.fullContainsWorldPoint(evt.getPosition()))
-            var morphWithHalos = currentTarget.showHalosForMorphBeneath(evt);
+            morphWithHalos = currentTarget.showHalosForMorphBeneath(evt);
         if (!morphWithHalos) this.showHalos();
     },
 
@@ -178,7 +188,8 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 },
 'layout', {
     alignAtTarget: function() {
-        this.setPosition(this.computePositionAtTarget(this.targetMorph));
+        var pos = this.computePositionAtTarget(this.targetMorph);
+        pos && this.setPosition(pos);
     },
     computePositionAtTarget: function(targetMorph) {
         targetMorph = targetMorph && targetMorph.owner ? targetMorph : this.targetMorph;
@@ -186,6 +197,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
             owner = targetMorph.owner;
         if (!world && !owner) return pt(0,0);
         if (!owner && targetMorph === world) owner = world;
+        if (!owner) return null;
 
         var bounds = targetMorph.bounds(),
             boundsInWorld = owner.getGlobalTransform().transformRectToRect(bounds),
@@ -437,7 +449,8 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
 },
 'layout', {
     alignAtTarget: function() {
-        this.setPosition(this.computePositionAtTarget(this.copiedTarget || this.targetMorph));
+        var pos = this.computePositionAtTarget(this.copiedTarget || this.targetMorph);
+        pos && this.setPosition(pos);
     }
 },
 'halo actions', {

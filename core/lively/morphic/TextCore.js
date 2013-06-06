@@ -264,6 +264,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fixedHeight: true,
         enableGrabbing: false,
         enableDropping: false,
+        enableDragging: true,
         allowInput: true,
         clipMode: 'visible',
         fontFamily: 'Helvetica',
@@ -273,8 +274,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     autoAdjustPadding: true,
-    suppressDropping: true,
-    draggingEnabled: true
+    suppressDropping: true
 },
 'initializing', {
     initialize: function($super, bounds, string) {

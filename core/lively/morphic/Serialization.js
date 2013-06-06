@@ -139,9 +139,7 @@ lively.morphic.Text.addMethods(
     doNotSerialize: ['charsTyped'],
     onstore: function($super) {
         $super();
-
         this.fixChunks();
-
         // is really the whole text stored?
         var chunks = this.getTextChunks(),
             chunkText = chunks.pluck('textString').join('');
@@ -151,7 +149,6 @@ lively.morphic.Text.addMethods(
         } else {
             delete this.cachedTextString;
         }
-
         this.getTextChunks().invoke('cacheContent');
     },
     onrestore: function($super) {

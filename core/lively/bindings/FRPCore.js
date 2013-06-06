@@ -5,10 +5,9 @@ Object.subclass('lively.bindings.FRPCore.StreamRef',
 // It is used for the key to look up the corresponding stream
 // in the owner object.
 'all', {
-    initialize: function($super, ref, last) {
+    initialize: function($super, ref) {
         this.ref = ref;
         this.isSubExpression = ref.match(/^_t/) !== null;
-        this.last = last || false;
     }
 });
 
@@ -60,6 +59,9 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     // When the stream is continuous, the potential dependents will be evaluated
     // upon next available step.
         object.__evaluator.installStream(this);
+        if (object[name] && this.isEventStream(object[name])) {
+            object[name].uninstall();
+        }
         object[name] = this;
         this.owner = object;
         this.streamName = name;
@@ -75,12 +77,16 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
 
     uninstall: function() {
-        this.owner.__evaluator.uninstallStream(this);
-        delete this.owner[this.streamName];
-        delete this.owner["_" + this.streamName];
-        delete this.owner.connections[this.streamNamename];
-        delete this.owner;
-        delete this.streamName;
+        if (this.owner) {
+            if (this.owner.__evaluator) {
+                this.owner.__evaluator.uninstallStream(this);
+            }
+            delete this.owner[this.streamName];
+            delete this.owner["_" + this.streamName];
+            delete this.owner.connections[this.streamNamename];
+            delete this.owner;
+            delete this.streamName;
+        }
     },
 },
 'combinators', {
@@ -337,7 +343,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
 
     basicUpdater: function(space, evaluator) {
     // The updater for the expr type
-        return this.expression.apply(this, evaluator.arguments[this.id]);
+        return this.expression.apply(space, evaluator.arguments[this.id]);
     },
 
     frpSet: function(val) {
@@ -359,6 +365,15 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         return ref;
     },
+    getLast: function(name) {
+    // Fetches the value from ref and return its last value
+        var v =  this[name] || this.owner[name];
+        if (this.isEventStream(v)) {
+            return v.lastValue;
+        }
+        return v;
+    },
+
     isEarlierThan: function(other) {
         var otherTime = other.lastTime;
         return otherTime === -1 || otherTime > this.lastCheckTime;
@@ -627,5 +642,9 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
         return obj instanceof lively.bindings.FRPCore.EventStream;
     }
 });
+
+if (lively.persistence.pluginsForLively.indexOf(lively.bindings.FRPCore.EventStreamPlugin) < 0) {
+    lively.persistence.pluginsForLively.push(lively.bindings.FRPCore.EventStreamPlugin);
+}
 
 }); // end of module

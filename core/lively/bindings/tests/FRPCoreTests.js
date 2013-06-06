@@ -286,7 +286,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         this.assertEquals(mergeE.currentValue, 0);
         evaluator.evaluateAt(1000);
         this.assert(mergeE.currentValue === 500 || mergeE.currentValue === 1000);
-    }
+    },
 },
 'support', {
     newEvaluator: function() {

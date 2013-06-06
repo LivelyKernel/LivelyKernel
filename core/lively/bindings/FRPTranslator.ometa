@@ -1,51 +1,119 @@
 ometa FRPTranslator {
-    start       = (empty -> (function() {
-                    this.id = 0;
-                    this.dependents = [];
-                    this.hasSubExpression = false;
-                    this.result = new StringBuffer();
-                    this.result.nextPutAll("(function () {var strm = new lively.bindings.FRPCore.EventStream(); ");
-    }.bind(this))()) trans:t
-        -> ((function() {
-            if (this.hasSubExpression) {
-                this.result.nextPutAll("return strm.finalize([");
-                this.result.nextPutAll(this.dependents.join(", "));
-                this.result.nextPutAll("])})();");
-                return this.result.contents();
-            } else {
-                return t.refString;
-            }
-                }.bind(this))()),
-    trans       = [:t apply(t):ans]      -> ans,
+    combinator  = #durationE | #collectE | #mergeE | #delayE | #timerE,
+    oTrans      = :tree -> BSOMetaJSTranslator.match(tree, "trans"),
+    start       =
+        (empty -> (function() {
+            this.id = 0;
+            this.dependents = [];
+            this.hasSubExpression = false;
+            this.triggerStack = [];
+            this.result = new StringBuffer();}.bind(this))())
+        trans:t
+            -> ((function() {
+                if (this.hasSubExpression) {
+                    var result = "(function () {var strm = new lively.bindings.FRPCore.EventStream();";
+                    result = result + this.result.contents();
+                    return result
+                        + "return strm.finalize(["
+                        + this.dependents.join(", ")
+                        + "])})();";
+                } else {
+                    return t.refString;
+                }
+                    }.bind(this))()),
+    trans       = [:t apply(t):ans]
+            -> ans,
     curlyTrans  = [#begin curlyTrans:r]  -> r
                 | [#begin trans*:rs]     -> ('{' + rs.join(';') + '}')
                 | trans:r                -> ('{' + r + '}'),
-    binop = :op trans:ll trans:rr        -> ((function() {
-                                            var isStream = ll.isStream || rr.isStream;
-                                            if (isStream) {
-                                                var id = this.nextId();
-                                                var strmDef = this.makeBinop([ll, rr], op);
-                                                var deps = ll.dependencies.clone().concat(rr.dependencies);
-                                                this.addSubExpression(id, strmDef, deps);
-                                                return {refString: this.ref(id), dependencies: deps, isStream: true}
-                                            } else {
-                                                return {refString: Strings.format('(%s %s %s)', ll.refString, op, rr.refString), dependencies: [], isStream: false};
-                                            }
-                                                }.bind(this))()),
+    fby   = trans:trigger
+            (empty -> this.triggerStack.push(trigger))
+            oTrans:init trans:body
+            -> ((function() {
+                this.triggerStack.pop();
+                var isStream = body.isStream || (trigger && trigger.isStream);
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeFby(init, [body]);
+                    debugger;
+                    var deps = body.dependencies.clone().concat(trigger ? trigger.dependencies : []);
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString: Strings.format('(%s)', body.refString),
+                        dependencies: [], isStream: false};
+                }
+            }.bind(this))()),
+    binop = :op trans:ll trans:rr
+            -> ((function() {
+                var isStream = ll.isStream || rr.isStream;
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeBinop([ll, rr], op);
+                    var deps = ll.dependencies.clone().concat(rr.dependencies);
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString: Strings.format('(%s %s %s)', ll.refString, op, rr.refString),
+                        dependencies: [], isStream: false};
+                }
+                    }.bind(this))()),
+    unop = :op trans:ll
+            -> ((function() {
+                var isStream = ll.isStream;
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeUnop([ll], op);
+                    var deps = ll.dependencies.clone();
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString: Strings.format('(%s%s)', op, ll.refString),
+                        dependencies: [], isStream: false};
+                }
+                    }.bind(this))()),
     func = anything:args curlyTrans:body -> (['(function (' + args.join(',') + ')' + body + ')', false]),
-    call = [#get #durationE] trans:ll trans:rr -> ((function() {
-                                                    var id = this.nextId();
-                                                    var strmDef = this.makeDurationE(ll.refString, rr.refString);
-                                                    var deps = ll.dependencies.clone().concat(rr.dependencies);
-                                                    this.addSubExpression(id, strmDef, deps);
-                                                    return {refString: this.ref(id), dependencies: deps, isStream: true}}.bind(this))()),
-    get = (anything:n ?(n.constructor === String)) -> ((function() {
-                                                        this.dependents.push(this.ref(n));
-                                                        return {refString: this.ref(n), dependencies: [n], isStream: true}}.bind(this))()),
-    getLast = (anything:n ?(n.constructor === String)) -> ((function() {
-                                                        return {refString: "this.owner." + n + ".lastValue", dependencies: [], isStream: false}}.bind(this))()),
-    number = (anything:n ?(n.constructor === Number)) -> ((function() {
-                                                        return {refString: Objects.inspect(n), dependencies: [], isStream: false}}.bind(this))()),
+    call = [#get combinator:comb] trans:ll trans:rr
+            -> ((function() {
+                var id = this.nextId();
+                var strmDef = this.makeCombinator(comb, [ll, rr]);
+                var deps = ll.dependencies.clone().concat(rr.dependencies);
+                this.addSubExpression(id, strmDef, deps);
+                return {refString: this.ref(id), dependencies: deps, isStream: true}}.bind(this))()),
+    call = oTrans:f trans*:args
+            -> ((function() {
+                var isStream = args.inject(false, function(last, now) {
+                    return last || now.isStream});
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeCall(f, args);
+                    var deps = args.inject([], function(last, now) {
+                        return last.concat(now.dependencies);
+                    });
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString:
+                        Strings.format('%s(%s)',
+                            f, args.map(function(arg) {return arg.refString}).join(', ')),
+                        dependencies: deps,
+                        isStream: false}
+                }
+                    }.bind(this))()),
+    get = (anything:n ?(n.constructor === String))
+            -> ((function() {
+                this.dependents.push(this.ref(n));
+                return {refString: this.ref(n),
+                        dependencies: [n], isStream: true}}.bind(this))()),
+    getLast = (anything:n ?(n.constructor === String))
+            -> ((function() {
+                return {refString: "this.getLast('" + n + "')",
+                        dependencies: [], isStream: false}}.bind(this))()),
+    number = (anything:n ?(n.constructor === Number))
+            -> ((function() {
+                return {refString: Objects.inspect(n), dependencies: [], isStream: false}}.bind(this))()),
     begin = trans
 
 };
+
+

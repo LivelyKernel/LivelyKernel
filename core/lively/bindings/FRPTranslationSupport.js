@@ -16,49 +16,64 @@ Object.extend(FRPTranslator, {
         },
     id: 0,
     nextId: function() {return '_t' + this.id++},
+    triggerStackLast: function() {return this.triggerStack[this.triggerStack.length-1]},
 
+    genExpr: function(args) {
+        var col = args;
+        if (this.triggerStackLast()) {
+            col = args.concat([this.triggerStackLast()]);
+        }
+       return col.map(function(arg) {
+            return arg.isStream ? arg.refString : 'null'}).join(', ');
+    },
+    genBodyVars: function(args, i) {
+        var arg = args[i];
+        return arg.isStream ? 'arg' + i : arg.refString;
+    },
+    genArgs: function(args) {
+        var col = args;
+        if (this.triggerStackLast()) {
+            col = args.concat([this.triggerStackLast()]);
+        }
+        return Array.range(0, col.length - 1).map(function(i) {return 'arg' + i}).join(', ');
+    },
     makeBinop: function(args, op) {
-        var genExpr = function() {
-            var s = new StringBuffer();
-            for (var i = 0; i < args.length; i++) {
-                var arg = args[i];
-                s.nextPutAll(arg.isStream ? arg.refString : 'null');
-                if (i !== args.length - 1) {
-                    s.nextPutAll(', ');
-                }
-            }
-            return s.contents();
-        };
-        var genBodyVars = function(i) {
-            var arg = args[i];
-             return arg.isStream ? 'arg' + i : arg.refString;
-        };
-        var genArgs = function() {
-            var s = new StringBuffer();
-            for (var i = 0; i < args.length; i++) {
-                s.nextPutAll('arg' + i);
-                if (i !== args.length - 1) {
-                    s.nextPutAll(', ');
-                }
-            }
-            return s.contents();
-        };
         return 'new lively.bindings.FRPCore.EventStream().expr([' +
-            genExpr() +
-            '], ' +
-            Strings.format('function (%s) {return %s %s %s})', genArgs(), genBodyVars(0), op, genBodyVars(1))
+            this.genExpr(args) + '], ' +
+            Strings.format('function(%s) {return %s %s %s})',
+                this.genArgs(args), this.genBodyVars(args, 0), op, this.genBodyVars(args, 1));
+    },
+    makeUnop: function(args, op) {
+        return 'new lively.bindings.FRPCore.EventStream().expr([' +
+            this.genExpr(args) + '], ' +
+            Strings.format('function(%s) {return %s%s})',
+                this.genArgs(args), op, this.genBodyVars(args, 0));
+    },
+    makeCombinator: function(comb, args) {
+        return 'new lively.bindings.FRPCore.EventStream().' + comb + '(' +
+                args.map(function(arg) {return arg.refString}).join(", ") + ')';
+    },
+    makeFby: function(init, args) {
+        return 'new lively.bindings.FRPCore.EventStream().expr([' +
+            this.genExpr(args) + '], ' +
+            Strings.format('function(%s) {return %s}, true, %s)',
+                this.genArgs(args), this.genBodyVars(args, 0), init);
     },
 
-    makeExpr: function(args, func) {
+    makeCall: function(name, args) {
         return 'new lively.bindings.FRPCore.EventStream().expr([' +
-                args.join(', ') +
-                '], ' +
-                func + ')';
-    },
-    makeDurationE: function(interval, duration) {
-        return 'new lively.bindings.FRPCore.EventStream().durationE(' +
-                interval + ', ' + duration + ')';
+            this.genExpr(args) + '], ' +
+            Strings.format('function(%s) {return %s(%s)})',
+                this.genArgs(args), name, Array.range(0, args.length-1).map(function(i) {return this.genBodyVars(args, i)}.bind(this)).join(', '))
     }
+
 });
+
+FRPParser.keywords = {};
+FRPParser.keywords["fby"] = true;
+FRPParser.keywords["on"] = true;
+FRPParser._isKeyword = function(k) {
+                        return this.keywords.hasOwnProperty(k)
+                            || BSOMetaJSParser.keywords.hasOwnProperty(k)}
 
 }); // end of module

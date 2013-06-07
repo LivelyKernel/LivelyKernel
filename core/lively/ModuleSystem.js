@@ -385,7 +385,7 @@ Object.subclass('lively.Module',
 
     isLoading: function() {
         if (this.isLoaded()) return false;
-        if (this.uri().include('anonymous')) return false;
+        if (this.uri().include('anonymous')) return true;
         return JSLoader.scriptInDOM(this.uri());
     },
 
@@ -396,17 +396,16 @@ Object.subclass('lively.Module',
 },
 'loading', {
     load: function(loadSync) {
-        if (!this.wasDefined) { // module definition missing
-            if (!this.isLoading()) { // load definiton if not already loading
-                JSLoader.loadJs(this.uri(), null, loadSync);
-            }
+        var prevWasSync = false;
+        if (loadSync) {
+            prevWasSync = this.constructor.loadSync;
+            this.constructor.loadSync = true;
+        }
+        if (this.isLoaded()) {
+            this.runOnloadCallbacks();
             return;
         }
-        if (this.hasPendingRequirements()) { // requirement missing
-            this.loadRequirementsFirst();
-            return;
-        }
-        if (!this.isLoaded()) { // load module for the first time
+        if (this.wasDefined && !this.hasPendingRequirements()) {
             this.runOnloadCallbacks();
             // time is not only the time needed for the request and code
             // evaluation but the complete time span from the creation of the
@@ -415,9 +414,14 @@ Object.subclass('lively.Module',
             var time = this.createTime ? new Date() - this.createTime : 'na';
             console.log(this.uri() + ' loaded in ' + time + ' ms');
             this.informDependendModules();
-        } else { // re-load module to apply runtime changes
-            this.runOnloadCallbacks();
+            return;
         }
+        if (this.isLoading() || this.wasDefined) {
+            this.loadRequirementsFirst();
+            return;
+        }
+        JSLoader.loadJs(this.uri(), null, this.constructor.loadSync);
+        if (loadSync) this.constructor.loadSync = prevWasSync;
     },
 
     activate: function() {

@@ -62,6 +62,7 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
     },
     testToRun: function() {
         var moduleCodeExecuted = false;
+        module('foo.goo').remove();
         module('foo.goo').requires().toRun(function() {
             moduleCodeExecuted = true;
         });

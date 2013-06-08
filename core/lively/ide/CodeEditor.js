@@ -839,7 +839,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'text morph event interface', {
-    focus: function() { this.aceEditor.focus(); },
+    focus: function() { this.withAceDo(function(ed) { return ed.focus(); }); },
     isFocused: function() { return this._isFocused; },
     requestKeyboardFocus: function(hand) { this.focus(); },
     onWindowGetsFocus: function(window) { this.focus(); }

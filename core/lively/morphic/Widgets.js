@@ -933,7 +933,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         allowInput: false,
         fontSize: 10.5,
         padding: Rectangle.inset(3,2),
-        textColor: Config.get('textColor') || Color.black
+        textColor: Config.get('textColor') || Color.black,
+        whiteSpaceHandling: 'nowrap'
     },
     defaultTextColor: Config.get('textColor') || Color.black
 },

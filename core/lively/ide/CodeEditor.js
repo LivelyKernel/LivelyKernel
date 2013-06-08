@@ -92,8 +92,13 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
     }
 },
 'HTML rendering', {
-    getExtentHTML: function($super, ctx) {
-        if (!this.aceEditor) return this.extent || $super(ctx);
+
+    getExtent: function($super) {
+        if (!this.aceEditor || !this._renderContext) return this.extent || pt(0,0);
+        return $super();
+    },
+
+    getExtentHTML: function (ctx) {
         var borderW = this.getBorderWidth(),
             aceSize = this.aceEditor.renderer.$size;
         return lively.pt(aceSize.width + borderW, aceSize.height + borderW);

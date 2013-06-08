@@ -5,6 +5,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     className: "lively.morphic.Window",
     contentOffset: lively.pt(4.0,22.0),
     state: "expanded",
+    draggingEnabled: true,
     submorphs: [{
         _BorderWidth: 1,
         _Position: lively.pt(4.0,22.0),

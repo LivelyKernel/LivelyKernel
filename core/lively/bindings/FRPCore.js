@@ -169,7 +169,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                         ? space.frpGet(this.initialValue)
                         : this.currentValue))},
             null,
-            true);
+            false);
         this.initialValue = initialValue;
         this.func = func;
         this.event = this.ref(event);

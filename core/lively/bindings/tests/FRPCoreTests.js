@@ -223,6 +223,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         var obj = {};
         var evaluator = this.newEvaluator();
         evaluator.installTo(obj);
+        evaluator.evaluate();
 
         var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
         timer.installTo(obj, "timer");
@@ -245,6 +246,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         var obj = {};
         var evaluator = this.newEvaluator();
         evaluator.installTo(obj);
+        evaluator.evaluate();
 
         var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
         timer.installTo(obj, "timer");

@@ -39,7 +39,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.currentValue = undefined;
         this.lastValue = undefined;
         this.checker = checker || this.basicChecker;
-        this.isContinuous = isContinuous || false;
+        this.isContinuous = isContinuous !== undefined ? isContinuous : null;
         this.setLastTime(0);
         return this;
     },
@@ -58,7 +58,6 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     // Install this into the owner object under the name
     // When the stream is continuous, the potential dependents will be evaluated
     // upon next available step.
-        object.__evaluator.installStream(this);
         if (object[name] && this.isEventStream(object[name])) {
             object[name].uninstall();
         }
@@ -66,13 +65,14 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.owner = object;
         this.streamName = name;
         if (this.isContinuous) {
-            this.setLastTime(-1);
+            this.setLastTime(object.__evaluator.currentTime + 1 /* hmm */);
         }
         if (!this.owner.hasOwnProperty("connections")) {
             this.owner.connections = {};
         }
         this.owner.connections[name] = {map: name + ".connectionTrigger"};
         this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n)");
+        object.__evaluator.installStream(this);
         return this;
     },
 
@@ -204,6 +204,10 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         return this.finalize([]);
     },
+    discrete: function() {
+        this.setUp("discrete", [], null, null, false);
+        return this.finalize([]);
+    },
 },
 'evaluation', {
     addSubExpression: function(id, stream) {
@@ -294,6 +298,9 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         if (time > this.lastCheckTime) {
 			this.lastCheckTime = time;
+            if (this.lastTime === -1){
+                this.lastTime = time;
+            }
 		}
         return changed;
     },
@@ -446,6 +453,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.arguments = {};
         this.dependencies = {};
         this.endNodes = {};
+        this.continuity = {};
         return this;
     },
     onstore: function() {
@@ -515,6 +523,39 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             this.results.push(elem);
         }
     },
+    detectContinuityFor: function(v) {
+        if (v.isContinuous === true || v.isContinuous === false) {
+            this.continuity[v.id] = v.isContinuous;
+            return false;
+        }
+        var srcs = this.sources[v.id];
+        var maybeContinous = true;
+        for (var i = 0; i < srcs.length; i++) {
+            var s = srcs[i];
+            if (this.isEventStream(s) && this.continuity[s.id] === false) {
+                this.continuity[v.id] = false;
+                return false;
+            }
+        }
+        return true;
+    },
+    detectContinuity: function() {
+    // Compute the continuousness of unknown stream.
+    // Assumes that the results field holds onto the properly sorted streams
+        var foundNewContnuous = false;
+        for (var i = 0; i < this.results.length; i++) {
+            var v = this.results[i];
+            for (var j = 0; j < v.subExpressions.length; j++) {
+                var ref = v.subExpressions[j];
+                if (ref.isSubExpression) {
+                    var s = v.lookup(ref);
+                    foundNewContnuous = this.detectContinuityFor(s) || foundNewContnuous;
+                }
+            }
+            foundNewContnuous = this.detectContinuityFor(v) || foundNewContnuous; 
+        }
+        return foundNewContnuous;
+    },
     sort: function() {
         var results = this.results = [];
         for (var k in this.endNodes) {
@@ -525,11 +566,22 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         }
         return results;
     },
+    sortAndMaybeEvaluate: function() {
+        var now = Date.now();
+        if (!this.results) {
+            this.addStreamsFrom(this.object);
+            this.sort();
+        }
+        if (this.detectContinuity()) {
+            return this.evaluateAt(now - this.object.__startTime);
+        }
+    },
     evaluate: function() {
         var now = Date.now();
         if (!this.results) {
             this.addStreamsFrom(this.object);
             this.sort();
+            this.detectContinuity();
         }
         return this.evaluateAt(now - this.object.__startTime);
     },
@@ -546,23 +598,20 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         }
         return changed;
     },
-    resetSortedResults: function() {
-        this.reset();
-    },
     installStream: function(strm) {
     // For a timer, it starts the timer.
     // The evaluator is reset as the network may change.
         if (strm.type === "timerE" || strm.type === "durationE") {
             this.addTimer(strm);
         }
-        this.resetSortedResults();
+        this.reset();
     },
 
     uninstallStream: function(strm) {
         if (strm.type === "timerE" || strm.type === "durationE") {
             this.removeTimer(strm);
         }
-        this.resetSortedResults();
+        this.reset();
    },
 },
 'timers', {
@@ -624,15 +673,17 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
     },
     deserializeObj: function(copy) {
         if (!copy || !copy.isSerializedStream) return null
-        return copy.type === "value" ?
+        var strm = copy.type === "value" ?
             new lively.bindings.FRPCore.EventStream().value(copy.currentValue) :
             lively.bindings.FRPCore.EventStream.fromString(copy.code);
+        return strm;
     },
     afterDeserializeObj: function (obj) {
         if (this.isEventStream(obj)) {
             if (obj.owner) {
                 return obj.installTo(obj.owner, obj.streamName);
             }
+            delete this.isSerializedStream;
         }
         return null;
     }

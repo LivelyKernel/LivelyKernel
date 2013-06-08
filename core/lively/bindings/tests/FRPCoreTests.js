@@ -12,6 +12,7 @@ TestCase.subclass('lively.bindings.tests.FRPCoreTests.FRPTests',
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         var result = evaluator.sort();
+        evaluator.detectContinuity();
         evaluator.evaluateAt(500);
         this.assertEquals(timer.currentValue, undefined);
         evaluator.evaluateAt(1000);
@@ -34,6 +35,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         var result = evaluator.sort();
+        evaluator.detectContinuity();
 
         evaluator.evaluateAt(3500);
         this.assertEquals(expr1.currentValue, -3000);
@@ -66,6 +68,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
 
         evaluator.evaluateAt(3500);
         this.assertEquals(expr3.currentValue, 6000);
@@ -94,6 +97,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
 
         evaluator.evaluateAt(3500);
         this.assertEquals(expr1.currentValue, -9000);
@@ -121,6 +125,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
 
         evaluator.evaluateAt(3500);
         this.assertEquals(expr1.currentValue, -8900);
@@ -142,6 +147,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
 
         evaluator.evaluateAt(1000);
         this.assertEquals(collector.currentValue.now, 1);
@@ -163,6 +169,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
 
         evaluator.evaluateAt(1000);
         this.assertEquals(timer.currentValue, 0);
@@ -193,6 +200,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
         var i;
         for (i = 1000; i <= 3000; i += 1000) {
             evaluator.evaluateAt(i);
@@ -225,6 +233,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
         var i;
         for (i = 1000; i <= 10000; i += 1000) {
             evaluator.evaluateAt(i);
@@ -244,20 +253,21 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         nat.installTo(obj, "nat");
 
         var even = this.newStream().expr([this.ref("nat")],
-            function(n) {return n % 2 === 0}, true, true).finalize([]);
+            function(n) {return n % 2 === 0}).finalize([]);
         even.installTo(obj, "even");
 
         var evenInner = this.newStream().expr([this.ref("nat")],
-            function(n) {return n % 2 === 0}, true, true).finalize([]);
+            function(n) {return n % 2 === 0}).finalize([]);
 
         var odd = this.newStream().expr([this.ref("_t1")],
-            function(e) {return !e}, true, false).finalize([this.ref("nat")]);
+            function(e) {return !e}).finalize([this.ref("nat")]);
         odd.addSubExpression("_t1", evenInner);
         odd.installTo(obj, "odd");
 
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
         var i;
         for (i = 1000; i <= 10000; i += 1000) {
             evaluator.evaluateAt(i);
@@ -281,6 +291,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.reset();
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
+        evaluator.detectContinuity();
 
         evaluator.evaluateAt(500);
         this.assertEquals(mergeE.currentValue, 0);

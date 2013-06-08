@@ -35,7 +35,6 @@ ometa FRPTranslator {
                 if (isStream) {
                     var id = this.nextId();
                     var strmDef = this.makeFby(init, [body]);
-                    debugger;
                     var deps = body.dependencies.clone().concat(trigger ? trigger.dependencies : []);
                     this.addSubExpression(id, strmDef, deps);
                     return {refString: this.ref(id), dependencies: deps, isStream: true}

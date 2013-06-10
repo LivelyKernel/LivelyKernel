@@ -4,7 +4,7 @@ $('style#incremental-search-highlight-style-patch').remove();
 $('style#incremental-search-highlighting').remove();
 $('style#incremental-occur-highlighting').remove();
 
-module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.persistence.BuildSpec', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.AST.acorn', 'lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.persistence.BuildSpec', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
@@ -204,13 +204,17 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'ace', {
 
     initializeAce: function(force) {
+        var initializedEarlier = !!this.aceEditor;
         // 1) create ace editor object
-        if (this.aceEditor && !force) return;
+        if (initializedEarlier && !force) return;
         var node = this.getShape().shapeNode,
             e = this.aceEditor = this.aceEditor || ace.edit(node),
             morph = this;
-        e.on('focus', function() { morph._isFocused = true; });
-        e.on('blur', function() { morph._isFocused = false; });
+        if (!initializedEarlier) {
+            e.on('focus', function() { morph._isFocused = true; });
+            e.on('blur', function() { morph._isFocused = false; });
+            this.listenForDocumentChanges(e);
+        }
         node.setAttribute('id', 'ace-editor');
         this.disableTextResizeOnZoom(e);
 
@@ -244,6 +248,22 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     disableTextResizeOnZoom: function(aceEditor) {
         aceEditor.renderer.updateFontSize();
         Global.clearInterval(aceEditor.renderer.$textLayer.$pollSizeChangesTimer);
+    },
+
+    listenForDocumentChanges: function(ed) {
+        this._listenForDocumentChanges = this._listenForDocumentChanges || this.listenForDocumentChanges.bind(this);
+        this._onDocumentChange = this._onDocumentChange || this.onDocumentChange.bind(this);
+        ed.on('changeSession', this._listenForDocumentChanges);
+        ed.session.on('change', this._onDocumentChange);
+    },
+
+    onDocumentChange: function(evt) {
+        var mode = this.aceEditor.session.getMode(),
+            astHandler = mode.$astHandler;
+        if (!astHandler && mode.$id === "ace/mode/javascript") {
+            astHandler = mode.$astHandler = new lively.ide.CodeEditor.JavaScriptASTHandler();
+        }
+        astHandler && astHandler.onDocumentChangeDebounced(evt, this);
     },
 
     addCommands: function(commands) {
@@ -514,6 +534,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     indexToPosition: function(absPos) { return this.getDocument().indexToPosition(absPos); },
+    positionToIndex: function(pos) { return this.getDocument().positionToIndex(pos); },
 
     getSession: function(absPos) { return this.withAceDo(function(ed) { return ed.session; }); },
 
@@ -917,7 +938,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             || pos.column < idx                 // the click was before the comment
             || (idx>0 && (':"'+"'").indexOf(text[idx-1]) >=0)    // weird cases
             ) return text;
-        
+
         // Select and return the text between the comment slashes and end of method
         range.start.column = idx+2; range.end.column = text.length;
         this.setSelectionRangeAce(range)
@@ -1001,7 +1022,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                         self.start = ed.session.doc.createAnchor(range.start);
                         self.end && self.end.detach();
                         self.end = ed.session.doc.createAnchor(range.end);
-                    });                    
+                    });
                 },
                 getTextString: function() {
                     return this.editor.getSelectionOrLineString(this.getRange());
@@ -1027,7 +1048,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var range = this.getSelectionRangeAce();
         if (range.isEmpty()) return;
         var marker = lively.morphic.CodeEditorEvalMarker.setCurrentMarker(this, range);
-        marker.evalAndInsert();      
+        marker.evalAndInsert();
     },
 
     removeEvalMarker: function() {
@@ -1198,13 +1219,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
         evalMarkerItems[1].push(['Remove eval marker', function() {
             self.removeEvalMarker(); }]);
-        
+
         var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
         if (marker) {
             if (marker.doesContinousEval()) {
                 evalMarkerItems[1].push(['Disable eval interval', function() {
                     marker.stopContinousEval();
-                }]);                
+                }]);
             } else {
                 evalMarkerItems[1].push(['Set eval interval', function() {
                     world.prompt('Please enter the interval time in milliseconds', function(input) {
@@ -1243,7 +1264,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
          {name: "ShowActiveLine", menuString: "show active line"},
          {name: "ShowIndents", menuString: "show indents"},
          {name: "SoftTabs", menuString: "use soft tabs"},
-         {name: "LineWrapping", menuString: "line wrapping"}].forEach(function(itemSpec) { 
+         {name: "LineWrapping", menuString: "line wrapping"}].forEach(function(itemSpec) {
             var enabled = editor["get"+itemSpec.name]();
             items.push([Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
                 editor['set'+itemSpec.name](!enabled); }]);
@@ -1362,7 +1383,7 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
         }
         return delay ? doEval.delay(delay/1000) : doEval();
     },
-    
+
     stopContinousEval: function() {
         Global.clearInterval(this.stepInterval);
         delete this.stepInterval;
@@ -1521,7 +1542,7 @@ lively.morphic.World.addMethods(
             switch(sig) {
                 case 'F1': scriptList.focus(); evt.stop(); return true;
                 case 'F2': sourcePane.focus(); evt.stop(); return true;
-                default: $super(evt);        
+                default: $super(evt);
             }
         });
 

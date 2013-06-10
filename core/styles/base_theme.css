@@ -51,14 +51,15 @@
 }
 
 /* for centered button labels let the textNode use table layouting */
+
 .Button .Text > div {
-    display: table !important;
+	display: table !important;
 }
 
 .Button .Text span {
-  display: table-cell;
-  vertical-align: middle;
-  text-align: center;
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
 }
 
 .Window {
@@ -216,4 +217,14 @@
 	bottom: 0;
 	left: 0;
 	right: 0;
+}
+
+.ace-global-var {
+	position: absolute;
+	border-radius: 3px;
+	background-color: rgba(225, 0,0, 0.4);
+}
+
+.ace_dark .ace-global-var {
+	background-color: rgba(250, 100,0, 0.6);
 }

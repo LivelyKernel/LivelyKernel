@@ -1,6 +1,6 @@
 module('lively.ide.tests.CodeEditor').requires('lively.ide.CodeEditor', 'lively.TestFramework').toRun(function() {
 
-TestCase.subclass('lively.ide.tests.CodeEditor.Base',
+AsyncTestCase.subclass('lively.ide.tests.CodeEditor.Base',
 'running', {
     setUp: function($super) {
         $super();
@@ -27,6 +27,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
     testCreation: function() {
         this.editor.textString = "some content";
         this.assertHasText(this.editor, 'some content');
+        this.done();
     },
     testCopyKeepsString: function() {
         this.editor.textString = "some content";
@@ -34,25 +35,28 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.morphsToDelete.push(e2);
         e2.openInWorld();
         this.assertHasText(e2, 'some content');
+        this.done();
     },
     testCopyHasStringEvenImmediatellyAfterCopy: function() {
         this.editor.textString = "some content";
         var e2 = this.editor.copy();
         this.morphsToDelete.push(e2);
         this.assertEquals('some content', e2.textString);
+        this.done();
     },
-
 
     testIndexToPosition: function() {
         this.editor.textString = "some\ncontent";
         var pos = this.editor.indexToPosition(6);
         this.assertEqualState({column: 1, row: 1}, pos, "some\n c|ontent");
+        this.done();
     },
 
     testSetSelectionRange: function() {
         this.editor.textString = "some\ncontent";
         var pos = this.editor.setSelectionRange(2, 7);
         this.assertEquals('me\nco', this.editor.getSelectionOrLineString());
+        this.done();
     },
 
     testHasUnsavedChanges: function() {
@@ -63,6 +67,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.assert(!e.hasUnsavedChanges(), '1');
         e.insertAtCursor('foo');
         this.assert(e.hasUnsavedChanges(), '2');
+        this.done();
     }
 
 });
@@ -93,6 +98,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         this.assertEqualState([5,5], e.getSelectionRange());
         e.moveForwardToMatching(true);
         this.assertEqualState([5,10], e.getSelectionRange());
+        this.done();
     },
 
     testMoveToMatchingOrSomewhereElse: function() {
@@ -106,6 +112,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         this.assertEquals(pt(4,0), e.getCursorPosition(), "ab| { c } -> ab {| c }");
         e.moveForwardToMatching(false, true);
         this.assertEquals(pt(7,0), e.getCursorPosition(), "ab {| c } -> ab { c |}");
+        this.done();
     },
 
     testMultiSelectionEval: function() {
@@ -119,6 +126,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         e.aceEditor.selection.addRange(range2);
         e.aceEditor.execCommand('printit');
         this.assertHasText(e, '1+12\n1+23\n');
+        this.done();
     }
 
 });
@@ -148,6 +156,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection
             text = e.getSelectionMaybeInComment();
             this.assertEquals(ea.expected, text, '' + i + ': ' + r);
         }, this);
+        this.done();
     },
     testDoitWillEvaluateLogicalLine: function() {
         var e = this.editor;
@@ -160,6 +169,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection
         e.doit(true);
         var selectedResult = e.getSelectionOrLineString();
         this.assertEquals('100', selectedResult);
+        this.done();
     },
 
 
@@ -172,9 +182,10 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection
         this.assertEquals('1+2', ann.getTextString(), 'not floating');
         e.insertTextStringAt({row: 0, column: 9+5}, '3');
         this.assertEquals('1+23', ann.getTextString(), 'not floating');
-        e.textString = e.textString; // currently resetting the textString will collapse start and end 
+        e.textString = e.textString; // currently resetting the textString will collapse start and end
         this.assertEquals('', ann.getTextString(), 'not floating');
         // this.assert(!ann.isAttached, 'annotations still marked as attached');
+        this.done();
     },
 
     testAddEvalMarker: function() {
@@ -190,6 +201,21 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection
         this.assertEquals('3', marker.getTextString(), 'marker textstring after eval');
         marker.restoreText();
         this.assertEquals('1+2', marker.getTextString(), 'marker restore');
+        this.done();
+    }
+
+});
+
+lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.JSAST',
+'testing', {
+
+    testASTIsAvailable: function() {
+        var e = this.editor, text;
+        e.textString = "1 + 2";
+        this.delay(function() {
+            this.assertEquals('Program', e.aceEditor.session.$ast.type);
+            this.done();
+        }, 400);
     }
 
 });

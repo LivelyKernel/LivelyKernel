@@ -61,6 +61,9 @@ Object.subclass('lively.ide.ModuleWrapper',
 
     getSource: function() {
         return this._cachedSource ? this._cachedSource : this.getSourceUncached();
+    },
+    getSourceFragment: function(startIdx, endIdx) {
+        return this.getSource().slice(startIdx, endIdx);
     }
 },
 'parsing', {

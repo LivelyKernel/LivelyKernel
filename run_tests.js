@@ -94,6 +94,7 @@ var browserTests = [
     "lively.bindings.tests.GeometryBindingTests",
 
     // ide / SCB
+    "lively.ide.tests.ASTEditingSupport",
     "lively.ide.tests.CodeEditor",
     "lively.ide.tests.FileParserTests",
     "lively.ide.tests.ModuleLookup",

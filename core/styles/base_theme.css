@@ -220,6 +220,10 @@
 }
 
 .ace-global-var {
-	position: absolute;
-	border-bottom: 2px orange dotted;
+	position: abosulte;
+	border-bottom: 2px rgba(255,150, 0, 0.8) dotted;
+}
+
+.ace_dark .ace-global-var {
+	border-bottom: 2px rgba(255,150, 0, 0.6) dotted;
 }

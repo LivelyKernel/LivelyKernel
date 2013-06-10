@@ -134,7 +134,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
 
     createModuleFile: function(url) {
         var content = '';
-        var extension = URL.source.extension();
+        var extension = url.extension();
         if (extension === '') {
             extension = 'js';
             url = new URL(url.toString() + '.js')

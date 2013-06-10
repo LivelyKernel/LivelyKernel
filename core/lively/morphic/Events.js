@@ -966,7 +966,7 @@ handleOnCapture);
     interactiveMoveOrResize: function(keyPressed, evt) {
         if (!this.showsHalos) return false;
         evt.stop();
-        var dist = evt.isCommandKey() ? 10 : 1,
+        var dist = evt.isAltDown() ? 100 : (evt.isCommandKey() ? 10 : 1),
             operation = evt.isShiftDown() ? 'resizeBy' : 'moveBy',
             x = 0, y = 0;
         if (keyPressed === 'left') x = -dist;

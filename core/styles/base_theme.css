@@ -1,5 +1,5 @@
 .World {
-    font-family: Helvetica;
+	font-family: Helvetica;
 }
 
 .Box {
@@ -221,10 +221,5 @@
 
 .ace-global-var {
 	position: absolute;
-	border-radius: 3px;
-	background-color: rgba(225, 0,0, 0.4);
-}
-
-.ace_dark .ace-global-var {
-	background-color: rgba(250, 100,0, 0.6);
+	border-bottom: 2px orange dotted;
 }

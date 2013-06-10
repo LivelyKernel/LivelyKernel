@@ -312,15 +312,13 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
                 globals: [],
                 update: function(html, markerLayer, session, config) {
                     var start = config.firstRow, end = config.lastRow;
-                    this.globals.forEach(function(node) { 
+                    this.globals.forEach(function(node) {
                         var start = sess.doc.indexToPosition(node.start),
                             end = sess.doc.indexToPosition(node.end),
                             range = Range.fromPoints(start, end);
                         markerLayer.drawSingleLineMarker(html, range.toScreenRange(session), "ace-global-var", config);
                     });
-                
                 }
-                
             }
         }
         marker.globals = this.findGlobalVarReferences(ast);

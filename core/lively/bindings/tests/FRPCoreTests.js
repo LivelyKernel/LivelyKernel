@@ -300,6 +300,63 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.evaluateAt(1000);
         this.assert(mergeE.currentValue === 500 || mergeE.currentValue === 1000);
     },
+    testObject: function() {
+        var obj = {};
+        var evaluator = this.newEvaluator();
+        evaluator.installTo(obj);
+        evaluator.evaluate();
+
+        var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
+        timer.installTo(obj, "timer");
+        var fib = this.newStream().expr([null], function(a) {
+            return {now: this.getLast('fib').now + this.getLast('fib').prev, prev: this.getLast('fib').now}}, true, {now: 1, prev: 0}).setCode("{now: 1, prev: 0} fby {now: fib'.now + fib'.prev, prev: fib'.now} on timer").finalize([this.ref("timer")]);
+        fib.installTo(obj, "fib");
+
+        evaluator.reset();
+        evaluator.addStreamsFrom(obj);
+        evaluator.sort();
+        evaluator.detectContinuity();
+
+        evaluator.evaluateAt(1000);
+        this.assertEquals(fib.currentValue.now, 1);
+        evaluator.evaluateAt(2000);
+        this.assertEquals(fib.currentValue.now, 2);
+    },
+    testSimultaneous: function() {
+        var obj = {};
+        var evaluator = this.newEvaluator();
+        evaluator.installTo(obj);
+        evaluator.evaluate();
+
+        var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
+        timer.installTo(obj, "timer");
+
+        var a = this.newStream().value(1.0).finalize([]);
+        a.installTo(obj, "a");
+        var d = this.newStream().value(1.0).finalize([]);
+        d.installTo(obj, "d");
+        var b = this.newStream().expr([null], function() {
+            return (this.getLast('a') + this.getLast('c')) / 2.0;},
+            true, 0.0).finalize([this.ref("timer")]);
+        b.installTo(obj, "b");
+        var c = this.newStream().expr([null], function() {
+            return (this.getLast('b') + this.getLast('d')) / 2.0;},
+            true, 0.0).finalize([this.ref("timer")]);
+        c.installTo(obj, "c");
+
+        evaluator.reset();
+        evaluator.addStreamsFrom(obj);
+        evaluator.sort();
+        evaluator.detectContinuity();
+    debugger;
+        evaluator.evaluateAt(1000);
+        this.assertEquals(b.currentValue, 0.5);
+        this.assertEquals(c.currentValue, 0.5);
+        evaluator.evaluateAt(2000);
+        this.assertEquals(b.currentValue, 0.75);
+        this.assertEquals(c.currentValue, 0.75);
+    },
+
 },
 'support', {
     newEvaluator: function() {

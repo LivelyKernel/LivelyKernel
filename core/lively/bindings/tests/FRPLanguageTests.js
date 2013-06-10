@@ -36,7 +36,7 @@ TestCase.subclass('lively.bindings.tests.FRPLanguageTests.LanguageTests',
         this.assert(string.match('\\(arg0\\)') !== null);
         this.assert(string.match('return -arg0') !== null, "hmm");
 
-        var result = result._t0;
+        result = result._t0;
         this.assertEquals(result.constructor, lively.bindings.FRPCore.EventStream, "constructor");
         this.assertEquals(result.type, "exprE", "type");
         this.assertEquals(result.dependencies.length, 2, "dep");
@@ -48,7 +48,7 @@ TestCase.subclass('lively.bindings.tests.FRPLanguageTests.LanguageTests',
         this.assertEquals(result.currentValue, undefined, "currentValue");
         this.assertEquals(result.dependencies.length, 3, "dep");
 
-        var result = result._t0;
+        result = result._t0;
         this.assertEquals(result.constructor, lively.bindings.FRPCore.EventStream, "constructor");
         this.assertEquals(result.type, "exprE", "type");
         this.assertEquals(result.currentValue, undefined, "currentValue");
@@ -91,6 +91,24 @@ TestCase.subclass('lively.bindings.tests.FRPLanguageTests.LanguageTests',
         this.assert(string.match('\\(arg0, arg1, arg2\\)') !== null);
         this.assert(string.match("return this.getLast\\('a'\\) \\+ arg1") !== null);
     },
+    testJsonConstant: function() {
+        var result = lively.bindings.FRPCore.EventStream.fromString("({now: 1, last: 0})");
+        this.assertEquals(result.constructor, lively.bindings.FRPCore.EventStream, "constructor");
+        this.assertEquals(result.type, "value", "type");
+        this.assertEquals(result.currentValue.now, 1);
+        this.assertEquals(result.currentValue.last, 0);
+    },
+    testJson: function() {
+        var result = lively.bindings.FRPCore.EventStream.fromString("({now: 1, last: a})");
+        this.assertEquals(result.constructor, lively.bindings.FRPCore.EventStream, "constructor");
+        this.assertEquals(result.type, "exprE", "type");
+        this.assertEquals(result.currentValue, undefined, "currentValue");
+        this.assertEquals(result.dependencies.length, 1, "dep");
+        var string = result.expression.toString();
+        this.assert(string.match('\\(arg0, arg1\\)') !== null);
+        this.assert(string.match('return {"now": 1, "last": arg1}') !== null);
+    }
+
 });
 
 });

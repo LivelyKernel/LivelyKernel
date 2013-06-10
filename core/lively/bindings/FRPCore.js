@@ -49,7 +49,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
 
     beContinuous: function(val) {
-        this.currentValue = val;
+        this.currentValue = this.lastValue = val;
         this.isContinuous = true;
         return this;
     },

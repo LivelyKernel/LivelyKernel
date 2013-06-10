@@ -4,7 +4,7 @@ $('style#incremental-search-highlight-style-patch').remove();
 $('style#incremental-search-highlighting').remove();
 $('style#incremental-occur-highlighting').remove();
 
-module('lively.ide.CodeEditor').requires('lively.AST.acorn', 'lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.persistence.BuildSpec', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.ast.acorn', 'lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.persistence.BuildSpec', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());

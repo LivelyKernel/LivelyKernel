@@ -17,7 +17,7 @@ dependencies.doAndContinue(function(next, lib) {
     }, 50);
 }, function() { allDependenciesLoaded = true; });
 
-module("lively.AST.acorn").requires("lively.ide.SourceDatabase").requiresLib({loadTest: function() { return !!allDependenciesLoaded; }}).toRun(function() {
+module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({loadTest: function() { return !!allDependenciesLoaded; }}).toRun(function() {
 
 (function extendAcorn() {
 
@@ -109,7 +109,7 @@ lively.ide.ModuleWrapper.addMethods(
     }
 });
 
-Object.extend(lively.AST.acorn, {
+Object.extend(lively.ast.acorn, {
 
     parse: function(source) {
         return acorn.parse(source);
@@ -149,7 +149,7 @@ Object.subclass('lively.ide.CodeEditor.JavaScriptASTHandler',
         var src = codeEditor.textString,
             session = codeEditor.getSession();
         try {
-            session.$ast = lively.AST.acorn.fuzzyParse(src);
+            session.$ast = lively.ast.acorn.fuzzyParse(src);
         } catch(e) {
             session.$ast = e;
         }
@@ -167,7 +167,7 @@ Object.subclass('lively.ide.CodeEditor.JavaScriptASTHandler',
 Object.subclass('lively.ide.CodeEditor.JS.Navigator',
 'parsing', {
     ensureAST: function(astOrSource) {
-        return Object.isString(astOrSource) ? lively.AST.acorn.fuzzyParse(astOrSource) : astOrSource;
+        return Object.isString(astOrSource) ? lively.ast.acorn.fuzzyParse(astOrSource) : astOrSource;
     }
 },
 'movement', {
@@ -313,7 +313,7 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
         var ast = Object.isString(src) ? null : src;
         var rootScope = {vars: {}, identifiers: [], containingScopes: []}, ast;
         if (!ast) {
-            try { ast = lively.AST.acorn.parse(src);
+            try { ast = lively.ast.acorn.parse(src);
             } catch(e) { ast = e; }
         }
         if (ast instanceof Error) return [];

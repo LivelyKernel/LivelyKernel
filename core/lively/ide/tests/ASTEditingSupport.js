@@ -1,4 +1,4 @@
-module('lively.ide.tests.ASTEditingSupport').requires("lively.ide.tests.CodeEditor", "lively.AST.acorn").toRun(function() {
+module('lively.ide.tests.ASTEditingSupport').requires("lively.ide.tests.CodeEditor", "lively.ast.acorn").toRun(function() {
 
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 'running', {
@@ -21,7 +21,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 
     testBackwardSexp: function() {
         var src = "this.foo(bar, 23);";
-        // lively.AST.acorn.nodeSource(src, lively.AST.acorn.nodesAt(5, src).last())
+        // lively.ast.acorn.nodeSource(src, lively.ast.acorn.nodesAt(5, src).last())
         // acorn.walk.print(acorn.walk.findNodesIncluding(ast, 8))
         // acorn.walk.findNodesIncluding(ast, 8)
         var nav = this.sut;

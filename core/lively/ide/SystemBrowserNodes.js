@@ -183,7 +183,7 @@ lively.ide.BrowserNode.subclass('lively.ide.FileFragmentNode', {
 
 lively.ide.BrowserNode.subclass('lively.ide.NamespaceNode',
 'documentation', {
-    documentation: 'Has as its target a relative path to a subnamespace like lively/AST/. Sets new browser location on activation.'
+    documentation: 'Has as its target a relative path to a subnamespace like lively/ast/. Sets new browser location on activation.'
 },
 'initialization', {
     nameExtractor: /\/?([^\/]+)\/$/,

@@ -1,4 +1,23 @@
-module("lively.AST.acorn").requires("lively.ide.SourceDatabase").requiresLib({url: Config.codeBase + 'lib/acorn/acorn.js', loadTest: function() { return typeof acorn !== 'undefined'; }}).requiresLib({url: Config.codeBase + 'lib/acorn/acorn-walk.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }}).toRun(function() {
+// FIXME rk 2013-06-10
+// we need the right order of libs to be loaded, this should eventually be
+// supported by lively.Module>>requireLib
+var allDependenciesLoaded = false;
+var dependencies = [
+    {url: Config.codeBase + 'lib/acorn/acorn.js', loadTest: function() { return typeof acorn !== 'undefined'; }},
+    {url: Config.codeBase + 'lib/acorn/acorn_loose.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
+    {url: Config.codeBase + 'lib/acorn/acorn-walk.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }}
+];
+
+dependencies.doAndContinue(function(next, lib) {
+    JSLoader.loadJs(lib.url);
+    var interval = Global.setInterval(function() {
+        if (!lib.loadTest()) return;
+        Global.clearInterval(interval);
+        next();
+    }, 50);
+}, function() { allDependenciesLoaded = true; });
+
+module("lively.AST.acorn").requires("lively.ide.SourceDatabase").requiresLib({loadTest: function() { return !!allDependenciesLoaded; }}).toRun(function() {
 
 (function extendAcorn() {
 
@@ -18,7 +37,7 @@ module("lively.AST.acorn").requires("lively.ide.SourceDatabase").requiresLib({ur
     }
 
     acorn.walk.addSource = function(ast, source) {
-        source = Object.isString(ast) ? ast : null;
+        source = Object.isString(ast) ? ast : source;
         ast = Object.isString(ast) ? acorn.parse(ast) : ast;
         var sourceAttacher = acorn.walk.make();
         Object.keys(sourceAttacher).forEach(function(name) {
@@ -61,7 +80,6 @@ module("lively.AST.acorn").requires("lively.ide.SourceDatabase").requiresLib({ur
         acorn.walk.recursive(ast, null, propWrapperFuncs, propWrapperFuncs);
         // 2. Actual print visitor
         var types = [], visitorFuncs = acorn.walk.make();
-        Objects.inspect
         Object.keys(visitorFuncs).forEach(function(name) {
             var orig = visitorFuncs[name];
             visitorFuncs[name] = function(node, depth, cont) {
@@ -97,6 +115,18 @@ Object.extend(lively.AST.acorn, {
         return acorn.parse(source);
     },
 
+    fuzzyParse: function(source) {
+        var ast;
+        try {
+            ast = acorn.parse(source);
+        } catch(err) {
+            ast = acorn.parse_dammit(source);
+            ast.isFuzzy = true;
+            ast.parseError = err;
+        }
+        return ast;
+    },
+
     nodesAt: function(pos, ast) {
         ast = Object.isString(ast) ? this.parse(ast) : ast;
         return acorn.walk.findNodesIncluding(ast, pos);
@@ -119,7 +149,7 @@ Object.subclass('lively.ide.CodeEditor.JavaScriptASTHandler',
         var src = codeEditor.textString,
             session = codeEditor.getSession();
         try {
-            session.$ast = lively.AST.acorn.parse(src);
+            session.$ast = lively.AST.acorn.fuzzyParse(src);
         } catch(e) {
             session.$ast = e;
         }
@@ -135,30 +165,35 @@ Object.subclass('lively.ide.CodeEditor.JavaScriptASTHandler',
 });
 
 Object.subclass('lively.ide.CodeEditor.JS.Navigator',
+'parsing', {
+    ensureAST: function(astOrSource) {
+        return Object.isString(astOrSource) ? lively.AST.acorn.fuzzyParse(astOrSource) : astOrSource;
+    }
+},
 'movement', {
     forwardSexp: function(src, pos) {
-        var ast =  lively.AST.acorn.parse(src),
+        var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(n) { return n.end !== pos; });
         return containingNode ? containingNode.end : pos;
     },
 
     backwardSexp: function(src, pos) {
-        var ast = lively.AST.acorn.parse(src),
+        var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(n) { return n.start !== pos; });
         return containingNode ? containingNode.start : pos;
     },
 
     backwardUpSexp: function(src, pos) {
-        var ast = lively.AST.acorn.parse(src),
+        var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(n) { return n.start !== pos; });
         return containingNode ? containingNode.start : pos;
     },
 
     forwardDownSexp: function(src, pos) {
-        var ast = lively.AST.acorn.parse(src),
+        var ast = this.ensureAST(src),
             found = acorn.walk.findNodeAfter(ast, pos, function(type, node) { return node.start > pos; });
         return found ? found.node.start : pos;
     }
@@ -167,7 +202,7 @@ Object.subclass('lively.ide.CodeEditor.JS.Navigator',
     rangeForNodesMatching: function(src, pos, func) {
         // if the cursor is at a position that has a containing node of type
         // return start/end index of that node
-        var ast = lively.AST.acorn.parse(src),
+        var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(func);
         return containingNode ? [containingNode.start, containingNode.end] : null;
@@ -186,7 +221,7 @@ Object.subclass('lively.ide.CodeEditor.JS.Navigator',
 
     expandRegion: function(src, expandState) {
         var pos = expandState.range[0];
-        var ast = lively.AST.acorn.parse(src),
+        var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(node) {
                 return node.start < expandState.range[0] || node.end > expandState.range[1];
@@ -299,11 +334,13 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
             return globals.concat(this.findGlobalVarReferencesIn(scope, declaredVarNames));
         }, this).uniq();
         return result;
-    }
+    },
+
+
 },
 'lively.morphic.CodeEditor extension', {
     onCodeEditorAstChange: function(evt) {
-        var codeEditor = evt.codeEditor, ast = evt.ast,
+        var codeEditor = evt.codeEditor,
             sess = codeEditor.getSession(),
             marker= sess.$scopeWarnMarker;
         if (!marker) {
@@ -321,7 +358,7 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
                 }
             }
         }
-        marker.globals = this.findGlobalVarReferences(ast);
+        marker.globals = this.findGlobalVarReferences(evt.ast);
         if (!(marker.id in sess.$backMarkers)) sess.addDynamicMarker(marker);
         sess._emit("changeBackMarker");
     }

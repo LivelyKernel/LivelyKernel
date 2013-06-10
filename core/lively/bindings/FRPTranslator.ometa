@@ -74,11 +74,13 @@ ometa FRPTranslator {
     func = anything:args curlyTrans:body
             -> ({refString: '(function (' + args.join(',') + ')' + body + ')',
                         dependencies: [], isStream: false}),
-    call = [#get combinator:comb] trans:ll trans:rr
+    call = [#get combinator:comb] trans*:args
             -> ((function() {
                 var id = this.nextId();
-                var strmDef = this.makeCombinator(comb, [ll, rr]);
-                var deps = ll.dependencies.clone().concat(rr.dependencies);
+                var strmDef = this.makeCombinator(comb, args);
+                var deps = args.inject([], function(last, now) {
+                    return last.concat(now.dependencies);
+                });
                 this.addSubExpression(id, strmDef, deps);
                 return {refString: this.ref(id), dependencies: deps, isStream: true}}.bind(this))()),
     call = oTrans:f trans*:args

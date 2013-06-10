@@ -220,7 +220,7 @@
 }
 
 .ace-global-var {
-	position: abosulte;
+	position: absolute;
 	border-bottom: 2px rgba(255,150, 0, 0.8) dotted;
 }
 

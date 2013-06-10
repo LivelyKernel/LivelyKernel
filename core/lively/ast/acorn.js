@@ -261,11 +261,12 @@ Object.subclass('lively.ide.CodeEditor.JS.Navigator',
 Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
 'AST analyzing', {
 
-    knownGlobals: ["true", "false", "null", "undefined",
+    knownGlobals: ["true", "false", "null", "undefined", "arguments",
                    "Object", "Function", "String", "Array", "Date", "Math", "Error",
                    "parseFloat", "isNaN", "eval", "alert",
                    "window", "document", "console",
-                   "Node", "HTMLCanvasElement", "Image",
+                   "Node", "HTMLCanvasElement", "Image", "Class",
+                   "Global", "Functions", "Objects", "Strings",
                    "module", "lively", "pt", "rect", "rgb"],
 
     scopeVisitor: acorn.walk.make({

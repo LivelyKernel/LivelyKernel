@@ -177,19 +177,30 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
     },
 
     onDocumentChange: function(evt, codeEditor) {
+        // 1. signal connection
+        var conns = codeEditor.attributeConnections;
+        if (conns) {
+            for (var i = 0; i < conns.length; i++) {
+                var con = conns[i++];
+                if (con.sourceAttrName === 'textChange') con.update(evt);
+                if (con.sourceAttrName === 'textString') con.update(codeEditor.textString);
+            }
+        }
+
         // reacts to a document change by dispatching to plugins depending on
         // session.$mode
-        var src = codeEditor.textString,
-            session = codeEditor.getSession(),
+        var session = codeEditor.getSession(),
             mode = session.getMode();
-        // 1. check mode
+        // 2. check mode
         if (mode.$id !== "ace/mode/javascript") {
-            session.$scopeWarnMarker && (session.$scopeWarnMarker.globals = []);
-            session.$syntaxErrorMarker && (session.$syntaxErrorMarker.errors = []);
+            session.$livelyCodeMarker && (session.$livelyCodeMarker.globals = []);
+            session.$livelyCodeMarker && (session.$livelyCodeMarker.errors = []);
             session._emit("changeBackMarker");
             return;
         }
-        // 2. Deal with JS parsing + updating
+
+        // 3. Deal with JS parsing + updating
+        var src = codeEditor.textString;
         try {
             session.$ast = this.parse(src, mode);
         } catch(e) {

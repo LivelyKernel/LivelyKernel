@@ -221,7 +221,7 @@
 
 .ace-global-var {
 	position: absolute;
-	border-bottom: 2px rgba(255,150, 0, 0.8) dotted;
+	border-bottom: 2px rgba(255,120, 0, 1) dotted;
 }
 
 .ace_dark .ace-global-var {

@@ -473,20 +473,50 @@ Object.extend(lively.bindings, {
         return con;
     },
     editConnection: function(con) {
-         var source = con.converterString ||
-                   'function converter(value) {\n    return value\n}',
-            editor = new lively.morphic.Text(new Rectangle(0,0, 400, 200), source);
-            editor.doitContext = con;
-        connect(editor, 'savedTextString', con, 'setConverter');
-        connect(editor, 'savedTextString', $world, 'alertOK', {converter:
-            function() { return 'setting new converter' }})
-        editor.applyStyle({syntaxHighlighting: true,
-            fontFamily: 'Courier', resizeWidth: true, resizeHeight: true});
-        var title = con.targetObj.name && con.sourceObj.name ?
-            'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
-            'Editor for converter function';
-        var window = $world.addFramedMorph(editor, title)
-        return window;
+        var world = lively.morphic.World.current(),
+            source = con.converterString || 'function converter(value) {\n    return value\n}',
+            title = con.targetObj.name && con.sourceObj.name ?
+                'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
+                'Editor for converter function',
+            visCon = con.visualConnector,
+            editor = world.addCodeEditor({
+                gutter: false, title: title,
+                textMode: 'javascript',
+                content: source
+            });
+        editor.connection = editor.doitContext = con;
+        editor.addScript(function onConverterChange(source) {
+            this.connection.setConverter(source);
+            this.world() && this.world().alertOK('New converter installed.');
+            var update = this.get('ShouldUpdate') && this.get('ShouldUpdate').isChecked();
+            try {
+                update && this.connection.update(this.connection.sourceObj[this.connection.sourceAttrName]);
+            } catch(e) {
+                alert('Error updating:\n' + e);
+            }
+        });
+        lively.bindings.connect(editor, 'savedTextString', editor, 'onConverterChange');
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // adding checkbox
+        var pos = editor.getPosition();
+        editor.moveBy(pt(0, 20)); editor.resizeBy(pt(0, -20)); // shrink
+
+        var settingsBox = lively.morphic.newMorph({position: pos, style: {fill: Color.white, borderWidth: 0, borderColor: Color.black}});
+        editor.owner.addMorph(settingsBox);
+        settingsBox.addMorph(new lively.morphic.CheckBox(true)).setName('ShouldUpdate');
+        settingsBox.addMorph(lively.morphic.Text.makeLabel('update connection on converter change', {extent: editor.getExtent().withY(20).addXY(-30,0)}));
+
+        settingsBox.setLayouter(new lively.morphic.Layout.HorizontalLayout(settingsBox));
+        settingsBox.getLayouter().setBorderSize(0);
+        settingsBox.getLayouter().setSpacing(0);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var win = editor.getWindow();
+        (function() {
+            settingsBox.setExtent(editor.getExtent().withY(20));
+            visCon && win.align(win.bounds().topCenter(), visCon.worldPoint(visCon.bounds().bottomCenter()));
+            win.comeForward();
+        }).delay(0);
+        return win;
     },
     showConnection: function(con) {
         var source = con.sourceObj,

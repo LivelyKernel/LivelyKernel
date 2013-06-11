@@ -113,12 +113,32 @@ Object.extend(lively.ast.acorn, {
         return acorn.parse(source);
     },
 
-    fuzzyParse: function(source) {
-        var ast;
+    fuzzyParse: function(source, options) {
+        // options: verbose, addSource, type
+        options = options || {};
+        var ast, safeSource, err;
+        if (options.type === 'LabeledStatement') { safeSource = '$={' + source + '}'; }
         try {
-            ast = acorn.parse(source);
-        } catch(err) {
+            // we only parse to find errors
+            ast = acorn.parse(safeSource || source);
+            if (safeSource) ast = null; // we parsed only for finding errors
+            else if (options.addSource) acorn.walk.addSource(ast, source);
+        } catch (e) { err = e; }
+        if (err && err.raisedAt !== undefined) {
+            if (safeSource) { // fix error pos
+                err.pos -= 3; err.raisedAt -= 3; err.loc.column -= 3; }
+            var parseErrorSource = '';
+            parseErrorSource += source.slice(err.raisedAt - 20, err.raisedAt);
+            parseErrorSource += '<-error->';
+            parseErrorSource += source.slice(err.raisedAt, err.raisedAt + 20);
+            options.verbose && show('parse error: ' + parseErrorSource);
+            err.parseErrorSource = parseErrorSource;
+        } else if (err && options.verbose) {
+            show('' + err + err.stack);
+        }
+        if (!ast) {
             ast = acorn.parse_dammit(source);
+            if (options.addSource) acorn.walk.addSource(ast, source);
             ast.isFuzzy = true;
             ast.parseError = err;
         }
@@ -143,6 +163,13 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
         this.onDocumentChangeResetDebounced = Functions.debounce(200, this.onDocumentChangeReset.bind(this), true);
     }
 },
+"parsing", {
+    parse: function(src, mode) {
+        var options = {};
+        if (mode.astType) options.type = mode.astType;
+        return lively.ast.acorn.fuzzyParse(src, options);
+    }
+},
 'editor state changes', {
     onDocumentChangeReset: function(evt, codeEditor) {
         // called when a document change occurs and is supposed to reset state
@@ -153,9 +180,10 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
         // reacts to a document change by dispatching to plugins depending on
         // session.$mode
         var src = codeEditor.textString,
-            session = codeEditor.getSession();
+            session = codeEditor.getSession(),
+            mode = session.getMode();
         // 1. check mode
-        if (session.getMode().$id !== "ace/mode/javascript") {
+        if (mode.$id !== "ace/mode/javascript") {
             session.$scopeWarnMarker && (session.$scopeWarnMarker.globals = []);
             session.$syntaxErrorMarker && (session.$syntaxErrorMarker.errors = []);
             session._emit("changeBackMarker");
@@ -163,7 +191,7 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
         }
         // 2. Deal with JS parsing + updating
         try {
-            session.$ast = lively.ast.acorn.fuzzyParse(src);
+            session.$ast = this.parse(src, mode);
         } catch(e) {
             session.$ast = e;
         }

@@ -250,11 +250,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         Global.clearInterval(aceEditor.renderer.$textLayer.$pollSizeChangesTimer);
     },
 
-    listenForDocumentChanges: function(ed) {
+    listenForDocumentChanges: function() {
         this._listenForDocumentChanges = this._listenForDocumentChanges || this.listenForDocumentChanges.bind(this);
         this._onDocumentChange = this._onDocumentChange || this.onDocumentChange.bind(this);
-        ed.on('changeSession', this._listenForDocumentChanges);
-        ed.session.on('change', this._onDocumentChange);
+        this.withAceDo(function(ed) {
+            ed.on('changeSession', this._listenForDocumentChanges);
+            ed.session.on('change', this._onDocumentChange);
+        });
     },
 
     onDocumentChange: function(evt) {

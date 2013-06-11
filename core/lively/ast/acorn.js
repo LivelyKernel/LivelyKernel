@@ -138,16 +138,32 @@ Object.extend(lively.ast.acorn, {
 
 });
 
-Object.subclass('lively.ide.CodeEditor.JavaScriptASTHandler',
+Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
 'initialize', {
     initialize: function() {
         this.onDocumentChangeDebounced = Functions.debounce(200, this.onDocumentChange.bind(this));
+        this.onDocumentChangeResetDebounced = Functions.debounce(200, this.onDocumentChangeReset.bind(this), true);
     }
 },
 'editor state changes', {
+    onDocumentChangeReset: function(evt, codeEditor) {
+        // called when a document change occurs and is supposed to reset state
+        // that will be recomputed in the real on doc change handler
+    },
+
     onDocumentChange: function(evt, codeEditor) {
+        // reacts to a document change by dispatching to plugins depending on
+        // session.$mode
         var src = codeEditor.textString,
             session = codeEditor.getSession();
+        // 1. check mode
+        if (session.getMode().$id !== "ace/mode/javascript") {
+            session.$scopeWarnMarker && (session.$scopeWarnMarker.globals = []);
+            session.$syntaxErrorMarker && (session.$syntaxErrorMarker.errors = []);
+            session._emit("changeBackMarker");
+            return;
+        }
+        // 2. Deal with JS parsing + updating
         try {
             session.$ast = lively.ast.acorn.fuzzyParse(src);
         } catch(e) {
@@ -160,7 +176,7 @@ Object.subclass('lively.ide.CodeEditor.JavaScriptASTHandler',
 },
 'plugins', {
     getPlugins: function() {
-        return [new lively.ide.CodeEditor.JS.ScopeAnalyzer()];
+        return this.plugins || (this.plugins = [new lively.ide.CodeEditor.JS.CodeMarker()]);
     }
 });
 
@@ -335,31 +351,48 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
             return globals.concat(this.findGlobalVarReferencesIn(scope, declaredVarNames));
         }, this).uniq();
         return result;
-    },
+    }
 
+});
 
+Object.subclass('lively.ide.CodeEditor.JS.CodeMarker',
+"initializing", {
+    initialize: function() {
+        this.scopeAnalyzer = new lively.ide.CodeEditor.JS.ScopeAnalyzer();
+    }
 },
-'lively.morphic.CodeEditor extension', {
+'rendering', {
     onCodeEditorAstChange: function(evt) {
         var codeEditor = evt.codeEditor,
             sess = codeEditor.getSession(),
-            marker= sess.$scopeWarnMarker;
+            marker = sess.$livelyCodeMarker;
         if (!marker) {
             var Range = lively.ide.ace.require("ace/range").Range;
-            marker= sess.$scopeWarnMarker = {
+            marker = sess.$livelyCodeMarker = {
+                errors: [],
                 globals: [],
                 update: function(html, markerLayer, session, config) {
-                    var start = config.firstRow, end = config.lastRow;
+                    var screenStartRow = config.firstRow, screenEndRow = config.lastRow;
+                    this.errors.forEach(function(err) {
+                        var posStart = sess.doc.indexToPosition(err.pos-1),
+                            posEnd = sess.doc.indexToPosition(err.pos+1);
+                        if (posEnd.row < screenStartRow || posStart.row > screenEndRow) return;
+                        var range = Range.fromPoints(posStart, posEnd);
+                        markerLayer.drawSingleLineMarker(html, range.toScreenRange(session), "ace-syntax-error", config);
+                    });
                     this.globals.forEach(function(node) {
-                        var start = sess.doc.indexToPosition(node.start),
-                            end = sess.doc.indexToPosition(node.end),
-                            range = Range.fromPoints(start, end);
+                        var start = sess.doc.indexToPosition(node.start);
+                        if (start.row < screenStartRow) return;
+                        var end = sess.doc.indexToPosition(node.end);
+                        if (end.row > screenEndRow) return;
+                        var range = Range.fromPoints(start, end);
                         markerLayer.drawSingleLineMarker(html, range.toScreenRange(session), "ace-global-var", config);
                     });
                 }
             }
         }
-        marker.globals = this.findGlobalVarReferences(evt.ast);
+        marker.globals = this.scopeAnalyzer ? this.scopeAnalyzer.findGlobalVarReferences(evt.ast) : [];
+        marker.errors = evt.ast.parseError ? [evt.ast.parseError] : [];
         if (!(marker.id in sess.$backMarkers)) sess.addDynamicMarker(marker);
         sess._emit("changeBackMarker");
     }

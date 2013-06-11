@@ -260,10 +260,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     onDocumentChange: function(evt) {
         var mode = this.aceEditor.session.getMode(),
             astHandler = mode.$astHandler;
-        if (!astHandler && mode.$id === "ace/mode/javascript") {
-            astHandler = mode.$astHandler = new lively.ide.CodeEditor.JavaScriptASTHandler();
+        astHandler = mode.$astHandler = new lively.ide.CodeEditor.DocumentChangeHandler();
+        if (astHandler) {
+            astHandler.onDocumentChangeResetDebounced(evt, this);
+            astHandler.onDocumentChangeDebounced(evt, this);
         }
-        astHandler && astHandler.onDocumentChangeDebounced(evt, this);
     },
 
     addCommands: function(commands) {
@@ -528,6 +529,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.aceEditorAfterSetupCallbacks.push(doFunc);
         return undefined;
     },
+    withASTDo: function(func) {
+        func = func || Functions.K;
+        return this.withAceDo(function(ed) { return func(ed.session.$ast); });
+    },
+
 
     loadAceModule: function(moduleName, callback) {
         return lively.ide.ace.require('./config').loadModule(moduleName, callback);

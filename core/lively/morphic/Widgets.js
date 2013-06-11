@@ -1807,7 +1807,7 @@ lively.morphic.World.addMethods(
 'preferences', {
     askForUserName: function() {
         var world = this;
-        this.prompt("Please, give your username", function(name) {
+        this.prompt("Please enter your username", function(name) {
             if (name) {
                 alertOK("setting username to: " + name)
                 world.setCurrentUser(name);
@@ -1815,7 +1815,7 @@ lively.morphic.World.addMethods(
                 alertOK("removing username")
                 world.setCurrentUser(undefined);
             }
-        })
+        }, world.getUserName(true));
     },
     askForUserNameInList: function(names) {
         var world = this, current = world.getUserName();

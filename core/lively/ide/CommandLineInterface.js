@@ -106,8 +106,8 @@ Object.extend(lively.ide.CommandLineInterface, {
                     if (thenDo) thenDo(cmd);
                 },
 
-                getStdout: function() { return this._stdout; },
-                getStderr: function() { return this._stderr; },
+                getStdout: function() { return this._stdout || ''; },
+                getStderr: function() { return this._stderr || ''; },
                 getCode: function() { return Number(this._code); },
                 resultString: function(bothErrAndOut) {
                     return bothErrAndOut ?
@@ -161,8 +161,8 @@ Object.extend(lively.ide.CommandLineInterface, {
                     if (thenDo) thenDo(cmd);
                 },
 
-                getStdout: function() { return this._stdout; },
-                getStderr: function() { return this._stderr; },
+                getStdout: function() { return this._stdout || ''; },
+                getStderr: function() { return this._stderr || ''; },
                 getCode: function() { return Number(this._code); },
                 resultString: function() {
                     var output = (!this.getCode() ? this.getStdout() : this.getStderr()) || '';

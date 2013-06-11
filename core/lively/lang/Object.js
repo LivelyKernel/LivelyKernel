@@ -540,7 +540,7 @@ Object.extend(JSON, {
     		if (typeof val === 'object') {
     			propStr += JSON.prettyPrint(val, propIndent);
     		} else if (typeof val === 'string'){
-    			propStr += '"' + String(val) + '"';
+    			propStr += Strings.print(val);
     		} else {
     			propStr += String(val);
     		}

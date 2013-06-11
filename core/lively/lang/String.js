@@ -216,7 +216,7 @@ Global.Strings = {
         }
         var result = String(obj);
         result = result.replace(/\n/g, '\\n\\\n');
-        result = result.replace(/("|')/g, '\\$1');
+        result = result.replace(/(")/g, '\\$1');
         result = '\"' + result + '\"';
         return result;
     },

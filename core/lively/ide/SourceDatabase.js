@@ -41,11 +41,13 @@ Object.subclass('lively.ide.ModuleWrapper',
         //    works for non-core modules only:
         //    return new URL(Config.rootPath).withFilename(this.fileName());
         //    might work for both, but slower
-        return new URL(module(this._moduleName).findUri(this.type()));
+        return new URL(this.module().findUri(this.type()));
     },
-
+    module: function() {
+        return lively.module(this._moduleName);
+    },
     fileName: function() {
-        return this.moduleName().replace(/\./g, '/') + '.' + this.type();
+        return this.module().relativePath(this.type());
     },
 
     getSourceUncached: function() {
@@ -459,9 +461,12 @@ Object.subclass('AnotherSourceDatabase', {
     },
     mapURLsToRelativeModulePaths: function(urls) {
         return urls.collect(function(ea) {
-            var path = ea.relativePathFrom(URL.root);
+            var path = ea.withRelativePartsResolved().relativePathFrom(URL.root);
             if (path.startsWith('core/')) {
                 path = path.slice('core/'.length);
+            } else {
+                if (!path.startsWith('/')) path = '/' + path;
+                path = '..' + path;
             }
             return path;
         });

@@ -33,8 +33,8 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
 
     pathsToSubNamespaces: function(url) {
         var webR = webR = new WebResource(url).beSync(),
-            dirs = webR.getSubElements().subCollections,
-            paths = dirs.collect(function(ea) { return ea.getURL() });
+            dirs = webR.getSubElements().subCollections || [],
+            paths = dirs.collect(function(ea) { return ea.getURL(); });
         return paths;
     },
 

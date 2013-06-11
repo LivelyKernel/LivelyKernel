@@ -5,7 +5,7 @@ TestCase.subclass('lively.ide.tests.ModuleLookup.URLMappingTest',
     testModuleOutsideCoreIsFound: function() {
         var url = URL.root.withFilename('apps/foo.js'),
             result = lively.ide.sourceDB().mapURLsToRelativeModulePaths([url]),
-            expected = ['apps/foo.js'];
+            expected = ['../apps/foo.js'];
         this.assertEqualState(expected, result);
     },
 

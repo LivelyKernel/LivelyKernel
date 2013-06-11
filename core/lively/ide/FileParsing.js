@@ -19,13 +19,11 @@ Object.subclass('lively.ide.FileFragment',
     eq: function(other) {
         if (this == other) return true;
         if (this.constructor != other.constructor) return false;
-        return this.name == other.name &&
-            // this.startIndex == other.startIndex &&
-            // this.stopIndex == other.stopIndex &&
-            this.type == other.type &&
-            this.fileName == other.fileName &&
-            this.getSourceCode() == other.getSourceCode();
-    },
+        return this.name == other.name
+            && this.type == other.type
+            && this.fileName == other.fileName
+            && this.getSourceCode() == other.getSourceCode();
+    }
 },
 'accessing', {
     subElements: function(depth) {

@@ -56,7 +56,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         if (Object.isString(urlOrString) ) {
             try {
                 if (urlOrString.startsWith('http://')) {
-                    url = new URL(urlOrString).withRelativePartsResolved();
+                    url = new URL(urlOrString);
                 } else {
                     var module = lively.module(urlOrString);
                     lively.ide.browse(null, null, {name: module.name()}, this);
@@ -66,6 +66,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
                 console.warn('SCB>>setTargetURL:' + e);
             }
         }
+        url = url.withRelativePartsResolved();
         this.selectNothing();
         this.ensureSourceNotAccidentlyDeleted(function() {
             var prevURL = this.targetURL;
@@ -76,7 +77,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
                 this.rootNode().locationChanged();
                 this.allChanged();
             } catch(e) {
-                console.log('couldn\'t set new URL ' + url + ' because ' + e);
+                show.log('couldn\'t set new URL ' + url + ' because ' + e);
                 this.targetURL = prevURL;
                 this.locationInput().setTextString(prevURL.toString());
                 return

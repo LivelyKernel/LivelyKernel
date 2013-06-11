@@ -555,5 +555,15 @@ Object.extend(lively.ide, {
     }
 });
 
+lively.Module.addMethods(
+"source database", {
+    getSource: function() {
+        if (this.isAnonymous()) return '';
+        var fn = this.relativePath();
+        var wrapper = lively.ide.sourceDB().addModule(fn);
+        return wrapper.getSource();
+        lively.ide.getSource();
+    }
+});
 
 }) // end of module

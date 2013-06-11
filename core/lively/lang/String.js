@@ -253,11 +253,11 @@ Global.Strings = {
         return s.split(" ").invoke('capitalize').join("")
     },
 
-    tableize: function(s) {
+    tableize: function(s, splitter) {
         // string => array
         // Strings.tableize('a b c\nd e f') => [[a, b, c], [d, e, f]]
         return Strings.lines(s).collect(function(ea) {
-            return Strings.tokens(ea)
+            return Strings.tokens(ea, splitter || /\s+/);
         })
     },
 

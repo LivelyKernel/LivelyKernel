@@ -754,7 +754,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             string +=  this.target.isStatic() ? ' (static)' : ' (proto)';
         return string;
     },
-
+    onSelect: function() {
+        var codeEditor = this.browser.sourceInput();
+        if (codeEditor.isCodeEditor) codeEditor.setTextMode('javascript:LabeledStatement');
+    }
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.FunctionFragmentNode', {

@@ -629,11 +629,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }) || '';
     },
 
-    setTextMode: function(modeName) {
+    setTextMode: function(modeString) {
+        var parts = modeString.split(':'),
+            modeName = parts[0], astType = parts[1] || null;
         this.withAceDo(function(ed) {
             ed.session.setMode(lively.ide.ace.moduleNameForTextMode(modeName));
+            ed.session.getMode().astType = astType;
         });
-        return this._TextMode = modeName;
+        return this._TextMode = modeString;
     },
 
     getTextMode: function() {

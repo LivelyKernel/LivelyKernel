@@ -68,8 +68,19 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         e.insertAtCursor('foo');
         this.assert(e.hasUnsavedChanges(), '2');
         this.done();
+    },
+    testSetMode: function() {
+        var e = this.editor, m;
+        e.setTextMode('javascript:LabeledStatement');
+        m = e.aceEditor.session.getMode();
+        this.assertEquals(m.$id, 'ace/mode/javascript');
+        this.assertEquals(m.astType, 'LabeledStatement');
+        e.setTextMode('javascript');
+        m = e.aceEditor.session.getMode();
+        this.assertEquals(m.$id, 'ace/mode/javascript');
+        this.assertEquals(m.astType, null);
+        this.done();
     }
-
 });
 
 lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands',

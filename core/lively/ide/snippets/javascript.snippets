@@ -1,8 +1,6 @@
 # Function
 snippet fun
-	function ${1?:function_name}(${2}) {
-		${3:/*body*/};
-	}
+	function ${1?:functionName}(${2}) {${0}}
 # Anonymous Function
 regex /((=)\s*|(:)\s*|(\()|\b)/f/
 name f
@@ -141,12 +139,47 @@ regex /^\s*([^\.]+)?/\.?(sub)?class/
 			${0}
 		}
 	});
+# TestClass
+name TestClass
+regex /^\s*/TestCl?a?s?s?/
+	TestCase.subclass("${1:TestClass}",
+	"running", {
+		setUp: function($super)  {},
+		tearDown: function($super)  {}
+	},
+	'testing', {
+		${2:test1}: function() {${0}}
+	});
+# initialize methods
+snippet init
+	initialize: function(${1}) {${0}}
+# initialize category
+snippet initCat
+	"initializing", {
+		initialize: function(${1}) {${0}}
+	}
+# addMethods
+name addMethods
+regex /^\s*([^\.]+)?/\.?addMe?t?h?o?d?s?/
+	${M1?:${1:SomeClass}}.addMethods(
+	"${2:category}", {
+		${0}
+	});
 # Object.extend
 snippet Oe
 	Object.extend(${1:obj}, {$0});
 # collection iter
 regex /(\.?[^\.\s]+)/\.?((iter|forEa?c?h?)|(select|collect|reject|detect))/
 	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(function(${3:ea}) { ${0:${M4?return :}}; }${4:, this});
+# collection inject
+regex /(\.?[^\.\s]+|^s*)/\.?inje?c?t?/
+	${M1?:${1:list}}.inject(${2:collector}, function($2, ea) { ${0:return $2;} });
+# collection withAllSubmorphsDo
+regex /(\.?[^\.\s]+|^s*)/\.?withAl?l?S?u?b?m?o?r?p?h?s?D?o?/
+	${M1?:${1:owner}}.withAllSubmorphsDo(function(ea) { return ${0:ea}; });
+# addScript
+regex /(\.?[^\.\s]+|^s*)/\.?addSc?r?i?p?t?/
+	${M1?:${1:morph}}.addScript(function ${2:scriptName}(${3}) {${0}});
 # 
 snippet for-
 	for (var ${1:i} = ${2:Things}.length; ${1:i}--; ) {

@@ -716,7 +716,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
 },
 'event handling', {
-    onMouseDown: function($super, evt) {
+    onMouseDownEntry: function($super, evt) {
         // ace installs a mouseup event handler on the document level and
         // stops the event so it never reaches our Morphic event handlers. To
         // still dispatch the event properly we install an additional mouseup
@@ -734,6 +734,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var menuOpened = false;
         if (evt.isCtrlDown() || evt.isRightMouseButtonDown()) {
             lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
+            evt.world.clickedOnMorph = this; // to suppress drag since owner would be target
             evt.stop();
             return true;
         }

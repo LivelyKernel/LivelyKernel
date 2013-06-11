@@ -21,6 +21,23 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
 
 (function extendAcorn() {
 
+    acorn.walk.forEachNode = function(ast, func, state, options) {
+        // note: func can get called with the same node for different types!
+        // func args: node, state, depth, type
+        options = options || {};
+        var traversal = options.traversal || 'preorder'; // also: postorder
+        var visitors = acorn.walk.make();
+        var iterator = traversal === 'preorder' ?
+            function(orig, type, node, depth, cont) { func(node, state, depth, type); return orig(node, depth+1, cont); } :
+            function(orig, type, node, depth, cont) { var result = orig(node, depth+1, cont); func(node, state, depth, type); return result; };
+        Object.keys(visitors).forEach(function(type) {
+            var orig = visitors[type];
+            visitors[type] = function(node, depth, cont) { return iterator(orig, type, node, depth, cont); };
+        });
+        acorn.walk.recursive(ast, 0, null, visitors);
+        return ast;
+    }
+
     acorn.walk.findNodesIncluding = function(ast, pos, test, base) {
         var nodes = [];
         base = base || acorn.walk.make()
@@ -31,7 +48,6 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 return orig(node, state, cont);
             }
         });
-
         acorn.walk.findNodeAround(ast, pos, test, base);
         return nodes;
     }
@@ -39,16 +55,9 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
     acorn.walk.addSource = function(ast, source) {
         source = Object.isString(ast) ? ast : source;
         ast = Object.isString(ast) ? acorn.parse(ast) : ast;
-        var sourceAttacher = acorn.walk.make();
-        Object.keys(sourceAttacher).forEach(function(name) {
-            var orig = sourceAttacher[name];
-            sourceAttacher[name] = function(node, state, cont) {
-                node.source = source.slice(node.start, node.end);
-                return orig(node, state, cont);
-            }
+        return acorn.walk.forEachNode(ast, function(node) {
+            node.source || (node.source = source.slice(node.start, node.end));
         });
-        acorn.walk.recursive(ast, null, sourceAttacher, sourceAttacher);
-        return ast;
     }
 
     acorn.walk.inspect = function(ast, source) {
@@ -61,38 +70,27 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
     acorn.walk.print = function(ast, source) {
         source = Object.isString(ast) ? ast : source;
         ast = Object.isString(ast) ? acorn.parse(ast) : ast;
+        var lastActiveProp, types = [];
         // 1. We are interested in which properties the walker descends, not
         // just the descended node type. To get this info we install a getter
         // into the node props that when called will remember the name of the
         // last accessed prop. This is what we then records in the print
-        var lastActiveProp, propWrapperFuncs = acorn.walk.make();
-        Object.keys(propWrapperFuncs).forEach(function(name) {
-            var orig = propWrapperFuncs[name];
-            propWrapperFuncs[name] = function(node, state, cont) {
-                Object.keys(node).without('end', 'start', 'type', 'source').forEach(function(propName) {
-                    orig(node, state, cont);
-                    if (node.__lookupGetter__(propName)) return; // already defined
-                    var val = node[propName], descriptor = propName + (Object.isArray(val) ? '[]' : '');
-                    node.__defineGetter__(propName, function() { lastActiveProp = descriptor; return val; });
-                });
-            }
-        });
-        acorn.walk.recursive(ast, null, propWrapperFuncs, propWrapperFuncs);
+        acorn.walk.forEachNode(ast, function(node) { 
+            Object.keys(node).without('end', 'start', 'type', 'source').forEach(function(propName) {
+                if (node.__lookupGetter__(propName)) return; // already defined
+                var val = node[propName], descriptor = propName + (Object.isArray(val) ? '[]' : '');
+                node.__defineGetter__(propName, function() { lastActiveProp = descriptor; return val; });
+            });
+        }, state);
         // 2. Actual print visitor
-        var types = [], visitorFuncs = acorn.walk.make();
-        Object.keys(visitorFuncs).forEach(function(name) {
-            var orig = visitorFuncs[name];
-            visitorFuncs[name] = function(node, depth, cont) {
-                var s = Strings.indent(lastActiveProp + ':' + name, '  ', depth);
-                s += '<' + node.start + '-' + node.end;
-                source && (s += ',' + Strings.print(source.slice(node.start, node.end).replace(/\n|\r/g, '').truncate(20)));
-                s+= '>'
-                types.push(s);
-                return orig(node, depth+1, cont);
-            }
+        acorn.walk.forEachNode(ast, function(node, state, depth, type) { 
+            var s = Strings.indent(lastActiveProp + ':' + type, '  ', depth);
+            s += '<' + node.start + '-' + node.end;
+            source && (s += ',' + Strings.print(source.slice(node.start, node.end).replace(/\n|\r/g, '').truncate(20)));
+            s+= '>'
+            types.push(s);
         });
         lastActiveProp = 'root';
-        acorn.walk.recursive(ast, 0, visitorFuncs, visitorFuncs);
         return types.join('\n');
     }
 

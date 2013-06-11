@@ -227,3 +227,9 @@
 .ace_dark .ace-global-var {
 	border-bottom: 2px rgba(255,150, 0, 0.6) dotted;
 }
+
+.ace-syntax-error {
+	position: absolute;
+	border-radius: 3px;
+	background: rgba(255,0,0,0.7);
+}

@@ -1,4 +1,4 @@
-module('lively.morphic.Grid').requires('lively.persistence.MassMorphCreation').toRun(function() {
+module('lively.morphic.Grid').requires('lively.morphic.Core', 'lively.persistence.MassMorphCreation').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.DataGrid',
 'settings', {

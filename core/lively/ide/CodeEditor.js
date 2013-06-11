@@ -89,6 +89,10 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
             removeAfterUpdate: true,
             converter: function(ed) { return this.targetObj.extent; }
         });
+        lively.bindings.connect(this, 'aceEditor', this, 'setBorderWidth', {
+            removeAfterUpdate: true,
+            converter: function(ed) { return this.targetObj.getBorderWidth(); }
+        });
     }
 },
 'HTML rendering', {

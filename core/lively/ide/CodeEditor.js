@@ -133,7 +133,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     evalEnabled: true,
     isAceEditor: true,
-    isCodeEditor: true
+    isCodeEditor: true,
+    connections: {textChange: {}, textString: {}, savedTextString: {}}
 },
 'initializing', {
     initialize: function($super, bounds, stringOrOptions) {
@@ -1076,6 +1077,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'text morph interface', {
 
     set textString(string) {
+        string = String(string);
         if (!this.aceEditor) this.storedString = string;
         this.withAceDo(function(ed) {
             ed.selection.clearSelection();

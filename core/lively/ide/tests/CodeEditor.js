@@ -80,7 +80,18 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.assertEquals(m.$id, 'ace/mode/javascript');
         this.assertEquals(m.astType, null);
         this.done();
+    },
+    testConnectToTextChange: function() {
+        var e = this.editor, changeTriggered, obj = {onChange: function(evt) { show(evt); changeTriggered = true; }};
+        e.textString = "some\ncontent";
+        lively.bindings.connect(e, 'textChange', obj, 'onChange');
+        e.insertAtCursor('foo');
+        this.delay(function() {
+            this.assert(changeTriggered, 'textChange connection not working');
+            this.done();
+        }, 300);
     }
+
 });
 
 lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands',

@@ -265,13 +265,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     onDocumentChange: function(evt) {
-        var mode = this.aceEditor.session.getMode(),
-            astHandler = mode.$astHandler;
-        astHandler = mode.$astHandler = new lively.ide.CodeEditor.DocumentChangeHandler();
-        if (astHandler) {
-            astHandler.onDocumentChangeResetDebounced(evt, this);
-            astHandler.onDocumentChangeDebounced(evt, this);
-        }
+        var sess = this.aceEditor.session,
+            changeHandler = sess.$changeHandler || (sess.$changeHandler = new lively.ide.CodeEditor.DocumentChangeHandler());
+        changeHandler.onDocumentChangeResetDebounced(evt, this);
+        changeHandler.onDocumentChangeDebounced(evt, this);
     },
 
     addCommands: function(commands) {

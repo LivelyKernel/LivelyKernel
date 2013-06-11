@@ -926,6 +926,7 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteSnippet', {
         try {
             snippets.readSnippetsFromURL(url);
         } catch(e) {
+            show(e);
             this.statusMessage('Error parsing snippets:\n' + e, Color.red, 6);
             return false;
         }

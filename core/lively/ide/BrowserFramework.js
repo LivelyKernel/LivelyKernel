@@ -941,7 +941,12 @@ Object.subclass('lively.ide.BrowserNode',
 'updating', {
     signalChange: function() { this.browser.nodeChanged(this) },
     signalTextChange: function() { this.browser.textChanged(this) },
-    onSelect: function() {  },
+    onSelect: function() {
+        var codeEditor = this.browser.sourceInput();
+        if (codeEditor.isCodeEditor) codeEditor.setTextMode(this.getSourceCodeMode());
+    },
+    getSourceCodeMode: function() { return 'javascript' },
+
 },
 'dragging and dropping', {
     onDrag: function() { console.log(this.asString() + 'was dragged') },

@@ -202,7 +202,8 @@ lively.ide.BrowserNode.subclass('lively.ide.NamespaceNode',
 
     completeURL: function() { return new URL(this.target) },
 
-    onSelect: function() {
+    onSelect: function($super) {
+        $super();
         this.browser.setTargetURL(this.completeURL())
     },
 });
@@ -391,10 +392,9 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     }
 },
 'selection', {
-    onSelect: function() {
+    onSelect: function($super) {
         this.browser.currentModuleName = this.target.name;
-        var codeEditor = this.browser.sourceInput();
-        if (codeEditor.isCodeEditor) codeEditor.setTextMode(this.getSourceCodeMode());
+        $super();
     }
 },
 'evaluation', {
@@ -471,7 +471,7 @@ ometaNodes.forEach(function(ea) { console.log(ea.target.name) });
         console.log('Successfully evaluated OMeta definition');
         return true;
     },
-    onSelect: function() { this.browser.currentModuleName = null },
+    onSelect: function($super) { this.browser.currentModuleName = null; $super(); },
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.OMetaGrammarNode', {
@@ -572,7 +572,8 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
         return true;
     },
 
-    onSelect: function() {
+    onSelect: function($super) {
+        $super();
         var paneName = this.browser.paneNameOfNode(this),
             idx = Number(paneName[paneName.length-1]),
             nextPane = 'Pane' + (idx + 1);
@@ -754,9 +755,9 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             string +=  this.target.isStatic() ? ' (static)' : ' (proto)';
         return string;
     },
-    onSelect: function() {
-        var codeEditor = this.browser.sourceInput();
-        if (codeEditor.isCodeEditor) codeEditor.setTextMode('javascript:LabeledStatement');
+
+    getSourceCodeMode: function() {
+        return 'javascript:LabeledStatement';
     }
 });
 
@@ -882,10 +883,11 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteCSSFragmentNode
         return false;
     },
 
-    onSelect: function() {
+    getSourceCodeMode: function() { return 'css'; },
+
+    onSelect: function($super) {
         this.browser.currentModuleName = null;
-        var codeEditor = this.browser.sourceInput();
-        if (codeEditor.isCodeEditor) codeEditor.setTextMode('css');
+        $super();
     }
 });
 
@@ -936,10 +938,11 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteSnippet', {
         return true;
     },
 
-    onSelect: function() {
+    getSourceCodeMode: function(attribute) { return 'snippets'; },
+
+    onSelect: function($super) {
         this.browser.currentModuleName = null;
-        var codeEditor = this.browser.sourceInput();
-        if (codeEditor.isCodeEditor) codeEditor.setTextMode('snippets');
+        $super();
     }
 });
 

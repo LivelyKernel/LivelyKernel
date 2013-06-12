@@ -71,8 +71,13 @@ Object.extend(FRPTranslator, {
             this.genExpr(args) + '], ' +
             Strings.format('function(%s) {return %s(%s)})',
                 this.genArgs(args), name, Array.range(0, args.length-1).map(function(i) {return this.genBodyVars(args, i)}.bind(this)).join(', '))
+    },
+    makeSend: function(name, rec, args) {
+        return 'new lively.bindings.FRPCore.EventStream().expr([' +
+            this.genExpr([rec].concat(args)) + '], ' +
+            Strings.format('function(%s) {return %s.%s(%s)})',
+                this.genArgs([rec].concat(args)), this.genBodyVars([rec], 0), name, Array.range(1, args.length).map(function(i) {return this.genBodyVars([rec].concat(args), i)}.bind(this)).join(', '))
     }
-
 });
 
 FRPParser.keywords = {};

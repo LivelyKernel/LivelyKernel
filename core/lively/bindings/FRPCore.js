@@ -206,6 +206,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
     discrete: function() {
         this.setUp("discrete", [], null, null, false);
+        this.dormant = false;
         return this.finalize([]);
     },
 },
@@ -465,6 +466,29 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.object = object;
         return this;
     },
+    setUpMorphicEvent: function(mName, fName) {
+        var str =
+"       function X(evt) {\n" +
+"           if (this.__evaluator && this.Y\n" +
+"               && this.Y instanceof lively.bindings.FRPCore.EventStream\n" +
+"                   && !this.Y.dormant) {\n" +
+"                   this.Y.frpSet(evt);\n" +
+"                   return true;\n" +
+"           }\n" +
+"           return false;\n" +
+"       }";
+        str = str.replace(/X/g, mName);
+        str = str.replace(/Y/g, fName);
+        var func = Function.fromString(str);
+        this.object[mName] = func;
+        var strm = new lively.bindings.FRPCore.EventStream().discrete();
+        strm.installTo(this.object, fName);
+    },
+    setUpMorphicEvents: function() {
+        this.setUpMorphicEvent("onMouseDown", "mouseDown");
+        this.setUpMorphicEvent("onMouseMove", "mouseMove");
+        this.setUpMorphicEvent("onMouseUp", "mouseUp");
+    }
 },
 'evaluation', {
     addDependencies: function(elem, top) {

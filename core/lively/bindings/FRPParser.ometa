@@ -11,6 +11,7 @@ ometa FRPParser <: BSOMetaJSParser {
     primExprHd  = "(" expr:e ")"                                    -> e
                 | "this"                                            -> [#this]
                 | "name":n exactly("'")                             -> [#getLast, n]
+                | exactly(":") "name":n                             -> [#gget, n]
                 | "name":n                                          -> [#get, n]
                 | "number":n                                        -> [#number, n]
                 | "string":s                                        -> [#string, s]

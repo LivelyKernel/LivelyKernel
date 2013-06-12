@@ -103,6 +103,26 @@ ometa FRPTranslator {
                         isStream: false}
                 }
                     }.bind(this))()),
+    send = anything:m trans:rec trans*:args
+            -> ((function() {
+                var isStream = rec.isStream || (args.inject(false, function(last, now) {
+                    return last || now.isStream}));
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeSend(m, rec, args);
+                    var deps = args.inject(rec.dependencies, function(last, now) {
+                        return last.concat(now.dependencies);
+                    });
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString:
+                        Strings.format('%s.%s(%s)',
+                            rec.refString, m, args.map(function(arg) {return arg.refString}).join(', ')),
+                        dependencies: deps,
+                        isStream: false}
+                }
+                    }.bind(this))()),
     json = trans*:args
             -> ((function() {
                 var isStream = args.inject(false, function(last, now) {
@@ -141,6 +161,10 @@ ometa FRPTranslator {
             -> ({refString: Objects.inspect(n), dependencies: [], isStream: false}),
     string = (anything:n ?(n.constructor === String))
             -> ({refString: Objects.inspect(n), dependencies: [], isStream: false}),
+    this =
+            -> ({refString: "this.owner", dependencies: [], isStream: false}),
+    gget = anything:n
+            -> ({refString: n, dependencies: [], isStream: false}),
     begin = trans
 
 };

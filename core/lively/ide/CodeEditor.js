@@ -218,7 +218,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!initializedEarlier) {
             e.on('focus', function() { morph._isFocused = true; });
             e.on('blur', function() { morph._isFocused = false; });
-            this.listenForDocumentChanges(e);
+            this.listenForDocumentChanges();
         }
         node.setAttribute('id', 'ace-editor');
         this.disableTextResizeOnZoom(e);
@@ -255,7 +255,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         Global.clearInterval(aceEditor.renderer.$textLayer.$pollSizeChangesTimer);
     },
 
-    listenForDocumentChanges: function() {
+    listenForDocumentChanges: function(evt) {
+        if (this._listenForDocumentChanges && evt.oldSession) {
+            evt.oldSession.removeEventListener('change', this._onDocumentChange);
+            delete this._onDocumentChange;
+        }
         this._listenForDocumentChanges = this._listenForDocumentChanges || this.listenForDocumentChanges.bind(this);
         this._onDocumentChange = this._onDocumentChange || this.onDocumentChange.bind(this);
         this.withAceDo(function(ed) {

@@ -1,5 +1,5 @@
 ometa FRPTranslator {
-    combinator  = #durationE | #collectE | #mergeE | #delayE | #timerE,
+    combinator  = #durationE | #collectE | #mergeE | #delayE | #timerE | #mapE,
     oTrans      = :tree -> BSOMetaJSTranslator.match(tree, "trans"),
     start       =
         (empty -> (function() {
@@ -152,7 +152,18 @@ ometa FRPTranslator {
                         dependencies: [n], isStream: true}}.bind(this))()),
     getp = trans:fd trans:x
             -> ((function() {
-                return {refString: x.refString + "[" + fd.refString + "]", dependencies: [], isStream: false}})()),
+                var isStream = fd.isStream || x.isStream;
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeGet([fd, x]);
+                    var deps = fd.dependencies.concat(x.dependencies);
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString: Strings.format('(%s[%s]', x.refString, fd.refString),
+                        dependencies: [], isStream: false};
+                }
+                    }.bind(this))()),
     getLast = (anything:n ?(n.constructor === String))
             -> ((function() {
                 return {refString: "this.getLast('" + n + "')",
@@ -168,5 +179,3 @@ ometa FRPTranslator {
     begin = trans
 
 };
-
-

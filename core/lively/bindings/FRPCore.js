@@ -188,7 +188,10 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             this.mergeEChecker);
         return this;
     },
-
+    mapE: function(input, expression) {
+        this.expr([input], expression);
+        return this;
+    },
     expr: function(arguments, expression, isContinuous, initialValue) {
         this.setUp("exprE", arguments, null, null, isContinuous);
         if (initialValue !== undefined) {
@@ -258,7 +261,14 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         top.subExpressions = this.subExpressions || [];
         for (var k in this) {
             if (this.hasOwnProperty(k) && k.match('^_t')) {
-                top[k] = this[k];
+                if (top !== this[k]) {
+                    top[k] = this[k];
+                }
+            }
+        }
+        for (k in top) {
+            if (top === top[k]) {
+                debugger;
             }
         }
         top.addDependencies(collection);

@@ -43,6 +43,12 @@ Object.extend(FRPTranslator, {
             Strings.format('function(%s) {return %s %s %s})',
                 this.genArgs(args), this.genBodyVars(args, 0), op, this.genBodyVars(args, 1));
     },
+    makeGet: function(args) {
+        return 'new lively.bindings.FRPCore.EventStream().expr([' +
+            this.genExpr(args) + '], ' +
+            Strings.format('function(%s) {return %s[%s]})',
+                this.genArgs(args), this.genBodyVars(args, 1), this.genBodyVars(args, 0));
+    },
     makeUnop: function(args, op) {
         return 'new lively.bindings.FRPCore.EventStream().expr([' +
             this.genExpr(args) + '], ' +

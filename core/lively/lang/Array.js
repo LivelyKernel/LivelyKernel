@@ -494,6 +494,20 @@ Global.Grid = {
         return result;
     },
 
+    toObjects: function(grid) {
+        // the first row of the grid defines the propNames
+        // for each following row create a new object with those porperties
+        // mapped to the cells of the row as values
+        // Grid.toObjects([['a', 'b'],[1,2],[3,4]])
+        //   --> [{a:1,b:2},{a:3,b:4}]
+        var props = grid[0], objects = new Array(grid.length-1);
+        for (var i = 1; i < grid.length; i++) {
+            var obj = objects[i-1] = {};
+            for (var j = 0; j < props.length; j++) obj[props[j]] = grid[i][j];
+        }
+        return objects;
+    },
+
     benchmark: function() {
         var results = [], t;
 

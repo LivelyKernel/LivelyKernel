@@ -448,7 +448,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
         this.setPane2Selection(null, true);
         this.setPane2Content([this.emptyText]);
-        if (!node) return
+        if (!node || !node.sourceString) return;
 
         this.setPane2Content(this.childsFilteredAndAsListItems(node, this.getPane1Filters()));
         this.setSourceString(node.sourceString());
@@ -471,7 +471,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
         this.setPane3Selection(null);
         this.setPane3Content([this.emptyText]);
-        if (!node) return
+        if (!node || !node.sourceString) return;
 
         this.setPane3Content(this.childsFilteredAndAsListItems(node, this.getPane2Filters()));
         this.setSourceString(node.sourceString());
@@ -492,7 +492,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
         this.setPane4Selection(null);
         this.setPane4Content([this.emptyText]);
-        if (!node) return;
+        if (!node || !node.sourceString) return;
 
         this.setPane4Content(this.childsFilteredAndAsListItems(node, this.getPane3Filters()));
         this.setSourceString(node.sourceString());
@@ -509,7 +509,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     onPane4SelectionUpdate: function(node) {
         this.pane4Selection = node; // for bindings
 
-        if (!node) return;
+        if (!node || !node.sourceString) return;
 
         this.setSourceString(node.sourceString());
         this.updateTitle();

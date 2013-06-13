@@ -2321,7 +2321,8 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
         if (!obj) return;
 
         var items = this.getListForProtocolOf(obj);
-        lively.morphic.Menu.openAtHand(String(obj), items);
+        var menu = lively.morphic.Menu.openAtHand(String(obj), items);
+        lively.morphic.World.current().worldMenuOpened = menu;
     }
 },
 'accessing', {

@@ -11,7 +11,7 @@ lively.morphic.Box.subclass('lively.morphic.MagnetHalo',
 'initializing', {
     initialize: function($super) {
         $super(pt(0,0).extent(this.defaultExtent));
-    },
+    }
 },
 'connection', {
     getControlPoints: function() {
@@ -159,7 +159,7 @@ cop.create('ConnectorLayer')
 .refineClass(lively.morphic.World, {
     getMagnets: function() {
         return []
-    },
+    }
 })
 .refineClass(lively.morphic.PathVertexControlPointHalo, {
     onDragStart: function(evt) {
@@ -206,20 +206,18 @@ cop.create('ConnectorLayer')
 cop.create('lively.morphic.VisualBindingsLayer')
 .refineClass(lively.morphic.World, {
     morphMenuItems: function() {
-        var items = cop.proceed()
-
-        var debugging = items.detect(function(ea) { return ea[0] == "Debugging"})
+        var items = cop.proceed(),
+            debugging = items.detect(function(ea) { return ea[0] == "Debugging"}),
+            world = this;
         if (debugging) {
             debugging[1].splice(4, 0, ["Show connectors",
                 function() {
-                    this.submorphs.select(function(ea) {
-                        return ea.isPath && ea.con
-                    }).forEach(function(ea) {
-                        ea.owner.addMorph(ea)
-                    })
-                }.bind(this)]);
+                    world.submorphs.forEach(function(ea) {
+                        if (ea.isPath && ea.con) ea.owner.addMorph(ea);
+                    });
+                }]);
         }
-        return items
+        return items;
     }
 })
 .refineClass(lively.morphic.Morph, {
@@ -232,7 +230,14 @@ cop.create('lively.morphic.VisualBindingsLayer')
                     builder.openInHand();
                     builder.setPosition(pt(0,0));
                 }]
-            });
+            }).concat([['Custom ...', function() {
+                morph.world().prompt('Name of custom connection start?', function(name) {
+                    if (!name) return;
+                    var builder = morph.getVisualBindingsBuilderFor(name)
+                    builder.openInHand();
+                    builder.setPosition(pt(0,0));
+                })
+            }]])
         return cop.proceed().concat([["Connect ...", connectionItems]]);
     }
 })
@@ -240,35 +245,36 @@ cop.create('lively.morphic.VisualBindingsLayer')
 
 ConnectorLayer.beGlobal();
 
-cop.create('NoMagnetsLayer')
-.refineClass(lively.morphic.Morph, {
-    getMagnets: function() {return []},
-})
-.refineClass(lively.morphic.Text, {
-    getMagnets: function() {return []},
-})
-.refineClass(lively.morphic.Halo, {
-    getMagnets: function() {return []},
-})
-.refineClass(lively.morphic.HandMorph, {
-    getMagnets: function() {return []},
-})
+// cop.create('NoMagnetsLayer')
+// .refineClass(lively.morphic.Morph, {
+//     getMagnets: function() { return []; }
+// })
+// .refineClass(lively.morphic.Text, {
+//     getMagnets: function() { return []; }
+// })
+// .refineClass(lively.morphic.Halo, {
+//     getMagnets: function() { return []; }
+// })
+// .refineClass(lively.morphic.HandMorph, {
+//     getMagnets: function() { return []; }
+// })
 
-lively.morphic.HandMorph.addMethods({
-    withLayers: [NoMagnetsLayer]
-});
-lively.morphic.Halo.addMethods({
-    withLayers: [NoMagnetsLayer]
-});
+// lively.morphic.HandMorph.addMethods({
+//     withLayers: [] // NoMagnetsLayer
+// });
 
-lively.morphic.Window.addMethods({
-    // withLayers: [NoMagnetsLayer]
-});
+// lively.morphic.Halo.addMethods({
+//     withLayers: [NoMagnetsLayer]
+// });
+
+// lively.morphic.Window.addMethods({
+//     // withLayers: [NoMagnetsLayer]
+// });
 
 cop.create('ConnectorLayer').refineClass(lively.morphic.Path, {
     onMouseUp: function(evt) {
         var result
-        withoutLayers([ConnectorLayer], function() {
+        cop.withoutLayers([ConnectorLayer], function() {
             result = cop.proceed(evt);
         })
         if (evt.isCommandKey() || evt.isRightMouseButtonDown())
@@ -277,7 +283,7 @@ cop.create('ConnectorLayer').refineClass(lively.morphic.Path, {
         this.showControlPointsHalos()
 
         return true
-    },
+    }
 }).beGlobal();
 
 });  // end of require LayerableMorphs
@@ -309,7 +315,7 @@ lively.morphic.Morph.addMethods(
                 new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomRight()),
                 new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomCenter()),
                 new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomLeft()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().leftCenter()),
+                new lively.morphic.RelativeMagnet(this, this.innerBounds().leftCenter())
             ]
         return this.magnets
     },
@@ -348,14 +354,12 @@ lively.morphic.Morph.addMethods(
         }).invoke('remove')
     },
 
-    createConnectorTo: function(otherMorph, lineStyle, update) {
-        if (!otherMorph) {
-            throw new Error('Cannot connect to nothing');
-        }
+    createConnectorTo: function(otherMorph, lineStyle) {
+        if (!otherMorph) throw new Error('Cannot to nothing');
 
         var line = new lively.morphic.Path([pt(0,0), pt(0,0)]);
         if (lineStyle) line.applyStyle(lineStyle);
-        if (this.owner) this.owner.addMorphBack(line);
+        line.disableDropping();
 
         var startMagnet = line.connectToNearestStartMagnet(this, otherMorph),
             endMagnet = line.connectToNearestEndMagnet(this, otherMorph);
@@ -388,6 +392,7 @@ lively.morphic.Morph.addMethods(
         return selected || magnets[0];
 
     },
+
     getVisualBindingsBuilderFor: function(connectionPointName) {
         return new lively.morphic.ConnectionBuilder(this, connectionPointName);
     }
@@ -395,8 +400,7 @@ lively.morphic.Morph.addMethods(
 
 lively.morphic.Path.addMethods(
 'visual connectors', {
-    withLayers: [],
-    // withLayers: [cop.create('NoMagnetsLayer2')],
+    withLayers: [], // withLayers: [cop.create('NoMagnetsLayer2')],
     disconnectFromMagnets: function() {
         this.getControlPoints().forEach(function(ctrlPt) {
             if (ctrlPt.connectedMagnet) ctrlPt.setConnectedMagnet(null);
@@ -457,21 +461,19 @@ lively.morphic.ControlPoint.addMethods({
     },
     getConnectedMagnet: function() {
         return this.connectedMagnet
-    },
+    }
 })
 
 Object.extend(lively.bindings, {
     visualConnect: function(source, sourceProp, target, targetProp, spec) {
-        if (!source.isMorph && !target.isMorph)
-            throw new Error('Cannot visual connect non-morph!')
-
+        if (!source.isMorph && !target.isMorph) {
+            throw new Error('Cannot visual connect non-morph!');
+        }
         var con = this.connect(source, sourceProp, target, targetProp, spec);
-
-        if (Config.get("visualConnectEnabled"))
-            this.showConnection(con);
-
+        if (Config.visualConnectEnabled) this.showConnection(con);
         return con;
     },
+
     editConnection: function(con) {
         var world = lively.morphic.World.current(),
             source = con.converterString || 'function converter(value) {\n    return value\n}',
@@ -518,6 +520,7 @@ Object.extend(lively.bindings, {
         }).delay(0);
         return win;
     },
+
     showConnection: function(con) {
         var source = con.sourceObj,
             target = con.targetObj,
@@ -547,9 +550,18 @@ Object.extend(lively.bindings, {
                 ['Cancel', function() {}]
             ];
             return items;
-        })
-    }
+        });
 
+        visualConnector.addScript(function showOrHide(bool) {
+            bool ? this.show() : this.hide();
+        });
+
+        con.autoShowAndHideConnections = [
+            lively.bindings.connect(source, 'owners', visualConnector, 'showOrHide', {
+                converter: function(owners) { return !!this.sourceObj.world(); } }),
+            lively.bindings.connect(target, 'owners', visualConnector, 'showOrHide', {
+                converter: function(owners) { return !!this.sourceObj.world(); } })];
+    }
 
 });
 
@@ -559,14 +571,27 @@ AttributeConnection.addMethods(
     visualDisconnect: function() {
         var connector = this.getVisualConnector();
         if (connector) {
-            connector.disconnectFromMagnets();
-            connector.remove();
+            if (connector.hide) {
+                connector.hide();
+            } else {
+                // FIXME for old deserialized connections...
+                // add show / hide to class!
+                connector.disconnectFromMagnets();
+                connector.remove();
+            }
+        }
+        if (this.autoShowAndHideConnections) {
+            this.autoShowAndHideConnections.invoke('disconnect');
+            this.autoShowAndHideConnections = [];
         }
         this.disconnect();
     }
 });
 
 lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
+'settings', {
+    isLayoutable: false
+},
 'initializing', {
     style: {fill: Color.gray, opacity: 0.5},
     initialize: function($super, sourceMorph, connectionPointSourceName) {
@@ -585,7 +610,7 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
     dropOn: function($super, morph) {
         this.remove();
         var pos = morph.world() ? morph.world().firstHand().getPosition() : pt(0,0);
-        this.openConnectToMenu(morph, pos)
+        this.openConnectToMenu(morph, pos);
     },
     getGrabShadow: function() { return null }
 
@@ -606,6 +631,7 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
         lively.morphic.show(target);
         lively.morphic.Menu.openAtHand('Connect to ' + (target.name || target), items)
     },
+
     underMorphMenu: function(position, sourceMorph, sourceAttribute) {
         var world = sourceMorph.world(), that = this;
         if (!world) { return null; }
@@ -616,6 +642,7 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
             menu.push([ea.name, that.propertiesMenuForTarget(ea)]); });
         return ['Connect to under morph ...', menu];
     },
+
     propertiesMenuForTarget: function(aMorph) {
         var that = this,
             world = aMorph.world(),
@@ -644,16 +671,17 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
 
     createConnectFuncFor: function(targetMorph) {
         var builder = this;
-        return (function(propertyName) {
+        return function(propertyName) {
             var con = lively.bindings.visualConnect(
                 builder.sourceMorph, builder.connectionPointSourceName,
                 targetMorph, propertyName);
-        });
+        };
     }
 
 });
 
 lively.morphic.Path.addMethods({
+
     showControlPointsHalos: function() {
         if (!this.world()) return false;
         if (this.halos && this.halos.length > 0) {
@@ -670,6 +698,7 @@ lively.morphic.Path.addMethods({
         //this.world().showHalosFor(this, this.halos);
         //this.halos.invoke('alignAtTarget');
     }
+
 });
 
 }) // end of module

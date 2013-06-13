@@ -124,7 +124,7 @@ lively.Worker = {
         var codeFile = URL.source.getDirectory().withFilename('temp-worker-code.js').asWebResource();
         codeFile.put(workerCode);
         var worker = new Worker(codeFile.getURL().toString());
-        lively.bindings.connect(worker, 'ready', codeFile, 'del');        
+        lively.bindings.connect(worker, 'ready', codeFile, 'del');
         init(worker);
         return worker;
     }

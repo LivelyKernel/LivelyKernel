@@ -148,6 +148,10 @@ Object.extend(Array.prototype, {
         }).pluck('value');
     },
 
+    sortByKey: function(key) {
+        return this.sortBy(function(ea) { return ea[key]; });
+    },
+
     toArray: function() { return this; },
 
     zip: function() {
@@ -326,16 +330,12 @@ Object.extend(Array.prototype, {
     },
 
     groupBy: function(iterator, context) {
-        iterator = context ? iterator.bind(context) : iterator;
-        var groups = {};
-        for (var i = 0, len = this.length; i < len; i++) {
-            var hash = iterator(this[i], i);
-            if (!groups[hash]) groups[hash] = [];
-            groups[hash].push(this[i]);
-        }
-        return groups;
-    }
+        return lively.Grouping.groupArray(this, iterator, context);
+    },
 
+    groupByKey: function(key) {
+        return this.groupBy(function(ea) { return ea[key]; });
+    }
 });
 
 Object.extend(Array.prototype, {
@@ -382,6 +382,69 @@ Object.extend(Array, {
     }
 });
 
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Grouping
+// A Grouping is created by Array>>groupBy and maps keys
+// to Arrays
+lively.Grouping = function Grouping(arr, hashFunc, context) {}
+
+Object.extend(lively.Grouping, {
+    groupArray: function(arr, hashFunc, context) {
+        var grouping = new this();
+        for (var i = 0, len = arr.length; i < len; i++) {
+            var hash = hashFunc.call(context, arr[i], i);
+            if (!grouping[hash]) grouping[hash] = [];
+            grouping[hash].push(arr[i]);
+        }
+        return grouping;
+    }
+});
+
+Object.extend(lively.Grouping.prototype, {
+    toArray: function() {
+        return this.reduceGroups(function(all, _, group) { return all.concat([group]); }, []);
+    },
+    forEach: function(iterator, context) {
+        var groups = this;
+        Object.keys(groups).forEach(function(groupName) {
+            groups[groupName].forEach(iterator.curry(groupName, context));
+        });
+        return groups;
+    },
+    forEachGroup: function(iterator, context) {
+        var groups = this;
+        Object.keys(groups).forEach(function(groupName) {
+            iterator.call(context, groupName, groups[groupName]);
+        });
+        return groups;
+    },
+    map: function(iterator, context) {
+        var result = new lively.Grouping();
+        this.forEachGroup(function(groupName, group) {
+            result[groupName] = group.map(iterator.curry(groupName), context);
+        });
+        return result;
+    },
+    mapGroups: function(iterator, context) {
+        var result = new lively.Grouping();
+        this.forEachGroup(function(groupName, group) {
+            result[groupName] = iterator.call(context, groupName, group);
+        });
+        return result;
+    },
+    keys: function() { return Object.keys(this); },
+    reduceGroups: function(iterator, carryOver, context) {
+        this.forEachGroup(function(groupName, group) {
+            carryOver = iterator.call(context, carryOver, groupName, group); });
+        return carryOver;
+    },
+    count: function() {
+        return this.reduceGroups(function(groupCount, groupName, group) {
+            groupCount[groupName] = group.length;
+            return groupCount;
+        }, {});
+    }
+});
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global Helper - Arrays

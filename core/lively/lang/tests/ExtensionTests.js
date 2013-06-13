@@ -436,7 +436,31 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         var obj = {a: 23, inspect: function() { return "<" + this.a + ">"; }};
         var arr = ["foo", obj, 42];
         this.assertEquals('[foo, <23>, 42]', arr.inspect());
+    },
+    testGroupBy: function() {
+        var elts = [{a: 'foo', b: 1},
+                    {a: 'bar', b: 2},
+                    {a: 'foo', b: 3},
+                    {a: 'baz', b: 4},
+                    {a: 'foo', b: 5},
+                    {a: 'bar',b:6}];
+        var group = elts.groupBy(function(ea) { return ea.a; });
+        var expected = {foo:[elts[0],elts[2],elts[4]],bar:[elts[1],elts[5]],baz:[elts[3]]};
+        this.assertEqualState(expected, group);
+        this.assertEqualState(
+            [[elts[0],elts[2],elts[4]],[elts[1],elts[5]],[elts[3]]],
+            group.toArray(), 'toArray');
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        this.assertEquals(['foo', 'bar', 'baz'], group.keys(), 'groupNames');
+        this.assertEqualState({foo: 3, bar: 2, baz: 1}, group.count(), 'coount');
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var mapGroupsResult = group.mapGroups(function(groupName, group) { return group.pluck('b').sum(); });
+        this.assertEqualState({foo: 9, bar: 8, baz: 4}, mapGroupsResult, 'mapGroupsResult');
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var mapGroupResult = group.map(function(groupName, groupEl) { return groupEl.b; });
+        this.assertEqualState({foo: [1,3,5], bar: [2,6], baz: [4]}, mapGroupResult, 'mapGroupResult');
     }
+
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.GridTest', {

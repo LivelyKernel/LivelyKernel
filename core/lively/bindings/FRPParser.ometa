@@ -16,7 +16,9 @@ ometa FRPParser <: BSOMetaJSParser {
                 | "number":n                                        -> [#number, n]
                 | "string":s                                        -> [#string, s]
                 | "function" funcRest
-                | "new" "name":n "(" listOf(#expr, ','):as ")"      -> [#new, n].concat(as)
+                | "new" ("name":n ('.' | empty) -> n)*:name "(" listOf(#expr, ','):as ")"
+                                                                    -> [#new,
+                                                                        name.join('.')].concat(as)
                 | "[" listOf(#expr, ','):es "]"                     -> [#arr].concat(es)
                 | json
                 | re

@@ -1,4 +1,4 @@
-module('apps.d3Interface').requires('lively.morphic.Widgets').toRun(function() {
+module('apps.d3Interface').requires('lively.morphic.Widgets').requiresLib({url: Config.codeBase + 'lib/d3/d3.v3.js', loadTest: function() { return typeof d3 !== 'undefined'; }}).toRun(function() {
 
 Trait('apps.d3Interface.d3WrapperTrait', {
     drawChart: function(chart, xScale, yScale) {

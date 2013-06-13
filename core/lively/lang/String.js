@@ -232,8 +232,10 @@ Global.Strings = {
     },
 
     tokens: function(str, regex) {
+        // Strings.tokens(' a b c')
+        // => ['a', 'b', 'c']
         regex = regex || /\s+/;
-        return str.split(regex);
+        return str.split(regex).reject(function(tok) { return /^\s*$/.test(tok); });
     },
 
     printNested: function(list, depth) {
@@ -253,12 +255,35 @@ Global.Strings = {
         return s.split(" ").invoke('capitalize').join("")
     },
 
-    tableize: function(s, splitter) {
+    tableize: function(s, options) {
         // string => array
-        // Strings.tableize('a b c\nd e f') => [[a, b, c], [d, e, f]]
-        return Strings.lines(s).collect(function(ea) {
-            return Strings.tokens(ea, splitter || /\s+/);
-        })
+        // Strings.tableize('a b c\nd e f')
+        //   => [[a, b, c], [d, e, f]]
+        // can also parse csv like
+        // csv = '"Symbol","Name","LastSale",\n'
+        //     + '"FLWS","1-800 FLOWERS.COM, Inc.","5.65",\n'
+        //     + '"FCTY","1st Century Bancshares, Inc","5.65",'
+        // csvTable = Strings.tableize(companiesCSV, /^\s*"|","|",?\s*$/g)
+        options = options || {};
+        var splitter = options.cellSplitter || /\s+/,
+            emptyStringRe = /^\s*$/,
+            convertTypes = options.hasOwnProperty('convertTypes') ? !!options.convertTypes : true,
+            lines = Strings.lines(s), table = [];
+        for (var i = 0; i < lines.length; i++) {
+            var tokens = Strings.tokens(lines[i], splitter);
+            if (convertTypes) {
+                tokens = tokens.map(function(tok) {
+                    if (tok.match(emptyStringRe)) return tok;
+                    var num = Number(tok);
+                    if (!Global.isNaN(num)) return num;
+                    var date = new Date(tok);
+                    if (!Global.isNaN(+date)) return date;
+                    return tok;
+                });
+            }
+            if (tokens.length > 0) table.push(tokens);
+        }
+        return table;
     },
 
     pad: function(string, n, left) {

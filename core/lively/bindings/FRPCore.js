@@ -207,8 +207,8 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         return this.finalize([]);
     },
-    discrete: function() {
-        this.setUp("discrete", [], null, null, false);
+    userEvent: function() {
+        this.setUp("userEvent", [], null, null, false);
         this.dormant = false;
         return this.finalize([]);
     },
@@ -476,7 +476,8 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.object = object;
         return this;
     },
-    setUpMorphicEvent: function(mName, fName) {
+    setUpMorphicEvent: function(fName, original) {
+        var mName = "on" + fName.capitalize();
         var str =
 "       function X(evt) {\n" +
 "           if (this.__evaluator && this.Y\n" +
@@ -491,13 +492,15 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         str = str.replace(/Y/g, fName);
         var func = Function.fromString(str);
         this.object[mName] = func;
-        var strm = new lively.bindings.FRPCore.EventStream().discrete();
-        strm.installTo(this.object, fName);
+        if (!original) {
+            var strm = new lively.bindings.FRPCore.EventStream().userEvent();
+            strm.installTo(this.object, fName);
+        }
     },
     setUpMorphicEvents: function() {
-        this.setUpMorphicEvent("onMouseDown", "mouseDown");
-        this.setUpMorphicEvent("onMouseMove", "mouseMove");
-        this.setUpMorphicEvent("onMouseUp", "mouseUp");
+        this.setUpMorphicEvent("mouseDown");
+        this.setUpMorphicEvent("mouseMove");
+        this.setUpMorphicEvent("mouseUp");
     }
 },
 'evaluation', {
@@ -638,6 +641,9 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         if (strm.type === "timerE" || strm.type === "durationE") {
             this.addTimer(strm);
         }
+        if (strm.type === "userEvent") {
+            this.setUpMorphicEvent(strm.streamName, strm);
+        }
         this.reset();
     },
 
@@ -707,10 +713,11 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
     },
     deserializeObj: function(copy) {
         if (!copy || !copy.isSerializedStream) return null
-        var strm = copy.type === "value" ?
+        return copy.type === "value" ?
             new lively.bindings.FRPCore.EventStream().value(copy.currentValue) :
-            lively.bindings.FRPCore.EventStream.fromString(copy.code);
-        return strm;
+            (copy.type === "userEvent" ?
+                new lively.bindings.FRPCore.EventStream().userEvent()
+                    : lively.bindings.FRPCore.EventStream.fromString(copy.code));
     },
     afterDeserializeObj: function (obj) {
         if (this.isEventStream(obj)) {

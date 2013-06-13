@@ -27,7 +27,7 @@ printOn = function(x, ws) {
     ws.nextPutAll(x.toString())
 }
 
-Array.prototype.toString = function() { var ws = "".writeStream(); printOn(this, ws); return ws.contents() }
+Array.prototype.ometaToString = function() { var ws = "".writeStream(); printOn(this, ws); return ws.contents() }
 
 // delegation
 

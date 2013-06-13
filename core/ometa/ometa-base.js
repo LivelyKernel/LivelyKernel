@@ -484,10 +484,22 @@ OMeta = {
     }
   },
   match: function(obj, rule, args, matchFailed) {
-    return this._genericMatch([obj].toOMInputStream(),    rule, args, matchFailed)
+    var toString = Array.prototype.toString;
+    Array.prototype.toString = Array.prototype.ometaToString;
+    try {
+        return this._genericMatch([obj].toOMInputStream(),    rule, args, matchFailed)
+    } finally {
+        Array.prototype.toString = toString;
+    }
   },
   matchAll: function(listyObj, rule, args, matchFailed) {
-    return this._genericMatch(listyObj.toOMInputStream(), rule, args, matchFailed)
+    var toString = Array.prototype.toString;
+    Array.prototype.toString = Array.prototype.ometaToString;
+    try {
+        return this._genericMatch(listyObj.toOMInputStream(), rule, args, matchFailed)
+    } finally {
+        Array.prototype.toString = toString;
+    }
   },
   createInstance: function() {
     var m = objectThatDelegatesTo(this)

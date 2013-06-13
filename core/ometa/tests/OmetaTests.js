@@ -32,7 +32,7 @@ TestCase.subclass('ometa.tests.OmetaTests.OmetaTest', {
         var s = "3+ 4";
         var tree = BSOMetaJSParser.matchAll(s, "topLevel");
         this.assert(tree, " is defined");
-        this.assertEquals(tree.toString(), "[begin, [binop, +, [number, 3], [number, 4]]]");
+        this.assertEqualState(tree, ["begin",["binop","+",["number",3],["number",4]]]);
     },
 
     testBSOMetaJSTranslator: function() {

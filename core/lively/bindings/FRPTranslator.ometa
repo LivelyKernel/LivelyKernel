@@ -160,7 +160,7 @@ ometa FRPTranslator {
                     this.addSubExpression(id, strmDef, deps);
                     return {refString: this.ref(id), dependencies: deps, isStream: true}
                 } else {
-                    return {refString: Strings.format('(%s[%s]', x.refString, fd.refString),
+                    return {refString: Strings.format('%s[%s]', x.refString, fd.refString),
                         dependencies: [], isStream: false};
                 }
                     }.bind(this))()),

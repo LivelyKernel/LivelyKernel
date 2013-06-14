@@ -219,10 +219,10 @@ Object.extend(lively.ide, {
                 });
 
             if (fileFragments.length > 0) {
-                return fileFragments[0].browseIt(browser)
+                return fileFragments[0].browseIt({browser: browser});
             } else {
                 alert("could not browse " + methodName + " in " + objectName);
-                rootNode.browseIt(browser);
+                rootNode.browseIt({browser: browser});
                 return false;
             }
 

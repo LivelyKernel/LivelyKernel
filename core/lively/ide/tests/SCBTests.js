@@ -303,7 +303,7 @@ lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests
 		    var browser = this.browser;
 		    browser.buildView()
 
-		    this.m1.basicBrowseIt(browser)
+		    this.m1.basicBrowseIt({browser: browser})
 
 		    this.assertEquals(browser.nodesInPane('Pane4').length, 3);
 		    this.assertIdentity(this.m1, browser.nodesInPane('Pane4')[0].target);

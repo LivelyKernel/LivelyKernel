@@ -347,25 +347,25 @@ Object.subclass('lively.ide.FileFragment',
 },
 'browser support', {
 
-    browseIt: function(browser) {
-        if (!browser) {
-            browser = browser || new lively.ide.SystemBrowser();
-            browser.openIn(lively.morphic.World.current());
-        }
+    browseIt: function(options) {
+        options = options || {};
+        var browser = options.browser || (options.browser = new lively.ide.SystemBrowser());
+        browser.openIn(lively.morphic.World.current());
 
         // set the correct path
         var m = this.fileName.match(/(.*\/)(.+)/);
         var pathName = m[1];
         browser.setTargetURL(URL.codeBase.withFilename(pathName));
 
-        this.basicBrowseIt(browser);
+        this.basicBrowseIt(options);
         browser.panel.getWindow().comeForward();
         return browser;
     },
 
-    basicBrowseIt: function(browser) {
+    basicBrowseIt: function(options) {
         // FIXME ... subclassing
 
+        var browser = options.browser;
         var logicalPath = [], ff = this;
         while (ff) {
             logicalPath.unshift(ff);
@@ -377,7 +377,11 @@ Object.subclass('lively.ide.FileFragment',
         logicalPath.forEach(function(ea) {
             browser.selectNodeMatching(function(node) { return node && node.target == ea })
         });
-
+        if (options.line && logicalPath.length > 0) {
+            var selectedFF = logicalPath.last();
+            var localLine = options.line - selectedFF.startLineNumber;
+            browser.panel.sourcePane.selectAndCenterLine(localLine);
+        }
     },
 
 

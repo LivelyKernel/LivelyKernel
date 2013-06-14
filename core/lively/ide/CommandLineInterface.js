@@ -515,6 +515,9 @@ Object.extend(lively.ide, {
                 if (out.length === 0) out = 'nothing found';
                 if (focused) {
                     focused.printObject(null, '\n' + out);
+                    var sel = focused.getSelection();
+                    sel.moveCursorToPosition(focused.indexToPosition(focused.positionToIndex(sel.anchor) + 1));
+                    sel.clearSelection();
                 }
                 thenDo && thenDo(out);
             });
@@ -545,7 +548,7 @@ Object.extend(lively.ide, {
                 var modWrapper =lively.ide.sourceDB().addModule(spec.fileName),
                     ff = modWrapper.ast();
                 if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
-                ff && ff.browseIt(/*getCurrentBrowser()*/);
+                ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
             }
             function extractBrowseRefFromGrepLine(line) {
                 // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")

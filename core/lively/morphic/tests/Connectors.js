@@ -96,6 +96,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         cp.setConnectedMagnet(null);
 
         morph.moveBy(pt(10,10));
+
         this.assertMorphIsDisconnectedFromConnector(morph, line, 0);
     },
 
@@ -177,6 +178,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
 });
 
 lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindingsTest',
+"running", {
+    setUp: function($super) {
+        $super();
+        this.preConfigVisualConnectValue = Config.get('visualConnectEnabled');
+        Config.set('visualConnectEnabled', true);
+    },
+    tearDown: function($super) {
+        $super();
+        Config.set('visualConnectEnabled', this.preConfigVisualConnectValue);
+    }
+},
 'testing', {
 
     test01ConnectMorphNameToText: function() {
@@ -233,7 +245,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
 
     test05VisualConnectorRemovedWhenOneConnectedMorphIsRemoved: function() {
         var m1 = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
-            m2 = new lively.morphic.Morph.makeRectangle(0,0, 10, 10)
+            m2 = new lively.morphic.Morph.makeRectangle(0,0, 10, 10);
         this.world.addMorph(m1);
         this.world.addMorph(m2);
 

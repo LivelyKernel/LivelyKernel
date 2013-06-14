@@ -354,25 +354,46 @@ lively.morphic.Morph.addMethods(
         }).invoke('remove')
     },
 
-    createConnectorTo: function(otherMorph, lineStyle) {
+    createConnectorTo: function(otherMorph, lineStyle, update) {
         if (!otherMorph) throw new Error('Cannot to nothing');
 
         var line = new lively.morphic.Path([pt(0,0), pt(0,0)]);
         if (lineStyle) line.applyStyle(lineStyle);
         line.disableDropping();
 
-        var startMagnet = line.connectToNearestStartMagnet(this, otherMorph),
-            endMagnet = line.connectToNearestEndMagnet(this, otherMorph);
+        line.fromMorph = this; line.toMorph = otherMorph;
 
-        if (!startMagnet || !endMagnet) {
-            alert("Connection Problem: no magnet found");
-            line.disconnectFromMagnets();
-            line.remove();
-        }
+        line.addScript(function show() {
+            var from = this.fromMorph, to = this.toMorph,
+                world = from.world() || to.world(),
+                cp1 = this.getControlPoints().first(),
+                startMagnet = from.getMagnetForPos(
+                    to.world() ? to.worldPoint(to.innerBounds().center()) : null),
+                cp2 = this.getControlPoints().last(),
+                endMagnet = to.getMagnetForPos(
+                    from.world() ? from.worldPoint(from.innerBounds().center()) : null);
+            if (world) world.addMorphBack(this);
+
+            if (!startMagnet || !endMagnet) {
+                debugger;
+                alert("Connection Problem: no magnet found");
+                this.hide();
+                return;
+            }
+            cp1.setConnectedMagnet(startMagnet);
+            cp2.setConnectedMagnet(endMagnet);
+        });
+
+        line.addScript(function hide() {
+            this.disconnectFromMagnets();
+            this.remove();
+        });
+
+        line.show();
 
         if (update) {
-            connect(this, 'globalTransform', line, 'realignConnection');
-            connect(otherMorph, 'globalTransform', line, 'realignConnection');
+            lively.bindings.connect(this, 'globalTransform', line, 'realignConnection');
+            lively.bindings.connect(otherMorph, 'globalTransform', line, 'realignConnection');
         }
 
         return line;

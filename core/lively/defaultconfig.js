@@ -364,7 +364,7 @@ Config.addOptions(
 'lively.bindings', [
     ["selfConnect", false, "DEPRECATED! some widgets self connect to a private model on startup, but it doesn't seem necessary, turn on to override"],
     ["debugConnect", false, "For triggering a breakpoint when an connect update throws an error"],
-    ["visualConnectEnabled", false, "Show data-flow arrows when doing a connect using the UI."]
+    ["visualConnectEnabled", true, "Show data-flow arrows when doing a connect using the UI."]
 ],
 
 'lively.morphic', [

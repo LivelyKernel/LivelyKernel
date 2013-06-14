@@ -299,6 +299,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     setupKeyBindings: function() {
         var codeEditor = this;
+        function activeCodeEditor() {
+            var focused = lively.morphic.Morph.focusedMorph();
+            return focused && focused.isCodeEditor ? focused : null
+        }
         this.addCommands([
             { // evaluation
                 name: 'doit',
@@ -326,9 +330,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 readOnly: false
             }, {
                 name: 'printInspect',
-                bindKey: {win: 'Ctrl-I',  mac: 'Command-I'},
-                exec: this.printInspect.bind(this),
+                exec: function(ed, args) {
+                    activeCodeEditor().printInspect({depth: args && args.count});
+                },
                 multiSelectAction: "forEach",
+                handlesCount: true,
                 readOnly: true
             }, {
                 name: 'doInspect',
@@ -447,6 +453,20 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
                 exec: this.findPrev.bind(this),
                 readOnly: true
+            }, {
+                name: 'doBrowseAtPointOrRegion',
+                bindKey: {win: "Alt-.", mac: "Alt-."},
+                exec: function(editor) {
+                    lively.ide.CommandLineSearch.doBrowseAtPointOrRegion(activeCodeEditor());
+                },
+                multiSelectAction: 'forEach'
+            }, {
+                name: 'doCommandLineSearch',
+                bindKey: {win: "Alt-/", mac: "Alt-/"},
+                exec: function(editor) {
+                    lively.ide.CommandLineSearch.doGrep(activeCodeEditor().getSelectionOrLineString());
+                },
+                multiSelectAction: 'forEach'
             }, {
                 name: "multiSelectNext",
                 bindKey: "Ctrl-Shift-.",
@@ -868,10 +888,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     printInspectMaxDepth: 1,
 
-    printInspect: function() {
+    printInspect: function(options) {
+        options = options || {};
         this.withAceDo(function(ed) {
             var obj = this.evalSelection();
-            this.printObject(ed, Objects.inspect(obj, {maxDepth: this.printInspectMaxDepth}));
+            this.printObject(ed, Objects.inspect(obj, {maxDepth: options.depth || this.printInspectMaxDepth}));
         });
     },
 

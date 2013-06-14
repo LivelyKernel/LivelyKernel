@@ -998,6 +998,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
         sel.setSelectionRange(range, reverse);
     },
+    selectAndCenterLine: function(line) {
+        this.withAceDo(function(ed) {
+            ed.clearSelection();
+            ed.selection.moveCursorTo(line, 0);
+            ed.centerSelection();
+        });
+    },
+
 
     multiSelectNext: function() {
         this.multiSelect({backwards: false});

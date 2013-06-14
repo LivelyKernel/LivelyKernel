@@ -1,4 +1,4 @@
-module('apps.Charting').requires('apps.d3', 'lively.morphic.AdditionalMorphs').toRun(function() {
+module('apps.Charting').requires('apps.d3Interface', 'lively.morphic.AdditionalMorphs').toRun(function() {
 
 Object.subclass('apps.Charting.ChartData',
 'init',

@@ -1,4 +1,4 @@
-module('apps.ChartBuildingBlocks').requires('lively.morphic.ScriptingSupport', 'lively.morphic.AdditionalMorphs', 'apps.d3').toRun(function() {
+module('apps.ChartBuildingBlocks').requires('lively.morphic.ScriptingSupport', 'lively.morphic.AdditionalMorphs', 'apps.d3Interface').toRun(function() {
 
 lively.morphic.PartsBinItem.subclass('apps.ChartBuildingBlocks.ChartsBinItem',
 'settings',{
@@ -51,7 +51,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 
     dispatchHook: function(args) {
         // Dispatches a given hook function and returns its return value.
-        // If hook is not found in a submorph a default implementation is 
+        // If hook is not found in a submorph a default implementation is
         // looked-up here. If no default implementation could be found, an
         // error is thrown.
         var hookName = args.callee.methodName;
@@ -77,7 +77,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     },
     dispatchHooks: function(args) {
         // Dispatches ALL given hook functions found in submorphs.
-        // If hook is not found in submorphs a default implementation is 
+        // If hook is not found in submorphs a default implementation is
         // looked-up here. If no default implementation could be found, an
         // error is thrown.
         var hookName = args.callee.methodName;
@@ -223,7 +223,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 
 'Drawing', {
     draw: function(context, data, optPadding) {
-        // Clear the visual indiciators about which 
+        // Clear the visual indiciators about which
         // morphs are used and which ones are not
         // this.unmarkAllMorphs();
 

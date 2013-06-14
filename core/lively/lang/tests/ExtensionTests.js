@@ -533,7 +533,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
     testTableize: function() {
         this.assertEqualState([["a", "b", "c"], ["d", "e", "f"]], Strings.tableize('a b c\nd e f'));
         this.assertEqualState([["a", 1, "c"], ["d", 2, "f"]], Strings.tableize('a 1 c\nd 2 f'));
-        this.assertEqualState([["Date"], [new Date(1370934000000)]], Strings.tableize('Date\n06/11/2013'));
+        this.assertEqualState([["Date"], [new Date('06/11/2013')]], Strings.tableize('Date\n06/11/2013'));
     }
 });
 

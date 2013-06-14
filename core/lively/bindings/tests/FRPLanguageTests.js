@@ -107,8 +107,18 @@ TestCase.subclass('lively.bindings.tests.FRPLanguageTests.LanguageTests',
         var string = result.expression.toString();
         this.assert(string.match('\\(arg0, arg1\\)') !== null);
         this.assert(string.match('return {"now": 1, "last": arg1}') !== null);
+    },
+    testGet: function() {
+        var result = lively.bindings.FRPCore.EventStream.fromString("({now: fib'.now, last: fib.last})");
+        this.assertEquals(result.constructor, lively.bindings.FRPCore.EventStream, "constructor");
+        this.assertEquals(result.type, "exprE", "type");
+        this.assertEquals(result.currentValue, undefined, "currentValue");
+        this.assertEquals(result.dependencies.length, 2, "dep");
+        var string = result.expression.toString();
+        this.assert(string.match('\\(arg0, arg1\\)') !== null);
+        var expected = 'return {"now": this.getLast\\(' + "'fib'" + '\\)\\["now"\\], "last": arg1}';
+        this.assert(string.match(expected) !== null);
     }
-
 });
 
 });

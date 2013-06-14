@@ -545,7 +545,7 @@ Object.extend(lively.ide, {
                 var modWrapper =lively.ide.sourceDB().addModule(spec.fileName),
                     ff = modWrapper.ast();
                 if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
-                ff && ff.browseIt(getCurrentBrowser())
+                ff && ff.browseIt(/*getCurrentBrowser()*/);
             }
             function extractBrowseRefFromGrepLine(line) {
                 // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")

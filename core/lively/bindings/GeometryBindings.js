@@ -69,10 +69,9 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
     disconnect: function($super) {
         $super();
         if (!this.dependendConnections) return;
-        var self = this;
-        this.dependendConnections.forEach(function(ea) {
-            self.removeDependConnection(ea);
-        })
+        var con;
+        while (this.dependendConnections && (con = this.dependendConnections.shift()))
+            this.removeDependConnection(con);
     }
 
 });

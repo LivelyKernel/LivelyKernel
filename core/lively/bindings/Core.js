@@ -174,7 +174,7 @@ Object.subclass('AttributeConnection',
 
     disconnect: function() {
         var obj = this.sourceObj;
-        if (!obj.attributeConnections) return this.removeSourceObjGetterAndSetter();
+        if (!obj || !obj.attributeConnections) return this.removeSourceObjGetterAndSetter();
         obj.attributeConnections = obj.attributeConnections.reject(function(con) {
             return this.isSimilarConnection(con);
         }, this);
@@ -335,6 +335,8 @@ Object.subclass('AttributeConnection',
         var realAttrName = this.sourceAttrName,
             helperAttrName = this.privateAttrName(realAttrName),
             srcObj = this.sourceObj;
+
+        if (!srcObj) return;
 
         if (srcObj.__lookupGetter__(realAttrName)) {
             delete srcObj[realAttrName];
@@ -543,11 +545,12 @@ Object.extend(lively.bindings, {
     disconnect: function(sourceObj, attrName, targetObj, targetMethodName) {
         if (!sourceObj.attributeConnections) return;
 
-        sourceObj.attributeConnections.select(function(con) {
-            return 	con.getSourceAttrName() == attrName &&
-                con.getTargetObj() === targetObj &&
-                con.getTargetMethodName() == targetMethodName;
-        }).forEach(function(con) { con.disconnect() });
+        var con;
+        while (sourceObj.attributeConnections
+            && (con = sourceObj.attributeConnections.shift())
+            && con.getSourceAttrName() == attrName
+            && con.getTargetObj() === targetObj
+            &&con.getTargetMethodName() == targetMethodName) con.disconnect();
 
         if (typeof sourceObj['onDisconnect'] == 'function') {
             sourceObj.onDisconnect(attrName, targetObj, targetMethodName);

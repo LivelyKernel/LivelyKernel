@@ -340,8 +340,8 @@ Object.extend(Array.prototype, {
 
 Object.extend(Array.prototype, {
     find: Array.prototype.find || Array.prototype.detect,
-    select: Array.prototype.findAll,
-    filter: Array.prototype.findAll,
+    select: Array.prototype.filter || Array.prototype.findAll,
+    filter: Array.prototype.filter || Array.prototype.findAll,
     member: Array.prototype.include,
     map: Array.prototype.map || Array.prototype.collect,
     every: Array.prototype.every || Array.prototype.all,

@@ -330,6 +330,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 readOnly: false
             }, {
                 name: 'printInspect',
+                bindKey: {win: 'Ctrl-I',  mac: 'Command-I'},
                 exec: function(ed, args) {
                     activeCodeEditor().printInspect({depth: args && args.count});
                 },

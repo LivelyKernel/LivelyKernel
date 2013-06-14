@@ -2286,11 +2286,26 @@ Object.extend(lively.morphic.Events, {
 
 (function installDefaultGlobalKeys() {
     lively.morphic.Events.GlobalEvents.unregister('keydown', "esc");
+    var haloTriggerCount = 0; // count succinct command key presses, FIXME use real key handler that can deal with combos
     lively.morphic.Events.GlobalEvents.register('keydown', function esc(evt) {
-        var keys = evt.getKeyString({ignoreModifiersIfNoCombo: true}),
+        var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false}),
             focused = lively.morphic.Morph.focusedMorph(),
             world = focused && focused.world() || lively.morphic.World.current();
         if (!focused) { world.focus.bind(world).delay(); return undefined; }
+        if (keys === 'Command-Alt') haloTriggerCount++;
+        else if (keys !== 'Command' && keys !== 'Alt') haloTriggerCount = 0;
+        if (haloTriggerCount == 2) {
+            evt.mousePoint = evt.hand.getPosition();
+            var target;
+            if (!evt.world.currentHaloTarget || !evt.world.currentHaloTarget.fullContainsWorldPoint(evt.getPosition()) || evt.world.currentHaloTarget === world) {
+                target = evt.hand.morphUnderMe();
+            } else {
+                target = evt.world.currentHaloTarget;
+            }
+            target.toggleHalos(evt);
+            haloTriggerCount = 0;
+            evt.stop(); return true;
+        }
         if (keys === 'Esc') {
             // Global Escape will drop grabbed morphs, remove menus, close halos
             var h = world.firstHand();

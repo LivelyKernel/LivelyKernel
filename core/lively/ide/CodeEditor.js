@@ -638,6 +638,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     setTextMode: function(modeString) {
+        modeString = modeString || 'text';
         var parts = modeString.split(':'),
             modeName = parts[0], astType = parts[1] || null;
         this.withAceDo(function(ed) {

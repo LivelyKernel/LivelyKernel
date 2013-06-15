@@ -571,7 +571,7 @@ Object.extend(lively, {
 });
 
 Object.extend(Global, {
-    $grep: lively.ide.CommandLineSearch.doSearch
+    $grep: lively.ide.CommandLineSearch.doGrep
 });
 
 }) // end of module

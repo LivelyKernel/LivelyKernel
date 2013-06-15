@@ -545,12 +545,10 @@ Object.extend(lively.bindings, {
     disconnect: function(sourceObj, attrName, targetObj, targetMethodName) {
         if (!sourceObj.attributeConnections) return;
 
-        var con;
-        while (sourceObj.attributeConnections
-            && (con = sourceObj.attributeConnections.shift())
-            && con.getSourceAttrName() == attrName
-            && con.getTargetObj() === targetObj
-            &&con.getTargetMethodName() == targetMethodName) con.disconnect();
+        sourceObj.attributeConnections.clone().forEach(function(con) { 
+            if (con.getSourceAttrName() == attrName
+            &&  con.getTargetObj() === targetObj
+            &&  con.getTargetMethodName() == targetMethodName) con.disconnect(); });
 
         if (typeof sourceObj['onDisconnect'] == 'function') {
             sourceObj.onDisconnect(attrName, targetObj, targetMethodName);

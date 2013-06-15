@@ -22,16 +22,17 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
     },
 
     test03RemoveConnections: function() {
-        var obj1 = {x: 4};
-        var obj2 = {xchanged: function(newVal) { obj2.value = newVal }};
-        var obj3 = {xchangedAgain: function(newVal) { obj3.value = newVal }};
-        connect(obj1, 'x', obj2, 'xchanged');
-        connect(obj1, 'x', obj3, 'xchangedAgain');
-        disconnect(obj1, 'x', obj2, 'xchanged');
+        var obj1 = {x: 4},
+            obj2 = {xchanged: function(newVal) { obj2.value = newVal }},
+            obj3 = {xchangedAgain: function(newVal) { obj3.value = newVal }};
+        lively.bindings.connect(obj1, 'x', obj2, 'xchanged');
+        lively.bindings.connect(obj1, 'x', obj3, 'xchangedAgain');
+        debugger;
+        lively.bindings.disconnect(obj1, 'x', obj2, 'xchanged');
         obj1.x = 2;
         this.assertEquals(obj2.value, null, 'obj2 not disconnected');
         this.assertEquals(obj3.value, 2, 'obj3 wrongly disconnected');
-        disconnect(obj1, 'x', obj3, 'xchangedAgain');
+        lively.bindings.disconnect(obj1, 'x', obj3, 'xchangedAgain');
         obj1.x = 3;
         this.assertEquals(obj3.value, 2, 'obj3 not disconnected');
         this.assert(!obj1.__lookupSetter__('x'), 'disconnect cleanup failure');

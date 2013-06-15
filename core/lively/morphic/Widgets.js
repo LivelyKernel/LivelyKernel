@@ -2523,6 +2523,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         if (this.isShutdown()) return null;
         var owner = this.owner;
         if (this.onShutdown) this.onShutdown();
+        if (this.targetMorph && this.targetMorph.onShutdown) this.targetMorph.onShutdown();
         this.remove();
         var morphBelow = owner.topMorph();
         if (morphBelow && morphBelow.isWindow) {

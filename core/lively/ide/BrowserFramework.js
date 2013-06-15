@@ -754,8 +754,7 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
 
 },
 'shutdown', {
-    shutdown: function($super) {
-        $super();
+    onShutdown: function($super) {
         var browser = this.ownerWidget;
         if (!browser.stop) {
             console.log('cannot unregister browser: ' + browser);

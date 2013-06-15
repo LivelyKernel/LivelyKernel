@@ -65,11 +65,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _LineWrapping: false,
             _Position: lively.pt(200.0,40.0),
             _ShowGutter: true,
-            _ShowInvisibles: false,
-            _ShowPrintMargin: true,
             _StyleClassNames: ["Morph","CodeEditor","ace_editor","ace_nobold","emacs-mode","ace-chrome"],
             _TextMode: "javascript",
-            _Theme: "chrome",
             _setShowIndents: true,
             accessibleInInactiveWindow: true,
             className: "lively.morphic.CodeEditor",
@@ -1894,9 +1891,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         case 'F2': sourcePane.focus(); evt.stop(); return true;
         default: $super(evt);        
     }
-},
-    onShutdown: function onShutdown() {
-    this.targetMorph.onShutdown();
 },
     reset: function reset() {
     this.targetMorph.reset();

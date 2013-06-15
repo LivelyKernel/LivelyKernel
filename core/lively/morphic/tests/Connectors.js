@@ -13,7 +13,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
             this.assertEquals(prevCtrlPtPos, currentCtrlPtPos,
                               'when morph moved connector moved also');
             this.assert(!morph.hasOwnProperty("attributeConnections"),
-                        "morph has attributeConnections");
+                        "morph has attributeConnections: \n");
 
             this.assert(!ctrlPt.connectedMagnet, 'control point still has a magnet');
         } finally {
@@ -28,9 +28,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         try {
             morph.moveBy(pt(10,10));
             var currentCtrlPtPos = ctrlPt.getGlobalPos();
-            this.assertEquals(prevCtrlPtPos.addXY(10,10), currentCtrlPtPos,
-                              'morph did not move with connection');
+            this.assert(!currentCtrlPtPos.equals(prevCtrlPtPos), 'control point not moved with morph');
             this.assert(ctrlPt.connectedMagnet, 'control point has no magnet');
+            this.assertIdentity(
+                morph.getMagnetForPos(ctrlPt.connectedMagnet.getGlobalPosition()), ctrlPt.connectedMagnet,
+                'Connected magnet of morph not matching magnet of connector?');
         } finally {
             morph.setPosition(morphStartPos);
         }
@@ -192,9 +194,8 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
 'testing', {
 
     test01ConnectMorphNameToText: function() {
-        if (!Config.visualConnectEnabled) {
-            return;
-        }
+        if (!Config.visualConnectEnabled) return;
+
         var morph = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             text = new lively.morphic.Text(new Rectangle(100,0,100,20), '');
         this.world.addMorph(morph);
@@ -227,9 +228,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
     },
 
     test04DisconnectMorphNameToText: function() {
-        if (!Config.visualConnectEnabled) {
-            return;
-        }
+        if (!Config.visualConnectEnabled) return;
         var morph = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             text = new lively.morphic.Text(new Rectangle(100,0,100,20), '');
         this.world.addMorph(morph);

@@ -62,20 +62,17 @@ Object.subclass('lively.morphic.Magnet',
         this.morph = morph
     },
     addConnectedControlPoint: function(cp) {
-        if (!this.connectedControlPoints)
-            this.connectedControlPoints = [];
-        if(this.connectedControlPoints.include(cp)) {
-            // already connected
-            return
-        }
+        if (!this.connectedControlPoints) this.connectedControlPoints = [];
+        if (this.connectedControlPoints.include(cp)) return; // already connected
         lively.bindings.connect(this.morph, 'globalTransform', cp, 'alignToMagnet')
         this.connectedControlPoints.push(cp)
     },
     removeConnectedControlPoint: function(cp) {
         if (!this.connectedControlPoints) return;
-        if (this.morph)
-            lively.bindings.disconnect(this.morph, 'globalTransform', cp, 'alignToMagnet')
-        this.connectedControlPoints = this.connectedControlPoints.without(cp)
+        if (this.morph) {
+            lively.bindings.disconnect(this.morph, 'globalTransform', cp, 'alignToMagnet');
+        }
+        this.connectedControlPoints = this.connectedControlPoints.without(cp);
     },
     getConnectedControlPoints: function() {
         return this.connectedControlPoints
@@ -362,6 +359,7 @@ lively.morphic.Morph.addMethods(
         line.disableDropping();
 
         line.fromMorph = this; line.toMorph = otherMorph;
+        line.updatePosition = update;
 
         line.addScript(function show() {
             var from = this.fromMorph, to = this.toMorph,
@@ -372,7 +370,7 @@ lively.morphic.Morph.addMethods(
                 cp2 = this.getControlPoints().last(),
                 endMagnet = to.getMagnetForPos(
                     from.world() ? from.worldPoint(from.innerBounds().center()) : null);
-            if (world) world.addMorphBack(this);
+            if (world) world.addMorphFront(this);
 
             if (!startMagnet || !endMagnet) {
                 debugger;
@@ -382,20 +380,22 @@ lively.morphic.Morph.addMethods(
             }
             cp1.setConnectedMagnet(startMagnet);
             cp2.setConnectedMagnet(endMagnet);
+
+            if (this.updatePosition) {
+                if (this.realignConnections) this.realignConnections.invoke('disconnect');
+                this.realignConnections = [
+                    lively.bindings.connect(from, 'globalTransform', this, 'realignConnection'),
+                    lively.bindings.connect(to, 'globalTransform', this, 'realignConnection')]
+            }
         });
 
         line.addScript(function hide() {
             this.disconnectFromMagnets();
+            if (this.realignConnections) this.realignConnections.invoke('disconnect');
             this.remove();
         });
 
         line.show();
-
-        if (update) {
-            lively.bindings.connect(this, 'globalTransform', line, 'realignConnection');
-            lively.bindings.connect(otherMorph, 'globalTransform', line, 'realignConnection');
-        }
-
         return line;
     },
 
@@ -424,6 +424,7 @@ lively.morphic.Path.addMethods(
     withLayers: [], // withLayers: [cop.create('NoMagnetsLayer2')],
     disconnectFromMagnets: function() {
         this.getControlPoints().forEach(function(ctrlPt) {
+            debugger;
             if (ctrlPt.connectedMagnet) ctrlPt.setConnectedMagnet(null);
         })
     },
@@ -467,7 +468,7 @@ lively.morphic.ControlPoint.addMethods({
         if (!magnet || ! magnet.isMagnet) return
         var delta = magnet.getGlobalPosition().subPt(this.getGlobalPos());
         this.moveBy(delta)
-        if (this.marker) this.alignMarker()
+        if (this.marker) this.alignMarker();
     },
 
     setConnectedMagnet: function(magnet) {

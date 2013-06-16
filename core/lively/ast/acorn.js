@@ -38,6 +38,13 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         return ast;
     }
 
+    acorn.walk.matchNodes = function(ast, visitor, state, options) {
+        function visit(node, state, depth, type) {
+            if (visitor[node.type]) visitor[node.type](node, state, depth, type);
+        }
+        return acorn.walk.forEachNode(ast, visit, state, options);
+    }
+
     acorn.walk.findNodesIncluding = function(ast, pos, test, base) {
         var nodes = [];
         base = base || acorn.walk.make()

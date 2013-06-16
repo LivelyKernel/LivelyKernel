@@ -8,7 +8,34 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
             ast = acorn.parse(src),
             nodes = acorn.walk.findNodesIncluding(ast, 6);
         this.assertEquals(5, nodes.length);
-    }});
+    },
+
+    testMatchNodes: function() {
+        // body[]:Program<0-11,"Foo.bar = 1">
+        //   body[]:Statement<0-11,"Foo.bar = 1">
+        //     body[]:ExpressionStatement<0-11,"Foo.bar = 1">
+        //       expression:Expression<0-11,"Foo.bar = 1">
+        //         expression:AssignmentExpression<0-11,"Foo.bar = 1">
+        //           left:Expression<0-7,"Foo.bar">
+        //             left:MemberExpression<0-7,"Foo.bar">
+        //               object:Expression<0-3,"Foo">
+        //                 object:Identifier<0-3,"Foo">
+        //               property:Expression<4-7,"bar">
+        //                 property:Identifier<4-7,"bar">
+        //           right:Expression<10-11,"1">
+        //             right:Literal<10-11,"1">
+        var src = "Foo.bar = 1", nodes = [], state = {counter: 0};
+        acorn.walk.matchNodes(acorn.parse(src), {
+            MemberExpression: function(node, state, depth, type) { nodes.pushIfNotIncluded(node); state.counter++; },
+            Identifier: function(node, state, depth, type) { nodes.pushIfNotIncluded(node); state.counter++; }
+        }, state);
+        this.assert(state.counter >= 3, 'counter: ' + state.counter);
+        this.assertMatches([
+            {type: "MemberExpression"},
+            {type: "Identifier", start: 0},
+            {type: "Identifier", start: 4}], nodes, Objects.inspect(nodes, {maxDepth: 1}));
+    },
+});
 
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 'running', {

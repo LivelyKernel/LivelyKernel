@@ -1,5 +1,15 @@
 module('lively.ide.tests.ASTEditingSupport').requires("lively.ide.tests.CodeEditor", "lively.ast.acorn").toRun(function() {
 
+TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
+'testing', {
+
+    testFindNodesIncluding: function() {
+        var src = "this.foo.bar;",
+            ast = acorn.parse(src),
+            nodes = acorn.walk.findNodesIncluding(ast, 6);
+        this.assertEquals(5, nodes.length);
+    }});
+
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 'running', {
     setUp: function() {
@@ -21,12 +31,13 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 
     testBackwardSexp: function() {
         var src = "this.foo(bar, 23);";
+        // this.foo(bar, 23);
         // lively.ast.acorn.nodeSource(src, lively.ast.acorn.nodesAt(5, src).last())
         // acorn.walk.print(acorn.walk.findNodesIncluding(ast, 8))
         // acorn.walk.findNodesIncluding(ast, 8)
         var nav = this.sut;
         this.assertEquals(0, nav.backwardSexp(src, 18));
-        this.assertEquals(0, nav.backwardSexp(src, 8));
+        this.assertEquals(5, nav.backwardSexp(src, 8));
         this.assertEquals(0, nav.backwardSexp(src, 4));
         this.assertEquals(0, nav.backwardSexp(src, 17));
         // this.assertEquals(12, nav.backwardSexp(src, 14));
@@ -54,12 +65,10 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
         this.assertMatches({range: [4, 13]}, nav.expandRegion(src, {range: [10,10]}));
         this.assertMatches({range: [0, 13]}, nav.expandRegion(src, {range: [4, 13]}));
         this.assertMatches({range: [4, 13]}, nav.contractRegion(src, {range: [9, 13], prev: {range: [4,13]}}));
-        // this.assertEqualState({range: [9, 12]}, nav.expandRegion(src, {range: [10,10]}));
-        // this.assertEqualState({range: [6, 12]}, nav.expandRegion(src, {range: [9, 12]}));
-        // this.assertEqualState({range: [5, 12]}, nav.expandRegion(src, {range: [6, 12]}));
-    },
 
-    testContractRegion: function() {
+        src = "a.b.c";
+        this.assertMatches({range: [4, 5]}, nav.expandRegion(src, {range: [4,4]}));
+        // this.assertMatches({range: [2, 5]}, nav.expandRegion(src, {range: [4,5]}));
     }
 });
 

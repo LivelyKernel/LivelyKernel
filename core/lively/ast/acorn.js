@@ -334,25 +334,17 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
                    "module", "lively", "pt", "rect", "rgb"],
 
     scopeVisitor: acorn.walk.make({
-        // AssignmentExpression: function(node, scope, c) {
-        //     scope.identifiers.push(node);
-        //     c(node.left, scope, "Expression");
-        //     c(node.right, scope, "Expression");
-        // },
-        Identifier: function(node, scope, c) {
-            scope.identifiers.push(node);
-        },
         Function: function(node, scope, c) {
-          var inner = {vars: {}, identifiers: [], containingScopes: []};
-          scope && (scope.containingScopes.push(inner));
-          for (var i = 0; i < node.params.length; ++i)
-            inner.vars[node.params[i].name] = {type: "argument", node: node.params[i]};
-          if (node.id) {
-            var decl = node.type == "FunctionDeclaration";
-            (decl ? scope : inner).vars[node.id.name] =
-              {type: decl ? "function" : "function name", node: node.id};
-          }
-          c(node.body, inner, "ScopeBody");
+            var inner = {vars: {}, identifiers: [], containingScopes: []};
+            scope && (scope.containingScopes.push(inner));
+            for (var i = 0; i < node.params.length; ++i)
+                inner.vars[node.params[i].name] = {type: "argument", node: node.params[i]};
+            if (node.id) {
+                var decl = node.type == "FunctionDeclaration";
+                (decl ? scope : inner).vars[node.id.name] =
+                {type: decl ? "function" : "function name", node: node.id};
+            }
+            c(node.body, inner, "ScopeBody");
         },
         TryStatement: function(node, scope, c) {
             c(node.block, scope, "Statement");
@@ -365,11 +357,70 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
             if (node.finalizer) c(node.finalizer, scope, "Statement");
         },
         VariableDeclaration: function(node, scope, c) {
-          for (var i = 0; i < node.declarations.length; ++i) {
-            var decl = node.declarations[i];
-            scope.vars[decl.id.name] = {type: "var", node: decl.id};
-            if (decl.init) c(decl.init, scope, "Expression");
-          }
+            for (var i = 0; i < node.declarations.length; ++i) {
+                var decl = node.declarations[i];
+                scope.vars[decl.id.name] = {type: "var", node: decl.id};
+                if (decl.init) c(decl.init, scope, "Expression");
+            }
+        },
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        ExpressionStatement: function(node, scope, c) {
+            if (node.expression && node.expression.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.expression);
+            c(node.expression, scope, "Expression");
+        },
+        CallExpression: function(node, scope, c) {
+            if (node.callee && node.callee.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.callee);
+            c(node.callee, scope, "Expression");
+            if (node.arguments) for (var i = 0; i < node.arguments.length; ++i)
+              c(node.arguments[i], scope, "Expression");
+        },
+        AssignmentExpression: function(node, scope, c) {
+            if (node.left && node.left.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.left);
+            if (node.right && node.right.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.right);
+            c(node.left, scope, "Expression");
+            c(node.right, scope, "Expression");
+        },
+        BinaryExpression: function(node, scope, c) {
+            if (node.left && node.left.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.left);
+            if (node.right && node.right.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.right);
+            c(node.left, scope, "Expression");
+            c(node.right, scope, "Expression");
+        },
+        UpdateExpression: function(node, scope, c) {
+            if (node.argument && node.argument.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.argument);
+            c(node.argument, scope, "Expression");
+        },
+        IfStatement: function(node, scope, c) {
+            if (node.test && node.test.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.test);
+            c(node.test, scope, "Expression");
+            c(node.consequent, scope, "Statement");
+            if (node.alternate) c(node.alternate, scope, "Statement");
+        },
+        WhileStatement: function(node, scope, c) {
+            if (node.test && node.test.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.test);
+            c(node.test, scope, "Expression");
+            c(node.body, scope, "Statement");
+        },
+        DoWhileStatement: function(node, scope, c) {
+            if (node.test && node.test.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.test);
+            c(node.test, scope, "Expression");
+            c(node.body, scope, "Statement");
+        },
+        MemberExpression: function(node, scope, c) {
+            if (node.object && node.object.type === "Identifier")
+                scope.identifiers.pushIfNotIncluded(node.object);
+            c(node.object, scope, "Expression");
+            c(node.property, scope, "Expression");
         }
     }),
 
@@ -384,7 +435,7 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
         try {
             acorn.walk.recursive(ast, rootScope, this.scopeVisitor);
         } catch (e) {
-            show('ast scope anlyzation error: ' + e);
+            show('ast scope anlyzation error: ' + e + '\n' + e.stack);
             return [];
         }
         return this.findGlobalVarReferencesIn(rootScope);

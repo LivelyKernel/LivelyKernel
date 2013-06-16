@@ -112,13 +112,40 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
 'testing', {
     testFindGlobalVar: function() {
-        var src = "var x = 3; (function() { var foo = 3; foo = 5, bar = 2; x = 99; Object.foo = 3 })",
+        var src = "var x = 3; (function() { var foo = 3, baz = 5; x = 99; bar = 2; bar; Object.bar = 3; })",
             sut = new lively.ide.CodeEditor.JS.ScopeAnalyzer(),
             result = sut.findGlobalVarReferences(src);
-        this.assertMatches(1, result.length, 'global ref not found');
-        this.assertMatches({end: 50, start: 47, name: 'bar', type: "Identifier"}, result[0]);
+        this.assertEquals(2, result.length, 'global ref not found');
+        this.assertMatches(
+            {end: 58, start: 55, name: 'bar', type: "Identifier"},
+            result[0], ""+Objects.inspect(result[0], {maxDepth: 1}));
     },
+
+    testFindGlobalStuff: function() {
+        var tests = [
+            "bar", ["bar"],
+            "bar()", ["bar"],
+            "bar = 3", ["bar"],
+            "bar = foo", ["bar", "foo"],
+            "bar++", ["bar"],
+            "baz + bar", ["baz", "bar"],
+            "if (foo) bar", ["foo", "bar"],
+            "while (foo) bar", ["foo", "bar"],
+            "do {bar} while (foo)", ["foo", "bar"],
+            "for (var i =0; foo < 1; i++) 1;", ["foo"],
+            "function foo(baz) { baz; bar }; foo", ["bar"]
+        ];
+        var sut = new lively.ide.CodeEditor.JS.ScopeAnalyzer(),
+            result = sut.findGlobalVarReferences(src);
+        for (var i = 0; i < tests.length; i+=2) {
+            var src = tests[i], expected = tests[i+1], result = sut.findGlobalVarReferences(src);
+            this.assertEquals(
+                result.pluck('name'), expected,
+                'global ref not found for ' + src + '\n' + Strings.print(result.pluck('name')));
+        }
+    }
 });
+
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.MethodParser',
 'testing', {
     testParsingMethodSourceWithoutParseError: function() {

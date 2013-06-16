@@ -132,11 +132,7 @@ lively.morphic.Morph.addMethods(
         return this.getGlobalTransform().transformPoint(pt(0,0).subPt(this.getOrigin()));
     },
     obtainPlaceholder: function() {
-        if (this.placeholder) {
-            return this.placeholder
-        }
-        this.placeholder = this.createPlaceholder();
-        return this.placeholder;
+        return this.placeholder || (this.placeholder = this.createPlaceholder());
     },
 
     createPlaceholder: function() {

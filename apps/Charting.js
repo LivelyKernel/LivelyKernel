@@ -1,8 +1,7 @@
 module('apps.Charting').requires('apps.d3Interface', 'lively.morphic.AdditionalMorphs').toRun(function() {
 
 Object.subclass('apps.Charting.ChartData',
-'init',
-{
+'init', {
     initialize: function() {
         this.setImplicitDimension(this.implicitDimensionDefault);
         this.series = {};
@@ -32,7 +31,7 @@ Object.subclass('apps.Charting.ChartData',
     */
     implicitDimensionDefault: {
         title: 'x',
-        implicitTick: function(t) {return t;}
+        implicitTick: Functions.K
     },
 	addDimension: function(id, title, unit, optDescription){
         this.dimensions[id] = {
@@ -240,8 +239,8 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 	},
 
     makeDrawingPane: function(context) {
-	// Override to create a custom surface to be used as a
-	// drawing context for the chart content.
+    	// Override to create a custom surface to be used as a
+    	// drawing context for the chart content.
         // Per default returns the context itself.
         return context;
     },
@@ -252,7 +251,6 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 		// context: a d3 node to draw your axes onto,
 		// dimensions: an array of simple dimension representations
 		// (i.e. [{id: 'x', title: 'X Axis', unit: 'Time'}])
-
 	},
 	drawSeries: function(context, series) {
 		// Override to draw the information contained by the dataset's series
@@ -263,14 +261,11 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 'drawing', {
     draw: function() {
         var context = this.renderContext().shapeNode,
-
             data = this.getChartData(),
             dimensions = data.getDimensions(),
             series = data.getSeries(),
-
             // Creates an SVG context for the chart
             contextPane = this.prepareContext(context),
-
             // Template hook for making a pane for the actual content
             drawingPane = this.makeDrawingPane(contextPane);
 
@@ -285,9 +280,7 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
         // Returns an SVG node with a group node per default.
         var ctxH = $(context).height(),
             ctxW = $(context).width();
-
-        $(context).empty();
-
+        lively.$(context).empty();
         return d3.select(context).append("svg:svg")
             .attr("width", ctxW)
             .attr("height", ctxH)
@@ -357,7 +350,6 @@ apps.Charting.ChartRenderer.subclass('apps.Charting.D3ChartRenderer',
             w = ctxW - paddingLeft - paddingRight,
             h = ctxH - paddingTop - paddingBottom,
             d3 = apps.d3.d3,
-
             // generate an id for the clip path so multiple charts do
             // not cross reference their clip paths
             clipId = 'clip-' + Math.floor(Math.random()*0x10000).toString(16);

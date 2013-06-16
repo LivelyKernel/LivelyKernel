@@ -37,8 +37,7 @@ lively.morphic.PartsBinItem.subclass('apps.ChartBuildingBlocks.ChartsBinItem',
             if (status && status.isDone() && status.isSuccess()) $upd(source) }});
         webR.beAsync().get()
     },
-}
-);
+});
 
 lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 'Hook dispatch', {
@@ -226,20 +225,16 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         // Clear the visual indiciators about which
         // morphs are used and which ones are not
         // this.unmarkAllMorphs();
-
         var dimensions = data.getDimensions(),
             series = data.getSeries(),
             drawingBounds = this.prepareDrawingBounds(
                 $(context).width(), $(context).height(), optPadding),
             // Creates an SVG context for the chart
             contextPane = this.prepareContext(context),
-
             // Setup the drawing areas
             areas = this.setupDrawingAreas(data, drawingBounds),
-
             // Create scales for the data's dimensions
             scales = this.setupScales(data, areas),
-
             // Template hook for drawing axes
             drawingPanes = this.drawDimensions(contextPane, data, scales, areas);
 
@@ -252,20 +247,18 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     normalizePadding: function(padding) {
         if (padding >= 0) {
             return [padding,padding,padding,padding];
-        } else if(Array.isArray(padding)) {
-            return (padding.length === 4)
-                ? padding
-                : [padding.first(), padding.first(),
-                    padding.first(), padding.first()];
+        } else if (Array.isArray(padding)) {
+            return (padding.length === 4) ?
+                padding : 
+                [padding.first(), padding.first(),
+                padding.first(), padding.first()];
         } else {
             return [0,0,0,0];
         }
     },
     prepareDrawingBounds: function(chartWidth, chartHeight, padding) {
         var p = this.normalizePadding(padding);
-        return new Rectangle(p[3], p[0],
-            chartWidth - p[3] - p[1],
-            chartHeight - p[0] - p[2]);
+        return new Rectangle(p[3], p[0], chartWidth-p[3]-p[1], chartHeight-p[0]-p[2]);
     },
 
 });

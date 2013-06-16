@@ -4,7 +4,7 @@
 var allDependenciesLoaded = false;
 var dependencies = [
     {url: Config.codeBase + 'lib/acorn/acorn.js', loadTest: function() { return typeof acorn !== 'undefined'; }},
-    {url: Config.codeBase + 'lib/acorn/acorn_loose.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
+    {url: Config.codeBase + 'lib/acorn/acorn-loose.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
     {url: Config.codeBase + 'lib/acorn/acorn-walk.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }}
 ];
 

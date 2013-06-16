@@ -178,6 +178,41 @@ Object.extend(lively.ide.CommandLineInterface, {
         options.sync = true;
         return this.exec(commandString, options, null);
     },
+    findFiles: function(pattern, options) {
+        options = options || {};
+        var path = options.path || '.';
+        if (!path.endsWith('/')) path += '/';
+        var commandString = Strings.format(
+            'env TZ=GMT find %s '
+          + '\\( -iname ".svn" -o -iname ".svn" \\) -prune '
+          + '-o -iname "%s" -exec ls -lT {} \\;',
+            path, pattern);
+        function parseFindLsResult(string) {
+            var lines = Strings.lines(string);
+            return lines.map(function(line) {
+                // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
+                //                  file mode   no of links  user     group       size   date: month,day,   time,       year      file
+                var match = line.match(/^\s*([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
+                return match ? {
+                    mode: match[1],
+                    // linkCount: Number(match[2]),
+                    user: match[3],
+                    group: match[4],
+                    size: Number(match[5]),
+                    lastModified: new Date(match[6] + ' GMT'),
+                    path: match[7].replace(/\/\//g, '/')
+                } : null;
+
+            }).compact();
+        }
+        var result = [],
+            cmd = this.exec(commandString, options, function(cmd) {
+                if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
+                result = parseFindLsResult(cmd.getStdout());
+            });
+        return options.sync ? result : cmd;
+    },
+
 
     kill: function() {
         /*

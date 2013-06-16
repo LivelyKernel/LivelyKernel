@@ -13,10 +13,16 @@ Color.addMethods(
     serializeExpr: function() { return 'Color.' + this.toString(); }
 });
 
+Date.addMethods(
+'serialization', {
+    serializeExpr: function() { return 'new Date(' + Strings.print(this.toString()) + ')'; }
+});
+
 URL.addMethods(
 'serialization', {
     serializeExpr: function() { return 'URL.create("' + this.toString() + '")'; }
 });
+
 lively.morphic.RadialGradient.addMethods(
 'serialization', {
     serializeExpr: function() {

@@ -22,7 +22,8 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
 (function extendAcorn() {
 
     acorn.walk.forEachNode = function(ast, func, state, options) {
-        // note: func can get called with the same node for different types!
+        // note: func can get called with the same node for different
+        // visitor callbacks!
         // func args: node, state, depth, type
         options = options || {};
         var traversal = options.traversal || 'preorder'; // also: postorder
@@ -88,7 +89,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 var val = node[propName], descriptor = propName + (Object.isArray(val) ? '[]' : '');
                 node.__defineGetter__(propName, function() { lastActiveProp = descriptor; return val; });
             });
-        }, state);
+        });
         // 2. Actual print visitor
         acorn.walk.forEachNode(ast, function(node, state, depth, type) { 
             var s = Strings.indent(lastActiveProp + ':' + type, '  ', depth);
@@ -277,11 +278,14 @@ Object.subclass('lively.ide.CodeEditor.JS.Navigator',
              || (!isNullSelection && node.start < currentRange[0]))) return true;
             return false;
         });
-    },
+    }
+});
 
-    expandRegion: function(src, expandState) {
+Object.subclass('lively.ide.CodeEditor.JS.RangeExpander',
+'interface', {
+    expandRegion: function(src, ast, expandState) {
+        ast = ast || (new lively.ide.CodeEditor.JS.Navigator()).ensureAST(src);
         var pos = expandState.range[0];
-        var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(node) {
                 return node.start < expandState.range[0] || node.end > expandState.range[1];
@@ -313,7 +317,7 @@ Object.subclass('lively.ide.CodeEditor.JS.Navigator',
         // return result;
     },
 
-    contractRegion: function(src, expandState, editor) {
+    contractRegion: function(src, ast, expandState) {
         return expandState.prev || expandState;
     }
 });

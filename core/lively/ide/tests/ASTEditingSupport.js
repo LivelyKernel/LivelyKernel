@@ -84,19 +84,29 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
         this.assertEquals(null, nav.rangeForFunctionOrDefinition(src,[43, 43]));
         this.assertEquals([0, 43], nav.rangeForFunctionOrDefinition(src,[4,43]));
         this.assertEquals(null, nav.rangeForFunctionOrDefinition(src,[0,43]));
-    },
+    }
+});
+
+TestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
+'running', {
+    setUp: function() {
+        this.sut = new lively.ide.CodeEditor.JS.RangeExpander();
+    }
+},
+'testing', {
 
     testExpandRegion: function() {
         var src = "a + 'foo bar'";
         var nav = this.sut;
-        this.assertMatches({range: [4, 13]}, nav.expandRegion(src, {range: [10,10]}));
-        this.assertMatches({range: [0, 13]}, nav.expandRegion(src, {range: [4, 13]}));
-        this.assertMatches({range: [4, 13]}, nav.contractRegion(src, {range: [9, 13], prev: {range: [4,13]}}));
+        this.assertMatches({range: [4, 13]}, nav.expandRegion(src, null, {range: [10,10]}));
+        this.assertMatches({range: [0, 13]}, nav.expandRegion(src, null, {range: [4, 13]}));
+        this.assertMatches({range: [4, 13]}, nav.contractRegion(src, null, {range: [9, 13], prev: {range: [4,13]}}));
 
         src = "a.b.c";
-        this.assertMatches({range: [4, 5]}, nav.expandRegion(src, {range: [4,4]}));
+        this.assertMatches({range: [4, 5]}, nav.expandRegion(src, null, {range: [4,4]}));
         // this.assertMatches({range: [2, 5]}, nav.expandRegion(src, {range: [4,5]}));
     }
+
 });
 
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',

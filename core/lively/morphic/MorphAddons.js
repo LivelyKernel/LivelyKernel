@@ -1124,7 +1124,8 @@ lively.morphic.Morph.addMethods(
 
     withCSSTransitionForAllMorphsDo: function(morphs, morphModifyFunc, duration, whenDone) {
         // FIXME move HTML specific stuff to HTML.js!
-        var prefix = lively.Config.get('html5CssPrefix'),
+        var self = this,
+            prefix = lively.Config.get('html5CssPrefix'),
             durationProp = prefix === "-moz-" ?
                 "MozTransitionDuration" : prefix + "transition-duration",
             transitionProp = prefix === "-moz-" ?
@@ -1154,12 +1155,14 @@ lively.morphic.Morph.addMethods(
         }
         var remover = (function(evt) {
             morphs.forEach(function(ea) { behaveNormal(ea); });
-            this.renderContext().morphNode.removeEventListener(endEvent, remover, false);
-            whenDone && whenDone.call(this);
-        }).bind(this);
-        this.renderContext().morphNode.addEventListener(endEvent, remover, false);
-        morphs.forEach(function(ea) { behaveAnimated(ea); });
-        morphModifyFunc.call(this);
+            self.renderContext().morphNode.removeEventListener(endEvent, remover, false);
+            whenDone && whenDone.call(self);
+        });
+        self.renderContext().morphNode.addEventListener(endEvent, remover, false);
+        (function run() {
+            morphs.forEach(function(ea) { behaveAnimated(ea); });
+            morphModifyFunc.call(self);
+        }).delay(0);
     },
 
 

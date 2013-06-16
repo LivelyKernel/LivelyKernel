@@ -34,6 +34,12 @@ TestCase.subclass('lively.morphic.tests.RectangleTests',
 
     testWithCenter: function() {
         this.assertEquals(lively.rect(10,10,10,10), lively.rect(0,0, 10, 10).withCenter(pt(15,15)));
+    },
+
+    testWithTopRight: function() {
+        var result = rect(10,10,10,10).withTopRight(pt(5,5));
+        this.assertEquals(pt(5,5), result.topRight());
+        this.assertEquals(rect(-5,5,10,10), result);
     }
 
 });

@@ -302,7 +302,7 @@ Object.subclass('Rectangle',
     },
 
     withTopRight: function(p) {
-        return Rectangle.fromAny(p, this.bottomLeft())
+        return lively.rect(p.addXY(-this.width,0), p.addXY(0, this.height));
     },
 
     withBottomRight: function(p) {

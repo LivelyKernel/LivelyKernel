@@ -27,7 +27,11 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         // func args: node, state, depth, type
         options = options || {};
         var traversal = options.traversal || 'preorder'; // also: postorder
-        var visitors = acorn.walk.make();
+        var visitors = acorn.walk.make({
+            MemberExpression: function(node, st, c) {
+                c(node.object, st, "Expression");
+                c(node.property, st, "Expression");
+            }});
         var iterator = traversal === 'preorder' ?
             function(orig, type, node, depth, cont) { func(node, state, depth, type); return orig(node, depth+1, cont); } :
             function(orig, type, node, depth, cont) { var result = orig(node, depth+1, cont); func(node, state, depth, type); return result; };
@@ -48,7 +52,12 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
 
     acorn.walk.findNodesIncluding = function(ast, pos, test, base) {
         var nodes = [];
-        base = base || acorn.walk.make()
+        base = base || acorn.walk.make({
+            MemberExpression: function(node, st, c) {
+                c(node.object, st, "Expression");
+                c(node.property, st, "Expression");
+            }
+        });
         Object.keys(base).forEach(function(name) {
             var orig = base[name];
             base[name] = function(node, state, cont) {
@@ -83,7 +92,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         // just the descended node type. To get this info we install a getter
         // into the node props that when called will remember the name of the
         // last accessed prop. This is what we then records in the print
-        acorn.walk.forEachNode(ast, function(node) { 
+        acorn.walk.forEachNode(ast, function(node) {
             Object.keys(node).without('end', 'start', 'type', 'source').forEach(function(propName) {
                 if (node.__lookupGetter__(propName)) return; // already defined
                 var val = node[propName], descriptor = propName + (Object.isArray(val) ? '[]' : '');
@@ -91,7 +100,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
             });
         });
         // 2. Actual print visitor
-        acorn.walk.forEachNode(ast, function(node, state, depth, type) { 
+        acorn.walk.forEachNode(ast, function(node, state, depth, type) {
             var s = Strings.indent(lastActiveProp + ':' + type, '  ', depth);
             s += '<' + node.start + '-' + node.end;
             source && (s += ',' + Strings.print(source.slice(node.start, node.end).replace(/\n|\r/g, '').truncate(20)));
@@ -334,6 +343,9 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
                    "module", "lively", "pt", "rect", "rgb"],
 
     scopeVisitor: acorn.walk.make({
+        Identifier: function(node, scope, c) {
+            scope.identifiers.push(node);
+        },
         Function: function(node, scope, c) {
             var inner = {vars: {}, identifiers: [], containingScopes: []};
             scope && (scope.containingScopes.push(inner));
@@ -342,7 +354,7 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
             if (node.id) {
                 var decl = node.type == "FunctionDeclaration";
                 (decl ? scope : inner).vars[node.id.name] =
-                {type: decl ? "function" : "function name", node: node.id};
+                    {type: decl ? "function" : "function name", node: node.id};
             }
             c(node.body, inner, "ScopeBody");
         },
@@ -362,65 +374,6 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
                 scope.vars[decl.id.name] = {type: "var", node: decl.id};
                 if (decl.init) c(decl.init, scope, "Expression");
             }
-        },
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        ExpressionStatement: function(node, scope, c) {
-            if (node.expression && node.expression.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.expression);
-            c(node.expression, scope, "Expression");
-        },
-        CallExpression: function(node, scope, c) {
-            if (node.callee && node.callee.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.callee);
-            c(node.callee, scope, "Expression");
-            if (node.arguments) for (var i = 0; i < node.arguments.length; ++i)
-              c(node.arguments[i], scope, "Expression");
-        },
-        AssignmentExpression: function(node, scope, c) {
-            if (node.left && node.left.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.left);
-            if (node.right && node.right.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.right);
-            c(node.left, scope, "Expression");
-            c(node.right, scope, "Expression");
-        },
-        BinaryExpression: function(node, scope, c) {
-            if (node.left && node.left.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.left);
-            if (node.right && node.right.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.right);
-            c(node.left, scope, "Expression");
-            c(node.right, scope, "Expression");
-        },
-        UpdateExpression: function(node, scope, c) {
-            if (node.argument && node.argument.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.argument);
-            c(node.argument, scope, "Expression");
-        },
-        IfStatement: function(node, scope, c) {
-            if (node.test && node.test.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.test);
-            c(node.test, scope, "Expression");
-            c(node.consequent, scope, "Statement");
-            if (node.alternate) c(node.alternate, scope, "Statement");
-        },
-        WhileStatement: function(node, scope, c) {
-            if (node.test && node.test.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.test);
-            c(node.test, scope, "Expression");
-            c(node.body, scope, "Statement");
-        },
-        DoWhileStatement: function(node, scope, c) {
-            if (node.test && node.test.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.test);
-            c(node.test, scope, "Expression");
-            c(node.body, scope, "Statement");
-        },
-        MemberExpression: function(node, scope, c) {
-            if (node.object && node.object.type === "Identifier")
-                scope.identifiers.pushIfNotIncluded(node.object);
-            c(node.object, scope, "Expression");
-            c(node.property, scope, "Expression");
         }
     }),
 

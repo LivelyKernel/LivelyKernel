@@ -266,8 +266,7 @@
   };
   base.MemberExpression = function(node, st, c) {
     c(node.object, st, "Expression");
-    // if (node.computed) c(node.property, st, "Expression");
-    c(node.property, st, "Expression");
+    if (node.Computed) c(node.property, st, "Expression");
   };
   base.Identifier = base.Literal = ignore;
 

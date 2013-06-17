@@ -570,6 +570,8 @@ Object.extend(lively.bindings, {
                 ['Hide', function() {
                     visualConnector.disconnectFromMagnets();
                     visualConnector.remove();
+                    visualConnector.hide && visualConnector.hide();
+                    con.autoShowAndHideConnections && con.autoShowAndHideConnections.invoke('disconnect');
                 }],
                 ['Disconnect', function() {
                     alertOK('Disconnected ' + visualConnector.con);

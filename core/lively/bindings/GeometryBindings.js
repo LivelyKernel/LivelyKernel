@@ -74,6 +74,16 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
             this.removeDependConnection(con);
     }
 
+},
+'accessing', {
+    getConnectionSpec: function() {
+        return Object.mergePropertyInHierarchy(
+            this.sourceObj, 'connections')[this.sourceAttrName];
+    },
+    getSourceValue: function($super) {
+        var attrMap = this.getConnectionSpec().map;
+        return attrMap ? lively.PropertyPath(attrMap).get(this.sourceObj) : $super();
+    }
 });
 
 

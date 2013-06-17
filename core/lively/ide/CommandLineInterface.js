@@ -182,11 +182,17 @@ Object.extend(lively.ide.CommandLineInterface, {
         options = options || {};
         var path = options.path || '.';
         if (!path.endsWith('/')) path += '/';
-        var commandString = Strings.format(
-            'env TZ=GMT find %s '
+        var timeFormatFix =
+            "if [ `uname` == \"Darwin\" ]; "
+          + "  then timeformat='-T'; "
+          + "else "
+          + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
+          + "fi && "
+        var commandString = timeFormatFix + Strings.format(
+            "env TZ=GMT find %s "
           + '\\( -iname ".svn" -o -iname ".svn" \\) -prune '
-          + '-o -iname "%s" -exec ls -lT {} \\;',
-            path, pattern);
+          + '-o -iname "%s" -exec ls -l \"$timeformat\" {} \\;',
+            path, pattern)
         function parseFindLsResult(string) {
             var lines = Strings.lines(string);
             return lines.map(function(line) {

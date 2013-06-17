@@ -3663,11 +3663,20 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
     setValue: function(value) { return this.value = value },
 
     getScaledValue: function() {
-        return (this.getValue() || 0) / this.valueScale; // FIXME remove 0
+        var v = (this.getValue() || 0); // FIXME remove 0
+        if (Object.isNumber(this.min) && Object.isNumber(this.max)) {
+            return (v-this.min)/(this.max-this.min);
+        } else {
+            return v / this.valueScale;
+        }
     },
 
     setScaledValue: function(value) {
-        return this.setValue(value * this.valueScale);
+        if (Object.isNumber(this.min) && Object.isNumber(this.max)) {
+            return this.setValue((this.max-this.min)*value + this.min);
+        } else {
+            return this.setValue(value * this.valueScale);
+        }
     },
 
     getSliderExtent: function() { return this.sliderExtent },

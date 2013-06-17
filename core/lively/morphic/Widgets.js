@@ -1285,12 +1285,13 @@ lively.morphic.World.addMethods(
     },
     openPartsBin: function(evt) {
         module('lively.morphic.tools.PartsBin').load(true);
-        return lively.BuildSpec('lively.morphic.tools.PartsBin').createMorph().openInWorld();
+        return lively.BuildSpec('lively.morphic.tools.PartsBin').createMorph().openInWorldCenter();
     },
     openInspectorFor: function(object, evt) {
-        var part = this.openPartItem("ObjectInspector", 'PartsBin/Tools');
-        part.inspect(object);
-        return part;
+        module('lively.ide.tools.Inspector').load(true);
+        var inspector = lively.BuildSpec('lively.ide.tools.Inspector').createMorph().openInWorldCenter();
+        inspector.inspect(object);
+        return inspector;
     },
     openStyleEditorFor: function(morph, evt) {
         module('lively.ide.tools.StyleEditor').load(true);
@@ -4092,11 +4093,12 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
     },
     layoutAfter: function(callback) {
+        var layouter = this.getLayouter();
         try {
-            this.getLayouter().defer();
+            layouter && layouter.defer();
             callback.call(this);
         } finally {
-            this.getLayouter().resume();
+            layouter && layouter.resume();
         }
     }
 },

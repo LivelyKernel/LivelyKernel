@@ -564,6 +564,7 @@ lively.morphic.Morph.addMethods(
         this.oldPosition = this.getPosition();
         this.oldWorldScale = world.getScale();
         this.oldWorldExtent = world.getExtent();
+        world.cachedWindowBounds = null;
         var windowExtent = world.windowBounds().extent(),
             ratioY =  (windowExtent.y / this.getExtent().y) * world.getScale(),
             ratioX =  (windowExtent.x / this.getExtent().x) * world.getScale(),

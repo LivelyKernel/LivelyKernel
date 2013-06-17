@@ -251,7 +251,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     disableTextResizeOnZoom: function(aceEditor) {
-        aceEditor.renderer.updateFontSize();
+        // FIXME!!!
+        if (this.world() && this.world().getScale() === 1)
+            aceEditor.renderer.updateFontSize();
         Global.clearInterval(aceEditor.renderer.$textLayer.$pollSizeChangesTimer);
     },
 

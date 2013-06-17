@@ -492,7 +492,10 @@ Object.extend(lively.bindings, {
             throw new Error('Cannot visual connect non-morph!');
         }
         var con = this.connect(source, sourceProp, target, targetProp, spec);
-        if (Config.visualConnectEnabled) this.showConnection(con);
+        var userVisualConnectOverride = Global.event && Global.event.isShiftDown();
+        if (Config.visualConnectEnabled || userVisualConnectOverride) {
+            var connector = this.showConnection(con);
+        }
         return con;
     },
 
@@ -561,6 +564,9 @@ Object.extend(lively.bindings, {
                     window.align(window.bounds().topCenter(),
                     visualConnector.bounds().bottomCenter())
                 }],
+                ['Inspect value', function() {
+                    lively.morphic.inspect(con.getSourceValue());
+                }],
                 ['Hide', function() {
                     visualConnector.disconnectFromMagnets();
                     visualConnector.remove();
@@ -583,6 +589,8 @@ Object.extend(lively.bindings, {
                 converter: function(owners) { return !!this.sourceObj.world(); } }),
             lively.bindings.connect(target, 'owners', visualConnector, 'showOrHide', {
                 converter: function(owners) { return !!this.sourceObj.world(); } })];
+
+        return visualConnector;
     }
 
 });

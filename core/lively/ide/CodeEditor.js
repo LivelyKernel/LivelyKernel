@@ -861,6 +861,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             this.printObject(editor, result);
             return;
         }
+        if (result && result instanceof Error && Config.get('showDoitErrorMessages') && this.world()) {
+            this.world().alert(String(result));
+        }
         var sel = editor.selection;
         if (sel && sel.isEmpty()) {
             sel.selectLine();

@@ -471,7 +471,8 @@ Config.addOptions(
     ['aceDefaultShowPrintMargin', false, "Show a vertical line at the print margin column."],
     ['aceDefaultShowIndents', true, "Indicators for indents in the beginning of lines."],
     ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"],
-    ['aceDefaultShowActiveLine', false, "Current line is highlighted"]
+    ['aceDefaultShowActiveLine', false, "Current line is highlighted"],
+    ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."]
 ],
 
 'lively.morphic.StyleSheets', [

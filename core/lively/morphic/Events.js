@@ -2283,6 +2283,83 @@ Object.extend(lively.morphic.Events, {
         }
     }
 });
+Object.subclass('lively.morphic.KeyboardDispatcher',
+"initializing", {
+    initialize: function() {
+        this.bindings = {};
+    }
+},
+'key capturing', {
+    normalizeModifier: function(modifierString) {
+        switch (modifierString.toLowerCase()) {
+            case 'c': case 'ctrl': case 'control': return "C";
+            case 'm': case 'meta': case 'option': case 'alt': return "M";
+            case 's': case 'shift': return "S";
+            default: return null;
+        }
+    },
+
+    normalizeComboPart: function(string) {
+        // string is something like "Shift-Cmd-O", "Ctrl-x", ...
+        // what goes out is like CMD-S-o, C-x, ...
+        // there we will normalize the modifier names and reorder
+        // them alphabetical to get unique combo specifiers
+        var parts = string.split('-');
+        parts = parts.slice(0,-1)
+            .map(function(ea) { return this.normalizeModifier(ea); }, this)
+            .sort()
+            .concat([parts.last().toLowerCase()]);
+        return parts.join('-');
+    },
+
+    bindingsWithPrefix: function(prefix, dontNormalize) {
+        // prefix is something like C-c
+        // returns stuff like C-c, C-c x, C-c C-c y, ...
+        if (!dontNormalize) {
+            prefix = prefix.split(" ")
+                .map(function(ea) { return this.normalizeComboPart(ea); }, this)
+                .join(' ');
+        }
+        return Object.keys(this.bindings).map(function(combo) {
+            return combo.startsWith(prefix) ? combo : null; }).compact();
+    },
+
+    addKeyCombo: function(combo, cmdName) {
+        var bindings = this.bindings;
+
+        // 1. normalize the whole combo
+        combo = combo.toLowerCase();
+        var comboParts = combo.split(" ").map(function(ea) { return this.normalizeComboPart(ea); }, this);
+        combo = comboParts.join(' ');
+
+        // 2. when we assign cmdName to combo and combo was used as a
+        // prefix before we have to cleanup the old prefix entries in bindings
+        var existingPrefixBindings = this.bindingsWithPrefix(combo);
+        existingPrefixBindings.forEach(function(key) { delete bindings[key]; });
+
+        // 3. associate command and combo
+        bindings[combo] = cmdName;
+
+        // 4. register all partial key combos as null commands
+        // to be able to activate key combos with arbitrary length
+        // Example: if keyPart is "C-c C-l t" then "C-c C-l t" will
+        // get command assigned and "C-c" and "C-c C-l" will get
+        // a null command assigned in this.commmandKeyBinding.
+        comboParts.slice(0,-1).reduce(function(keyMapKeys, comboPart, i) {
+            var prefix = keyMapKeys[i-1] ? keyMapKeys[i-1] + ' ' : '';
+            return keyMapKeys.concat([prefix + comboPart]);
+        }, []).forEach(function(comboPrefix) {
+            bindings[comboPrefix] = "prefix";
+        });
+    }
+},
+'key lookup', {
+    lookup: function(comboPart, state/*key press history*/) {
+        // comboPart sth like C-c, not multiple key/combo presses!
+        comboPart = this.normalizeComboPart(comboPart);
+        return this.bindings[comboPart] || null;
+    }
+});
 
 (function installDefaultGlobalKeys() {
     lively.morphic.Events.GlobalEvents.unregister('keydown', "esc");

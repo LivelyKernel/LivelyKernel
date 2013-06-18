@@ -227,4 +227,50 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.Shadow
     }
 });
 
+TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
+"running", {
+    setUp: function($super) {
+        this.sut = new lively.morphic.KeyboardDispatcher();
+    }
+},
+'testing', {
+    testNormalizeModifier: function() {
+        var tests = [
+            "Ctrl", "C",
+            "controL", "C",
+            "Control", "C",
+            "C", "C",
+            "option", "M",
+            "M", "M",
+            "meta", "M",
+            "Alt", "M",
+            "s", "S",
+            "Shift", "S"
+        ]
+        for (var i = 0; i < tests.length; i+=2) {
+            this.assertEquals(tests[i+1], this.sut.normalizeModifier(tests[i]));
+        }
+    },
+
+    testAddKeyCombos: function() {
+        this.sut.addKeyCombo("Control-c control-k", 'test');
+        this.assertEquals('prefix', this.sut.bindings['C-c'], 1);
+        this.assertEquals('test', this.sut.bindings['C-c C-k'], 2);
+        this.sut.addKeyCombo("ctrl-c shift-k", 'test2');
+        this.assertEquals('prefix', this.sut.bindings['C-c'], 3);
+        this.assertEquals('test2', this.sut.bindings['C-c S-k'], 4);
+        this.sut.addKeyCombo("C-c", 'test3');
+        this.assertEquals(undefined, this.sut.bindings['C-c C-k'], 5);
+        this.assertEquals(undefined, this.sut.bindings['C-c S-k'], 6);
+        this.sut.addKeyCombo("Shift-Alt-c", 'test4');
+        this.assertEquals('test4', this.sut.bindings['M-S-c'], 7);
+    },
+
+    testLookupCombos: function() {
+        this.assertEquals(null, this.sut.lookup("Control-C"), 1);
+        this.sut.addKeyCombo("C-c C-k", 'test');
+        this.assertEquals('prefix', this.sut.lookup("Control-C"), 2);
+    }
+});
+
 }) // end of moduledule

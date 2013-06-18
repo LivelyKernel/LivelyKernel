@@ -204,7 +204,7 @@ lively.morphic.World.addMethods(
         }, URL.source.filename())
     },
 
-    saveWorldAs: function(url, checkForOverwrites) {
+    saveWorldAs: function (url, checkForOverwrites, bootstrapModuleURL) {
         // FIXME: this should go somewhere else or actually not be necessary at
         // all... cleanup, removing junk css defs
         lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this);
@@ -214,9 +214,10 @@ lively.morphic.World.addMethods(
             json = serializer.serialize(this, null, serializer);
 
         // Step 2: Create a new document
+        bootstrapModuleURL = bootstrapModuleURL || new URL(module("lively.bootstrap").uri());
         var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
             title = this.name || url.filename().replace(/\.x?html$/, ''),
-            bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
+            bootstrapFile = bootstrapModuleURL.relativePathFrom(url),
             css = $("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),
             metaTags = this.getMetaTags();

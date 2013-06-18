@@ -424,9 +424,9 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
             sourceModuleProperty = this.sourceModuleNameProperty;
 
         ObjectGraphLinearizer.allRegisteredObjectsDo(registryObj, function(id, value) {
-            if (value[sourceModuleProperty])
+            if (value && value[sourceModuleProperty])
                 moduleNames.push(value[sourceModuleProperty]);
-            if (value[partsBinRequiredModulesProperty])
+            if (value && value[partsBinRequiredModulesProperty])
                 moduleNames.pushAll(value[partsBinRequiredModulesProperty]);
         });
 

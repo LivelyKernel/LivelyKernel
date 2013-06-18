@@ -12,7 +12,7 @@ if (LivelyMigrationSupport.documentMigrationLevel < 7) {
     LivelyMigrationSupport.addWorldJsoTransform(function(jso) {
         for (var id in jso.registry) {
             var obj = jso.registry[id];
-            if (!obj.__LivelyClassName__ || obj.__LivelyClassName__ !== "ChangeSet") continue;
+            if (!obj || !obj.__LivelyClassName__ || obj.__LivelyClassName__ !== "ChangeSet") continue;
             jso.registry[id] = {
                 isChangeSetReplacement: true,
                 toString: function() {

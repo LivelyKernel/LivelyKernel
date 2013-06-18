@@ -2918,6 +2918,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
                 panelExtent = panelExtent.addXY(0, diff);
             }
             this.panel.setExtent(panelExtent);
+            this.panel.align(this.panel.bounds().center(), this.panel.owner.innerBounds().center());
         }).bind(this).delay(0);
     },
     buildCancelButton: function() {
@@ -3035,26 +3036,30 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
         this.defaultInput = defaultInput;
     },
     buildTextInput: function() {
-        var input = new lively.morphic.Text(this.label.bounds(), this.defaultInput || '')
-            .applyStyle({resizeWidth: true, resizeHeight: true, clipMode: 'auto'});
-        input.align(input.getPosition(), this.label.bounds().bottomLeft());
-        connect(input, 'savedTextString', this, 'result');
+        var bounds = rect(this.label.bounds().bottomLeft(), this.cancelButton.bounds().topRight()).insetBy(5),
+            input = lively.ide.newCodeEditor(bounds, this.defaultInput || '').applyStyle({
+                    resizeWidth: true,
+                    resizeHeight: true,
+                    gutter: false,
+                    borderWidth: 1,
+                    borderColor: Color.gray.lighter(),
+                    textMode: 'text'
+                });
+        input.setBounds(bounds);
         this.inputText = this.panel.addMorph(input);
+        input.focus.bind(input).delay(0);
+        connect(input, 'savedTextString', this, 'result');
     },
 
     buildView: function($super, extent) {
         var panel = $super(extent);
+        panel.setExtent(pt(400,200))
         this.buildTextInput();
-
         lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
             converter: function() { return null }});
         lively.bindings.connect(this.okButton, 'fire', this.inputText, 'doSave')
-
-        panel.setExtent(pt(400,200))
-
         return panel;
-    },
-
+    }
 },
 'opening', {
     openIn: function($super, owner, pos) {

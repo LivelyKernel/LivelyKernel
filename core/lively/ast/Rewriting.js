@@ -294,33 +294,16 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     catchExceptions: function(astIdx, body) {
         var p = body.pos;
+        var val = function(name) {
+            return new lively.ast.Variable(p, name);
+        };
         var level = this.scopes.length;
-        var parent = level == 0 ? "Global" : "__" + (level - 1);
-        var throwStmt = new lively.ast.Throw(p, new lively.ast.Variable(p, "ex"));
-        var shiftStmt = new lively.ast.Send(p,
-            new lively.ast.String(p,"shiftFrame"),
-            new lively.ast.Variable(p,"ex"),
-            [new lively.ast.This(p), new lively.ast.Variable(p, "__" + level)]);
-        var isUnwind = new lively.ast.GetSlot(p,
-            new lively.ast.String(p, "isUnwindException"),
-            new lively.ast.Variable(p, "e"));
-        var classExpr = new lively.ast.GetSlot(p,
-            new lively.ast.String(p,"UnwindExecption"),
-            new lively.ast.GetSlot(p,
-                new lively.ast.String(p,"Rewriting"),
-                new lively.ast.GetSlot(p,
-                    new lively.ast.String(p,"ast"),
-                    new lively.ast.Variable(p,"lively"))));
-        var newUnwind = new lively.ast.New(p,
-            new lively.ast.Call(p, classExpr, [new lively.ast.Variable(p,"e")]));
-        var cond = new lively.ast.Cond(p, isUnwind,
-                                          new lively.ast.Variable(p, "e"),
-                                          newUnwind);
-        var catchSeq = new lively.ast.Sequence(p, [
-            new lively.ast.VarDeclaration(p,"ex",cond), shiftStmt, throwStmt])
-        var noop = new lively.ast.Variable(body.pos, "undefined");
-        var error = new lively.ast.Variable(body.pos, "e");
-        return new lively.ast.TryCatchFinally(body.pos, body, error, catchSeq, noop);
+        var args = [new lively.ast.This(p), val("__" + level), val("e")];
+        var shiftFrame = new lively.ast.Call(p, val("__shiftFrame"), args);
+        var throwStmt = new lively.ast.Throw(p, shiftFrame);
+        var catchSeq = new lively.ast.Sequence(p, [throwStmt]);
+        return new lively.ast.TryCatchFinally(
+            p, body, val("e"), catchSeq, val("undefined"));
     },
     wrapFunctionBody: function(astIdx, body, args) {
         return this.catchExceptions(astIdx, this.addPreamble(astIdx, body, args));
@@ -425,6 +408,13 @@ Object.extend(Global, {
         f._cachedAst = lively.ast.Rewriting.table[idx];
         f._cachedScope = scope;
         return f;
+    },
+    __shiftFrame: function(thiz, scope, exception) {
+        if (!exception.isUnwindException) {
+            exception = new lively.ast.Rewriting.UnwindException(exception);
+        }
+        exception.shiftFrame(thiz, scope);
+        return exception;
     },
     eval2: function(src) {
         var ast = lively.ast.Parser.parse(src, 'topLevel');

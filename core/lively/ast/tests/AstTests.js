@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.tests.AstTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework', 'lively.ast.StaticAnalysis').toRun(function() {
+module('lively.ast.tests.AstTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework', 'lively.ast.StaticAnalysis', 'lively.ast.Rewriting').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
 'running', {
@@ -1535,6 +1535,104 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         this.assert(ast.children[0].isPostOp);
         this.assert(ast.children[0].nextStatement().isPostOp);
         this.assert(ast.children[0].expr.nextStatement().isPostOp);
+    }
+});
+
+TestCase.subclass('lively.ast.tests.AstTests.RewritingTest',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.examples = new lively.ast.tests.AstTests.Examples();
+    }
+},
+'helping', {
+    assertBreaks: function(cb) {
+        try {
+            cb();
+            this.assert(false, "function did not break");
+        } catch (e) {
+            if (e.isUnwindException) {
+                return lively.ast.Interpreter.Frame.fromScope(e.top, true);
+            }
+            throw e;
+        }
+        return undefined;
+    },
+    assertBreaksWhenInterpretated: function(fun, arg) {
+        var examples = this.examples;
+        return this.assertBreaks(function() {
+            eval2(fun.toString()).call(examples, arg);
+        });
+    }
+},
+'testing', {
+    testMiniExample: function() {
+        this.assertBreaksWhenInterpretated(this.examples.miniExample);
+    },
+    testSimpleLocalVariable: function() {
+        this.assertBreaksWhenInterpretated(this.examples.simpleLocalVariable);
+    },
+    testSimpleArgument: function(a) {
+        var frame = this.assertBreaksWhenInterpretated(this.examples.simpleArgument, 23);
+        this.assertEquals(frame.mapping["a"], 23);
+    },
+    testStopAtFive: function() {
+        this.assertBreaksWhenInterpretated(this.examples.stopAtFive);
+    },
+    testNestedFunction: function() {
+        var inner = this.assertBreaksWhenInterpretated(this.examples.nestedFunction);
+        this.assertEquals(inner.mapping["b"], 42);
+        var outer = inner.getContainingScope();
+        this.assertEquals(outer.mapping["a"], 23);
+        this.assertEqualState(["this", "a", "fun"], Object.keys(outer.mapping));
+    },
+    testForEach: function() {
+        var frame = this.assertBreaksWhenInterpretated(this.examples.forEach);
+        this.assertEquals(frame.mapping["i"], 5);
+    },
+    testMethod: function() {
+        this.assertBreaksWhenInterpretated(this.examples.method);
+    },
+    testComputation: function() {
+        var frame = this.assertBreaksWhenInterpretated(this.examples.withinComputation);
+        var mapping = frame.mapping;
+        this.assertEquals(mapping["i"], 1);
+        this.assertEquals(mapping["j"], 3);
+    },
+    testResume: function() {
+        var frame = this.assertBreaksWhenInterpretated(this.examples.withinComputation);
+        var result = frame.resume();
+        this.assertEquals(result, 6);
+    },
+    testResumeReturn: function() {
+        var outer = this.assertBreaksWhenInterpretated(this.examples.returnNoDebugger);
+        this.assertEquals(outer.mapping["j"], 23);
+        this.assertEquals(outer.resume(), 46);
+    },
+    testSimpleRestart: function() {
+        var that = this;
+        var frame = this.assertBreaksWhenInterpretated(this.examples.restart);
+        this.assertEquals(frame.mapping.i, 1);
+        this.assertBreaks(function() {
+            frame.restart();
+        });
+        this.assertBreaks(function() {
+            that.assert(frame.resume());
+        });
+        this.assertEquals(frame.mapping.i, 1);
+    },
+    testSideEffectRestart: function() {
+        var that = this;
+        var frame = this.assertBreaksWhenInterpretated(this.examples.restartSideEffect);
+        this.assertEquals(frame.mapping.i, 1);
+        this.assertBreaks(function() {
+            that.assert(frame.restart());
+        });
+        this.examples.val = 2;
+        this.assertBreaks(function() {
+            that.assert(frame.resume());
+        });
+        this.assertEquals(frame.mapping.i, 3);
     }
 });
 

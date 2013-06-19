@@ -289,19 +289,18 @@ Object.extend(lively.ast.Interpreter.Frame, {
         }
         return frame;
     },
-    fromScope: function(scope, callstack) {
+    fromScope: function(scope) {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
-        var ast = lively.ast.Rewriting.table[scope[2]],
-            frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]),
-            parent = lively.ast.Interpreter.Frame.fromScope(scope[3], callstack);
-        if (callstack) {
-            frame.values = scope[0];
-            frame.findPC();
-            if (scope[3] !== Global) frame.setCaller(parent);
-            if (scope[4] !== Global) frame.setContainingScope(
-                                       lively.ast.Interpreter.Frame.fromScope(scope[4]));
-        } else {
-            frame.setContainingScope(parent);
+        //TODO: Also include surrounding scopes
+        var ast = lively.ast.Rewriting.table[scope.ast],
+            frame = new lively.ast.Interpreter.Frame(Global, scope.vars);
+        frame.values = scope.tmps;
+        frame.addToMapping("this", scope["this"]);
+        frame.func = ast.asFunction();
+        frame.findPC();
+        if (scope.caller !== Global) {
+            var caller = lively.ast.Interpreter.Frame.fromScope(scope.caller);
+            frame.setCaller(caller);
         }
         return frame;
     }

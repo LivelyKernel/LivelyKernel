@@ -206,15 +206,21 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
 },
 'scoping', {
     enterScope: function() {
-        this.scopes.push([]);
+        this.scopes.push({vars:[],tmps:[]});
     },
     registerVar: function(name) {
         if (this.scopes.length == 0) return;
-        this.scopes.last().push(name);
+        this.scopes.last().vars.push(name);
+    },
+    registerTemp: function(pos) {
+        if (this.scopes.length == 0) return;
+        var name = "_" + pos[0] + "_" + pos[1];
+        this.scopes.last().tmps.push(name);
+        return name;
     },
     referenceVar: function(name) {
         for (var i = this.scopes.length - 1; i >= 0; i--) {
-            if (this.scopes[i].include(name)) return i;
+            if (this.scopes[i].vars.include(name)) return i + 1;
         }
         return undefined;
     },
@@ -223,20 +229,17 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
 },
 'helping', {
-    computationFrame: function() {
-        return new lively.ast.Variable([0,0], "_");
-    },
     localFrame: function(i) {
         return new lively.ast.Variable([0,0], "_" + i);
     },
     frame: function(i) {
-        if (i < 0) return new lively.ast.Variable([0,0], "Global");
+        if (i <= 0) return new lively.ast.Variable([0,0], "Global");
         return new lively.ast.Variable([0,0], "__" + i);
     },
     storeComputationResult: function(node) {
         if (this.scopes.length == 0) return node; // dont store if there is no frame
-        var name = new lively.ast.String(node.pos, node.position());
-        var target = new lively.ast.GetSlot(node.pos, name, this.computationFrame());
+        var name = this.registerTemp(node.pos);
+        var target = new lively.ast.Variable(node.pos, name);
         return new lively.ast.Set(node.pos, target, node);
     },
     registerArguments: function(func) {
@@ -283,14 +286,29 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     addPreamble: function(astIdx, body, args) {
         var p = body.pos;
         var level = this.scopes.length;
-        var initComputationFrame = new lively.ast.VarDeclaration(p, "_", this.emptyObj());
-        var initLocalFrame = new lively.ast.VarDeclaration(p, "_"+level, this.argsInitObj(args));
-        var frame = new lively.ast.ArrayLiteral(p, [this.computationFrame(),
-                                                    this.localFrame(level),
-                                                    new lively.ast.Number(p, astIdx),
-                                                    this.frame(level - 1)]);
-        var initFrame = new lively.ast.VarDeclaration(p, "__" + level, frame);
-        return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame, body]);
+        var stmts = [];
+        stmts.push(new lively.ast.VarDeclaration(p, "_"+level, this.argsInitObj(args)));
+        var undef = new lively.ast.Variable(p, "__UNDEF");
+        for (var i = 0; i < this.scopes.last().tmps.length; i++) {
+            var name = this.scopes.last().tmps[i];
+            stmts.push(new lively.ast.VarDeclaration(p, name , undef));
+        }
+        stmts.push(body);
+        return new lively.ast.Sequence(p, stmts);
+    },
+    captureTemps: function(p) {
+        var result = [];
+        var recv = new lively.ast.Variable(p, "e");
+        var prop = new lively.ast.String(p, "addTemp");
+        var tmps = this.scopes.last().tmps;
+        for (var i = 0; i < tmps.length; i++) {
+            var args = [
+                new lively.ast.String(p, tmps[i]),
+                new lively.ast.Variable(p, tmps[i])
+            ];
+            result.push(new lively.ast.Send(p, prop, recv, args));
+        }
+        return result;
     },
     catchExceptions: function(astIdx, body) {
         var p = body.pos;
@@ -298,10 +316,14 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
             return new lively.ast.Variable(p, name);
         };
         var level = this.scopes.length;
-        var args = [new lively.ast.This(p), val("__" + level), val("e")];
+        var args = [new lively.ast.This(p), this.localFrame(level),
+                    new lively.ast.Number(p, astIdx), val("e")];
         var shiftFrame = new lively.ast.Call(p, val("__shiftFrame"), args);
-        var throwStmt = new lively.ast.Throw(p, shiftFrame);
-        var catchSeq = new lively.ast.Sequence(p, [throwStmt]);
+        var seq = [];
+        seq.push(new lively.ast.Set(p, val("e"), shiftFrame));
+        seq.pushAll(this.captureTemps(p));
+        seq.push(new lively.ast.Throw(p, val("e")));
+        var catchSeq = new lively.ast.Sequence(p, seq);
         return new lively.ast.TryCatchFinally(
             p, body, val("e"), catchSeq, val("undefined"));
     },
@@ -337,9 +359,6 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     visitCall: function($super, node) {
         return this.storeComputationResult($super(node));
-        //return this.storeComputationResult(new lively.ast.Call(node.pos,
-        //   this.storeComputationResult(this.visit(node.fn)),
-        //   this.visitNodes(node.args)));
     },
     visitSend: function($super, node) {
         return this.storeComputationResult($super(node));
@@ -347,7 +366,6 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     visitModifyingSet: function($super, node) {
         return this.storeComputationResult($super(node));
     },
-
     visitPreOp: function($super, node) {
         return this.storeComputationResult($super(node));
     },
@@ -364,15 +382,15 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var args = this.registerArguments(node);
         this.registerLocals(node);
         var rewritten = new lively.ast.Function(node.pos, this.visit(node.body), args);
-        this.exitScope();
         lively.ast.Rewriting.table.push(node);
         var idx = lively.ast.Rewriting.table.length - 1;
         rewritten.body = this.wrapFunctionBody(idx, rewritten.body, rewritten.args);
+        this.exitScope();
         return this.storeComputationResult(this.wrapClosure(idx, rewritten));
     }
 });
 
-Object.subclass('lively.ast.Rewriting.UnwindExecption',
+Object.subclass('lively.ast.Rewriting.UnwindException',
 'settings', {
     isUnwindException: true
 },
@@ -387,37 +405,58 @@ Object.subclass('lively.ast.Rewriting.UnwindExecption',
     }
 },
 'frames', {
-    shiftFrame: function(thiz, frame) {
-        var computationFrame = frame[0];
-        var localFrame = frame[1];
-        localFrame["this"] = thiz;
-        var astIndex = frame[2];
-        var scope = frame[3];
-        var stackFrame = [computationFrame, localFrame, astIndex, Global, scope];
+    shiftFrame: function(astIndex, thiz) {
+        var computationFrame = {};
+        var localFrame = {};
+        var stackFrame = {
+            "this": thiz,
+            tmps: computationFrame,
+            vars: localFrame,
+            ast: astIndex,
+            caller: Global,
+        };
         if (!this.top) {
             this.top = this.last = stackFrame;
             return;
         }
-        this.last[3] = stackFrame;
+        this.last.caller = stackFrame;
         this.last = stackFrame;
+    },
+    addTemp: function(pos, value) {
+        if (value === __UNDEF) return;
+        var position = pos.substring(1).replace('_', '-');
+        this.last.tmps[position] = value;
+    },
+    addVar: function(name, value) {
+        this.last.vars[name] = value;
+    },
+    setMapping: function(mapping) {
+        this.last.vars = mapping;
     }
 });
 
 Object.extend(Global, {
+    __UNDEF: {},
     __createClosure: function(idx, scope, f) {
         f._cachedAst = lively.ast.Rewriting.table[idx];
         f._cachedScope = scope;
         return f;
     },
-    __shiftFrame: function(thiz, scope, exception) {
+    __shiftFrame: function(thiz, vars, astIndex, exception) {
         if (!exception.isUnwindException) {
             exception = new lively.ast.Rewriting.UnwindException(exception);
         }
-        exception.shiftFrame(thiz, scope);
+        exception.shiftFrame(astIndex, thiz);
+        exception.setMapping(vars);
         return exception;
     },
     eval2: function(src) {
         var ast = lively.ast.Parser.parse(src, 'topLevel');
+        if (ast.isSequence) {
+            var last = ast.children.last();
+            var ret = new lively.ast.Return(last.pos, last);
+            ast.children[ast.children.length - 1] = ret;
+        }
         var wrapped = new lively.ast.Function([0,0], ast, []);
         wrapped.source = src;
         var rewriter = new lively.ast.Rewriting.Rewriter();

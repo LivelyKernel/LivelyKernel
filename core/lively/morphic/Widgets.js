@@ -2889,25 +2889,23 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     },
 
     buildLabel: function() {
-        var bounds = new Rectangle(this.inset, this.inset,
-                                   this.panel.getExtent().x - 2*this.inset, 18);
+        var bounds = new lively.Rectangle(this.inset, this.inset,
+                                          this.panel.getExtent().x - 2*this.inset, 18);
         this.label = new lively.morphic.Text(bounds, this.message).beLabel({
             fill: Color.white,
-            fixedHeight: false,
-            fixedWidth: false,
+            fixedHeight: false, fixedWidth: false,
             padding: Rectangle.inset(0,0),
-            enableGrabbing: false,
-            enableDragging: false
-        });
+            enableGrabbing: false, enableDragging: false});
         this.panel.addMorph(this.label);
 
         // FIXME ugly hack for wide dialogs:
         // wait until dialog opens and text is rendered so that we can
         // determine its extent
+        this.label.fit();
         (function fit() {
-            this.label.fit();
             var labelExtent = this.label.getExtent(),
-                panelExtent = this.panel.getExtent();
+                origPanelExtent = this.panel.getExtent(),
+                panelExtent = origPanelExtent;
             if (labelExtent.x > panelExtent.x) {
                 panelExtent = panelExtent.withX(labelExtent.x + 2*this.inset);
             }
@@ -2918,7 +2916,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
                 panelExtent = panelExtent.addXY(0, diff);
             }
             this.panel.setExtent(panelExtent);
-            this.panel.align(this.panel.bounds().center(), this.panel.owner.innerBounds().center());
+            this.panel.moveBy(panelExtent.subPt(origPanelExtent).scaleBy(0.5).negated());
         }).bind(this).delay(0);
     },
     buildCancelButton: function() {

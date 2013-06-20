@@ -853,10 +853,6 @@ lively.ast.Function.addMethods('interpretation', {
 });
 
 Object.extend(lively.ast, {
-    halt: function(frame) {
-        // overwrite this function, e.g. to open a debugger
-        return false; // return true to actually stop execution
-    },
     doWithHalt: function(func, halt) {
         var oldHalt = lively.ast.halt;
         lively.ast.halt = halt || Functions.True;
@@ -864,6 +860,32 @@ Object.extend(lively.ast, {
             func();
         } finally {
             lively.ast.halt = oldHalt;
+        }
+    },
+    halt: function(frame) {
+        (function() {
+            lively.ast.openDebugger(frame, "Debugger");
+        }).delay(0);
+        return true;
+    },
+    openDebugger: function openDebugger(frame, title) {
+        var part = lively.PartsBin.getPart("Debugger", "PartsBin/Debugging");
+        part.targetMorph.setTopFrame(frame);
+        if (title) part.setTitle(title);
+        part.openInWorld();
+        var m = part;
+        var center = lively.morphic.World.current().visibleBounds().topCenter();
+        m.align(m.bounds().topCenter().addPt(lively.pt(0,-20)), center);
+    },
+    rewriteAndDebug: function(src) {
+        try {
+            return eval2(src);
+        } catch (e) {
+            if (e.isUnwindException) {
+                var frame = lively.ast.Interpreter.Frame.fromScope(e.top);
+                return lively.ast.halt(frame);
+            }
+            throw e;
         }
     }
 });

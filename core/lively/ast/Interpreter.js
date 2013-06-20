@@ -45,11 +45,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             this.addToMapping(argNames[i], argValues[i]);
         }
         this.arguments = argValues;
-        if (caller) {
-            this.caller = caller;
-            caller.callee = this;
-            if (caller.breakAtCalls) this.breakAtFirstStatement();
-        }
+        this.setCaller(caller);
         return this;
     },
     breakAtFirstStatement: function() {
@@ -63,8 +59,10 @@ Object.subclass('lively.ast.Interpreter.Frame',
     getCaller: function() {
         return this.caller;
     },
-    getCallee: function() {
-        return this.func;
+    setCaller: function(caller) {
+        if (!caller) return
+        this.caller = caller;
+        if (caller.breakAtCalls) this.breakAtFirstStatement();
     },
     getThis: function() {
         return this.mapping["this"] ? this.mapping["this"] : Global;

@@ -466,7 +466,7 @@ lively.ast.Node.subclass('lively.ast.BinaryOp',
                 this.constructor.name, this.left, this.name, this.right) },
 },
 'conversion', {
-	asJS: function (depth) { return '(' + this.left.asJS(depth) + ') ' + this.name + ' (' + this.right.asJS(depth) + ')' },
+	asJS: function (depth) { return '((' + this.left.asJS(depth) + ') ' + this.name + ' (' + this.right.asJS(depth) + '))' },
 },
 'visiting', {
     accept: function(visitor) {

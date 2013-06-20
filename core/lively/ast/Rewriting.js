@@ -334,9 +334,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     wrapClosure: function(idx, node) {
         var fn = new lively.ast.Variable(node.pos, "__createClosure");
-        var scope = this.frame(this.scopes.length - 1);
         var astIdx = new lively.ast.Number([0,0], idx);
-        return new lively.ast.Call(node.pos, fn, [astIdx, scope, node]);
+        return new lively.ast.Call(node.pos, fn, [astIdx, node]);
     }
 },
 'visiting', {
@@ -444,9 +443,8 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
 
 Object.extend(Global, {
     __UNDEF: {},
-    __createClosure: function(idx, scope, f) {
+    __createClosure: function(idx, f) {
         f._cachedAst = lively.ast.Rewriting.table[idx];
-        f._cachedScope = scope;
         return f;
     },
     __shiftFrame: function(thiz, vars, astIndex, exception) {

@@ -8,6 +8,9 @@ if (LivelyMigrationSupport.documentMigrationLevel < 3) {
         'lively.bindings.GeometryBindingsTest', 3);
 }
 
+LivelyMigrationSupport.addModuleRename('lively.ide.LocalBrowser', 'lively.ide', 7);
+LivelyMigrationSupport.addModuleRename('lively.ide.ChangeSet', 'lively.ide', 7);
+
 if (LivelyMigrationSupport.documentMigrationLevel < 7) {
     LivelyMigrationSupport.addWorldJsoTransform(function(jso) {
         for (var id in jso.registry) {

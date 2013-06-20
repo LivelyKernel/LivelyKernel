@@ -1593,9 +1593,12 @@ TestCase.subclass('lively.ast.tests.AstTests.RewritingTest',
     testNestedFunction: function() {
         var inner = this.assertBreaksWhenInterpretated(this.examples.nestedFunction);
         this.assertEquals(inner.mapping["b"], 42);
-        var outer = inner.getContainingScope();
-        this.assertEquals(outer.mapping["a"], 23);
-        this.assertEqualState(["this", "a", "fun"], Object.keys(outer.mapping));
+        this.assertEquals(inner.mapping["this"], Global);
+        //TODO: Capture containing scopes
+        //var outer = inner.getContainingScope();
+        //this.assertEquals(outer.mapping["a"], 23);
+        //this.assertEquals(outer.mapping["this"], this.examples);
+        //this.assertEqualState(["this", "a", "fun"], Object.keys(outer.mapping));
     },
     testForEach: function() {
         var frame = this.assertBreaksWhenInterpretated(this.examples.forEach);

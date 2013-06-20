@@ -264,9 +264,11 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     wrapVar: function(pos, name) {
         var scope = this.referenceVar(name);
         if (scope === undefined) return new lively.ast.Variable(pos, name);
-        return new lively.ast.GetSlot(pos,
-                                      new lively.ast.String(pos, name),
-                                      this.localFrame(scope));
+        var res =  new lively.ast.GetSlot(pos,
+                                          new lively.ast.String(pos, name),
+                                          this.localFrame(scope));
+        res.isWrap = true;
+        return res;
     },
     rewriteVarDeclaration: function(pos, name, expr) {
         return new lively.ast.Set(pos, this.wrapVar(pos, name), expr);
@@ -358,7 +360,12 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.storeComputationResult($super(node));
     },
     visitCall: function($super, node) {
-        return this.storeComputationResult($super(node));
+        var call = $super(node);
+        if (call.fn.isWrap) {
+            var ONE = new lively.ast.Number(call.fn.pos, 1);
+            call.fn = new lively.ast.BinaryOp(call.fn.pos, ',', ONE, call.fn);
+        }
+        return this.storeComputationResult(call);
     },
     visitSend: function($super, node) {
         return this.storeComputationResult($super(node));

@@ -53,7 +53,26 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerializati
 
         // html
         this.assertEquals(1, doc.find('body > #div1').length, 'html not inserted');
-    }
+    },
+
+    testScriptTagsAreEscaped: function() {
+        var worldJson = JSON.stringify({foo: 'hello<script type"xyz">1+2</script>', baz: '<script/>'}),
+            spec = {
+                title: 'fooWorld',
+                migrationLevel: 99,
+                serializedWorld: worldJson,
+                styleSheets: [], externalScripts: [],
+                html: '<div id="div1"><div id="div2"/></div>'
+            },
+            result = lively.persistence.HTMLDocBuilder.documentForWorldSerialization(spec),
+            doc = lively.$(result),
+            worldSource = doc.find('body script#' + spec.title).text();
+
+        // world elem
+        var expected = '{"foo":"hello\\u003cscript type\\"xyz\\">1+2\\u003c/script>","baz":"\\u003cscript/>"}';
+        this.assertEquals(expected, worldSource);
+   }
+
 });
 
 }); // end of module

@@ -220,8 +220,8 @@ lively.morphic.World.addMethods(
             bootstrapFile = bootstrapModuleURL.relativePathFrom(url),
             css = $("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),
-            metaTags = this.getMetaTags();
-            linkTags = this.getLinkTags();
+            metaTags = this.getMetaTags(),
+            linkTags = this.getLinkTags(),
             docSpec = {
                 title: title,
                 metaTags: metaTags, 

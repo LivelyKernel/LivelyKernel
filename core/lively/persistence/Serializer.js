@@ -1296,7 +1296,12 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         }, this);
     },
 
+    escapeScriptTags: function(json) {
+        return json.replace(/</g, '\\u003c')
+    },
+
     addSerializedWorld: function(json, id, migrationLevel) {
+        json = this.escapeScriptTags(json);
         var el = this.createScriptEl({
             id: id,
             parent: this.body[0],

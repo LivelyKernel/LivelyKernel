@@ -3038,17 +3038,15 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
     buildTextInput: function() {
         var bounds = rect(this.label.bounds().bottomLeft(), this.cancelButton.bounds().topRight()).insetBy(5),
             input = lively.ide.newCodeEditor(bounds, this.defaultInput || '').applyStyle({
-                    resizeWidth: true,
-                    resizeHeight: true,
-                    gutter: false,
-                    borderWidth: 1,
-                    borderColor: Color.gray.lighter(),
+                    resizeWidth: true, resizeHeight: true,
+                    gutter: false, lineWrapping: true,
+                    borderWidth: 1, borderColor: Color.gray.lighter(),
                     textMode: 'text'
                 });
         input.setBounds(bounds);
         this.inputText = this.panel.addMorph(input);
         input.focus.bind(input).delay(0);
-        connect(input, 'savedTextString', this, 'result');
+        lively.bindings.connect(input, 'savedTextString', this, 'result');
     },
 
     buildView: function($super, extent) {

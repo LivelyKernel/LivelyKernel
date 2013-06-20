@@ -1557,7 +1557,11 @@ TestCase.subclass('lively.ast.tests.AstTests.RewritingTest',
             this.assert(false, "function did not break");
         } catch (e) {
             if (e.isUnwindException) {
-                return lively.ast.Interpreter.Frame.fromScope(e.top, true);
+                if (e.topFrame) {
+                    return e.topFrame;
+                } else {
+                    return lively.ast.Interpreter.Frame.fromScope(e.top);
+                }
             }
             throw e;
         }

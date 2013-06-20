@@ -1767,7 +1767,7 @@ lively.morphic.World.addMethods(
         var focusedMorph = lively.morphic.Morph.focusedMorph(),
             win = this.getActiveWindow();
         dialog.openIn(this, this.visibleBounds().topLeft(), focusedMorph);
-        this.addModal(dialog.panel, win ? win.targetMorph : this);
+        this.addModal(dialog.panel, win ? win : this);
         return dialog;
     },
     confirm: function (message, callback) {

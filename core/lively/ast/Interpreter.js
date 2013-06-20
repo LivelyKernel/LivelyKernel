@@ -291,7 +291,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
         //TODO: Also include surrounding scopes
         var ast = lively.ast.Rewriting.table[scope.ast],
-            frame = new lively.ast.Interpreter.Frame(Global, scope.vars);
+            frame = new lively.ast.Interpreter.Frame(null, scope.vars);
         frame.values = scope.tmps;
         frame.addToMapping("this", scope["this"]);
         frame.func = ast.asFunction();

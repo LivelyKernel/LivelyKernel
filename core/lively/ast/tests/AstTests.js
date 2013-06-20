@@ -1579,7 +1579,9 @@ TestCase.subclass('lively.ast.tests.AstTests.RewritingTest',
         this.assertBreaksWhenInterpretated(this.examples.miniExample);
     },
     testSimpleLocalVariable: function() {
-        this.assertBreaksWhenInterpretated(this.examples.simpleLocalVariable);
+        var frame = this.assertBreaksWhenInterpretated(this.examples.simpleLocalVariable);
+        this.assertEquals(frame.mapping["a"], 23);
+        this.assertEquals(frame.mapping["this"], this.examples);
     },
     testSimpleArgument: function(a) {
         var frame = this.assertBreaksWhenInterpretated(this.examples.simpleArgument, 23);

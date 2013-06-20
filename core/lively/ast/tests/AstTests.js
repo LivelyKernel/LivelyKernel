@@ -1068,7 +1068,6 @@ Object.subclass('lively.ast.tests.AstTests.Examples',
         var b = a + 2;
         return b;
     },
-
     restart: function() {
         var i = 0;
         i++;
@@ -1543,6 +1542,12 @@ TestCase.subclass('lively.ast.tests.AstTests.RewritingTest',
     setUp: function($super) {
         $super();
         this.examples = new lively.ast.tests.AstTests.Examples();
+        this.oldHalt = lively.ast.halt;
+        lively.ast.halt = Functions.True;
+    },
+    tearDown: function($super) {
+        $super();
+        lively.ast.halt = this.oldHalt;
     }
 },
 'helping', {

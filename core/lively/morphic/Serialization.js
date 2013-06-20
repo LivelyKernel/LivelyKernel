@@ -241,7 +241,7 @@ lively.morphic.World.addMethods(
             }
         })
 
-        if (URL.source.eq(url)) {
+        if (!URL.source.eqDomain(url)/*WebDAV stuff usually won't work cross domain*/ || URL.source.eq(url)) {
             this.storeDoc(doc, url, checkForOverwrites);
         } else {
             this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites);

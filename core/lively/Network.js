@@ -178,6 +178,13 @@ Object.subclass('URL', {
             url.search == this.search &&
             url.hash == this.hash;
     },
+    eqDomain: function(url) {
+        if (!url) return false;
+        return url.protocol == this.protocol &&
+            url.port == this.port &&
+            url.normalizedHostname() == this.normalizedHostname();
+    },
+
 
     isIn: function(origin) {
         return origin.normalizedHostname() == this.normalizedHostname() &&

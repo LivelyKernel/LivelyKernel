@@ -1,4 +1,4 @@
-module('lively.Sound').requires().requiresLib({url: Config.codeBase+'lib/xaudio/resampler.js', loadTest: function() {return typeof Resampler !== "undefined"}}).requiresLib({url: Config.codeBase+'lib/xaudio/XAudioServer.js', loadTest: function() {return typeof XAudioServer !== "undefined"}}).toRun(function() {
+module('lively.Sound').requires().requiresLib({url: Config.codeBase+'lib/xaudio/resampler.js', loadTest: function() {return typeof Resampler !== "undefined"}, sync: true}).requiresLib({url: Config.codeBase+'lib/xaudio/XAudioServer.js', loadTest: function() {return typeof XAudioServer !== "undefined"}, sync: true}).toRun(function() {
 
 Object.subclass("lively.Sound.AbstractSound", {
     aboutMe: function() {
@@ -157,7 +157,7 @@ Object.extend(lively.Sound.AbstractSound, {
     bachFugue: function() { 
         // Play a fugue by J. S. Bach using an instance of me as the sound for all four voices.
         // lively.Sound.AbstractSound.bachFugue().play()
-    	return this.bachFugueOn(new lively.Sound.PluckedSound);
+        return this.bachFugueOn(new lively.Sound.PluckedSound);
     },
 
     bachFugueOn: function(aSound) {

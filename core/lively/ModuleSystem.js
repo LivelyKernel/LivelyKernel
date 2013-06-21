@@ -346,7 +346,7 @@ Object.subclass('lively.Module',
             this.requiredLibs.forEach(function(libSpec) {
                 if (libSpec.loadTest()) return;
                 var url = libSpec.url || libSpec.uri,
-                    isSync = !!this.constructor.loadSync;
+                    isSync = !!libSpec.sync;
                 url && JSLoader.loadJs(String(url), null, isSync);
                 if (!isSync) this.initLibLoadTester();
             }, this);

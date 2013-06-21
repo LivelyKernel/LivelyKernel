@@ -309,6 +309,16 @@ Object.subclass('lively.Module',
             throw new Error('libSpec.loadTest is not a function!');
         }
         if (!this.requiredLibs) this.requiredLibs = [];
+        if (!libSpec.load) {
+            var mod = this;
+            libSpec.load = function() {
+                if (this.loadTest()) return; // already loaded
+                var url = this.url || this.uri;
+                url && JSLoader.loadJs(String(url), null, !!this.sync);
+                if (!this.sync) mod.initLibLoadTester();
+                else if (!mod.hasPendingRequirements()) mod.load();
+            }
+        }
         this.requiredLibs.push(libSpec);
     },
 
@@ -342,15 +352,7 @@ Object.subclass('lively.Module',
 
     loadRequirementsFirst: function() {
         this.pendingRequirements && this.pendingRequirements.invoke('load');
-        if (this.requiredLibs) {
-            this.requiredLibs.forEach(function(libSpec) {
-                if (libSpec.loadTest()) return;
-                var url = libSpec.url || libSpec.uri,
-                    isSync = !!libSpec.sync;
-                url && JSLoader.loadJs(String(url), null, isSync);
-                if (!isSync) this.initLibLoadTester();
-            }, this);
-        }
+        this.requiredLibs && this.requiredLibs.invoke('load');
     },
 
     wasRequiredBy: function() {

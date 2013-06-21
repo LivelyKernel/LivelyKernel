@@ -119,7 +119,28 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
             this.assert(!module('foo.baz').hasPendingRequirements(), 'hasPendingRequirements 3');
             this.done();
         }, 120);
+    },
+
+    testRequireLibSync: function() {
+        var moduleCodeExecuted = false, libBazIsLoaded = false, loadTestCalled = 0;
+        module('foo.baz')
+            .requires()
+            .requiresLib({
+                url: Config.codeBase + 'lib/baz.js',
+                loadTest: function() { loadTestCalled++; return libBazIsLoaded; }
+            }).toRun(function() {
+                moduleCodeExecuted = true;
+            });
+        this.assert(module('foo.baz').hasPendingRequirements(), 'hasPendingRequirements 1');
+        libBazIsLoaded = true;
+        module('foo.baz').load(true); // sync load
+        this.assert(module('foo.baz').isLoaded(), 'module not loaded')
+        this.assert(!module('foo.baz').hasPendingRequirements(), 'hasPendingRequirements 2');
+        this.assertEquals(2, loadTestCalled, 'loadTest call count ' + loadTestCalled);
+        this.assert(moduleCodeExecuted, 'module body not loaded');
+        this.done();
     }
+
 
 });
 

@@ -308,19 +308,15 @@ Object.subclass('lively.Module',
         if (typeof libSpec.loadTest !== 'function') {
             throw new Error('libSpec.loadTest is not a function!');
         }
-        if (libSpec.loadTest()) return; // skip polling if load tests already succeeds
-        if (!this.libLoadTests) this.libLoadTests = [];
-        this.libLoadTests.push(libSpec.loadTest);
-        var url = libSpec.url || libSpec.uri;
-        url && JSLoader.loadJs(String(url));
-        this.initLibLoadTester();
+        if (!this.requiredLibs) this.requiredLibs = [];
+        this.requiredLibs.push(libSpec);
     },
 
     initLibLoadTester: function() {
+        if (this.loadTestPolling) return;
         this.loadTestPolling = Global.setInterval(function() {
             if (this.hasPendingRequirements()) return;
             Global.clearInterval(this.loadTestPolling);
-            delete this.libLoadTests;
             this.load();
         }.bind(this), 50);
     },
@@ -339,13 +335,22 @@ Object.subclass('lively.Module',
     },
 
     hasPendingRequirements: function() {
-        return (this.pendingRequirements && this.pendingRequirements.length > 0)
-             || (this.libLoadTests && this.libLoadTests.any(function(libLoadTest) {
-                 return !libLoadTest() }));
+        if (this.pendingRequirements && this.pendingRequirements.length > 0) return true;
+        if (this.requiredLibs && this.requiredLibs.any(function(libSpec) { return !libSpec.loadTest(); })) return true;
+        return false;
     },
 
     loadRequirementsFirst: function() {
         this.pendingRequirements && this.pendingRequirements.invoke('load');
+        if (this.requiredLibs) {
+            this.requiredLibs.forEach(function(libSpec) {
+                if (libSpec.loadTest()) return;
+                var url = libSpec.url || libSpec.uri,
+                    isSync = !!this.constructor.loadSync;
+                url && JSLoader.loadJs(String(url), null, isSync);
+                if (!isSync) this.initLibLoadTester();
+            }, this);
+        }
     },
 
     wasRequiredBy: function() {

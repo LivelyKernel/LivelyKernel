@@ -806,6 +806,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return [ed.session.getScrollLeft(), ed.session.getScrollTop()];
         });
     },
+    scrollToRow: function(row) {
+        return this.withAceDo(function(ed) { return ed.scrollToRow(row); })
+    },
+
 
     doKeyCopy: Functions.Null,
     doKeyPaste: Functions.Null

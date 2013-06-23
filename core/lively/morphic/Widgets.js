@@ -1290,6 +1290,7 @@ lively.morphic.World.addMethods(
     openInspectorFor: function(object, evt) {
         module('lively.ide.tools.Inspector').load(true);
         var inspector = lively.BuildSpec('lively.ide.tools.Inspector').createMorph().openInWorldCenter();
+        inspector.comeForward();
         inspector.inspect(object);
         return inspector;
     },
@@ -1435,25 +1436,19 @@ lively.morphic.World.addMethods(
 
     openBuildSpecEditor: function() {
         require('lively.ide.tools.BuildSpecEditor').toRun(function() {
-          var win = lively.BuildSpec('lively.ide.tools.BuildSpecEditor').createMorph();
-          win.openInWorld();
-          win.align(win.bounds().center(), win.world().visibleBounds().center());
+            lively.BuildSpec('lively.ide.tools.BuildSpecEditor').createMorph().openInWorldCenter().comeForward();
         });
     },
 
     openSubserverViewer: function() {
         require('lively.ide.tools.SubserverViewer').toRun(function() {
-          var win = lively.BuildSpec('lively.ide.tools.SubserverViewer').createMorph();
-          win.openInWorld();
-          win.align(win.bounds().center(), win.world().visibleBounds().center());
+            lively.BuildSpec('lively.ide.tools.SubserverViewer').createMorph().openInWorldCenter().comeForward();
         });
     },
 
     openServerWorkspace: function() {
         require('lively.ide.tools.ServerWorkspace').toRun(function() {
-          var win = lively.BuildSpec('lively.ide.tools.ServerWorkspace').createMorph();
-          win.openInWorld();
-          win.align(win.bounds().center(), win.world().visibleBounds().center());
+            lively.BuildSpec('lively.ide.tools.ServerWorkspace').createMorph().openInWorldCenter().comeForward();
         });
     },
     openOMetaWorkspace: function() {

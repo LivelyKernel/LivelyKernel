@@ -267,6 +267,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this._onDocumentChange = this._onDocumentChange || this.onDocumentChange.bind(this);
         this.withAceDo(function(ed) {
             ed.on('changeSession', this._listenForDocumentChanges);
+            ed.on('changeMode', this._onDocumentChange);
             ed.session.on('change', this._onDocumentChange);
         });
     },

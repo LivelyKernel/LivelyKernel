@@ -270,7 +270,21 @@ TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
         this.assertEquals(null, this.sut.lookup("Control-C"), 1);
         this.sut.addKeyCombo("C-c C-k", 'test');
         this.assertEquals('prefix', this.sut.lookup("Control-C"), 2);
+    },
+
+    testFindCommandForEvents: function() {
+        this.sut.addKeyCombo("C-c C-d", 'test');
+        var evt1 = {getKeyString: function() { return 'Control-C'}},
+            evt2 = {getKeyString: function() { return 'Control-D'}},
+            keyInputState = {prevKeys: []};
+        keyInputState = this.sut.updateInputStateFromEvent(evt1, keyInputState);
+        this.assertEquals('prefix', keyInputState.commandName, 1);
+        this.assertEquals(1, keyInputState.prevKeys.length, 2);
+        keyInputState = this.sut.updateInputStateFromEvent(evt2, keyInputState);
+        this.assertEquals('test', keyInputState.commandName, 3);
+        this.assertEquals(0, keyInputState.prevKeys.length, 4);
     }
+
 });
 
 }) // end of moduledule

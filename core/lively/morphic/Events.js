@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.HTML', 'lively.morphic.SVG', 'lively.morphic.Canvas', 'lively.Traits').toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.HTML', 'lively.morphic.SVG', 'lively.morphic.Canvas', 'lively.Traits', 'lively.ide.commands.default').toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -2285,8 +2285,9 @@ Object.extend(lively.morphic.Events, {
 });
 Object.subclass('lively.morphic.KeyboardDispatcher',
 "initializing", {
-    initialize: function() {
+    initialize: function(bindings) {
         this.bindings = {};
+        bindings && this.addBindings(bindings);
     }
 },
 'key capturing', {
@@ -2351,20 +2352,73 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         }, []).forEach(function(comboPrefix) {
             bindings[comboPrefix] = "prefix";
         });
-    }
+    },
+    addBindings: function(bindings) {
+        var platform = UserAgent.isMacOS ? 'mac' : 'win';
+        Properties.forEachOwn(bindings, function(command, keys) {
+            if (typeof keys === 'object') keys = keys[platform];
+            this.addKeyCombo(keys, command);
+        }, this);
+    },
+
 },
 'key lookup', {
-    lookup: function(comboPart, state/*key press history*/) {
+    lookup: function(comboPart) {
         // comboPart sth like C-c, not multiple key/combo presses!
         comboPart = this.normalizeComboPart(comboPart);
         return this.bindings[comboPart] || null;
+    },
+    lookupAll: function(comboParts) {
+        var combo = comboParts.map(function(ea) { return this.normalizeComboPart(ea); }, this).join(' ');
+        return this.bindings[combo] || null;
+    }
+},
+"event handling", {
+    updateInputStateFromEvent: function(evt, keyInputState) {
+        var keys = evt.getKeyString();
+        if (! keys || keys === '') { keyInputState.commandName = null; return keyInputState; }
+        keyInputState.prevKeys.push(keys);
+        keyInputState.commandName = this.lookupAll(keyInputState.prevKeys);
+        if (keyInputState.commandName !== 'prefix') keyInputState.prevKeys = [];
+        return keyInputState;
+    },
+
+    handleKeyEvent: function(evt, keyInputState) {
+        keyInputState = this.updateInputStateFromEvent(evt, keyInputState);
+        if (keyInputState.commandName === 'prefix') {
+            return true;
+        } else if (keyInputState.commandName) {
+            return lively.ide.commands.exec(keyInputState.commandName);
+        }
+        return false;
+    }
+});
+Object.extend(lively.morphic.KeyboardDispatcher, {
+    global: function() {
+        var global = this._global || (this._global = new this(lively.ide.commands.defaultBindings));
+        if (!global.keyInputState) global.keyInputState = {prevKeys: [], commandName: null};
+        return global
+    },
+    reset: function() {
+        show('resetting keyboard dispatcher');
+        if (!this._global) return;
+        this._global = null;
+    },
+    handleGlobalKeyEvent: function(evt) {
+        var handler = this.global();
+        return handler.handleKeyEvent(evt, handler.keyInputState);
     }
 });
 
 (function installDefaultGlobalKeys() {
-    lively.morphic.Events.GlobalEvents.unregister('keydown', "esc");
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "defaulGlobalKeyHandler");
     var haloTriggerCount = 0; // count succinct command key presses, FIXME use real key handler that can deal with combos
-    lively.morphic.Events.GlobalEvents.register('keydown', function esc(evt) {
+    lively.morphic.Events.GlobalEvents.register('keydown', function defaulGlobalKeyHandler(evt) {
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // key dispatcher using lively.ide.commands
+        var result = lively.morphic.KeyboardDispatcher.handleGlobalKeyEvent(evt);
+        if (result) { evt.stop(); return true; }
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false}),
             focused = lively.morphic.Morph.focusedMorph(),
             world = focused && focused.world() || lively.morphic.World.current();
@@ -2382,14 +2436,6 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             target.toggleHalos(evt);
             haloTriggerCount = 0;
             evt.stop(); return true;
-        }
-        if (keys === 'Esc') {
-            // Global Escape will drop grabbed morphs, remove menus, close halos
-            var h = world.firstHand();
-            if (h.submorphs.length > 0) { h.dropContentsOn(world); evt.stop(); return true; }
-            if (world.worldMenuOpened) { h.removeOpenMenu(evt); evt.stop(); return true; }
-            if (world.currentHaloTarget) { world.removeHalosOfCurrentHaloTarget(); evt.stop(); return true; }
-            return undefined;
         }
         if (world.showPressedKeys) {
             keys && keys.length > 0 && lively.log(keys);

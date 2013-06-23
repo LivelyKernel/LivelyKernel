@@ -29,6 +29,12 @@ Object.extend(lively.ide.commands.byName, { // add default commands
             return false;
         }
     },
+    closeActiveWindow: {
+        exec: function() {
+            $world.closeActiveWindow();
+            return true;
+        }
+    },
     windowNavigation: {
         exec: function() {
             lively.ide.WindowNavigation.WindowManager.current().startWindowSelection();
@@ -45,6 +51,7 @@ Object.extend(lively.ide.commands.byName, { // add default commands
 });
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys
     escape: "esc",
+    closeActiveWindow: "cmd-esc",
     windowNavigation: {mac: "cmd-`", win: "ctrl-`"},
     resetKeyBindings: 'C-c r k'
 });

@@ -1159,6 +1159,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             this.tryBoundEval(this.savedTextString);
         }
     },
+    clear: function() {
+        this.textString = '';
+    },
+
 
     setFontSize: function(size) {
         this.withAceDo(function(ed) { ed.setOption("fontSize", size); });
@@ -1480,30 +1484,6 @@ Object.extend(lively.morphic.CodeEditorEvalMarker, {
     });
 })();
 
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// command line support
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-lively.BuildSpec('lively.morphic.CommandLine', {
-    name: "CommandLine",
-    className: "lively.morphic.CodeEditor",
-    style: {
-        gutter: false,
-        enableGrabbing: false,
-        enableDragging: false,
-        clipMode: 'hidden',
-        fontSize: 12
-    },
-    // grabbingEnabled: false
-    _Extent: pt(300, 18),
-    initCommandLine: function initCommandLine(ed) {
-        this.isCommandLine = true;
-        ed.renderer.scrollBar.element.style.display = 'none';
-        ed.renderer.scrollBar.width = 0;
-        ed.resize(true);
-    },
-    onLoad: function onLoad() {
-        $super();
-        this.withAceDo(function(ed) { this.initCommandLine(ed); });
 // -=-=-=-=-=-=-=-=-=
 // keyboard shortcuts
 // -=-=-=-=-=-=-=-=-=

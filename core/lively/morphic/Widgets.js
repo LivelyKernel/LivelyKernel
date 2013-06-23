@@ -1312,6 +1312,12 @@ lively.morphic.World.addMethods(
         module('lively.ide.tools.ObjectEditor').load(true);
         return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter();
     },
+    openTerminal: function() {
+        require('lively.ide.tools.Terminal').toRun(function() {
+            lively.BuildSpec('lively.ide.tools.Terminal').createMorph().openInWorldCenter().comeForward();
+        });
+    },
+
     openObjectEditorFor: function(morph) {
         var part = this.openObjectEditor();
         part.setTarget(morph);
@@ -1639,6 +1645,7 @@ lively.morphic.World.addMethods(
                 ['OMeta Workspace', this.openOMetaWorkspace.bind(this)],
                 ['SubserverViewer', this.openSubserverViewer.bind(this)],
                 ['ServerWorkspace', this.openServerWorkspace.bind(this)],
+                ['Terminal', this.openTerminal.bind(this)],
                 ['GitControl', this.openGitControl.bind(this)]
             ]],
             ['Stepping', [

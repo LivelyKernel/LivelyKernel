@@ -1,15 +1,13 @@
-module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively.morphic.Events', 'lively.persistence.BuildSpec').toRun(function() {
+module('lively.ide.WindowNavigation').requires('lively.morphic.Widgets', 'lively.morphic.Events', 'lively.ide.tools.SelectionNarrowing').toRun(function() {
 
 (function installKeyEventHandler() {
     var winSwitcher;
     lively.morphic.Events.GlobalEvents.unregister('keydown', "windowSwitcher");
     lively.morphic.Events.GlobalEvents.register('keydown', function windowSwitcher(evt) {
         var keys = evt.getKeyString();
-        if (keys === 'F5' || keys === "Command-`" || keys === "Control-`") {
-            if (winSwitcher && winSwitcher.world()) return false;
-            winSwitcher = new lively.ide.WindowNavigation.WindowManager().createSwitcher();
-            // winSwitcher = winSwitcher || new lively.ide.WindowNavigation.WindowManager().createSwitcher();
-            winSwitcher.open({invokingEvent: evt});
+        if (keys === "Command-`" || keys === "Control-`") {
+            winSwitcher = winSwitcher || new lively.ide.WindowNavigation.WindowManager($world);
+            winSwitcher.startWindowSelection();
             evt.stop(); return true;
         }
         if (evt.keyCode === Event.KEY_ESC && evt.metaKey && $world.closeActiveWindow()) {
@@ -29,7 +27,32 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
     getWindows: function() {
         return this.root.submorphs.select(function(ea) { return ea.isWindow; });
     },
-    findWindow: function(func) { return this.getWindows().detect(func); }
+    findWindow: function(func) { return this.getWindows().detect(func); },
+    makeWindowActive: function(win) {
+        win && win.comeForward();
+    },
+    showWindow: function(win) {
+        if (this.showWindowCaller && this.showWindowTarget === win) return;
+        if (this.showWindowCaller) { Global.clearInterval(this.showWindowCaller); delete this.showWindowCaller; }
+        this.showWindowTarget = win;
+        var self = this;
+        this.showWindowCaller = (function() {
+            if (this.showWindowTarget) this.showWindowTarget.show();
+        }).bind(this).delay(0.8);
+    },
+
+    resetList: function(windowLister) {
+        this.showWindowTarget = null;
+        if (this.showWindowCaller) { Global.clearInterval(this.showWindowCaller); delete this.showWindowCaller; }
+        windowLister.setVisible(false);
+    },
+    resetListAndRevertActiveWindow: function(windowLister) {
+        if (this.currentWindow) this.currentWindow.comeForward();
+        this.resetList(windowLister);
+    },
+
+
+
 },
 'interaction', {
     activate: function(morphOrTitleOrName) {
@@ -233,6 +256,37 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
             sourceModule: "lively.morphic.Core",
             submorphs: []
         }).createMorph()
+    },
+    startWindowSelection: function() {
+        // x= new lively.ide.WindowNavigation.WindowManager($world).startWindowSelection();
+        // lively.ide.WindowNavigation.windowLister.remove(); lively.ide.WindowNavigation.windowLister = null;
+        var list = this.narrowList;
+        if (!list) {
+            list = this.narrowList = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
+        }
+        this.currentWindow = this.root.world().getActiveWindow();
+        lively.bindings.connect(list, 'confirmedSelection', this, 'makeWindowActive');
+        lively.bindings.connect(list, 'selection', this, 'showWindow');
+        lively.bindings.connect(list, 'confirmedSelection', this, 'resetList', {converter:
+            function() { return this.sourceObj; }});
+        lively.bindings.connect(list, 'escapePressed', this, 'resetListAndRevertActiveWindow');
+        var windows = this.getWindows().reverse().rotate().map(function(ea, i) {
+            return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; });
+        list.open(windows);
+        return this;
+    }
+
+});
+Object.extend(lively.ide.WindowNavigation.WindowManager, {
+    current: function() {
+        return this._current || (this._current = new lively.ide.WindowNavigation.WindowManager($world));
+    },
+    reset: function() {
+        show('resetting window lister');
+        if (!this._current) return;
+        if (this._current.narrowList) this._current.narrowList.remove();
+        this._current.narrowList = null;
+        this._current = null;
     }
 });
 

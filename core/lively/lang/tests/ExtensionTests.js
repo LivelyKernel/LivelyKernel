@@ -437,6 +437,20 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         var arr = ["foo", obj, 42];
         this.assertEquals('[foo, <23>, 42]', arr.inspect());
     },
+    testSwap: function() {
+        var arr = ['a', 'b', 'c', 'd', 'e'];
+        arr.swap(1,4);
+        this.assertEquals(arr, ['a', 'e', 'c', 'd', 'b']);
+        arr.swap(0, -1)
+        this.assertEquals(arr, ['b', 'e', 'c', 'd', 'a']);
+    },
+    testRotate: function() {
+        var arr = ['a', 'b', 'c', 'd', 'e'];
+        arr = arr.rotate();
+        this.assertEquals(arr, ['b', 'c', 'd', 'e', 'a']);
+        arr = arr.rotate(2);
+        this.assertEquals(arr, ['d', 'e', 'a', 'b', 'c']);
+    },
     testGroupBy: function() {
         var elts = [{a: 'foo', b: 1},
                     {a: 'bar', b: 2},

@@ -329,6 +329,20 @@ Object.extend(Array.prototype, {
         return sum;
     },
 
+    swap: function(index1, index2) {
+        if (index1 < 0) index1 = this.length + index1;
+        if (index2 < 0) index2 = this.length + index2;
+        var temp = this[index1];
+        this[index1] = this[index2];
+        this[index2] = temp;
+        return this;
+    },
+
+    rotate: function(times) {
+        times = times || 1;
+        return this.slice(times).concat(this.slice(0,times));
+    },
+
     groupBy: function(iterator, context) {
         return lively.Grouping.groupArray(this, iterator, context);
     },

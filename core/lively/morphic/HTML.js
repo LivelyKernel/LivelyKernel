@@ -131,6 +131,7 @@ lively.morphic.Morph.addMethods(
         setExtent: 'setExtentHTML',
         setScale: 'setScaleHTML',
         setVisible: 'setVisibleHTML',
+        setZIndex: 'setZIndexHTML',
         adjustOrigin: 'adjustOriginHTML',
         setPivotPoint: 'setPivotPointHTML',
         setClipMode: 'setClipModeHTML',
@@ -172,6 +173,11 @@ lively.morphic.Morph.addMethods(
         if (ctx.morphNode)
             ctx.morphNode.style.visibility = bool ? '' : 'hidden';
     },
+    setZIndexHTML: function(ctx, index) {
+        if (ctx.morphNode)
+            ctx.morphNode.style.zIndex = index ? index : null;
+    },
+
     adjustOriginHTML: function(ctx, value) {
     },
     setPivotPointHTML: function(ctx, value) {
@@ -258,6 +264,7 @@ lively.morphic.Morph.addMethods(
         this.setPointerEventsHTML(ctx, this.getPointerEvents());
         if (this.morphicGetter('Visible') === false)
             this.setVisibleHTML(ctx, false);
+        var zIndex = this.getZIndex(); zIndex && this.setZIndexHTML(ctx, zIndex);
         var tooltip = this.morphicGetter('ToolTip');
         tooltip && this.setToolTipHTML(ctx, tooltip);
         if (UserAgent.fireFoxVersion)

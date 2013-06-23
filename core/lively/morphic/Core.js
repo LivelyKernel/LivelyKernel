@@ -86,6 +86,12 @@ Object.subclass('lively.morphic.Morph',
         var v = this.morphicGetter('Visible')
         return v === undefined ? true : v;
     },
+    setZIndex: function(index) {
+        return this.morphicSetter('ZIndex', index);
+    },
+    getZIndex: function() {
+        return this.morphicGetter('ZIndex') || null;
+    },
     setOrigin: function(value) {
         // deprecated
         this.adjustOrigin(value);

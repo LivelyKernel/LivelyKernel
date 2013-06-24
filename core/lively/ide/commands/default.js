@@ -53,7 +53,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     escape: "esc",
     closeActiveWindow: "cmd-esc",
     windowNavigation: {mac: "cmd-`", win: "ctrl-`"},
-    resetKeyBindings: 'C-c r k'
+    resetKeyBindings: 'F8'
 });
 
 }) // end of module

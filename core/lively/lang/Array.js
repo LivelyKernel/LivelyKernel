@@ -828,9 +828,44 @@ var Interval = {
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Global
-///////////////////////////////////////////////////////////////////////////////
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-// DEPRECATED!
+lively.ArrayProjection = {
+
+    create: function(array, length, optStartIndex) {
+        var startIndex = optStartIndex || 0
+        if (startIndex + length > array.length)
+            startIndex -= startIndex + length - array.length;
+        return {array: array, from: startIndex, to: startIndex+length}
+    },
+
+    toArray: function(projection) {
+        return projection.array.slice(projection.from, projection.to);
+    },
+
+    originalToProjectedIndex: function(projection, index) {
+        if (index < projection.from || index >= projection.to) return null;
+        return index - projection.from;
+    },
+
+    projectedToOriginalIndex: function(projection, index) {
+        if (index < 0  || index > projection.to - projection.from) return null;
+        return projection.from + index;
+    },
+
+    transformToIncludeIndex: function(projection, index) {
+        if (!(index in projection.array)) return null;
+        var delta = 0;
+        if (index < projection.from) delta = -projection.from+index;
+        if (index >= projection.to) delta = index-projection.to+1;
+        if (delta === 0) return projection;
+        return this.create(
+            projection.array,
+            projection.to-projection.from,
+            projection.from+delta);
+    }
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Deperectaed Global
 Global.$A = Array.from;

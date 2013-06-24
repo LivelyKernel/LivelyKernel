@@ -543,11 +543,59 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.DateTest', {
         this.assertEquals('4 hours ago', d2.relativeTo(d1));
     }
 });
+
 TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
     testTableize: function() {
         this.assertEqualState([["a", "b", "c"], ["d", "e", "f"]], Strings.tableize('a b c\nd e f'));
         this.assertEqualState([["a", 1, "c"], ["d", 2, "f"]], Strings.tableize('a 1 c\nd 2 f'));
         this.assertEqualState([["Date"], [new Date('06/11/2013')]], Strings.tableize('Date\n06/11/2013'));
+    }
+});
+
+TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayProjection', {
+
+    testCreateProjection: function() {
+        var sut = lively.ArrayProjection;
+        // array = ["A","B","C","D","E","F","G","H","I","J"]
+        var array = Array.range(65,74).map(function(i) { return String.fromCharCode(i); });
+        this.assertEqualState({array: array, from: 0, to: 3}, sut.create(array, 3));
+        this.assertEqualState({array: array, from: 2, to: 5}, sut.create(array, 3, 2));
+        this.assertEqualState({array: array, from: 7, to: 10}, sut.create(array, 3, 9));
+    },
+
+    testGetProjection: function() {
+        var sut = lively.ArrayProjection;
+        // array = ["A","B","C","D","E","F","G","H","I","J"]
+        var array = Array.range(65,74).map(function(i) { return String.fromCharCode(i); }),
+            projection = {array: array, from: 5, to: 8},
+            result = sut.toArray(projection);
+        this.assertEquals(["F","G","H"], result);
+    },
+
+    testProjectionIndices: function() {
+        var sut = lively.ArrayProjection;
+        var array = Array.range(65,74).map(function(i) { return String.fromCharCode(i); }),
+            projection = {array: array, from: 5, to: 8},
+            result = sut.toArray(projection);
+        this.assertEquals(null, sut.originalToProjectedIndex(projection, 2), 'orig index to projected 2');
+        this.assertEquals(0, sut.originalToProjectedIndex(projection, 5), 'orig index to projected 5');
+        this.assertEquals(2, sut.originalToProjectedIndex(projection, 7), 'orig index to projected 7');
+        this.assertEquals(null, sut.originalToProjectedIndex(projection, 9), 'orig index to projected 9');
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        this.assertEquals(7, sut.projectedToOriginalIndex(projection, 2), 'orig index to projected 2');
+        this.assertEquals(5, sut.projectedToOriginalIndex(projection, 0), 'orig index to projected 0');
+        this.assertEquals(null, sut.projectedToOriginalIndex(projection, 4), 'orig index to projected 4');
+    },
+
+    testMoveProjectionToIncludeIndex: function() {
+        var sut = lively.ArrayProjection;
+        var array = Array.range(65,74).map(function(i) { return String.fromCharCode(i); }),
+            projection = sut.create(array, 3, 2);
+        this.assertEqualState(projection, sut.transformToIncludeIndex(projection, 3));
+        this.assertEqualState({array: array, from: 1, to: 4}, sut.transformToIncludeIndex(projection, 1));
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var array = [1,2,3,4,5], projection = sut.create(array, 3);
+        this.assertEquals(array[3], sut.toArray(sut.transformToIncludeIndex(projection, 3)).last());
     }
 });
 

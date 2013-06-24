@@ -1,4 +1,4 @@
-module('lively.ide.tools.Differ').requires('lively.ide.CommandLineInterface').toRun(function() {
+module('lively.ide.tools.Differ').requires('lively.persistence.BuildSpec', 'lively.ide.CommandLineInterface').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.Differ', {
     _BorderColor: Color.rgb(204,0,0),

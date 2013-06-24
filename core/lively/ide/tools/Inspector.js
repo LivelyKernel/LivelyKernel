@@ -1,4 +1,4 @@
-module('lively.ide.tools.Inspector').requires('lively.morphic.Widgets', 'lively.ide.CodeEditor').toRun(function() {
+module('lively.ide.tools.Inspector').requires('lively.persistence.BuildSpec', 'lively.morphic.Widgets', 'lively.ide.CodeEditor').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.Inspector', {
     _BorderColor: Color.rgb(204,0,0),

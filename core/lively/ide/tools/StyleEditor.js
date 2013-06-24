@@ -1,4 +1,4 @@
-module('lively.ide.tools.StyleEditor').requires('lively.morphic.Widgets').toRun(function() {
+module('lively.ide.tools.StyleEditor').requires('lively.persistence.BuildSpec', 'lively.morphic.Widgets').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.StyleEditor', {
     _BorderColor: Color.rgb(204,0,0),
@@ -358,7 +358,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
                 function (bool) {
                                 var style = {},
-                        			prop = this.sourceObj.layoutProperty;
+                            		prop = this.sourceObj.layoutProperty;
                         		style[prop] = bool;
                         		return style
                         	}});

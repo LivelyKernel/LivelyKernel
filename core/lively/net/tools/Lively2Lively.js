@@ -1,4 +1,4 @@
-module('lively.net.tools.Lively2Lively').requires().toRun(function() {
+module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     _BorderRadius: 20,

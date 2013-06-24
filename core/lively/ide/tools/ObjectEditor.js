@@ -1,4 +1,4 @@
-module('lively.ide.tools.ObjectEditor').requires().toRun(function() {
+module('lively.ide.tools.ObjectEditor').requires('lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     _BorderColor: Color.rgb(204,0,0),

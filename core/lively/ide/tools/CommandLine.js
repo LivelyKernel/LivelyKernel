@@ -1,4 +1,4 @@
-module('lively.ide.tools.CommandLine').requires('lively.ide.CodeEditor').toRun(function() {
+module('lively.ide.tools.CommandLine').requires('lively.persistence.BuildSpec', "lively.ide.CodeEditor").toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.CommandLine', {
     name: "CommandLine",

@@ -1,4 +1,4 @@
-module('lively.ide.tools.Terminal').requires('lively.ide.tools.CommandLine', 'lively.ide.CommandLineInterface').toRun(function() {
+module('lively.ide.tools.Terminal').requires('lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.Terminal', {
     _BorderColor: Color.rgb(204,0,0),

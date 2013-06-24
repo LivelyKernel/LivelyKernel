@@ -187,6 +187,7 @@ lively.morphic.Morph.addMethods(
         borderColor: { map: 'shape._BorderColor'},
 
         fill: { map: 'shape._Fill'},
+        setFill: {},
 
         extent: { map: 'shape._Extent'},
 

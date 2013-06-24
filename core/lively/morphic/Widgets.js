@@ -2985,20 +2985,13 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         this.defaultInput = defaultInput;
     },
     buildTextInput: function(bounds) {
-        var input = new lively.morphic.Text(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)), this.defaultInput || '');
+        var input = lively.BuildSpec("lively.ide.tools.CommandLine").createMorph();
+        input.textString = this.defaultInput || '';
+        input.setBounds(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)));
         input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));
-        input.beInputLine({fixedWidth: true});
-        input.disableDragging();
-        input.disableGrabbing();
-        connect(input, 'savedTextString', this, 'result');
-        connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
-        connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
-        // addScript is a bit of a hack because the function in addScript
-        // doesn't close over "input", apparently...
-        this.panel.addScript(function onEnterPressed(evt) {
-            evt.stop();
-        });
-        connect(this.panel, 'onEnterPressed', input, 'doSave', {converter: function(arg) { return arg } });
+        lively.bindings.connect(input, 'savedTextString', this, 'result');
+        lively.bindings.connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
+        lively.bindings.connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
         this.inputText = this.panel.addMorph(input);
     },
 
@@ -3021,6 +3014,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         // sometimes the final pos of the dialog is different to the pos here
         // so dialog will open at wrong place, focus, world scrolls to the top,
         // dialog is moved and out of frame
+        this.inputText.focus();
         this.inputText.selectAll.bind(this.inputText).delay(0);
         return view;
     },

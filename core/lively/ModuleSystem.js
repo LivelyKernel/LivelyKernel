@@ -312,7 +312,7 @@ Object.subclass('lively.Module',
         if (!libSpec.load) {
             var mod = this;
             libSpec.load = function() {
-                if (this.loadTest()) return; // already loaded
+                if (this.loadTest()) { mod.load(); return; }// already loaded
                 var url = this.url || this.uri;
                 url && JSLoader.loadJs(String(url), null, !!this.sync);
                 if (!this.sync) mod.initLibLoadTester();
@@ -486,7 +486,6 @@ Object.extend(lively.Module, {
 			.select(function(ea) {
 				return ea.isLoaded() && new WebResource(ea.uri()).exists(); });
     },
-
 
     topologicalSortLoadedModules: function() {
         if (lively.Config.standAlone) {

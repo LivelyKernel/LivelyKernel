@@ -2,12 +2,12 @@ module('lively.ide.tools.SelectionNarrowing').requires("lively.ide.tools.Command
 
 lively.BuildSpec('lively.ide.tools.NarrowingList', {
     _ClipMode: "hidden",
-    _Extent: lively.pt(900.0,288.0),
-    _Position: lively.pt(93.0,2132.0),
+    _Extent: lively.pt(900.0,138.0),
+    _Position: lively.pt(510.0,801.0),
     _StyleClassNames: ["Box","Morph","tab-list"],
     _StyleSheet: ".tab-list {\n\
     background-color: rgba(1,1,1,0.5);\n\
-    border-radius: 5px;\n\
+    border-radius: 5px !important;\n\
 }\n\
 \n\
 .tab-list-item span {\n\
@@ -15,74 +15,130 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
 	font-size: 14pt;\n\
 	color: white !important;\n\
 	font-width: bold !important;\n\
-	text-shadow: none          !important;\n\
+	text-shadow: none                             !important;\n\
 }\n\
 \n\
 .tab-list-item.selected {\n\
 	font-weight: normal;\n\
 	background-color: rgba(1,1,1,0.4);\n\
 	border-radius: 5px !important;\n\
+	box-shadow: inset 0 0 8px white;\n\
 	border: 0px white solid !important;\n\
 }",
     _Visible: true,
     _ZIndex: 1000,
     className: "lively.morphic.Box",
     connections: {
-        confirmedSelection: {}
+        confirmedSelection: {},
+        escapePressed: {},
+        selection: {}
     },
     currentSel: 0,
-    doNotSerialize: ["state","settings"],
-    isEpiMorph: true,
+    doNotSerialize: ["timeOpened","state"],
     droppingEnabled: true,
     initialSelection: 1,
+    isEpiMorph: true,
     name: "NarrowList",
     settings: {
         inputLineHeight: 18,
         listItemHeight: 30,
-        maxExtent: lively.pt(900.0,500.0),
+        maxExtent: lively.pt(900.0,919.0),
+        maxListItems: 30,
         padding: 20
     },
     showDelay: 700,
     sourceModule: "lively.morphic.Core",
+    state: null,
     submorphs: [],
+    candidateToString: function candidateToString(candidate) {
+    var string;
+    if (!candidate || Object.isString(candidate)) {
+        string = String(candidate);
+    } else if (candidate.isListItem) {
+        string = candidate.string;
+    } else {
+        string = 'Cannot render ' + candidate;
+    }
+    return string;
+},
+    ensureItems: function ensureItems(length, layout) {
+    var container = this;
+    function createListItem(string, i) {
+        var height = layout.listItemHeight,
+            width = layout.maxExtent.x,
+                text = lively.morphic.Text.makeLabel(string, {
+                position: pt(0, i*height),
+                extent: pt(width, height),
+                fixedHeight: true, fixedWidth: false
+            });
+        container.addMorph(text);
+        text.addStyleClassName('tab-list-item');
+        text.isListItemMorph = true;
+        text.name = String(i);
+        text.index = i;
+        return text;
+    }
+
+    var listItems = container.getListItems();
+    if (listItems.length > length) {
+        listItems.slice(length).invoke('setTextString', '');
+        listItems.slice(length).invoke("removeStyleClassName", "selected");
+        listItems = listItems.slice(0,length);
+    } else if (listItems.length < length) {
+        var newItems = Array.range(listItems.length, length-1).collect(function(i) {
+            return createListItem('', i); });
+        listItems = listItems.concat(newItems);
+    }
+    return listItems;
+},
     filter: function filter(filter) {
     // this.filter('tjZ');
     // this.filter(null);
-
     var container = this,
-        unfiltered = this.state.unfilteredListItems || (this.state.unfilteredListItems = this.getVisibleListItems().pluck('realItem')),
-        filtered = unfiltered;
-    if (filter && filter.length > 0) {
-        var regexps = filter.split(' ').map(function(part) {
-            return new RegExp(part, 'ig'); });
-        filtered = unfiltered
-            .select(function(ea) {
-                return regexps.all(function(re) {
-                    var string = container.realItemToString(ea);
-                    return string.match(re); }); });
-    }
-    this.renderList(filtered, this.settings);
+        list = this.state.allCandidates,
+        regexps = this.state.filters = filter.split(' ')
+            .map(function(part) { try { return new RegExp(part, 'i'); } catch(e) { return null } })
+            .compact(),
+        filteredList = list.select(function(ea) {
+            return regexps.all(function(re) {
+                var string = container.candidateToString(ea);
+                return string.match(re); }); });
+    var prevFiltered = this.state.filteredCandidates;
+    if (prevFiltered.equals(filteredList)) return;
+    this.state.previousCandidateProjection = null;
+    this.state.filteredCandidates = filteredList;
     this.selectN(0);
 },
     getListItems: function getListItems() {
+    // this.getListItems().invoke('getStyleClassNames').join('\n')
     return this.submorphs.select(function(ea, i) {
         return ea.isListItemMorph; })
 },
-    getVisibleListItems: function getVisibleListItems() {
-    return this.getListItems().select(function(ea, i) {
-        return ea.textString !== ''; })
+    initLayout: function initLayout(noOfCandidates) {
+    var visibleBounds = lively.morphic.World.current().visibleBounds(),
+        layout = {
+            listItemHeight: 30,
+            inputLineHeight: 18,
+            padding: 20,
+            // computed below:
+            maxExtent: null,
+            maxListItems: null,
+            noOfCandidatesShown: null
+        };
+    layout.maxExtent = lively.pt(
+        Math.min(visibleBounds.extent().x - 2*layout.padding, 900),
+        visibleBounds.extent().y - 2*layout.padding);
+    layout.maxListItems = Math.floor(
+        (layout.maxExtent.y-layout.inputLineHeight) / layout.listItemHeight);
+    layout.noOfCandidatesShown = Math.min(layout.maxListItems, noOfCandidates);
+    return layout;
 },
-    initSettings: function initSettings() {
-    var visibleBounds = lively.morphic.World.current().visibleBounds();
-    this.settings = {};
-    this.settings.listItemHeight = 30;
-    this.settings.inputLineHeight = 18;
-    this.settings.padding = 20;
-    this.settings.maxExtent = lively.pt(
-        Math.min(visibleBounds.extent().x - 2*this.settings.padding, 900),
-        500/*visibleBounds.extent().y - 2*padding*/);
-    return this.settings;
+    onFocus: function onFocus() {
+    this.get('inputLine').focus();
 },
+    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        this.reset();
+    },
     onKeyDown: function onKeyDown(evt) {
     var modifierPressed = evt.isCtrlDown() || evt.isCommandKey();
     if (modifierPressed && evt.keyCode === 192) { // \"`\" key
@@ -110,99 +166,99 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     // this.closeAndPromoteWindow();
     // return true;
 },
-    onFocus: function() {
-        this.get('inputLine').focus();
-    },
-    onSelectionConfirmed: function onSelectionConfirmed(item) {
-    lively.bindings.signal(this, 'confirmedSelection', item && item.value ? item.value : item);
+    onSelectionConfirmed: function onSelectionConfirmed() {
+    var item = this.state.filteredCandidates[this.currentSel],
+        val = item && typeof item.value !== "undefined" ? item.value : item;
+    lively.bindings.signal(this, 'confirmedSelection', val);
+    if (this.state.spec.actions && this.state.spec.actions[0]) this.state.spec.actions[0](val);
 },
-    open: function open(list, settings) {
-    var settings = this.initSettings(settings);
-    this.state = {};
-    this.renderContainer(list, settings);
-    this.renderList(list, settings);
-    this.renderInputline(settings);
-    this.selectN(0);
-    this.focus();
-},
-    realItemToString: function realItemToString(realItem) {
-    var string;
-    if (!realItem || Object.isString(realItem)) {
-        string = String(realItem);
-    } else if (realItem.isListItem) {
-        string = realItem.string;
-    } else {
-        string = 'Cannot render ' + realItem;
+    open: function open(spec) {
+    //  spec can be:
+    //     narrowSpec = {
+    //         init: function(whenDone) {},
+    //         candidates: /*list ||*/function(func) {},
+    //         ?prompt: 'string',
+    //         preselect: 0,/*index || candidate*/
+    //         ?keymap: {/*maps keyStrings to actions*/},
+    //         ?history: [/*previous inputs*/],
+    //         actions [/*list of functions receiving selected candidate*/],
+    //         close: function() {},
+    //         ?test: function(filter, candidate) {/**/},
+    //         ?sort
+    //     }
+    var narrower = this;
+    function run() {
+        var candidates = Object.isArray(spec.candidates) ?
+            spec.candidates : spec.candidates();
+        spec.actions = spec.actions || [Functions.Null];
+        var s = narrower.state = {
+            spec: spec,
+            layout: narrower.initLayout(spec.maxItems || candidates.length),
+            allCandidates: candidates,
+            filteredCandidates: candidates,
+            previousCandidateProjection: null,
+            filters: []
+        };
+        narrower.renderContainer(s.layout);
+        narrower.renderInputline(s.layout);
+        narrower.selectN(spec.preselect || 0);
+        narrower.focus();
     }
-    return string;
+    if (spec.init) spec.init(run); else run();
 },
-    renderContainer: function renderContainer(list, settings) {
-    this.setVisible(true);
+    renderContainer: function renderContainer(layout) {
     if (!this.owner) this.openInWorld();
+    if (!this.isVisible()) this.setVisible(true);
     var visibleBounds = lively.morphic.World.current().visibleBounds();
     this.setExtent(visibleBounds.extent()
-        .withY(settings.listItemHeight*list.length+settings.inputLineHeight)
-        .minPt(settings.maxExtent));
-    this.align(this.bounds().bottomCenter(), visibleBounds.bottomCenter().addXY(0, -this.settings.padding));
+        .withY(layout.listItemHeight*layout.noOfCandidatesShown+layout.inputLineHeight)
+        .minPt(layout.maxExtent));
+    this.align(
+        this.bounds().bottomCenter(),
+        visibleBounds.bottomCenter().addXY(0, -layout.padding));
 },
-    renderInputline: function renderInputline(settings) {
-    var inputLine = this.get('inputLine');
+    renderInputline: function renderInputline(layout) {
+    var inputLine = this.getMorphNamed('inputLine');
     if (!inputLine) {
         inputLine = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
         inputLine.name = 'inputLine';
         this.addMorph(inputLine);
-        inputLine.setExtent(pt(this.getExtent().x, settings.inputLineHeight));
+        inputLine.setExtent(pt(this.getExtent().x, layout.inputLineHeight));
         inputLine.setTheme('ambiance');
         inputLine.jQuery('.ace-scroller').css({'background-color': 'rgba(32, 32, 32, 0.3)'});
         lively.bindings.connect(inputLine, 'textString', this, 'filter');
-        lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed', {converter: function() {
-            var selected = this.targetObj.getVisibleListItems()[this.targetObj.currentSel];
-            return selected && selected.realItem; }});
+        lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed');
         inputLine.clearOnInput = false;
     }
-    inputLine.setPosition(pt(0, this.getExtent().y-settings.inputLineHeight));
+    this
+    inputLine.setPosition(pt(0, this.getExtent().y-layout.inputLineHeight));
 },
-    renderList: function renderList(list, settings) {
+    renderList: function renderList(candidates, prevSel, currentSel, layout) {
+    prevSel = prevSel || 0; currentSel = currentSel || 0;
+
+    if (candidates.length === 0) {
+        this.ensureItems(0, layout);
+        return;
+    }
+
     var container = this,
-        listItemHeight = settings.listItemHeight || 30,
-        inputLineHeight = settings.inputLineHeight || 30,
-        maxExtent = settings.maxExtent,
-        maxListItems = Math.floor((maxExtent.y-inputLineHeight) / listItemHeight);
+        prevProj = this.state.previousCandidateProjection || lively.ArrayProjection.create(candidates, Math.min(candidates.length, layout.noOfCandidatesShown), prevSel),
+        proj = lively.ArrayProjection.transformToIncludeIndex(prevProj, currentSel);
+    this.state.previousCandidateProjection = proj;
+// show('prev candidates %o', prevProj)
+// show('candidates %o', proj)
 
-    function createListItem(string, i) {
-        var text = lively.morphic.Text.makeLabel(string, {
-            position: pt(0, i*listItemHeight),
-            extent: pt(maxExtent.x, listItemHeight),
-            fixedHeight: true, fixedWidth: false
-        });
-        container.addMorph(text);
-        text.addStyleClassName('tab-list-item');
-        text.fit();
-        text.isListItemMorph = true;
-        text.name = String(i);
-        text.index = i;
-        return text;
-    }
-
-    function ensureItems(length) {
-        var listItems = container.getListItems();
-        if (listItems.length > length) {
-            listItems.slice(length).invoke('remove');
-            listItems.length = length;
-        } else if (listItems.length < length) {
-            var newItems = Array.range(listItems.length, length).collect(function(i) { return createListItem('', i); });
-            listItems = listItems.concat(newItems);
-        }
-        return listItems;
-    }
-
-    var items = ensureItems(maxListItems)
-    items.forEach(function(item, i) {
-        if (!(i in list)) {
-            delete item.realItem; item.textString = ''; return; }
-        var realItem = list[i], string = this.realItemToString(realItem);
-        item.realItem = realItem || string;
+    var projectedCandidates = lively.ArrayProjection.toArray(proj),
+        projectedCurrentSelection = lively.ArrayProjection.originalToProjectedIndex(proj, currentSel);
+    this.ensureItems(projectedCandidates.length, layout).forEach(function(item, i) {
+        var candidate = projectedCandidates[i], string = this.candidateToString(candidate);
+        item.candidate = candidate || string;
         item.textString = string;
+        if (i === projectedCurrentSelection) {
+            item.addStyleClassName('selected');
+        } else {
+            item.removeStyleClassName("selected");
+        }
     }, this);
 },
     reset: function reset() {
@@ -210,39 +266,59 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     this.connections = {confirmedSelection: {}, selection: {}, escapePressed: {}};
     this.getPartsBinMetaInfo().addRequiredModule('lively.ide.tools.CommandLine');
     this.removeAllMorphs();
+    this.currentSel = 0;
     this.initialSelection = 1; // index to select
     this.showDelay = 700; // ms
-    this.doNotSerialize = ['timeOpened', 'state', 'settings'];
+    this.doNotSerialize = ['timeOpened', 'state'];
     this.state = null;
     this.applyStyle({clipMode: 'hidden'});
     this.setZIndex(1000);
+    
+".tab-list {\n"
++ "    background-color: rgba(1,1,1,0.5);\n"
++ "	border-radius: 5px;\n"
++ "}\n"
++ 
++ ".tab-list-item span {\n"
++ "	font-family: Verdana;\n"
++ "	font-size: 14pt;\n"
++ "	color: white !important;\n"
++ "	font-width: bold !important;\n"
++ "	text-shadow: none           !important;\n"
++ "}\n"
++ 
++ ".tab-list-item.selected {\n"
++ "	font-weight: normal;\n"
++ "	background-color: rgba(1,1,1,0.4);\n"
++ "	border-radius: 5px !important;\n"
++ "	border: 0px white solid !important;\n"
++ "}"
 },
     selectCurrent: function selectCurrent() {
     this.currentSel = (this.currentSel || 0);
     if (!this.submorphs[this.currentSel]) this.currentSel = 0;
-    if (this.submorphs[this.currentSel]) this.selectN(this.currentSel, true);
+    if (this.submorphs[this.currentSel]) this.selectN(this.currentSel);
 },
-    selectN: function selectN(n, suppressSelfPromote) {
-    var listItems = this.getVisibleListItems(),
-        item = listItems[n];
-    if (!item) return;
-    listItems.invoke("removeStyleClassName", "selected");
-    item.addStyleClassName('selected');
-    this.currentSel = n;
+    selectN: function selectN(n) {
+    var candidates = this.state.filteredCandidates,
+        item = candidates[n];
+    this.renderList(candidates, this.currentSel, n, this.state.layout);
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    var selection = this.getVisibleListItems()[n].realItem;
-    selection && selection.value && (selection = selection.value);
-    lively.bindings.signal(this, 'selection', selection);
+    this.currentSel = n;
+    if (item && item.value) item = item.value;
+    lively.bindings.signal(this, 'selection', item);
 },
     selectNext: function selectNext() {
-    this.currentSel = (this.currentSel || 0) + 1;
-    if (!this.getVisibleListItems()[this.currentSel]) this.currentSel = 0;
-    this.selectN(this.currentSel);
+    var idx = (this.currentSel || 0) + 1;
+    var candidates = this.state.filteredCandidates;
+    if (!candidates[idx]) idx = 0;
+    this.selectN(idx);
 },
     selectPrev: function selectPrev() {
-    this.currentSel = (this.currentSel || 0) - 1;
-    if (!this.getVisibleListItems()[this.currentSel]) this.currentSel = this.getVisibleListItems().length - 1;
-    this.selectN(this.currentSel);
+    var idx = (this.currentSel || 0) - 1;
+    var candidates = this.state.filteredCandidates;
+    if (!candidates[idx]) idx = candidates.length-1;
+    this.selectN(idx);
 },
     test: function test() {
     // this.test();
@@ -255,24 +331,25 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             return String.fromCharCode(Numbers.random(65, 120));
         }).join('')
     }
-    var list = Array.range(1,Numbers.random(5,10)).map(function(i) {
+    var list = Array.range(1,20000).map(function(i) {
         return {
             isListItem: true,
-            string: randomString(Numbers.random(30, 100)),
+            string: i + ' ' + randomString(Numbers.random(30, 100)),
             value: i
         };
     });
 
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    var settings = this.initSettings();
-    this.state = {};
-    this.renderContainer(list, settings);
-    this.renderList(list, settings);
-    this.renderInputline(settings);
-},
-    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-        this.reset();
+    var spec = {
+        init: function(run) { show('init done!'); run(); },
+        candidates: list,
+        preselect: 3,
+        actions: [function(candidate) { show('selected ' + candidate); }],
+        close: function() { show('narrower closed'); }
     }
-});
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    this.open(spec);
+}
+})
 
 }) // end of module

@@ -15,6 +15,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
         win && win.comeForward();
     },
     showWindow: function(win) {
+        if (!win) return;
         if (this.showWindowCaller && this.showWindowTarget === win) return;
         if (this.showWindowCaller) { Global.clearInterval(this.showWindowCaller); delete this.showWindowCaller; }
         this.showWindowTarget = win;
@@ -42,15 +43,22 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
         if (!list) {
             list = this.narrowList = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
         }
-        this.currentWindow = this.root.world().getActiveWindow();
         lively.bindings.connect(list, 'confirmedSelection', this, 'makeWindowActive');
         lively.bindings.connect(list, 'selection', this, 'showWindow');
         lively.bindings.connect(list, 'confirmedSelection', this, 'resetList', {converter:
             function() { return this.sourceObj; }});
         lively.bindings.connect(list, 'escapePressed', this, 'resetListAndRevertActiveWindow');
-        var windows = this.getWindows().reverse().rotate().map(function(ea, i) {
-            return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; });
-        list.open(windows);
+        var windows = this.getWindows().reverse()
+        var firstIsActive = windows[0] && windows[0].highlighted ? 1 : 0;
+        var spec = {
+            preselect: firstIsActive ? 1 : 0,
+            maxItems: 20,
+            candidates: windows.map(function(ea, i) {
+                return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; }),
+            // actions: [function(candidate) { show('selected ' + candidate); }],
+            // close: function() { show('narrower closed'); }
+        }
+        list.open(spec);
         return this;
     }
 

@@ -163,7 +163,7 @@ Object.extend(lively.Sound.AbstractSound, {
     bachFugueOn: function(aSound) {
         // Play a fugue by J. S. Bach using the given sound as the sound for all four voices.
         // AbstractSound.bachFugue().play()
-        var mix = lively.Sound.MixedSound.default(); 
+        var mix = new lively.Sound.MixedSound; 
         mix.add(this.bachFugueV1On(aSound), 1.0);
         mix.add(this.bachFugueV2On(aSound), 0.0);
         mix.add(this.bachFugueV3On(aSound), 1.0);
@@ -1096,6 +1096,11 @@ lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
         this.indexIncrement = (this.pitch * monoSampleCount) / (this.samplingRate());
         return this.reset();
     },
+    initialize: function($super) {
+        $super();
+        this.setPitchDurLoudness(220, 2.0, 0.3);
+    },
+
 
     copy: function($super) { 
         var snd = $super();
@@ -1157,8 +1162,8 @@ lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
 
 
 Object.extend(lively.Sound.PluckedSound, { 
-    default: function() {
-    	// lively.Sound.PluckedSound.default().play();
+    example: function() {
+    	// lively.Sound.PluckedSound.example().play();
     	//  This one is so brief that it is still mostly noise...
     	//     (new lively.Sound.PluckedSound).setPitchDurLoudness(60, 0.05, 0.5).play();
     	var snd = new lively.Sound.PluckedSound;
@@ -1263,13 +1268,13 @@ lively.Sound.AbstractSound.subclass("lively.Sound.FMSound", {
 });
 
 Object.extend(lively.Sound.FMSound, { 
-    default: function() {
-        // lively.Sound.FMSound.default().play();
-        // lively.Sound.AbstractSound.bachFugueOn(lively.Sound.FMSound.default()).play();
+    example: function() {
+        // lively.Sound.FMSound.example().play();
+        // lively.Sound.AbstractSound.bachFugueOn(lively.Sound.FMSound.example()).play();
         var snd = new lively.Sound.FMSound;
         snd.setModulationRatio(0.3, 3);
         var p = [pt(0,0), pt(100,1), pt(200,1), pt(300, 0)];
-        snd.addEnvelope(new Envelope('volume', 0.5).setPointsLoopStartLoopEnd(p, 1, 2));
+        snd.addEnvelope(new lively.Sound.Envelope('volume', 0.5).setPointsLoopStartLoopEnd(p, 1, 2));
         return snd.setPitchDurLoudness(440, 1, 0.5);
     },
 
@@ -1495,7 +1500,7 @@ Object.subclass("lively.Sound.Envelope", {
         if (dur == null) dur = this.attackMS + this.decayMS + this.loopMS*2.67;
         var step = this.controlInterval();
 
-        var panel = Morph.makeRectangle(new Rectangle (0, 0, (dur/step)*2 + 50, 160));
+        var panel = lively.morphic.Morph.makeRectangle(new Rectangle (0, 0, (dur/step)*2 + 50, 160));
         panel.setFill(Color.lightGray); 
         panel.openInWorld();
     	var xOrigin = 30;
@@ -1507,12 +1512,12 @@ Object.subclass("lively.Sound.Envelope", {
 
         // Make some axes and loop markers
         var p = pt(xOrigin, yOrigin);
-        panel.addMorph(Morph.makeLine([p, p.addXY((dur/step)*2, 0)]));
-        panel.addMorph(Morph.makeLine([p, p.addXY(0, -100)])); 
+        panel.addMorph(lively.morphic.Morph.makeLine([p, p.addXY((dur/step)*2, 0)]));
+        panel.addMorph(lively.morphic.Morph.makeLine([p, p.addXY(0, -100)])); 
         p = pt(xOrigin + (this.attackMS/step)*2, yOrigin);
-        panel.addMorph(Morph.makeLine([p, p.addXY(0, -100)]));
+        panel.addMorph(lively.morphic.Morph.makeLine([p, p.addXY(0, -100)]));
         p = pt(xOrigin + ((this.attackMS + this.loopMS)/step)*2, yOrigin);
-        panel.addMorph(Morph.makeLine([p, p.addXY(0, -100)]));
+        panel.addMorph(lively.morphic.Morph.makeLine([p, p.addXY(0, -100)]));
 
     	var x = xOrigin;
         var pts = [];
@@ -1521,7 +1526,7 @@ Object.subclass("lively.Sound.Envelope", {
     		var y = yOrigin - ((v - minVal) * yScale);
     		pts.push(pt(x, y));
     		x = x + 2; };  // 2 pix per control interval
-        panel.addMorph(Morph.makeLine(pts, 2, Color.green));
+        panel.addMorph(lively.morphic.Morph.makeLine(pts, 2, Color.green));
     },
 
     interpolateBetween: function(mSecs, i1, i2) {
@@ -1639,13 +1644,8 @@ lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
 
 
 Object.extend(lively.Sound.SequentialSound, { 
-    default: function() {
-    	// lively.Sound.AbstractSound.majorScaleOn(lively.Sound.PluckedSound.default()).play();
-    	var snd = new lively.Sound.PluckedSound;
-    	//var env = lively.Sound.Envelope.withPointsStartEnd([[0, 1], [10, 1], [20, 0]], 2, 2);
-    	//env.setTargetScale(snd, 0.3);
-    	//snd.addEnvelope(env);
-        return snd.setPitchDurLoudness(220, 2.0, 0.3);
+    example: function() {
+    	// lively.Sound.AbstractSound.majorScaleOn(new lively.Sound.PluckedSound).play();
     }
 });
 
@@ -1680,7 +1680,7 @@ lively.Sound.AbstractSound.subclass("lively.Sound.RestSound", {
 
 
 Object.extend(lively.Sound.RestSound, { 
-    default: function() {
+    example: function() {
     	var snd = new lively.Sound.RestSound;
         return snd.setPitchDurLoudness(220, 2.0, 0.3);
     }
@@ -1755,9 +1755,8 @@ lively.Sound.AbstractSound.subclass("lively.Sound.MixedSound", {
 
 
 Object.extend(lively.Sound.MixedSound, { 
-    default: function() {
+    example: function() {
         var mix = new lively.Sound.MixedSound;
-        mix.initialize();
         return mix;
     }
 });
@@ -1773,71 +1772,58 @@ lively.Sound.AbstractSound.subclass("lively.Sound.RepeatingSound", {
     },
 
     samplesRemaining: function() {
-        if (this.sounds == null || this.sounds.length == 0) return 0;
-        var samps = this.sounds.collect(function(snd) { return snd.samplesRemaining(); });
-        return Math.max.apply(null, samps);
+        if (!this.sound) return 0;
+        return this.sound.samplesRemaining();
     },
 
-    setSoundAndCount: function(aSound, count) {
+    setSoundAndCount: function(aSound, count, repeatTime) {
         // Initialize the sound and count.
         // If the count is the symbol -1, then repeat indefinitely.
-        // (RepeatingSound repeat: AbstractSound scaleTest count: 2) play
-        // (RepeatingSound repeatForever: PluckedSound lowMajorScale) play
 
         this.initialize();
         this.sound = aSound;
         this.iterationCount = count;
+        this.repeatTime = repeatTime;
         this.reset();
     },
 
     initialize: function($super) {
-        this.sounds = [];
-        this.leftVols = [];
-        this.rightVols = [];
         $super();
         return this;
     },
 
     copy: function($super) { 
         var copy = $super();
-        copy.sounds = this.sounds.collect(function(snd) { return snd.copy();});
-        copy.leftVols = this.leftVols.copy();
-        copy.rightVols = this.rightVols.copy();
+        copy.sound = sound.copy();
+        copy.iterationCount = this.iterationCount;
+        copy.repeatTime = this.repeatTime;
         return copy;
     },
 
     reset: function($super) {
         $super(); 
-        this.sounds.forEach(function(snd) {snd.reset();});
+        this.sound.reset();
         return this;
     },
 
     doControl: function($super, msPast) {
         $super(msPast);
-        this.sounds.forEach(function(snd) {snd.doControl(msPast);});
+        this.sound.doControl(msPast);
     },
 
     mixSamplesToBuffer: function(n, buffer, startIndex, leftVol, rightVol) {
-        // Play a number of sounds concurrently.
-        // The level of each sound can be set independently for the left and right channels.
-        var nSounds = this.sounds.length;
-        for (var i=0; i<nSounds; i++) {
-            var snd = this.sounds[i];
-            var left = leftVol*this.leftVols[i]/nSounds;
-            var right = rightVol*this.rightVols[i]/nSounds;
-        	if (snd.samplesRemaining() > 0)
-        	    snd.mixSamplesToBuffer(n, buffer, startIndex, left, right);
-        }
+        this.sound.mixSamplesToBuffer(n, buffer, startIndex, leftVol, rightVol);
     },
 
 });
 
 
 Object.extend(lively.Sound.RepeatingSound, { 
-    default: function() { 
-        var mix = new lively.Sound.RepeatingSound;
-        mix.initialize();
-        return mix;
+    example: function() {
+        // lively.Sound.RepeatingSound.example().play()
+        var repeat = new lively.Sound.RepeatingSound;
+        repeat.setSoundAndCount(lively.Sound.PluckedSound.example(), 2);
+        return repeat;
     }
 });
 

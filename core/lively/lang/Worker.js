@@ -80,7 +80,8 @@ lively.Worker = {
                     }
                 }
                 Global.LivelyMigrationSupport = {
-                    fixModuleName: function(n) { return n; }
+                    fixModuleName: function(n) { return n; },
+                    addModuleRename: function(modName) {}
                 }
                 // 2) Load bootstrap files
                 importScripts.apply(this, options.bootstrapFiles || []);

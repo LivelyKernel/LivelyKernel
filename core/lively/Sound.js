@@ -75,7 +75,8 @@ Object.subclass("lively.Sound.AbstractSound", {
             var remainingSamples = this.samplesRemaining();
             if (remainingSamples <= 0) return;
             var sampCount = Math.min(pastEnd - i, this.samplesUntilNextControl, remainingSamples);
-            this.mixSamplesToBuffer(sampCount, aSoundBuffer, i, fullVol, fullVol);
+            if (sampCount > 0)
+                this.mixSamplesToBuffer(sampCount, aSoundBuffer, i, fullVol, fullVol);
             this.samplesUntilNextControl -= sampCount;
             if (this.samplesUntilNextControl <= 0) {
                 this.doControl(sampCount/sampsPerMS);
@@ -1092,15 +1093,9 @@ lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
         if (this.pitch > 400) this.damp = 100/this.pitch;  // damp higher frequencies slower
         var monoSampleCount =  0 | (this.samplingRate() / this.pitch);  // 0 | construct gives integer part
         this.ringSize = Math.max(2, monoSampleCount);
-        this.ring = null;  // will be allocated lazily to minimize storage needs
         this.indexIncrement = (this.pitch * monoSampleCount) / (this.samplingRate());
         return this.reset();
     },
-    initialize: function($super) {
-        $super();
-        this.setPitchDurLoudness(220, 2.0, 0.3);
-    },
-
 
     copy: function($super) { 
         var snd = $super();
@@ -1113,6 +1108,7 @@ lively.Sound.AbstractSound.subclass("lively.Sound.PluckedSound", {
         this.count = this.initialCount;
         this.scaledVol = this.loudness;
         this.index = 0;
+        this.ring = null;  // will be allocated lazily to minimize storage needs
         return this;
     },
 
@@ -1645,7 +1641,8 @@ lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
 
 Object.extend(lively.Sound.SequentialSound, { 
     example: function() {
-    	// lively.Sound.AbstractSound.majorScaleOn(new lively.Sound.PluckedSound).play();
+        // lively.Sound.SequentialSound.example().play()
+    	return lively.Sound.AbstractSound.bachFragmentOn(new lively.Sound.PluckedSound);
     }
 });
 
@@ -1756,7 +1753,7 @@ lively.Sound.AbstractSound.subclass("lively.Sound.MixedSound", {
 
 Object.extend(lively.Sound.MixedSound, { 
     example: function() {
-        var mix = new lively.Sound.MixedSound;
+        var mix = new lively.Sound.MixedSound();
         return mix;
     }
 });
@@ -1772,37 +1769,33 @@ lively.Sound.AbstractSound.subclass("lively.Sound.RepeatingSound", {
     },
 
     samplesRemaining: function() {
-        if (!this.sound) return 0;
-        return this.sound.samplesRemaining();
+        if (!this.sound || this.iterationsToDo == 0) return 0;
+        return 999999;
     },
 
-    setSoundAndCount: function(aSound, count, repeatTime) {
-        // Initialize the sound and count.
+    setSoundCountTime: function(aSound, count, repeatTime) {
+        // Initialize the sound, count, and repeatTime.
         // If the count is the symbol -1, then repeat indefinitely.
+        // If the repeatTime is 0 or undefined, repeat the full duration of the sound.
 
-        this.initialize();
         this.sound = aSound;
         this.iterationCount = count;
         this.repeatTime = repeatTime;
+        if (this.repeatTime)
+            this.initialCount = 0 | (this.repeatTime * this.samplingRate());
         this.reset();
-    },
-
-    initialize: function($super) {
-        $super();
-        return this;
     },
 
     copy: function($super) { 
         var copy = $super();
-        copy.sound = sound.copy();
-        copy.iterationCount = this.iterationCount;
-        copy.repeatTime = this.repeatTime;
+        copy.sound = this.sound.copy();
         return copy;
     },
 
     reset: function($super) {
-        $super(); 
-        this.sound.reset();
+        $super();
+        if (this.sound) this.sound.reset();
+        this.iterationsToDo = this.iterationCount;
         return this;
     },
 
@@ -1812,7 +1805,23 @@ lively.Sound.AbstractSound.subclass("lively.Sound.RepeatingSound", {
     },
 
     mixSamplesToBuffer: function(n, buffer, startIndex, leftVol, rightVol) {
-        this.sound.mixSamplesToBuffer(n, buffer, startIndex, leftVol, rightVol);
+        var samplesToPlay = Math.min(n, this.sound.samplesRemaining()),
+            finished = samplesToPlay <= 0;
+        if (!finished)
+            this.sound.mixSamplesToBuffer(samplesToPlay, buffer, startIndex, leftVol, rightVol);
+        if (this.repeatTime) {
+            this.count -= n;
+            finished = this.count <= 0;
+        }
+        if (finished) {
+            if (this.iterationCount < 0)
+                this.reset();
+            else if (this.iterationsToDo > 0) {
+                if (this.repeatTime) this.count = this.initialCount;
+                this.sound.reset();
+                this.iterationsToDo--;
+            }
+        }
     },
 
 });
@@ -1821,8 +1830,10 @@ lively.Sound.AbstractSound.subclass("lively.Sound.RepeatingSound", {
 Object.extend(lively.Sound.RepeatingSound, { 
     example: function() {
         // lively.Sound.RepeatingSound.example().play()
-        var repeat = new lively.Sound.RepeatingSound;
-        repeat.setSoundAndCount(lively.Sound.PluckedSound.example(), 2);
+        var sound = new lively.Sound.PluckedSound();
+        var repeat = new lively.Sound.RepeatingSound();
+        sound.setPitchDurLoudness(400, 2, 1);
+        repeat.setSoundCountTime(sound, 2);
         return repeat;
     }
 });

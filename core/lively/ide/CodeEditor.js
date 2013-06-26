@@ -4,7 +4,7 @@ $('style#incremental-search-highlight-style-patch').remove();
 $('style#incremental-search-highlighting').remove();
 $('style#incremental-occur-highlighting').remove();
 
-module('lively.ide.CodeEditor').requires('lively.ast.acorn', 'lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.morphic').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
@@ -273,10 +273,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     onDocumentChange: function(evt) {
-        var sess = this.aceEditor.session,
-            changeHandler = sess.$changeHandler || (sess.$changeHandler = new lively.ide.CodeEditor.DocumentChangeHandler());
-        changeHandler.onDocumentChangeResetDebounced(evt, this);
-        changeHandler.onDocumentChangeDebounced(evt, this);
+        require('lively.ast.acorn').toRun(function() {
+            var sess = this.aceEditor.session,
+                changeHandler = sess.$changeHandler || (sess.$changeHandler = new lively.ide.CodeEditor.DocumentChangeHandler());
+            changeHandler.onDocumentChangeResetDebounced(evt, this);
+            changeHandler.onDocumentChangeDebounced(evt, this);
+        }.bind(this));
     },
 
     addCommands: function(commands) {
@@ -1897,161 +1899,6 @@ Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// use ace editor as workspace
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-lively.morphic.World.addMethods(
-'tools', {
-    addCodeEditor: function(options) {
-        options = Object.isString(options) ? {content: options} : (options || {}); // convenience
-        var bounds = (options.extent || lively.pt(500, 200)).extentAsRectangle(),
-            title = options.title || 'Code editor',
-            editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
-            pane = this.internalAddWindow(editor, options.title, options.position);
-        editor.applyStyle({resizeWidth: true, resizeHeight: true});
-        editor.accessibleInInactiveWindow = true;
-        editor.applyStyle(options);
-        editor.focus();
-        return pane;
-    },
-
-    openWorkspace: lively.morphic.World.prototype.openWorkspace.wrap(function($proceed, evt) {
-        if (!Config.get('useAceEditor')) { return $proceed(evt); }
-        var window = this.addCodeEditor({
-            title: "Workspace",
-            content: "3 + 4",
-            syntaxHighlighting: true,
-            theme: Config.aceWorkspaceTheme
-        });
-        window.owner.comeForward();
-        window.selectAll();
-        return window;
-    }),
-
-    openObjectEditor: lively.morphic.World.prototype.openObjectEditor.wrap(function($proceed) {
-        var objectEditor = $proceed(),
-            textMorph = objectEditor.get('ObjectEditorScriptPane');
-        if (!Config.get('useAceEditor') || textMorph.isAceEditor) return objectEditor;
-        // FIXME!!!
-        objectEditor.withAllSubmorphsDo(function(ea) { ea.setScale(1) });
-        // replace the normal text morph of the object editor with a
-        // CodeEditor
-        var owner = textMorph.owner,
-            textString = textMorph.textString,
-            bounds = textMorph.bounds(),
-            name = textMorph.getName(),
-            objectEditorPane = textMorph.objectEditorPane,
-            scripts = textMorph.scripts,
-            codeMorph = new lively.morphic.CodeEditor(bounds, textString || '');
-
-        lively.bindings.connect(codeMorph, 'textString',
-                                owner.get('ChangeIndicator'), 'indicateUnsavedChanges');
-        codeMorph.setName(name);
-        codeMorph.objectEditorPane = objectEditorPane;
-        codeMorph.applyStyle({resizeWidth: true, resizeHeight: true});
-        codeMorph.accessibleInInactiveWindow = true;
-
-        Functions.own(textMorph).forEach(function(scriptName) {
-            textMorph[scriptName].asScriptOf(codeMorph);
-        });
-
-        codeMorph.addScript(function displayStatus(msg, color, delay) {
-            if (!this.statusMorph) {
-                this.statusMorph = new lively.morphic.Text(pt(100,25).extentAsRectangle());
-                this.statusMorph.applyStyle({borderWidth: 1, strokeOpacity: 0, borderColor: Color.gray});
-                this.statusMorph.setFill(this.owner.getFill());
-                this.statusMorph.setFontSize(11);
-                this.statusMorph.setAlign('center');
-                this.statusMorph.setVerticalAlign('center');
-            }
-            this.statusMorph.setTextString(msg);
-            this.statusMorph.centerAt(this.innerBounds().center());
-            this.statusMorph.setTextColor(color || Color.black);
-            this.addMorph(this.statusMorph);
-            (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
-        });
-
-        objectEditor.targetMorph.addScript(function onWindowGetsFocus() {
-            this.get('ObjectEditorScriptPane').focus();
-        });
-
-        objectEditor.addScript(function onKeyDown(evt) {
-            var sig = evt.getKeyString(),
-                scriptList = this.get('ObjectEditorScriptList'),
-                sourcePane = this.get('ObjectEditorScriptPane');
-            switch(sig) {
-                case 'F1': scriptList.focus(); evt.stop(); return true;
-                case 'F2': sourcePane.focus(); evt.stop(); return true;
-                default: $super(evt);
-            }
-        });
-
-        owner.addMorphBack(codeMorph);
-        lively.bindings.disconnectAll(textMorph);
-        textMorph.remove();
-        owner.reset();
-        objectEditor.comeForward();
-        return objectEditor;
-    }),
-
-    openStyleEditorFor: lively.morphic.World.prototype.openStyleEditorFor.getOriginal().wrap(function(proceed, morph, evt) {
-        var editor = proceed(morph,evt);
-        if (Config.get('useAceEditor')) {
-            var oldEditor = editor.get("CSSCodePane"),
-                newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
-            newEditor.applyStyle({
-                fontSize: Config.get('defaultCodeFontSize')-1,
-                gutter: false,
-                textMode: 'css',
-                lineWrapping: false,
-                printMargin: false,
-                resizeWidth: true, resizeHeight: true
-            });
-            lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("CSSApplyButton"), "onFire");
-            newEditor.replaceTextMorph(oldEditor);
-        }
-        editor.comeForward();
-        return editor;
-    }),
-
-    openWorldCSSEditor: function () {
-        var editor = this.openPartItem('WorldCSS', 'PartsBin/Tools');
-        if (Config.get('useAceEditor')) {
-            var oldEditor = editor.get("CSSCodePane"),
-                newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
-            newEditor.applyStyle({
-                fontSize: Config.get('defaultCodeFontSize')-1,
-                gutter: false,
-                textMode: 'css',
-                lineWrapping: false,
-                printMargin: false,
-                resizeWidth: true, resizeHeight: true
-            });
-            lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("WorldCSS"), "applyWorldCSS", {});
-            newEditor.replaceTextMorph(oldEditor);
-        }
-        editor.comeForward();
-        return editor;
-    },
-
-    openPartItem: lively.morphic.World.prototype.openPartItem.getOriginal().wrap(function($proceed, name, partsbinCat) {
-        var part = $proceed(name, partsbinCat);
-        if (!Config.get('useAceEditor')) { return part; }
-        if (name === 'MethodFinderPane' && partsbinCat === 'PartsBin/Dialogs') {
-            var oldEditor = part.get("sourceText"),
-                newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
-            newEditor.applyStyle({
-                resizeWidth: true, resizeHeight: true
-            });
-            newEditor.replaceTextMorph(oldEditor);
-        }
-        return part;
-    }),
-
-});
-
-
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // ace support for lively.ide
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -2080,24 +1927,181 @@ Object.extend(lively.ide, {
     }
 });
 
-var origBrowserPanelSpec = lively.ide.BasicBrowser.prototype.panelSpec;
+(function toolingPatches() {
+    require('lively.morphic.Widgets').toRun(function() {
+        lively.morphic.World.addMethods(
+        'tools', {
+            addCodeEditor: function(options) {
+                options = Object.isString(options) ? {content: options} : (options || {}); // convenience
+                var bounds = (options.extent || lively.pt(500, 200)).extentAsRectangle(),
+                    title = options.title || 'Code editor',
+                    editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
+                    pane = this.internalAddWindow(editor, options.title, options.position);
+                editor.applyStyle({resizeWidth: true, resizeHeight: true});
+                editor.accessibleInInactiveWindow = true;
+                editor.applyStyle(options);
+                editor.focus();
+                return pane;
+            },
+        
+            openWorkspace: lively.morphic.World.prototype.openWorkspace.wrap(function($proceed, evt) {
+                if (!Config.get('useAceEditor')) { return $proceed(evt); }
+                var window = this.addCodeEditor({
+                    title: "Workspace",
+                    content: "3 + 4",
+                    syntaxHighlighting: true,
+                    theme: Config.aceWorkspaceTheme
+                });
+                window.owner.comeForward();
+                window.selectAll();
+                return window;
+            }),
+        
+            openObjectEditor: lively.morphic.World.prototype.openObjectEditor.wrap(function($proceed) {
+                var objectEditor = $proceed(),
+                    textMorph = objectEditor.get('ObjectEditorScriptPane');
+                if (!Config.get('useAceEditor') || textMorph.isAceEditor) return objectEditor;
+                // FIXME!!!
+                objectEditor.withAllSubmorphsDo(function(ea) { ea.setScale(1) });
+                // replace the normal text morph of the object editor with a
+                // CodeEditor
+                var owner = textMorph.owner,
+                    textString = textMorph.textString,
+                    bounds = textMorph.bounds(),
+                    name = textMorph.getName(),
+                    objectEditorPane = textMorph.objectEditorPane,
+                    scripts = textMorph.scripts,
+                    codeMorph = new lively.morphic.CodeEditor(bounds, textString || '');
+        
+                lively.bindings.connect(codeMorph, 'textString',
+                                        owner.get('ChangeIndicator'), 'indicateUnsavedChanges');
+                codeMorph.setName(name);
+                codeMorph.objectEditorPane = objectEditorPane;
+                codeMorph.applyStyle({resizeWidth: true, resizeHeight: true});
+                codeMorph.accessibleInInactiveWindow = true;
+        
+                Functions.own(textMorph).forEach(function(scriptName) {
+                    textMorph[scriptName].asScriptOf(codeMorph);
+                });
+        
+                codeMorph.addScript(function displayStatus(msg, color, delay) {
+                    if (!this.statusMorph) {
+                        this.statusMorph = new lively.morphic.Text(pt(100,25).extentAsRectangle());
+                        this.statusMorph.applyStyle({borderWidth: 1, strokeOpacity: 0, borderColor: Color.gray});
+                        this.statusMorph.setFill(this.owner.getFill());
+                        this.statusMorph.setFontSize(11);
+                        this.statusMorph.setAlign('center');
+                        this.statusMorph.setVerticalAlign('center');
+                    }
+                    this.statusMorph.setTextString(msg);
+                    this.statusMorph.centerAt(this.innerBounds().center());
+                    this.statusMorph.setTextColor(color || Color.black);
+                    this.addMorph(this.statusMorph);
+                    (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
+                });
+        
+                objectEditor.targetMorph.addScript(function onWindowGetsFocus() {
+                    this.get('ObjectEditorScriptPane').focus();
+                });
+        
+                objectEditor.addScript(function onKeyDown(evt) {
+                    var sig = evt.getKeyString(),
+                        scriptList = this.get('ObjectEditorScriptList'),
+                        sourcePane = this.get('ObjectEditorScriptPane');
+                    switch(sig) {
+                        case 'F1': scriptList.focus(); evt.stop(); return true;
+                        case 'F2': sourcePane.focus(); evt.stop(); return true;
+                        default: $super(evt);
+                    }
+                });
+        
+                owner.addMorphBack(codeMorph);
+                lively.bindings.disconnectAll(textMorph);
+                textMorph.remove();
+                owner.reset();
+                objectEditor.comeForward();
+                return objectEditor;
+            }),
+        
+            openStyleEditorFor: lively.morphic.World.prototype.openStyleEditorFor.getOriginal().wrap(function(proceed, morph, evt) {
+                var editor = proceed(morph,evt);
+                if (Config.get('useAceEditor')) {
+                    var oldEditor = editor.get("CSSCodePane"),
+                        newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
+                    newEditor.applyStyle({
+                        fontSize: Config.get('defaultCodeFontSize')-1,
+                        gutter: false,
+                        textMode: 'css',
+                        lineWrapping: false,
+                        printMargin: false,
+                        resizeWidth: true, resizeHeight: true
+                    });
+                    lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("CSSApplyButton"), "onFire");
+                    newEditor.replaceTextMorph(oldEditor);
+                }
+                editor.comeForward();
+                return editor;
+            }),
+        
+            openWorldCSSEditor: function () {
+                var editor = this.openPartItem('WorldCSS', 'PartsBin/Tools');
+                if (Config.get('useAceEditor')) {
+                    var oldEditor = editor.get("CSSCodePane"),
+                        newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
+                    newEditor.applyStyle({
+                        fontSize: Config.get('defaultCodeFontSize')-1,
+                        gutter: false,
+                        textMode: 'css',
+                        lineWrapping: false,
+                        printMargin: false,
+                        resizeWidth: true, resizeHeight: true
+                    });
+                    lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("WorldCSS"), "applyWorldCSS", {});
+                    newEditor.replaceTextMorph(oldEditor);
+                }
+                editor.comeForward();
+                return editor;
+            },
+        
+            openPartItem: lively.morphic.World.prototype.openPartItem.getOriginal().wrap(function($proceed, name, partsbinCat) {
+                var part = $proceed(name, partsbinCat);
+                if (!Config.get('useAceEditor')) { return part; }
+                if (name === 'MethodFinderPane' && partsbinCat === 'PartsBin/Dialogs') {
+                    var oldEditor = part.get("sourceText"),
+                        newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
+                    newEditor.applyStyle({
+                        resizeWidth: true, resizeHeight: true
+                    });
+                    newEditor.replaceTextMorph(oldEditor);
+                }
+                return part;
+            }),
+        
+        });        
+    });
+})();
 
-lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
-'settings', {
-    get panelSpec() {
-        if (!Config.get('useAceEditor')) return origBrowserPanelSpec;
-        return [
-            ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
-            ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
-            ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
-            ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
-            ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
-            ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
-            ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
-            ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
-            ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
-        ]
-    }
-});
+(function SCBPatches() {
+    require('lively.ide.BrowserFramework').toRun(function() {
+        var origBrowserPanelSpec = lively.ide.BasicBrowser.prototype.panelSpec;
+        lively.ide.BasicBrowser.addMethods(
+        'settings', {
+            get panelSpec() {
+                if (!Config.get('useAceEditor')) return origBrowserPanelSpec;
+                return [
+                    ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
+                    ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
+                    ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
+                    ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
+                    ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
+                    ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
+                    ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
+                    ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
+                    ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
+                ]
+            }
+        });
+    })
+})();
 
 }); // end of module

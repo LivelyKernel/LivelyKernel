@@ -253,15 +253,18 @@ Object.subclass('lively.persistence.Debugging.Helper',
                     .sortBy(function(tuple) { return tuple.bytes }).reverse()
             },
             toString: function() {
-                return Strings.format('all: %s (%s - %s per obj)',
+                var classItems = this.sortedEntries().collect(function(tuple) {
+                        return [Numbers.humanReadableByteSize(tuple.bytes),
+                            tuple.count, 
+                            Numbers.humanReadableByteSize(tuple.bytes / tuple.count),
+                            tuple.name];
+                    }, this);
+                classItems.unshift(['#bytes', '#objs', 'avg', 'class'])
+                var classTable = Strings.printTable(classItems, {separator: ' | '});
+                return Strings.format('Total: %s (%s objs - %s per obj)',
                                       Numbers.humanReadableByteSize(bytesAltogether), objCount,
                                       Numbers.humanReadableByteSize(bytesAltogether / objCount))  +
-                    '\nclasses:\n' + this.sortedEntries().collect(function(tuple) {
-                        return Strings.format('%s: %s (%s - %s per obj)',
-                                              tuple.name, Numbers.humanReadableByteSize(tuple.bytes), tuple.count,
-                                              Numbers.humanReadableByteSize(tuple.bytes / tuple.count));
-
-                    }, this).join('\n')
+                    '\nBy class:\n' + classTable
             },
             biggestObjectsOfType: function(typeString) {
                 return this[typeString].objects

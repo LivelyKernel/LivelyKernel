@@ -1519,7 +1519,11 @@ lively.morphic.World.addMethods(
                 require('lively.persistence.Debugging').toRun(function() {
                     var json = lively.persistence.Serializer.serialize(world),
                         printer = lively.persistence.Debugging.Helper.listObjects(json);
-                    world.addTextWindow(printer.toString());
+                    var text = world.addTextWindow({content: printer.toString(),
+                        extent: pt(600, 250),
+                        title: 'Objects in this world'});
+                    text.setFontFamily('Monaco,monospace');
+                    text.setFontSize(9);
                 })}]];
 
         // world requirements

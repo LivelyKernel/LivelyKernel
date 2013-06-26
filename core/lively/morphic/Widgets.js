@@ -1128,6 +1128,16 @@ lively.morphic.Morph.addMethods(
         // morphic properties
         var morphicMenuItems = ['Morphic properties', []];
         items.push(morphicMenuItems);
+        morphicMenuItems[1].push(['display serialization info', function() {
+                require('lively.persistence.Debugging').toRun(function() {
+                    var json = self.copy(true),
+                        printer = lively.persistence.Debugging.Helper.listObjects(json);
+                    var text = world.addTextWindow({content: printer.toString(),
+                        extent: pt(600, 200),
+                        title: 'Objects in this world'});
+                    text.setFontFamily('Monaco,monospace');
+                    text.setFontSize(10);
+                })}]);
         ['grabbing', 'dragging', 'dropping', 'halos'].forEach(function(propName) {
             if (self[propName + 'Enabled'] || self[propName + 'Enabled'] == undefined) {
                 morphicMenuItems[1].push(["Disable " + propName.capitalize(), self['disable' + propName.capitalize()].bind(self)]);
@@ -1135,7 +1145,7 @@ lively.morphic.Morph.addMethods(
                 morphicMenuItems[1].push(["Enable " + propName.capitalize(), self['enable' + propName.capitalize()].bind(self)]);
             }
 
-        })
+        });
 
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {

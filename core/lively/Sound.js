@@ -158,13 +158,13 @@ Object.extend(lively.Sound.AbstractSound, {
     bachFugue: function() { 
         // Play a fugue by J. S. Bach using an instance of me as the sound for all four voices.
         // lively.Sound.AbstractSound.bachFugue().play()
-        return this.bachFugueOn(new lively.Sound.PluckedSound);
+        return this.bachFugueOn(new lively.Sound.PluckedSound());
     },
 
     bachFugueOn: function(aSound) {
         // Play a fugue by J. S. Bach using the given sound as the sound for all four voices.
         // AbstractSound.bachFugue().play()
-        var mix = new lively.Sound.MixedSound; 
+        var mix = new lively.Sound.MixedSound(); 
         mix.add(this.bachFugueV1On(aSound), 1.0);
         mix.add(this.bachFugueV2On(aSound), 0.0);
         mix.add(this.bachFugueV3On(aSound), 1.0);
@@ -1061,11 +1061,11 @@ Object.extend(lively.Sound.AbstractSound, {
         // Loudness is given in an arbitrary scale with 1000 = max.
         // Pitches can be given as names or numbers.
         // noteColor, if specified is the color to be used for depressing these notes on a keyboard
-        var score = new lively.Sound.SequentialSound;
+        var score = new lively.Sound.SequentialSound();
         score.noteColor = noteColor;
         noteArray.forEach( function(elt) {
             if (elt[2] == 0) {
-                score.add((new lively.Sound.RestSound).setPitchDurLoudness(0, elt[1], 0));
+                score.add((new lively.Sound.RestSound()).setPitchDurLoudness(0, elt[1], 0));
             } else {
                 pitch = aSound.nameOrNumberToPitch(elt[0]);
                 score.add(aSound.copy().setPitchDurLoudness(pitch, elt[1], elt[2] / 1000));
@@ -1423,7 +1423,7 @@ Object.subclass("lively.Sound.Envelope", {
             return this.interpolateBetween(mSecs, i-1, i) * this.scale;
             } 
         // sustain phase
-        if (this.loopMS == 0) return this.valueAt(this.loopEndIndex)* scale;  // looping on a single point
+        if (this.loopMS == 0) return this.valueAt(this.loopEndIndex) * this.scale;  // looping on a single point
         var t = this.attackMS + ((mSecs - this.attackMS) % this.loopMS);
         var i = this.indexOfPointAfterMSecs(t, this.loopStartIndex);
         return this.interpolateBetween(t, i-1, i) * this.scale;
@@ -1642,7 +1642,7 @@ lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
 Object.extend(lively.Sound.SequentialSound, { 
     example: function() {
         // lively.Sound.SequentialSound.example().play()
-    	return lively.Sound.AbstractSound.bachFragmentOn(new lively.Sound.PluckedSound);
+    	return lively.Sound.AbstractSound.bachFragmentOn(new lively.Sound.PluckedSound());
     }
 });
 
@@ -1836,6 +1836,179 @@ Object.extend(lively.Sound.RepeatingSound, {
         repeat.setSoundCountTime(sound, 2);
         return repeat;
     }
+});
+lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
+'default category', {
+    aboutMe: function() {
+        // This is a real-time player for MIDI scores (i.e., scores read from MIDI files).
+    },
+    initialize: function($super) {
+        this.score = new lively.Sound.Score();
+        this.rate = 1;              // relative playback speed
+        this.beatsPerMinute = 120;  // initial tempo (changed by score events)
+        this.cursors = [];          // one cursor per track
+        $super();
+    },
+    setScore: function(score) {
+        this.score = score;
+        // a different hue for each track
+        var hue = -60,
+            hueIncr = Math.min(360 / this.score.tracks.length, 90);
+        // one cursor per track
+        this.cursors = this.score.tracks.map(function(track) {
+            hue += hueIncr;
+            return {
+                instrument: undefined,          // use keyboard's sound
+                color: Color.hsb(hue, 0.8, 0.9),
+                pos: 0,
+            };
+        });
+        this.reset();
+    },
+    setKeyboard: function(keyboard) {
+        // to higlight keys while playing
+        // must provide noteSoundOnOff() method
+        this.keyboard = keyboard;
+    },
+
+    reset: function($super) {
+        $super();
+        this.activeSounds = [];
+        this.cursors.forEach(function(cursor){cursor.pos = 0});
+        this.ticksSinceStart = 0;
+        this.done = false;
+        this.beatsPerMinuteOrRateChanged();
+    },
+    doControl: function($super, msPast) {
+        // called every 10 msecs. Adds new notes to activeSounds.
+        $super(msPast);
+        this.activeSounds.forEach(function(snd){snd.doControl(msPast)});
+    	this.ticksSinceStart += this.ticksClockIncr;
+	    this.processNoteEventsUpTo(this.ticksSinceStart);
+        if (this.isDone())
+            this.done = true;
+    },
+    samplesRemaining: function() {
+        return this.done ? 0 : 999999;
+    },
+    isDone: function() {
+        if (this.activeSounds.length > 0) return false;
+        for (var i = 0; i < this.score.tracks.length; i++)
+            if (this.cursors[i].pos < this.score.tracks[i].length)
+                return false;
+        return true;
+    },
+
+
+    mixSamplesToBuffer: function(n, buffer, startIndex, leftVol, rightVol) {
+        // play all active sounds, remove finished ones
+        var someSoundIsDone = false;
+        this.activeSounds.forEach(function(sound) {
+            sound.mixSamplesToBuffer(n, buffer, startIndex, leftVol, rightVol);
+            if (sound.samplesRemaining() <= 0) {
+                someSoundIsDone = true;
+                if (this.keyboard && this.keyboard.noteSoundOnOff)
+                    this.keyboard.noteSoundOnOff(sound, false);
+            }
+        }.bind(this));
+        if (someSoundIsDone) {
+            this.activeSounds = this.activeSounds.select(function(sound) {
+                return sound.samplesRemaining() > 0;
+            });
+        }
+    },
+    processNoteEventsUpTo: function(tick) {
+        // Process note events through the given score tick
+        for (var i = 0; i < this.score.tracks.length; i++) {
+            var cursor = this.cursors[i],
+                track = this.score.tracks[i],
+                event;
+            while (cursor.pos < track.length && (event = track[cursor.pos]).time < tick) {
+                if (event.isNoteEvent()) {
+                    var sound = this.soundForEventFromInstrument(event, cursor.instrument);
+                    if (this.keyboard && this.keyboard.noteSoundOnOff)
+                        this.keyboard.noteSoundOnOff(sound, true, cursor.color);
+                    this.activeSounds.push(sound);
+                }
+                cursor.pos++;
+            }
+        }
+    },
+
+    beatsPerMinuteOrRateChanged: function() {
+        // This method should be called after changing the beatsPerMinute or rate.
+    	this.mSecsPerTick = 60000 / (this.beatsPerMinute * this.score.ticksPerBeat * this.rate);
+    	this.ticksClockIncr = this.controlInterval() / this.mSecsPerTick;
+    },
+    pitchForNoteNumber: function(noteNumber) {
+        // An octave (pitch x 2) has 12 notes equally spread:
+        // Math.pow(2, 1/12) = 1.0594630943592953
+        // The note A above middle C (note 9 in octave 5) is 440 Hz
+        // Its MIDI note number is 12 * 5 + 9 = 69
+        return 440 * Math.pow(1.0594630943592953, noteNumber - 69);
+    },
+    soundForEventFromInstrument: function(event, instrument) {
+        var pitch = this.pitchForNoteNumber(event.key),
+            seconds = event.duration * this.mSecsPerTick / 1000,
+            loudness = event.velocity / 127;
+        if (!instrument)
+            instrument = this.keyboard ? this.keyboard.patchSound : new lively.Sound.PluckedSound();
+        // HACK: some instruments can't play 0 duration well
+        if (seconds < 0.5) seconds = 0.5;
+        return instrument.copy().setPitchDurLoudness(pitch, seconds, loudness);
+    }
+});
+Object.subclass('lively.Sound.Score',
+'default category', {
+    aboutMe: function() { 
+        // A Score is a container for a number of tracks with timed Events.
+        // It can be loaded from a MIDI file.
+        // Adapted from Squeak code by Bert Freudenberg.
+    },
+    initialize: function() {
+        this.ticksPerBeat = 100;
+        this.tracks = [];
+    },
+
+    setTracks: function(tracks) {
+        this.tracks = tracks;
+    },
+});
+Object.subclass('lively.Sound.Event',
+'default category', {
+    aboutMe: function() {
+        // Abstract class for timed events in a MIDI score.
+    },
+    setTime: function(time) {
+        this.time = time;
+    },
+    getTime: function() {
+        return this.time;
+    },
+    isNoteEvent: function() {
+        return false;
+    }
+
+});
+lively.Sound.Event.subclass('lively.Sound.NoteEvent',
+'default category', {
+    aboutMe: function() {
+        // A MIDI noteOn/noteOff event pair is represented here
+        // as a single NoteEvent with a duration
+    },
+    setTimeChannelKeyVelocity: function(time, channel, key, velocity) {
+        this.time = time;
+        this.channel = channel;
+        this.key = key;
+        this.velocity = velocity;
+    },
+    setEndTime: function(endTime) {
+        this.duration = endTime - this.time;
+    },
+    isNoteEvent: function() {
+        return true;
+    }
+
 });
 
 

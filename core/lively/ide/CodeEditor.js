@@ -302,7 +302,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
         handler.addCommands(commands);
     },
-
+    modifyCommand: function(cmdName, properties) {
+        // modifies the implementation of a command but only for this
+        // sepcific editor, not globally
+        var cmd = Object.extend(Object.extend({}, this.aceEditor.commands.byName[cmdName]), properties);
+        this.aceEditor.commands.byName[cmdName] = cmd;
+    },
     setupKeyBindings: function() {
         function codeEditor() {
             var focused = lively.morphic.Morph.focusedMorph();

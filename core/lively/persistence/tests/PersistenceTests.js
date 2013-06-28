@@ -562,6 +562,19 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
         var serialized = this.sut.serializeToJso(obj);
         var deserialized = this.sut.deserializeJso(serialized);
         this.assert(!deserialized.hasOwnProperty('__serializedExpressions__'));
+    },
+    test05ExprInArray: function() {
+        var obj = {arrayWithPoint: [2, 3, [lively.pt(1,2)]]};
+        // First test serialized representation
+        var ref = this.sut.register(obj),
+            regObj = this.sut.getRegisteredObjectFromId(ref.id);
+        this.assertEqualState({
+            '__serializedExpressions__': ["arrayWithPoint.2.0"],
+            arrayWithPoint: [2, 3, ['lively.pt(1.0,2.0)']]
+        }, regObj, 'registry object: ' + JSON.prettyPrint(this.sut.registry));
+        // now test if deserialization works
+        var deserialized = this.sut.deserializeJso(this.sut.serializeToJso(obj));
+        this.assertEqualState(obj, deserialized, 'deserialized: ' + Objects.inspect(deserialized));
     }
 });
 

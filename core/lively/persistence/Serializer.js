@@ -9,11 +9,21 @@ Object.subclass('ObjectGraphLinearizer',
 },
 'initializing', {
     initialize: function() {
+        // ids to give to objects being serialized
         this.idCounter = 0;
+        // object to hold serialized representation of objects
         this.registry = {};
+        // plugins can extend (de)serialization logic. See class
+        // ObjectLinearizerPlugin for plugin interface
         this.plugins = [];
-        this.copyDepth = 0;
+        // the JS path to access the object being (de)serialized
+        // starting from the root
         this.path = [];
+        // recursion counter
+        this.copyDepth = 0;
+        // path into the tree of the objects that are currently being
+        // (de)serialized
+        this.objStack = [];
     },
     cleanup: function() {
         // remove ids from all original objects and the original objects as
@@ -109,16 +119,17 @@ Object.subclass('ObjectGraphLinearizer',
         }
     },
     register: function(obj) {
-        if (this.isValueObject(obj))
-            return obj;
+        if (this.isValueObject(obj)) return obj;
 
         if (Object.isArray(obj)) {
             var result = [];
-            for (var i = 0; i < obj.length; i++) {
+            this.objStack.push(result);
+            for (var i = 0, len = obj.length; i < len; i++) {
                 var item = obj[i];
                 if (this.somePlugin('ignoreProp', [obj, i, item, result])) continue;
                 result.push(this.registerWithPath(item, i));
             }
+            this.objStack.pop();
             return result;
         }
 
@@ -167,9 +178,11 @@ Object.subclass('ObjectGraphLinearizer',
         this.copyDepth++;
         var copy = {},
             source = this.somePlugin('serializeObj', [obj, copy]) || obj;
+        this.objStack.push(copy);
         // go through references in alphabetical order
         this.copyPropertiesAndRegisterReferences(source, copy);
         this.letAllPlugins('additionallySerialize', [source, copy]);
+        this.objStack.pop();
         this.copyDepth--;
         return copy;
     },
@@ -1061,16 +1074,41 @@ ObjectLinearizerPlugin.subclass('lively.persistence.GenericConstructorPlugin',
 });
 
 ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
+    // For objects that can be serialized as expressions we store a string that
+    // will be evaluated for deserialization and should return a value equal
+    // to the object being serialized. Each object implementing the method
+    // #seralizeExpr is considered to be an "expression object".
+    // The representation for serialization of expression objects is as follows.
+    // The return value (a String) of #serializeExpr is stored instead of the
+    // object. The containing object referencing this object becomes a meta
+    // property "__serializedExpressions__" assigned. This is an array of the
+    // properties which are expression objects.
+    // If the expression object is inside an array then the first outer object
+    // that isn't an array is used as the meta property carrier and will
+    // contain a path (series of property names) to the expression object.
+    // Example: {foo: pt(1,2)} will be represented as
+    // {"__serializedExpressions__": ["foo"], "foo": "lively.pt(1.0,2.0)"
+    // {foo: [pt(1,2)]} will be represented as
+    // {"__serializedExpressions__": ["foo.0"],"foo": ["lively.pt(1.0,2.0)"]}
     specialSerializeProperty: '__serializedExpressions__',
     canBeSerializedAsExpression: function(value) {
         return value && Object.isObject(value) && Object.isFunction(value.serializeExpr);
     },
     ignoreProp: function(obj, propName, value, copy) {
         if (!this.canBeSerializedAsExpression(value)) return false;
-        if (!copy[this.specialSerializeProperty]) {
-            copy[this.specialSerializeProperty] = []
-        };
-        copy[this.specialSerializeProperty].push(propName);
+        var metadataObj = copy, exprPropName = propName;
+        if (Object.isArray(metadataObj)) {
+            var objStack = this.getSerializer().objStack, depth;
+            metadataObj = this.getSerializer().objStack.reverse().detect(function(ea, i) {
+                depth = i; return !Object.isArray(ea); });
+            if (!metadataObj) return false;
+            var metaObjsPathToExpr = this.getSerializer().path.slice(-depth);
+            metaObjsPathToExpr.push(propName);
+            exprPropName = metaObjsPathToExpr.join('.');
+        }
+        if (!metadataObj[this.specialSerializeProperty])
+            metadataObj[this.specialSerializeProperty] = [];
+        metadataObj[this.specialSerializeProperty].push(exprPropName);
         return true;
     },
     ignorePropDeserialization: function(obj, propName, value) {
@@ -1080,18 +1118,22 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
         var keysToConvert = persistentCopy[this.specialSerializeProperty];
         if (!keysToConvert) return;
         for (var i = 0, len = keysToConvert.length; i < len; i++) {
-            var key = keysToConvert[i], value = original[key];
-            persistentCopy[key] = value.serializeExpr();
+            var key = keysToConvert[i],
+                path = lively.PropertyPath(key),
+                value = path.get(original);
+            path.set(persistentCopy, value.serializeExpr());
         }
     },
     afterDeserializeObj: function(obj, persistentCopy) {
         var keysToConvert = persistentCopy[this.specialSerializeProperty];
         if (!keysToConvert) return;
         for (var i = 0, len = keysToConvert.length; i < len; i++) {
-            var key = keysToConvert[i], expr = obj[key];
+            var key = keysToConvert[i],
+                path = lively.PropertyPath(key),
+                expr = path.get(obj);
             if (expr && Object.isString(expr)) {
                 try {
-                    obj[key] = eval(expr);
+                    path.set(obj, eval(expr));
                 } catch(e) {
                     console.error('Error when trying to restore serialized '
                                  + 'expression %S (%s[%s]): %s', expr, obj, key, e);

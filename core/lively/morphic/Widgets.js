@@ -1964,7 +1964,16 @@ lively.morphic.World.addMethods(
         var win = this.getActiveWindow();
         win && win.initiateShutdown();
         return !!win;
-    }
+    },
+    activateTopMostWindow: function() {
+        var morphBelow = this.topMorph();
+        if (morphBelow && morphBelow.isWindow) {
+            var scroll = this.getScrollOffset && this.getScrollOffset();
+            morphBelow.comeForward();
+            if (scroll) this.setScroll(scroll.x, scroll.y);
+        }
+    },
+
 
 });
 
@@ -2542,12 +2551,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         if (this.onShutdown) this.onShutdown();
         if (this.targetMorph && this.targetMorph.onShutdown) this.targetMorph.onShutdown();
         this.remove();
-        var morphBelow = owner.topMorph();
-        if (morphBelow && morphBelow.isWindow) {
-            var scroll = owner.getScrollOffset && owner.getScrollOffset();
-            morphBelow.comeForward();
-            if (scroll) owner.setScroll(scroll.x, scroll.y);
-        }
+        if (owner.activateTopMostWindow) owner.activateTopMostWindow();
         this.state = 'shutdown'; // no one will ever know...
         return true;
     },

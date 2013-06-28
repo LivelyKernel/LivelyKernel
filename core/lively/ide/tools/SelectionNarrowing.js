@@ -1,5 +1,7 @@
 module('lively.ide.tools.SelectionNarrowing').requires("lively.ide.tools.CommandLine").toRun(function() {
 
+lively.ide.tools.SelectionNarrowing.lastActiveList = null;
+
 lively.BuildSpec('lively.ide.tools.NarrowingList', {
     _ClipMode: "hidden",
     _Extent: lively.pt(900.0,138.0),
@@ -69,7 +71,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 text = lively.morphic.Text.makeLabel(string, {
                 position: pt(0, i*height),
                 extent: pt(width, height),
-                fixedHeight: true, fixedWidth: false
+                fixedHeight: true, fixedWidth: false,
+                whiteSpaceHandling: 'pre'
             });
         container.addMorph(text);
         text.addStyleClassName('tab-list-item');
@@ -91,22 +94,37 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     }
     return listItems;
 },
-    filter: function filter(filter) {
-    // this.filter('tjZ');
-    // this.filter(null);
-    var container = this,
-        list = this.state.allCandidates,
-        regexps = this.state.filters = filter.split(' ')
+    filter: function filter(input) {
+    var state = this.state, container = this;
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // leave updating the candidates list to user func
+    if (state.candidatesUpdater) {
+        if (state.candidatesUpdaterMinLength && input.length < state.candidatesUpdaterMinLength) return;
+        state.candidatesUpdater(input, function(candidates) {
+            // FIXME duplication with below...!
+            var prevFiltered = state.filteredCandidates;
+            if (prevFiltered.equals(candidates)) return;
+            state.previousCandidateProjection = null;
+            state.filteredCandidates = candidates;
+            container.selectN(0);
+        });
+        return;
+    }
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // do filter operation
+    var list = state.allCandidates,
+        // split input by spaces and turn each string ino a regexp
+        regexps = state.filters = input.split(' ')
             .map(function(part) { try { return new RegExp(part, 'i'); } catch(e) { return null } })
             .compact(),
         filteredList = list.select(function(ea) {
             return regexps.all(function(re) {
                 var string = container.candidateToString(ea);
                 return string.match(re); }); });
-    var prevFiltered = this.state.filteredCandidates;
+    var prevFiltered = state.filteredCandidates;
     if (prevFiltered.equals(filteredList)) return;
-    this.state.previousCandidateProjection = null;
-    this.state.filteredCandidates = filteredList;
+    state.previousCandidateProjection = null;
+    state.filteredCandidates = filteredList;
     this.selectN(0);
 },
     getListItems: function getListItems() {
@@ -144,27 +162,11 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     if (modifierPressed && evt.keyCode === 192) { // \"`\" key
         if (evt.isShiftDown())  this.selectPrev();
         else this.selectNext(); evt.stop(); return true;
-    } else if (evt.keyCode === Event.KEY_DOWN) {
-        this.selectNext(); evt.stop(); return true;
-    } else if (evt.keyCode === Event.KEY_UP) {
-        this.selectPrev(); evt.stop(); return true;
     }  else if (evt.keyCode === Event.KEY_ESC) {
         lively.bindings.signal(this, 'escapePressed', this);
         evt.stop(); return true;
     }
     return false;
-},
-    onKeyUp: function onKeyUp(evt) {
-        //alert(Strings.format('code: %s cmd: %s ctrl: %s',
-        //    evt.keyCode, evt.isCommandKey(), evt.isCtrlDown()));
-    // var startEvt = this.state && this.state.openedWithEvt;
-    // if (!startEvt) return false;
-    // if (!startEvt.isCtrlDown() && !startEvt.isCommandKey()) return false;
-    // var sameModifier = startEvt.isCtrlDown() === evt.isCtrlDown()
-    //                 || startEvt.isCommandKey() === evt.isCommandKey();
-    // if (!sameModifier) return false;
-    // this.closeAndPromoteWindow();
-    // return true;
 },
     onSelectionConfirmed: function onSelectionConfirmed() {
     var item = this.state.filteredCandidates[this.currentSel],
@@ -188,8 +190,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     //     }
     var narrower = this;
     function run() {
-        var candidates = Object.isArray(spec.candidates) ?
-            spec.candidates : spec.candidates();
+        var candidates = (Object.isArray(spec.candidates) ?
+                spec.candidates : spec.candidates()) || [];
         spec.actions = spec.actions || [Functions.Null];
         var s = narrower.state = {
             spec: spec,
@@ -197,6 +199,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             allCandidates: candidates,
             filteredCandidates: candidates,
             previousCandidateProjection: null,
+            candidatesUpdater: spec.candidatesUpdater,
+            candidatesUpdaterMinLength: spec.candidatesUpdaterMinLength,
             filters: []
         };
         narrower.renderContainer(s.layout);
@@ -206,7 +210,17 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     }
     if (spec.init) spec.init(run); else run();
 },
+    activate: function activate() {
+        this.renderContainer(this.state.layout);
+        this.get('inputLine').focus();
+    },
+    deactivate: function activate() {
+        lively.ide.tools.SelectionNarrowing.lastActive = this;
+        $world.activateTopMostWindow();
+        this.setVisible(false);
+    },
     renderContainer: function renderContainer(layout) {
+    lively.ide.tools.SelectionNarrowing.lastActive = null;
     if (!this.owner) this.openInWorld();
     if (!this.isVisible()) this.setVisible(true);
     var visibleBounds = lively.morphic.World.current().visibleBounds();
@@ -229,8 +243,35 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         lively.bindings.connect(inputLine, 'textString', this, 'filter');
         lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed');
         inputLine.clearOnInput = false;
+        // remove up/down commands of orginal inputline
+        inputLine.addScript(function onKeyDown(evt) {
+            var sig = evt.getKeyString();
+            switch(sig) {
+                case 'Enter': this.commandLineInput(this.textString); evt.stop(); return true;
+                case 'Esc':
+                case 'Control-C':
+                case 'Control-G': this.clear(); evt.stop(); return true;
+                default: return $super(evt);        
+            }
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // redefine exec code of commands locally so we dan't have to fiddle with keybindings
+        inputLine.modifyCommand('golinedown', {exec: function (ed,args) { ed.$morph.owner.selectNext(); }});
+        inputLine.modifyCommand('golineup', {exec: function (ed) { ed.$morph.owner.selectPrev(); }});
+        inputLine.modifyCommand('gotopageup', {
+            exec: function (ed) {
+                var narrower = ed.$morph.owner;
+                narrower.selectN(narrower.currentSel - narrower.state.layout.noOfCandidatesShown);
+            }
+        });
+        inputLine.modifyCommand('gotopagedown', {
+            exec: function (ed) {
+                var narrower = ed.$morph.owner;
+                narrower.selectN(narrower.currentSel + narrower.state.layout.noOfCandidatesShown);
+            }
+        });
     }
-    this
     inputLine.setPosition(pt(0, this.getExtent().y-layout.inputLineHeight));
 },
     renderList: function renderList(candidates, prevSel, currentSel, layout) {
@@ -300,8 +341,9 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     if (this.submorphs[this.currentSel]) this.selectN(this.currentSel);
 },
     selectN: function selectN(n) {
-    var candidates = this.state.filteredCandidates,
-        item = candidates[n];
+    var candidates = this.state.filteredCandidates;
+    n = Math.min(Math.max(n, 0), candidates.length-1);
+    var item = candidates[n];
     this.renderList(candidates, this.currentSel, n, this.state.layout);
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     this.currentSel = n;

@@ -75,6 +75,7 @@ module.exports = function(route, app) {
     app.delete(route, function(req, res) {
         if (!shellCommand.process) { res.end(JSON.stringify({message: "process not running"})); return }
         var pid = shellCommand.process.pid;
+        console.log('Killing CommandLineServer command process with pid ' + pid);
         shellCommand.process.kill('SIGKILL');
         res.end(JSON.stringify({message: 'process with pid ' + pid + ' killed'}));
     });

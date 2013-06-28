@@ -9,7 +9,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
     commandFromQueue: function() {
         var cmd = this.commandQueue.shift();
-        cmd.startRequest();
+        cmd && cmd.startRequest();
     },
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -136,6 +136,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                 _stdout: '',
                 _stderr: '',
                 _code: '',
+                _done: false,
 
                 startRequest: function() {
                     cmdLineInterface.commandInProgress = this;
@@ -147,6 +148,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                 },
 
                 endRequest: function(status) {
+                    this._done = true;
                     cmdLineInterface.commandInProgress = null;
                     try {
                         result = JSON.parse(status.transport.responseText);
@@ -164,6 +166,14 @@ Object.extend(lively.ide.CommandLineInterface, {
                 getStdout: function() { return this._stdout || ''; },
                 getStderr: function() { return this._stderr || ''; },
                 getCode: function() { return Number(this._code); },
+                kill: function() {
+                    if (this._done) return;
+                    if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
+                        lively.ide.CommandLineInterface.commandQueue.remove(this);
+                    } else {
+                        lively.ide.CommandLineInterface.kill(this);
+                    }
+                },
                 resultString: function() {
                     var output = (!this.getCode() ? this.getStdout() : this.getStderr()) || '';
                     return output.trim(); }
@@ -220,7 +230,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
 
-    kill: function() {
+    kill: function(cmd) {
         /*
         lively.ide.CommandLineInterface.kill();
         */

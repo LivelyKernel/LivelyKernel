@@ -424,7 +424,6 @@ lively.morphic.Path.addMethods(
     withLayers: [], // withLayers: [cop.create('NoMagnetsLayer2')],
     disconnectFromMagnets: function() {
         this.getControlPoints().forEach(function(ctrlPt) {
-            debugger;
             if (ctrlPt.connectedMagnet) ctrlPt.setConnectedMagnet(null);
         })
     },

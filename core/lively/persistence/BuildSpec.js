@@ -608,7 +608,6 @@ lively.morphic.Tab.addMethods(
         this.tabContainer = this.ownerChain().detect(function(ea) { return ea.isTabContainer; });
         this.pane = this.tabContainer.submorphs[this.pane];
         this.tabBar = this.tabContainer.tabBar
-        debugger;
         this.initializeLabel(this.label); 
     }
 });

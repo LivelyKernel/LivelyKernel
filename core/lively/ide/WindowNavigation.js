@@ -28,7 +28,7 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
     resetList: function(windowLister) {
         this.showWindowTarget = null;
         if (this.showWindowCaller) { Global.clearInterval(this.showWindowCaller); delete this.showWindowCaller; }
-        windowLister.setVisible(false);
+        windowLister.deactivate();
     },
     resetListAndRevertActiveWindow: function(windowLister) {
         if (this.currentWindow) this.currentWindow.comeForward();
@@ -45,11 +45,11 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
         }
         lively.bindings.connect(list, 'confirmedSelection', this, 'makeWindowActive');
         lively.bindings.connect(list, 'selection', this, 'showWindow');
-        lively.bindings.connect(list, 'confirmedSelection', this, 'resetList', {converter:
-            function() { return this.sourceObj; }});
+        lively.bindings.connect(list, 'confirmedSelection', this, 'resetList', {converter: function() { return this.sourceObj; }});
         lively.bindings.connect(list, 'escapePressed', this, 'resetListAndRevertActiveWindow');
-        var windows = this.getWindows().reverse()
-        var firstIsActive = windows[0] && windows[0].highlighted ? 1 : 0;
+        var windows = this.getWindows().reverse(),
+            topMostWin = windows[0],
+            firstIsActive = lively.morphic.Morph.focusedMorph().ownerChain().include(topMostWin);
         var spec = {
             preselect: firstIsActive ? 1 : 0,
             maxItems: 20,

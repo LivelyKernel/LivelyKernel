@@ -45,15 +45,55 @@ Object.extend(lively.ide.commands.byName, { // add default commands
         exec: function() {
             lively.ide.WindowNavigation.WindowManager.reset();
             lively.morphic.KeyboardDispatcher.reset();
+            delete $world._grepSearcher;
             return true;
         },
+    },
+    activatePrevSelectionNarrower: {
+        exec: function() {
+            var n = lively.ide.tools.SelectionNarrowing && lively.ide.tools.SelectionNarrowing.lastActive;
+            n && n.activate();
+        }
+    },
+    doGrepSearch: {
+        exec: function() {
+            // that's just a late night hack!
+            // $world._grepSearcher = null
+            var w = lively.morphic.World.current();
+            if (w._grepSearcher) {
+                w._grepSearcher.activate();
+                return true;
+            }
+            if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push('_grepSearcher');
+            else w.doNotSerialize = ['_grepSearcher'];
+            var narrower = w._grepSearcher = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
+            lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
+            lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
+            lively.bindings.connect(narrower, 'escapePressed', show.bind('foooo'), 'call');
+            var greper = Functions.debounce(500, function(input, callback) {
+                lively.ide.CommandLineSearch.doGrep(input, null, function(lines) {
+                    callback(lines.asListItemArray());
+                })
+            });
+            var spec = {
+                candidatesUpdaterMinLength: 3,
+                candidates: Array.range(0,20).invoke('toString'),
+                candidatesUpdater: greper,
+                actions: [function(candidate) { lively.ide.CommandLineSearch.doBrowseGrepString(candidate); }]
+            }
+            narrower.open(spec);
+            return true;
+        }
     }
 });
+
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys
     escape: "esc",
     closeActiveWindow: "cmd-esc",
     windowNavigation: {mac: "cmd-`", win: "ctrl-`"},
-    resetKeyBindings: 'F8'
+    resetKeyBindings: 'F8',
+    activatePrevSelectionNarrower: "cmd-y",
+    doGrepSearch: "cmd-s-g"
 });
 
 }) // end of module

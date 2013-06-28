@@ -475,7 +475,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 name: 'doCommandLineSearch',
                 bindKey: {win: "Alt-/", mac: "Alt-/"},
                 exec: function(editor) {
-                    lively.ide.CommandLineSearch.doGrep(codeEditor().getSelectionOrLineString());
+                    lively.ide.CommandLineSearch.doGrepFromWorkspace(codeEditor().getSelectionOrLineString());
                 },
                 multiSelectAction: 'forEach'
             }, {
@@ -1720,7 +1720,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 name: 'doCommandLineSearch',
                 bindKey: {win: "Alt-/", mac: "Alt-/"},
                 exec: function(ed) {
-                    lively.ide.CommandLineSearch.doGrep(ed.$morph.getSelectionOrLineString());
+                    lively.ide.CommandLineSearch.doGrepFromWorkspace(codeEditor().getSelectionOrLineString());
                 },
                 multiSelectAction: 'forEach'
             }, {

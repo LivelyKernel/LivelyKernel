@@ -94,10 +94,62 @@ Trait('StyleSheetsHTMLShapeTrait',
 Trait('StyleSheetsHTMLExternalShapeTrait',
 'updating', {
     setOpacityHTML: lively.morphic.Shapes.External.prototype.setOpacityHTML.wrap(function(proceed, ctx, value) {
-        if (this.shapeGetter('AppearanceStylingMode')){
-            proceed(ctx, null);
+        return proceed(ctx, this.shapeGetter('AppearanceStylingMode') ? null : value);
+    })
+}).applyTo(lively.morphic.Shapes.External, {override: ['setOpacityHTML']});
+
+Trait('StyleSheetsHTMLRectangleTrait',
+'updating', {
+    setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, ctx.shapeNode && this.shapeGetter('BorderStylingMode') ? null : value);
+    })
+}).applyTo(lively.morphic.Shapes.Rectangle, {
+    override: 'setBorderRadiusHTML'
+});
+
+Trait('StyleSheetsHTMLTextTrait',
+'accessing', {
+    setAlignHTML: lively.morphic.Text.prototype.setAlignHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    }),
+
+    setFontFamilyHTML: lively.morphic.Text.prototype.setFontFamilyHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    }),
+
+    setFontSizeHTML: lively.morphic.Text.prototype.setFontSizeHTML.wrap(function (proceed, ctx, value) {
+        if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
+            return ctx.textNode.style.fontSize = null;
         } else {
-            proceed(ctx, value);
+            return proceed(ctx, value || null);
+        }
+    }),
+    setFontStyleHTML: lively.morphic.Text.prototype.setFontStyleHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    }),
+    setFontWeightHTML: lively.morphic.Text.prototype.setFontWeightHTML.wrap(function (proceed, ctx, value) {
+        return  proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    }),
+    setTextColorHTML: lively.morphic.Text.prototype.setTextColorHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    }),
+    setTextDecorationHTML: lively.morphic.Text.prototype.setTextDecorationHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    }),
+    setVerticalAlignHTML: lively.morphic.Text.prototype.setVerticalAlignHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    }),
+    setLineHeightHTML: lively.morphic.Text.prototype.setLineHeightHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    }),
+    setDisplayHTML: lively.morphic.Text.prototype.setDisplayHTML.wrap(function (proceed, ctx, value) {
+        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    }),
+    setWordBreakHTML: lively.morphic.Text.prototype.setWordBreakHTML.wrap(function (proceed, ctx, value) {
+        if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
+            ctx.textNode.style.wordBreak = 'inherit';
+        } else {
+            return proceed(ctx, value || null);
         }
     })
 }).applyTo(lively.morphic.Shapes.External, {override: ['setOpacityHTML']});

@@ -5,26 +5,13 @@ TestCase.subclass('lively.morphic.tests.StyleSheetRepresentation.StyleSheetObjec
     setUp: function($super) {
         $super();
         this.morph = new lively.morphic.Box(new Rectangle(0,1,2,3));
-        this.styleSheetObj = new lively.morphic.StyleSheet(
-            [
-                new lively.morphic.StyleSheetRule(
-                        '.Morph',
-                        [
-                            new lively.morphic.StyleSheetDeclaration(
-                                    'background',
-                                    ['white'],
-                                    null, true //important
-                                ),
-                            new lively.morphic.StyleSheetDeclaration(
-                                    'border',
-                                    ['10px', 'solid', 'purple']
-                                ),
-                        ]
-                    ),
-                new lively.morphic.StyleSheetComment(
-                        '/* test */'
-                    ),
-            ],
+        this.styleSheetObj = new lively.morphic.StyleSheet([
+            new lively.morphic.StyleSheetRule('.Morph', [
+                new lively.morphic.StyleSheetDeclaration(
+                    'background',['white'], null, true /*important*/),
+                new lively.morphic.StyleSheetDeclaration(
+                        'border', ['10px', 'solid', 'purple'])]),
+                new lively.morphic.StyleSheetComment('/* test */')],
             this.morph);
     }
 },

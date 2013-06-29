@@ -1098,11 +1098,14 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
         if (!this.canBeSerializedAsExpression(value)) return false;
         var metadataObj = copy, exprPropName = propName;
         if (Object.isArray(metadataObj)) {
-            var objStack = this.getSerializer().objStack, depth;
-            metadataObj = this.getSerializer().objStack.reverse().detect(function(ea, i) {
-                depth = i; return !Object.isArray(ea); });
+            var s = this.getSerializer(), objStack = s.objStack, path = s.path, depth = 0;
+            for (var i = objStack.length-1; i >= 0; i--) {
+                metadataObj = objStack[i];
+                if (!Object.isArray(metadataObj)) break;
+                depth++;
+            }
             if (!metadataObj) return false;
-            var metaObjsPathToExpr = this.getSerializer().path.slice(-depth);
+            var metaObjsPathToExpr = path.slice(-depth);
             metaObjsPathToExpr.push(propName);
             exprPropName = metaObjsPathToExpr.join('.');
         }

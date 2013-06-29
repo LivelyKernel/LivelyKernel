@@ -575,6 +575,11 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
         // now test if deserialization works
         var deserialized = this.sut.deserializeJso(this.sut.serializeToJso(obj));
         this.assertEqualState(obj, deserialized, 'deserialized: ' + Objects.inspect(deserialized));
+    },
+    test06ExprInArrayInObjInArray: function() {
+        var obj = {foo: [{arrayWithPoint: [lively.pt(1,2),lively.pt(1,2),lively.pt(1,2),lively.pt(1,2)]}]},
+            deserialized = this.sut.deserializeJso(this.sut.serializeToJso(obj));
+        this.assertEqualState(obj, deserialized, 'deserialized: ' + Objects.inspect(deserialized));
     }
 });
 

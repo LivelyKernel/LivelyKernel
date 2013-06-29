@@ -47,8 +47,8 @@ Object.subclass("Point",
     }
 },
 'transforming', {
-    scaleBy: function(scale) {
-        return new lively.Point(this.x * scale, this.y * scale);
+    scaleBy: function(scaleX, scaleYOrUndefined) {
+        return new lively.Point(this.x * scaleX, this.y * (scaleYOrUndefined||scaleX));
     },
 
     scaleByPt: function(scalePt) {

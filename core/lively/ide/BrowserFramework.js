@@ -8,7 +8,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 },
 'initializing', {
 
-    initialViewExtent: pt(820, 550),
+    initialViewExtent: (function() {
+        var ext = Config.get("defaultSCBExtent");
+        return pt(ext[0], ext[1]);
+    })(),
 
     panelSpec: [
         ['locationPane', newTextPane,                                         [0,    0,    0.8,  0.03]],
@@ -136,6 +139,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
         panel.ownerWidget = this;
         this.start();
+
         return panel;
     },
 
@@ -162,13 +166,12 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             if (m instanceof lively.morphic.Button && m != panel.codeBaseDirBtn && m != panel.localDirBtn) {
                 panel.midResizer.addFixed(m);
             }
-        })
+        });
 
-        // bottom resizer divides code and comment pane
-        // panel.bottomResizer.addScalingAbove(panel.sourcePane)
-        // panel.bottomResizer.addScalingBelow(panel.commentPane)
+        (function() {
+            panel.midResizer.divideRelativeToParent(1-Config.get("defaultSCBSourcePaneToListPaneRatio"));
+        }).delay(0);
 
-        // panel.bottomResizer.linkToStyles(["Browser_resizer"]);
         panel.midResizer.linkToStyles(["Browser_resizer"]);
     },
 

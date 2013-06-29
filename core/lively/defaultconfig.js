@@ -486,6 +486,12 @@ Config.addOptions(
 "lively.morphic.Windows", [
     ["useWindowSwitcher", true, "Use the window switcher (F5/CMD+`/CTRL+`)."]
 ],
+
+"lively.ide.tools", [
+    ["defaultSCBExtent", [830,575], "Size of SCB"],
+    ["defaultSCBSourcePaneToListPaneRatio", 0.5, "Ratio how much vertical space the sourcePane vs. the list panes get by default in SCB."]
+],
+
 "Lively2Lively", [
     ['lively2livelyAutoStart', true, 'Whether to automatically connect to a session tracker server and enable Lively-to-Lively connections.'],
     ["lively2livelyCentral", "http://lively-kernel.org:4009/nodejs/SessionTracker/", 'Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate.'],

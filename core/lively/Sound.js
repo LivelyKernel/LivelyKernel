@@ -1430,7 +1430,7 @@ Object.subclass("lively.Sound.Envelope", {
     },
 
     reset: function(snd) {
-        // Reset the given sound from this envelope."
+        // Reset the given sound from this envelope.
         this.updateTargetAt(snd, 0);
     },
 
@@ -1875,6 +1875,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         $super();
         this.activeSounds = [];
         this.cursors.forEach(function(cursor){cursor.pos = 0});
+        this.tempoPos = 0;
         this.ticksSinceStart = 0;
         this.done = false;
         this.beatsPerMinuteOrRateChanged();
@@ -1884,7 +1885,10 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         $super(msPast);
         this.activeSounds.forEach(function(snd){snd.doControl(msPast)});
     	this.ticksSinceStart += this.ticksClockIncr;
+        this.processTempoEventsUpTo(this.ticksSinceStart);
 	    this.processNoteEventsUpTo(this.ticksSinceStart);
+        if (this.pianoRoll)
+            this.pianoRoll.line.moveToTick(this.ticksSinceStart);
         if (this.isDone())
             this.done = true;
     },
@@ -1934,12 +1938,48 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
             }
         }
     },
+    processTempoEventsUpTo: function(tick) {
+        if (!this.score.tempos) return;
+        var i = this.tempoPos,
+            tempos = this.score.tempos;
+        while (i < tempos.length && tempos[i].time <= tick) {
+            i++
+        }
+        if (i > this.tempoPos) {
+            this.tempoPos = i;   
+            this.beatsPerMinute = tempos[i-1].getBeatsPerMinute();
+            this.beatsPerMinuteOrRateChanged();
+        }
+    },
+
 
     beatsPerMinuteOrRateChanged: function() {
         // This method should be called after changing the beatsPerMinute or rate.
     	this.mSecsPerTick = 60000 / (this.beatsPerMinute * this.score.ticksPerBeat * this.rate);
     	this.ticksClockIncr = this.controlInterval() / this.mSecsPerTick;
     },
+    getDurationMS: function($super) {
+        if (!this.duration) {
+            var currentBPM = 120,
+                lastTempoChangeTick = 0,
+                secsPerTick;
+            this.duration = 0,
+            this.score.tempos.forEach(function(event){
+                debugger;
+                // accumulate time up to this tempo change event
+    			secsPerTick = 60 / (currentBPM * this.rate * this.score.ticksPerBeat);
+    			this.duration += secsPerTick * (event.time - lastTempoChangeTick);
+    			// set the new tempo
+    			currentBPM = event.getBeatsPerMinute();
+    			lastTempoChangeTick = event.time;
+            }.bind(this))
+            // add remaining time through end of score"
+        	secsPerTick = 60 / (currentBPM * this.rate * this.score.ticksPerBeat);
+        	this.duration += secsPerTick * this.score.durationInTicks() - lastTempoChangeTick;
+        }
+        return $super();
+    },
+
     pitchForNoteNumber: function(noteNumber) {
         // An octave (pitch x 2) has 12 notes equally spread:
         // Math.pow(2, 1/12) = 1.0594630943592953
@@ -1956,8 +1996,37 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         // HACK: some instruments can't play 0 duration well
         if (seconds < 0.5) seconds = 0.5;
         return instrument.copy().setPitchDurLoudness(pitch, seconds, loudness);
-    }
-});
+    },
+    openPianoRoll: function(dur) {
+        var beatWidth = 16,
+            noteHeight = 4,
+            tickWidth = beatWidth / this.score.ticksPerBeat,
+            width = beatWidth * this.score.getDurationInBeats(),
+            height = noteHeight * 128,
+            roll = lively.morphic.Morph.makeRectangle(rect(0, 0, width, height));
+        roll.applyStyle({fill: Color.lightGray, clipMode: 'scroll'});
+        for (var i = 0; i < this.score.tracks.length; i++)
+            this.score.tracks[i].forEach(function(event){
+                if (event.isNoteEvent()) {
+                    var w = event.duration ? tickWidth * event.duration : 2,
+                        h = noteHeight,
+                        x = tickWidth * event.time,
+                        y = height - (event.key * noteHeight),
+                        m = lively.morphic.Morph.makeRectangle(rect (x, y, w, h));
+                    m.setFill(this.cursors[i].color);
+                    if (!event.duration) m.setBorderColor(Color.red);
+                    roll.addMorph(m);
+                }
+            }.bind(this));
+        roll.line = lively.morphic.Morph.makeLine([pt(0,0), pt(0,height)]);
+        roll.line.moveToTick = function(tick) {
+            this.setPosition(pt(tick * tickWidth,0));
+        };
+        roll.addMorph(roll.line);
+        roll.openInWindow();
+        roll.owner.setExtent(pt(600,400));
+        this.pianoRoll = roll;
+    },});
 Object.subclass('lively.Sound.Score',
 'default category', {
     aboutMe: function() { 
@@ -1967,13 +2036,93 @@ Object.subclass('lively.Sound.Score',
     },
     initialize: function() {
         this.ticksPerBeat = 100;
-        this.tracks = [];
+        this.tempos = [];           // tempo events
+        this.tracks = [];           // other events
     },
-
-    setTracks: function(tracks) {
-        this.tracks = tracks;
+    fromMidiFile: function(midi, inspectUnknownEvents) {
+        this.ticksPerBeat = midi.header.ticksPerBeat;
+        for (var t = 0; t < midi.header.trackCount; t++) {
+            var events = midi.tracks[t],
+                time = 0,
+                track = [],
+                activeNotes = {};
+            for (var i = 0; i < events.length; i++) {
+                var event = events[i],
+                    note;
+                if (event.type == "channel") {
+                    if (event.subtype == "noteOn") {
+                        note = new lively.Sound.NoteEvent();
+                        note.setTimeChannelKeyVelocity(time, event.channel, event.noteNumber, event.velocity);
+                        track.push(note);
+                        activeNotes[event.noteNumber] = note;
+                    } else if (event.subtype == "noteOff") {
+                        note = activeNotes[event.noteNumber];
+                        if (note) {
+                            note.setEndTime(time);
+                            delete activeNotes[event.noteNumber];
+                        }
+                    } else if (event.subtype == "controller") {
+                        // should make controller event
+                    } else if (event.subtype == "programChange") {
+                        // should make prog change event
+                    } else if (inspectUnknownEvents) {
+                        inspect(event);
+                        return;
+                    }
+                } else if (event.type == "meta") {
+                    if (event.subtype == "setTempo") {
+                        var tempo = new lively.Sound.TempoEvent();
+                        tempo.setTime(time);
+                        tempo.setMicrosecondsPerBeat(event.microsecondsPerBeat);
+                        track.push(tempo);
+                    } else if (event.subtype == "endOfTrack") {
+                        // end all active notes
+                        ownPropertyNames(activeNotes).forEach(function(noteNumber){
+                            activeNotes[noteNumber].setEndTime(time);
+                        });
+                        activeNotes = {};
+                    } else if (event.subtype == "timeSignature") {
+                        this.timeSignature = event;
+                    } else if (event.subtype == "keySignature") {
+                        track.keySignature = event;
+                    } else if (event.subtype == "sequencerSpecific") {
+                        // ignore
+                    } else if (typeof event.text == "string") {
+                        show("text " + event.subtype + ": " + event.text);
+                        if (!this.text) this.text = {};
+                        if (!this.text[event.subtype]) this.text[event.subtype] = event.text;
+                        else this.text[event.subtype] += "\n" + event.text;
+                    } else if (inspectUnknownEvents) {
+                        inspect(event);
+                        return;
+                    }
+                } else if (inspectUnknownEvents) {
+                    inspect(event);
+                    return;
+                }
+                time += event.deltaTime;
+            }
+            if (track.length) {
+                if (!this.tracks.length && track.every(function(evt){return evt.isTempoEvent()}))
+                    this.tempos = track;
+                else
+                    this.tracks.push(track);
+            }
+        }
     },
-});
+    getDurationInTicks: function() {
+        if (this.durationInTicks) return this.durationInTicks;
+        var ticks = 0;
+        this.tracks.forEach(function(track){
+            track.forEach(function(event){
+                ticks = Math.max(ticks, event.getEndTime());
+            });
+        });
+        return this.durationInTicks = ticks;
+    },
+    getDurationInBeats: function() {
+        return this.getDurationInTicks() / this.ticksPerBeat;
+    }});
 Object.subclass('lively.Sound.Event',
 'default category', {
     aboutMe: function() {
@@ -1985,11 +2134,16 @@ Object.subclass('lively.Sound.Event',
     getTime: function() {
         return this.time;
     },
+    getEndTime: function() {
+        return this.time;
+    },
+
     isNoteEvent: function() {
         return false;
-    }
-
-});
+    },
+    isTempoEvent: function() {
+        return false;
+    },});
 lively.Sound.Event.subclass('lively.Sound.NoteEvent',
 'default category', {
     aboutMe: function() {
@@ -2005,11 +2159,30 @@ lively.Sound.Event.subclass('lively.Sound.NoteEvent',
     setEndTime: function(endTime) {
         this.duration = endTime - this.time;
     },
+    getEndTime: function() {
+        return this.time + (this.duration || 0);
+    },
+
     isNoteEvent: function() {
         return true;
     }
 
 });
+lively.Sound.Event.subclass('lively.Sound.TempoEvent',
+'default category', {
+    aboutMe: function() {
+        // This changes the beatPerMinute
+    },
+    setMicrosecondsPerBeat: function(microsecondsPerBeat) {
+        this.microsecondsPerBeat = microsecondsPerBeat;
+    },
+    getBeatsPerMinute: function() {
+        return 60000000 / this.microsecondsPerBeat;
+    },
+
+    isTempoEvent: function() {
+        return true;
+    },});
 
 
 });  // End of module

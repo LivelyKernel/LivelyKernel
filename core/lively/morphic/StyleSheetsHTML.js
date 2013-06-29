@@ -8,6 +8,7 @@ Object.extend(lively.morphic.Morph.prototype.htmlDispatchTable, {
     setStyleSheet: 'setStyleSheetHTML',
     setBaseThemeStyleSheet: 'setBaseThemeStyleSheetHTML',
     setStyleClassNames: 'setStyleClassNamesHTML',
+    getStyleClassNames: 'getStyleClassNamesHTML',
     setStyleId: 'setStyleIdHTML',
     setNodeMorphId: 'setNodeMorphIdHTML'
 });
@@ -181,7 +182,6 @@ Trait('StyleSheetsHTMLTrait',
 
         // Check if the css border changed
         this.adaptBorders();
-
     }),
     setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
         proceed(optId);
@@ -472,17 +472,16 @@ lively.morphic.Morph.addMethods(
         this.setNodeMorphIdHTML(ctx);
     },
 
-    setStyleClassNamesHTML: function (ctx) {
-        var classNames = this.getStyleClassNames();
-        if (classNames && classNames.length && classNames.length > 0) {
-            classNames = classNames.join(' ');
-            //$(ctx.morphNode).attr('class', classNames);
-            $(ctx.shapeNode).attr('class', classNames);
-        } else {
-            //$(ctx.morphNode).removeAttr('class');
-            $(ctx.shapeNode).removeAttr('class');
-        }
+    setStyleClassNamesHTML: function (ctx, classNames) {
+        classNames = classNames && classNames.length > 0 ? classNames : /*FIXME!!!*/this.getStyleClassNames();
+        ctx.shapeNode.className = classNames ? classNames.join(' ') : '';
     },
+    getStyleClassNamesHTML: function (ctx) {
+        if (!ctx.shapeNode) return this._StyleClassNames || [];
+        var domClassString = ctx.shapeNode.className || '';
+        return domClassString.trim() === '' ? [] : domClassString.trim().split(/\s+/);
+    },
+
 
     setNodeMorphIdHTML: function(ctx) {
         $(ctx.shapeNode).attr('data-lively-morphid', this.id);
@@ -498,10 +497,12 @@ lively.morphic.Morph.addMethods(
     },
 
     getIdsForSelector: function(selector) {
-        return new lively.morphic.Sizzle()
-                   .select(selector, this)
-                   .collect(function(m) { return m.id });
+        return this.cssSelectMorphs(selector).collect(function(m) { return m.id; });
+    },
+    cssSelectMorphs: function(cssSelector) {
+        return new lively.morphic.Sizzle().select(cssSelector, this);
     }
+
 
 });
 

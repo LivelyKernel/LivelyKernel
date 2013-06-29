@@ -1,19 +1,14 @@
 module('lively.morphic.tests.StyleSheetsHTML').requires('lively.morphic.tests.Helper', 'lively.morphic.HTML', 'lively.morphic.StyleSheets', 'lively.morphic.StyleSheetsHTML').toRun(function() {
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.Helpers',
-
 'running', {
-
     setUp: function($super) {
         $super();
         this.sizzle = new lively.morphic.Sizzle();
         this.createSomeMorphs();
-    },
-
+    }
 },
-
 'testing', {
-
     test01SplitGroupedSelector: function() {
         this.assertEqualState(
             ['.test test'],
@@ -44,7 +39,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     },
 
     test03CompileStyleSheet: function() {
-
         var css = '.test {'+
                 'color: purple;'+
                 '}'+
@@ -72,7 +66,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                         ctx,
                         ctx.styleNode);
                 },
-
             morph1Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph2Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph1Level2 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
@@ -115,9 +108,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertArray([this.blueRectangle1.id, this.blueRectangle2.id],
             this.yellowRectangle.world().getIdsForSelector('.blue'),
             'Blue rectangles IDs do not match with selected ones');
-        this.assertArray([this.yellowRectangle.id,
-                this.redRectangle.id,
-                this.blueRectangle1.id, this.blueRectangle2.id],
+        this.assertArray([
+            this.yellowRectangle.id, this.redRectangle.id,
+            this.blueRectangle1.id, this.blueRectangle2.id],
             this.yellowRectangle.world().getIdsForSelector('.Box'),
             'All box IDs do not match with selected ones');
         this.assertArray([this.redRectangle.id],
@@ -217,13 +210,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         // redRectangle its embedded submorph, blueRectangle1, blueRectangle1
         // are its submorphs
         var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
+        yellowRectangle.name = "yellowRectangle";
         yellowRectangle.applyStyle({fill: Color.yellow});
         yellowRectangle.tagName = 'YellowRectangle';
         yellowRectangle.testAttribute = 'theYellowRectangle';
         yellowRectangle.openInWorld();
 
-
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
+        redRectangle.name = "redRectangle";
         redRectangle.applyStyle({fill: Color.red});
         redRectangle.addStyleClassName('red');
         redRectangle.setStyleId('the-red-rectangle');
@@ -231,12 +225,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         yellowRectangle.addMorph(redRectangle);
 
         var blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
+        blueRectangle1.name = "blueRectangle1";
         blueRectangle1.applyStyle({fill: Color.blue});
         blueRectangle1.addStyleClassName('blue');
         blueRectangle1.setStyleId('b1');
         redRectangle.addMorph(blueRectangle1);
 
         var blueRectangle2 = lively.morphic.Morph.makeRectangle(10, 160, 150, 80);
+        blueRectangle2.name = "blueRectangle2";
         blueRectangle2.applyStyle({fill: Color.blue});
         blueRectangle2.addStyleClassName('blue');
         blueRectangle2.setStyleId('b2');
@@ -247,9 +243,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-
-    },
-
+    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.StyleSheets',
@@ -262,21 +256,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 
 'testing', {
     assertDOMMorphNodeAttribute: function(targetValue, attributeName, morph, msg) {
-        var shapeNode= morph.renderContext().shapeNode;
-        return this.assertEquals(targetValue, $(shapeNode).attr(attributeName), msg);
+        var shapeNode = morph.renderContext().shapeNode;
+        return this.assertEquals(targetValue, lively.$(shapeNode).attr(attributeName), msg);
     },
     test01SetStyleClassNames: function() {
         this.morph.addStyleClassName('test-class');
-        this.assertDOMMorphNodeAttribute('Morph test-class', 'class',
-            this.morph,
+        this.assertDOMMorphNodeAttribute('Morph test-class', 'class', this.morph,
             'Morph has not class names "Morph test-class"');
         this.morph.removeStyleClassName('test-class');
-        this.assertDOMMorphNodeAttribute('Morph', 'class',
-            this.morph,
+        this.assertDOMMorphNodeAttribute('Morph', 'class', this.morph,
             'Morph has not class name "Morph" after removal');
         this.morph.setStyleClassNames(['test-class']);
-        this.assertDOMMorphNodeAttribute('Morph test-class', 'class',
-            this.morph,
+        this.assertDOMMorphNodeAttribute('Morph test-class', 'class', this.morph,
             'Morph has not class names "Morph test-class" after re-set');
     },
 
@@ -305,7 +296,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         yellowRectangle.openInWorld();
         yellowRectangle.addStyleClassName('yellow');
 
-
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
         redRectangle.addStyleClassName('red');
@@ -330,7 +320,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-
     },
 
     test03SetStyleSheet: function() {
@@ -383,8 +372,24 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         morph2.setStyleSheet('.test-class { color: green;}');
         var styleId = 'style-for-' + morph1.id;
         this.assertEquals(1, $('head #' + styleId).length);
+    },
+    test07ClassnameDOMModificationsArePickedUpInMorphic: function() {
+        this.morph.addStyleClassName('test-class');
+        this.morph.renderContext().shapeNode.className += ' foo';
+        this.assertDOMMorphNodeAttribute('Morph test-class foo', 'class', this.morph,
+            'classname DOM change not picked up');
+        this.morph.renderContext().shapeNode.className = 
+        this.morph.renderContext().shapeNode.className.replace(/test-class/, '');
+        this.assertDOMMorphNodeAttribute('Morph  foo', 'class', this.morph,
+            'classname removal in DOM not picked up');
+        this.assertEquals(['Morph', 'foo'], this.morph.getStyleClassNames());
+    },
+    test08AddClassNameWithDOMModification: function() {
+        this.morph.renderContext().shapeNode.className += ' foo';
+        this.morph.addStyleClassName('test-class');
+        this.assertDOMMorphNodeAttribute('Morph foo test-class', 'class', this.morph,
+            'classname DOM change not picked up');
     }
-
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.Borders',
@@ -394,7 +399,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.B
         this.createSomeMorphs();
     },
 },
-
 'testing', {
     assertDOMMorphNodeAttribute: function(targetValue, attributeName, morph, msg) {
         var shapeNode= morph.renderContext().shapeNode;

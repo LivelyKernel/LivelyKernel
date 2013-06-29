@@ -533,20 +533,19 @@ lively.morphic.Morph.addMethods(
 },
 'Style classes and ids', {
     getStyleClassNames: function () {
-        var styleClassNames = this.morphicGetter('StyleClassNames');
-        if (Object.isString(styleClassNames)) {
-            styleClassNames = styleClassNames.split(' ').trim();
-        } else {
-            styleClassNames = styleClassNames ? styleClassNames.clone() : [];
-        }
+        var styleClassNames = this.renderContextDispatch('getStyleClassNames');
+        styleClassNames = styleClassNames ? styleClassNames.clone() : [];
         // add real class types to the classnames too
+        return this.getRealClassNames().concat(styleClassNames).uniq();
+    },
+    getRealClassNames: function() {
+        var styleClassNames = [];
         for (var type = this.constructor; type !== Object; type = type.superclass) {
-            if (styleClassNames.indexOf(type.name) === -1) {
-                styleClassNames.unshift(type.name); }
+            if (styleClassNames.indexOf(type.name) === -1) styleClassNames.unshift(type.name);
         }
-        // each class has to be in the return array only once
         return styleClassNames;
     },
+
 
     isOfStyleClass: function (classNameOrNames) {
         // Tests if a morph has a specific class. Argument can be a single
@@ -555,16 +554,15 @@ lively.morphic.Morph.addMethods(
         if (Object.isString(classNameOrNames)) {
             classNameOrNames = classNameOrNames.trim().split(/[\s,]+/);
         }
-        var morphClasses = this.getStyleClassNames(),
+        var morphClasses = this.getStyleClassNames() || [],
             inBoth = morphClasses.intersect(classNameOrNames);
         return inBoth.length === classNameOrNames.length;
     },
 
     addStyleClassName: function (classNameOrNames) {
         if (!classNameOrNames || this.isOfStyleClass(classNameOrNames)) return;
-        var ownClassNames = this.morphicGetter('StyleClassNames') || [];
-        ownClassNames = ownClassNames.concat(Object.isArray(classNameOrNames) ?
-            classNameOrNames : [classNameOrNames]);
+        var ownClassNames = this.getStyleClassNames().concat(
+            Object.isArray(classNameOrNames) ? classNameOrNames : [classNameOrNames]).uniq();
         this.setStyleClassNames(ownClassNames);
     },
     hasStyleClassName: function(className) {
@@ -596,13 +594,14 @@ lively.morphic.Morph.addMethods(
 
     removeStyleClassName: function (className) {
         className = className.trim();
-        var classNames = this.morphicGetter('StyleClassNames') || [],
+        var classNames = this.getStyleClassNames(),
             idx = classNames.indexOf(className);
         if (idx === -1) return;
         classNames.splice(idx, 1);
         this.setStyleClassNames(classNames);
     },
     setStyleClassNames: function (classNames) {
+        classNames = this.getRealClassNames().concat(classNames || []).uniq();
         if (!classNames || classNames.length === 0) {
             this.morphicSetter('StyleClassNames', null);
             delete this._StyleClassNames;

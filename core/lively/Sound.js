@@ -2020,7 +2020,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
             }.bind(this));
         roll.line = lively.morphic.Morph.makeLine([pt(0,0), pt(0,height)]);
         roll.line.moveToTick = function(tick) {
-            this.setPosition(pt(tick * tickWidth,0));
+            this.setPosition(pt((tick * tickWidth)|0,0));
         };
         roll.addMorph(roll.line);
         roll.openInWindow();

@@ -119,24 +119,15 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         extent = extent || this.initialViewExtent;
         var panel = new lively.ide.BrowserPanel(extent);
         lively.morphic.Panel.makePanedPanel(extent, this.panelSpec, panel);
-        panel.applyStyle({fill: Color.lightGray})
+        panel.applyStyle({fill: Color.lightGray});
         this.panel = panel;
-
         this.setupListPanes();
         this.setupSourceInput();
         this.setupLocationInput();
-
-        //panel.statusPane.connectModel(model.newRelay({Text: "-StatusMessage"}));
         this.buildCommandButtons(panel);
         this.setupResizers(panel);
-
-        // panel.commentPane.linkToStyles(["Browser_commentPane"])
-        // panel.commentPane.innerMorph().linkToStyles(["Browser_commentPaneText"])
-        // if (panel.commentPane.clipMorph) panel.commentPane.clipMorph.setFill(null);
-
         panel.ownerWidget = this;
         this.start();
-
         return panel;
     },
 

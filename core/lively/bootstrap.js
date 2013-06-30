@@ -1193,8 +1193,14 @@
         applyWorldJsoTransforms: function(jso) {
             this.worldJsoTransforms.forEach(function(func) { jso = func(jso) });
             return jso;
-        }
+        },
 
+        fixCSS: function(doc) {
+            var styles = document.getElementsByTagName('style')
+            for (var i = 0; i < styles.length; i++) {
+                styles[i].parentNode.removeChild(styles[i]);
+            }
+        }
     };
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1221,6 +1227,7 @@
     }
 
     function initBrowserBootstrap() {
+        LoadingScreen.add();
         if (!domLoaded) {
             Global.addEventListener('DOMContentLoaded', initBrowserBootstrap, true);
             return;
@@ -1229,6 +1236,7 @@
         setupExitWarning();
         if (Global.document) {
             Global.LivelyMigrationSupport.setDocumentMigrationLevel(document);
+            Global.LivelyMigrationSupport.fixCSS(document);
         }
         var startupFunc = Config.onStartWorld;
         if (Global.LivelyLoader.startFromSerializedWorld(startupFunc)) return;

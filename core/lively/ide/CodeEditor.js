@@ -1,8 +1,8 @@
 // ensure that new ace style gets loaded
-$('style#ace_editor').remove();
-$('style#incremental-search-highlight-style-patch').remove();
-$('style#incremental-search-highlighting').remove();
-$('style#incremental-occur-highlighting').remove();
+$('style').remove();
+// $('style#incremental-search-highlight-style-patch').remove();
+// $('style#incremental-search-highlighting').remove();
+// $('style#incremental-occur-highlighting').remove();
 
 module('lively.ide.CodeEditor').requires('lively.morphic').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
@@ -132,7 +132,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         printMargin: Config.get('aceDefaultShowPrintMargin'),
         showActiveLine: Config.get('aceDefaultShowActiveLine'),
         showIndents: Config.get('aceDefaultShowIndents'),
-        softTabs: Config.get('useSoftTabs')
+        softTabs: Config.get('useSoftTabs'),
+        autocompletion: Config.get('aceDefaultEnableAutocompletion')
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     evalEnabled: true,
@@ -179,6 +180,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.showIndents !== undefined) this.setShowIndents(spec.showIndents);
         if (spec.showActiveLine !== undefined) this.setShowActiveLine(spec.showActiveLine);
         if (spec.softTabs !== undefined) this.setSoftTabs(spec.softTabs);
+        if (spec.autocompletion !== undefined) this.setAutocompletionEnabled(spec.autocompletion);
         return this;
     }
 },
@@ -1260,6 +1262,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getSoftTabs: function() {
         return this.hasOwnProperty("_SoftTabs") ? this._SoftTabs : this.withAceDo(function(ed) {
             return ed.session.getUseSoftTabs(); });
+    },
+
+    setAutocompletionEnabled: function(bool) {
+        this.withAceDo(function(ed) { ed.setOption("enableBasicAutocompletion", bool); });
+        return this._AutocompletionEnabled = bool;
+    },
+    getAutocompletionEnabled: function() {
+        return this.hasOwnProperty("_AutocompletionEnabled") ? this._AutocompletionEnabled : this.withAceDo(function(ed) {
+            return ed.getOption("enableBasicAutocompletion"); });
     }
 
 },

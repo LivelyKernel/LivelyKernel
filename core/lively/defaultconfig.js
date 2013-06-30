@@ -472,6 +472,7 @@ Config.addOptions(
     ['aceDefaultShowIndents', true, "Indicators for indents in the beginning of lines."],
     ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"],
     ['aceDefaultShowActiveLine', false, "Current line is highlighted"],
+    ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
     ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."]
 ],
 
@@ -483,6 +484,7 @@ Config.addOptions(
 "lively.PartsBin", [
     ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
 ],
+
 "lively.morphic.Windows", [
     ["useWindowSwitcher", true, "Use the window switcher (F5/CMD+`/CTRL+`)."]
 ],

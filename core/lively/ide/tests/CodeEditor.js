@@ -126,14 +126,13 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
     testMoveToMatchingOrSomewhereElse: function() {
         var e = this.editor;
         e.textString = "ab { c }";
-
         e.setCursorPosition(pt(0,0));
         e.moveForwardToMatching(false, true);
         this.assertEquals(pt(2,0), e.getCursorPosition(), "|ab { c } -> ab| { c }");
         e.moveForwardToMatching(false, true);
-        this.assertEquals(pt(4,0), e.getCursorPosition(), "ab| { c } -> ab {| c }");
+        this.assertEquals(pt(6,0), e.getCursorPosition(), "ab| { c } -> ab { c| }");
         e.moveForwardToMatching(false, true);
-        this.assertEquals(pt(7,0), e.getCursorPosition(), "ab {| c } -> ab { c |}");
+        this.assertEquals(pt(8,0), e.getCursorPosition(), "ab {| c } -> ab { c |}");
         this.done();
     },
 

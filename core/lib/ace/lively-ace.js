@@ -135,7 +135,7 @@ var lookup = function(parentId, moduleName) {
             _define.modules[moduleName] = exports;
             delete _define.payloads[moduleName];
         }
-        module = _define.modules[moduleName] = exports;
+        module = _define.modules[moduleName] = exports || module;
     }
     return module;
 };
@@ -169,7 +169,7 @@ exportAce(ACE_NAMESPACE);
 
 })();
 
-ace.define('ace/lively', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/dom', 'ace/lib/event', 'ace/editor', 'ace/edit_session', 'ace/undomanager', 'ace/virtual_renderer', 'ace/multi_select', 'ace/single_line_edit', 'ace/worker/worker_client', 'ace/keyboard/hash_handler', 'ace/placeholder', 'ace/mode/folding/fold_mode', 'ace/theme/textmate', 'ace/snippets', 'ace/config'], function(require, exports, module) {
+ace.define('ace/lively', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/dom', 'ace/lib/event', 'ace/editor', 'ace/edit_session', 'ace/undomanager', 'ace/virtual_renderer', 'ace/multi_select', 'ace/single_line_edit', 'ace/worker/worker_client', 'ace/keyboard/hash_handler', 'ace/placeholder', 'ace/mode/folding/fold_mode', 'ace/theme/textmate', 'ace/snippets', 'ace/ext/language_tools', 'ace/config'], function(require, exports, module) {
 
 
 require("./lib/fixoldbrowsers");
@@ -190,6 +190,7 @@ require("./mode/folding/fold_mode");
 require("./theme/textmate");
 
 require("ace/snippets");
+require("ace/ext/language_tools"); // for autocompletion
 
 exports.config = require("./config");
 exports.require = require;
@@ -3123,6 +3124,8 @@ config.defineOptions(Editor.prototype, "editor", {
     displayIndentGuides: "renderer",
     fontSize: "renderer",
     fontFamily: "renderer",
+    maxLines: "renderer",
+    minLines: "renderer",
 
     scrollSpeed: "$mouseHandler",
     dragDelay: "$mouseHandler",
@@ -3700,7 +3703,7 @@ var TextInput = function(parentNode, host) {
         text.style.cssText = "z-index:100000;" + (useragent.isIE ? "opacity:0.1;" : "");
 
         resetSelection(host.selection.isEmpty());
-        host._emit("nativecontextmenu", {target: host});
+        host._emit("nativecontextmenu", {target: host, domEvent: e});
         var rect = host.container.getBoundingClientRect();
         var style = dom.computedStyle(host.container);
         var top = rect.top + (parseInt(style.borderTopWidth) || 0);
@@ -3734,7 +3737,7 @@ var TextInput = function(parentNode, host) {
             }
         }, 0);
     }
-    if (!useragent.isGecko) {
+    if (!useragent.isGecko || useragent.isMac) {
         event.addListener(text, "contextmenu", function(e) {
             host.textInput.onContextMenu(e);
             onContextMenuClose();
@@ -3843,7 +3846,7 @@ var MouseHandler = function(editor) {
         };
 
         if (useragent.isOldIE && ev.domEvent.type == "dblclick") {
-            return setTimeout(function() {onCaptureEnd(ev.domEvent);});
+            return setTimeout(function() {onCaptureEnd(ev);});
         }
 
         event.capture(this.editor.container, onMouseMove, onCaptureEnd);
@@ -4171,7 +4174,7 @@ function GutterHandler(mouseHandler) {
     var gutter = editor.renderer.$gutterLayer;
 
     mouseHandler.editor.setDefaultHandler("guttermousedown", function(e) {
-        if (!editor.isFocused())
+        if (!editor.isFocused() || e.getButton() != 0)
             return;
         var gutterRegion = gutter.getRegion(e);
 
@@ -5260,7 +5263,7 @@ var EditSession = function(text, mode) {
         this.setOption("useSoftTabs", val);
     };
     this.getUseSoftTabs = function() {
-         return this.$useSoftTabs;
+        return this.$useSoftTabs && !this.$mode.$indentWithTabs;
     };
     this.setTabSize = function(tabSize) {
         this.setOption("tabSize", tabSize)
@@ -5469,7 +5472,7 @@ var EditSession = function(text, mode) {
     this.$modes = {};
     this.$mode = null;
     this.$modeId = null;
-    this.setMode = function(mode) {
+    this.setMode = function(mode, cb) {
         if (mode && typeof mode === "object") {
             if (mode.getTokenizer)
                 return this.$onChangeMode(mode);
@@ -5486,7 +5489,7 @@ var EditSession = function(text, mode) {
         this.$modeId = path;
         config.loadModule(["mode", path], function(m) {
             if (this.$modeId !== path)
-                return;
+                return cb && cb();
             if (this.$modes[path] && !options)
                 return this.$onChangeMode(this.$modes[path]);
             if (m && m.Mode) {
@@ -5495,7 +5498,8 @@ var EditSession = function(text, mode) {
                     this.$modes[path] = m;
                     m.$id = path;
                 }
-                this.$onChangeMode(m)
+                this.$onChangeMode(m);
+                cb && cb(this.mode);
             }
         }.bind(this));
         if (!this.$mode)
@@ -5503,7 +5507,11 @@ var EditSession = function(text, mode) {
     };
 
     this.$onChangeMode = function(mode, $isPlaceholder) {
-        if (this.$mode === mode) return;
+        if (!$isPlaceholder)
+            this.$modeId = mode.$id;
+        if (this.$mode === mode)
+            return;
+
         this.$mode = mode;
 
         this.$stopWorker();
@@ -5535,7 +5543,6 @@ var EditSession = function(text, mode) {
 
 
         if (!$isPlaceholder) {
-            this.$modeId = mode.$id;
             this.$setFolding(mode.foldingRules);
             this._emit("changeMode");
             this.bgTokenizer.start(0);
@@ -5569,7 +5576,7 @@ var EditSession = function(text, mode) {
 
     this.$scrollTop = 0;
     this.setScrollTop = function(scrollTop) {
-        scrollTop = Math.round(Math.max(0, scrollTop));
+        scrollTop = Math.round(scrollTop);
         if (this.$scrollTop === scrollTop || isNaN(scrollTop))
             return;
 
@@ -5582,7 +5589,7 @@ var EditSession = function(text, mode) {
 
     this.$scrollLeft = 0;
     this.setScrollLeft = function(scrollLeft) {
-        scrollLeft = Math.round(Math.max(0, scrollLeft));
+        scrollLeft = Math.round(scrollLeft);
         if (this.$scrollLeft === scrollLeft || isNaN(scrollLeft))
             return;
 
@@ -7018,7 +7025,7 @@ var Selection = function(session) {
             while ((ch = rightOfCursor[index]) && whitespaceRe.test(ch))
                 index ++;
 
-            if (index <= 1) {
+            if (index < 1) {
                 tokenRe.lastIndex = 0;
                  while ((ch = rightOfCursor[index]) && !tokenRe.test(ch)) {
                     tokenRe.lastIndex = 0;
@@ -7713,6 +7720,34 @@ var Mode = function() {
         }
     };
 
+    this.getKeywords = function(append) {
+        if (!this.completionKeywords) {
+            var rules = this.$tokenizer.rules;
+            var completionKeywords = [];
+            for (var rule in rules) {
+                var ruleItr = rules[rule];
+                for (var r = 0, l = ruleItr.length; r < l; r++) {
+                    if (typeof ruleItr[r].token === "string") {
+                        if (/keyword|support|storage/.test(ruleItr[r].token))
+                            completionKeywords.push(ruleItr[r].regex);
+                    }
+                    else if (typeof ruleItr[r].token === "object") {
+                        for (var a = 0, aLength = ruleItr[r].token.length; a < aLength; a++) {
+                            if (/keyword|support|storage/.test(ruleItr[r].token[a])) {
+                                var rule = ruleItr[r].regex.match(/\(.+?\)/g)[a];
+                                completionKeywords.push(rule.substr(1, rule.length - 2));
+                            }
+                        }
+                    }
+                }
+            }
+            this.completionKeywords = completionKeywords;
+        }
+        if (!append)
+            return this.$keywordList;
+        return completionKeywords.concat(this.$keywordList || []);
+    };
+
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -8161,6 +8196,7 @@ var TextHighlightRules = function() {
             for (var i = list.length; i--; )
                 keywords[list[i]] = className;
         });
+        this.$keywordList = Object.keys(keywords);
         map = null;
         return ignoreCase
             ? function(value) {return keywords[value.toLowerCase()] || defaultToken }
@@ -8701,9 +8737,9 @@ var Document = function(text) {
         var index = 0;
         var row = Math.min(pos.row, lines.length);
         for (var i = startRow || 0; i < row; ++i)
-            index += lines[i].length;
+            index += lines[i].length + newlineLength;
 
-        return index + newlineLength * i + pos.column;
+        return index + pos.column;
     };
 
 }).call(Document.prototype);
@@ -9292,7 +9328,7 @@ function Folding() {
         else
             this.$updateRowLengthCache(foldLine.start.row, foldLine.start.row);
         this.$modified = true;
-        this._emit("changeFold", { data: fold });
+        this._emit("changeFold", { data: fold, action: "add" });
 
         return fold;
     };
@@ -9341,7 +9377,7 @@ function Folding() {
                 this.$updateRowLengthCache(startRow, endRow);
         }
         this.$modified = true;
-        this._emit("changeFold", { data: fold });
+        this._emit("changeFold", { data: fold, action: "remove" });
     };
 
     this.removeFolds = function(folds) {
@@ -9573,8 +9609,8 @@ function Folding() {
             if (range && range.end.row <= endRow) try {
                 var fold = this.addFold("...", range);
                 fold.collapseChildren = depth;
+                row = range.end.row;
             } catch(e) {}
-            row = range.end.row;
         }
     };
     this.$foldStyles = {
@@ -10609,7 +10645,7 @@ var Search = function() {
         };
     };
 
-    this.$assembleRegExp = function(options) {
+    this.$assembleRegExp = function(options, $disableFakeMultiline) {
         if (options.needle instanceof RegExp)
             return options.re = options.needle;
 
@@ -10626,7 +10662,7 @@ var Search = function() {
 
         var modifier = options.caseSensitive ? "g" : "gi";
 
-        options.$isMultiLine = /[\n\r]/.test(needle);
+        options.$isMultiLine = !$disableFakeMultiline && /[\n\r]/.test(needle);
         if (options.$isMultiLine)
             return options.re = this.$assembleMultilineRegExp(needle, modifier);
 
@@ -11472,7 +11508,8 @@ var GutterLayer = require("./layer/gutter").Gutter;
 var MarkerLayer = require("./layer/marker").Marker;
 var TextLayer = require("./layer/text").Text;
 var CursorLayer = require("./layer/cursor").Cursor;
-var ScrollBar = require("./scrollbar").ScrollBar;
+var ScrollBarH = require("./scrollbar").ScrollBarH;
+var ScrollBarV = require("./scrollbar").ScrollBarV;
 var RenderLoop = require("./renderloop").RenderLoop;
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
 var editorCss = ".ace_editor {\
@@ -11481,12 +11518,14 @@ overflow: hidden;\
 font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;\
 font-size: 12px;\
 line-height: normal;\
+color: black;\
 }\
 .ace_scroller {\
 position: absolute;\
 overflow: hidden;\
 top: 0;\
 bottom: 0;\
+background-color: inherit;\
 }\
 .ace_content {\
 position: absolute;\
@@ -11536,8 +11575,8 @@ background-image: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA
 }\
 .ace_scrollbar {\
 position: absolute;\
-overflow-x: hidden;\
-overflow-y: scroll;\
+overflow: hidden;\
+overflow-y: auto;\
 right: 0;\
 top: 0;\
 bottom: 0;\
@@ -11545,6 +11584,19 @@ bottom: 0;\
 .ace_scrollbar-inner {\
 position: absolute;\
 width: 1px;\
+left: 0;\
+}\
+.ace_scrollbar-h {\
+position: absolute;\
+overflow-x: auto;\
+overflow-y: hidden;\
+right: 0;\
+left: 0;\
+bottom: 0;\
+}\
+.ace_scrollbar-inner {\
+position: absolute;\
+height: 1px;\
 left: 0;\
 }\
 .ace_print-margin {\
@@ -11595,7 +11647,6 @@ text-align: right;\
 pointer-events: auto;\
 }\
 .ace_text-layer {\
-color: black;\
 font: inherit !important;\
 }\
 .ace_cjk {\
@@ -11631,7 +11682,7 @@ border-left-width: 1px;\
 .ace_line {\
 white-space: nowrap;\
 }\
-.ace_marker-layer .ace_step {\
+.ace_marker-layer .ace_step, .ace_marker-layer .ace_stack {\
 position: absolute;\
 z-index: 3;\
 }\
@@ -11805,6 +11856,16 @@ font-weight: normal;\
 .ace_italic {\
 font-style: italic;\
 }\
+.ace_error-marker {\
+background-color: rgba(255, 0, 0,0.2);\
+position: absolute;\
+z-index: 9;\
+}\
+.ace_highlight-marker {\
+background-color: rgba(255, 255, 0,0.2);\
+position: absolute;\
+z-index: 8;\
+}\
 ";
 
 dom.importCssString(editorCss, "ace_editor");
@@ -11843,21 +11904,22 @@ var VirtualRenderer = function(container, theme) {
 
     this.$cursorLayer = new CursorLayer(this.content);
     this.$horizScroll = false;
+    this.$vScroll = false;
 
-    this.scrollBar = new ScrollBar(this.container);
-    this.scrollBar.addEventListener("scroll", function(e) {
+    this.scrollBar =
+    this.scrollBarV = new ScrollBarV(this.container);
+    this.scrollBarH = new ScrollBarH(this.container);
+    this.scrollBarV.addEventListener("scroll", function(e) {
         if (!_self.$scrollAnimation)
-            _self.session.setScrollTop(e.data);
+            _self.session.setScrollTop(e.data - _self.scrollMargin.top);
+    });
+    this.scrollBarH.addEventListener("scroll", function(e) {
+        if (!_self.$scrollAnimation)
+            _self.session.setScrollLeft(e.data - _self.scrollMargin.left);
     });
 
     this.scrollTop = 0;
     this.scrollLeft = 0;
-
-    event.addListener(this.scroller, "scroll", function() {
-        var scrollLeft = _self.scroller.scrollLeft;
-        _self.scrollLeft = scrollLeft;
-        _self.session.setScrollLeft(scrollLeft);
-    });
 
     this.cursorPos = {
         row : 0,
@@ -11867,6 +11929,7 @@ var VirtualRenderer = function(container, theme) {
     this.$textLayer.addEventListener("changeCharacterSize", function() {
         _self.updateCharacterSize();
         _self.onResize(true);
+        _self._signal("changeCharacterSize");
     });
 
     this.$size = {
@@ -11889,6 +11952,15 @@ var VirtualRenderer = function(container, theme) {
         offset : 0,
         height : 1
     };
+
+    this.scrollMargin = {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        v: 0,
+        h: 0
+    }
 
     this.$loop = new RenderLoop(
         this.$renderChanges.bind(this),
@@ -11981,10 +12053,9 @@ var VirtualRenderer = function(container, theme) {
     this.updateFontSize = function() {
         this.$textLayer.checkForSizeChanges();
     };
-    this.onResize = function(force, gutterWidth, width, height) {
-        var changes = 0;
-        var size = this.$size;
 
+    this.$changes = 0;
+    this.onResize = function(force, gutterWidth, width, height) {
         if (this.resizing > 2)
             return;
         else if (this.resizing > 1)
@@ -11992,41 +12063,11 @@ var VirtualRenderer = function(container, theme) {
         else
             this.resizing = force ? 1 : 0;
         if (!height)
-            height = dom.getInnerHeight(this.container);
-
-        if (height && (force || size.height != height)) {
-            size.height = height;
-            changes = this.CHANGE_SIZE;
-
-            size.scrollerHeight = this.scroller.clientHeight;
-            if (force || !size.scrollerHeight) {
-                size.scrollerHeight = size.height;
-                if (this.$horizScroll)
-                    size.scrollerHeight -= this.scrollBar.getWidth();
-            }
-            this.scrollBar.setHeight(size.scrollerHeight);
-
-            if (this.session) {
-                this.session.setScrollTop(this.getScrollTop());
-                changes = changes | this.CHANGE_FULL;
-            }
-        }
-
+            height = this.container.clientHeight;
         if (!width)
-            width = dom.getInnerWidth(this.container);
+            width = this.container.clientWidth;
 
-        if (width && (force || this.resizing > 1 || size.width != width)) {
-            changes = this.CHANGE_SIZE;
-            size.width = width;
-
-            var gutterWidth = this.$showGutter ? this.$gutter.offsetWidth : 0;
-            this.scroller.style.left = gutterWidth + "px";
-            size.scrollerWidth = Math.max(0, width - gutterWidth - this.scrollBar.getWidth());
-            this.scroller.style.right = this.scrollBar.getWidth() + "px";
-
-            if (this.session && this.session.getUseWrapMode() && this.adjustWrapLimit() || force)
-                changes = changes | this.CHANGE_FULL;
-        }
+        var changes = this.$updateCachedSize(force, gutterWidth, width, height);
 
         if (!this.$size.scrollerHeight)
             return;
@@ -12043,14 +12084,56 @@ var VirtualRenderer = function(container, theme) {
             delete this.resizing;
     };
 
+    this.$updateCachedSize = function(force, gutterWidth, width, height) {
+        var changes = this.$changes || 0;
+        var size = this.$size;
+        if (height && (force || size.height != height)) {
+            size.height = height;
+            changes = this.CHANGE_SIZE;
+
+            size.scrollerHeight = size.height;
+            if (this.$horizScroll)
+                size.scrollerHeight -= this.scrollBarH.getHeight();
+
+            this.scrollBarV.setHeight(size.scrollerHeight);
+
+            if (this.session) {
+                this.session.setScrollTop(this.getScrollTop());
+                changes = changes | this.CHANGE_SCROLL;
+            }
+        }
+
+        if (width && (force || this.resizing > 1 || size.width != width)) {
+            changes = this.CHANGE_SIZE;
+            size.width = width;
+
+            var gutterWidth = this.$showGutter ? this.$gutter.offsetWidth : 0;
+            this.scrollBarH.element.style.left =
+            this.scroller.style.left = gutterWidth + "px";
+            size.scrollerWidth = Math.max(0, width - gutterWidth - this.scrollBarV.getWidth());
+
+            this.scroller.style.right = this.scrollBarV.getWidth() + "px";
+            this.scroller.style.bottom = this.scrollBarH.getHeight() + "px";
+
+            this.scrollBarH.setWidth(size.scrollerWidth);
+
+            if (this.session && this.session.getUseWrapMode() && this.adjustWrapLimit() || force)
+                changes = changes | this.CHANGE_FULL;
+        }
+        return changes;
+    };
+
     this.onGutterResize = function() {
         var width = this.$size.width;
         var gutterWidth = this.$showGutter ? this.$gutter.offsetWidth : 0;
-        this.scroller.style.left = gutterWidth + "px";
-        this.$size.scrollerWidth = Math.max(0, width - gutterWidth - this.scrollBar.getWidth());
+        this.$updateCachedSize(true, gutterWidth, this.$size.width, this.$size.height);
 
         if (this.session.getUseWrapMode() && this.adjustWrapLimit())
             this.$loop.schedule(this.CHANGE_FULL);
+        else {
+            this.$computeLayerConfig();
+            this.$loop.schedule(this.CHANGE_MARKER);
+        }
     };
     this.adjustWrapLimit = function() {
         var availableWidth = this.$size.scrollerWidth - this.$padding * 2;
@@ -12207,21 +12290,44 @@ var VirtualRenderer = function(container, theme) {
         this.$loop.schedule(this.CHANGE_FULL);
         this.$updatePrintMargin();
     };
+
+    this.setScrollMargin = function(top, bottom, left, right) {
+        var sm = this.scrollMargin;
+        sm.top = top|0;
+        sm.bottom = bottom|0;
+        sm.right = right|0;
+        sm.left = left|0;
+        sm.v = sm.top + sm.bottom;
+        sm.h = sm.left + sm.right;
+        this.updateFull();
+    };
     this.getHScrollBarAlwaysVisible = function() {
         return this.$hScrollBarAlwaysVisible;
     };
     this.setHScrollBarAlwaysVisible = function(alwaysVisible) {
         this.setOption("hScrollBarAlwaysVisible", alwaysVisible);
     };
+    this.getVScrollBarAlwaysVisible = function() {
+        return this.$hScrollBarAlwaysVisible;
+    };
+    this.setVScrollBarAlwaysVisible = function(alwaysVisible) {
+        this.setOption("vScrollBarAlwaysVisible", alwaysVisible);
+    };
 
-    this.$updateScrollBar = function() {
-        this.scrollBar.setInnerHeight(this.layerConfig.maxHeight);
-        this.scrollBar.setScrollTop(this.scrollTop);
+    this.$updateScrollBarV = function() {
+        this.scrollBarV.setInnerHeight(this.layerConfig.maxHeight + this.scrollMargin.v);
+        this.scrollBarV.setScrollTop(this.scrollTop + this.scrollMargin.top);
+    };
+    this.$updateScrollBarH = function() {
+        this.scrollBarH.setInnerWidth(this.layerConfig.width + 2 * this.$padding + this.scrollMargin.h);
+        this.scrollBarH.setScrollLeft(this.scrollLeft + this.scrollMargin.left);
     };
 
     this.$renderChanges = function(changes, force) {
-        if (!force && (!changes || !this.session || !this.container.offsetWidth))
+        if (!force && (!changes || !this.session || !this.container.offsetWidth)) {
+            this.$changes = changes;
             return;
+        }
 
         this._signal("beforeRender");
         if (changes & this.CHANGE_FULL ||
@@ -12232,16 +12338,14 @@ var VirtualRenderer = function(container, theme) {
         )
             this.$computeLayerConfig();
         if (changes & this.CHANGE_H_SCROLL) {
-            this.scroller.scrollLeft = this.scrollLeft;
-            var scrollLeft = this.scroller.scrollLeft;
-            this.scrollLeft = scrollLeft;
-            this.session.setScrollLeft(scrollLeft);
-
-            this.scroller.className = this.scrollLeft == 0 ? "ace_scroller" : "ace_scroller ace_scroll-left";
+            this.$updateScrollBarH();
+            this.content.style.marginLeft = -this.scrollLeft + "px";
+            this.scroller.className = this.scrollLeft <= 0 ? "ace_scroller" : "ace_scroller ace_scroll-left";
         }
         if (changes & this.CHANGE_FULL) {
             this.$textLayer.checkForSizeChanges();
-            this.$updateScrollBar();
+            this.$updateScrollBarV();
+            this.$updateScrollBarH();
             this.$textLayer.update(this.layerConfig);
             if (this.$showGutter)
                 this.$gutterLayer.update(this.layerConfig);
@@ -12254,6 +12358,7 @@ var VirtualRenderer = function(container, theme) {
             return;
         }
         if (changes & this.CHANGE_SCROLL) {
+            this.$updateScrollBarV();
             if (changes & this.CHANGE_TEXT || changes & this.CHANGE_LINES)
                 this.$textLayer.update(this.layerConfig);
             else
@@ -12266,7 +12371,6 @@ var VirtualRenderer = function(container, theme) {
             this.$cursorLayer.update(this.layerConfig);
             this.$highlightGutterLine && this.$updateGutterLineHighlight();
             this.$moveTextAreaToCursor();
-            this.$updateScrollBar();
             this._signal("afterRender");
             return;
         }
@@ -12299,33 +12403,78 @@ var VirtualRenderer = function(container, theme) {
             this.$markerBack.update(this.layerConfig);
         }
 
-        if (changes & this.CHANGE_SIZE)
-            this.$updateScrollBar();
+        if (changes & this.CHANGE_SIZE || changes & this.CHANGE_LINES) {
+            this.$updateScrollBarV();
+            this.$updateScrollBarH();
+        }
 
         this._signal("afterRender");
     };
 
+
+    this.$autosize = function(height, width) {
+        var height = this.session.getScreenLength() * this.lineHeight;
+        var maxHeight = this.$maxLines * this.lineHeight;
+        var desiredHeight = Math.max(
+            (this.$minLines||1) * this.lineHeight,
+            Math.min(maxHeight, height)
+        );
+        var vScroll = height > maxHeight;
+
+        if (desiredHeight != this.desiredHeight ||
+            this.$size.height != this.desiredHeight || vScroll != this.$vScroll) {
+            if (vScroll != this.$vScroll) {
+                this.$vScroll = vScroll;
+                this.scrollBarV.setVisible(vScroll);
+            }
+
+            var w = this.container.clientWidth;
+            this.container.style.height = desiredHeight + "px";
+            this.$updateCachedSize(true, this.$gutterWidth, w, desiredHeight);
+            this.desiredHeight = desiredHeight;
+        }
+    };
+
     this.$computeLayerConfig = function() {
+        if (this.$maxLines && this.lineHeight > 1)
+            this.$autosize();
+
         if (!this.$size.scrollerHeight)
             return this.onResize(true);
 
         var session = this.session;
+
+        var hideScrollbars = this.$size.height <= 2 * this.lineHeight;
+        var screenLines = this.session.getScreenLength()
+        var maxHeight =  screenLines * this.lineHeight;
 
         var offset = this.scrollTop % this.lineHeight;
         var minHeight = this.$size.scrollerHeight + this.lineHeight;
 
         var longestLine = this.$getLongestLine();
 
-        var horizScroll = this.$hScrollBarAlwaysVisible || this.$size.scrollerWidth - longestLine < 0;
-        var horizScrollChanged = this.$horizScroll !== horizScroll;
-        this.$horizScroll = horizScroll;
-        if (horizScrollChanged) {
-            this.scroller.style.overflowX = horizScroll ? "scroll" : "hidden";
-            if (!horizScroll)
-                this.session.setScrollLeft(0);
+        var horizScroll = !hideScrollbars && (this.$hScrollBarAlwaysVisible ||
+            this.$size.scrollerWidth - longestLine - 2 * this.$padding < 0);
+
+        var hScrollChanged = this.$horizScroll !== horizScroll;
+        if (hScrollChanged) {
+            this.$horizScroll = horizScroll;
+            this.scrollBarH.setVisible(horizScroll);
         }
-        var maxHeight = this.session.getScreenLength() * this.lineHeight;
-        this.session.setScrollTop(Math.max(0, Math.min(this.scrollTop, maxHeight - this.$size.scrollerHeight)));
+
+        var vScroll = !hideScrollbars && (this.$vScrollBarAlwaysVisible ||
+            this.$size.scrollerHeight - maxHeight < 0);
+        var vScrollChanged = this.$vScroll !== vScroll;
+        if (vScrollChanged) {
+            this.$vScroll = vScroll;
+            this.scrollBarV.setVisible(vScroll);
+        }
+
+        this.session.setScrollTop(Math.max(-this.scrollMargin.top,
+            Math.min(this.scrollTop, maxHeight - this.$size.scrollerHeight + this.scrollMargin.v)));
+
+        this.session.setScrollLeft(Math.max(-this.scrollMargin.left, Math.min(this.scrollLeft,
+            longestLine + 2 * this.$padding - this.$size.scrollerWidth + this.scrollMargin.h)));
 
         var lineCount = Math.ceil(minHeight / this.lineHeight) - 1;
         var firstRow = Math.max(0, Math.round((this.scrollTop - offset) / this.lineHeight));
@@ -12365,8 +12514,10 @@ var VirtualRenderer = function(container, theme) {
         this.content.style.marginTop = (-offset) + "px";
         this.content.style.width = longestLine + 2 * this.$padding + "px";
         this.content.style.height = minHeight + "px";
-        if (horizScrollChanged)
+        if (hScrollChanged || vScrollChanged) {
             this.onResize(true);
+            this._signal("scrollbarVisibilityChanged");
+        }
     };
 
     this.$updateLines = function() {
@@ -12442,6 +12593,10 @@ var VirtualRenderer = function(container, theme) {
         if (this.scrollTop > top) {
             if (offset)
                 top -= offset * this.$size.scrollerHeight;
+            if (top == 0)
+                top = - this.scrollMargin.top;
+            else if (top == 0)
+                top = + this.scrollMargin.bottom;
             this.session.setScrollTop(top);
         } else if (this.scrollTop + this.$size.scrollerHeight < top + this.lineHeight) {
             if (offset)
@@ -12453,10 +12608,12 @@ var VirtualRenderer = function(container, theme) {
 
         if (scrollLeft > left) {
             if (left < this.$padding + 2 * this.layerConfig.characterWidth)
-                left = 0;
+                left = -this.scrollMargin.left;
             this.session.setScrollLeft(left);
         } else if (scrollLeft + this.$size.scrollerWidth < left + this.characterWidth) {
             this.session.setScrollLeft(Math.round(left + this.characterWidth - this.$size.scrollerWidth));
+        } else if (scrollLeft <= this.$padding && left - scrollLeft < this.characterWidth) {
+            this.session.setScrollLeft(0);
         }
     };
     this.getScrollTop = function() {
@@ -12547,9 +12704,6 @@ var VirtualRenderer = function(container, theme) {
         }
     };
     this.scrollToX = function(scrollLeft) {
-        if (scrollLeft < 0)
-            scrollLeft = 0;
-
         if (this.scrollLeft !== scrollLeft)
             this.scrollLeft = scrollLeft;
         this.$loop.schedule(this.CHANGE_H_SCROLL);
@@ -12559,9 +12713,10 @@ var VirtualRenderer = function(container, theme) {
         deltaX && this.session.setScrollLeft(this.session.getScrollLeft() + deltaX);
     };
     this.isScrollableBy = function(deltaX, deltaY) {
-        if (deltaY < 0 && this.session.getScrollTop() >= 1)
+        if (deltaY < 0 && this.session.getScrollTop() >= 1 - this.scrollMargin.top)
            return true;
-        if (deltaY > 0 && this.session.getScrollTop() + this.$size.scrollerHeight - this.layerConfig.maxHeight < -1)
+        if (deltaY > 0 && this.session.getScrollTop() + this.$size.scrollerHeight
+            - this.layerConfig.maxHeight < -1 + this.scrollMargin.bottom)
            return true;
     };
 
@@ -12629,7 +12784,7 @@ var VirtualRenderer = function(container, theme) {
         this.textarea.style.cssText = this.$composition.cssText;
         this.$composition = null;
     };
-    this.setTheme = function(theme) {
+    this.setTheme = function(theme, cb) {
         var _self = this;
         this.$themeValue = theme;
         _self._dispatchEvent('themeChange',{theme:theme});
@@ -12641,24 +12796,26 @@ var VirtualRenderer = function(container, theme) {
             afterLoad(theme);
         }
 
-        function afterLoad(theme) {
-            if (!theme.cssClass)
+        function afterLoad(module) {
+            if (_self.$themeValue != theme)
+                return cb && cb();
+            if (!module.cssClass)
                 return;
             dom.importCssString(
-                theme.cssText,
-                theme.cssClass,
+                module.cssText,
+                module.cssClass,
                 _self.container.ownerDocument
             );
 
             if (_self.theme)
                 dom.removeCssClass(_self.container, _self.theme.cssClass);
-            _self.$theme = theme.cssClass;
+            _self.$theme = module.cssClass;
 
-            _self.theme = theme;
-            dom.addCssClass(_self.container, theme.cssClass);
-            dom.setCssClass(_self.container, "ace_dark", theme.isDark);
+            _self.theme = module;
+            dom.addCssClass(_self.container, module.cssClass);
+            dom.setCssClass(_self.container, "ace_dark", module.isDark);
 
-            var padding = theme.padding || 4;
+            var padding = module.padding || 4;
             if (_self.$padding && padding != _self.$padding)
                 _self.setPadding(padding);
             if (_self.$size) {
@@ -12666,7 +12823,8 @@ var VirtualRenderer = function(container, theme) {
                 _self.onResize();
             }
 
-            _self._dispatchEvent('themeLoaded',{theme:theme});
+            _self._dispatchEvent('themeLoaded', {theme:module});
+            cb && cb();
         }
     };
     this.getTheme = function() {
@@ -12755,9 +12913,15 @@ config.defineOptions(VirtualRenderer.prototype, "renderer", {
         value: true
     },
     hScrollBarAlwaysVisible: {
-        set: function(alwaysVisible) {
-            this.$hScrollBarAlwaysVisible = alwaysVisible;
+        set: function(val) {
             if (!this.$hScrollBarAlwaysVisible || !this.$horizScroll)
+                this.$loop.schedule(this.CHANGE_SCROLL);
+        },
+        initialValue: false
+    },
+    vScrollBarAlwaysVisible: {
+        set: function(val) {
+            if (!this.$vScrollBarAlwaysVisible || !this.$vScroll)
                 this.$loop.schedule(this.CHANGE_SCROLL);
         },
         initialValue: false
@@ -12775,6 +12939,16 @@ config.defineOptions(VirtualRenderer.prototype, "renderer", {
         set: function(name) {
             this.container.style.fontFamily = name;
             this.updateFontSize();
+        }
+    },
+    maxLines: {
+        set: function(val) {
+            this.updateFull();
+        }
+    },
+    minLines: {
+        set: function(name) {
+            this.updateFull();
         }
     }
 });
@@ -13943,7 +14117,7 @@ var oop = require("./lib/oop");
 var dom = require("./lib/dom");
 var event = require("./lib/event");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
-var ScrollBar = function(parent) {
+var ScrollBarV = function(parent) {
     this.element = dom.createElement("div");
     this.element.className = "ace_scrollbar";
 
@@ -13953,28 +14127,81 @@ var ScrollBar = function(parent) {
 
     parent.appendChild(this.element);
     this.width = dom.scrollbarWidth(parent.ownerDocument);
+    this.fullWidth = this.width;
     this.element.style.width = (this.width || 15) + 5 + "px";
+    this.setVisible(false);
+    this.element.style.overflowY = "scroll";
 
-    event.addListener(this.element, "scroll", this.onScroll.bind(this));
+    event.addListener(this.element, "scroll", this.onScrollV.bind(this));
+};
+
+var ScrollBarH = function(parent) {
+    this.element = dom.createElement("div");
+    this.element.className = "ace_scrollbar-h";
+
+    this.inner = dom.createElement("div");
+    this.inner.className = "ace_scrollbar-inner";
+    this.element.appendChild(this.inner);
+
+    parent.appendChild(this.element);
+    this.height = dom.scrollbarWidth(parent.ownerDocument);
+    this.fullHeight = this.height;
+    this.element.style.height = (this.height || 15) + 5 + "px";
+    this.setVisible(false);
+    this.element.style.overflowX = "scroll";
+
+    event.addListener(this.element, "scroll", this.onScrollH.bind(this));
 };
 
 (function() {
     oop.implement(this, EventEmitter);
-    this.onScroll = function() {
+
+    this.setVisible = function(show) {
+        if (show) {
+            this.element.style.display = "";
+            if (this.fullWidth)
+                this.width = this.fullWidth;
+            if (this.fullHeight)
+                this.height = this.fullHeight;
+        } else {
+            this.element.style.display = "none";
+            this.height = this.width = 0;
+        }
+    };
+    this.onScrollV = function() {
         if (!this.skipEvent) {
             this.scrollTop = this.element.scrollTop;
             this._emit("scroll", {data: this.scrollTop});
         }
         this.skipEvent = false;
     };
+    this.onScrollH = function() {
+        if (!this.skipEvent) {
+            this.scrollLeft = this.element.scrollLeft;
+            this._emit("scroll", {data: this.scrollLeft});
+        }
+        this.skipEvent = false;
+    };
     this.getWidth = function() {
         return this.width;
+    };
+
+    this.getHeight = function() {
+        return this.height;
     };
     this.setHeight = function(height) {
         this.element.style.height = height + "px";
     };
+
+    this.setWidth = function(width) {
+        this.element.style.width = width + "px";
+    };
     this.setInnerHeight = function(height) {
         this.inner.style.height = height + "px";
+    };
+
+    this.setInnerWidth = function(width) {
+        this.inner.style.width = width + "px";
     };
     this.setScrollTop = function(scrollTop) {
         if (this.scrollTop != scrollTop) {
@@ -13982,10 +14209,21 @@ var ScrollBar = function(parent) {
             this.scrollTop = this.element.scrollTop = scrollTop;
         }
     };
+    this.setScrollLeft = function(scrollLeft) {
+        if (this.scrollLeft != scrollLeft) {
+            this.skipEvent = true;
+            this.scrollLeft = this.element.scrollLeft = scrollLeft;
+        }
+    };
 
-}).call(ScrollBar.prototype);
+}).call(ScrollBarV.prototype);
+ScrollBarH.prototype = ScrollBarV.prototype;
 
-exports.ScrollBar = ScrollBar;
+
+
+exports.ScrollBar = ScrollBarV; // backward compatibility
+exports.ScrollBarV = ScrollBarV;
+exports.ScrollBarH = ScrollBarH;
 });
 
 ace.define('ace/renderloop', ['require', 'exports', 'module' , 'ace/lib/event'], function(require, exports, module) {
@@ -14974,7 +15212,7 @@ function OneLineRenderer(el) {
     this.scrollBar.orginalWidth = this.scrollBar.width;
     this.scrollBar.width = 0;
     this.content.style.height = "auto";
-    this.maxLines = 4;
+    this.$maxLines = 4;
     this.$computeLayerConfigWithScroll = this.$computeLayerConfig;
     this.setStyle("ace_one-line");
 }
@@ -15077,14 +15315,14 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
     this.changeListener = this.changeListener.bind(this);
     this.onMessage = this.onMessage.bind(this);
     this.onError = this.onError.bind(this);
+    if (require.nameToUrl && !require.toUrl)
+        require.toUrl = require.nameToUrl;
 
     var workerUrl;
-    if (config.get("packaged")) {
+    if (config.get("packaged") || !require.toUrl) {
         workerUrl = config.moduleUrl(mod, "worker");
     } else {
         var normalizePath = this.$normalizePath;
-        if (require.nameToUrl && !require.toUrl)
-            require.toUrl = require.nameToUrl;
         workerUrl = normalizePath(require.toUrl("ace/worker/worker.js", null, "_"));
 
         var tlns = {};
@@ -15217,7 +15455,7 @@ var UIWorkerClient = function(topLevelNamespaces, mod, classname) {
     var sender = Object.create(EventEmitter);
     var _self = this;
 
-    this.$worker = {}
+    this.$worker = {};
     this.$worker.terminate = function() {};
     this.$worker.postMessage = function(e) {
         _self.messageBuffer.push(e);
@@ -15532,7 +15770,7 @@ background: #e8e8e8;\
 .ace-tm .ace_fold {\
 background-color: #6B72E6;\
 }\
-.ace-tm .ace_scroller {\
+.ace-tm {\
 background-color: #FFFFFF;\
 }\
 .ace-tm .ace_cursor {\
@@ -16149,7 +16387,6 @@ var SnippetManager = function() {
 }).call(SnippetManager.prototype);
 
 
-
 var TabstopManager = function(editor) {
     if (editor.tabstopManager)
         return editor.tabstopManager;
@@ -16407,7 +16644,619 @@ exports.snippetManager = new SnippetManager();
 
 
 });
-;
+
+ace.define('ace/ext/language_tools', ['require', 'exports', 'module' , 'ace/snippets', 'ace/autocomplete', 'ace/config', 'ace/autocomplete/text_completer', 'ace/editor'], function(require, exports, module) {
+
+
+var snippetManager = require("../snippets").snippetManager;
+var Autocomplete = require("../autocomplete").Autocomplete;
+var config = require("../config");
+
+var textCompleter = require("../autocomplete/text_completer");
+var keyWordCompleter = {
+    getCompletions: function(session, pos, prefix, callback) {
+        var keywords = session.$mode.$keywordList || [];
+        keywords = keywords.filter(function(w) {
+            return w.lastIndexOf(prefix, 0) == 0;
+        });
+        callback(null, keywords.map(function(word) {
+            return {
+                name: word,
+                value: word,
+                score: 0,
+                meta: "keyword"
+            };
+        }));
+    }
+};
+
+var completers = [textCompleter, keyWordCompleter]; // todo add snippets completer
+exports.addCompleter = function(completer) {
+    completers.push(completer);
+};
+
+var expandSnippet = {
+    name: "expandSnippet",
+    exec: function(editor) {
+        var success = snippetManager.expandWithTab(editor);
+        if (!success)
+            editor.execCommand("indent");
+    },
+    bindKey: "tab"
+}
+
+var onChangeMode = function(e, editor) {
+    var mode = editor.session.$mode;
+    var id = mode.$id
+    if (!snippetManager.files) snippetManager.files = {};
+    if (id && !snippetManager.files[id]) {
+        var snippetFilePath = id.replace("mode", "snippets");
+        config.loadModule(snippetFilePath, function(m) {
+            if (m) {
+                snippetManager.files[id] = m;
+                m.snippets = snippetManager.parseSnippetFile(m.snippetText);
+                snippetManager.register(m.snippets, m.scope);
+            }
+        });
+    }
+};
+
+var Editor = require("../editor").Editor;
+require("../config").defineOptions(Editor.prototype, "editor", {
+    enableBasicAutocompletion: {
+        set: function(val) {
+            if (val) {
+                this.completers = completers
+                this.commands.addCommand(Autocomplete.startCommand);
+            } else {
+                this.commands.removeCommand(Autocomplete.startCommand);
+            }
+        },
+        value: false
+    },
+    enableSnippets: {
+        set: function(val) {
+            if (val) {
+                this.commands.addCommand(expandSnippet);
+                this.on("changeMode", onChangeMode);
+                onChangeMode(null, this)
+            } else {
+                this.commands.removeCommand(expandSnippet);
+                this.off("changeMode", onChangeMode);
+            }
+        },
+        value: false
+    }
+});
+
+});
+
+ace.define('ace/autocomplete', ['require', 'exports', 'module' , 'ace/keyboard/hash_handler', 'ace/autocomplete/popup', 'ace/autocomplete/util', 'ace/lib/event', 'ace/lib/lang'], function(require, exports, module) {
+
+
+var HashHandler = require("./keyboard/hash_handler").HashHandler;
+var AcePopup = require("./autocomplete/popup").AcePopup;
+var util = require("./autocomplete/util");
+var event = require("./lib/event");
+var lang = require("./lib/lang");
+
+var Autocomplete = function() {
+    this.keyboardHandler = new HashHandler();
+    this.keyboardHandler.bindKeys(this.commands);
+
+    this.blurListener = this.blurListener.bind(this);
+    this.changeListener = this.changeListener.bind(this);
+    this.mousedownListener = this.mousedownListener.bind(this);
+    this.mousewheelListener = this.mousewheelListener.bind(this);
+
+    this.changeTimer = lang.delayedCall(function() {
+        this.updateCompletions(true);
+    }.bind(this))
+};
+
+(function() {
+    this.$init = function() {
+        this.popup = new AcePopup(document.body || document.documentElement);
+        this.popup.on("click", function(e) {
+            this.insertMatch();
+            e.stop();
+        }.bind(this));
+    };
+
+    this.openPopup = function(editor, keepPopupPosition) {
+        if (!this.popup)
+            this.$init();
+
+        this.popup.setData(this.completions.filtered);
+
+        var renderer = editor.renderer;
+        if (!keepPopupPosition) {
+            var lineHeight = renderer.layerConfig.lineHeight;
+            var pos = renderer.$cursorLayer.getPixelPosition(null, true);
+            var rect = editor.container.getBoundingClientRect();
+            pos.top += rect.top - renderer.layerConfig.offset;
+            pos.left += rect.left;
+            pos.left += renderer.$gutterLayer.gutterWidth;
+
+            this.popup.show(pos, lineHeight);
+        }
+        renderer.updateText();
+    };
+
+    this.detach = function() {
+        this.editor.keyBinding.removeKeyboardHandler(this.keyboardHandler);
+        this.editor.removeEventListener("changeSelection", this.changeListener);
+        this.editor.removeEventListener("blur", this.changeListener);
+        this.editor.removeEventListener("mousedown", this.changeListener);
+        this.changeTimer.cancel();
+
+        if (this.popup)
+            this.popup.hide();
+
+        this.activated = false;
+    };
+
+    this.changeListener = function(e) {
+        if (this.activated)
+            this.changeTimer.schedule();
+        else
+            this.detach();
+    };
+
+    this.blurListener = function() {
+        if (document.activeElement != this.editor.textInput.getElement())
+            this.detach();
+    };
+
+    this.mousedownListener = function(e) {
+        this.detach();
+    };
+
+    this.mousewheelListener = function(e) {
+        this.detach();
+    };
+
+    this.goTo = function(where) {
+        var row = this.popup.getRow();
+        var max = this.popup.session.getLength() - 1;
+
+        switch(where) {
+            case "up": row = row <= 0 ? max : row - 1; break;
+            case "down": row = row >= max ? 0 : row + 1; break;
+            case "start": row = 0; break;
+            case "end": row = max; break;
+        }
+
+        this.popup.setRow(row);
+    };
+
+    this.insertMatch = function(data) {
+        this.detach();
+        if (!data)
+            data = this.popup.getData(this.popup.getRow());
+        if (!data)
+            return false;
+        if (data.completer && data.completer.insertMatch) {
+            data.completer.insertMatch(this.editor);
+        } else {
+            if (data.value)
+                data = data.value;
+            if (this.completions.filterText) {
+                var range = this.editor.selection.getRange();
+                range.start.column -= this.completions.filterText.length;
+                this.editor.session.remove(range);
+            }
+            this.editor.insert(data);
+        }
+    };
+
+    this.commands = {
+        "Up": function(editor) { editor.completer.goTo("up"); },
+        "Down": function(editor) { editor.completer.goTo("down"); },
+        "Ctrl-Up|Ctrl-Home": function(editor) { editor.completer.goTo("start"); },
+        "Ctrl-Down|Ctrl-End": function(editor) { editor.completer.goTo("end"); },
+
+        "Esc": function(editor) { editor.completer.detach(); },
+        "Space": function(editor) { editor.completer.detach(); editor.insert(" ");},
+        "Return": function(editor) { editor.completer.insertMatch(); },
+        "Shift-Return": function(editor) { editor.completer.insertMatch(true); },
+        "Tab": function(editor) { editor.completer.insertMatch(); },
+
+        "PageUp": function(editor) { editor.completer.popup.gotoPageDown(); },
+        "PageDown": function(editor) { editor.completer.popup.gotoPageUp(); }
+    };
+
+    this.gatherCompletions = function(editor, callback) {
+        var session = editor.getSession();
+        var pos = editor.getCursorPosition();
+
+        var line = session.getLine(pos.row);
+        var prefix = util.retrievePrecedingIdentifier(line, pos.column);
+
+        var matches = [];
+        util.parForEach(editor.completers, function(completer, next) {
+            completer.getCompletions(session, pos, prefix, function(err, results) {
+                if (!err)
+                    matches = matches.concat(results);
+                next();
+            });
+        }, function() {
+            matches.sort(function(a, b) {
+                return b.score - a.score;
+            });
+            callback(null, {
+                prefix: prefix,
+                matches: matches
+            });
+        });
+        return true;
+    };
+
+    this.showPopup = function(editor) {
+        if (this.editor)
+            this.detach();
+
+        this.activated = true;
+
+        this.editor = editor;
+        if (editor.completer != this) {
+            if (editor.completer)
+                editor.completer.detach();
+            editor.completer = this;
+        }
+
+        editor.keyBinding.addKeyboardHandler(this.keyboardHandler);
+        editor.on("changeSelection", this.changeListener);
+        editor.on("blur", this.blurListener);
+        editor.on("mousedown", this.mousedownListener);
+        this.updateCompletions();
+    }
+
+    this.updateCompletions = function(keepPopupPosition) {
+        this.gatherCompletions(this.editor, function(err, results) {
+            var matches = results && results.matches;
+            if (!matches || !matches.length)
+                return this.detach();
+
+            this.completions = new FilteredList(matches);
+            this.completions.setFilter(results.prefix);
+            this.openPopup(this.editor, keepPopupPosition);
+            this.popup.setHighlight(results.prefix);
+        }.bind(this));
+    };
+
+    this.cancelContextMenu = function() {
+        var stop = function(e) {
+            this.editor.off("nativecontextmenu", stop);
+            if (e && e.domEvent)
+                event.stopEvent(e.domEvent);
+        }.bind(this);
+        setTimeout(stop, 10);
+        this.editor.on("nativecontextmenu", stop);
+    };
+
+}).call(Autocomplete.prototype);
+
+Autocomplete.startCommand = {
+    name: "startAutocomplete",
+    exec: function(editor) {
+        if (!editor.completer)
+            editor.completer = new Autocomplete();
+        editor.completer.showPopup(editor);
+        editor.completer.cancelContextMenu();
+    },
+    bindKey: "Ctrl-Space|Ctrl-Shift-Space|Alt-Space"
+};
+
+var FilteredList = function(array, mutateData) {
+    this.all = array;
+    this.filtered = array.concat();
+    this.filterText = "";
+};
+(function(){
+    this.setFilter = function(str) {
+        this.filterText = str;
+    };
+
+}).call(FilteredList.prototype);
+
+exports.Autocomplete = Autocomplete;
+exports.FilteredList = FilteredList;
+
+});
+
+ace.define('ace/autocomplete/popup', ['require', 'exports', 'module' , 'ace/edit_session', 'ace/virtual_renderer', 'ace/editor', 'ace/range', 'ace/lib/event', 'ace/lib/lang', 'ace/lib/dom'], function(require, exports, module) {
+
+
+var EditSession = require("../edit_session").EditSession;
+var Renderer = require("../virtual_renderer").VirtualRenderer;
+var Editor = require("../editor").Editor;
+var Range = require("../range").Range;
+var event = require("../lib/event");
+var lang = require("../lib/lang");
+var dom = require("../lib/dom");
+
+var $singleLineEditor = function(el) {
+    var renderer = new Renderer(el);
+
+    renderer.$maxLines = 4;
+
+    var editor = new Editor(renderer);
+
+    editor.setHighlightActiveLine(false);
+    editor.setShowPrintMargin(false);
+    editor.renderer.setShowGutter(false);
+    editor.renderer.setHighlightGutterLine(false);
+
+    editor.$mouseHandler.$focusWaitTimout = 0;
+
+    return editor;
+};
+
+var AcePopup = function(parentNode) {
+    var el = dom.createElement("div");
+    var popup = new $singleLineEditor(el);
+
+    if (parentNode)
+        parentNode.appendChild(el);
+    el.style.display = "none";
+    popup.renderer.content.style.cursor = "default";
+    popup.renderer.setStyle("ace_autocomplete");
+
+    var noop = function(){};
+
+    popup.focus = noop;
+    popup.$isFocused = true;
+
+    popup.renderer.$cursorLayer.restartTimer = noop;
+    popup.renderer.$cursorLayer.element.style.opacity = 0;
+
+    popup.renderer.$maxLines = 8;
+    popup.renderer.$keepTextAreaAtCursor = false;
+
+    popup.setHighlightActiveLine(true);
+    popup.session.highlight("");
+    popup.session.$searchHighlight.clazz = "ace_highlight-marker";
+
+    popup.on("mousedown", function(e) {
+        var pos = e.getDocumentPosition();
+        popup.moveCursorToPosition(pos);
+        popup.selection.clearSelection();
+        e.stop();
+    });
+
+    var hoverMarker = new Range(-1,0,-1,Infinity);
+    hoverMarker.id = popup.session.addMarker(hoverMarker, "ace_line-hover", "fullLine");
+    popup.on("mousemove", function(e) {
+        var row = e.getDocumentPosition().row;
+        hoverMarker.start.row = hoverMarker.end.row = row;
+        popup.session._emit("changeBackMarker");
+    });
+    var hideHoverMarker = function() {
+        hoverMarker.start.row = hoverMarker.end.row = -1;
+        popup.session._emit("changeBackMarker");
+    };
+    event.addListener(popup.container, "mouseout", hideHoverMarker);
+    popup.on("hide", hideHoverMarker);
+    popup.on("changeSelection", hideHoverMarker);
+    popup.on("mousewheel", function(e) {
+        setTimeout(function() {
+            popup._signal("mousemove", e);
+        });
+    });
+
+    popup.session.doc.getLength = function() {
+        return popup.data.length;
+    };
+    popup.session.doc.getLine = function(i) {
+        var data = popup.data[i];
+        if (typeof data == "string")
+            return data;
+        return (data && data.value) || "";
+    };
+
+    var bgTokenizer = popup.session.bgTokenizer;
+    bgTokenizer.$tokenizeRow = function(i) {
+        var data = popup.data[i];
+        var tokens = [];
+        if (!data)
+            return tokens;
+        if (typeof data == "string")
+            data = {value: data};
+
+        tokens.push({type: data.className || "", value: data.value});
+        if (data.meta) {
+            var maxW = popup.renderer.$size.scrollerWidth / popup.renderer.layerConfig.characterWidth;
+            if (data.meta.length + data.value.length < maxW - 2)
+                tokens.push({type: "rightAlignedText", value: data.meta});
+        }
+        return tokens;
+    };
+    bgTokenizer.$updateOnChange = noop;
+
+    popup.session.$computeWidth = function() {
+        return this.screenWidth = 0;
+    }
+    popup.data = [];
+    popup.setData = function(list) {
+        popup.data = list || [];
+        popup.setValue(lang.stringRepeat("\n", list.length), -1);
+    };
+    popup.getData = function(row) {
+        return popup.data[row];
+    };
+
+	popup.getRow = function() {
+        var line = this.getCursorPosition().row;
+        if (line == 0 && !this.getHighlightActiveLine())
+            line = -1;
+        return line;
+    };
+    popup.setRow = function(line) {
+        popup.setHighlightActiveLine(line != -1);
+        popup.selection.clearSelection();
+        popup.moveCursorTo(line, 0 || 0);
+    };
+
+    popup.setHighlight = function(re) {
+        popup.session.highlight(re);
+        popup.session._emit("changeFrontMarker");
+    };
+
+    popup.hide = function() {
+        this.container.style.display = "none";
+        this._signal("hide");
+    };
+    popup.show = function(pos, lineHeight) {
+        var el = this.container;
+        if (pos.top > window.innerHeight / 2  + lineHeight) {
+            el.style.top = "";
+            el.style.bottom = window.innerHeight - pos.top + "px";
+        } else {
+            pos.top += lineHeight;
+            el.style.top = pos.top + "px";
+            el.style.bottom = "";
+        }
+
+        el.style.left = pos.left + "px";
+        el.style.display = "";
+        this.renderer.$textLayer.checkForSizeChanges();
+
+        this._signal("show");
+    };
+
+    return popup;
+};
+
+dom.importCssString("\
+.ace_autocomplete.ace-tm .ace_marker-layer .ace_active-line {\
+    background-color: #abbffe;\
+}\
+.ace_autocomplete.ace-tm .ace_line-hover {\
+    border: 1px solid #abbffe;\
+    position: absolute;\
+    background: rgba(233,233,253,0.4);\
+    z-index: 2;\
+    margin-top: -1px;\
+}\
+.ace_rightAlignedText {\
+    color: gray;\
+    display: inline-block;\
+    position: absolute;\
+    right: 4px;\
+    text-align: right;\
+    z-index: -1;\
+}\
+.ace_autocomplete {\
+    width: 200px;\
+    z-index: 200000;\
+    background: #f8f8f8;\
+    border: 1px lightgray solid;\
+    position: fixed;\
+    box-shadow: 2px 3px 5px rgba(0,0,0,.2);\
+}");
+
+exports.AcePopup = AcePopup;
+
+});
+
+ace.define('ace/autocomplete/util', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.parForEach = function(array, fn, callback) {
+    var completed = 0;
+    var arLength = array.length;
+    if (arLength === 0)
+        callback();
+    for (var i = 0; i < arLength; i++) {
+        fn(array[i], function(result, err) {
+            completed++;
+            if (completed === arLength)
+                callback(result, err);
+        });
+    }
+}
+
+var ID_REGEX = /[a-zA-Z_0-9\$-]/;
+
+exports.retrievePrecedingIdentifier = function(text, pos, regex) {
+    regex = regex || ID_REGEX;
+    var buf = [];
+    for (var i = pos-1; i >= 0; i--) {
+        if (regex.test(text[i]))
+            buf.push(text[i]);
+        else
+            break;
+    }
+    return buf.reverse().join("");
+}
+
+exports.retrieveFollowingIdentifier = function(text, pos, regex) {
+    regex = regex || ID_REGEX;
+    var buf = [];
+    for (var i = pos; i < text.length; i++) {
+        if (regex.test(text[i]))
+            buf.push(text[i]);
+        else
+            break;
+    }
+    return buf;
+}
+
+});
+
+ace.define('ace/autocomplete/text_completer', ['require', 'exports', 'module' , 'ace/range'], function(require, exports, module) {
+    var Range = require("ace/range").Range;
+
+    var splitRegex = /[^a-zA-Z_0-9\$\-]+/;
+
+    function getWordIndex(doc, pos) {
+        var textBefore = doc.getTextRange(Range.fromPoints({row: 0, column:0}, pos));
+        return textBefore.split(splitRegex).length - 1;
+    }
+    function filterPrefix(prefix, words) {
+        var results = [];
+        for (var i = 0; i < words.length; i++) {
+            if (words[i].lastIndexOf(prefix, 0) === 0) {
+                results.push(words[i]);
+            }
+        }
+        return results;
+    }
+    function wordDistance(doc, pos) {
+        var prefixPos = getWordIndex(doc, pos);
+        var words = doc.getValue().split(splitRegex);
+        var wordScores = Object.create(null);
+
+        var currentWord = words[prefixPos];
+
+        words.forEach(function(word, idx) {
+            if (!word || word === currentWord) return;
+
+            var distance = Math.abs(prefixPos - idx);
+            var score = words.length - distance;
+            if (wordScores[word]) {
+                wordScores[word] = Math.max(score, wordScores[word]);
+            } else {
+                wordScores[word] = score;
+            }
+        });
+        return wordScores;
+    }
+
+    exports.getCompletions = function(session, pos, prefix, callback) {
+        var wordScore = wordDistance(session, pos, prefix);
+        var wordList = filterPrefix(prefix, Object.keys(wordScore));
+        callback(null, wordList.map(function(word) {
+            return {
+                name: word,
+                value: word,
+                score: wordScore[word],
+                meta: "local"
+            };
+        }));
+    };
+});;
             (function() {
                 ace.require(["ace/lively"], function(a) {
                     a && a.config.init();
@@ -19229,7 +20078,9 @@ var TextMode = require("./text").Mode;
 var oop = require("../lib/oop");
 
 function Mode() {
-    this.$tokenizer = new Tokenizer(new Rules().getRules());
+    var highlighter = new Rules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = new Rules(highlighter.$keywordList);
     this.foldingRules = new FoldMode();
 }
 
@@ -19491,9 +20342,13 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new c_cppHighlightRules().getRules());
+    var highlighter = new c_cppHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
+
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -20226,7 +21081,9 @@ var MatchingParensOutdent = require("./matching_parens_outdent").MatchingParensO
 var Range = require("../range").Range;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new ClojureHighlightRules().getRules());
+    var highlighter = new ClojureHighlightRules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
     this.$outdent = new MatchingParensOutdent();
 };
 oop.inherits(Mode, TextMode);
@@ -20527,8 +21384,10 @@ var WorkerClient = require("../worker/worker_client").WorkerClient;
 var oop = require("../lib/oop");
 
 function Mode() {
-    this.$tokenizer = new Tokenizer(new Rules().getRules());
+    var highlighter = new Rules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new Outdent();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new FoldMode();
 }
 
@@ -20970,9 +21829,11 @@ var CssBehaviour = require("./behaviour/css").CssBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new CssHighlightRules().getRules());
+    var highlighter = new CssHighlightRules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CssBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -21750,6 +22611,7 @@ var Mode = function() {
     this.foldingRules = new CStyleFoldMode();
 
     this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, CMode);
 
@@ -21774,9 +22636,13 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new c_cppHighlightRules().getRules());
+    var highlighter = new c_cppHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
+
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -24012,7 +24878,10 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new GolangHighlightRules().getRules());
+    var highlighter = new GolangHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
     this.$outdent = new MatchingBraceOutdent();
     this.foldingRules = new CStyleFoldMode();
 };
@@ -25208,9 +26077,12 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
+    var highlighter = new JavaScriptHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -25404,7 +26276,7 @@ var JavaScriptHighlightRules = function() {
                 next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
-                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
             }, {
                 token : ["punctuation.operator", "support.function.dom"],
                 regex : /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
@@ -26054,9 +26926,11 @@ var CssBehaviour = require("./behaviour/css").CssBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new CssHighlightRules().getRules());
+    var highlighter = new CssHighlightRules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CssBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -27013,13 +27887,15 @@ var JavaHighlightRules = require("./java_highlight_rules").JavaHighlightRules;
 
 var Mode = function() {
     JavaScriptMode.call(this);
-    
-    this.$tokenizer = new Tokenizer(new JavaHighlightRules().getRules());
+    var highlighter = new JavaHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, JavaScriptMode);
 
 (function() {
-    
+
     this.createWorker = function(session) {
         return null;
     };
@@ -27043,9 +27919,12 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
+    var highlighter = new JavaScriptHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -27239,7 +28118,7 @@ var JavaScriptHighlightRules = function() {
                 next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
-                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
             }, {
                 token : ["punctuation.operator", "support.function.dom"],
                 regex : /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
@@ -27522,7 +28401,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -27535,11 +28414,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -27549,7 +28428,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -27560,26 +28439,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -28043,9 +28922,12 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
+    var highlighter = new JavaScriptHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -28239,7 +29121,7 @@ var JavaScriptHighlightRules = function() {
                 next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
-                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
             }, {
                 token : ["punctuation.operator", "support.function.dom"],
                 regex : /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
@@ -28522,7 +29404,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -28535,11 +29417,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -28549,7 +29431,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -28560,26 +29442,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -28880,7 +29762,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -28891,7 +29773,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29029,7 +29911,7 @@ var JsonHighlightRules = function() {
             }
         ]
     };
-    
+
 };
 
 oop.inherits(JsonHighlightRules, TextHighlightRules);
@@ -29100,7 +29982,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -29113,11 +29995,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -29127,7 +30009,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -29138,26 +30020,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -29458,7 +30340,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -29469,7 +30351,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29510,14 +30392,14 @@ oop.inherits(Mode, TextMode);
             indent += tab;
         return indent;
     };
-    
+
     this.checkOutdent = function(state, line, input) {
         if (! /^\s+$/.test(line))
             return false;
 
         return /^\s*[\}\)]/.test(input);
     };
-    
+
     this.autoOutdent = function(state, doc, row) {
         var line = doc.getLine(row);
         var match = line.match(/^(\s*[\}\)])/);
@@ -29559,22 +30441,22 @@ oop.inherits(Mode, TextMode);
 
 exports.Mode = Mode;
 });
- 
+
 ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace/mode/xquery/JSONiqTokenizer'], function(require, exports, module) {
-  
+
   var JSONiqTokenizer = require("./JSONiqTokenizer").JSONiqTokenizer;
-  
+
   var TokenHandler = function(code) {
-      
+
     var input = code;
-    
+
     this.tokens = [];
- 
+
     this.reset = function(code) {
       input = input;
       this.tokens = [];
     };
-    
+
     this.startNonterminal = function(name, begin) {};
 
     this.endNonterminal = function(name, end) {};
@@ -29597,7 +30479,7 @@ ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace
     var keywords = keys.map(
       function(val) { return { name: "'" + val + "'", token: "keyword" }; }
     );
-    
+
     var ncnames = keys.map(
       function(val) { return { name: "'" + val + "'", token: "text", next: function(stack){ stack.pop(); } }; }
     );
@@ -29607,7 +30489,7 @@ ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace
     var xmlcomment = "comment";
     var pi = "xml-pe";
     var pragma = "constant.buildin";
-    
+
     var Rules = {
       start: [
         { name: "'(#'", token: pragma, next: function(stack){ stack.push("Pragma"); } },
@@ -29724,26 +30606,26 @@ ace.define('ace/mode/xquery/JSONiqLexer', ['require', 'exports', 'module' , 'ace
         { name: "QuotChar", token: "string" }
       ]
     };
-    
+
 exports.JSONiqLexer = function() {
-  
+
   this.tokens = [];
-  
+
   this.getLineTokens = function(line, state, row) {
     state = (state === "start" || !state) ? '["start"]' : state;
     var stack = JSON.parse(state);
     var h = new TokenHandler(line);
     var tokenizer = new JSONiqTokenizer(line, h);
     var tokens = [];
-    
+
     while(true) {
       var currentState = stack[stack.length - 1];
       try {
-        
+
         h.tokens = [];
         tokenizer["parse_" + currentState]();
         var info = null;
-        
+
         if(h.tokens.length > 1 && h.tokens[0].name === "WS") {
           tokens.push({
             type: "text",
@@ -29751,7 +30633,7 @@ exports.JSONiqLexer = function() {
           });
           h.tokens.splice(0, 1);
         }
-        
+
         var token = h.tokens[0];
         var rules  = Rules[currentState];
         for(var k = 0; k < rules.length; k++) {
@@ -29761,19 +30643,19 @@ exports.JSONiqLexer = function() {
             break;
           }
         }
-        
+
         if(token.name === "EOF") { break; }
         if(token.value === "") { throw "Encountered empty string lexical rule."; }
-        
+
         tokens.push({
           type: info === null ? "text" : (typeof(info.token) === "function" ? info.token(token.value) : info.token),
           value: token.value
         });
-        
+
         if(info && info.next) {
-          info.next(stack);    
+          info.next(stack);
         }
-      
+
       } catch(e) {
         if(e instanceof tokenizer.ParseException) {
           var index = 0;
@@ -29787,11 +30669,11 @@ exports.JSONiqLexer = function() {
           };
         } else {
           throw e;
-        }  
+        }
       }
     }
-   
-    
+
+
     if(this.tokens[row] !== undefined) {
       var cachedLine = this.lines[row];
       var begin = sharedStart([line, cachedLine]);
@@ -29819,7 +30701,7 @@ exports.JSONiqLexer = function() {
       state: JSON.stringify(stack)
     };
   };
-  
+
   function sharedStart(A) {
     var tem1, tem2, s, A = A.slice(0).sort();
     tem1 = A[0];
@@ -31674,12 +32556,12 @@ function hasType(token, type) {
     });
     return hasType;
 }
- 
+
   var XQueryBehaviour = function () {
-      
+
       this.inherit(CstyleBehaviour, ["braces", "parens", "string_dquotes"]); // Get string behaviour
       this.inherit(XmlBehaviour); // Get xml behaviour
-      
+
       this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -31740,7 +32622,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -31753,11 +32635,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -31767,7 +32649,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -31778,26 +32660,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -32062,9 +32944,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -32109,7 +32991,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -32199,7 +33081,7 @@ ace.define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , '
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LatexHighlightRules = function() {   
+var LatexHighlightRules = function() {
     this.$rules = {
         "start" : [{
             token : "keyword",
@@ -32363,7 +33245,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -32374,7 +33256,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -32411,7 +33293,7 @@ oop.inherits(Mode, TextMode);
 
     this.lineCommentStart = "//";
     this.blockComment = {start: "/*", end: "*/"};
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
         var tokens = this.$tokenizer.getLineTokens(line, state).tokens;
@@ -32449,30 +33331,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var LessHighlightRules = function() {
-    
+
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-        
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
-             "background-size|binding|border-bottom-colors|border-left-colors|" + 
-             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
-             "border-end-style|border-end-width|border-image|border-start|" + 
-             "border-start-color|border-start-style|border-start-width|box-align|" + 
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
-             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
-             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
-             "text-decoration-style|transform|transform-origin|transition|" + 
-             "transition-delay|transition-duration|transition-property|" + 
+
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
+             "background-size|binding|border-bottom-colors|border-left-colors|" +
+             "border-right-colors|border-top-colors|border-end|border-end-color|" +
+             "border-end-style|border-end-width|border-image|border-start|" +
+             "border-start-color|border-start-style|border-start-width|box-align|" +
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
+             "font-feature-settings|font-language-override|force-broken-image-icon|" +
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
+             "outline-offset|outline-radius|outline-radius-bottomleft|" +
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
+             "text-decoration-style|transform|transform-origin|transition|" +
+             "transition-delay|transition-duration|transition-property|" +
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-        
+
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -32506,11 +33388,11 @@ var LessHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-        
+
         return ret;
-        
+
     })() );
-    
+
 
 
     var functions = lang.arrayToMap(
@@ -32548,22 +33430,22 @@ var LessHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-    
+
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|" +
         "@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|" +
         "def|end|declare|when|not|and").split("|")
     );
-    
+
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -32812,7 +33694,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -32825,11 +33707,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -32839,7 +33721,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -32850,26 +33732,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -33170,7 +34052,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33181,7 +34063,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33206,15 +34088,16 @@ var LispHighlightRules = require("./lisp_highlight_rules").LispHighlightRules;
 
 var Mode = function() {
     var highlighter = new LispHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-       
+
     this.lineCommentStart = ";";
-    
+
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -33240,7 +34123,7 @@ var LispHighlightRules = function() {
         "support.function": supportFunctions
     }, "identifier", true);
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -33262,7 +34145,7 @@ var LispHighlightRules = function() {
         {
             token : "constant.numeric", // hex
             regex : "0[xX][0-9a-fA-F]+(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
-        }, 
+        },
         {
             token : "constant.numeric", // float
             regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
@@ -33660,7 +34543,7 @@ exports.LuceneHighlightRules = LuceneHighlightRules;
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33671,7 +34554,7 @@ exports.LuceneHighlightRules = LuceneHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33685,7 +34568,7 @@ exports.LuceneHighlightRules = LuceneHighlightRules;
  *
  *
  * Contributor(s):
- * 
+ *
  *
  *
  * ***** END LICENSE BLOCK ***** */
@@ -33702,14 +34585,17 @@ var FoldMode = require("./folding/coffee").FoldMode;
 var Mode = function() {
     var highlighter = new MakefileHighlightRules();
     this.foldingRules = new FoldMode();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-       
+
     this.lineCommentStart = "#";
+    this.$indentWithTabs = true;
+
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -33729,7 +34615,7 @@ var MakefileHighlightRules = function() {
         "invalid.deprecated": "debugger"
     }, "string");
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -33766,11 +34652,11 @@ var MakefileHighlightRules = function() {
         {
             token: keywordMapper,
             regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
-        }, 
+        },
         {
             token: "string",
             regex : "\\w+"
-        }, 
+        },
         {
             token : "string.interpolated.backtick.makefile",
             regex : "`",
@@ -33973,7 +34859,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33984,7 +34870,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34012,7 +34898,7 @@ var MarkdownFoldMode = require("./folding/markdown").FoldMode;
 
 var Mode = function() {
     var highlighter = new MarkdownHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
@@ -34020,15 +34906,15 @@ var Mode = function() {
       "xml-": XmlMode,
       "html-": HtmlMode
     });
-    
+
     this.foldingRules = new MarkdownFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-   
+
     this.lineCommentStart = ">";
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         if (state == "listblock") {
             var match = /^(\s*)(?:([-+*])|(\d+)\.)(\s+)/.exec(line);
@@ -34061,9 +34947,12 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
+    var highlighter = new JavaScriptHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -34257,7 +35146,7 @@ var JavaScriptHighlightRules = function() {
                 next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
-                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
             }, {
                 token : ["punctuation.operator", "support.function.dom"],
                 regex : /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
@@ -34540,7 +35429,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -34553,11 +35442,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -34567,7 +35456,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -34578,26 +35467,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -34913,7 +35802,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.blockComment = {start: "<!--", end: "-->"};
 
 }).call(Mode.prototype);
@@ -34938,11 +35827,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity", 
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+                token : "constant.character.entity",
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
             }
         ],
-        
+
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -34954,7 +35843,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -34983,7 +35872,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -34994,7 +35883,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -35002,7 +35891,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -35011,7 +35900,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -35055,9 +35944,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -35102,7 +35991,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -35143,7 +36032,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -35154,13 +36043,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = tag.match(this.tagRe);
         var column = 0;
 
@@ -35177,10 +36066,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -35202,15 +36091,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -35235,13 +36124,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -35257,17 +36146,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -35283,7 +36172,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -35300,7 +36189,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -35310,7 +36199,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -35323,7 +36212,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -35346,13 +36235,13 @@ var Mode = function() {
     var highlighter = new HtmlHighlightRules();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$behaviour = new HtmlBehaviour();
-    
+
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode,
         "css-": CssMode
     });
-    
+
     this.foldingRules = new HtmlFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -35387,9 +36276,11 @@ var CssBehaviour = require("./behaviour/css").CssBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new CssHighlightRules().getRules());
+    var highlighter = new CssHighlightRules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CssBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -35765,7 +36656,7 @@ var HtmlHighlightRules = function() {
             token : "constant.character.entity",
             regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         }],
-    
+
         cdata : [ {
             token : "text",
             regex : "\\]\\]>",
@@ -35780,11 +36671,11 @@ var HtmlHighlightRules = function() {
             defaultToken : "comment"
         } ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start", tagMap);
     xmlUtil.tag(this.$rules, "style", "css-start", tagMap);
     xmlUtil.tag(this.$rules, "script", "js-start", tagMap);
-    
+
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -35794,7 +36685,7 @@ var HtmlHighlightRules = function() {
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
-    
+
     this.embedRules(CssHighlightRules, "css-", [{
         token: "meta.tag",
         regex: "<\\/(?=style)",
@@ -35832,7 +36723,7 @@ function hasType(token, type) {
 var HtmlBehaviour = function () {
 
     this.inherit(XmlBehaviour); // Get xml behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -35940,7 +36831,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-    
+
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -35956,13 +36847,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-        
+
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -36070,7 +36961,7 @@ var MarkdownHighlightRules = function() {
         }, {
             include : "basic"
         }],
-        
+
         "header" : [{
             regex: "$",
             next : "start"
@@ -36258,7 +37149,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36269,7 +37160,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36481,12 +37372,13 @@ var keywords = (
 oop.inherits(MatlabHighlightRules, TextHighlightRules);
 
 exports.MatlabHighlightRules = MatlabHighlightRules;
-});/* ***** BEGIN LICENSE BLOCK *****
+});
+/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36497,7 +37389,7 @@ exports.MatlabHighlightRules = MatlabHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36524,7 +37416,7 @@ var Mode = function() {
 };
 oop.inherits(Mode, TextMode);
 
-(function() {       
+(function() {
     this.lineCommentStart = ["--", "#"]; // todo space
     this.blockComment = {start: "/*", end: "*/"};
 
@@ -36553,7 +37445,7 @@ var MysqlHighlightRules = function() {
         "variable.language": variable
     }, "identifier", true);
 
-    
+
     function string(rule) {
         var start = rule.start;
         var escapeSeq = rule.escape;
@@ -36571,7 +37463,7 @@ var MysqlHighlightRules = function() {
     this.$rules = {
         "start" : [ {
             token : "comment", regex : "(?:-- |#).*$"
-        },  
+        },
         string({start: '"', escape: /\\[0'"bnrtZ\\%_]?/}),
         string({start: "'", escape: /\\[0'"bnrtZ\\%_]?/}),
         DocCommentHighlightRules.getStartRule("doc-start"),
@@ -36668,6 +37560,62 @@ exports.DocCommentHighlightRules = DocCommentHighlightRules;
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
+ * Copyright (c) 2010, Ajax.org B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+ace.define('ace/mode/plain_text', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/text_highlight_rules', 'ace/mode/behaviour'], function(require, exports, module) {
+
+
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+var Behaviour = require("./behaviour").Behaviour;
+
+var Mode = function() {
+  this.$tokenizer = new Tokenizer(new TextHighlightRules().getRules());
+  this.$behaviour = new Behaviour();
+};
+
+oop.inherits(Mode, TextMode);
+
+(function() {
+
+  this.getNextLineIndent = function(state, line, tab) {
+    return '';
+  };
+
+}).call(Mode.prototype);
+
+exports.Mode = Mode;
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
  *
@@ -36732,19 +37680,19 @@ var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PrologHighlightRules = function() {
 
-    this.$rules = { start: 
+    this.$rules = { start:
        [ { include: '#comment' },
          { include: '#basic_fact' },
          { include: '#rule' },
          { include: '#directive' },
          { include: '#fact' } ],
-      '#atom': 
+      '#atom':
        [ { token: 'constant.other.atom.prolog',
            regex: '\\b[a-z][a-zA-Z0-9_]*\\b' },
          { token: 'constant.numeric.prolog',
            regex: '-?\\d+(?:\\.\\d+)?' },
          { include: '#string' } ],
-      '#basic_elem': 
+      '#basic_elem':
        [ { include: '#comment' },
          { include: '#statement' },
          { include: '#constants' },
@@ -36753,42 +37701,42 @@ var PrologHighlightRules = function() {
          { include: '#list' },
          { include: '#atom' },
          { include: '#variable' } ],
-      '#basic_fact': 
-       [ { token: 
+      '#basic_fact':
+       [ { token:
             [ 'entity.name.function.fact.basic.prolog',
               'punctuation.end.fact.basic.prolog' ],
            regex: '([a-z]\\w*)(\\.)' } ],
-      '#builtins': 
+      '#builtins':
        [ { token: 'support.function.builtin.prolog',
            regex: '\\b(?:\n\t\t\t\t\t\tabolish|abort|ancestors|arg|ascii|assert[az]|\n\t\t\t\t\t\tatom(?:ic)?|body|char|close|conc|concat|consult|\n\t\t\t\t\t\tdefine|definition|dynamic|dump|fail|file|free|\n\t\t\t\t\t\tfree_proc|functor|getc|goal|halt|head|head|integer|\n\t\t\t\t\t\tlength|listing|match_args|member|next_clause|nl|\n\t\t\t\t\t\tnonvar|nth|number|cvars|nvars|offset|op|\n\t\t\t\t\t\tprint?|prompt|putc|quoted|ratom|read|redefine|\n\t\t\t\t\t\trename|retract(?:all)?|see|seeing|seen|skip|spy|\n\t\t\t\t\t\tstatistics|system|tab|tell|telling|term|\n\t\t\t\t\t\ttime|told|univ|unlink_clause|unspy_predicate|\n\t\t\t\t\t\tvar|write\n\t\t\t\t\t)\\b' } ],
-      '#comment': 
-       [ { token: 
+      '#comment':
+       [ { token:
             [ 'punctuation.definition.comment.prolog',
               'comment.line.percentage.prolog' ],
            regex: '(%)(.*$)' },
          { token: 'punctuation.definition.comment.prolog',
            regex: '/\\*',
-           push: 
+           push:
             [ { token: 'punctuation.definition.comment.prolog',
                 regex: '\\*/',
                 next: 'pop' },
               { defaultToken: 'comment.block.prolog' } ] } ],
-      '#constants': 
+      '#constants':
        [ { token: 'constant.language.prolog',
            regex: '\\b(?:true|false|yes|no)\\b' } ],
-      '#directive': 
+      '#directive':
        [ { token: 'keyword.operator.directive.prolog',
            regex: ':-',
-           push: 
+           push:
             [ { token: 'meta.directive.prolog', regex: '\\.', next: 'pop' },
               { include: '#comment' },
               { include: '#statement' },
               { defaultToken: 'meta.directive.prolog' } ] } ],
-      '#expr': 
+      '#expr':
        [ { include: '#comments' },
          { token: 'meta.expression.prolog',
            regex: '\\(',
-           push: 
+           push:
             [ { token: 'meta.expression.prolog', regex: '\\)', next: 'pop' },
               { include: '#expr' },
               { defaultToken: 'meta.expression.prolog' } ] },
@@ -36796,23 +37744,23 @@ var PrologHighlightRules = function() {
          { token: 'punctuation.control.and.prolog', regex: ',' },
          { token: 'punctuation.control.or.prolog', regex: ';' },
          { include: '#basic_elem' } ],
-      '#fact': 
-       [ { token: 
+      '#fact':
+       [ { token:
             [ 'entity.name.function.fact.prolog',
               'punctuation.begin.fact.parameters.prolog' ],
            regex: '([a-z]\\w*)(\\()(?!.*:-)',
-           push: 
-            [ { token: 
+           push:
+            [ { token:
                  [ 'punctuation.end.fact.parameters.prolog',
                    'punctuation.end.fact.prolog' ],
                 regex: '(\\))(\\.)',
                 next: 'pop' },
               { include: '#parameter' },
               { defaultToken: 'meta.fact.prolog' } ] } ],
-      '#list': 
+      '#list':
        [ { token: 'punctuation.begin.list.prolog',
            regex: '\\[(?=.*\\])',
-           push: 
+           push:
             [ { token: 'punctuation.end.list.prolog',
                 regex: '\\]',
                 next: 'pop' },
@@ -36820,7 +37768,7 @@ var PrologHighlightRules = function() {
               { token: 'punctuation.separator.list.prolog', regex: ',' },
               { token: 'punctuation.concat.list.prolog',
                 regex: '\\|',
-                push: 
+                push:
                  [ { token: 'meta.list.concat.prolog',
                      regex: '(?=\\s*\\])',
                      next: 'pop' },
@@ -36828,10 +37776,10 @@ var PrologHighlightRules = function() {
                    { defaultToken: 'meta.list.concat.prolog' } ] },
               { include: '#basic_elem' },
               { defaultToken: 'meta.list.prolog' } ] } ],
-      '#operators': 
+      '#operators':
        [ { token: 'keyword.operator.prolog',
            regex: '\\\\\\+|\\bnot\\b|\\bis\\b|->|[><]|[><\\\\:=]?=|(?:=\\\\|\\\\=)=' } ],
-      '#parameter': 
+      '#parameter':
        [ { token: 'variable.language.anonymous.prolog',
            regex: '\\b_\\b' },
          { token: 'variable.parameter.prolog',
@@ -36839,16 +37787,16 @@ var PrologHighlightRules = function() {
          { token: 'punctuation.separator.parameters.prolog', regex: ',' },
          { include: '#basic_elem' },
          { token: 'invalid.illegal.invalidchar.prolog', regex: '[^\\s]' } ],
-      '#rule': 
+      '#rule':
        [ { token: 'meta.rule.prolog',
            regex: '(?=[a-z]\\w*.*:-)',
-           push: 
+           push:
             [ { token: 'punctuation.rule.end.prolog',
                 regex: '\\.',
                 next: 'pop' },
               { token: 'meta.rule.signature.prolog',
                 regex: '(?=[a-z]\\w*.*:-)',
-                push: 
+                push:
                  [ { token: 'meta.rule.signature.prolog',
                      regex: '(?=:-)',
                      next: 'pop' },
@@ -36856,7 +37804,7 @@ var PrologHighlightRules = function() {
                      regex: '[a-z]\\w*(?=\\(|\\s*:-)' },
                    { token: 'punctuation.rule.parameters.begin.prolog',
                      regex: '\\(',
-                     push: 
+                     push:
                       [ { token: 'punctuation.rule.parameters.end.prolog',
                           regex: '\\)',
                           next: 'pop' },
@@ -36865,7 +37813,7 @@ var PrologHighlightRules = function() {
                    { defaultToken: 'meta.rule.signature.prolog' } ] },
               { token: 'keyword.operator.definition.prolog',
                 regex: ':-',
-                push: 
+                push:
                  [ { token: 'meta.rule.definition.prolog',
                      regex: '(?=\\.)',
                      next: 'pop' },
@@ -36873,10 +37821,10 @@ var PrologHighlightRules = function() {
                    { include: '#expr' },
                    { defaultToken: 'meta.rule.definition.prolog' } ] },
               { defaultToken: 'meta.rule.prolog' } ] } ],
-      '#statement': 
+      '#statement':
        [ { token: 'meta.statement.prolog',
            regex: '(?=[a-z]\\w*\\()',
-           push: 
+           push:
             [ { token: 'punctuation.end.statement.parameters.prolog',
                 regex: '\\)',
                 next: 'pop' },
@@ -36884,7 +37832,7 @@ var PrologHighlightRules = function() {
               { include: '#atom' },
               { token: 'punctuation.begin.statement.parameters.prolog',
                 regex: '\\(',
-                push: 
+                push:
                  [ { token: 'meta.statement.parameters.prolog',
                      regex: '(?=\\))',
                      next: 'pop' },
@@ -36892,10 +37840,10 @@ var PrologHighlightRules = function() {
                    { include: '#basic_elem' },
                    { defaultToken: 'meta.statement.parameters.prolog' } ] },
               { defaultToken: 'meta.statement.prolog' } ] } ],
-      '#string': 
+      '#string':
        [ { token: 'punctuation.definition.string.begin.prolog',
            regex: '\'',
-           push: 
+           push:
             [ { token: 'punctuation.definition.string.end.prolog',
                 regex: '\'',
                 next: 'pop' },
@@ -36903,12 +37851,12 @@ var PrologHighlightRules = function() {
               { token: 'constant.character.escape.quote.prolog',
                 regex: '\'\'' },
               { defaultToken: 'string.quoted.single.prolog' } ] } ],
-      '#variable': 
+      '#variable':
        [ { token: 'variable.language.anonymous.prolog',
            regex: '\\b_\\b' },
          { token: 'variable.other.prolog',
            regex: '\\b[A-Z_][a-zA-Z0-9_]*\\b' } ] }
-    
+
     this.normalizeRules();
 };
 
@@ -36983,7 +37931,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -36994,7 +37942,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37019,7 +37967,9 @@ var PythonFoldMode = require("./folding/pythonic").FoldMode;
 var Range = require("../range").Range;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new PythonHighlightRules().getRules());
+    var highlighter = new PythonHighlightRules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new PythonFoldMode("\\:");
 };
 oop.inherits(Mode, TextMode);
@@ -37055,27 +38005,27 @@ oop.inherits(Mode, TextMode);
         "break": 1,
         "continue": 1
     };
-    
+
     this.checkOutdent = function(state, line, input) {
         if (input !== "\r\n" && input !== "\r" && input !== "\n")
             return false;
 
         var tokens = this.$tokenizer.getLineTokens(line.trim(), state).tokens;
-        
+
         if (!tokens)
             return false;
         do {
             var last = tokens.pop();
         } while (last && (last.type == "comment" || (last.type == "text" && last.value.match(/^\s+$/))));
-        
+
         if (!last)
             return false;
-        
+
         return (last.type == "keyword" && outdents[last.value]);
     };
 
     this.autoOutdent = function(state, doc, row) {
-        
+
         row += 1;
         var indent = this.$getIndent(doc.getLine(row));
         var tab = doc.getTabString();
@@ -37290,7 +38240,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  */
 ace.define('ace/mode/r', ['require', 'exports', 'module' , 'ace/range', 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/text_highlight_rules', 'ace/mode/r_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/unicode'], function(require, exports, module) {
-   
+
 
    var Range = require("../range").Range;
    var oop = require("../lib/oop");
@@ -37706,7 +38656,7 @@ ace.define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , '
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LatexHighlightRules = function() {   
+var LatexHighlightRules = function() {
     this.$rules = {
         "start" : [{
             token : "keyword",
@@ -37777,7 +38727,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -37788,7 +38738,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37817,7 +38767,7 @@ var Mode = function() {
 };
 oop.inherits(Mode, TextMode);
 
-(function() {   
+(function() {
     this.lineCommentStart = "//";
 }).call(Mode.prototype);
 
@@ -37850,7 +38800,7 @@ var SassHighlightRules = function() {
             token: "support.type",
             regex: /^\s*:[\w\-]+\s/
         });
-        
+
         this.$rules.comment = [
             {regex: /^\s*/, onMatch: function(value, currentState, stack) {
                 if (stack[1] === -1)
@@ -37882,30 +38832,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ScssHighlightRules = function() {
-    
+
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-        
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
-             "background-size|binding|border-bottom-colors|border-left-colors|" + 
-             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
-             "border-end-style|border-end-width|border-image|border-start|" + 
-             "border-start-color|border-start-style|border-start-width|box-align|" + 
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
-             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
-             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
-             "text-decoration-style|transform|transform-origin|transition|" + 
-             "transition-delay|transition-duration|transition-property|" + 
+
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
+             "background-size|binding|border-bottom-colors|border-left-colors|" +
+             "border-right-colors|border-top-colors|border-end|border-end-color|" +
+             "border-end-style|border-end-width|border-image|border-start|" +
+             "border-start-color|border-start-style|border-start-width|box-align|" +
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
+             "font-feature-settings|font-language-override|force-broken-image-icon|" +
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
+             "outline-offset|outline-radius|outline-radius-bottomleft|" +
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
+             "text-decoration-style|transform|transform-origin|transition|" +
+             "transition-delay|transition-duration|transition-property|" +
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-        
+
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -37939,17 +38889,17 @@ var ScssHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-        
+
         return ret;
-        
+
     })() );
-    
+
 
 
     var functions = lang.arrayToMap(
         ("hsl|hsla|rgb|rgba|url|attr|counter|counters|abs|adjust_color|adjust_hue|" +
-         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" + 
-         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" + 
+         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" +
+         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" +
          "nth|opacify|opacity|percentage|quote|red|round|saturate|saturation|" +
          "scale_color|transparentize|type_of|unit|unitless|unqoute").split("|")
     );
@@ -37982,20 +38932,20 @@ var ScssHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-    
+
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|def|end|declare").split("|")
     )
-    
+
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -38219,7 +39169,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -38230,7 +39180,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -38244,7 +39194,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  *
  * Contributor(s):
- * 
+ *
  * NalaGinrut@gmail.com
  *
  * ***** END LICENSE BLOCK ***** */
@@ -38259,15 +39209,15 @@ var SchemeHighlightRules = require("./scheme_highlight_rules").SchemeHighlightRu
 
 var Mode = function() {
     var highlighter = new SchemeHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-       
+
     this.lineCommentStart = ";";
-    
+
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
@@ -38292,7 +39242,7 @@ var SchemeHighlightRules = function() {
         "support.function": supportFunctions
     }, "identifier", true);
 
-    this.$rules = 
+    this.$rules =
         {
     "start": [
         {
@@ -38314,7 +39264,7 @@ var SchemeHighlightRules = function() {
         {
             "token" : "constant.numeric", // hex
             "regex" : "#[xXoObB][0-9a-fA-F]+"
-        }, 
+        },
         {
             "token" : "constant.numeric", // float
             "regex" : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?"
@@ -38363,7 +39313,7 @@ exports.SchemeHighlightRules = SchemeHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -38374,7 +39324,7 @@ exports.SchemeHighlightRules = SchemeHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -38408,7 +39358,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-   
+
     this.lineCommentStart = "//";
     this.blockComment = {start: "/*", end: "*/"};
 
@@ -38449,30 +39399,30 @@ var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ScssHighlightRules = function() {
-    
+
     var properties = lang.arrayToMap( (function () {
 
         var browserPrefix = ("-webkit-|-moz-|-o-|-ms-|-svg-|-pie-|-khtml-").split("|");
-        
-        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" + 
-             "background-size|binding|border-bottom-colors|border-left-colors|" + 
-             "border-right-colors|border-top-colors|border-end|border-end-color|" + 
-             "border-end-style|border-end-width|border-image|border-start|" + 
-             "border-start-color|border-start-style|border-start-width|box-align|" + 
-             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" + 
-             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" + 
-             "column-rule-width|column-rule-style|column-rule-color|float-edge|" + 
-             "font-feature-settings|font-language-override|force-broken-image-icon|" + 
-             "image-region|margin-end|margin-start|opacity|outline|outline-color|" + 
-             "outline-offset|outline-radius|outline-radius-bottomleft|" + 
-             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" + 
-             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" + 
-             "tab-size|text-blink|text-decoration-color|text-decoration-line|" + 
-             "text-decoration-style|transform|transform-origin|transition|" + 
-             "transition-delay|transition-duration|transition-property|" + 
+
+        var prefixProperties = ("appearance|background-clip|background-inline-policy|background-origin|" +
+             "background-size|binding|border-bottom-colors|border-left-colors|" +
+             "border-right-colors|border-top-colors|border-end|border-end-color|" +
+             "border-end-style|border-end-width|border-image|border-start|" +
+             "border-start-color|border-start-style|border-start-width|box-align|" +
+             "box-direction|box-flex|box-flexgroup|box-ordinal-group|box-orient|" +
+             "box-pack|box-sizing|column-count|column-gap|column-width|column-rule|" +
+             "column-rule-width|column-rule-style|column-rule-color|float-edge|" +
+             "font-feature-settings|font-language-override|force-broken-image-icon|" +
+             "image-region|margin-end|margin-start|opacity|outline|outline-color|" +
+             "outline-offset|outline-radius|outline-radius-bottomleft|" +
+             "outline-radius-bottomright|outline-radius-topleft|outline-radius-topright|" +
+             "outline-style|outline-width|padding-end|padding-start|stack-sizing|" +
+             "tab-size|text-blink|text-decoration-color|text-decoration-line|" +
+             "text-decoration-style|transform|transform-origin|transition|" +
+             "transition-delay|transition-duration|transition-property|" +
              "transition-timing-function|user-focus|user-input|user-modify|user-select|" +
              "window-shadow|border-radius").split("|");
-        
+
         var properties = ("azimuth|background-attachment|background-color|background-image|" +
             "background-position|background-repeat|background|border-bottom-color|" +
             "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
@@ -38506,17 +39456,17 @@ var ScssHighlightRules = function() {
         }
         Array.prototype.push.apply(ret, prefixProperties);
         Array.prototype.push.apply(ret, properties);
-        
+
         return ret;
-        
+
     })() );
-    
+
 
 
     var functions = lang.arrayToMap(
         ("hsl|hsla|rgb|rgba|url|attr|counter|counters|abs|adjust_color|adjust_hue|" +
-         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" + 
-         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" + 
+         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" +
+         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" +
          "nth|opacify|opacity|percentage|quote|red|round|saturate|saturation|" +
          "scale_color|transparentize|type_of|unit|unitless|unqoute").split("|")
     );
@@ -38549,20 +39499,20 @@ var ScssHighlightRules = function() {
         ("aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|" +
         "purple|red|silver|teal|white|yellow").split("|")
     );
-    
+
     var keywords = lang.arrayToMap(
         ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|def|end|declare").split("|")
     )
-    
+
     var tags = lang.arrayToMap(
-        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
-         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" + 
-         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" + 
-         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" + 
-         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" + 
-         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" + 
-         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" + 
-         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" + 
+        ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" +
+         "big|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|" +
+         "command|datalist|dd|del|details|dfn|dir|div|dl|dt|em|embed|fieldset|" +
+         "figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|" +
+         "header|hgroup|hr|html|i|iframe|img|input|ins|keygen|kbd|label|legend|li|" +
+         "link|map|mark|menu|meta|meter|nav|noframes|noscript|object|ol|optgroup|" +
+         "option|output|p|param|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|" +
+         "small|source|span|strike|strong|style|sub|summary|sup|table|tbody|td|" +
          "textarea|tfoot|th|thead|time|title|tr|tt|u|ul|var|video|wbr|xmp").split("|")
     );
 
@@ -38837,7 +39787,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -38850,11 +39800,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -38864,7 +39814,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -38875,26 +39825,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -39195,7 +40145,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -39206,7 +40156,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39230,13 +40180,16 @@ var ShHighlightRules = require("./sh_highlight_rules").ShHighlightRules;
 var Range = require("../range").Range;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new ShHighlightRules().getRules());
+    var highlighter = new ShHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
 
-   
+
     this.lineCommentStart = "#";
 
     this.getNextLineIndent = function(state, line, tab) {
@@ -39482,7 +40435,7 @@ var SnippetGroupHighlightRules = function() {
 			return this.tokenName;
 		}, tokenName: "text", regex: "^(?!\t)", next: "start"},
 	])
-	
+
 };
 
 oop.inherits(SnippetGroupHighlightRules, TextHighlightRules);
@@ -39499,9 +40452,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    this.getNextLineIndent = function(state, line, tab) {
-        return this.$getIndent(line);
-    };
+    this.$indentWithTabs = true;
 }).call(Mode.prototype);
 exports.Mode = Mode;
 
@@ -39599,7 +40550,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -39610,7 +40561,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39634,7 +40585,10 @@ var SqlHighlightRules = require("./sql_highlight_rules").SqlHighlightRules;
 var Range = require("../range").Range;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new SqlHighlightRules().getRules());
+    var highlighter = new SqlHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, TextMode);
 
@@ -39717,7 +40671,7 @@ exports.SqlHighlightRules = SqlHighlightRules;
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -39728,7 +40682,7 @@ exports.SqlHighlightRules = SqlHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39756,15 +40710,15 @@ var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
     XmlMode.call(this);
-    
+
     this.highlighter = new SvgHighlightRules();
     this.$tokenizer = new Tokenizer(this.highlighter.getRules());
-    
+
     this.$embeds = this.highlighter.getEmbeds();
     this.createModeDelegates({
         "js-": JavaScriptMode
     });
-    
+
     this.foldingRules = new MixedFoldMode(new XmlFoldMode({}), {
         "js-": new CStyleFoldMode()
     });
@@ -39777,7 +40731,7 @@ oop.inherits(Mode, XmlMode);
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
-    
+
 
 }).call(Mode.prototype);
 
@@ -39803,7 +40757,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.blockComment = {start: "<!--", end: "-->"};
 
 }).call(Mode.prototype);
@@ -39828,11 +40782,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity", 
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+                token : "constant.character.entity",
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
             }
         ],
-        
+
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -39844,7 +40798,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -39873,7 +40827,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -39884,7 +40838,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -39892,7 +40846,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -39901,7 +40855,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -39945,9 +40899,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -39992,7 +40946,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -40022,7 +40976,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -40035,11 +40989,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -40049,7 +41003,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -40060,26 +41014,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -40356,7 +41310,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -40367,13 +41321,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = tag.match(this.tagRe);
         var column = 0;
 
@@ -40390,10 +41344,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -40415,15 +41369,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -40448,13 +41402,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -40470,17 +41424,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -40496,7 +41450,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -40513,7 +41467,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -40523,7 +41477,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -40536,7 +41490,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -40557,9 +41511,12 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
+    var highlighter = new JavaScriptHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -40753,7 +41710,7 @@ var JavaScriptHighlightRules = function() {
                 next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
-                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
             }, {
                 token : ["punctuation.operator", "support.function.dom"],
                 regex : /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
@@ -41083,9 +42040,9 @@ var SvgHighlightRules = function() {
         regex : "<(?=script)",
         next : "script"
     });
-    
+
     xmlUtil.tag(this.$rules, "script", "js-start");
-    
+
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
@@ -41124,7 +42081,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         }
         return null;
     };
-    
+
     this.$tryMode = function(state, session, foldStyle, row) {
         var mode = this.$getMode(state);
         return (mode ? mode.getFoldWidget(session, foldStyle, row) : "");
@@ -41140,13 +42097,13 @@ oop.inherits(FoldMode, BaseFoldMode);
 
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var mode = this.$getMode(session.getState(row-1));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.$getMode(session.getState(row));
-        
+
         if (!mode || !mode.getFoldWidget(session, foldStyle, row))
             mode = this.defaultMode;
-        
+
         return mode.getFoldWidgetRange(session, foldStyle, row);
     };
 
@@ -41324,7 +42281,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * Copyright (c) 2012, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -41335,7 +42292,7 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -41362,7 +42319,7 @@ var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutd
 
 var Mode = function() {
     var highlighter = new TypeScriptHighlightRules();
-    
+
     this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
@@ -41393,9 +42350,12 @@ var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
+    var highlighter = new JavaScriptHighlightRules();
+
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -41589,7 +42549,7 @@ var JavaScriptHighlightRules = function() {
                 next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
-                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
             }, {
                 token : ["punctuation.operator", "support.function.dom"],
                 regex : /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
@@ -41872,7 +42832,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -41885,11 +42845,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -41899,7 +42859,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -41910,26 +42870,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -42239,7 +43199,7 @@ var TypeScriptHighlightRules = function() {
         {
             token: ["keyword.operator.ts", "text", "variable.parameter.function.ts", "text"],
             regex: "\\b(module)(\\s*)([a-zA-Z0-9_?.$][\\w?.$]*)(\\s*\\{)"
-        }, 
+        },
         {
             token: ["storage.type.variable.ts", "text", "keyword.other.ts", "text"],
             regex: "(super)(\\s*\\()([a-zA-Z0-9,_?.$\\s]+\\s*)(\\))"
@@ -42251,15 +43211,15 @@ var TypeScriptHighlightRules = function() {
         {
             token: ["variable.parameter.function.ts", "text", "variable.parameter.function.ts"],
             regex: "([a-zA-Z0-9_?.$][\\w?.$]*)(\\s*:\\s*)([a-zA-Z0-9_?.$][\\w?.$]*)"
-        },  
+        },
         {
             token: ["keyword.operator.ts"],
             regex: "(?:\\b(constructor|declare|interface|as|AS|public|private|class|extends|export|super)\\b)"
-        }, 
+        },
         {
             token: ["storage.type.variable.ts"],
             regex: "(?:\\b(this\\.|string\\b|bool\\b|number)\\b)"
-        }, 
+        },
         {
             token: ["keyword.operator.ts", "storage.type.variable.ts", "keyword.operator.ts", "storage.type.variable.ts"],
             regex: "(class)(\\s+[a-zA-Z0-9_?.$][\\w?.$]*\\s+)(extends)(\\s+[a-zA-Z0-9_?.$][\\w?.$]*\\s+)?"
@@ -42271,7 +43231,7 @@ var TypeScriptHighlightRules = function() {
     ];
 
     var JSRules = new JavaScriptHighlightRules().getRules();
-    
+
     JSRules.start = tsRules.concat(JSRules.start);
     this.$rules = JSRules;
 };
@@ -42279,12 +43239,13 @@ var TypeScriptHighlightRules = function() {
 oop.inherits(TypeScriptHighlightRules, JavaScriptHighlightRules);
 
 exports.TypeScriptHighlightRules = TypeScriptHighlightRules;
-});/* ***** BEGIN LICENSE BLOCK *****
+});
+/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -42295,7 +43256,7 @@ exports.TypeScriptHighlightRules = TypeScriptHighlightRules;
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -42328,7 +43289,7 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    
+
     this.blockComment = {start: "<!--", end: "-->"};
 
 }).call(Mode.prototype);
@@ -42353,11 +43314,11 @@ var XmlHighlightRules = function() {
             {token : "meta.tag", regex : "<\\/?", next : "tag"},
             {token : "text", regex : "\\s+"},
             {
-                token : "constant.character.entity", 
-                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+                token : "constant.character.entity",
+                regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
             }
         ],
-        
+
         cdata : [
             {token : "text", regex : "\\]\\]>", next : "start"},
             {token : "text", regex : "\\s+"},
@@ -42369,7 +43330,7 @@ var XmlHighlightRules = function() {
             {token : "comment", regex : ".+"}
         ]
     };
-    
+
     xmlUtil.tag(this.$rules, "tag", "start");
 };
 
@@ -42398,7 +43359,7 @@ function multiLineString(quote, state) {
         {token : "string", regex : quote, next : state},
         {
             token : "constant.language.escape",
-            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)" 
+            regex : "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         },
         {defaultToken : "string"}
     ];
@@ -42409,7 +43370,7 @@ exports.tag = function(states, name, nextState, tagMap) {
         token : "text",
         regex : "\\s+"
     }, {
-        
+
     token : !tagMap ? "meta.tag.tag-name" : function(value) {
             if (tagMap[value])
                 return "meta.tag.tag-name." + tagMap[value];
@@ -42417,7 +43378,7 @@ exports.tag = function(states, name, nextState, tagMap) {
                 return "meta.tag.tag-name";
         },
         regex : "[-_a-zA-Z0-9:]+",
-        next : name + "_embed_attribute_list" 
+        next : name + "_embed_attribute_list"
     }, {
         token: "empty",
         regex: "",
@@ -42426,7 +43387,7 @@ exports.tag = function(states, name, nextState, tagMap) {
 
     states[name + "_qstring"] = multiLineString("'", name + "_embed_attribute_list");
     states[name + "_qqstring"] = multiLineString("\"", name + "_embed_attribute_list");
-    
+
     states[name + "_embed_attribute_list"] = [{
         token : "meta.tag.r",
         regex : "/?>",
@@ -42470,9 +43431,9 @@ function hasType(token, type) {
 }
 
 var XmlBehaviour = function () {
-    
+
     this.inherit(CstyleBehaviour, ["string_dquotes"]); // Get string behaviour
-    
+
     this.add("autoclosing", "insertion", function (state, action, editor, session, text) {
         if (text == '>') {
             var position = editor.getCursorPosition();
@@ -42517,7 +43478,7 @@ var XmlBehaviour = function () {
             }
         }
     });
-    
+
 }
 oop.inherits(XmlBehaviour, Behaviour);
 
@@ -42547,7 +43508,7 @@ var maybeInsertedLineStart = "";
 var maybeInsertedLineEnd = "";
 
 var CstyleBehaviour = function () {
-    
+
     CstyleBehaviour.isSaneInsertion = function(editor, session) {
         var cursor = editor.getCursorPosition();
         var iterator = new TokenIterator(session, cursor.row, cursor.column);
@@ -42560,11 +43521,11 @@ var CstyleBehaviour = function () {
         return iterator.getCurrentTokenRow() !== cursor.row ||
             this.$matchTokenType(iterator.getCurrentToken() || "text", SAFE_INSERT_BEFORE_TOKENS);
     };
-    
+
     CstyleBehaviour.$matchTokenType = function(token, types) {
         return types.indexOf(token.type || token) > -1;
     };
-    
+
     CstyleBehaviour.recordAutoInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -42574,7 +43535,7 @@ var CstyleBehaviour = function () {
         autoInsertedLineEnd = bracket + line.substr(cursor.column);
         autoInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.recordMaybeInsert = function(editor, session, bracket) {
         var cursor = editor.getCursorPosition();
         var line = session.doc.getLine(cursor.row);
@@ -42585,26 +43546,26 @@ var CstyleBehaviour = function () {
         maybeInsertedLineEnd = line.substr(cursor.column);
         maybeInsertedBrackets++;
     };
-    
+
     CstyleBehaviour.isAutoInsertedClosing = function(cursor, line, bracket) {
         return autoInsertedBrackets > 0 &&
             cursor.row === autoInsertedRow &&
             bracket === autoInsertedLineEnd[0] &&
             line.substr(cursor.column) === autoInsertedLineEnd;
     };
-    
+
     CstyleBehaviour.isMaybeInsertedClosing = function(cursor, line) {
         return maybeInsertedBrackets > 0 &&
             cursor.row === maybeInsertedRow &&
             line.substr(cursor.column) === maybeInsertedLineEnd &&
             line.substr(0, cursor.column) == maybeInsertedLineStart;
     };
-    
+
     CstyleBehaviour.popAutoInsertedClosing = function() {
         autoInsertedLineEnd = autoInsertedLineEnd.substr(1);
         autoInsertedBrackets--;
     };
-    
+
     CstyleBehaviour.clearMaybeInsertedClosing = function() {
         maybeInsertedBrackets = 0;
         maybeInsertedRow = -1;
@@ -42881,7 +43842,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
         return "start";
     };
-    
+
     this._getFirstTagInLine = function(session, row) {
         var tokens = session.getTokens(row);
         var value = "";
@@ -42892,13 +43853,13 @@ oop.inherits(FoldMode, BaseFoldMode);
             else
                 value += lang.stringRepeat(" ", token.value.length);
         }
-        
+
         return this._parseTag(value);
     };
 
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
-        
+
         var match = tag.match(this.tagRe);
         var column = 0;
 
@@ -42915,10 +43876,10 @@ oop.inherits(FoldMode, BaseFoldMode);
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var start;
-        
+
         do {
             if (token.type.indexOf("meta.tag") === 0) {
                 if (!start) {
@@ -42940,15 +43901,15 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepForward());
-        
+
         return null;
     };
-    
+
     this._readTagBackward = function(iterator) {
         var token = iterator.getCurrentToken();
         if (!token)
             return null;
-            
+
         var value = "";
         var end;
 
@@ -42973,13 +43934,13 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         } while(token = iterator.stepBackward());
-        
+
         return null;
     };
-    
+
     this._pop = function(stack, tag) {
         while (stack.length) {
-            
+
             var top = stack[stack.length-1];
             if (!tag || top.tagName == tag.tagName) {
                 return stack.pop();
@@ -42995,17 +43956,17 @@ oop.inherits(FoldMode, BaseFoldMode);
             }
         }
     };
-    
+
     this.getFoldWidgetRange = function(session, foldStyle, row) {
         var firstTag = this._getFirstTagInLine(session, row);
-        
+
         if (!firstTag.match)
             return null;
-        
+
         var isBackward = firstTag.closing || firstTag.selfClosing;
         var stack = [];
         var tag;
-        
+
         if (!isBackward) {
             var iterator = new TokenIterator(session, row, firstTag.column);
             var start = {
@@ -43021,7 +43982,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0)
@@ -43038,7 +43999,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 row: row,
                 column: firstTag.column
             };
-            
+
             while (tag = this._readTagBackward(iterator)) {
                 if (tag.selfClosing) {
                     if (!stack.length) {
@@ -43048,7 +44009,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                     } else
                         continue;
                 }
-                
+
                 if (!tag.closing) {
                     this._pop(stack, tag);
                     if (stack.length == 0) {
@@ -43061,7 +44022,7 @@ oop.inherits(FoldMode, BaseFoldMode);
                 }
             }
         }
-        
+
     };
 
 }).call(FoldMode.prototype);
@@ -43072,7 +44033,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43083,7 +44044,7 @@ oop.inherits(FoldMode, BaseFoldMode);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43117,7 +44078,7 @@ oop.inherits(Mode, TextMode);
 (function() {
 
     this.lineCommentStart = "#";
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
 
@@ -43160,10 +44121,10 @@ var YamlHighlightRules = function() {
                 regex : "#.*$"
             }, {
                 token : "list.markup",
-                regex : /^(?:-{3}|\.{3})\s*(?=#|$)/     
+                regex : /^(?:-{3}|\.{3})\s*(?=#|$)/
             },  {
                 token : "list.markup",
-                regex : /^\s*[\-?](?:$|\s)/     
+                regex : /^\s*[\-?](?:$|\s)/
             }, {
                 token: "constant",
                 regex: "!![\\w//]+"
@@ -43356,9 +44317,2042 @@ oop.inherits(FoldMode, BaseFoldMode);
 }).call(FoldMode.prototype);
 
 });
+ace.define('ace/snippets/clojure', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "snippet comm\n\
+	(comment\n\
+	  ${1}\n\
+	  )\n\
+snippet condp\n\
+	(condp ${1:pred} ${2:expr}\n\
+	  ${3})\n\
+snippet def\n\
+	(def ${1})\n\
+snippet defm\n\
+	(defmethod ${1:multifn} \"${2:doc-string}\" ${3:dispatch-val} [${4:args}]\n\
+	  ${5})\n\
+snippet defmm\n\
+	(defmulti ${1:name} \"${2:doc-string}\" ${3:dispatch-fn})\n\
+snippet defma\n\
+	(defmacro ${1:name} \"${2:doc-string}\" ${3:dispatch-fn})\n\
+snippet defn\n\
+	(defn ${1:name} \"${2:doc-string}\" [${3:arg-list}]\n\
+	  ${4})\n\
+snippet defp\n\
+	(defprotocol ${1:name}\n\
+	  ${2})\n\
+snippet defr\n\
+	(defrecord ${1:name} [${2:fields}]\n\
+	  ${3:protocol}\n\
+	  ${4})\n\
+snippet deft\n\
+	(deftest ${1:name}\n\
+	    (is (= ${2:assertion})))\n\
+	  ${3})\n\
+snippet is\n\
+	(is (= ${1} ${2}))\n\
+snippet defty\n\
+	(deftype ${1:Name} [${2:fields}]\n\
+	  ${3:Protocol}\n\
+	  ${4})\n\
+snippet doseq\n\
+	(doseq [${1:elem} ${2:coll}]\n\
+	  ${3})\n\
+snippet fn\n\
+	(fn [${1:arg-list}] ${2})\n\
+snippet if\n\
+	(if ${1:test-expr}\n\
+	  ${2:then-expr}\n\
+	  ${3:else-expr})\n\
+snippet if-let \n\
+	(if-let [${1:result} ${2:test-expr}]\n\
+		(${3:then-expr} $1)\n\
+		(${4:else-expr}))\n\
+snippet imp\n\
+	(:import [${1:package}])\n\
+	& {:keys [${1:keys}] :or {${2:defaults}}}\n\
+snippet let\n\
+	(let [${1:name} ${2:expr}]\n\
+		${3})\n\
+snippet letfn\n\
+	(letfn [(${1:name) [${2:args}]\n\
+	          ${3})])\n\
+snippet map\n\
+	(map ${1:func} ${2:coll})\n\
+snippet mapl\n\
+	(map #(${1:lambda}) ${2:coll})\n\
+snippet met\n\
+	(${1:name} [${2:this} ${3:args}]\n\
+	  ${4})\n\
+snippet ns\n\
+	(ns ${1:name}\n\
+	  ${2})\n\
+snippet dotimes\n\
+	(dotimes [_ 10]\n\
+	  (time\n\
+	    (dotimes [_ ${1:times}]\n\
+	      ${2})))\n\
+snippet pmethod\n\
+	(${1:name} [${2:this} ${3:args}])\n\
+snippet refer\n\
+	(:refer-clojure :exclude [${1}])\n\
+snippet require\n\
+	(:require [${1:namespace} :as [${2}]])\n\
+snippet use\n\
+	(:use [${1:namespace} :only [${2}]])\n\
+snippet print\n\
+	(println ${1})\n\
+snippet reduce\n\
+	(reduce ${1:(fn [p n] ${3})} ${2})\n\
+snippet when\n\
+	(when ${1:test} ${2:body})\n\
+snippet when-let\n\
+	(when-let [${1:result} ${2:test}]\n\
+		${3:body})\n\
+";
+exports.scope = "clojure";
+
+});
+ace.define('ace/snippets/css', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "snippet .\n\
+	${1} {\n\
+		${2}\n\
+	}\n\
+snippet !\n\
+	 !important\n\
+snippet bdi:m+\n\
+	-moz-border-image: url(${1}) ${2:0} ${3:0} ${4:0} ${5:0} ${6:stretch} ${7:stretch};\n\
+snippet bdi:m\n\
+	-moz-border-image: ${1};\n\
+snippet bdrz:m\n\
+	-moz-border-radius: ${1};\n\
+snippet bxsh:m+\n\
+	-moz-box-shadow: ${1:0} ${2:0} ${3:0} #${4:000};\n\
+snippet bxsh:m\n\
+	-moz-box-shadow: ${1};\n\
+snippet bdi:w+\n\
+	-webkit-border-image: url(${1}) ${2:0} ${3:0} ${4:0} ${5:0} ${6:stretch} ${7:stretch};\n\
+snippet bdi:w\n\
+	-webkit-border-image: ${1};\n\
+snippet bdrz:w\n\
+	-webkit-border-radius: ${1};\n\
+snippet bxsh:w+\n\
+	-webkit-box-shadow: ${1:0} ${2:0} ${3:0} #${4:000};\n\
+snippet bxsh:w\n\
+	-webkit-box-shadow: ${1};\n\
+snippet @f\n\
+	@font-face {\n\
+		font-family: ${1};\n\
+		src: url(${2});\n\
+	}\n\
+snippet @i\n\
+	@import url(${1});\n\
+snippet @m\n\
+	@media ${1:print} {\n\
+		${2}\n\
+	}\n\
+snippet bg+\n\
+	background: #${1:FFF} url(${2}) ${3:0} ${4:0} ${5:no-repeat};\n\
+snippet bga\n\
+	background-attachment: ${1};\n\
+snippet bga:f\n\
+	background-attachment: fixed;\n\
+snippet bga:s\n\
+	background-attachment: scroll;\n\
+snippet bgbk\n\
+	background-break: ${1};\n\
+snippet bgbk:bb\n\
+	background-break: bounding-box;\n\
+snippet bgbk:c\n\
+	background-break: continuous;\n\
+snippet bgbk:eb\n\
+	background-break: each-box;\n\
+snippet bgcp\n\
+	background-clip: ${1};\n\
+snippet bgcp:bb\n\
+	background-clip: border-box;\n\
+snippet bgcp:cb\n\
+	background-clip: content-box;\n\
+snippet bgcp:nc\n\
+	background-clip: no-clip;\n\
+snippet bgcp:pb\n\
+	background-clip: padding-box;\n\
+snippet bgc\n\
+	background-color: #${1:FFF};\n\
+snippet bgc:t\n\
+	background-color: transparent;\n\
+snippet bgi\n\
+	background-image: url(${1});\n\
+snippet bgi:n\n\
+	background-image: none;\n\
+snippet bgo\n\
+	background-origin: ${1};\n\
+snippet bgo:bb\n\
+	background-origin: border-box;\n\
+snippet bgo:cb\n\
+	background-origin: content-box;\n\
+snippet bgo:pb\n\
+	background-origin: padding-box;\n\
+snippet bgpx\n\
+	background-position-x: ${1};\n\
+snippet bgpy\n\
+	background-position-y: ${1};\n\
+snippet bgp\n\
+	background-position: ${1:0} ${2:0};\n\
+snippet bgr\n\
+	background-repeat: ${1};\n\
+snippet bgr:n\n\
+	background-repeat: no-repeat;\n\
+snippet bgr:x\n\
+	background-repeat: repeat-x;\n\
+snippet bgr:y\n\
+	background-repeat: repeat-y;\n\
+snippet bgr:r\n\
+	background-repeat: repeat;\n\
+snippet bgz\n\
+	background-size: ${1};\n\
+snippet bgz:a\n\
+	background-size: auto;\n\
+snippet bgz:ct\n\
+	background-size: contain;\n\
+snippet bgz:cv\n\
+	background-size: cover;\n\
+snippet bg\n\
+	background: ${1};\n\
+snippet bg:ie\n\
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='${1}',sizingMethod='${2:crop}');\n\
+snippet bg:n\n\
+	background: none;\n\
+snippet bd+\n\
+	border: ${1:1px} ${2:solid} #${3:000};\n\
+snippet bdb+\n\
+	border-bottom: ${1:1px} ${2:solid} #${3:000};\n\
+snippet bdbc\n\
+	border-bottom-color: #${1:000};\n\
+snippet bdbi\n\
+	border-bottom-image: url(${1});\n\
+snippet bdbi:n\n\
+	border-bottom-image: none;\n\
+snippet bdbli\n\
+	border-bottom-left-image: url(${1});\n\
+snippet bdbli:c\n\
+	border-bottom-left-image: continue;\n\
+snippet bdbli:n\n\
+	border-bottom-left-image: none;\n\
+snippet bdblrz\n\
+	border-bottom-left-radius: ${1};\n\
+snippet bdbri\n\
+	border-bottom-right-image: url(${1});\n\
+snippet bdbri:c\n\
+	border-bottom-right-image: continue;\n\
+snippet bdbri:n\n\
+	border-bottom-right-image: none;\n\
+snippet bdbrrz\n\
+	border-bottom-right-radius: ${1};\n\
+snippet bdbs\n\
+	border-bottom-style: ${1};\n\
+snippet bdbs:n\n\
+	border-bottom-style: none;\n\
+snippet bdbw\n\
+	border-bottom-width: ${1};\n\
+snippet bdb\n\
+	border-bottom: ${1};\n\
+snippet bdb:n\n\
+	border-bottom: none;\n\
+snippet bdbk\n\
+	border-break: ${1};\n\
+snippet bdbk:c\n\
+	border-break: close;\n\
+snippet bdcl\n\
+	border-collapse: ${1};\n\
+snippet bdcl:c\n\
+	border-collapse: collapse;\n\
+snippet bdcl:s\n\
+	border-collapse: separate;\n\
+snippet bdc\n\
+	border-color: #${1:000};\n\
+snippet bdci\n\
+	border-corner-image: url(${1});\n\
+snippet bdci:c\n\
+	border-corner-image: continue;\n\
+snippet bdci:n\n\
+	border-corner-image: none;\n\
+snippet bdf\n\
+	border-fit: ${1};\n\
+snippet bdf:c\n\
+	border-fit: clip;\n\
+snippet bdf:of\n\
+	border-fit: overwrite;\n\
+snippet bdf:ow\n\
+	border-fit: overwrite;\n\
+snippet bdf:r\n\
+	border-fit: repeat;\n\
+snippet bdf:sc\n\
+	border-fit: scale;\n\
+snippet bdf:sp\n\
+	border-fit: space;\n\
+snippet bdf:st\n\
+	border-fit: stretch;\n\
+snippet bdi\n\
+	border-image: url(${1}) ${2:0} ${3:0} ${4:0} ${5:0} ${6:stretch} ${7:stretch};\n\
+snippet bdi:n\n\
+	border-image: none;\n\
+snippet bdl+\n\
+	border-left: ${1:1px} ${2:solid} #${3:000};\n\
+snippet bdlc\n\
+	border-left-color: #${1:000};\n\
+snippet bdli\n\
+	border-left-image: url(${1});\n\
+snippet bdli:n\n\
+	border-left-image: none;\n\
+snippet bdls\n\
+	border-left-style: ${1};\n\
+snippet bdls:n\n\
+	border-left-style: none;\n\
+snippet bdlw\n\
+	border-left-width: ${1};\n\
+snippet bdl\n\
+	border-left: ${1};\n\
+snippet bdl:n\n\
+	border-left: none;\n\
+snippet bdlt\n\
+	border-length: ${1};\n\
+snippet bdlt:a\n\
+	border-length: auto;\n\
+snippet bdrz\n\
+	border-radius: ${1};\n\
+snippet bdr+\n\
+	border-right: ${1:1px} ${2:solid} #${3:000};\n\
+snippet bdrc\n\
+	border-right-color: #${1:000};\n\
+snippet bdri\n\
+	border-right-image: url(${1});\n\
+snippet bdri:n\n\
+	border-right-image: none;\n\
+snippet bdrs\n\
+	border-right-style: ${1};\n\
+snippet bdrs:n\n\
+	border-right-style: none;\n\
+snippet bdrw\n\
+	border-right-width: ${1};\n\
+snippet bdr\n\
+	border-right: ${1};\n\
+snippet bdr:n\n\
+	border-right: none;\n\
+snippet bdsp\n\
+	border-spacing: ${1};\n\
+snippet bds\n\
+	border-style: ${1};\n\
+snippet bds:ds\n\
+	border-style: dashed;\n\
+snippet bds:dtds\n\
+	border-style: dot-dash;\n\
+snippet bds:dtdtds\n\
+	border-style: dot-dot-dash;\n\
+snippet bds:dt\n\
+	border-style: dotted;\n\
+snippet bds:db\n\
+	border-style: double;\n\
+snippet bds:g\n\
+	border-style: groove;\n\
+snippet bds:h\n\
+	border-style: hidden;\n\
+snippet bds:i\n\
+	border-style: inset;\n\
+snippet bds:n\n\
+	border-style: none;\n\
+snippet bds:o\n\
+	border-style: outset;\n\
+snippet bds:r\n\
+	border-style: ridge;\n\
+snippet bds:s\n\
+	border-style: solid;\n\
+snippet bds:w\n\
+	border-style: wave;\n\
+snippet bdt+\n\
+	border-top: ${1:1px} ${2:solid} #${3:000};\n\
+snippet bdtc\n\
+	border-top-color: #${1:000};\n\
+snippet bdti\n\
+	border-top-image: url(${1});\n\
+snippet bdti:n\n\
+	border-top-image: none;\n\
+snippet bdtli\n\
+	border-top-left-image: url(${1});\n\
+snippet bdtli:c\n\
+	border-corner-image: continue;\n\
+snippet bdtli:n\n\
+	border-corner-image: none;\n\
+snippet bdtlrz\n\
+	border-top-left-radius: ${1};\n\
+snippet bdtri\n\
+	border-top-right-image: url(${1});\n\
+snippet bdtri:c\n\
+	border-top-right-image: continue;\n\
+snippet bdtri:n\n\
+	border-top-right-image: none;\n\
+snippet bdtrrz\n\
+	border-top-right-radius: ${1};\n\
+snippet bdts\n\
+	border-top-style: ${1};\n\
+snippet bdts:n\n\
+	border-top-style: none;\n\
+snippet bdtw\n\
+	border-top-width: ${1};\n\
+snippet bdt\n\
+	border-top: ${1};\n\
+snippet bdt:n\n\
+	border-top: none;\n\
+snippet bdw\n\
+	border-width: ${1};\n\
+snippet bd\n\
+	border: ${1};\n\
+snippet bd:n\n\
+	border: none;\n\
+snippet b\n\
+	bottom: ${1};\n\
+snippet b:a\n\
+	bottom: auto;\n\
+snippet bxsh+\n\
+	box-shadow: ${1:0} ${2:0} ${3:0} #${4:000};\n\
+snippet bxsh\n\
+	box-shadow: ${1};\n\
+snippet bxsh:n\n\
+	box-shadow: none;\n\
+snippet bxz\n\
+	box-sizing: ${1};\n\
+snippet bxz:bb\n\
+	box-sizing: border-box;\n\
+snippet bxz:cb\n\
+	box-sizing: content-box;\n\
+snippet cps\n\
+	caption-side: ${1};\n\
+snippet cps:b\n\
+	caption-side: bottom;\n\
+snippet cps:t\n\
+	caption-side: top;\n\
+snippet cl\n\
+	clear: ${1};\n\
+snippet cl:b\n\
+	clear: both;\n\
+snippet cl:l\n\
+	clear: left;\n\
+snippet cl:n\n\
+	clear: none;\n\
+snippet cl:r\n\
+	clear: right;\n\
+snippet cp\n\
+	clip: ${1};\n\
+snippet cp:a\n\
+	clip: auto;\n\
+snippet cp:r\n\
+	clip: rect(${1:0} ${2:0} ${3:0} ${4:0});\n\
+snippet c\n\
+	color: #${1:000};\n\
+snippet ct\n\
+	content: ${1};\n\
+snippet ct:a\n\
+	content: attr(${1});\n\
+snippet ct:cq\n\
+	content: close-quote;\n\
+snippet ct:c\n\
+	content: counter(${1});\n\
+snippet ct:cs\n\
+	content: counters(${1});\n\
+snippet ct:ncq\n\
+	content: no-close-quote;\n\
+snippet ct:noq\n\
+	content: no-open-quote;\n\
+snippet ct:n\n\
+	content: normal;\n\
+snippet ct:oq\n\
+	content: open-quote;\n\
+snippet coi\n\
+	counter-increment: ${1};\n\
+snippet cor\n\
+	counter-reset: ${1};\n\
+snippet cur\n\
+	cursor: ${1};\n\
+snippet cur:a\n\
+	cursor: auto;\n\
+snippet cur:c\n\
+	cursor: crosshair;\n\
+snippet cur:d\n\
+	cursor: default;\n\
+snippet cur:ha\n\
+	cursor: hand;\n\
+snippet cur:he\n\
+	cursor: help;\n\
+snippet cur:m\n\
+	cursor: move;\n\
+snippet cur:p\n\
+	cursor: pointer;\n\
+snippet cur:t\n\
+	cursor: text;\n\
+snippet d\n\
+	display: ${1};\n\
+snippet d:mib\n\
+	display: -moz-inline-box;\n\
+snippet d:mis\n\
+	display: -moz-inline-stack;\n\
+snippet d:b\n\
+	display: block;\n\
+snippet d:cp\n\
+	display: compact;\n\
+snippet d:ib\n\
+	display: inline-block;\n\
+snippet d:itb\n\
+	display: inline-table;\n\
+snippet d:i\n\
+	display: inline;\n\
+snippet d:li\n\
+	display: list-item;\n\
+snippet d:n\n\
+	display: none;\n\
+snippet d:ri\n\
+	display: run-in;\n\
+snippet d:tbcp\n\
+	display: table-caption;\n\
+snippet d:tbc\n\
+	display: table-cell;\n\
+snippet d:tbclg\n\
+	display: table-column-group;\n\
+snippet d:tbcl\n\
+	display: table-column;\n\
+snippet d:tbfg\n\
+	display: table-footer-group;\n\
+snippet d:tbhg\n\
+	display: table-header-group;\n\
+snippet d:tbrg\n\
+	display: table-row-group;\n\
+snippet d:tbr\n\
+	display: table-row;\n\
+snippet d:tb\n\
+	display: table;\n\
+snippet ec\n\
+	empty-cells: ${1};\n\
+snippet ec:h\n\
+	empty-cells: hide;\n\
+snippet ec:s\n\
+	empty-cells: show;\n\
+snippet exp\n\
+	expression()\n\
+snippet fl\n\
+	float: ${1};\n\
+snippet fl:l\n\
+	float: left;\n\
+snippet fl:n\n\
+	float: none;\n\
+snippet fl:r\n\
+	float: right;\n\
+snippet f+\n\
+	font: ${1:1em} ${2:Arial},${3:sans-serif};\n\
+snippet fef\n\
+	font-effect: ${1};\n\
+snippet fef:eb\n\
+	font-effect: emboss;\n\
+snippet fef:eg\n\
+	font-effect: engrave;\n\
+snippet fef:n\n\
+	font-effect: none;\n\
+snippet fef:o\n\
+	font-effect: outline;\n\
+snippet femp\n\
+	font-emphasize-position: ${1};\n\
+snippet femp:a\n\
+	font-emphasize-position: after;\n\
+snippet femp:b\n\
+	font-emphasize-position: before;\n\
+snippet fems\n\
+	font-emphasize-style: ${1};\n\
+snippet fems:ac\n\
+	font-emphasize-style: accent;\n\
+snippet fems:c\n\
+	font-emphasize-style: circle;\n\
+snippet fems:ds\n\
+	font-emphasize-style: disc;\n\
+snippet fems:dt\n\
+	font-emphasize-style: dot;\n\
+snippet fems:n\n\
+	font-emphasize-style: none;\n\
+snippet fem\n\
+	font-emphasize: ${1};\n\
+snippet ff\n\
+	font-family: ${1};\n\
+snippet ff:c\n\
+	font-family: ${1:'Monotype Corsiva','Comic Sans MS'},cursive;\n\
+snippet ff:f\n\
+	font-family: ${1:Capitals,Impact},fantasy;\n\
+snippet ff:m\n\
+	font-family: ${1:Monaco,'Courier New'},monospace;\n\
+snippet ff:ss\n\
+	font-family: ${1:Helvetica,Arial},sans-serif;\n\
+snippet ff:s\n\
+	font-family: ${1:Georgia,'Times New Roman'},serif;\n\
+snippet fza\n\
+	font-size-adjust: ${1};\n\
+snippet fza:n\n\
+	font-size-adjust: none;\n\
+snippet fz\n\
+	font-size: ${1};\n\
+snippet fsm\n\
+	font-smooth: ${1};\n\
+snippet fsm:aw\n\
+	font-smooth: always;\n\
+snippet fsm:a\n\
+	font-smooth: auto;\n\
+snippet fsm:n\n\
+	font-smooth: never;\n\
+snippet fst\n\
+	font-stretch: ${1};\n\
+snippet fst:c\n\
+	font-stretch: condensed;\n\
+snippet fst:e\n\
+	font-stretch: expanded;\n\
+snippet fst:ec\n\
+	font-stretch: extra-condensed;\n\
+snippet fst:ee\n\
+	font-stretch: extra-expanded;\n\
+snippet fst:n\n\
+	font-stretch: normal;\n\
+snippet fst:sc\n\
+	font-stretch: semi-condensed;\n\
+snippet fst:se\n\
+	font-stretch: semi-expanded;\n\
+snippet fst:uc\n\
+	font-stretch: ultra-condensed;\n\
+snippet fst:ue\n\
+	font-stretch: ultra-expanded;\n\
+snippet fs\n\
+	font-style: ${1};\n\
+snippet fs:i\n\
+	font-style: italic;\n\
+snippet fs:n\n\
+	font-style: normal;\n\
+snippet fs:o\n\
+	font-style: oblique;\n\
+snippet fv\n\
+	font-variant: ${1};\n\
+snippet fv:n\n\
+	font-variant: normal;\n\
+snippet fv:sc\n\
+	font-variant: small-caps;\n\
+snippet fw\n\
+	font-weight: ${1};\n\
+snippet fw:b\n\
+	font-weight: bold;\n\
+snippet fw:br\n\
+	font-weight: bolder;\n\
+snippet fw:lr\n\
+	font-weight: lighter;\n\
+snippet fw:n\n\
+	font-weight: normal;\n\
+snippet f\n\
+	font: ${1};\n\
+snippet h\n\
+	height: ${1};\n\
+snippet h:a\n\
+	height: auto;\n\
+snippet l\n\
+	left: ${1};\n\
+snippet l:a\n\
+	left: auto;\n\
+snippet lts\n\
+	letter-spacing: ${1};\n\
+snippet lh\n\
+	line-height: ${1};\n\
+snippet lisi\n\
+	list-style-image: url(${1});\n\
+snippet lisi:n\n\
+	list-style-image: none;\n\
+snippet lisp\n\
+	list-style-position: ${1};\n\
+snippet lisp:i\n\
+	list-style-position: inside;\n\
+snippet lisp:o\n\
+	list-style-position: outside;\n\
+snippet list\n\
+	list-style-type: ${1};\n\
+snippet list:c\n\
+	list-style-type: circle;\n\
+snippet list:dclz\n\
+	list-style-type: decimal-leading-zero;\n\
+snippet list:dc\n\
+	list-style-type: decimal;\n\
+snippet list:d\n\
+	list-style-type: disc;\n\
+snippet list:lr\n\
+	list-style-type: lower-roman;\n\
+snippet list:n\n\
+	list-style-type: none;\n\
+snippet list:s\n\
+	list-style-type: square;\n\
+snippet list:ur\n\
+	list-style-type: upper-roman;\n\
+snippet lis\n\
+	list-style: ${1};\n\
+snippet lis:n\n\
+	list-style: none;\n\
+snippet mb\n\
+	margin-bottom: ${1};\n\
+snippet mb:a\n\
+	margin-bottom: auto;\n\
+snippet ml\n\
+	margin-left: ${1};\n\
+snippet ml:a\n\
+	margin-left: auto;\n\
+snippet mr\n\
+	margin-right: ${1};\n\
+snippet mr:a\n\
+	margin-right: auto;\n\
+snippet mt\n\
+	margin-top: ${1};\n\
+snippet mt:a\n\
+	margin-top: auto;\n\
+snippet m\n\
+	margin: ${1};\n\
+snippet m:4\n\
+	margin: ${1:0} ${2:0} ${3:0} ${4:0};\n\
+snippet m:3\n\
+	margin: ${1:0} ${2:0} ${3:0};\n\
+snippet m:2\n\
+	margin: ${1:0} ${2:0};\n\
+snippet m:0\n\
+	margin: 0;\n\
+snippet m:a\n\
+	margin: auto;\n\
+snippet mah\n\
+	max-height: ${1};\n\
+snippet mah:n\n\
+	max-height: none;\n\
+snippet maw\n\
+	max-width: ${1};\n\
+snippet maw:n\n\
+	max-width: none;\n\
+snippet mih\n\
+	min-height: ${1};\n\
+snippet miw\n\
+	min-width: ${1};\n\
+snippet op\n\
+	opacity: ${1};\n\
+snippet op:ie\n\
+	filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=${1:100});\n\
+snippet op:ms\n\
+	-ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=${1:100})';\n\
+snippet orp\n\
+	orphans: ${1};\n\
+snippet o+\n\
+	outline: ${1:1px} ${2:solid} #${3:000};\n\
+snippet oc\n\
+	outline-color: ${1:#000};\n\
+snippet oc:i\n\
+	outline-color: invert;\n\
+snippet oo\n\
+	outline-offset: ${1};\n\
+snippet os\n\
+	outline-style: ${1};\n\
+snippet ow\n\
+	outline-width: ${1};\n\
+snippet o\n\
+	outline: ${1};\n\
+snippet o:n\n\
+	outline: none;\n\
+snippet ovs\n\
+	overflow-style: ${1};\n\
+snippet ovs:a\n\
+	overflow-style: auto;\n\
+snippet ovs:mq\n\
+	overflow-style: marquee;\n\
+snippet ovs:mv\n\
+	overflow-style: move;\n\
+snippet ovs:p\n\
+	overflow-style: panner;\n\
+snippet ovs:s\n\
+	overflow-style: scrollbar;\n\
+snippet ovx\n\
+	overflow-x: ${1};\n\
+snippet ovx:a\n\
+	overflow-x: auto;\n\
+snippet ovx:h\n\
+	overflow-x: hidden;\n\
+snippet ovx:s\n\
+	overflow-x: scroll;\n\
+snippet ovx:v\n\
+	overflow-x: visible;\n\
+snippet ovy\n\
+	overflow-y: ${1};\n\
+snippet ovy:a\n\
+	overflow-y: auto;\n\
+snippet ovy:h\n\
+	overflow-y: hidden;\n\
+snippet ovy:s\n\
+	overflow-y: scroll;\n\
+snippet ovy:v\n\
+	overflow-y: visible;\n\
+snippet ov\n\
+	overflow: ${1};\n\
+snippet ov:a\n\
+	overflow: auto;\n\
+snippet ov:h\n\
+	overflow: hidden;\n\
+snippet ov:s\n\
+	overflow: scroll;\n\
+snippet ov:v\n\
+	overflow: visible;\n\
+snippet pb\n\
+	padding-bottom: ${1};\n\
+snippet pl\n\
+	padding-left: ${1};\n\
+snippet pr\n\
+	padding-right: ${1};\n\
+snippet pt\n\
+	padding-top: ${1};\n\
+snippet p\n\
+	padding: ${1};\n\
+snippet p:4\n\
+	padding: ${1:0} ${2:0} ${3:0} ${4:0};\n\
+snippet p:3\n\
+	padding: ${1:0} ${2:0} ${3:0};\n\
+snippet p:2\n\
+	padding: ${1:0} ${2:0};\n\
+snippet p:0\n\
+	padding: 0;\n\
+snippet pgba\n\
+	page-break-after: ${1};\n\
+snippet pgba:aw\n\
+	page-break-after: always;\n\
+snippet pgba:a\n\
+	page-break-after: auto;\n\
+snippet pgba:l\n\
+	page-break-after: left;\n\
+snippet pgba:r\n\
+	page-break-after: right;\n\
+snippet pgbb\n\
+	page-break-before: ${1};\n\
+snippet pgbb:aw\n\
+	page-break-before: always;\n\
+snippet pgbb:a\n\
+	page-break-before: auto;\n\
+snippet pgbb:l\n\
+	page-break-before: left;\n\
+snippet pgbb:r\n\
+	page-break-before: right;\n\
+snippet pgbi\n\
+	page-break-inside: ${1};\n\
+snippet pgbi:a\n\
+	page-break-inside: auto;\n\
+snippet pgbi:av\n\
+	page-break-inside: avoid;\n\
+snippet pos\n\
+	position: ${1};\n\
+snippet pos:a\n\
+	position: absolute;\n\
+snippet pos:f\n\
+	position: fixed;\n\
+snippet pos:r\n\
+	position: relative;\n\
+snippet pos:s\n\
+	position: static;\n\
+snippet q\n\
+	quotes: ${1};\n\
+snippet q:en\n\
+	quotes: '\\201C' '\\201D' '\\2018' '\\2019';\n\
+snippet q:n\n\
+	quotes: none;\n\
+snippet q:ru\n\
+	quotes: '\\00AB' '\\00BB' '\\201E' '\\201C';\n\
+snippet rz\n\
+	resize: ${1};\n\
+snippet rz:b\n\
+	resize: both;\n\
+snippet rz:h\n\
+	resize: horizontal;\n\
+snippet rz:n\n\
+	resize: none;\n\
+snippet rz:v\n\
+	resize: vertical;\n\
+snippet r\n\
+	right: ${1};\n\
+snippet r:a\n\
+	right: auto;\n\
+snippet tbl\n\
+	table-layout: ${1};\n\
+snippet tbl:a\n\
+	table-layout: auto;\n\
+snippet tbl:f\n\
+	table-layout: fixed;\n\
+snippet tal\n\
+	text-align-last: ${1};\n\
+snippet tal:a\n\
+	text-align-last: auto;\n\
+snippet tal:c\n\
+	text-align-last: center;\n\
+snippet tal:l\n\
+	text-align-last: left;\n\
+snippet tal:r\n\
+	text-align-last: right;\n\
+snippet ta\n\
+	text-align: ${1};\n\
+snippet ta:c\n\
+	text-align: center;\n\
+snippet ta:l\n\
+	text-align: left;\n\
+snippet ta:r\n\
+	text-align: right;\n\
+snippet td\n\
+	text-decoration: ${1};\n\
+snippet td:l\n\
+	text-decoration: line-through;\n\
+snippet td:n\n\
+	text-decoration: none;\n\
+snippet td:o\n\
+	text-decoration: overline;\n\
+snippet td:u\n\
+	text-decoration: underline;\n\
+snippet te\n\
+	text-emphasis: ${1};\n\
+snippet te:ac\n\
+	text-emphasis: accent;\n\
+snippet te:a\n\
+	text-emphasis: after;\n\
+snippet te:b\n\
+	text-emphasis: before;\n\
+snippet te:c\n\
+	text-emphasis: circle;\n\
+snippet te:ds\n\
+	text-emphasis: disc;\n\
+snippet te:dt\n\
+	text-emphasis: dot;\n\
+snippet te:n\n\
+	text-emphasis: none;\n\
+snippet th\n\
+	text-height: ${1};\n\
+snippet th:a\n\
+	text-height: auto;\n\
+snippet th:f\n\
+	text-height: font-size;\n\
+snippet th:m\n\
+	text-height: max-size;\n\
+snippet th:t\n\
+	text-height: text-size;\n\
+snippet ti\n\
+	text-indent: ${1};\n\
+snippet ti:-\n\
+	text-indent: -9999px;\n\
+snippet tj\n\
+	text-justify: ${1};\n\
+snippet tj:a\n\
+	text-justify: auto;\n\
+snippet tj:d\n\
+	text-justify: distribute;\n\
+snippet tj:ic\n\
+	text-justify: inter-cluster;\n\
+snippet tj:ii\n\
+	text-justify: inter-ideograph;\n\
+snippet tj:iw\n\
+	text-justify: inter-word;\n\
+snippet tj:k\n\
+	text-justify: kashida;\n\
+snippet tj:t\n\
+	text-justify: tibetan;\n\
+snippet to+\n\
+	text-outline: ${1:0} ${2:0} #${3:000};\n\
+snippet to\n\
+	text-outline: ${1};\n\
+snippet to:n\n\
+	text-outline: none;\n\
+snippet tr\n\
+	text-replace: ${1};\n\
+snippet tr:n\n\
+	text-replace: none;\n\
+snippet tsh+\n\
+	text-shadow: ${1:0} ${2:0} ${3:0} #${4:000};\n\
+snippet tsh\n\
+	text-shadow: ${1};\n\
+snippet tsh:n\n\
+	text-shadow: none;\n\
+snippet tt\n\
+	text-transform: ${1};\n\
+snippet tt:c\n\
+	text-transform: capitalize;\n\
+snippet tt:l\n\
+	text-transform: lowercase;\n\
+snippet tt:n\n\
+	text-transform: none;\n\
+snippet tt:u\n\
+	text-transform: uppercase;\n\
+snippet tw\n\
+	text-wrap: ${1};\n\
+snippet tw:no\n\
+	text-wrap: none;\n\
+snippet tw:n\n\
+	text-wrap: normal;\n\
+snippet tw:s\n\
+	text-wrap: suppress;\n\
+snippet tw:u\n\
+	text-wrap: unrestricted;\n\
+snippet t\n\
+	top: ${1};\n\
+snippet t:a\n\
+	top: auto;\n\
+snippet va\n\
+	vertical-align: ${1};\n\
+snippet va:bl\n\
+	vertical-align: baseline;\n\
+snippet va:b\n\
+	vertical-align: bottom;\n\
+snippet va:m\n\
+	vertical-align: middle;\n\
+snippet va:sub\n\
+	vertical-align: sub;\n\
+snippet va:sup\n\
+	vertical-align: super;\n\
+snippet va:tb\n\
+	vertical-align: text-bottom;\n\
+snippet va:tt\n\
+	vertical-align: text-top;\n\
+snippet va:t\n\
+	vertical-align: top;\n\
+snippet v\n\
+	visibility: ${1};\n\
+snippet v:c\n\
+	visibility: collapse;\n\
+snippet v:h\n\
+	visibility: hidden;\n\
+snippet v:v\n\
+	visibility: visible;\n\
+snippet whsc\n\
+	white-space-collapse: ${1};\n\
+snippet whsc:ba\n\
+	white-space-collapse: break-all;\n\
+snippet whsc:bs\n\
+	white-space-collapse: break-strict;\n\
+snippet whsc:k\n\
+	white-space-collapse: keep-all;\n\
+snippet whsc:l\n\
+	white-space-collapse: loose;\n\
+snippet whsc:n\n\
+	white-space-collapse: normal;\n\
+snippet whs\n\
+	white-space: ${1};\n\
+snippet whs:n\n\
+	white-space: normal;\n\
+snippet whs:nw\n\
+	white-space: nowrap;\n\
+snippet whs:pl\n\
+	white-space: pre-line;\n\
+snippet whs:pw\n\
+	white-space: pre-wrap;\n\
+snippet whs:p\n\
+	white-space: pre;\n\
+snippet wid\n\
+	widows: ${1};\n\
+snippet w\n\
+	width: ${1};\n\
+snippet w:a\n\
+	width: auto;\n\
+snippet wob\n\
+	word-break: ${1};\n\
+snippet wob:ba\n\
+	word-break: break-all;\n\
+snippet wob:bs\n\
+	word-break: break-strict;\n\
+snippet wob:k\n\
+	word-break: keep-all;\n\
+snippet wob:l\n\
+	word-break: loose;\n\
+snippet wob:n\n\
+	word-break: normal;\n\
+snippet wos\n\
+	word-spacing: ${1};\n\
+snippet wow\n\
+	word-wrap: ${1};\n\
+snippet wow:no\n\
+	word-wrap: none;\n\
+snippet wow:n\n\
+	word-wrap: normal;\n\
+snippet wow:s\n\
+	word-wrap: suppress;\n\
+snippet wow:u\n\
+	word-wrap: unrestricted;\n\
+snippet z\n\
+	z-index: ${1};\n\
+snippet z:a\n\
+	z-index: auto;\n\
+snippet zoo\n\
+	zoom: 1;\n\
+";
+exports.scope = "css";
+
+});
+ace.define('ace/snippets/dart', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "snippet lib\n\
+	#library('${1}');\n\
+	${2}\n\
+snippet im\n\
+	#import('${1}');\n\
+	${2}\n\
+snippet so\n\
+	#source('${1}');\n\
+	${2}\n\
+snippet main\n\
+	static void main() {\n\
+	  ${1:/* code */}\n\
+	}\n\
+snippet st\n\
+	static ${1}\n\
+snippet fi\n\
+	final ${1}\n\
+snippet re\n\
+	return ${1}\n\
+snippet br\n\
+	break;\n\
+snippet th\n\
+	throw ${1}\n\
+snippet cl\n\
+	class ${1:`Filename(\"\", \"untitled\")`} ${2}\n\
+snippet in\n\
+	interface ${1:`Filename(\"\", \"untitled\")`} ${2}\n\
+snippet imp\n\
+	implements ${1}\n\
+snippet ext\n\
+	extends ${1}\n\
+snippet if\n\
+	if (${1:true}) {\n\
+	  ${2}\n\
+	}\n\
+snippet ife\n\
+	if (${1:true}) {\n\
+	  ${2}\n\
+	} else {\n\
+	  ${3}\n\
+	}\n\
+snippet el\n\
+	else\n\
+snippet sw\n\
+	switch (${1}) {\n\
+	  ${2}\n\
+	}\n\
+snippet cs\n\
+	case ${1}:\n\
+	  ${2}\n\
+snippet de\n\
+	default:\n\
+	  ${1}\n\
+snippet for\n\
+	for (var ${2:i} = 0, len = ${1:things}.length; $2 < len; ${3:++}$2) {\n\
+	  ${4:$1[$2]}\n\
+	}\n\
+snippet fore\n\
+	for (final ${2:item} in ${1:itemList}) {\n\
+	  ${3:/* code */}\n\
+	}\n\
+snippet wh\n\
+	while (${1:/* condition */}) {\n\
+	  ${2:/* code */}\n\
+	}\n\
+snippet dowh\n\
+	do {\n\
+	  ${2:/* code */}\n\
+	} while (${1:/* condition */});\n\
+snippet as\n\
+	assert(${1:/* condition */});\n\
+snippet try\n\
+	try {\n\
+	  ${2}\n\
+	} catch (${1:Exception e}) {\n\
+	}\n\
+snippet tryf\n\
+	try {\n\
+	  ${2}\n\
+	} catch (${1:Exception e}) {\n\
+	} finally {\n\
+	}\n\
+";
+exports.scope = "dart";
+
+});
+ace.define('ace/snippets/diff', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "# DEP-3 (http://dep.debian.net/deps/dep3/) style patch header\n\
+snippet header DEP-3 style header\n\
+	Description: ${1}\n\
+	Origin: ${2:vendor|upstream|other}, ${3:url of the original patch}\n\
+	Bug: ${4:url in upstream bugtracker}\n\
+	Forwarded: ${5:no|not-needed|url}\n\
+	Author: ${6:`g:snips_author`}\n\
+	Reviewed-by: ${7:name and email}\n\
+	Last-Update: ${8:`strftime(\"%Y-%m-%d\")`}\n\
+	Applied-Upstream: ${9:upstream version|url|commit}\n\
+\n\
+";
+exports.scope = "diff";
+
+});
+ace.define('ace/snippets/ejs', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "ejs";
+
+});
+ace.define('ace/snippets/javascript', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "# Prototype\n\
+snippet proto\n\
+	${1:class_name}.prototype.${2:method_name} = function(${3:first_argument}) {\n\
+		${4:// body...}\n\
+	};\n\
+# Function\n\
+snippet fun\n\
+	function ${1?:function_name}(${2:argument}) {\n\
+		${3:// body...}\n\
+	}\n\
+# Anonymous Function\n\
+regex /((=)\\s*|(:)\\s*|(\\()|\\b)/f/(\\))?/\n\
+name f\n\
+	function${M1?: ${1:functionName}}($2) {\n\
+		${0:$TM_SELECTED_TEXT}\n\
+	}${M2?;}${M3?,}${M4?)}\n\
+# Immediate function\n\
+trigger \\(?f\\(\n\
+endTrigger \\)?\n\
+snippet f(\n\
+	(function(${1}) {\n\
+		${0:${TM_SELECTED_TEXT:/* code */}}\n\
+	}(${1}));\n\
+# if\n\
+snippet if\n\
+	if (${1:true}) {\n\
+		${0}\n\
+	}\n\
+# if ... else\n\
+snippet ife\n\
+	if (${1:true}) {\n\
+		${2}\n\
+	} else {\n\
+		${0}\n\
+	}\n\
+# tertiary conditional\n\
+snippet ter\n\
+	${1:/* condition */} ? ${2:a} : ${3:b}\n\
+# switch\n\
+snippet switch\n\
+	switch (${1:expression}) {\n\
+		case '${3:case}':\n\
+			${4:// code}\n\
+			break;\n\
+		${5}\n\
+		default:\n\
+			${2:// code}\n\
+	}\n\
+# case\n\
+snippet case\n\
+	case '${1:case}':\n\
+		${2:// code}\n\
+		break;\n\
+	${3}\n\
+\n\
+# while (...) {...}\n\
+snippet wh\n\
+	while (${1:/* condition */}) {\n\
+		${0:/* code */}\n\
+	}\n\
+# try\n\
+snippet try\n\
+	try {\n\
+		${0:/* code */}\n\
+	} catch (e) {}\n\
+# do...while\n\
+snippet do\n\
+	do {\n\
+		${2:/* code */}\n\
+	} while (${1:/* condition */});\n\
+# Object Method\n\
+snippet :f\n\
+regex /([,{[])|^\\s*/:f/\n\
+	${1:method_name}: function(${2:attribute}) {\n\
+		${0}\n\
+	}${3:,}\n\
+# setTimeout function\n\
+snippet setTimeout\n\
+regex /\\b/st|timeout|setTimeo?u?t?/\n\
+	setTimeout(function() {${3:$TM_SELECTED_TEXT}}, ${1:10});\n\
+# Get Elements\n\
+snippet gett\n\
+	getElementsBy${1:TagName}('${2}')${3}\n\
+# Get Element\n\
+snippet get\n\
+	getElementBy${1:Id}('${2}')${3}\n\
+# console.log (Firebug)\n\
+snippet cl\n\
+	console.log(${1});\n\
+# return\n\
+snippet ret\n\
+	return ${1:result}\n\
+# for (property in object ) { ... }\n\
+snippet fori\n\
+	for (var ${1:prop} in ${2:Things}) {\n\
+		${0:$2[$1]}\n\
+	}\n\
+# hasOwnProperty\n\
+snippet has\n\
+	hasOwnProperty(${1})\n\
+# docstring\n\
+snippet /**\n\
+	/**\n\
+	 * ${1:description}\n\
+	 *\n\
+	 */\n\
+snippet @par\n\
+regex /^\\s*\\*\\s*/@(para?m?)?/\n\
+	@param {${1:type}} ${2:name} ${3:description}\n\
+snippet @ret\n\
+	@return {${1:type}} ${2:description}\n\
+# JSON.parse\n\
+snippet jsonp\n\
+	JSON.parse(${1:jstr});\n\
+# JSON.stringify\n\
+snippet jsons\n\
+	JSON.stringify(${1:object});\n\
+# self-defining function\n\
+snippet sdf\n\
+	var ${1:function_name} = function(${2:argument}) {\n\
+		${3:// initial code ...}\n\
+\n\
+		$1 = function($2) {\n\
+			${4:// main code}\n\
+		};\n\
+	}\n\
+# singleton\n\
+snippet sing\n\
+	function ${1:Singleton} (${2:argument}) {\n\
+		// the cached instance\n\
+		var instance;\n\
+\n\
+		// rewrite the constructor\n\
+		$1 = function $1($2) {\n\
+			return instance;\n\
+		};\n\
+		\n\
+		// carry over the prototype properties\n\
+		$1.prototype = this;\n\
+\n\
+		// the instance\n\
+		instance = new $1();\n\
+\n\
+		// reset the constructor pointer\n\
+		instance.constructor = $1;\n\
+\n\
+		${3:// code ...}\n\
+\n\
+		return instance;\n\
+	}\n\
+# class\n\
+name class\n\
+regex /^\\s*/clas{0,2}/\n\
+	var ${1:class} = function(${20}) {\n\
+		$40$0\n\
+	};\n\
+	\n\
+	(function() {\n\
+		${60:this.prop = \"\"}\n\
+	}).call(${1:class}.prototype);\n\
+	\n\
+	exports.${1:class} = ${1:class};\n\
+# \n\
+snippet for-\n\
+	for (var ${1:i} = ${2:Things}.length; ${1:i}--; ) {\n\
+		${0:${2:Things}[${1:i}];}\n\
+	}\n\
+# for (...) {...}\n\
+snippet for\n\
+	for (var ${1:i} = 0; $1 < ${2:Things}.length; $1++) {\n\
+		${3:$2[$1]}$0\n\
+	}\n\
+# for (...) {...} (Improved Native For-Loop)\n\
+snippet forr\n\
+	for (var ${1:i} = ${2:Things}.length - 1; $1 >= 0; $1--) {\n\
+		${3:$2[$1]}$0\n\
+	}\n\
+\n\
+\n\
+#modules\n\
+snippet def\n\
+	ace.define(function(require, exports, module) {\n\
+	\"use strict\";\n\
+	var ${1/.*\\///} = require(\"${1}\");\n\
+	\n\
+	$TM_SELECTED_TEXT\n\
+	});\n\
+snippet req\n\
+guard ^\\s*\n\
+	var ${1/.*\\///} = require(\"${1}\");\n\
+	$0\n\
+snippet requ\n\
+guard ^\\s*\n\
+	var ${1/.*\\/(.)/\\u$1/} = require(\"${1}\").${1/.*\\/(.)/\\u$1/};\n\
+	$0\n\
+";
+exports.scope = "javascript";
+
+});
+ace.define('ace/snippets/json', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "json";
+
+});
+ace.define('ace/snippets/lisp', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "lisp";
+
+});
+ace.define('ace/snippets/makefile', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "snippet ifeq\n\
+	ifeq (${1:cond0},${2:cond1})\n\
+		${3:code}\n\
+	endif\n\
+";
+exports.scope = "makefile";
+
+});
+ace.define('ace/snippets/markdown', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "# Markdown\n\
+\n\
+# Includes octopress (http://octopress.org/) snippets\n\
+\n\
+snippet [\n\
+	[${1:text}](http://${2:address} \"${3:title}\")\n\
+snippet [*\n\
+	[${1:link}](${2:`@*`} \"${3:title}\")${4}\n\
+\n\
+snippet [:\n\
+	[${1:id}]: http://${2:url} \"${3:title}\"\n\
+snippet [:*\n\
+	[${1:id}]: ${2:`@*`} \"${3:title}\"\n\
+\n\
+snippet ![\n\
+	![${1:alttext}](${2:/images/image.jpg} \"${3:title}\")\n\
+snippet ![*\n\
+	![${1:alt}](${2:`@*`} \"${3:title}\")${4}\n\
+\n\
+snippet ![:\n\
+	![${1:id}]: ${2:url} \"${3:title}\"\n\
+snippet ![:*\n\
+	![${1:id}]: ${2:`@*`} \"${3:title}\"\n\
+\n\
+snippet ===\n\
+	`repeat('=', strlen(getline(line(\".\") - 1)))`\n\
+	\n\
+	${1}\n\
+snippet ---\n\
+	`repeat('-', strlen(getline(line(\".\") - 1)))`\n\
+	\n\
+	${1}\n\
+\n\
+snippet blockquote\n\
+	{% blockquote %}\n\
+	${1:quote}\n\
+	{% endblockquote %}\n\
+\n\
+snippet blockquote-author\n\
+	{% blockquote ${1:author}, ${2:title} %}\n\
+	${3:quote}\n\
+	{% endblockquote %}\n\
+\n\
+snippet blockquote-link\n\
+	{% blockquote ${1:author} ${2:URL} ${3:link_text} %}\n\
+	${4:quote}\n\
+	{% endblockquote %}\n\
+\n\
+snippet bt-codeblock-short\n\
+	```\n\
+	${1:code_snippet}\n\
+	```\n\
+\n\
+snippet bt-codeblock-full\n\
+	``` ${1:language} ${2:title} ${3:URL} ${4:link_text}\n\
+	${5:code_snippet}\n\
+	```\n\
+\n\
+snippet codeblock-short\n\
+	{% codeblock %}\n\
+	${1:code_snippet}\n\
+	{% endcodeblock %}\n\
+\n\
+snippet codeblock-full\n\
+	{% codeblock ${1:title} lang:${2:language} ${3:URL} ${4:link_text} %}\n\
+	${5:code_snippet}\n\
+	{% endcodeblock %}\n\
+\n\
+snippet gist-full\n\
+	{% gist ${1:gist_id} ${2:filename} %}\n\
+\n\
+snippet gist-short\n\
+	{% gist ${1:gist_id} %}\n\
+\n\
+snippet img\n\
+	{% img ${1:class} ${2:URL} ${3:width} ${4:height} ${5:title_text} ${6:alt_text} %}\n\
+\n\
+snippet youtube\n\
+	{% youtube ${1:video_id} %}\n\
+\n\
+# The quote should appear only once in the text. It is inherently part of it.\n\
+# See http://octopress.org/docs/plugins/pullquote/ for more info.\n\
+\n\
+snippet pullquote\n\
+	{% pullquote %}\n\
+	${1:text} {\" ${2:quote} \"} ${3:text}\n\
+	{% endpullquote %}\n\
+";
+exports.scope = "markdown";
+
+});
+ace.define('ace/snippets/matlab', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "matlab";
+
+});
+ace.define('ace/snippets/mysql', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "mysql";
+
+});
+ace.define('ace/snippets/pgsql', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "pgsql";
+
+});
+ace.define('ace/snippets/plain_text', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "plain_text";
+
+});
+ace.define('ace/snippets/prolog', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "prolog";
+
+});
+ace.define('ace/snippets/r', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "snippet #!\n\
+	#!/usr/bin/env Rscript\n\
+\n\
+# includes\n\
+snippet lib\n\
+	library(${1:package})\n\
+snippet req\n\
+	require(${1:package})\n\
+snippet source\n\
+	source('${1:file}')\n\
+\n\
+# conditionals\n\
+snippet if\n\
+	if (${1:condition}) {\n\
+		${2:code}\n\
+	}\n\
+snippet el\n\
+	else {\n\
+		${1:code}\n\
+	}\n\
+snippet ei\n\
+	else if (${1:condition}) {\n\
+		${2:code}\n\
+	}\n\
+\n\
+# functions\n\
+snippet fun\n\
+	${1:name} = function (${2:variables}) {\n\
+		${3:code}\n\
+	}\n\
+snippet ret\n\
+	return(${1:code})\n\
+\n\
+# dataframes, lists, etc\n\
+snippet df\n\
+	${1:name}[${2:rows}, ${3:cols}]\n\
+snippet c\n\
+	c(${1:items})\n\
+snippet li\n\
+	list(${1:items})\n\
+snippet mat\n\
+	matrix(${1:data}, nrow=${2:rows}, ncol=${3:cols})\n\
+\n\
+# apply functions\n\
+snippet apply\n\
+	apply(${1:array}, ${2:margin}, ${3:function})\n\
+snippet lapply\n\
+	lapply(${1:list}, ${2:function})\n\
+snippet sapply\n\
+	lapply(${1:list}, ${2:function})\n\
+snippet vapply\n\
+	vapply(${1:list}, ${2:function}, ${3:type})\n\
+snippet mapply\n\
+	mapply(${1:function}, ${2:...})\n\
+snippet tapply\n\
+	tapply(${1:vector}, ${2:index}, ${3:function})\n\
+snippet rapply\n\
+	rapply(${1:list}, ${2:function})\n\
+\n\
+# plyr functions\n\
+snippet dd\n\
+	ddply(${1:frame}, ${2:variables}, ${3:function})\n\
+snippet dl\n\
+	dlply(${1:frame}, ${2:variables}, ${3:function})\n\
+snippet da\n\
+	daply(${1:frame}, ${2:variables}, ${3:function})\n\
+snippet d_\n\
+	d_ply(${1:frame}, ${2:variables}, ${3:function})\n\
+\n\
+snippet ad\n\
+	adply(${1:array}, ${2:margin}, ${3:function})\n\
+snippet al\n\
+	alply(${1:array}, ${2:margin}, ${3:function})\n\
+snippet aa\n\
+	aaply(${1:array}, ${2:margin}, ${3:function})\n\
+snippet a_\n\
+	a_ply(${1:array}, ${2:margin}, ${3:function})\n\
+\n\
+snippet ld\n\
+	ldply(${1:list}, ${2:function})\n\
+snippet ll\n\
+	llply(${1:list}, ${2:function})\n\
+snippet la\n\
+	laply(${1:list}, ${2:function})\n\
+snippet l_\n\
+	l_ply(${1:list}, ${2:function})\n\
+\n\
+snippet md\n\
+	mdply(${1:matrix}, ${2:function})\n\
+snippet ml\n\
+	mlply(${1:matrix}, ${2:function})\n\
+snippet ma\n\
+	maply(${1:matrix}, ${2:function})\n\
+snippet m_\n\
+	m_ply(${1:matrix}, ${2:function})\n\
+\n\
+# plot functions\n\
+snippet pl\n\
+	plot(${1:x}, ${2:y})\n\
+snippet ggp\n\
+	ggplot(${1:data}, aes(${2:aesthetics}))\n\
+snippet img\n\
+	${1:(jpeg,bmp,png,tiff)}(filename=\"${2:filename}\", width=${3}, height=${4}, unit=\"${5}\")\n\
+	${6:plot}\n\
+	dev.off()\n\
+\n\
+# statistical test functions\n\
+snippet fis\n\
+	fisher.test(${1:x}, ${2:y})\n\
+snippet chi\n\
+	chisq.test(${1:x}, ${2:y})\n\
+snippet tt\n\
+	t.test(${1:x}, ${2:y})\n\
+snippet wil\n\
+	wilcox.test(${1:x}, ${2:y})\n\
+snippet cor\n\
+	cor.test(${1:x}, ${2:y})\n\
+snippet fte\n\
+	var.test(${1:x}, ${2:y})\n\
+snippet kvt \n\
+	kv.test(${1:x}, ${2:y})\n\
+";
+exports.scope = "r";
+
+});
+ace.define('ace/snippets/scheme', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "scheme";
+
+});
+ace.define('ace/snippets/sh', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "# Shebang. Executing bash via /usr/bin/env makes scripts more portable.\n\
+snippet #!\n\
+	#!/usr/bin/env bash\n\
+	\n\
+snippet if\n\
+	if [[ ${1:condition} ]]; then\n\
+		${2:#statements}\n\
+	fi\n\
+snippet elif\n\
+	elif [[ ${1:condition} ]]; then\n\
+		${2:#statements}\n\
+snippet for\n\
+	for (( ${2:i} = 0; $2 < ${1:count}; $2++ )); do\n\
+		${3:#statements}\n\
+	done\n\
+snippet fori\n\
+	for ${1:needle} in ${2:haystack} ; do\n\
+		${3:#statements}\n\
+	done\n\
+snippet wh\n\
+	while [[ ${1:condition} ]]; do\n\
+		${2:#statements}\n\
+	done\n\
+snippet until\n\
+	until [[ ${1:condition} ]]; do\n\
+		${2:#statements}\n\
+	done\n\
+snippet case\n\
+	case ${1:word} in\n\
+		${2:pattern})\n\
+			${3};;\n\
+	esac\n\
+snippet go \n\
+	while getopts '${1:o}' ${2:opts} \n\
+	do \n\
+		case $$2 in\n\
+		${3:o0})\n\
+			${4:#staments};;\n\
+		esac\n\
+	done\n\
+# Set SCRIPT_DIR variable to directory script is located.\n\
+snippet sdir\n\
+	SCRIPT_DIR=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )\"\n\
+# getopt\n\
+snippet getopt\n\
+	__ScriptVersion=\"${1:version}\"\n\
+\n\
+	#===  FUNCTION  ================================================================\n\
+	#         NAME:  usage\n\
+	#  DESCRIPTION:  Display usage information.\n\
+	#===============================================================================\n\
+	function usage ()\n\
+	{\n\
+			cat <<- EOT\n\
+\n\
+	  Usage :  $${0:0} [options] [--] \n\
+\n\
+	  Options: \n\
+	  -h|help       Display this message\n\
+	  -v|version    Display script version\n\
+\n\
+			EOT\n\
+	}    # ----------  end of function usage  ----------\n\
+\n\
+	#-----------------------------------------------------------------------\n\
+	#  Handle command line arguments\n\
+	#-----------------------------------------------------------------------\n\
+\n\
+	while getopts \":hv\" opt\n\
+	do\n\
+	  case $opt in\n\
+\n\
+		h|help     )  usage; exit 0   ;;\n\
+\n\
+		v|version  )  echo \"$${0:0} -- Version $__ScriptVersion\"; exit 0   ;;\n\
+\n\
+		\\? )  echo -e \"\\n  Option does not exist : $OPTARG\\n\"\n\
+			  usage; exit 1   ;;\n\
+\n\
+	  esac    # --- end of case ---\n\
+	done\n\
+	shift $(($OPTIND-1))\n\
+\n\
+";
+exports.scope = "sh";
+
+});
+ace.define('ace/snippets/snippets', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "# snippets for making snippets :)\n\
+snippet snip\n\
+	snippet ${1:trigger}\n\
+		${2}\n\
+snippet msnip\n\
+	snippet ${1:trigger} ${2:description}\n\
+		${3}\n\
+snippet v\n\
+	{VISUAL}\n\
+";
+exports.scope = "snippets";
+
+});
+ace.define('ace/snippets/sql', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "snippet tbl\n\
+	create table ${1:table} (\n\
+		${2:columns}\n\
+	);\n\
+snippet col\n\
+	${1:name}	${2:type}	${3:default ''}	${4:not null}\n\
+snippet ccol\n\
+	${1:name}	varchar2(${2:size})	${3:default ''}	${4:not null}\n\
+snippet ncol\n\
+	${1:name}	number	${3:default 0}	${4:not null}\n\
+snippet dcol\n\
+	${1:name}	date	${3:default sysdate}	${4:not null}\n\
+snippet ind\n\
+	create index ${3:$1_$2} on ${1:table}(${2:column});\n\
+snippet uind\n\
+	create unique index ${1:name} on ${2:table}(${3:column});\n\
+snippet tblcom\n\
+	comment on table ${1:table} is '${2:comment}';\n\
+snippet colcom\n\
+	comment on column ${1:table}.${2:column} is '${3:comment}';\n\
+snippet addcol\n\
+	alter table ${1:table} add (${2:column} ${3:type});\n\
+snippet seq\n\
+	create sequence ${1:name} start with ${2:1} increment by ${3:1} minvalue ${4:1};\n\
+snippet s*\n\
+	select * from ${1:table}\n\
+";
+exports.scope = "sql";
+
+});
+ace.define('ace/snippets/svg', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "svg";
+
+});
+ace.define('ace/snippets/tex', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "#PREAMBLE\n\
+#newcommand\n\
+snippet nc\n\
+	\\newcommand{\\${1:cmd}}[${2:opt}]{${3:realcmd}}${4}\n\
+#usepackage\n\
+snippet up\n\
+	\\usepackage[${1:[options}]{${2:package}}\n\
+#newunicodechar\n\
+snippet nuc\n\
+	\\newunicodechar{${1}}{${2:\\ensuremath}${3:tex-substitute}}}\n\
+#DeclareMathOperator\n\
+snippet dmo\n\
+	\\DeclareMathOperator{${1}}{${2}}\n\
+\n\
+#DOCUMENT\n\
+# \\begin{}...\\end{}\n\
+snippet begin\n\
+	\\begin{${1:env}}\n\
+		${2}\n\
+	\\end{$1}\n\
+# Tabular\n\
+snippet tab\n\
+	\\begin{${1:tabular}}{${2:c}}\n\
+	${3}\n\
+	\\end{$1}\n\
+snippet thm\n\
+	\\begin[${1:author}]{${2:thm}}\n\
+	${3}\n\
+	\\end{$1}\n\
+snippet center\n\
+	\\begin{center}\n\
+		${1}\n\
+	\\end{center}\n\
+# Align(ed)\n\
+snippet ali\n\
+	\\begin{align${1:ed}}\n\
+		${2}\n\
+	\\end{align$1}\n\
+# Gather(ed)\n\
+snippet gat\n\
+	\\begin{gather${1:ed}}\n\
+		${2}\n\
+	\\end{gather$1}\n\
+# Equation\n\
+snippet eq\n\
+	\\begin{equation}\n\
+		${1}\n\
+	\\end{equation}\n\
+# Equation\n\
+snippet eq*\n\
+	\\begin{equation*}\n\
+		${1}\n\
+	\\end{equation*}\n\
+# Unnumbered Equation\n\
+snippet \\\n\
+	\\[\n\
+		${1}\n\
+	\\]\n\
+# Enumerate\n\
+snippet enum\n\
+	\\begin{enumerate}\n\
+		\\item ${1}\n\
+	\\end{enumerate}\n\
+# Itemize\n\
+snippet itemize\n\
+	\\begin{itemize}\n\
+		\\item ${1}\n\
+	\\end{itemize}\n\
+# Description\n\
+snippet desc\n\
+	\\begin{description}\n\
+		\\item[${1}] ${2}\n\
+	\\end{description}\n\
+# Matrix\n\
+snippet mat\n\
+	\\begin{${1:p/b/v/V/B/small}matrix}\n\
+		${2}\n\
+	\\end{$1matrix}\n\
+# Cases\n\
+snippet cas\n\
+	\\begin{cases}\n\
+		${1:equation}, &\\text{ if }${2:case}\\\\\n\
+		${3}\n\
+	\\end{cases}\n\
+# Split\n\
+snippet spl\n\
+	\\begin{split}\n\
+		${1}\n\
+	\\end{split}\n\
+# Part\n\
+snippet part\n\
+	\\part{${1:part name}} % (fold)\n\
+	\\label{prt:${2:$1}}\n\
+	${3}\n\
+	% part $2 (end)\n\
+# Chapter\n\
+snippet cha\n\
+	\\chapter{${1:chapter name}}\n\
+	\\label{cha:${2:$1}}\n\
+	${3}\n\
+# Section\n\
+snippet sec\n\
+	\\section{${1:section name}}\n\
+	\\label{sec:${2:$1}}\n\
+	${3}\n\
+# Sub Section\n\
+snippet sub\n\
+	\\subsection{${1:subsection name}}\n\
+	\\label{sub:${2:$1}}\n\
+	${3}\n\
+# Sub Sub Section\n\
+snippet subs\n\
+	\\subsubsection{${1:subsubsection name}}\n\
+	\\label{ssub:${2:$1}}\n\
+	${3}\n\
+# Paragraph\n\
+snippet par\n\
+	\\paragraph{${1:paragraph name}}\n\
+	\\label{par:${2:$1}}\n\
+	${3}\n\
+# Sub Paragraph\n\
+snippet subp\n\
+	\\subparagraph{${1:subparagraph name}}\n\
+	\\label{subp:${2:$1}}\n\
+	${3}\n\
+#References\n\
+snippet itd\n\
+	\\item[${1:description}] ${2:item}\n\
+snippet figure\n\
+	${1:Figure}~\\ref{${2:fig:}}${3}\n\
+snippet table\n\
+	${1:Table}~\\ref{${2:tab:}}${3}\n\
+snippet listing\n\
+	${1:Listing}~\\ref{${2:list}}${3}\n\
+snippet section\n\
+	${1:Section}~\\ref{${2:sec:}}${3}\n\
+snippet page\n\
+	${1:page}~\\pageref{${2}}${3}\n\
+snippet index\n\
+	\\index{${1:index}}${2}\n\
+#Citations\n\
+snippet cite\n\
+	\\cite[${1}]{${2}}${3}\n\
+snippet fcite\n\
+	\\footcite[${1}]{${2}}${3}\n\
+#Formating text: italic, bold, underline, small capital, emphase ..\n\
+snippet it\n\
+	\\textit{${1:text}}\n\
+snippet bf\n\
+	\\textbf{${1:text}}\n\
+snippet under\n\
+	\\underline{${1:text}}\n\
+snippet emp\n\
+	\\emph{${1:text}}\n\
+snippet sc\n\
+	\\textsc{${1:text}}\n\
+#Choosing font\n\
+snippet sf\n\
+	\\textsf{${1:text}}\n\
+snippet rm\n\
+	\\textrm{${1:text}}\n\
+snippet tt\n\
+	\\texttt{${1:text}}\n\
+#misc\n\
+snippet ft\n\
+	\\footnote{${1:text}}\n\
+snippet fig\n\
+	\\begin{figure}\n\
+	\\begin{center}\n\
+	    \\includegraphics[scale=${1}]{Figures/${2}}\n\
+	\\end{center}\n\
+	\\caption{${3}}\n\
+	\\label{fig:${4}}\n\
+	\\end{figure}\n\
+snippet tikz\n\
+	\\begin{figure}\n\
+	\\begin{center}\n\
+	\\begin{tikzpicture}[scale=${1:1}]\n\
+		${2}\n\
+	\\end{tikzpicture}\n\
+	\\end{center}\n\
+	\\caption{${3}}\n\
+	\\label{fig:${4}}\n\
+	\\end{figure}\n\
+#math\n\
+snippet stackrel\n\
+	\\stackrel{${1:above}}{${2:below}} ${3}\n\
+snippet frac\n\
+	\\frac{${1:num}}{${2:denom}}\n\
+snippet sum\n\
+	\\sum^{${1:n}}_{${2:i=1}}{${3}}";
+exports.scope = "tex";
+
+});
+ace.define('ace/snippets/text', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "text";
+
+});
+ace.define('ace/snippets/typescript', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+
+exports.snippetText = "";
+exports.scope = "typescript";
+
+});
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
- * 
+ *
  * Copyright 2011 Irakli Gozalishvili. All rights reserved.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -43427,14 +46421,14 @@ right: 0;\
 background: #262626;\
 }\
 .ace-ambiance .ace_scroller {\
-background-color: #202020;\
 -webkit-box-shadow: inset 0 0 10px black;\
 -moz-box-shadow: inset 0 0 10px black;\
 -o-box-shadow: inset 0 0 10px black;\
 box-shadow: inset 0 0 10px black;\
 }\
-.ace-ambiance .ace_text-layer {\
+.ace-ambiance {\
 color: #E6E1DC;\
+background-color: #202020;\
 }\
 .ace-ambiance .ace_cursor {\
 border-left: 1px solid #7991E8;\
@@ -43563,7 +46557,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43574,7 +46568,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43601,7 +46595,7 @@ overflow : hidden;\
 width: 1px;\
 background: #e8e8e8;\
 }\
-.ace-chrome .ace_scroller {\
+.ace-chrome {\
 background-color: #FFFFFF;\
 }\
 .ace-chrome .ace_cursor {\
@@ -43724,7 +46718,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43735,7 +46729,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43762,13 +46756,11 @@ color: rgb(136, 136, 136);\
 width: 1px;\
 background: #ebebeb;\
 }\
-.ace-eclipse .ace_scroller {\
+.ace-eclipse {\
 background-color: #FFFFFF;\
 }\
 .ace-eclipse .ace_fold {\
 background-color: rgb(60, 76, 114);\
-}\
-.ace-eclipse .ace_text-layer {\
 }\
 .ace-eclipse .ace_cursor {\
 border-left: 2px solid black;\
@@ -43850,7 +46842,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -43861,7 +46853,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43887,10 +46879,8 @@ color: #8F908A\
 width: 1px;\
 background: #555651\
 }\
-.ace-monokai .ace_scroller {\
-background-color: #272822\
-}\
-.ace-monokai .ace_text-layer {\
+.ace-monokai {\
+background-color: #272822;\
 color: #F8F8F2\
 }\
 .ace-monokai .ace_cursor {\
@@ -43962,6 +46952,7 @@ color: #66D9EF\
 }\
 .ace-monokai .ace_entity.ace_name.ace_function,\
 .ace-monokai .ace_entity.ace_other,\
+.ace-monokai .ace_entity.ace_other.ace_attribute-name,\
 .ace-monokai .ace_variable {\
 color: #A6E22E\
 }\
@@ -43979,7 +46970,7 @@ color: #75715E\
 text-decoration: underline\
 }\
 .ace-monokai .ace_indent-guide {\
-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNQ11D6z7Bq1ar/ABCKBG6g04U2AAAAAElFTkSuQmCC) right repeat-y\
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWPQ0FD0ZXBzd/wPAAjVAoxeSgNeAAAAAElFTkSuQmCC) right repeat-y;\
 }";
 
 var dom = require("../lib/dom");
@@ -43990,7 +46981,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44001,7 +46992,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44027,10 +47018,8 @@ color: #8F938F\
 width: 1px;\
 background: #353030\
 }\
-.ace-pastel-on-dark .ace_scroller {\
-background-color: #2C2828\
-}\
-.ace-pastel-on-dark .ace_text-layer {\
+.ace-pastel-on-dark {\
+background-color: #2C2828;\
 color: #8F938F\
 }\
 .ace-pastel-on-dark .ace_cursor {\
@@ -44127,7 +47116,7 @@ color: #494949\
 text-decoration: underline\
 }\
 .ace-pastel-on-dark .ace_indent-guide {\
-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWPQ0dD4z9DR0fEfAA+vBBPqhbn1AAAAAElFTkSuQmCC) right repeat-y\
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYIiPj/8PAARgAh2NTMh8AAAAAElFTkSuQmCC) right repeat-y;\
 }";
 
 var dom = require("../lib/dom");
@@ -44138,7 +47127,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44149,7 +47138,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44175,8 +47164,9 @@ color: #d0edf7\
 width: 1px;\
 background: #33555E\
 }\
-.ace-solarized-dark .ace_scroller {\
-background-color: #002B36\
+.ace-solarized-dark {\
+background-color: #002B36;\
+color: #93A1A1\
 }\
 .ace-solarized-dark .ace_entity.ace_other.ace_attribute-name,\
 .ace-solarized-dark .ace_storage,\
@@ -44255,7 +47245,7 @@ color: #657B83\
 text-decoration: underline\
 }\
 .ace-solarized-dark .ace_indent-guide {\
-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNg0Db7zzBz5sz/AA82BCv7wOIDAAAAAElFTkSuQmCC) right repeat-y\
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNg0Db1ZVCxc/sPAAd4AlUHlLenAAAAAElFTkSuQmCC) right repeat-y;\
 }";
 
 var dom = require("../lib/dom");
@@ -44266,7 +47256,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44277,7 +47267,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44303,10 +47293,8 @@ color: steelblue\
 width: 1px;\
 background: #1a1a1a\
 }\
-.ace-terminal-theme .ace_scroller {\
-background-color: black\
-}\
-.ace-terminal-theme .ace_text-layer {\
+.ace-terminal-theme {\
+background-color: black;\
 color: #DEDEDE\
 }\
 .ace-terminal-theme .ace_cursor {\
@@ -44408,7 +47396,7 @@ color: orangered\
 text-decoration: underline\
 }\
 .ace-terminal-theme .ace_indent-guide {\
-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGD4z7Bq1ar/AAz9A/2naJQKAAAAAElFTkSuQmCC) right repeat-y\
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYLBWV/8PAAK4AYnhiq+xAAAAAElFTkSuQmCC) right repeat-y;\
 }\
 ";
 
@@ -44420,7 +47408,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44431,7 +47419,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44457,10 +47445,9 @@ color: #4D4D4C\
 width: 1px;\
 background: #f6f6f6\
 }\
+.ace-tomorrow,\
 .ace-tomorrow .ace_scroller {\
-background-color: #FFFFFF\
-}\
-.ace-tomorrow .ace_text-layer {\
+background-color: #FFFFFF;\
 color: #4D4D4C\
 }\
 .ace-tomorrow .ace_cursor {\
@@ -44567,7 +47554,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44578,7 +47565,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44604,10 +47591,8 @@ color: #C5C8C6\
 width: 1px;\
 background: #25282c\
 }\
-.ace-tomorrow-night .ace_scroller {\
-background-color: #1D1F21\
-}\
-.ace-tomorrow-night .ace_text-layer {\
+.ace-tomorrow-night  {\
+background-color: #1D1F21;\
 color: #C5C8C6\
 }\
 .ace-tomorrow-night .ace_cursor {\
@@ -44703,7 +47688,7 @@ color: #969896\
 text-decoration: underline\
 }\
 .ace-tomorrow-night .ace_indent-guide {\
-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWOQlVf8z7Bq1ar/AA/hBFp7egmpAAAAAElFTkSuQmCC) right repeat-y\
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYHB3d/8PAAOIAdULw8qMAAAAAElFTkSuQmCC) right repeat-y;\
 }";
 
 var dom = require("../lib/dom");
@@ -44714,7 +47699,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -44725,7 +47710,7 @@ dom.importCssString(exports.cssText, exports.cssClass);
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -44751,10 +47736,8 @@ color: #E2E2E2\
 width: 1px;\
 background: #232323\
 }\
-.ace-twilight .ace_scroller {\
-background-color: #141414\
-}\
-.ace-twilight .ace_text-layer {\
+.ace-twilight {\
+background-color: #141414;\
 color: #F8F8F8\
 }\
 .ace-twilight .ace_cursor {\
@@ -44850,7 +47833,7 @@ color: #494949\
 text-decoration: underline\
 }\
 .ace-twilight .ace_indent-guide {\
-background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWMQERH5zzBz5sz/AA5EBAYqeZXWAAAAAElFTkSuQmCC) right repeat-y\
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWMQERFpYLC1tf0PAAgOAnPnhxyiAAAAAElFTkSuQmCC) right repeat-y;\
 }";
 
 var dom = require("../lib/dom");

@@ -1,9 +1,3 @@
-// ensure that new ace style gets loaded
-$('style').remove();
-// $('style#incremental-search-highlight-style-patch').remove();
-// $('style#incremental-search-highlighting').remove();
-// $('style#incremental-occur-highlighting').remove();
-
 module('lively.ide.CodeEditor').requires('lively.morphic').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
@@ -241,7 +235,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowIndents(this.getShowIndents());
         this.setSoftTabs(this.getSoftTabs());
         this.setShowActiveLine(this.getShowActiveLine());
-        this._StyleClassNames = this.jQuery().attr('class').split(' ');
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;

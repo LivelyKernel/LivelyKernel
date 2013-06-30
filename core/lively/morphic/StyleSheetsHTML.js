@@ -452,11 +452,11 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleClassNamesHTML: function (ctx, classNames) {
-        if (!classNames) console.trace('setStyleClassNamesHTML');
         ctx.shapeNode.className = classNames ? classNames.join(' ') : '';
     },
+
     getStyleClassNamesHTML: function (ctx) {
-        if (!ctx.shapeNode) return this._StyleClassNames || [];
+        if (!ctx.shapeNode || !this.isRendered()) return this._StyleClassNames || [];
         var domClassString = ctx.shapeNode.className || '';
         return domClassString.trim() === '' ? [] : domClassString.trim().split(/\s+/);
     },

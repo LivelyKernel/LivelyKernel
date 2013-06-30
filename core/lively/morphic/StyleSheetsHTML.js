@@ -291,19 +291,17 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleSheetHTML: function (ctx, styleSheet) {
-        var success = this.setStyleSheetForNodeHTML(
+        ctx.styleNode = this.setStyleSheetForNodeHTML(
             ctx, ctx.styleNode,
             this.getStyleSheetRules(),
             "style-for-" + this.id);
-        if (!success) delete ctx.styleNode;
     },
 
     setBaseThemeStyleSheetHTML: function (ctx, styleSheet) {
-        var success = this.setStyleSheetForNodeHTML(
+        ctx.baseThemeNode = this.setStyleSheetForNodeHTML(
             ctx, ctx.baseThemeNode,
             styleSheet && styleSheet.getRules ? styleSheet.getRules() : [],
             "base-theme-for-" + this.id);
-        if (!success) delete ctx.baseThemeNode;
     },
     setStyleSheetForNodeHTML: function(ctx, node, rules, styleTagId) {
         // Compiles the input style rules to an
@@ -316,7 +314,7 @@ lively.morphic.Morph.addMethods(
             parseSuccess = compiledCss && compiledCss.length > 0;
         if (!parseSuccess) {
             ctx.domInterface.remove(node);
-            return false;
+            return null;
         }
         if (!node) {
             node = document.createElement('style');
@@ -325,7 +323,7 @@ lively.morphic.Morph.addMethods(
         }
         if (!node.parentNode) this.appendStyleNodeHTML(ctx, node);
         node.textContent = compiledCss;
-        return true;
+        return node;
     },
 
     appendStyleNodeHTML: function (ctx, styleNode) {

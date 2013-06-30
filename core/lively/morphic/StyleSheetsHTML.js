@@ -291,60 +291,43 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleSheetHTML: function (ctx, styleSheet) {
-        // Compiles the input style rules to an
-        // HTML specific style sheet and adds this
-        // to the DOM.
-        // Called when a new style sheet was applied to
-        // the morph (i.e. through setStyleSheet) and
-        // in the initHTML method of the morph.
-
-        var styleTagId = "style-for-" + this.id,
-            rules = this.getStyleSheetRules(),
-            compiledCss = this.compileStyleSheet(rules),
-            parseSuccess = compiledCss && compiledCss.length > 0;
-        if (!parseSuccess) {
-            ctx.domInterface.remove(ctx.styleNode);
-            delete ctx.styleNode;
-            return;
-        }
-        if (!ctx.styleNode) {
-            ctx.styleNode = document.createElement('style');
-            ctx.styleNode.setAttribute("type", "text/css")
-            ctx.styleNode.setAttribute("id", styleTagId)
-        }
-        if (!ctx.styleNode.parentNode) {
-            this.appendStyleNodeHTML(ctx, ctx.styleNode);
-        }
-        ctx.styleNode.textContent = compiledCss;
+        var success = this.setStyleSheetForNodeHTML(
+            ctx, ctx.styleNode,
+            this.getStyleSheetRules(),
+            "style-for-" + this.id);
+        if (!success) delete ctx.styleNode;
     },
 
     setBaseThemeStyleSheetHTML: function (ctx, styleSheet) {
+        var success = this.setStyleSheetForNodeHTML(
+            ctx, ctx.baseThemeNode,
+            styleSheet && styleSheet.getRules ? styleSheet.getRules() : [],
+            "base-theme-for-" + this.id);
+        if (!success) delete ctx.baseThemeNode;
+    },
+    setStyleSheetForNodeHTML: function(ctx, node, rules, styleTagId) {
         // Compiles the input style rules to an
         // HTML specific style sheet and adds this
         // to the DOM.
         // Called when a new style sheet was applied to
         // the morph (i.e. through setStyleSheet) and
         // in the initHTML method of the morph.
-
-        var styleTagId = "base-theme-for-" + this.id,
-            rules = styleSheet && styleSheet.getRules ? styleSheet.getRules() : [],
-            compiledCss = this.compileStyleSheet(rules),
+        var compiledCss = this.compileStyleSheet(rules),
             parseSuccess = compiledCss && compiledCss.length > 0;
         if (!parseSuccess) {
-            ctx.domInterface.remove(ctx.baseThemeNode);
-            delete ctx.baseThemeNode;
-            return;
+            ctx.domInterface.remove(node);
+            return false;
         }
-        if (!ctx.baseThemeNode) {
-            ctx.baseThemeNode = document.createElement('style');
-            ctx.baseThemeNode.setAttribute("type", "text/css");
-            ctx.baseThemeNode.setAttribute("id", styleTagId);
+        if (!node) {
+            node = document.createElement('style');
+            node.setAttribute("type", "text/css");
+            node.setAttribute("id", styleTagId);
         }
-        if (!ctx.baseThemeNode.parentNode) {
-            this.appendStyleNodeHTML(ctx, ctx.baseThemeNode);
-        }
-        ctx.baseThemeNode.textContent = compiledCss;
+        if (!node.parentNode) this.appendStyleNodeHTML(ctx, node);
+        node.textContent = compiledCss;
+        return true;
     },
+
     appendStyleNodeHTML: function (ctx, styleNode) {
         // first ensure that similar styles are removed
         var head = document.getElementsByTagName("head")[0],

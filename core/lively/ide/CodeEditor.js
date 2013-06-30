@@ -2090,27 +2090,4 @@ Object.extend(lively.ide, {
     });
 })();
 
-(function SCBPatches() {
-    require('lively.ide.BrowserFramework').toRun(function() {
-        var origBrowserPanelSpec = lively.ide.BasicBrowser.prototype.panelSpec;
-        lively.ide.BasicBrowser.addMethods(
-        'settings', {
-            get panelSpec() {
-                if (!Config.get('useAceEditor')) return origBrowserPanelSpec;
-                return [
-                    ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
-                    ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
-                    ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
-                    ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
-                    ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
-                    ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
-                    ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
-                    ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
-                    ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
-                ]
-            }
-        });
-    })
-})();
-
 }); // end of module

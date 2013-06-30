@@ -1,4 +1,4 @@
-module('lively.ide.BrowserFramework').requires('lively.morphic.MorphAddons', 'lively.morphic.Widgets').toRun(function() {
+module('lively.ide.BrowserFramework').requires('lively.morphic.MorphAddons', 'lively.ide.CodeEditor', 'lively.morphic.Widgets').toRun(function() {
 
 lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 'settings', {
@@ -14,18 +14,15 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     })(),
 
     panelSpec: [
-        ['locationPane', newTextPane,                                         [0,    0,    0.8,  0.03]],
-        ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },   [0.8,  0,    0.12, 0.03]],
-        ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },      [0.92, 0,    0.08, 0.03]],
-        ['Pane1', newDragnDropListPane,                                       [0,    0.03, 0.25, 0.37]],
-        ['Pane2', newDragnDropListPane,                                       [0.25, 0.03, 0.25, 0.37]],
-        ['Pane3', newDragnDropListPane,                                       [0.5,  0.03, 0.25, 0.37]],
-        ['Pane4', newDragnDropListPane,                                       [0.75, 0.03, 0.25, 0.37]],
+        ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
+        ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
+        ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
+        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
+        ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
+        ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
+        ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
         ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
-        ['sourcePane', newTextPane,                                           [0,    0.45, 1,    0.54]]
-        // ['bottomResizer', function(bnds) {
-        // return new lively.morphic.HorizontalDivider(bnds) }, new Rectangle(0, 0.99, 1, 0.01)],
-        //['commentPane', newTextPane, new Rectangle(0, 0.95, 1, 0.05)]
+        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
     ],
 
     allPaneNames: ['Pane1', 'Pane2', 'Pane3', 'Pane4'],

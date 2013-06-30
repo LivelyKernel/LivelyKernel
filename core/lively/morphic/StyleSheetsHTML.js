@@ -272,12 +272,10 @@ lively.morphic.Morph.addMethods(
     },
 
     generateCombinedIdSelector: function(actualSelector) {
-        return this.getIdsForSelector(actualSelector)
-               .reduce(function(prev, val) {
-                   return prev
-                        + (prev.length > 0 ? ', ' : '')
-                        + '[data-lively-morphid="'+ val + '"]';
-               }, '');
+        return this.getIdsForSelector(actualSelector).reduce(function(prev, val) {
+           return prev
+                + (prev.length > 0 ? ', ' : '')
+                + '[data-lively-morphid="'+ val + '"]'; }, '');
     },
 
     splitGroupedSelector: function (selector) {
@@ -467,13 +465,13 @@ lively.morphic.Morph.addMethods(
 },
 'Style Classes and Ids', {
     prepareDOMForStyleSheetsHTML: function (ctx) {
-        this.setStyleClassNamesHTML(ctx);
+        this.setStyleClassNamesHTML(ctx, this.getStyleClassNames());
         this.setStyleIdHTML(ctx, this.getStyleId());
         this.setNodeMorphIdHTML(ctx);
     },
 
     setStyleClassNamesHTML: function (ctx, classNames) {
-        classNames = classNames && classNames.length > 0 ? classNames : /*FIXME!!!*/this.getStyleClassNames();
+        if (!classNames) console.trace('setStyleClassNamesHTML');
         ctx.shapeNode.className = classNames ? classNames.join(' ') : '';
     },
     getStyleClassNamesHTML: function (ctx) {
@@ -488,12 +486,7 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleIdHTML: function (ctx, id) {
-        var $node = $(ctx.shapeNode);
-        if (id) {
-            $node.attr('id', id);
-        } else {
-            $node.removeAttr('id');
-        }
+        ctx.shapeNode.setAttribute('id', id || null);
     },
 
     getIdsForSelector: function(selector) {

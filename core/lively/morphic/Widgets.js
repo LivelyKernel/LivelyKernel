@@ -1794,6 +1794,7 @@ lively.morphic.World.addMethods(
     },
     listPrompt: function (message, callback, list, defaultInput, optExtent) {
         // $world.listPrompt('test', alert, [1,2,3,4], 3, pt(400,300));
+        module('lively.morphic.tools.ConfirmList').load(true);
         var listPrompt = lively.BuildSpec('lively.morphic.tools.ConfirmList').createMorph();
         listPrompt.promptFor({
             prompt: message,

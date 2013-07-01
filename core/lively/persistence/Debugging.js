@@ -283,7 +283,12 @@ Object.subclass('lively.persistence.Debugging.Helper',
         }
 
         ObjectGraphLinearizer.allRegisteredObjectsDo(linearizerRegistry, function(key, value) {
-            var className = value[ClassPlugin.prototype.classNameProperty] || 'plain object';
+            var className = value[ClassPlugin.prototype.classNameProperty];
+            if (className == null) {
+                var props = Properties.own(value);
+                if (props.length > 3) className = "{" + props.slice(0, 3).join(", ") + ", ...}";
+                    else className = "{" + props.join(", ") + "}";
+            }
             if (!classes[className]) {
                 classes[className] = {
                     count: 0,

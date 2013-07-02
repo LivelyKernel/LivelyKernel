@@ -25,11 +25,10 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
 
     setupLocationInput: function($super) {
         $super();
+        
+        connect(this, 'targetURL', this, 'setLocationInputFromURL');
 
-        connect(this, 'targetURL', this.locationInput(), 'setTextString',
-            {updater: function($upd, value) { value && $upd(String(value)) }});
-
-        connect(this.locationInput(), 'savedTextString', this, 'setTargetURL');
+        connect(this.locationInput(), 'savedTextString', this, 'setTargetUrlFromString');
         this.targetURL = this.targetURL; // hrmpf
         this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
 
@@ -42,7 +41,28 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL', {converter: function() {
             return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory(); }});
         this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
-    }
+    },
+    setLocationInputFromURL: function(targetUrl) {
+        var codeBaseString = String(this.sourceDatabase().codeBaseURL);
+        var targetString = String(targetUrl);
+        var locationInputString = targetString.replace(codeBaseString, '');
+        this.locationInput().setTextString(locationInputString);
+    },
+    setTargetUrlFromString: function(aString) {
+        var targetUrlString = aString; 
+        
+        if (aString.indexOf('.') > -1) {
+            var module = lively.module(urlOrString);
+            lively.ide.browse(null, null, {name: module.name()}, this);
+            return;
+        }
+        if (! aString.startsWith('http://')) {
+            targetUrlString = String(this.sourceDatabase().codeBaseURL).concat(aString);
+        }
+        this.setTargetURL(new URL(targetUrlString))
+    },
+
+
 
 },
 'accessing', {
@@ -55,6 +75,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         var url = urlOrString || URL.root;
         if (Object.isString(urlOrString) ) {
             try {
+                
                 if (urlOrString.startsWith('http://')) {
                     url = new URL(urlOrString);
                 } else {

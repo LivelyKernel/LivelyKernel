@@ -490,7 +490,7 @@ Config.addOptions(
 ],
 
 "lively.ide.tools", [
-    ["defaultSCBExtent", [830,575], "Size of SCB"],
+    ["defaultSCBExtent", [830,515], "Size of SCB"],
     ["defaultSCBSourcePaneToListPaneRatio", 0.5, "Ratio how much vertical space the sourcePane vs. the list panes get by default in SCB."]
 ],
 

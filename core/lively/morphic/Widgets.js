@@ -1025,6 +1025,12 @@ lively.morphic.Morph.addMethods(
         return lively.morphic.Menu.openAt(pos, this.name || this.toString(),
                                           itemFilter(this.morphMenuItems()));
     },
+    createMorphMenu: function(itemFilter) {
+        itemFilter = Object.isFunction(itemFilter) ? itemFilter : Functions.K;
+        return new lively.morphic.Menu(this.name || this.toString(),
+                                       itemFilter(this.morphMenuItems()));
+    },
+
     showMorphMenu: function(evt) {
         var pos = evt ? evt.getPosition() : this.firstHand().getPosition();
         evt && evt.stop();
@@ -2612,7 +2618,14 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                 return items;
             }
         }
-        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);
+        debugger;
+        var menu = target.createMorphMenu(itemFilter);
+        var menuBtnTopLeft = this.titleBar.menuButton.bounds().topLeft();
+        var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
+        menu.openIn(
+            lively.morphic.World.current(), 
+            this.getGlobalTransform().transformPoint(menuTopLeft), 
+            false);
     },
     morphMenuItems: function($super) {
         var self = this, world = this.world(), items = $super();

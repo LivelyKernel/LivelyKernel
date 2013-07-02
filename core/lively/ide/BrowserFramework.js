@@ -14,15 +14,13 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     })(),
 
     panelSpec: [
-        ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
-        ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
-        ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
-        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.2485, 0.48]],
-        ['Pane2', newDragnDropListPane,                                                      [0.2505, 0.03, 0.2485, 0.48]],
-        ['Pane3', newDragnDropListPane,                                                      [0.5010,  0.03, 0.2485, 0.48]],
-        ['Pane4', newDragnDropListPane,                                                      [0.7515, 0.03, 0.2485, 0.48]],
-        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.51, 1,    0.01]],
-        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.52, 1,    0.48]]
+        ['locationPane', newTextPane,                                                        [0,    0,    0.2485,  0.03]],
+        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.2485, 0.44]],
+        ['Pane2', newDragnDropListPane,                                                      [0.2505, 0, 0.2485, 0.47]],
+        ['Pane3', newDragnDropListPane,                                                      [0.5010,  0, 0.2485, 0.47]],
+        ['Pane4', newDragnDropListPane,                                                      [0.7515, 0, 0.2485, 0.47]],
+        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.47, 1,    0.01]],
+        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.48, 1,    0.52]]
     ],
 
     allPaneNames: ['Pane1', 'Pane2', 'Pane3', 'Pane4'],

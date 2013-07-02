@@ -25,23 +25,38 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
 
     setupLocationInput: function($super) {
         $super();
+        var locInput = this.locationInput();
+        if (!locInput) return;
+        
+        locInput.addScript(function onMouseDown(evt) {
+            var wasHandled = $super(evt);
+            if (wasHandled || !evt.isRightMouseButtonDown()) { return false; }
+            
+            var menu = [
+                ['Codebase', self.switchToLivelyCodebase.bind(self)], 
+                ['Local', self.switchToLocalCodebase.bind(self) ]];
+            lively.morphic.Menu.openAtHand(null, menu);
+            evt.stop();
+            return true;   
+        }, undefined, {self: this});
         
         connect(this, 'targetURL', this, 'setLocationInputFromURL');
 
         connect(this.locationInput(), 'savedTextString', this, 'setTargetUrlFromString');
         this.targetURL = this.targetURL; // hrmpf
         this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
-
-        this.panel.codeBaseDirBtn.setLabel('Codebase');
-        connect(this.panel.codeBaseDirBtn, 'fire', this, 'setTargetURL',
-            {converter: function() { return URL.codeBase.withFilename('lively/'); } })
-        this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
-
-        this.panel.localDirBtn.setLabel('Local');
-        connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL', {converter: function() {
-            return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory(); }});
-        this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
     },
+    switchToLocalCodebase: function() {
+        this.setTargetURL(
+            $world.getUserName() ? 
+                $world.getUserDir() : 
+                URL.source.getDirectory());
+    },
+
+    switchToLivelyCodebase: function() {
+        this.setTargetURL(URL.codeBase.withFilename('lively/'));        
+    },
+
     setLocationInputFromURL: function(targetUrl) {
         var codeBaseString = String(this.sourceDatabase().codeBaseURL);
         var targetString = String(targetUrl);

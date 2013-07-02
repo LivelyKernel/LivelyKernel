@@ -2376,9 +2376,10 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
                 new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(0,-1)));
             this.closeButton.applyStyle({moveHorizontal: true});
             this.closeButton.addStyleClassName('close');
-
+            
+            var menuCell = new Rectangle(0, 0, 40, this.barHeight-5);
             this.menuButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(0,0)));
+                new lively.morphic.WindowControl(menuCell, this.controlSpacing, "Menu", pt(0,0)));
 
             this.collapseButton = this.addMorph(
                 new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(0,1)));
@@ -2415,14 +2416,11 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     adjustForNewBounds: function($super) {
         $super();
         var innerBounds = this.innerBounds(),
-            sp = this.controlSpacing,
             loc = this.innerBounds().topLeft().addXY(sp, sp),
+            sp = this.controlSpacing,
             l0 = loc,
             dx = pt(this.barHeight - sp, 0);
-        if (this.menuButton) {
-            this.menuButton.setPosition(loc);
-            loc = loc.addPt(dx);
-        }
+        
         if (this.closeButton) {
             loc = this.innerBounds().topRight().addXY(
                 -sp-this.closeButton.shape.getBounds().width, sp);
@@ -2432,8 +2430,13 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         if (this.collapseButton) {
             this.collapseButton.setPosition(loc);
         };
+        if (this.menuButton) {
+            loc = loc.subPt(pt(sp, 0));
+            loc = loc.subPt(pt(this.menuButton.innerBounds().width, 0));
+            this.menuButton.setPosition(loc);
+        }
         if (this.label) {
-            var start = this.menuButton ? this.menuButton.bounds().topRight() : pt(0,0),
+            var start = this.innerBounds().topLeft().addXY(sp, sp),
                 end = this.collapseButton ? this.collapseButton.bounds().bottomLeft() : innerBounds.bottomRight();
             this.label.setBounds(rect(start, end));
         }
@@ -2574,6 +2577,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 },
 'menu', {
     showTargetMorphMenu: function() {
+        
         var target = this.targetMorph || this, itemFilter;
         if (this.targetMorph) {
             var self = this;
@@ -2602,6 +2606,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                         if (input !== null) self.titleBar.setTitle(input || '');
                     }, self.titleBar.getTitle());
                 }];
+                if (self.targetMorph.ownerApp && self.targetMorph.ownerApp.morphMenuItems) {
+                    self.targetMorph.ownerApp.morphMenuItems().each(function(ea) {items.push(ea)}) 
+                }
                 return items;
             }
         }

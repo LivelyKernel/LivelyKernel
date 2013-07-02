@@ -17,12 +17,12 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
         ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
         ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
-        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
-        ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
-        ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
-        ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
-        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
-        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
+        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.2485, 0.48]],
+        ['Pane2', newDragnDropListPane,                                                      [0.2505, 0.03, 0.2485, 0.48]],
+        ['Pane3', newDragnDropListPane,                                                      [0.5010,  0.03, 0.2485, 0.48]],
+        ['Pane4', newDragnDropListPane,                                                      [0.7515, 0.03, 0.2485, 0.48]],
+        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.51, 1,    0.01]],
+        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.52, 1,    0.48]]
     ],
 
     allPaneNames: ['Pane1', 'Pane2', 'Pane3', 'Pane4'],
@@ -48,7 +48,11 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         function setupListPane(paneName) {
             var pane = browser.panel[paneName],
                 list = pane.innerMorph();
-            pane.applyStyle({scaleProportional: true});
+            pane.applyStyle({
+                scaleProportional: true,
+                borderWidth: 1,
+                borderColor: Color.gray
+                });
             lively.bindings.connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
                 updater: function($upd, v) {
                     var browser = this.targetObj, list = this.sourceObj;
@@ -124,7 +128,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.setupListPanes();
         this.setupSourceInput();
         this.setupLocationInput();
-        this.buildCommandButtons(panel);
         this.setupResizers(panel);
         panel.ownerWidget = this;
         this.start();
@@ -198,9 +201,15 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
     stop: function() {
         this.mySourceControl().unregisterBrowser(this);
-    }
-
-},
+    },
+    morphMenuItems: function() {
+        var cmds = this.commands()
+            .collect(function(ea) { return new ea(this) }, this)
+            .select(function(ea) { return ea.wantsButton() });
+        
+        return cmds.collect(function(ea) { 
+            return [ea.asString(), ea.trigger.bind(ea)] });
+    },},
 'generated formal getters and setters', {
     generateGetterAndSetterSource: function() {
         this.formals.inject('', function(str, spec) {

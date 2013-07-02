@@ -122,6 +122,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     },
 
 
+
     sourceDatabase: function() {
         return this.rootNode().target;
     }

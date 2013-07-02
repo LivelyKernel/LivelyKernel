@@ -1837,11 +1837,12 @@ Object.extend(lively.Sound.RepeatingSound, {
         return repeat;
     }
 });
-lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
-'default category', {
+
+lively.Sound.AbstractSound.subclass("lively.Sound.ScorePlayer", {
     aboutMe: function() {
         // This is a real-time player for MIDI scores (i.e., scores read from MIDI files).
     },
+
     initialize: function($super) {
         this.score = new lively.Sound.Score();
         this.rate = 1;              // relative playback speed
@@ -1849,6 +1850,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         this.cursors = [];          // one cursor per track
         $super();
     },
+
     setScore: function(score) {
         this.score = score;
         // a different hue for each track
@@ -1865,6 +1867,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         });
         this.reset();
     },
+
     setKeyboard: function(keyboard) {
         // to higlight keys while playing
         // must provide noteSoundOnOff() method
@@ -1880,6 +1883,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         this.done = false;
         this.beatsPerMinuteOrRateChanged();
     },
+
     doControl: function($super, msPast) {
         // called every 10 msecs. Adds new notes to activeSounds.
         $super(msPast);
@@ -1892,9 +1896,11 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         if (this.isDone())
             this.done = true;
     },
+
     samplesRemaining: function() {
         return this.done ? 0 : 999999;
     },
+
     isDone: function() {
         if (this.activeSounds.length > 0) return false;
         for (var i = 0; i < this.score.tracks.length; i++)
@@ -1902,7 +1908,6 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
                 return false;
         return true;
     },
-
 
     mixSamplesToBuffer: function(n, buffer, startIndex, leftVol, rightVol) {
         // play all active sounds, remove finished ones
@@ -1921,6 +1926,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
             });
         }
     },
+
     processNoteEventsUpTo: function(tick) {
         // Process note events through the given score tick
         for (var i = 0; i < this.score.tracks.length; i++) {
@@ -1938,6 +1944,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
             }
         }
     },
+
     processTempoEventsUpTo: function(tick) {
         if (!this.score.tempos) return;
         var i = this.tempoPos,
@@ -1952,12 +1959,12 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         }
     },
 
-
     beatsPerMinuteOrRateChanged: function() {
         // This method should be called after changing the beatsPerMinute or rate.
     	this.mSecsPerTick = 60000 / (this.beatsPerMinute * this.score.ticksPerBeat * this.rate);
     	this.ticksClockIncr = this.controlInterval() / this.mSecsPerTick;
     },
+
     getDurationMS: function($super) {
         if (!this.duration) {
             var currentBPM = 120,
@@ -1981,12 +1988,12 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
     },
 
     pitchForNoteNumber: function(noteNumber) {
-        // An octave (pitch x 2) has 12 notes equally spread:
-        // Math.pow(2, 1/12) = 1.0594630943592953
+        // An octave (2 x pitch) has 12 notes equally spread.
         // The note A above middle C (note 9 in octave 5) is 440 Hz
         // Its MIDI note number is 12 * 5 + 9 = 69
-        return 440 * Math.pow(1.0594630943592953, noteNumber - 69);
+        return 440 * Math.pow(2, (noteNumber - 69) / 12);
     },
+
     soundForEventFromInstrument: function(event, instrument) {
         var pitch = this.pitchForNoteNumber(event.key),
             seconds = event.duration * this.mSecsPerTick / 1000,
@@ -1997,6 +2004,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         if (seconds < 0.5) seconds = 0.5;
         return instrument.copy().setPitchDurLoudness(pitch, seconds, loudness);
     },
+
     openPianoRoll: function(dur) {
         var beatWidth = 16,
             noteHeight = 4,
@@ -2008,7 +2016,7 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         for (var i = 0; i < this.score.tracks.length; i++)
             this.score.tracks[i].forEach(function(event){
                 if (event.isNoteEvent()) {
-                    var w = event.duration ? tickWidth * event.duration : 2,
+                    var w = event.duration ? tickWidth * event.duration : noteHeight,
                         h = noteHeight,
                         x = tickWidth * event.time,
                         y = height - (event.key * noteHeight),
@@ -2026,9 +2034,11 @@ lively.Sound.AbstractSound.subclass('lively.Sound.ScorePlayer',
         roll.openInWindow();
         roll.owner.setExtent(pt(600,400));
         this.pianoRoll = roll;
-    },});
-Object.subclass('lively.Sound.Score',
-'default category', {
+    }
+
+});
+
+Object.subclass('lively.Sound.Score', {
     aboutMe: function() { 
         // A Score is a container for a number of tracks with timed Events.
         // It can be loaded from a MIDI file.
@@ -2049,17 +2059,23 @@ Object.subclass('lively.Sound.Score',
             for (var i = 0; i < events.length; i++) {
                 var event = events[i],
                     note;
+                time += event.deltaTime;
                 if (event.type == "channel") {
+                    var channelAndKey = event.channel * 1000 + event.noteNumber;
                     if (event.subtype == "noteOn") {
+                        // terminate old note if there was no noteOff event
+                        note = activeNotes[channelAndKey];
+                        if (note) note.setEndTime(time);
+                        // new note
                         note = new lively.Sound.NoteEvent();
                         note.setTimeChannelKeyVelocity(time, event.channel, event.noteNumber, event.velocity);
                         track.push(note);
-                        activeNotes[event.noteNumber] = note;
+                        activeNotes[channelAndKey] = note;
                     } else if (event.subtype == "noteOff") {
-                        note = activeNotes[event.noteNumber];
+                        note = activeNotes[channelAndKey];
                         if (note) {
                             note.setEndTime(time);
-                            delete activeNotes[event.noteNumber];
+                            delete activeNotes[channelAndKey];
                         }
                     } else if (event.subtype == "controller") {
                         // should make controller event
@@ -2077,8 +2093,8 @@ Object.subclass('lively.Sound.Score',
                         track.push(tempo);
                     } else if (event.subtype == "endOfTrack") {
                         // end all active notes
-                        ownPropertyNames(activeNotes).forEach(function(noteNumber){
-                            activeNotes[noteNumber].setEndTime(time);
+                        ownPropertyNames(activeNotes).forEach(function(channelAndKey){
+                            activeNotes[channelAndKey].setEndTime(time);
                         });
                         activeNotes = {};
                     } else if (event.subtype == "timeSignature") {
@@ -2088,7 +2104,7 @@ Object.subclass('lively.Sound.Score',
                     } else if (event.subtype == "sequencerSpecific") {
                         // ignore
                     } else if (typeof event.text == "string") {
-                        show("text " + event.subtype + ": " + event.text);
+                        // accumulate strings 
                         if (!this.text) this.text = {};
                         if (!this.text[event.subtype]) this.text[event.subtype] = event.text;
                         else this.text[event.subtype] += "\n" + event.text;
@@ -2100,11 +2116,13 @@ Object.subclass('lively.Sound.Score',
                     inspect(event);
                     return;
                 }
-                time += event.deltaTime;
             }
+            // ignore tracks without recognized events
             if (track.length) {
+                // if the first track has only tempo changes, use it as the tempo map
                 if (!this.tracks.length && track.every(function(evt){return evt.isTempoEvent()}))
                     this.tempos = track;
+                // otherwise, it is a normal track
                 else
                     this.tracks.push(track);
             }
@@ -2122,9 +2140,10 @@ Object.subclass('lively.Sound.Score',
     },
     getDurationInBeats: function() {
         return this.getDurationInTicks() / this.ticksPerBeat;
-    }});
-Object.subclass('lively.Sound.Event',
-'default category', {
+    }
+});
+
+Object.subclass('lively.Sound.Event', {
     aboutMe: function() {
         // Abstract class for timed events in a MIDI score.
     },
@@ -2143,9 +2162,10 @@ Object.subclass('lively.Sound.Event',
     },
     isTempoEvent: function() {
         return false;
-    },});
-lively.Sound.Event.subclass('lively.Sound.NoteEvent',
-'default category', {
+    },
+});
+
+lively.Sound.Event.subclass('lively.Sound.NoteEvent', {
     aboutMe: function() {
         // A MIDI noteOn/noteOff event pair is represented here
         // as a single NoteEvent with a duration
@@ -2168,8 +2188,8 @@ lively.Sound.Event.subclass('lively.Sound.NoteEvent',
     }
 
 });
-lively.Sound.Event.subclass('lively.Sound.TempoEvent',
-'default category', {
+
+lively.Sound.Event.subclass('lively.Sound.TempoEvent', {
     aboutMe: function() {
         // This changes the beatPerMinute
     },
@@ -2182,7 +2202,7 @@ lively.Sound.Event.subclass('lively.Sound.TempoEvent',
 
     isTempoEvent: function() {
         return true;
-    },});
-
+    },
+});
 
 });  // End of module

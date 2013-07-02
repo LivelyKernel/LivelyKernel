@@ -2028,7 +2028,11 @@ lively.Sound.AbstractSound.subclass("lively.Sound.ScorePlayer", {
             }.bind(this));
         roll.line = lively.morphic.Morph.makeLine([pt(0,0), pt(0,height)]);
         roll.line.moveToTick = function(tick) {
-            this.setPosition(pt((tick * tickWidth)|0,0));
+            var pos = (tick * tickWidth)|0,
+                left = Math.max(pos - 150, 0),
+                right = Math.min(pos + 250, width);
+            this.setPosition(pt(pos,0));
+            this.owner.scrollRectIntoView(pt(left,height/2).extent(pt(right-left,1)), true);
         };
         roll.addMorph(roll.line);
         roll.openInWindow();

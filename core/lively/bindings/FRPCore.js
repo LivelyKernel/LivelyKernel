@@ -212,6 +212,23 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.dormant = false;
         return this.finalize([]);
     },
+    sendE: function(input, recipient) {
+        this.recipient = recipient;
+        this.input = input;
+        this.setUp("sendE", [input, recipient],
+            function(space, evaluator) {
+                var remote = this.lookup(recipient);
+                remote = remote.remoteRef(space, 0, evaluator);
+                var val = this.frpGet(input);
+                if (val !== undefined) {
+                    this.setLastTime(evaluator.currentTime);
+                    this.currentValue = val;
+                    throw {type: "quitAndSend", target: remote, value: val};
+                }
+            }
+        );
+        return this;
+    },
 },
 'evaluation', {
     addSubExpression: function(id, stream) {
@@ -264,11 +281,6 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                 if (top !== this[k]) {
                     top[k] = this[k];
                 }
-            }
-        }
-        for (k in top) {
-            if (top === top[k]) {
-                debugger;
             }
         }
         top.addDependencies(collection);
@@ -352,7 +364,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                 && (this.isEarlierThan(src) && src.currentValue !== undefined)) {
                     if (result === null) {
                         result = true;
-                        args[0] = src.currentValue
+                        args[0] = src.currentValue;
                     }
             }
         }
@@ -362,6 +374,32 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     basicUpdater: function(space, evaluator) {
     // The updater for the expr type
         return this.expression.apply(space, evaluator.arguments[this.id]);
+    },
+
+    remoteRef: function(space, time, evaluator) {
+    // The checker for mergeE().  For mergeE, an undefined in sources is allowed.
+        var dependencies = evaluator.dependencies[this.id];
+        var result = null;
+        var args = evaluator.arguments[this.id];
+        for (var i = 0; i < dependencies.length; i++) {
+            var src = dependencies[i];
+            if (this.isEventStream(src)
+                && src.currentValue !== undefined) {
+                    if (result === null) {
+                        result = true;
+                        args[0] = src.currentValue;
+                    }
+            }
+        }
+        result = result === null ? false : result;
+        if (result) {
+            var sources = evaluator.sources[this.id];
+            for (i = 0; i < sources.length; i++) {
+                args[i] = this.isEventStream(sources[i]) ? sources[i].currentValue : sources[i];
+            }
+            return this.basicUpdater(space, evaluator);
+        }
+        return null;
     },
 
     frpSet: function(val) {
@@ -383,6 +421,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         return ref;
     },
+
     getLast: function(name) {
     // Fetches the value from ref and return its last value
         var v =  this[name] || this.owner[name];
@@ -625,8 +664,24 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
     evaluateAt: function(time) {
         var changed = false;
         this.currentTime = time;
-        for (var i = 0; i < this.results.length; i++) {
-            changed = this.results[i].maybeEvalAt(time, this) || changed;
+        var i;
+        try {
+            for (i = 0; i < this.results.length; i++) {
+                changed = this.results[i].maybeEvalAt(time, this) || changed;
+            }
+        } catch (e) {
+            if (typeof e === "object") {
+                if (e.type === "quitAndSend") {
+                    setTimeout(this.realSend.curry(e), 0);
+                    return changed;
+                }
+                if (e.type === "reevaluate") {
+                    setTimeout(this.reevaluate.bind(this), 0);
+                    return changed;
+                }
+            } else {
+                throw e;
+            }
         }
         if (changed) {
             for (i = 0; i < this.results.length; i++) {
@@ -634,6 +689,12 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             }
         }
         return changed;
+    },
+    reevaluate: function() {
+        this.evaluateAt(this.currentTime);
+    },
+    realSend: function(parameter) {
+        parameter.target.frpSet(parameter.value);
     },
     installStream: function(strm) {
     // For a timer, it starts the timer.
@@ -737,6 +798,137 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
 
 if (lively.persistence.pluginsForLively.indexOf(lively.bindings.FRPCore.EventStreamPlugin) < 0) {
     lively.persistence.pluginsForLively.push(lively.bindings.FRPCore.EventStreamPlugin);
+};
+
+Object.subclass('lively.bindings.FRPConnection',
+'initializing', {
+    initialize: function(sourceObj, sourceProp, targetObj, targetProp) {
+        this.init(sourceName, sourceProp, targetName, targetProp);
+    },
+    init: function(sourceName, sourceProp, targetName, targetProp) {
+        this.sourceName = sourceName;
+        this.sourceProp = sourceProp;
+        this.targetName = targetName;
+        this.targetProp = targetProp;
+        return this;
+    },
+},
+'accessing', {
+    getSourceName: function() {return this.sourceName},
+    getSourceProp: function() {return this.sourceProp},
+    getTargetObj: function() {return this.targetObj},
+    getTargetProp: function() {return this.targetProp},
+    getSourceValue: function() {return this.getSourceObj()[this.getSourceProp()].currentValue},
+},
+'connecting', {
+    connect: function() {
+        var existing = this.getExistingConnection();
+        if (existing !== this) {
+            // when existing == null just add new connection when
+            // existing === this then connect was called twice or we are in
+            // deserialization. Just do nothing then.
+            existing && existing.disconnect();
+        }
+        // Check if a method is the source. We check both the value behind
+        // sourceAttrName and $$sourceAttrName because when deserializing
+        // scripts those get currently stored in $$sourceAttrName (for
+        // non-scripts it doesn't matter since those methods should be in the
+        // prototype chain)
+        var methodOrValue = !existingSetter && !existingGetter &&
+            (this.getSourceValue() || this.getPrivateSourceValue());
+
+        // method connect... FIXME refactori into own class!
+        if (Object.isFunction(methodOrValue) && !this.forceAttributeConnection) {
+            if (!methodOrValue.isWrapped) {
+                this.addConnectionWrapper(this.sourceObj, this.sourceAttrName, methodOrValue);
+            }
+        } else { // attribute connect
+            this.addSourceObjGetterAndSetter(existingGetter, existingSetter);
+        }
+
+        return this;
+    },
+
+    disconnect: function() {
+        var obj = this.sourceObj;
+        if (!obj || !obj.attributeConnections) return this.removeSourceObjGetterAndSetter();
+        obj.attributeConnections = obj.attributeConnections.reject(function(con) {
+            return this.isSimilarConnection(con);
+        }, this);
+        var connectionsWithSameSourceAttr = obj.attributeConnections.select(function(con) {
+            return this.getSourceAttrName() == con.getSourceAttrName();
+        }, this);
+        if (obj.attributeConnections.length == 0) {
+            delete obj.attributeConnections;
+        }
+        if (connectionsWithSameSourceAttr.length == 0) {
+            this.removeSourceObjGetterAndSetter();
+        }
+        return null;
+    },
+
+    update: function (newValue, oldValue) {
+        // This method is optimized for Safari and Chrome.
+        // See lively.bindings.tests.BindingTests.BindingsProfiler
+        // The following requirements exists:
+        // - run converter with oldValue and newValue
+        // - when updater is existing run converter only if update is proceeded
+        // - bind is slow
+        // - arguments is slow when it's items are accessed or it's converted using $A
+
+        if (this.isActive/*this.isRecursivelyActivated()*/) return null;
+        var connection = this, updater = this.getUpdater(), converter = this.getConverter(),
+            target = this.targetObj, propName = this.targetMethodName;
+        if (!target || !propName) {
+            var msg = 'Cannot update ' + this.toString(newValue)
+                    + ' because of no target ('
+                    + target + ') or targetProp (' + propName+') ';
+            if (this.isWeakConnection) { this.disconnect(); }
+            console.error(msg);
+
+            return null;
+        }
+        var targetMethod = target[propName], callOrSetTarget = function(newValue, oldValue) {
+            // use a function and not a method to capture this in self and so
+            // that no bind is necessary and oldValue is accessible. Note that
+            // when updater calls this method arguments can be more than just
+            // the new value
+            if (converter) newValue = converter.call(connection, newValue, oldValue);
+            var result = (typeof targetMethod === 'function') ?
+                targetMethod.apply(target, arguments) :
+                target[propName] = newValue;
+            if (connection.removeAfterUpdate) connection.disconnect();
+            return result;
+        };
+
+        try {
+            this.isActive = true;
+            return updater ?
+                updater.call(this, callOrSetTarget, newValue, oldValue) :
+                callOrSetTarget(newValue, oldValue);
+        } catch(e) {
+            dbgOn(Config.debugConnect);
+            var world = Global.lively &&
+                lively.morphic.World &&
+                lively.morphic.World.current();
+            if (world) {
+                world.logError(e, 'AttributeConnection>>update: ');
+            } else {
+                alert('Error when trying to update ' + this + ' with value '
+                     + newValue + ':\n' + e + '\n' + e.stack);
+            }
+        } finally {
+            delete this.isActive;
+        }
+
+        return null;
+    }
+
 }
+
+
+
+
+);
 
 }); // end of module

@@ -1,19 +1,16 @@
 language: node_js
 
 node_js:
-  - "0.10.2"
+  - "0.10"
 
 before_install:
-  - "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 16126D3A3E5C1192"
-  - "sudo apt-get update"
-  - "sudo apt-get install xvfb"
   - "chromium-browser --version"
   - "sudo chmod 1777 /dev/shm"
-  - "nvm use v0.10.2"
+  - "nvm use v0.10"
   - "npm install -g livelykernel-scripts@latest"
 
 before_script:
-  - "nvm use v0.10.2"
+  - "nvm use v0.10"
   - "mkdir `lk scripts-dir`/workspace"
   - echo "Linking $PWD to `lk scripts-dir`/workspace/lk"
   - "ln -s $PWD `lk scripts-dir`/workspace/lk"

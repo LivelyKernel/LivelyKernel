@@ -1913,16 +1913,16 @@ Object.subclass('lively.FileUploader',
     }
 },
 'file reader events', {
-    onError: function(evt, spec) { alert('Error occured while uploading file ' + spec.file.name) },
-    onLoadStart: function(evt, spec) { alertOK('Started uploading ' + spec.file.name) },
-    onLoadEnd: function(evt, spec) { alertOK('Finished uploading ' + spec.file.name) },
+    onError: function(evt, spec) { alert('Error occured while loading file ' + spec.file.name) },
+    onLoadStart: function(evt, spec) { alertOK('Loading ' + spec.file.name) },
+    onLoadEnd: function(evt, spec) { alertOK('Finished ' + spec.file.name) },
     onProgress: function(evt, spec) {
         if (!evt.lengthComputable) return;
         var percentage = Math.round((evt.loaded * 100) / evt.total);
-        alertOK('Uploading ' + spec.file.name + ': ' + percentage + "%");
+        alertOK('Loading ' + spec.file.name + ': ' + percentage + "%");
     },
     onLoad: function(evt) {
-        alert('Uploaded file ' + spec.file.name + ' but don\'t know what to do now...!')
+        alert('Loaded file ' + spec.file.name + ' but don\'t know what to do now...!')
     }
 },
 'image loading', {
@@ -2001,7 +2001,6 @@ Object.subclass('lively.FileUploader',
         morph.applyStyle({borderWidth: 1, borderColor: Color.black})
         morph.openInWorld(pos);
     },
-
     uploadAndOpenVideoTo: function(url, mime, binaryData, pos) {
         var onloadDo = function(status) {
             if (!status.isDone()) return;
@@ -2009,7 +2008,50 @@ Object.subclass('lively.FileUploader',
             else alert('Failure uploading ' + url + ': ' + status);
         }.bind(this)
         var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
+    },
+},
+'audio loading', {
+    onLoadAudio: function(evt, spec) {
+        if (spec.doUpload)
+            this.uploadAndOpenAudioTo(
+                URL.source.withFilename(spec.file.name),
+                spec.file.type, evt.target.result, spec.pos);
+        else
+            this.openAudio(spec.file.name, spec.file.type, evt.target.result, spec.pos);
+    },
+    openAudio: function(url, mime, data, pos) {
+        switch (mime) {
+            case 'audio/midi':
+                this.openMidi(url, data, pos);
+                break;
+            default:
+                alert("unknown type " + mime);
+        }
+    },
+
+    uploadAndOpenAudioTo: function(url, mime, binaryData, pos) {
+        var onloadDo = function(status) {
+            if (!status.isDone()) return;
+            if (status.isSuccess()) this.openAudio(url, mime, binaryData, pos)
+            else alert('Failure uploading ' + url + ': ' + status);
+        }.bind(this)
+        var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
+    },
+
+    openMidi: function(url, data, pos) {
+        var player = $morph('PianoKeyboard');
+        if (!player) {
+            player = $world.openPartItem('PianoKeyboard', 'PartsBin/Fun');
+            if (pos) player.setPosition(pos);
+        }
+        player.loadMidi(data);
     }
+
+},
+'text loading', {
+    onLoadText: function(evt, spec) {
+        lively.morphic.World.current().addTextWindow({title: spec.file.name, content: evt.target.result});
+    },
 },
 'pdf loading', {
     onLoadPDF: function(evt, spec) {
@@ -2017,10 +2059,6 @@ Object.subclass('lively.FileUploader',
             URL.source.withFilename(spec.file.name),
             spec.file.type, evt.target.result, spec.pos);
     },
-    onLoadText: function(evt, spec) {
-        lively.morphic.World.current().addTextWindow({title: spec.file.name, content: evt.target.result});
-    },
-
     uploadAndOpenPDFTo: function(url, mime, binaryData, pos) {
         var onloadDo = function(status) {
             if (!status.isDone()) return;
@@ -2070,22 +2108,25 @@ Object.subclass('lively.FileUploader',
 'drop handling', {
     handleDroppedFiles: function(files, evt) {
         // Seperate file types
-        var images = [], videos = [], pdfs = [], texts = [];
+        var images = [], videos = [], audios = [], pdfs = [], texts = [];
         for (var i = 0; i < files.length; i++) {
             var file = files[i],
                 imageType = /image.*/,
                 videoType = /video.*/,
+                audioType = /audio.*/,
                 pdfType = /application\/pdf/,
                 textType = /text.*/;
 
             if (file.type.match(imageType)) images.push(file);
             else if (file.type.match(videoType)) videos.push(file);
+            else if (file.type.match(audioType)) audios.push(file);
             else if (file.type.match(pdfType)) pdfs.push(file);
             else texts.push(file);
         }
         var opt = evt.isAltDown();
         this.loadAndOpenDroppedFiles(evt, images, {onLoad:  'onLoadImage' + (opt ? 'Binary' : ''), asBinary: opt});
         this.loadAndOpenDroppedFiles(evt, videos, {onLoad: 'onLoadVideo', asBinary: true});
+        this.loadAndOpenDroppedFiles(evt, audios, {onLoad: 'onLoadAudio', asBinary: true, doUpload: opt});
         this.loadAndOpenDroppedFiles(evt, pdfs, {onLoad: 'onLoadPDF', asBinary: true});
         this.loadAndOpenDroppedFiles(evt, texts, {onLoad: 'onLoadText', asText: true});
     },
@@ -2100,6 +2141,7 @@ Object.subclass('lively.FileUploader',
                 onLoadEnd: options.onLoadEnd || 'onLoadEnd',
                 onProgress: options.onProgress || 'onProgress',
                 file: file,
+                doUpload: options.doUpload,
                 pos: pos.addXY(15*i,15*i)
             }, reader = this.getFileReader(fileReaderOptions);
             if (options.asBinary) reader.readAsBinaryString(file);

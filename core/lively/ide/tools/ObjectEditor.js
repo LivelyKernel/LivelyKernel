@@ -62,7 +62,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderColor: Color.rgb(204,0,0),
             _Extent: lively.pt(590.0,381.0),
             _FontSize: 12,
-            _LineWrapping: false,
             _Position: lively.pt(200.0,40.0),
             _ShowGutter: true,
             _StyleClassNames: ["Morph","CodeEditor","ace_editor","ace_nobold","emacs-mode","ace-chrome"],

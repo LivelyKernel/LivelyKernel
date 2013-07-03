@@ -2923,16 +2923,18 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         // determine its extent
         this.label.fit();
         (function fit() {
-            var labelExtent = this.label.getExtent(),
+        this.label.cachedBounds=null
+            var labelBoundsFit = this.label.bounds(),
                 origPanelExtent = this.panel.getExtent(),
                 panelExtent = origPanelExtent;
-            if (labelExtent.x > panelExtent.x) {
-                panelExtent = panelExtent.withX(labelExtent.x + 2*this.inset);
+            if (labelBoundsFit.width > panelExtent.x) {
+                panelExtent = panelExtent.withX(labelBoundsFit.width + 2*this.inset);
             }
-            if (labelExtent.y > bounds.height) {
+            if (labelBoundsFit.height > bounds.height) {
                 var morphsBelowLabel = this.panel.submorphs.without(this.label).select(function(ea) {
-                        return ea.bounds().top() >= bounds.bottom(); }),
-                    diff = labelExtent.y - bounds.height;
+                        return ea.bounds().top() <= labelBoundsFit.bottom(); }),
+                    diff = labelBoundsFit.height - bounds.height;
+                morphsBelowLabel.forEach(function(ea) { ea.moveBy(pt(0,diff)); });
                 panelExtent = panelExtent.addXY(0, diff);
             }
             this.panel.setExtent(panelExtent);

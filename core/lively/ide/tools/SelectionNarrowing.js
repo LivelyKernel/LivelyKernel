@@ -7,26 +7,25 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     _Extent: lively.pt(900.0,138.0),
     _Position: lively.pt(510.0,801.0),
     _StyleClassNames: ["Box","Morph","tab-list"],
-    _StyleSheet: ".tab-list {\n\
-    background-color: rgba(1,1,1,0.5);\n\
-    border-radius: 5px !important;\n\
-}\n\
-\n\
-.tab-list-item span {\n\
-    font-family: Verdana;\n\
-	font-size: 14pt;\n\
-	color: white !important;\n\
-	font-width: bold !important;\n\
-	text-shadow: none                             !important;\n\
-}\n\
-\n\
-.tab-list-item.selected {\n\
-	font-weight: normal;\n\
-	background-color: rgba(1,1,1,0.4);\n\
-	border-radius: 5px !important;\n\
-	box-shadow: inset 0 0 8px white;\n\
-	border: 0px white solid !important;\n\
-}",
+    _StyleSheet: ".tab-list {\n"
++ "    background-color: rgba(1,1,1,0.7);\n"
++ "	border-radius: 5px !important;\n"
++ "	box-shadow: 0 0 4px white, inset 0 0 5px white;\n"
++ "}\n"
++ ".tab-list-item span {\n"
++ "	font-family: Verdana;\n"
++ "	font-size: 14pt;\n"
++ "	color: white !important;\n"
++ "	font-width: bold !important;\n"
++ "	text-shadow: none !important;\n"
++ "}\n"
++ ".tab-list-item.selected {\n"
++ "	font-weight: normal;\n"
++ "	background-color: rgba(1,1,1,0.3);\n"
++ "	border-radius: 5px !important;\n"
++ "	box-shadow: 0 0 3px white, inset 0 0 5px white;\n"
++ "	border: 0px white solid !important;\n"
++ "}\n",
     _Visible: true,
     _ZIndex: 1000,
     className: "lively.morphic.Box",

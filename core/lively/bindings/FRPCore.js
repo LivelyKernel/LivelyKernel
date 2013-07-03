@@ -67,11 +67,6 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         if (this.isContinuous) {
             this.setLastTime(object.__evaluator.currentTime + 1 /* hmm */);
         }
-        if (!this.owner.hasOwnProperty("connections")) {
-            this.owner.connections = {};
-        }
-        this.owner.connections[name] = {map: name + ".connectionTrigger"};
-        this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n)");
         object.__evaluator.installStream(this);
         return this;
     },
@@ -83,7 +78,6 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             }
             delete this.owner[this.streamName];
             delete this.owner["_" + this.streamName];
-            delete this.owner.connections[this.streamNamename];
             delete this.owner;
             delete this.streamName;
         }
@@ -405,6 +399,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     frpSet: function(val) {
         this.currentValue = val;
         this.setLastTime(this.owner.__evaluator.currentTime+1);
+        this.owner.__evaluator.changedExternally = true;
         this.owner.__evaluator.evaluate();
         return val;
     },
@@ -450,9 +445,13 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     },
     sync: function() {
     // refresh the last value cache at the end of evaluation cycle.
-    // the connectionTrigger is the field to trigger the lively connector.
-        if (this.connectionTrigger !== this.currentValue) {
-            this.connectionTrigger = this.currentValue;
+        if (this.lastValue !== this.currentValue && this.currentValue !== undefined) {
+            if (this.owner.frpConnections && this.owner.frpConnections[this.streamName]) {
+                var connections = this.owner.frpConnections[this.streamName];
+                for (var i = 0; i < connections.length; i++) {
+                    connections[i].update(this.currentValue, this.owner);
+                }
+            }
         }
 		this.lastValue = this.currentValue;
     },
@@ -504,6 +503,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.dependencies = {};
         this.endNodes = {};
         this.continuity = {};
+        this.changedExternally = false;
         return this;
     },
     onstore: function() {
@@ -654,6 +654,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
     },
     evaluate: function() {
         var now = Date.now();
+        
         if (!this.results) {
             this.addStreamsFrom(this.object);
             this.sort();
@@ -662,33 +663,35 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         return this.evaluateAt(now - this.object.__startTime);
     },
     evaluateAt: function(time) {
-        var changed = false;
+        this.changed = this.changedExternally;
         this.currentTime = time;
         var i;
         try {
             for (i = 0; i < this.results.length; i++) {
-                changed = this.results[i].maybeEvalAt(time, this) || changed;
+                this.changed = this.results[i].maybeEvalAt(time, this) || this.changed;
             }
         } catch (e) {
-            if (typeof e === "object") {
-                if (e.type === "quitAndSend") {
-                    setTimeout(this.realSend.curry(e), 0);
-                    return changed;
-                }
-                if (e.type === "reevaluate") {
-                    setTimeout(this.reevaluate.bind(this), 0);
-                    return changed;
-                }
+            if (e.type === "quitAndSend") {
+                setTimeout(this.realSend.curry(e), 0);
+                this.changedExternally = false;
+                return this.changed;
+            }
+            if (e.type === "reevaluate") {
+                setTimeout(this.reevaluate.bind(this), 0);
+                this.changedExternally = false;
+                return this.changed;
             } else {
+                this.changedExternally = false;
                 throw e;
             }
         }
-        if (changed) {
+        if (this.changed) {
             for (i = 0; i < this.results.length; i++) {
                 this.results[i].sync();
             }
         }
-        return changed;
+        this.changedExternally = false;
+        return this.changed;
     },
     reevaluate: function() {
         this.evaluateAt(this.currentTime);
@@ -753,6 +756,37 @@ lively.morphic.Morph.addMethods({
         var inspectorWindow = $world.openPartItem('FRPInspector', 'PartsBin/Tools');
         var inspector = inspectorWindow.get("FRPInspector");
         inspector.setTarget(this);
+    },
+    frpConnect: function(fromProp, targetName, targetProp) {
+        if (!this.frpConnections) {
+            this.frpConnections = {};
+        }
+        if (!this.frpConnections[fromProp]) {
+            this.frpConnections[fromProp] = [];
+        }
+        var connections = this.frpConnections[fromProp];
+        var hasIt = connections.detect(function(c) {
+            return c.targetName === targetName && c.targetProp === targetProp;
+        });
+        if (!hasIt) {
+            var c = new lively.bindings.FRPConnection().connectTo(targetName, targetProp);
+            connections.push(c);
+        }
+    },
+    frpDisConnect: function(fromProp, targetName, targetProp) {
+        if (!this.frpConnections) {
+            return;
+        }
+        if (!this.frpConnections[fromProp]) {
+            return;
+        }
+        var connections = this.frpConnections[fromProp];
+        var hasIt = connections.detect(function(c) {
+            return c.targetName === targetName && c.targetProp === targetProp;
+        });
+        if (hasIt) {
+            connections.splice(connections.indexOf(hasIt), 1);
+        }
     }
 });
 
@@ -773,7 +807,7 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
         };
     },
     deserializeObj: function(copy) {
-        if (!copy || !copy.isSerializedStream) return null
+        if (!copy || !copy.isSerializedStream) return null;
         return copy.type === "value" ?
             new lively.bindings.FRPCore.EventStream().value(copy.currentValue) :
             (copy.type === "userEvent" ?
@@ -798,137 +832,26 @@ ObjectLinearizerPlugin.subclass('lively.bindings.FRPCore.EventStreamPlugin',
 
 if (lively.persistence.pluginsForLively.indexOf(lively.bindings.FRPCore.EventStreamPlugin) < 0) {
     lively.persistence.pluginsForLively.push(lively.bindings.FRPCore.EventStreamPlugin);
-};
+}
 
 Object.subclass('lively.bindings.FRPConnection',
-'initializing', {
-    initialize: function(sourceObj, sourceProp, targetObj, targetProp) {
-        this.init(sourceName, sourceProp, targetName, targetProp);
-    },
-    init: function(sourceName, sourceProp, targetName, targetProp) {
-        this.sourceName = sourceName;
-        this.sourceProp = sourceProp;
+'connecting', {
+    connectTo: function(targetName, targetProp) {
         this.targetName = targetName;
         this.targetProp = targetProp;
         return this;
     },
-},
-'accessing', {
-    getSourceName: function() {return this.sourceName},
-    getSourceProp: function() {return this.sourceProp},
-    getTargetObj: function() {return this.targetObj},
-    getTargetProp: function() {return this.targetProp},
-    getSourceValue: function() {return this.getSourceObj()[this.getSourceProp()].currentValue},
-},
-'connecting', {
-    connect: function() {
-        var existing = this.getExistingConnection();
-        if (existing !== this) {
-            // when existing == null just add new connection when
-            // existing === this then connect was called twice or we are in
-            // deserialization. Just do nothing then.
-            existing && existing.disconnect();
-        }
-        // Check if a method is the source. We check both the value behind
-        // sourceAttrName and $$sourceAttrName because when deserializing
-        // scripts those get currently stored in $$sourceAttrName (for
-        // non-scripts it doesn't matter since those methods should be in the
-        // prototype chain)
-        var methodOrValue = !existingSetter && !existingGetter &&
-            (this.getSourceValue() || this.getPrivateSourceValue());
-
-        // method connect... FIXME refactori into own class!
-        if (Object.isFunction(methodOrValue) && !this.forceAttributeConnection) {
-            if (!methodOrValue.isWrapped) {
-                this.addConnectionWrapper(this.sourceObj, this.sourceAttrName, methodOrValue);
+    update: function (newValue, srcObj) {
+        if (srcObj.get(this.targetName)) {
+            var strm = srcObj.get(this.targetName)[this.targetProp];
+            if (strm && this.isEventStream(strm)) {
+                strm.frpSet(newValue);
             }
-        } else { // attribute connect
-            this.addSourceObjGetterAndSetter(existingGetter, existingSetter);
         }
-
-        return this;
     },
-
-    disconnect: function() {
-        var obj = this.sourceObj;
-        if (!obj || !obj.attributeConnections) return this.removeSourceObjGetterAndSetter();
-        obj.attributeConnections = obj.attributeConnections.reject(function(con) {
-            return this.isSimilarConnection(con);
-        }, this);
-        var connectionsWithSameSourceAttr = obj.attributeConnections.select(function(con) {
-            return this.getSourceAttrName() == con.getSourceAttrName();
-        }, this);
-        if (obj.attributeConnections.length == 0) {
-            delete obj.attributeConnections;
-        }
-        if (connectionsWithSameSourceAttr.length == 0) {
-            this.removeSourceObjGetterAndSetter();
-        }
-        return null;
-    },
-
-    update: function (newValue, oldValue) {
-        // This method is optimized for Safari and Chrome.
-        // See lively.bindings.tests.BindingTests.BindingsProfiler
-        // The following requirements exists:
-        // - run converter with oldValue and newValue
-        // - when updater is existing run converter only if update is proceeded
-        // - bind is slow
-        // - arguments is slow when it's items are accessed or it's converted using $A
-
-        if (this.isActive/*this.isRecursivelyActivated()*/) return null;
-        var connection = this, updater = this.getUpdater(), converter = this.getConverter(),
-            target = this.targetObj, propName = this.targetMethodName;
-        if (!target || !propName) {
-            var msg = 'Cannot update ' + this.toString(newValue)
-                    + ' because of no target ('
-                    + target + ') or targetProp (' + propName+') ';
-            if (this.isWeakConnection) { this.disconnect(); }
-            console.error(msg);
-
-            return null;
-        }
-        var targetMethod = target[propName], callOrSetTarget = function(newValue, oldValue) {
-            // use a function and not a method to capture this in self and so
-            // that no bind is necessary and oldValue is accessible. Note that
-            // when updater calls this method arguments can be more than just
-            // the new value
-            if (converter) newValue = converter.call(connection, newValue, oldValue);
-            var result = (typeof targetMethod === 'function') ?
-                targetMethod.apply(target, arguments) :
-                target[propName] = newValue;
-            if (connection.removeAfterUpdate) connection.disconnect();
-            return result;
-        };
-
-        try {
-            this.isActive = true;
-            return updater ?
-                updater.call(this, callOrSetTarget, newValue, oldValue) :
-                callOrSetTarget(newValue, oldValue);
-        } catch(e) {
-            dbgOn(Config.debugConnect);
-            var world = Global.lively &&
-                lively.morphic.World &&
-                lively.morphic.World.current();
-            if (world) {
-                world.logError(e, 'AttributeConnection>>update: ');
-            } else {
-                alert('Error when trying to update ' + this + ' with value '
-                     + newValue + ':\n' + e + '\n' + e.stack);
-            }
-        } finally {
-            delete this.isActive;
-        }
-
-        return null;
+    isEventStream: function(v) {
+        return v instanceof lively.bindings.FRPCore.EventStream;
     }
-
-}
-
-
-
-
-);
+});
 
 }); // end of module

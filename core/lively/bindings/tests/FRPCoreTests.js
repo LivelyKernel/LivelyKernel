@@ -348,7 +348,6 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         evaluator.addStreamsFrom(obj);
         evaluator.sort();
         evaluator.detectContinuity();
-    debugger;
         evaluator.evaluateAt(1000);
         this.assertEquals(b.currentValue, 0.5);
         this.assertEquals(c.currentValue, 0.5);

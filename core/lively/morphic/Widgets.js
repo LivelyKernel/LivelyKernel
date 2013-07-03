@@ -2618,7 +2618,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                 return items;
             }
         }
-        debugger;
+        
         var menu = target.createMorphMenu(itemFilter);
         var menuBtnTopLeft = this.titleBar.menuButton.bounds().topLeft();
         var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));

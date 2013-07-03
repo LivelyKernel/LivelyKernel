@@ -1729,7 +1729,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },
         openPartTestRunner: function openPartTestRunner() {
         module('lively.PartsTestFramework').load();
-        var runner = $part('PartTestRunner', 'PartsBin/Tools');
+        var runner = $part('PartTestRunnerWithCodeEditor', 'PartsBin/Tools');
         runner.setPartUnderTest(this.target);
         runner.openInWorld();
         runner.align(runner.bounds().topLeft(),

@@ -1410,7 +1410,7 @@ Object.subclass('WebResource',
             this.temporaryChangeURLAndDo(urlOfPastVersion, function() {
                 var resource = this.createResource();
                 if (contentType) resource.contentType = contentType;
-                resource.fetch(this.isSync(), this.requestHeaders, rev);
+                this.xhr = resource.fetch(this.isSync(), this.requestHeaders, rev);
             })
             return this;
         }
@@ -1520,15 +1520,14 @@ Object.subclass('WebResource',
         req.propfind(this.getURL(), depth);
         return this;
     },
+
     report: function(content) {
         var req = this.createNetRequest();
         req.report(this.getURL(), content);
         return this;
     },
 
-
     getSubElements: function(depth) {
-
         lively.bindings.connect(this, 'contentDocument', this, 'pvtProcessPropfindForSubElements', {removeAfterUpdate: true});
         this.propfind(depth);
         return this;
@@ -1564,7 +1563,7 @@ Object.subclass('WebResource',
                 return this;
             }
         }
-        res.fetchMetadata(this.isSync(), this.requestHeaders, startRev, endRev, null);
+        this.xhr = res.fetchMetadata(this.isSync(), this.requestHeaders, startRev, endRev, null);
         return this;
     },
 
@@ -1576,7 +1575,7 @@ Object.subclass('WebResource',
 
     getProperties: function(optRequestHeaders, rev) {
         var res = this.createResource();
-        res.fetchProperties(this.isSync(), optRequestHeaders, rev);
+        this.xhr = res.fetchProperties(this.isSync(), optRequestHeaders, rev);
         return this;
     },
 
@@ -1699,6 +1698,11 @@ Object.subclass('WebResource',
             content = content.xml;
         }
         return content;
+    }
+},
+'canceling', {
+    abort: function() {
+        return this.xhr && this.xhr.abort();
     }
 });
 

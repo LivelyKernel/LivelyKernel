@@ -2612,7 +2612,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         }
         
         var menu = target.createMorphMenu(itemFilter);
-        var menuBtnTopLeft = this.titleBar.menuButton.bounds().topLeft();
+        var menuBtnTopLeft = this.menuButton.bounds().topLeft();
         var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
         menu.openIn(
             lively.morphic.World.current(), 

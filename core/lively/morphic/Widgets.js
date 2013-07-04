@@ -2422,7 +2422,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         }
     },
     adjustForNewBounds: function() {
-        $super();
         this.adjustLabelBounds();
     },
 

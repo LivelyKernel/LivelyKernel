@@ -67,6 +67,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         if (this.isContinuous) {
             this.setLastTime(object.__evaluator.currentTime + 1 /* hmm */);
         }
+        this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n)");
         object.__evaluator.installStream(this);
         return this;
     },

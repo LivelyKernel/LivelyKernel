@@ -376,6 +376,26 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     navigationHeight: function() {
         return this.panel.getExtent().subPt(this.getSourcePane().getExtent()).y;
     },
+    openIn: function (world, pos) {
+        var panel = this.buildView(this.getInitialViewExtent()),
+            window = world.addFramedMorph(panel, this.defaultTitle);
+        if (world.currentScene) world.currentScene.addMorph(window); // FIXME
+        panel.ownerApp = this; // for debugging
+        this.panel = panel;
+        this.view = window;
+        var navButton = window.titleBar.addButton("N");
+        navButton.plugTo(this, {fire: '->toggleCollapseNavigation'});
+        return window;
+    },
+    toggleCollapseNavigation: function() {
+        var isExpanded = this.view.submorphs.include(this.panel);
+        if (isExpanded) { 
+            this.collapseNavigation(); 
+        } else {
+            this.expandNavigation();
+        }
+    }
+
 
 
 

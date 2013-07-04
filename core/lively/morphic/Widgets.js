@@ -2353,16 +2353,12 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     }
 },
 'intitializing', {
-    initialize: function($super, headline, windowWidth, windowMorph, optSuppressControls) {
-        if (optSuppressControls)  {  // for dialog boxes
-            this.suppressControls = true;
-            this.barHeight = this.shortBarHeight;
-        }
+    initialize: function($super, headline, windowWidth, windowMorph) {
         var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
-
         $super(bounds);
 
         this.windowMorph = windowMorph;
+        this.buttons = [];
 
         // Note: Layout of submorphs happens in adjustForNewBounds (q.v.)
         var label;
@@ -2375,28 +2371,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         this.label.addStyleClassName('window-title');
         this.label.setTextStylingMode(true);
 
-        if (!this.suppressControls) {
-            var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
-
-            this.closeButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(0,-1)));
-            this.closeButton.applyStyle({moveHorizontal: true});
-            this.closeButton.addStyleClassName('close');
-            
-            var menuCell = new Rectangle(0, 0, 40, this.barHeight-5);
-            this.menuButton = this.addMorph(
-                new lively.morphic.WindowControl(menuCell, this.controlSpacing, "Menu", pt(0,0)));
-
-            this.collapseButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(0,1)));
-            this.collapseButton.applyStyle({moveHorizontal: true});
-
-
-            this.connectButtons(windowMorph);
-        }
-        // This will align the buttons and label properly
-        this.adjustForNewBounds();
-
         this.disableDropping();
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
@@ -2407,51 +2381,56 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         this.closeButton.plugTo(w, {getHelpText: '->getCloseHelp', fire: '->initiateShutdown'});
         this.menuButton.plugTo(w, {getHelpText: '->getMenuHelp', fire: '->showTargetMorphMenu'});
         this.collapseButton.plugTo(w, {getHelpText: '->getCollapseHelp', fire: '->toggleCollapse'});
-    }
+    },
+    addButton: function(label, optLabelOffset, optWidth) {
+        var length = this.barHeight - 5;
+        var extent = lively.pt(optWidth || length, length);
+        var button = this.addMorph(
+                new lively.morphic.WindowControl(
+                        lively.rect(lively.pt(0, 0), extent), 
+                        this.controlSpacing, 
+                        label, 
+                        optLabelOffset || pt(0,0)));
+        this.buttons.push(button);
+        // This will align the label properly
+        this.adjustLabelBounds();
+        return button;
+    },
+
 
 },
 'label', {
     setTitle: function(string) {
         this.label.replaceTextString(string);
-        this.adjustForNewBounds();
     },
 
     getTitle: function(string) { return this.label.textString }
 },
 'layouting', {
-    adjustForNewBounds: function($super) {
-        $super();
+    adjustLabelBounds: function($super) {
+        // $super(); adjustForNewBounds()
         var innerBounds = this.innerBounds(),
-            loc = this.innerBounds().topLeft().addXY(sp, sp),
-            sp = this.controlSpacing,
-            l0 = loc,
-            dx = pt(this.barHeight - sp, 0);
+            sp = this.controlSpacing;
         
-        if (this.closeButton) {
-            loc = this.innerBounds().topRight().addXY(
-                -sp-this.closeButton.shape.getBounds().width, sp);
-            this.closeButton.setPosition(loc);
-            loc = loc.subPt(dx);
-        }
-        if (this.collapseButton) {
-            this.collapseButton.setPosition(loc);
-        };
-        if (this.menuButton) {
-            loc = loc.subPt(pt(sp, 0));
-            loc = loc.subPt(pt(this.menuButton.innerBounds().width, 0));
-            this.menuButton.setPosition(loc);
-        }
+        var buttonLocation = this.innerBounds().topRight().subXY(sp, -sp);
+                
+        this.buttons.forEach(function(ea) {
+            buttonLocation = buttonLocation.subXY(ea.shape.getBounds().width, 0);
+            ea.setPosition(buttonLocation);
+            buttonLocation = buttonLocation.subXY(sp, 0)
+        });
+        
         if (this.label) {
             var start = this.innerBounds().topLeft().addXY(sp, sp),
-                end = this.collapseButton ? this.collapseButton.bounds().bottomLeft() : innerBounds.bottomRight();
+                end = lively.pt(buttonLocation.x, innerBounds.bottomRight().y).subXY(sp, sp);
             this.label.setBounds(rect(start, end));
         }
-
-/*        var style = this.styleNamed("titleBar");
-        var w = style.borderWidth || 1;
-        var r = style.borderRadius || 3;
-        this.contentMorph.setBounds(new Rectangle(w/2, w/2, innerBounds.width, this.barHeight + r));*/
     },
+    adjustForNewBounds: function() {
+        $super();
+        this.adjustLabelBounds();
+    },
+
 
     lookCollapsedOrNot: function(collapsed) {
         this.applyStyle({borderRadius: collapsed ? "8px 8px 8px 8px" : "8px 8px 0px 0px"});
@@ -2526,7 +2505,20 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 
     makeTitleBar: function(titleString, width, optSuppressControls) {
         // Overridden in TabbedPanelMorph
-        return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
+        var titleBar = new lively.morphic.TitleBar(titleString, width, this);
+        if (optSuppressControls) return titleBar;
+        
+        var closeButton = titleBar.addButton("X", pt(0,-1));
+        closeButton.addStyleClassName('close');
+        
+        var collapseButton = titleBar.addButton("–", pt(0,1));
+        var menuButton = titleBar.addButton("Menu", null, 40);
+
+        closeButton.plugTo(this, {getHelpText: '->getCloseHelp', fire: '->initiateShutdown'});
+        menuButton.plugTo(this, {getHelpText: '->getMenuHelp', fire: '->showTargetMorphMenu'});
+        collapseButton.plugTo(this, {getHelpText: '->getCollapseHelp', fire: '->toggleCollapse'});
+        
+        return titleBar;
     },
 
     resetTitleBar: function() {

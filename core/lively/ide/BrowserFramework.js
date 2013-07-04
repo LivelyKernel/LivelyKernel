@@ -191,20 +191,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             })
         this.buttonCommands = cmds;
     },
-    buildSourceOnlyView: function() {
-        extent = extent || this.initialViewExtent;
-        var panel = new lively.ide.BrowserPanel(extent);
-        panel.createAndArrangePanesFrom(this.panelSpec);
-        panel.applyStyle({fill: Color.lightGray});
-        this.panel = panel;
-        this.setupListPanes();
-        this.setupSourceInput();
-        this.setupLocationInput();
-        this.setupResizers(panel);
-        panel.ownerWidget = this;
-        this.start();
-        return panel;
-    },
+
 
 
     start: function() {
@@ -382,8 +369,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (world.currentScene) world.currentScene.addMorph(window); // FIXME
         panel.ownerApp = this; // for debugging
         this.panel = panel;
-        this.view = window;
-        var navButton = window.titleBar.addButton("N");
+        this.view = window; Window
+        var navButton = window.titleBar.addNewButton("N");
         navButton.plugTo(this, {fire: '->toggleCollapseNavigation'});
         return window;
     },

@@ -1197,7 +1197,7 @@
 
         fixCSS: function(doc) {
             var styles = document.getElementsByTagName('style')
-            for (var i = 0; i < styles.length; i++) {
+            for (var i = styles.length-1; i >= 0; i--) {
                 styles[i].parentNode.removeChild(styles[i]);
             }
         }

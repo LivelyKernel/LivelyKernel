@@ -235,6 +235,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowIndents(this.getShowIndents());
         this.setSoftTabs(this.getSoftTabs());
         this.setShowActiveLine(this.getShowActiveLine());
+        this.setAutocompletionEnabled(this.getAutocompletionEnabled());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;

@@ -2376,12 +2376,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         this.setBorderStylingMode(true);
     },
 
-    connectButtons: function(w) {
-        if (this.suppressControls) return;
-        this.closeButton.plugTo(w, {getHelpText: '->getCloseHelp', fire: '->initiateShutdown'});
-        this.menuButton.plugTo(w, {getHelpText: '->getMenuHelp', fire: '->showTargetMorphMenu'});
-        this.collapseButton.plugTo(w, {getHelpText: '->getCollapseHelp', fire: '->toggleCollapse'});
-    },
+
     addButton: function(label, optLabelOffset, optWidth) {
         var length = this.barHeight - 5;
         var extent = lively.pt(optWidth || length, length);

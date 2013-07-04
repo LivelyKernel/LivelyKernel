@@ -120,7 +120,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     buildView: function (extent) {
         extent = extent || this.initialViewExtent;
         var panel = new lively.ide.BrowserPanel(extent);
-        panel.createAndArrangePanesFrom(this.panelSpec);
+        lively.morphic.Panel.makePanedPanel(extent, this.panelSpec, panel);
         panel.applyStyle({fill: Color.lightGray});
         this.panel = panel;
         this.setupListPanes();

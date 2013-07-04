@@ -2504,7 +2504,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         
         this.closeButton = titleBar.addNewButton("X", pt(0,-1));
         this.closeButton.addStyleClassName('close');
-        
         this.collapseButton = titleBar.addNewButton("–", pt(0,1));
         this.menuButton = titleBar.addNewButton("Menu", null, 40);
 

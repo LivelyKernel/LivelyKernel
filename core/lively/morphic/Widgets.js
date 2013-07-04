@@ -2934,7 +2934,6 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
                 var morphsBelowLabel = this.panel.submorphs.without(this.label).select(function(ea) {
                         return ea.bounds().top() <= labelBoundsFit.bottom(); }),
                     diff = labelBoundsFit.height - bounds.height;
-                morphsBelowLabel.forEach(function(ea) { ea.moveBy(pt(0,diff)); });
                 panelExtent = panelExtent.addXY(0, diff);
             }
             this.panel.setExtent(panelExtent);
@@ -3013,6 +3012,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         lively.bindings.connect(input, 'savedTextString', this, 'result');
         lively.bindings.connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
         lively.bindings.connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
+        input.applyStyle({resizeWidth: true, moveVertical: true});
         this.inputText = this.panel.addMorph(input);
     },
 
@@ -3052,7 +3052,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
     buildTextInput: function() {
         var bounds = rect(this.label.bounds().bottomLeft(), this.cancelButton.bounds().topRight()).insetBy(5),
             input = lively.ide.newCodeEditor(bounds, this.defaultInput || '').applyStyle({
-                    resizeWidth: true, resizeHeight: true,
+                    resizeWidth: true, moveVertical: true,
                     gutter: false, lineWrapping: true,
                     borderWidth: 1, borderColor: Color.gray.lighter(),
                     textMode: 'text'

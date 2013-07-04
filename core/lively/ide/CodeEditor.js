@@ -1,4 +1,4 @@
-module('lively.ide.CodeEditor').requires('lively.morphic').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ast.acorn').requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
@@ -268,12 +268,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     onDocumentChange: function(evt) {
-        require('lively.ast.acorn').toRun(function() {
-            var sess = this.aceEditor.session,
-                changeHandler = sess.$changeHandler || (sess.$changeHandler = new lively.ide.CodeEditor.DocumentChangeHandler());
-            changeHandler.onDocumentChangeResetDebounced(evt, this);
-            changeHandler.onDocumentChangeDebounced(evt, this);
-        }.bind(this));
+        var sess = this.aceEditor.session,
+            changeHandler = sess.$changeHandler || (sess.$changeHandler = new lively.ide.CodeEditor.DocumentChangeHandler());
+        changeHandler.onDocumentChangeResetDebounced(evt, this);
+        changeHandler.onDocumentChangeDebounced(evt, this);
     },
 
     addCommands: function(commands) {

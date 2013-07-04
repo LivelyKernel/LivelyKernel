@@ -209,16 +209,14 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     sendE: function(input, recipient) {
         this.recipient = recipient;
         this.input = input;
-        this.setUp("sendE", [input, recipient],
+        this.thrower = function(val, space, evaluator) {
+            var remote = this.lookup(recipient);
+            remote = remote.remoteRef(space, evaluator);
+            throw {type: "quitAndSend", target: remote, value: val};
+        };
+        this.setUp("sendE", [input],
             function(space, evaluator) {
-                var remote = this.lookup(recipient);
-                remote = remote.remoteRef(space, 0, evaluator);
-                var val = this.frpGet(input);
-                if (val !== undefined) {
-                    this.setLastTime(evaluator.currentTime);
-                    this.currentValue = val;
-                    throw {type: "quitAndSend", target: remote, value: val};
-                }
+                return this.frpGet(input);
             }
         );
         return this;
@@ -297,6 +295,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     // Evaluate a stream.  First attempt to evaluate the sub expressions in order
     //  and then evaluate the top level stream (this) if necessary.
         var changed = false;
+        var val;
         for (var i = 0; i < this.subExpressions.length; i++) {
             var ref = this.subExpressions[i];
             var elem = this[ref.ref] || this.owner[ref.ref];
@@ -305,7 +304,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             }
         }
         if (this.checker(this, time, evaluator)) {
-            var val = this.updater(this, evaluator);
+            val = this.updater(this, evaluator);
             if (val !== undefined) {
                 this.lastValue = this.currentValue;
                 this.setLastTime(this.type === "timerE" ? val : time);
@@ -319,6 +318,9 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                 this.lastTime = time;
             }
 		}
+        if (this.type === "sendE" && val !== undefined) {
+            this.thrower(val, this, evaluator);
+        }
         return changed;
     },
 
@@ -370,7 +372,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         return this.expression.apply(space, evaluator.arguments[this.id]);
     },
 
-    remoteRef: function(space, time, evaluator) {
+    remoteRef: function(space, evaluator) {
     // The checker for mergeE().  For mergeE, an undefined in sources is allowed.
         var dependencies = evaluator.dependencies[this.id];
         var result = null;
@@ -396,11 +398,15 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         return null;
     },
 
-    frpSet: function(val) {
+    frpSet: function(val, maybeTime) {
         this.currentValue = val;
-        this.setLastTime(this.owner.__evaluator.currentTime+1);
+        this.setLastTime(maybeTime || this.owner.__evaluator.currentTime+1);
         this.owner.__evaluator.changedExternally = true;
-        this.owner.__evaluator.evaluate();
+        if (maybeTime) {
+            this.owner.__evaluator.evaluateAt(maybeTime);
+        } else {
+            this.owner.__evaluator.evaluate();
+        }
         return val;
     },
 
@@ -443,13 +449,13 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     ceilTime: function(time, interval) {
         return Math.floor(time / interval) * interval;
     },
-    sync: function() {
+    sync: function(maybeTime) {
     // refresh the last value cache at the end of evaluation cycle.
         if (this.lastValue !== this.currentValue && this.currentValue !== undefined) {
             if (this.owner.frpConnections && this.owner.frpConnections[this.streamName]) {
                 var connections = this.owner.frpConnections[this.streamName];
                 for (var i = 0; i < connections.length; i++) {
-                    connections[i].update(this.currentValue, this.owner);
+                    connections[i].update(this.currentValue, this.owner, maybeTime);
                 }
             }
         }
@@ -654,15 +660,18 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
     },
     evaluate: function() {
         var now = Date.now();
-        
+        return this.evaluateAt(now - this.object.__startTime);
+    },
+    evaluateAt: function(time) {
         if (!this.results) {
             this.addStreamsFrom(this.object);
             this.sort();
             this.detectContinuity();
         }
-        return this.evaluateAt(now - this.object.__startTime);
-    },
-    evaluateAt: function(time) {
+
+        if (this.debug) {
+            debugger;
+        }
         this.changed = this.changedExternally;
         this.currentTime = time;
         var i;
@@ -672,7 +681,12 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             }
         } catch (e) {
             if (e.type === "quitAndSend") {
-                setTimeout(this.realSend.curry(e), 0);
+                e.evaluator = this;
+                if (this.syncWithRealTime) {
+                    setTimeout(this.realSend.curry(e), 0);
+                } else {
+                    this.realSend(e);
+                }
                 this.changedExternally = false;
                 return this.changed;
             }
@@ -687,7 +701,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         }
         if (this.changed) {
             for (i = 0; i < this.results.length; i++) {
-                this.results[i].sync();
+                this.results[i].sync(this.currentTime);
             }
         }
         this.changedExternally = false;
@@ -697,7 +711,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.evaluateAt(this.currentTime);
     },
     realSend: function(parameter) {
-        parameter.target.frpSet(parameter.value);
+        parameter.target.frpSet(parameter.value, parameter.evaluator.currentTime);
     },
     installStream: function(strm) {
     // For a timer, it starts the timer.
@@ -773,7 +787,7 @@ lively.morphic.Morph.addMethods({
             connections.push(c);
         }
     },
-    frpDisConnect: function(fromProp, targetName, targetProp) {
+    frpDisconnect: function(fromProp, targetName, targetProp) {
         if (!this.frpConnections) {
             return;
         }
@@ -785,7 +799,7 @@ lively.morphic.Morph.addMethods({
             return c.targetName === targetName && c.targetProp === targetProp;
         });
         if (hasIt) {
-            connections.splice(connections.indexOf(hasIt), 1);
+            connections.remove(hasIt);
         }
     }
 });
@@ -841,11 +855,12 @@ Object.subclass('lively.bindings.FRPConnection',
         this.targetProp = targetProp;
         return this;
     },
-    update: function (newValue, srcObj) {
-        if (srcObj.get(this.targetName)) {
-            var strm = srcObj.get(this.targetName)[this.targetProp];
+    update: function (newValue, srcObj, maybeTime) {
+        var target = typeof this.targetName === "string" ? srcObj.get(this.targetName) : this.targetName;
+        if (target) {
+            var strm = target[this.targetProp];
             if (strm && this.isEventStream(strm)) {
-                strm.frpSet(newValue);
+                strm.frpSet(newValue, maybeTime);
             }
         }
     },

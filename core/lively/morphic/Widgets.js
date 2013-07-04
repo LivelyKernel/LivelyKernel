@@ -2853,13 +2853,13 @@ Object.subclass('lively.morphic.App',
     }
 },
 'accessing', {
-    getInitialViewExtent: function(world, hint) {
+    getInitialViewExtent: function(hint) {
         return hint || this.initialViewExtent;
     }
 },
 'opening', {
     openIn: function(world, pos) {
-        var view = this.buildView(this.getInitialViewExtent(world));
+        var view = this.buildView(this.getInitialViewExtent());
         view.ownerApp = this; // for debugging
         this.view = view;
         if (pos) view.setPosition(pos);
@@ -3091,7 +3091,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
 lively.morphic.App.subclass('lively.morphic.WindowedApp',
 'opening', {
     openIn: function(world, pos) {
-        var view = this.buildView(this.getInitialViewExtent(world)),
+        var view = this.buildView(this.getInitialViewExtent()),
             window = world.addFramedMorph(view, this.defaultTitle);
         if (world.currentScene) world.currentScene.addMorph(window); // FIXME
         view.ownerApp = this; // for debugging

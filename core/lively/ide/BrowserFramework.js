@@ -349,6 +349,11 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.view.addMorph(this.sourceOnlyPanel);
     },
     expandNavigation: function() {
+        var originalSourceEditHeight = this.panel.bounds().height - this.navigationHeight(),
+            vResizing = this.sourceOnlyPanel.bounds().height / originalSourceEditHeight,
+            newHeight = this.panel.bounds().height * vResizing,
+            newWidth = this.sourceOnlyPanel.bounds().width;
+        this.panel.setExtent(lively.pt(newWidth, newHeight));
         
         this.panel.addMorph(this.getSourcePane());
         this.getSourcePane().setPosition(this.panel.midResizer.getBounds().bottomLeft());
@@ -361,7 +366,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
 
     navigationHeight: function() {
-        return this.panel.getExtent().subPt(this.getSourcePane().getExtent()).y;
+        return this.panel.midResizer.bounds().bottomLeft().y;
     },
     openIn: function (world, pos) {
         var panel = this.buildView(this.getInitialViewExtent()),

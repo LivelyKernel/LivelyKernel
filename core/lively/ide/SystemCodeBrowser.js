@@ -41,9 +41,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         }, undefined, {self: this});
         
         connect(this, 'targetURL', this, 'setLocationInputFromURL');
-
         connect(this.locationInput(), 'savedTextString', this, 'setTargetUrlFromString');
-        this.targetURL = this.targetURL; // hrmpf
         this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
     },
     switchToLocalCodebase: function() {

@@ -1034,10 +1034,7 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
     initialize: function($super, extent) {
         $super(extent.extentAsRectangle());
     },
-});
-
-Object.extend(lively.morphic.Panel, {
-    makePanedPanel: function(extent, paneSpecs, optPanel) {
+    arrangeElementsAccordingToSpec: function(extent, paneSpecs, optPanel) {
         // Generalized constructor for paned window panels
         // paneSpec is an array of arrays of the form...
         //     ['leftPane', newTextListPane, new Rectangle(0, 0, 0.5, 0.6)],
@@ -1060,6 +1057,39 @@ Object.extend(lively.morphic.Panel, {
             panel[paneName] = panel.addMorph(pane)
         });
 
+        return panel;
+    },
+    createAndArrangePanesFrom: function(paneSpecs) {
+        var self = this;
+        paneSpecs.each(function(spec) {
+            var paneName = spec[0],
+                paneConstructor = spec[1],
+                relativeRect = spec[2] instanceof lively.Rectangle ?
+                    spec[2] :
+                    new lively.Rectangle(spec[2][0], spec[2][1], spec[2][2], spec[2][3]);
+            
+            var paneRect = self.bounds().scaleByRect(relativeRect);
+                // fix for mixed class vs. function initialization bug
+            var pane = Class.isClass(paneConstructor) ?
+                    new paneConstructor() :
+                    pane = paneConstructor(paneRect);
+            pane.setBounds(paneRect);
+            self[paneName] = self.addMorph(pane)
+        });
+    }
+
+
+});
+
+Object.extend(lively.morphic.Panel, {
+    makePanedPanel: function(extent, paneSpecs, optPanel) {
+        // Generalized constructor for paned window panels
+        // paneSpec is an array of arrays of the form...
+        //     ['leftPane', newTextListPane, new Rectangle(0, 0, 0.5, 0.6)],
+        // See example calls in, eg, SimpleBrowser.buildView() for how to use this
+        var panel = optPanel || new this(extent);
+        //panel.linkToStyles(['panel']);
+        panel.createAndArrangePanesFrom(paneSpecs);
         return panel;
     },
 

@@ -2326,6 +2326,11 @@ Object.extend(lively.morphic.Events, {
     }
 });
 Object.subclass('lively.morphic.KeyboardDispatcher',
+"settings", {
+    // C = Control, M = Alt|Option|Meta, S = Shift, cmd = Command
+    // sort by: "c-s-m-cmd" to be compatible with ace
+    modifierSortOrder: {'c': -4, 's': -3, 'm': -2, 'cmd': -1}
+},
 "initializing", {
     initialize: function(bindings) {
         this.bindings = {};
@@ -2335,22 +2340,23 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
 'key capturing', {
     normalizeModifier: function(modifierString) {
         switch (modifierString.toLowerCase()) {
-            case 'c': case 'ctrl': case 'control': return "C";
-            case 'm': case 'meta': case 'option': case 'alt': return "M";
-            case 's': case 'shift': return "S";
+            case 'c': case 'ctrl': case 'control': return "c";
+            case 'm': case 'meta': case 'option': case 'alt': return "m";
+            case 's': case 'shift': return "s";
+            case 'cmd': case 'command': return "cmd";
             default: return null;
         }
     },
 
     normalizeComboPart: function(string) {
         // string is something like "Shift-Cmd-O", "Ctrl-x", ...
-        // what goes out is like CMD-S-o, C-x, ...
+        // what goes out is like cmd-s-o, c-x, ...
         // there we will normalize the modifier names and reorder
         // them alphabetical to get unique combo specifiers
         var parts = string.split('-');
         parts = parts.slice(0,-1)
             .map(function(ea) { return this.normalizeModifier(ea); }, this)
-            .sort()
+            .sortBy(function(modKey) { return this.modifierSortOrder[modKey] || null; }, this)
             .concat([parts.last().toLowerCase()]);
         return parts.join('-');
     },

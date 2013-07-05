@@ -236,16 +236,17 @@ TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
 'testing', {
     testNormalizeModifier: function() {
         var tests = [
-            "Ctrl", "C",
-            "controL", "C",
-            "Control", "C",
-            "C", "C",
-            "option", "M",
-            "M", "M",
-            "meta", "M",
-            "Alt", "M",
-            "s", "S",
-            "Shift", "S"
+            "Ctrl", "c",
+            "controL", "c",
+            "Control", "c",
+            "C", "c",
+            "option", "m",
+            "M", "m",
+            "meta", "m",
+            "Alt", "m",
+            "s", "s",
+            "Shift", "s",
+            "Command", "cmd"
         ]
         for (var i = 0; i < tests.length; i+=2) {
             this.assertEquals(tests[i+1], this.sut.normalizeModifier(tests[i]));

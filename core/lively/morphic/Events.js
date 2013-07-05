@@ -2360,6 +2360,10 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             .concat([parts.last().toLowerCase()]);
         return parts.join('-');
     },
+    normalizeCombo: function(comboParts) {
+        return comboParts.map(function(ea) { return this.normalizeComboPart(ea); }, this).join(' ');
+    },
+
 
     bindingsWithPrefix: function(prefix, dontNormalize) {
         // prefix is something like C-c
@@ -2417,14 +2421,13 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         return this.bindings[comboPart] || null;
     },
     lookupAll: function(comboParts) {
-        var combo = comboParts.map(function(ea) { return this.normalizeComboPart(ea); }, this).join(' ');
-        return this.bindings[combo] || null;
+        return this.bindings[this.normalizeCombo(comboParts)] || null;
     }
 },
 "event handling", {
     updateInputStateFromEvent: function(evt, keyInputState) {
         var keys = evt.getKeyString();
-        if (! keys || keys === '') { keyInputState.commandName = null; return keyInputState; }
+        if (!keys || keys === '') { keyInputState.commandName = null; return keyInputState; }
         keyInputState.prevKeys.push(keys);
         keyInputState.commandName = this.lookupAll(keyInputState.prevKeys);
         if (keyInputState.commandName !== 'prefix') keyInputState.prevKeys = [];
@@ -2432,13 +2435,48 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
     },
 
     handleKeyEvent: function(evt, keyInputState) {
+        var wasInPrefixState = keyInputState.commandName === 'prefix',
+            prevKeys = keyInputState.prevKeys.clone();
         keyInputState = this.updateInputStateFromEvent(evt, keyInputState);
         if (keyInputState.commandName === 'prefix') {
             return true;
         } else if (keyInputState.commandName) {
             return lively.ide.commands.exec(keyInputState.commandName);
+        } else if (wasInPrefixState) {
+            // We found no command to execute and no prefix, maybe an active
+            // codeeditor can deal with the combo/prefix
+            this.transferPrefixToActiveCodeEditor(prevKeys);
         }
         return false;
+    },
+
+    transferPrefixToActiveCodeEditor: function(prevKeysPressed) {
+        // this hack is used in combination with ace codeeditors.
+        // it's purpose is to allow both the global key handler
+        // as well as the codeditor to own key bindings (combos)
+        // starting with the same combo parts. the global handler
+        // will take precedence
+        // Example: global handler has key binding for "s-cmd-l r e n"
+        // codeeditor has binding for "s-cmd-l r e s", input is
+        // "s-cmd-l r e s
+        // Normally the global handler would follow the binding until
+        // an "e" is typed. If then no "n" is typed the global handler
+        // would just abandon the typed keys and the codeeditor would
+        // just receive "s". Instead of just abandoning the keys we
+        // update the codeeditor's state so it knows about the prev keys
+        var focused = lively.morphic.Morph.focusedMorph();
+        // are we typing in a codeeditor?
+        if (!focused || !focused.isCodeEditor
+         || !focused.aceEditor
+         || !focused.aceEditor.keyBinding.$data
+         // does the codeEditor know about key combos?
+         || focused.aceEditor.keyBinding.$data.keyChain === undefined) return;
+        var combo = this.normalizeCombo(prevKeysPressed),
+            kbd = focused.aceEditor.getKeyboardHandler();
+        // is the current combo a prefix for codeeditor?
+        if (kbd.commmandKeyBinding[combo] === undefined) return;
+        // the current key will be read in by the editor, just send the last ones
+        focused.aceEditor.keyBinding.$data.keyChain = combo;
     }
 });
 Object.extend(lively.morphic.KeyboardDispatcher, {

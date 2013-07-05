@@ -87,7 +87,6 @@ Object.extend(lively.ide.commands.byName, { // add default commands
     },
     renameCurrentWindow: {
         exec: function() {
-            show('!')
             var focused = lively.morphic.Morph.focusedMorph(),
                 win = focused && focused.getWindow();
             if (!win) { show('Cannot find active window!'); return; }

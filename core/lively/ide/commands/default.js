@@ -84,6 +84,17 @@ Object.extend(lively.ide.commands.byName, { // add default commands
             narrower.open(spec);
             return true;
         }
+    },
+    renameCurrentWindow: {
+        exec: function() {
+            show('!')
+            var focused = lively.morphic.Morph.focusedMorph(),
+                win = focused && focused.getWindow();
+            if (!win) { show('Cannot find active window!'); return; }
+            $world.prompt('Enter new window title', function(input) {
+                if (input !== null) win.titleBar.setTitle(input || '');
+            }, win.titleBar.getTitle());
+        }
     }
 });
 
@@ -93,7 +104,8 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     windowNavigation: {mac: "cmd-`", win: "ctrl-`"},
     resetKeyBindings: 'F8',
     activatePrevSelectionNarrower: "cmd-y",
-    doGrepSearch: "cmd-s-g"
+    doGrepSearch: "cmd-s-g",
+    renameCurrentWindow: 'cmd-s-l r e n'
 });
 
 }) // end of module

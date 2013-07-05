@@ -255,16 +255,16 @@ TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
 
     testAddKeyCombos: function() {
         this.sut.addKeyCombo("Control-c control-k", 'test');
-        this.assertEquals('prefix', this.sut.bindings['C-c'], 1);
-        this.assertEquals('test', this.sut.bindings['C-c C-k'], 2);
+        this.assertEquals('prefix', this.sut.bindings['c-c'], 1);
+        this.assertEquals('test', this.sut.bindings['c-c c-k'], 2);
         this.sut.addKeyCombo("ctrl-c shift-k", 'test2');
-        this.assertEquals('prefix', this.sut.bindings['C-c'], 3);
-        this.assertEquals('test2', this.sut.bindings['C-c S-k'], 4);
+        this.assertEquals('prefix', this.sut.bindings['c-c'], 3);
+        this.assertEquals('test2', this.sut.bindings['c-c s-k'], 4);
         this.sut.addKeyCombo("C-c", 'test3');
-        this.assertEquals(undefined, this.sut.bindings['C-c C-k'], 5);
-        this.assertEquals(undefined, this.sut.bindings['C-c S-k'], 6);
+        this.assertEquals(undefined, this.sut.bindings['c-c c-k'], 5);
+        this.assertEquals(undefined, this.sut.bindings['c-c s-k'], 6);
         this.sut.addKeyCombo("Shift-Alt-c", 'test4');
-        this.assertEquals('test4', this.sut.bindings['M-S-c'], 7);
+        this.assertEquals('test4', this.sut.bindings['s-m-c'], 7);
     },
 
     testLookupCombos: function() {

@@ -20,8 +20,19 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     },
 
     onrestore: function() {
-        if (this.panel) this.panel.onDeserialize.bind(this.panel).delay(0);
+        if (this.panel) this.onDeserialize.bind(this).delay(0);
     },
+    onDeserialize: function() {
+        var position = this.view.getPosition(),
+            extent = this.view.getExtent(),
+            world = lively.morphic.World.current(),
+            newBrowser = new this.constructor();
+        
+        newBrowser.openIn(world, position, extent);
+        newBrowser.selectNode(this.selectedNode());
+        this.view.remove();
+},
+
 
     setupLocationInput: function($super) {
         $super();
@@ -74,6 +85,17 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         }
         this.setTargetURL(new URL(targetUrlString))
     },
+    openIn: function($super, world, pos, ext) {
+        $super(world, pos, ext);
+        var lastOpened = lively.ide.SourceControl.registeredBrowsers.last();
+            lastOpened && this.setTargetURL(lastOpened.targetURL);
+    },
+
+
+
+
+
+
 
 
 

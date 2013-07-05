@@ -1398,9 +1398,6 @@ lively.morphic.World.addMethods(
         require('lively.ide.SystemCodeBrowser').toRun(function() {
             browser = new lively.ide.SystemBrowser();
             browser.openIn(world);
-
-            var lastOpened = lively.ide.SourceControl.registeredBrowsers.last();
-            lastOpened && browser.setTargetURL(lastOpened.targetURL)
         });
         return browser;
     },

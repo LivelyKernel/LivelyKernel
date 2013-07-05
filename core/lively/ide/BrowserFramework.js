@@ -368,9 +368,11 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     navigationHeight: function() {
         return this.panel.midResizer.bounds().bottomLeft().y;
     },
-    openIn: function (world, pos) {
-        var panel = this.buildView(this.getInitialViewExtent()),
+    openIn: function (world, pos, ext) {
+        var extent = ext || this.getInitialViewExtent(),
+            panel = this.buildView(extent),
             window = world.addFramedMorph(panel, this.defaultTitle);
+        if (pos) window.setPosition(pos);
         if (world.currentScene) world.currentScene.addMorph(window); // FIXME
         panel.ownerApp = this; // for debugging
         this.panel = panel;
@@ -774,16 +776,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
 lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
 'serialization', {
-
-    onDeserialize: function($super) {
-        var widget = new this.ownerWidget.constructor(),
-            selection = this.getSelectionSpec();
-        if (this.targetURL) widget.targetURL = this.targetURL;
-        this.owner.targetMorph = this.owner.addMorph(widget.buildView(this.getExtent()));
-        this.owner.targetMorph.setPosition(this.getPosition());
-        this.remove();
-        this.resetSelection(selection, widget);
-    }
 
 },
 'accessing', {

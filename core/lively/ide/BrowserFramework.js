@@ -369,7 +369,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (world.currentScene) world.currentScene.addMorph(window); // FIXME
         panel.ownerApp = this; // for debugging
         this.panel = panel;
-        this.view = window; Window
+        this.view = window;
         var navButton = window.titleBar.addNewButton("N");
         navButton.plugTo(this, {fire: '->toggleCollapseNavigation'});
         return window;

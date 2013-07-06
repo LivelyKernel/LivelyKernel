@@ -528,6 +528,7 @@ Object.extend(lively.ide, {
             var lastGrep = lively.ide.CommandLineSearch.lastGrep;
             if (lastGrep) lastGrep.kill();
             path = path || 'lively';
+            if (!path.endsWith('/')) path += '/';
             var cmd = Strings.format("find %s -iname '*js' -exec grep -inH %s '{}' \\; ",
                 '$WORKSPACE_LK/core/' + path,
                 string);
@@ -535,7 +536,7 @@ Object.extend(lively.ide, {
             lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
                 lively.ide.CommandLineSearch.lastGrep = null;
                 var lines = r.getStdout().split('\n')
-                    .map(function(line) { return line.slice(line.indexOf('/core') + 6); })
+                    .map(function(line) { return line.slice(line.indexOf('/core') + 6).replace(/\/\//g, '/'); })
                 thenDo && thenDo(lines);
             });
         },

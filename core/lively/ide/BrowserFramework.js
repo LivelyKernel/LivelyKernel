@@ -304,8 +304,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 },
 'collapsing', {
     toggleCollapseNavigation: function() {
-        var isExpanded = this.view.submorphs.include(this.panel);
-        if (isExpanded) { 
+        if (this.isNavigationExpanded()) { 
             this.collapseNavigation(); 
         } else {
             this.expandNavigation();
@@ -340,6 +339,9 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
     navigationHeight: function() {
         return this.panel.midResizer.bounds().bottomLeft().y;
+    },
+    isNavigationExpanded: function() {
+        return this.view.submorphs.include(this.panel);
     },
 },
 'opening', {

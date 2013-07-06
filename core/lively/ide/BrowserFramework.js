@@ -712,9 +712,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
 
     ensureSourceNotAccidentlyDeleted: function (callback) {
-        // checks if the source code has unsaved changes if it hasn't or if the
-        // user wants to discard them then run the callback
-        // otherwise do nothing
+        // checks if the source code has unsaved changes, only run the callback 
+        // if it hasn't or if the user wants to discard them
         var browser = this;
         if (!browser.hasUnsavedChanges()) {
             callback.apply(browser);

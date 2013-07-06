@@ -23,6 +23,8 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         if (this.panel) this.onDeserialize.bind(this).delay(0);
     },
     onDeserialize: function() {
+        // rebuild the browser as its view on the system 
+        // source might not be up to date anymore
         var position = this.view.getPosition(),
             extent = this.view.getExtent(),
             world = lively.morphic.World.current(),

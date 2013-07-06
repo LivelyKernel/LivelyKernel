@@ -596,16 +596,21 @@ Object.extend(lively.ide, {
             options = options || {};
             var path = options.path || '.';
             if (!path.endsWith('/')) path += '/';
+            // we expect an consistent timeformat to parse the results
             var timeFormatFix =
                 "if [ `uname` == \"Darwin\" ]; "
               + "  then timeformat='-T'; "
               + "else "
               + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
-              + "fi && "
+              + "fi && ";
+            var excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
+                searchPart = options.re ? '-iregex "%s"' : '-iname "%s"';
+            // use GMT for time settings by default so the result is comparable
             var commandString = timeFormatFix + Strings.format(
                 "env TZ=GMT find %s "
-              + '\\( -iname ".svn" -o -iname ".git" -o -iname "node_modules" \\) -prune '
-              + '-o -iname "%s" -exec ls -l \"$timeformat\" {} \\;',
+              + (options.re ? '-E ' : '')
+              + '\\( ' + excludes + ' \\) -prune '
+              + '-o ' + searchPart + ' -exec ls -l \"$timeformat\" {} \\;',
                 path, pattern)
             function parseFindLsResult(string) {
                 var lines = Strings.lines(string);
@@ -613,14 +618,18 @@ Object.extend(lively.ide, {
                     // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
                     //                  file mode   no of links  user     group       size   date: month,day,   time,       year      file
                     var match = line.match(/^\s*([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
+                    var path = match && match[7].replace(/\/\//g, '/'), pathAndLink = path && path.split(' -> '), isLink = path && pathAndLink.length === 2;
                     return match ? {
                         mode: match[1],
                         // linkCount: Number(match[2]),
+                        isLink: isLink,
+                        linkTarget: pathAndLink[1],
                         user: match[3],
                         group: match[4],
                         size: Number(match[5]),
                         lastModified: new Date(match[6] + ' GMT'),
-                        path: match[7].replace(/\/\//g, '/')
+                        path: isLink ? pathAndLink[0] : path,
+                        toString: function() { return this.path; }
                     } : null;
                 }).compact();
             }

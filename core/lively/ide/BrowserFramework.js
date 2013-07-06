@@ -317,7 +317,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.sourceOnlyPanel = new lively.morphic.Panel(sourcePane.getExtent());
         this.sourceOnlyPanel.setPosition(this.panel.getPosition());
         
-        
         this.sourceOnlyPanel.addMorph(sourcePane);
         sourcePane.setPosition(lively.pt(0, 0));
         
@@ -353,8 +352,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         panel.ownerApp = this;
         this.panel = panel;
         this.view = window;
-        var navButton = window.titleBar.addNewButton("–", pt(0,2));
+        
+        var navButton = window.titleBar.addNewButtonAt(2, "N");
         navButton.plugTo(this, {fire: '->toggleCollapseNavigation'});
+        
         return window;
     },
 },

@@ -2372,23 +2372,27 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
     },
-
-
-    addNewButton: function(label, optLabelOffset, optWidth) {
-        var length = this.barHeight - 5;
-        var extent = lively.pt(optWidth || length, length);
+    createNewButton: function(label, optLabelOffset, optWidth) {
+        var length = this.barHeight - 5,
+            extent = lively.pt(optWidth || length, length);
         var button = this.addMorph(
                 new lively.morphic.WindowControl(
                         lively.rect(lively.pt(0, 0), extent), 
                         this.controlSpacing, 
                         label, 
                         optLabelOffset || pt(0,0)));
-        this.buttons.push(button);
-        this.adjustLabelBounds();
         return button;
     },
-
-
+    addNewButton: function(label, optLabelOffset, optWidth) {
+        var pos = this.buttons.size();
+        return this.addNewButtonAt(pos, label, optLabelOffset, optWidth);
+    },
+    addNewButtonAt: function(pos, label, optLabelOffset, optWidth) {
+        var button = this.createNewButton(label, optLabelOffset, optWidth);
+        this.buttons.pushAt(button, pos);
+        this.adjustElementPositions();
+        return button;
+    },
 },
 'label', {
     setTitle: function(string) {
@@ -2398,7 +2402,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     getTitle: function(string) { return this.label.textString }
 },
 'layouting', {
-    adjustLabelBounds: function($super) {
+    adjustElementPositions: function($super) {
         var innerBounds = this.innerBounds(),
             sp = this.controlSpacing;
         
@@ -2412,15 +2416,14 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         
         if (this.label) {
             var start = this.innerBounds().topLeft().addXY(sp, sp),
-                end = lively.pt(buttonLocation.x, innerBounds.bottomRight().y).subXY(sp, sp);
+                end = lively.pt(buttonLocation.x,
+                        innerBounds.bottomRight().y).subXY(sp, sp);
             this.label.setBounds(rect(start, end));
         }
     },
     adjustForNewBounds: function() {
-        this.adjustLabelBounds();
+        this.adjustElementPositions();
     },
-
-
     lookCollapsedOrNot: function(collapsed) {
         this.applyStyle({borderRadius: collapsed ? "8px 8px 8px 8px" : "8px 8px 0px 0px"});
     }

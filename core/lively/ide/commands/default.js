@@ -70,12 +70,14 @@ Object.extend(lively.ide.commands.byName, { // add default commands
             lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
             lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
             lively.bindings.connect(narrower, 'escapePressed', show.bind('foooo'), 'call');
+            lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
             var greper = Functions.debounce(500, function(input, callback) {
                 lively.ide.CommandLineSearch.doGrep(input, null, function(lines) {
                     callback(lines.asListItemArray());
                 })
             });
             var spec = {
+                prompt: 'search for: ',
                 candidatesUpdaterMinLength: 3,
                 candidates: Array.range(0,20).invoke('toString'),
                 candidatesUpdater: greper,

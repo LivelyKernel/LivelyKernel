@@ -106,6 +106,26 @@ Object.extend(lively.ide.commands.byName, { // add default commands
             $world.prompt('Enter new window title', function(input) {
                 if (input !== null) win.titleBar.setTitle(input || '');
             }, win.titleBar.getTitle());
+            return true;
+        }
+    },
+    gatherWindowsAtCursor: {
+        exec: function() {
+            function restack(parent, filter) {
+                var morphs = parent.submorphs.select(filter),
+                    pos = parent.hands[0].getPosition();
+                morphs.inject(pos, function(pos, win) {
+                    win.setPosition(pos);
+                    return pos.addXY(30,30);
+                });
+            }
+            restack($world, function(ea) { return ea.isWindow; });
+            return true;
+        }
+    },
+    saveWorld: {
+        exec: function() {
+            $world.saveWorld(); return true;
         }
     }
 });
@@ -118,7 +138,9 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     activatePrevSelectionNarrower: "cmd-y",
     showHalo: "cmd-h",
     doGrepSearch: "cmd-s-g",
-    renameCurrentWindow: 'cmd-s-l r e n'
+    renameCurrentWindow: 'cmd-s-l r e n',
+    gatherWindowsAtCursor: 'cmd-s-l s t a c k w',
+    saveWorld: 'cmd-s-l s a v e'
 });
 
 }) // end of module

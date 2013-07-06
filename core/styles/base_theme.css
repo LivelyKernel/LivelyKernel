@@ -28,8 +28,6 @@
 	color: #333;
 	text-align: center;
 	text-shadow: 0 1px 0 #EEE;
-/*	background-image: -webkit-linear-gradient(top, #eee, #ccc);
-	background-image: -moz-linear-gradient(top, #eee, #ccc);*/
 	border-radius: 2px;
 	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
 	cursor: pointer;
@@ -41,8 +39,6 @@
 }
 
 .Button.toggled {
-/*	background-image: -webkit-linear-gradient(top, #FFF, #EEE);
-	background-image: -moz-linear-gradient(top, #FFF, #EEE);*/
 	color: black;
 }
 

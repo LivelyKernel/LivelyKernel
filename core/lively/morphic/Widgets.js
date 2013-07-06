@@ -2384,7 +2384,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
                         label, 
                         optLabelOffset || pt(0,0)));
         this.buttons.push(button);
-        // This will align the label properly
         this.adjustLabelBounds();
         return button;
     },
@@ -2400,7 +2399,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
 },
 'layouting', {
     adjustLabelBounds: function($super) {
-        // $super(); adjustForNewBounds()
         var innerBounds = this.innerBounds(),
             sp = this.controlSpacing;
         
@@ -2495,7 +2493,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
 
     makeTitleBar: function(titleString, width, optSuppressControls) {
-        // Overridden in TabbedPanelMorph
         var titleBar = new lively.morphic.TitleBar(titleString, width, this);
         if (optSuppressControls) return titleBar;
         

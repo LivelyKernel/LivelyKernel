@@ -110,7 +110,6 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         var url = urlOrString || URL.root;
         if (Object.isString(urlOrString) ) {
             try {
-                
                 if (urlOrString.startsWith('http://')) {
                     url = new URL(urlOrString);
                 } else {
@@ -176,7 +175,6 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
             lively.ide.OpenDiffViewerCommand,
             lively.ide.OpenModulePartCommand]
     },
-
 
 
     sourceDatabase: function() {

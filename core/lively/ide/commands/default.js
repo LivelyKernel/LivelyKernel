@@ -87,6 +87,17 @@ Object.extend(lively.ide.commands.byName, { // add default commands
             return true;
         }
     },
+    showHalo: {
+        exec: function() {
+            var focused = lively.morphic.Morph.focusedMorph(),
+                morph = $world.getActiveWindow() || focused;
+            if (!morph) return true;
+            if (morph.showsHalos) morph.removeHalos();
+            else morph.showHalos();
+            focused && focused.focus.bind(focused).delay(0);
+            return true;
+        }
+    },
     renameCurrentWindow: {
         exec: function() {
             var focused = lively.morphic.Morph.focusedMorph(),
@@ -105,6 +116,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     windowNavigation: {mac: "cmd-`", win: "ctrl-`"},
     resetKeyBindings: 'F8',
     activatePrevSelectionNarrower: "cmd-y",
+    showHalo: "cmd-h",
     doGrepSearch: "cmd-s-g",
     renameCurrentWindow: 'cmd-s-l r e n'
 });

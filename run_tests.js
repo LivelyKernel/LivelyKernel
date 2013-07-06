@@ -101,6 +101,7 @@ var browserTests = [
     'lively.ide.tests.SCBTests',
     "lively.ide.tests.SyntaxHighlighting",
     "lively.ide.tests.WindowNavigation",
+    'lively.ide.tools.tests.CommandLine',
 
     // morphic
     "lively.morphic.tests.Connectors",

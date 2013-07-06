@@ -36,7 +36,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     },
     currentSel: 0,
     doNotSerialize: ["timeOpened","state"],
-    droppingEnabled: true,
+    droppingEnabled: false,
     initialSelection: 1,
     isEpiMorph: true,
     name: "NarrowList",
@@ -178,7 +178,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     //     narrowSpec = {
     //         init: function(whenDone) {},
     //         candidates: /*list ||*/function(func) {},
-    //         ?prompt: 'string',
+    //         prompt: 'string',
     //         preselect: 0,/*index || candidate*/
     //         ?keymap: {/*maps keyStrings to actions*/},
     //         ?history: [/*previous inputs*/],
@@ -194,6 +194,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         spec.actions = spec.actions || [Functions.Null];
         var s = narrower.state = {
             spec: spec,
+            prompt: spec.prompt,
             layout: narrower.initLayout(spec.maxItems || candidates.length),
             allCandidates: candidates,
             filteredCandidates: candidates,
@@ -203,7 +204,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             filters: []
         };
         narrower.renderContainer(s.layout);
-        narrower.renderInputline(s.layout);
+        narrower.renderInputline(s.prompt, s.layout);
         narrower.selectN(spec.preselect || 0);
         narrower.focus();
     }
@@ -230,23 +231,24 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         this.bounds().bottomCenter(),
         visibleBounds.bottomCenter().addXY(0, -layout.padding));
 },
-    renderInputline: function renderInputline(layout) {
+    renderInputline: function renderInputline(prompt, layout) {
     var inputLine = this.getMorphNamed('inputLine');
     if (!inputLine) {
         inputLine = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
         inputLine.name = 'inputLine';
+        prompt && inputLine.setLabel(prompt);
         this.addMorph(inputLine);
         inputLine.setExtent(pt(this.getExtent().x, layout.inputLineHeight));
         inputLine.setTheme('ambiance');
         inputLine.jQuery('.ace-scroller').css({'background-color': 'rgba(32, 32, 32, 0.3)'});
-        lively.bindings.connect(inputLine, 'textString', this, 'filter');
+        lively.bindings.connect(inputLine, 'inputChanged', this, 'filter');
         lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed');
         inputLine.clearOnInput = false;
         // remove up/down commands of orginal inputline
         inputLine.addScript(function onKeyDown(evt) {
             var sig = evt.getKeyString();
             switch(sig) {
-                case 'Enter': this.commandLineInput(this.textString); evt.stop(); return true;
+                case 'Enter': this.commandLineInput(this.getInput()); evt.stop(); return true;
                 case 'Esc':
                 case 'Control-C':
                 case 'Control-G': this.clear(); evt.stop(); return true;
@@ -273,6 +275,11 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     }
     inputLine.setPosition(pt(0, this.getExtent().y-layout.inputLineHeight));
 },
+    selectInput: function selectInput() {
+        var inputLine = this.get('inputLine');
+        if (inputLine) inputLine.selectAll();
+        else this.selectInput.bind(this).delay(0.1);
+    },
     renderList: function renderList(candidates, prevSel, currentSel, layout) {
     prevSel = prevSel || 0; currentSel = currentSel || 0;
 

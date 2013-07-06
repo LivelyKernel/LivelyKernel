@@ -31,11 +31,81 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         this.clearOnInput && this.clear();
     },
 
+    clear: function clear() {
+        $super();
+        if (this.labelString) this.textString = this.labelString;
+    },
+
+    focus: function focus() {
+        if (this.labelString) {
+            var p = this.getCursorPositionAce();
+            if (p && p.row === 0 && p.column < this.labelString.length) {
+                p.column = this.labelString.length;
+                this.withAceDo(function(ed) { ed.moveCursorToPosition(p); })
+            }
+        }
+        return $super();
+    },
+
+    getInput: function getInput() {
+        var input = this.textString;
+        if (this.labelString && input.indexOf(this.labelString) === 0) {
+            input = input.slice(this.labelString.length);
+        }
+        return input;
+    },
+
+    setInput: function setInput(text) {
+        if (this.labelString) text = this.labelString + text;
+        return this.textString = text;
+    },
+
+    initializeAce: function initializeAce(force) {
+        this.withAceDo(function(ed) { this.makeEditorLabelAware(ed); });
+        lively.bindings.connect(this, 'textString', this, 'inputChanged', {
+            converter: function(string) { return this.sourceObj.getInput(); }
+        });
+        return $super(force);
+    },
+
+    makeEditorLabelAware: function makeEditorLabelAware(ed) {
+        function offsetColumnForLabel(session, row, column) {
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            var labelString = session.labelString;
+            if (!labelString || row !== 0) return column;
+            var lineString = session.getDisplayLine(row, null, 0, 0);
+            if (lineString.startsWith(labelString) && column < labelString.length) {
+                column = labelString.length;
+            }
+            return column;
+        }
+
+        ed.selection.moveCursorTo = ed.selection.moveCursorTo.wrap(function(proceed, row, column, keepDesiredColumn) {
+            column = offsetColumnForLabel(this.session, row, column);
+            return proceed(row, column, keepDesiredColumn);
+        });
+
+        ed.selection.setSelectionAnchor = ed.selection.setSelectionAnchor.wrap(function(proceed,row, column) {
+            column = offsetColumnForLabel(this.session, row,column);
+            return proceed(row, column);
+        });
+    },
+
+    setLabel: function setLabel(labelString) {
+        var textString = this.textString;
+        if (this.labelString && this.textString.indexOf(this.labelString) === 0) {
+            textString = textString.slice(this.labelString.length);
+        }
+        this.labelString = labelString;
+        this.withAceDo(function(ed) { ed.session.labelString = labelString; });
+        this.setInput(textString);
+    },
+
     showHistItem: function showHistItem(dir) {
         dir = dir || 'next';
         var hist = this.commandHistory, items = hist.items, len = items.length-1, i = hist.index;
         if (!Numbers.between(i, 0, len-1)) hist.index = i = len;
-        if (this.textString !== items[i]) { this.textString = items[i]; return; }
+        if (this.getInput() !== items[i]) { this.setInput(items[i]); return; }
         if (dir === 'next') {
             if (i >= len) return;
             i = ++hist.index;
@@ -43,7 +113,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
             if (i <= 0) return;
             i = --hist.index;
         }
-        this.textString = items[i];
+        this.setInput(items[i]);
     },
 
     showNextCommand: function showNextCommand() {
@@ -57,7 +127,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     onKeyDown: function onKeyDown(evt) {
         var sig = evt.getKeyString();
         switch(sig) {
-            case 'Enter': this.commandLineInput(this.textString); evt.stop(); return true;
+            case 'Enter': this.commandLineInput(this.getInput()); evt.stop(); return true;
             case 'Up':
             case 'Control-Up':
             case 'Control-P': this.showPrevCommand(); this.focus(); evt.stop(); return true;

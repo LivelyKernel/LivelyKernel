@@ -1350,9 +1350,9 @@ else {
 }
 
 exports.addMouseWheelListener = function(el, callback) {
-    var factor = 8;
-    var listener = function(e) {
-        if (e.wheelDelta !== undefined) {
+    if ("onmousewheel" in el) {
+        var factor = 8;
+        exports.addListener(el, "mousewheel", function(e) {
             if (e.wheelDeltaX !== undefined) {
                 e.wheelX = -e.wheelDeltaX / factor;
                 e.wheelY = -e.wheelDeltaY / factor;
@@ -1360,8 +1360,16 @@ exports.addMouseWheelListener = function(el, callback) {
                 e.wheelX = 0;
                 e.wheelY = -e.wheelDelta / factor;
             }
-        }
-        else {
+            callback(e);
+        });
+    } else if ("onwheel" in el) {
+        exports.addListener(el, "wheel",  function(e) {
+            e.wheelX = (e.deltaX || 0) * 5;
+            e.wheelY = (e.deltaY || 0) * 5;
+            callback(e);
+        });
+    } else {
+        exports.addListener(el, "DOMMouseScroll", function(e) {
             if (e.axis && e.axis == e.HORIZONTAL_AXIS) {
                 e.wheelX = (e.detail || 0) * 5;
                 e.wheelY = 0;
@@ -1369,11 +1377,9 @@ exports.addMouseWheelListener = function(el, callback) {
                 e.wheelX = 0;
                 e.wheelY = (e.detail || 0) * 5;
             }
-        }
-        callback(e);
-    };
-    exports.addListener(el, "DOMMouseScroll", listener);
-    exports.addListener(el, "mousewheel", listener);
+            callback(e);
+        });
+    }
 };
 
 exports.addMultiMouseDownListener = function(el, timeouts, eventHandler, callbackName) {
@@ -1435,6 +1441,29 @@ function normalizeCommandKeys(callback, e, keyCode) {
             | (e.shiftKey ? 4 : 0) | (e.metaKey ? 8 : 0);
     }
 
+    if (!useragent.isMac && pressedKeys) {
+        if (pressedKeys[91] || pressedKeys[92])
+            hashId |= 8;
+        if (pressedKeys.altGr) {
+            if ((3 & hashId) != 3)
+                pressedKeys.altGr = 0
+            else
+                return;
+        }
+        if (keyCode == 18 || keyCode == 17) {
+            var location = e.location || e.keyLocation;
+            if (keyCode == 17 && location == 1) {
+                ts = e.timeStamp;
+            } else if (keyCode == 18 && hashId == 3 && location == 2) {
+                var dt = -ts;
+                ts = e.timeStamp;
+                dt += ts;
+                if (dt < 3)
+                    pressedKeys.altGr = true;
+            }
+        }
+    }
+
     if (keyCode in keys.MODIFIER_KEYS) {
         switch (keys.MODIFIER_KEYS[keyCode]) {
             case "Alt":
@@ -1453,19 +1482,28 @@ function normalizeCommandKeys(callback, e, keyCode) {
         keyCode = 0;
     }
 
-    if (!useragent.isMac && pressedKeys[91] || pressedKeys[92])
-        hashId |= 8;
-
     if (hashId & 8 && (keyCode == 91 || keyCode == 93)) {
         keyCode = 0;
+    }
+
+    if (!hashId && keyCode == 13) {
+        if (e.keyLocation || e.location == 3) {
+            callback(e, hashId, -keyCode)
+            if (e.defaultPrevented)
+                return;
+        }
     }
     if (!hashId && !(keyCode in keys.FUNCTION_KEYS) && !(keyCode in keys.PRINTABLE_KEYS)) {
         return false;
     }
+
+
+
     return callback(e, hashId, keyCode);
 }
 
-var pressedKeys = Object.create(null);
+var pressedKeys = null;
+var ts = 0;
 exports.addCommandKeyListener = function(el, callback) {
     var addListener = exports.addListener;
     if (useragent.isOldGecko || (useragent.isOpera && !("KeyboardEvent" in window))) {
@@ -1497,9 +1535,12 @@ exports.addCommandKeyListener = function(el, callback) {
             pressedKeys[e.keyCode] = null;
         });
 
-        addListener(el, "focus", function(e) {
+        if (!pressedKeys) {
             pressedKeys = Object.create(null);
-        });
+            addListener(window, "focus", function(e) {
+                pressedKeys = Object.create(null);
+            });
+        }
     }
 };
 
@@ -1577,6 +1618,7 @@ var Keys = (function() {
             103: "Numpad7",
             104: "Numpad8",
             105: "Numpad9",
+            '-13': "NumpadEnter",
             112: "F1",
             113: "F2",
             114: "F3",
@@ -4512,16 +4554,24 @@ exports.moduleUrl = function(name, component) {
 
     var parts = name.split("/");
     component = component || parts[parts.length - 2] || "";
-    var base = parts[parts.length - 1].replace(component, "").replace(/(^[\-_])|([\-_]$)/, "");
+    var sep = component == "snippets" ? "/" : "-";
+    var base = parts[parts.length - 1];
+    if (sep == "-") {
+        var re = new RegExp("^" + component + "[\-_]|[\-_]" + component + "$", "g");
+        base = base.replace(re, "");
+    }
 
-    if (!base && parts.length > 1)
+    if ((!base || base == component) && parts.length > 1)
         base = parts[parts.length - 2];
     var path = options[component + "Path"];
-    if (path == null)
+    if (path == null) {
         path = options.basePath;
+    } else if (sep == "/") {
+        component = sep = "";
+    }
     if (path && path.slice(-1) != "/")
         path += "/";
-    return path + component + "-" + base + this.get("suffix");
+    return path + component + sep + base + this.get("suffix");
 };
 
 exports.setModuleUrl = function(name, subst) {
@@ -8481,7 +8531,7 @@ var Document = function(text) {
     };
     this.getTextRange = function(range) {
         if (range.start.row == range.end.row) {
-            return this.$lines[range.start.row]
+            return this.getLine(range.start.row)
                 .substring(range.start.column, range.end.column);
         }
         var lines = this.getLines(range.start.row, range.end.row);
@@ -8754,29 +8804,24 @@ var oop = require("./lib/oop");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var Anchor = exports.Anchor = function(doc, row, column) {
-    this.document = doc;
+    this.$onChange = this.onChange.bind(this);
+    this.attach(doc);
 
     if (typeof column == "undefined")
         this.setPosition(row.row, row.column);
     else
         this.setPosition(row, column);
-
-    this.$onChange = this.onChange.bind(this);
-    doc.on("change", this.$onChange);
 };
 
 (function() {
 
     oop.implement(this, EventEmitter);
-
     this.getPosition = function() {
         return this.$clipPositionToDocument(this.row, this.column);
     };
-
     this.getDocument = function() {
         return this.document;
     };
-
     this.onChange = function(e) {
         var delta = e.data;
         var range = delta.range;
@@ -8838,7 +8883,6 @@ var Anchor = exports.Anchor = function(doc, row, column) {
 
         this.setPosition(row, column, true);
     };
-
     this.setPosition = function(row, column, noClip) {
         var pos;
         if (noClip) {
@@ -8865,9 +8909,12 @@ var Anchor = exports.Anchor = function(doc, row, column) {
             value: pos
         });
     };
-
     this.detach = function() {
         this.document.removeEventListener("change", this.$onChange);
+    };
+    this.attach = function(doc) {
+        this.document = doc || this.document;
+        this.document.on("change", this.$onChange);
     };
     this.$clipPositionToDocument = function(row, column) {
         var pos = {};
@@ -8914,27 +8961,35 @@ var BackgroundTokenizer = function(tokenizer, editor) {
         if (!self.running) { return; }
 
         var workerStart = new Date();
-        var startLine = self.currentLine;
+        var currentLine = self.currentLine;
+        var endLine = -1;
         var doc = self.doc;
 
-        var processedLines = 0;
+        while (self.lines[currentLine])
+            currentLine++;
+
+        var startLine = currentLine;
 
         var len = doc.getLength();
-        while (self.currentLine < len) {
-            self.$tokenizeRow(self.currentLine);
-            while (self.lines[self.currentLine])
-                self.currentLine++;
+        var processedLines = 0;
+        self.running = false;
+        while (currentLine < len) {
+            self.$tokenizeRow(currentLine);
+            endLine = currentLine;
+            do {
+                currentLine++;
+            } while (self.lines[currentLine]);
             processedLines ++;
             if ((processedLines % 5 == 0) && (new Date() - workerStart) > 20) {
-                self.fireUpdateEvent(startLine, self.currentLine-1);
                 self.running = setTimeout(self.$worker, 20);
+                self.currentLine = currentLine;
                 return;
             }
         }
+        self.currentLine = currentLine;
 
-        self.running = false;
-
-        self.fireUpdateEvent(startLine, len - 1);
+        if (startLine <= endLine)
+            self.fireUpdateEvent(startLine, endLine);
     };
 };
 
@@ -11353,8 +11408,8 @@ exports.commands = [{
 }, {
     name: "backspace",
     bindKey: bindKey(
-        "Command-Backspace|Option-Backspace|Shift-Backspace|Backspace",
-        "Ctrl-Backspace|Command-Backspace|Shift-Backspace|Backspace|Ctrl-H"
+        "Shift-Backspace|Backspace",
+        "Ctrl-Backspace|Shift-Backspace|Backspace|Ctrl-H"
     ),
     exec: function(editor) { editor.remove("left"); },
     multiSelectAction: "forEach"
@@ -11496,12 +11551,11 @@ var UndoManager = function() {
 exports.UndoManager = UndoManager;
 });
 
-ace.define('ace/virtual_renderer', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/dom', 'ace/lib/event', 'ace/lib/useragent', 'ace/config', 'ace/layer/gutter', 'ace/layer/marker', 'ace/layer/text', 'ace/layer/cursor', 'ace/scrollbar', 'ace/renderloop', 'ace/lib/event_emitter'], function(require, exports, module) {
+ace.define('ace/virtual_renderer', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/dom', 'ace/lib/useragent', 'ace/config', 'ace/layer/gutter', 'ace/layer/marker', 'ace/layer/text', 'ace/layer/cursor', 'ace/scrollbar', 'ace/renderloop', 'ace/lib/event_emitter'], function(require, exports, module) {
 
 
 var oop = require("./lib/oop");
 var dom = require("./lib/dom");
-var event = require("./lib/event");
 var useragent = require("./lib/useragent");
 var config = require("./config");
 var GutterLayer = require("./layer/gutter").Gutter;
@@ -11960,7 +12014,7 @@ var VirtualRenderer = function(container, theme) {
         bottom: 0,
         v: 0,
         h: 0
-    }
+    };
 
     this.$loop = new RenderLoop(
         this.$renderChanges.bind(this),
@@ -12058,7 +12112,7 @@ var VirtualRenderer = function(container, theme) {
     this.onResize = function(force, gutterWidth, width, height) {
         if (this.resizing > 2)
             return;
-        else if (this.resizing > 1)
+        else if (this.resizing > 0)
             this.resizing++;
         else
             this.resizing = force ? 1 : 0;
@@ -12085,7 +12139,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     this.$updateCachedSize = function(force, gutterWidth, width, height) {
-        var changes = this.$changes || 0;
+        var changes = 0;
         var size = this.$size;
         if (height && (force || size.height != height)) {
             size.height = height;
@@ -12107,7 +12161,7 @@ var VirtualRenderer = function(container, theme) {
             changes = this.CHANGE_SIZE;
             size.width = width;
 
-            var gutterWidth = this.$showGutter ? this.$gutter.offsetWidth : 0;
+            gutterWidth = this.$showGutter ? this.$gutter.offsetWidth : 0;
             this.scrollBarH.element.style.left =
             this.scroller.style.left = gutterWidth + "px";
             size.scrollerWidth = Math.max(0, width - gutterWidth - this.scrollBarV.getWidth());
@@ -12120,11 +12174,19 @@ var VirtualRenderer = function(container, theme) {
             if (this.session && this.session.getUseWrapMode() && this.adjustWrapLimit() || force)
                 changes = changes | this.CHANGE_FULL;
         }
+
+        if (changes)
+            this._signal("resize");
+
+        if (this.$changes) {
+            changes |= this.$changes;
+            this.$changes = 0;
+        }
+
         return changes;
     };
 
     this.onGutterResize = function() {
-        var width = this.$size.width;
         var gutterWidth = this.$showGutter ? this.$gutter.offsetWidth : 0;
         this.$updateCachedSize(true, gutterWidth, this.$size.width, this.$size.height);
 
@@ -12334,7 +12396,8 @@ var VirtualRenderer = function(container, theme) {
             changes & this.CHANGE_SIZE ||
             changes & this.CHANGE_TEXT ||
             changes & this.CHANGE_LINES ||
-            changes & this.CHANGE_SCROLL
+            changes & this.CHANGE_SCROLL ||
+            changes & this.CHANGE_H_SCROLL
         )
             this.$computeLayerConfig();
         if (changes & this.CHANGE_H_SCROLL) {
@@ -12718,6 +12781,8 @@ var VirtualRenderer = function(container, theme) {
         if (deltaY > 0 && this.session.getScrollTop() + this.$size.scrollerHeight
             - this.layerConfig.maxHeight < -1 + this.scrollMargin.bottom)
            return true;
+        if (deltaX)
+           return true;
     };
 
     this.pixelToScreenCoordinates = function(x, y) {
@@ -13099,7 +13164,7 @@ var Gutter = function(parentEl) {
         var gutterWidth = ("" + lastLineNumber).length * config.characterWidth;
         var padding = this.$padding || this.$computePadding();
         gutterWidth += padding.left + padding.right;
-        if (gutterWidth !== this.gutterWidth) {
+        if (gutterWidth !== this.gutterWidth && !isNaN(gutterWidth)) {
             this.gutterWidth = gutterWidth;
             this.element.style.width = Math.ceil(this.gutterWidth) + "px";
             this._emit("changeGutterWidth", gutterWidth);
@@ -13125,9 +13190,9 @@ var Gutter = function(parentEl) {
         if (!this.element.firstChild)
             return {left: 0, right: 0};
         var style = dom.computedStyle(this.element.firstChild);
-        this.$padding = {}
-        this.$padding.left = parseInt(style.paddingLeft) + 1;
-        this.$padding.right = parseInt(style.paddingRight);
+        this.$padding = {};
+        this.$padding.left = parseInt(style.paddingLeft) + 1 || 0;
+        this.$padding.right = parseInt(style.paddingRight) || 0;
         return this.$padding;
     };
 
@@ -15388,6 +15453,7 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
 
     this.terminate = function() {
         this._emit("terminate", {});
+        this.deltaQueue = null;
         this.$worker.terminate();
         this.$worker = null;
         this.$doc.removeEventListener("change", this.changeListener);
@@ -15840,10 +15906,10 @@ color: rgb(104, 104, 91);\
 .ace-tm .ace_entity.ace_name.ace_function {\
 color: #0000A2;\
 }\
-.ace-tm .ace_markup.ace_heading {\
+.ace-tm .ace_heading {\
 color: rgb(12, 7, 255);\
 }\
-.ace-tm .ace_markup.ace_list {\
+.ace-tm .ace_list {\
 color:rgb(185, 6, 144);\
 }\
 .ace-tm .ace_meta.ace_tag {\
@@ -16654,7 +16720,7 @@ var config = require("../config");
 
 var textCompleter = require("../autocomplete/text_completer");
 var keyWordCompleter = {
-    getCompletions: function(session, pos, prefix, callback) {
+    getCompletions: function(editor, session, pos, prefix, callback) {
         var keywords = session.$mode.$keywordList || [];
         keywords = keywords.filter(function(w) {
             return w.lastIndexOf(prefix, 0) == 0;
@@ -16670,7 +16736,28 @@ var keyWordCompleter = {
     }
 };
 
-var completers = [textCompleter, keyWordCompleter]; // todo add snippets completer
+var snippetCompleter = {
+    getCompletions: function(editor, session, pos, prefix, callback) {
+        var scope = snippetManager.$getScope(editor);
+        var snippetMap = snippetManager.snippetMap;
+        var completions = [];
+        [scope, "_"].forEach(function(scope) {
+            var snippets = snippetMap[scope] || [];
+            for (var i = snippets.length; i--;) {
+                var s = snippets[i];
+                if (s.tabTrigger && s.tabTrigger.indexOf(prefix) === 0)
+                    completions.push({
+                        caption: s.tabTrigger,
+                        snippet: s.content,
+                        meta: "snippet"
+                    });
+            }
+        }, this);
+        callback(null, completions);
+    }
+};
+
+var completers = [snippetCompleter, textCompleter, keyWordCompleter];
 exports.addCompleter = function(completer) {
     completers.push(completer);
 };
@@ -16731,7 +16818,7 @@ require("../config").defineOptions(Editor.prototype, "editor", {
 
 });
 
-ace.define('ace/autocomplete', ['require', 'exports', 'module' , 'ace/keyboard/hash_handler', 'ace/autocomplete/popup', 'ace/autocomplete/util', 'ace/lib/event', 'ace/lib/lang'], function(require, exports, module) {
+ace.define('ace/autocomplete', ['require', 'exports', 'module' , 'ace/keyboard/hash_handler', 'ace/autocomplete/popup', 'ace/autocomplete/util', 'ace/lib/event', 'ace/lib/lang', 'ace/snippets'], function(require, exports, module) {
 
 
 var HashHandler = require("./keyboard/hash_handler").HashHandler;
@@ -16739,6 +16826,7 @@ var AcePopup = require("./autocomplete/popup").AcePopup;
 var util = require("./autocomplete/util");
 var event = require("./lib/event");
 var lang = require("./lib/lang");
+var snippetManager = require("./snippets").snippetManager;
 
 var Autocomplete = function() {
     this.keyboardHandler = new HashHandler();
@@ -16839,14 +16927,15 @@ var Autocomplete = function() {
         if (data.completer && data.completer.insertMatch) {
             data.completer.insertMatch(this.editor);
         } else {
-            if (data.value)
-                data = data.value;
             if (this.completions.filterText) {
                 var range = this.editor.selection.getRange();
                 range.start.column -= this.completions.filterText.length;
                 this.editor.session.remove(range);
             }
-            this.editor.insert(data);
+            if (data.snippet)
+                snippetManager.insertSnippet(this.editor, data.snippet);
+            else
+                this.editor.insert(data.value || data);
         }
     };
 
@@ -16875,7 +16964,7 @@ var Autocomplete = function() {
 
         var matches = [];
         util.parForEach(editor.completers, function(completer, next) {
-            completer.getCompletions(session, pos, prefix, function(err, results) {
+            completer.getCompletions(editor, session, pos, prefix, function(err, results) {
                 if (!err)
                     matches = matches.concat(results);
                 next();
@@ -17063,11 +17152,13 @@ var AcePopup = function(parentNode) {
             return tokens;
         if (typeof data == "string")
             data = {value: data};
+        if (!data.caption)
+            data.caption = data.value;
 
-        tokens.push({type: data.className || "", value: data.value});
+        tokens.push({type: data.className || "", value: data.caption});
         if (data.meta) {
             var maxW = popup.renderer.$size.scrollerWidth / popup.renderer.layerConfig.characterWidth;
-            if (data.meta.length + data.value.length < maxW - 2)
+            if (data.meta.length + data.caption.length < maxW - 2)
                 tokens.push({type: "rightAlignedText", value: data.meta});
         }
         return tokens;
@@ -17244,7 +17335,7 @@ ace.define('ace/autocomplete/text_completer', ['require', 'exports', 'module' , 
         return wordScores;
     }
 
-    exports.getCompletions = function(session, pos, prefix, callback) {
+    exports.getCompletions = function(editor, session, pos, prefix, callback) {
         var wordScore = wordDistance(session, pos, prefix);
         var wordList = filterPrefix(prefix, Object.keys(wordScore));
         callback(null, wordList.map(function(word) {
@@ -18402,6 +18493,38 @@ exports.handler = {
             data.lastEvent = "keypress";
         }
     },
+    updateMacCompositionHandlers: function(editor, enable) {
+        var onCompositionUpdateOverride = function(text) {
+            if (util.currentMode !== "insert") {
+                var el = this.textInput.getElement();
+                el.blur();
+                el.focus();
+                el.value = text;
+            } else {
+                this.onCompositionUpdateOrig(text);
+            }
+        };
+        var onCompositionStartOverride = function(text) {
+            if (util.currentMode === "insert") {
+                this.onCompositionStartOrig(text);
+            }
+        }
+        if (enable) {
+            if (!editor.onCompositionUpdateOrig) {
+                editor.onCompositionUpdateOrig = editor.onCompositionUpdate;
+                editor.onCompositionUpdate = onCompositionUpdateOverride;
+                editor.onCompositionStartOrig = editor.onCompositionStart;
+                editor.onCompositionStart = onCompositionStartOverride;
+            }
+        } else {
+            if (editor.onCompositionUpdateOrig) {
+                editor.onCompositionUpdate = editor.onCompositionUpdateOrig;
+                editor.onCompositionUpdateOrig = null;
+                editor.onCompositionStart = editor.onCompositionStartOrig;
+                editor.onCompositionStartOrig = null;
+            }
+        }
+    },
 
     handleKeyboard: function(data, hashId, key, keyCode, e) {
         if (hashId != 0 && (key == "" || key == "\x00"))
@@ -18453,12 +18576,15 @@ exports.handler = {
         if (util.currentMode !== "insert")
             cmds.coreCommands.stop.exec(editor);
         editor.$vimModeHandler = this;
+
+        this.updateMacCompositionHandlers(editor, true);
     },
 
     detach: function(editor) {
         editor.removeListener("click", exports.onCursorMove);
         util.noMode(editor);
         util.currentMode = "normal";
+        this.updateMacCompositionHandlers(editor, false);
     },
 
     actions: cmds.actions,
@@ -18533,6 +18659,18 @@ var actions = exports.actions = {
                     break;
                 case "b":
                     editor.renderer.alignCursor(null, 1);
+                    break;
+                case "c":
+                    editor.session.onFoldWidgetClick(range.start.row, {domEvent:{target :{}}});
+                    break;
+                case "o":
+                    editor.session.onFoldWidgetClick(range.start.row, {domEvent:{target :{}}});
+                    break;
+                case "C":
+                    editor.session.foldAll();
+                    break;
+                case "O":
+                    editor.session.unfold();
                     break;
             }
         }
@@ -24932,7 +25070,7 @@ ace.define('ace/mode/golang_highlight_rules', ['require', 'exports', 'module' , 
 
     var GolangHighlightRules = function() {
         var keywords = (
-            "true|else|false|break|case|return|goto|if|const|" +
+            "else|break|case|return|goto|if|const|" +
             "continue|struct|default|switch|for|" +
             "func|import|package|chan|defer|fallthrough|go|interface|map|range" +
             "select|type|var"
@@ -24940,7 +25078,6 @@ ace.define('ace/mode/golang_highlight_rules', ['require', 'exports', 'module' , 
         var buildinConstants = ("nil|true|false|iota");
 
         var keywordMapper = this.createKeywordMapper({
-            "variable.language": "this",
             "keyword": keywords,
             "constant.language": buildinConstants
         }, "identifier");
@@ -24960,16 +25097,16 @@ ace.define('ace/mode/golang_highlight_rules', ['require', 'exports', 'module' , 
                     token : "string", // single line
                     regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
                 }, {
-                    token : "string", // multi line string start
-                    regex : '["].*\\\\$',
-                    next : "qqstring"
-                }, {
                     token : "string", // single line
-                    regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
+                    regex : '[`](?:[^`]*)[`]'
                 }, {
                     token : "string", // multi line string start
-                    regex : "['].*\\\\$",
-                    next : "qstring"
+                    merge : true,
+                    regex : '[`](?:[^`]*)$',
+                    next : "bqstring"
+                }, {
+                    token : "constant.numeric", // rune
+                    regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))[']"
                 }, {
                     token : "constant.numeric", // hex
                     regex : "0[xX][0-9a-fA-F]+\\b"
@@ -24977,17 +25114,11 @@ ace.define('ace/mode/golang_highlight_rules', ['require', 'exports', 'module' , 
                     token : "constant.numeric", // float
                     regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?\\b"
                 }, {
-                    token : "constant", // <CONSTANT>
-                    regex : "<[a-zA-Z0-9.]+>"
-                }, {
-                    token : "keyword", // pre-compiler directivs
-                    regex : "(?:#include|#pragma|#line|#define|#undef|#ifdef|#else|#elif|#endif|#ifndef)"
-                }, {
                     token : keywordMapper,
                     regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
                 }, {
                     token : "keyword.operator",
-                    regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|==|=|!=|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|new|delete|typeof|void)"
+                    regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|==|=|!=|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^="
                 }, {
                     token : "punctuation.operator",
                     regex : "\\?|\\:|\\,|\\;|\\."
@@ -24997,6 +25128,9 @@ ace.define('ace/mode/golang_highlight_rules', ['require', 'exports', 'module' , 
                 }, {
                     token : "paren.rparen",
                     regex : "[\\])}]"
+                }, {
+                    token: "invalid",
+                    regex: "\\s+$"
                 }, {
                     token : "text",
                     regex : "\\s+"
@@ -25012,20 +25146,10 @@ ace.define('ace/mode/golang_highlight_rules', ['require', 'exports', 'module' , 
                     regex : ".+"
                 }
             ],
-            "qqstring" : [
+            "bqstring" : [
                 {
                     token : "string",
-                    regex : '(?:(?:\\\\.)|(?:[^"\\\\]))*?"',
-                    next : "start"
-                }, {
-                    token : "string",
-                    regex : '.+'
-                }
-            ],
-            "qstring" : [
-                {
-                    token : "string",
-                    regex : "(?:(?:\\\\.)|(?:[^'\\\\]))*?'",
+                    regex : '(?:[^`]*)`',
                     next : "start"
                 }, {
                     token : "string",
@@ -25036,7 +25160,7 @@ ace.define('ace/mode/golang_highlight_rules', ['require', 'exports', 'module' , 
 
         this.embedRules(DocCommentHighlightRules, "doc-",
             [ DocCommentHighlightRules.getEndRule("start") ]);
-    }
+    };
     oop.inherits(GolangHighlightRules, TextHighlightRules);
 
     exports.GolangHighlightRules = GolangHighlightRules;
@@ -34720,12 +34844,28 @@ var ShHighlightRules = function() {
     var func = "(?:" + variableName + "\\s*\\(\\))";
 
     this.$rules = {
-        "start" : [ {
+        "start" : [{
+            token : "constant",
+            regex : /\\./
+        }, {
             token : ["text", "comment"],
             regex : /(^|\s)(#.*)$/
         }, {
-            token : "string",           // " string
-            regex : '"(?:[^\\\\]|\\\\.)*?"'
+            token : "string",
+            regex : '"',
+            push : [{
+                token : "constant.language.escape",
+                regex : /\\(?:[$abeEfnrtv\\'"]|x[a-fA-F\d]{1,2}|u[a-fA-F\d]{4}([a-fA-F\d]{4})?|c.|\d{1,3})/
+            }, {
+                token : "constant",
+                regex : /\$\w+/
+            }, {
+                token : "string",
+                regex : '"',
+                next: "pop"
+            }, {
+                defaultToken: "string"
+            }]
         }, {
             token : "variable.language",
             regex : builtinVariable
@@ -34740,7 +34880,7 @@ var ShHighlightRules = function() {
             regex : fileDescriptor
         }, {
             token : "string",           // ' string
-            regex : "'(?:[^\\\\]|\\\\.)*?'"
+            start : "'", end : "'"
         }, {
             token : "constant.numeric", // float
             regex : floatNumber
@@ -34761,6 +34901,8 @@ var ShHighlightRules = function() {
             regex : "[\\]\\)\\}]"
         } ]
     };
+
+    this.normalizeRules();
 };
 
 oop.inherits(ShHighlightRules, TextHighlightRules);
@@ -36968,7 +37110,7 @@ var MarkdownHighlightRules = function() {
         }, {
             include: "basic"
         }, {
-            defaultToken : "markup.heading"
+            defaultToken : "heading"
         } ],
 
         "listblock-start" : [{
@@ -36988,7 +37130,7 @@ var MarkdownHighlightRules = function() {
         }, {
             include : "basic", noEscape: true
         }, {
-            defaultToken : "markup.list"
+            defaultToken : "list"
         } ],
 
         "blockquote" : [ { // BLockquotes only escape on blank lines.
@@ -40300,12 +40442,28 @@ var ShHighlightRules = function() {
     var func = "(?:" + variableName + "\\s*\\(\\))";
 
     this.$rules = {
-        "start" : [ {
+        "start" : [{
+            token : "constant",
+            regex : /\\./
+        }, {
             token : ["text", "comment"],
             regex : /(^|\s)(#.*)$/
         }, {
-            token : "string",           // " string
-            regex : '"(?:[^\\\\]|\\\\.)*?"'
+            token : "string",
+            regex : '"',
+            push : [{
+                token : "constant.language.escape",
+                regex : /\\(?:[$abeEfnrtv\\'"]|x[a-fA-F\d]{1,2}|u[a-fA-F\d]{4}([a-fA-F\d]{4})?|c.|\d{1,3})/
+            }, {
+                token : "constant",
+                regex : /\$\w+/
+            }, {
+                token : "string",
+                regex : '"',
+                next: "pop"
+            }, {
+                defaultToken: "string"
+            }]
         }, {
             token : "variable.language",
             regex : builtinVariable
@@ -40320,7 +40478,7 @@ var ShHighlightRules = function() {
             regex : fileDescriptor
         }, {
             token : "string",           // ' string
-            regex : "'(?:[^\\\\]|\\\\.)*?'"
+            start : "'", end : "'"
         }, {
             token : "constant.numeric", // float
             regex : floatNumber
@@ -40341,6 +40499,8 @@ var ShHighlightRules = function() {
             regex : "[\\]\\)\\}]"
         } ]
     };
+
+    this.normalizeRules();
 };
 
 oop.inherits(ShHighlightRules, TextHighlightRules);
@@ -46662,10 +46822,10 @@ color: rgb(104, 104, 91);\
 .ace-chrome .ace_entity.ace_name.ace_function {\
 color: #0000A2;\
 }\
-.ace-chrome .ace_markup.ace_heading {\
+.ace-chrome .ace_heading {\
 color: rgb(12, 7, 255);\
 }\
-.ace-chrome .ace_markup.ace_list {\
+.ace-chrome .ace_list {\
 color:rgb(185, 6, 144);\
 }\
 .ace-chrome .ace_marker-layer .ace_selection {\
@@ -46966,9 +47126,6 @@ color: #E6DB74\
 .ace-monokai .ace_comment {\
 color: #75715E\
 }\
-.ace-monokai .ace_markup.ace_underline {\
-text-decoration: underline\
-}\
 .ace-monokai .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWPQ0FD0ZXBzd/wPAAjVAoxeSgNeAAAAAElFTkSuQmCC) right repeat-y;\
 }";
@@ -47112,9 +47269,6 @@ color: #C1C144\
 .ace-pastel-on-dark .ace_xml-pe {\
 color: #494949\
 }\
-.ace-pastel-on-dark .ace_markup.ace_underline {\
-text-decoration: underline\
-}\
 .ace-pastel-on-dark .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYIiPj/8PAARgAh2NTMh8AAAAAElFTkSuQmCC) right repeat-y;\
 }";
@@ -47169,8 +47323,7 @@ background-color: #002B36;\
 color: #93A1A1\
 }\
 .ace-solarized-dark .ace_entity.ace_other.ace_attribute-name,\
-.ace-solarized-dark .ace_storage,\
-.ace-solarized-dark .ace_text-layer {\
+.ace-solarized-dark .ace_storage {\
 color: #93A1A1\
 }\
 .ace-solarized-dark .ace_cursor {\
@@ -47240,9 +47393,6 @@ color: #D30102\
 .ace-solarized-dark .ace_comment {\
 font-style: italic;\
 color: #657B83\
-}\
-.ace-solarized-dark .ace_markup.ace_underline {\
-text-decoration: underline\
 }\
 .ace-solarized-dark .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNg0Db1ZVCxc/sPAAd4AlUHlLenAAAAAElFTkSuQmCC) right repeat-y;\
@@ -47378,7 +47528,7 @@ color: #7AA6DA\
 .ace-terminal-theme .ace_support.ace_type {\
 color: #E7C547\
 }\
-.ace-terminal-theme .ace_markup.ace_heading,\
+.ace-terminal-theme .ace_heading,\
 .ace-terminal-theme .ace_string {\
 color: #B9CA4A\
 }\
@@ -47392,11 +47542,171 @@ color: #D54E53\
 .ace-terminal-theme .ace_comment {\
 color: orangered\
 }\
-.ace-terminal-theme .ace_markup.ace_underline {\
-text-decoration: underline\
-}\
 .ace-terminal-theme .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYLBWV/8PAAK4AYnhiq+xAAAAAElFTkSuQmCC) right repeat-y;\
+}\
+";
+
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
+ *
+ * Copyright (c) 2010, Ajax.org B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+ace.define('ace/theme/textmate', ['require', 'exports', 'module' , 'ace/lib/dom'], function(require, exports, module) {
+
+
+exports.isDark = false;
+exports.cssClass = "ace-tm";
+exports.cssText = ".ace-tm .ace_gutter {\
+background: #f0f0f0;\
+color: #333;\
+}\
+.ace-tm .ace_print-margin {\
+width: 1px;\
+background: #e8e8e8;\
+}\
+.ace-tm .ace_fold {\
+background-color: #6B72E6;\
+}\
+.ace-tm {\
+background-color: #FFFFFF;\
+}\
+.ace-tm .ace_cursor {\
+border-left: 2px solid black;\
+}\
+.ace-tm .ace_overwrite-cursors .ace_cursor {\
+border-left: 0px;\
+border-bottom: 1px solid black;\
+}\
+.ace-tm .ace_invisible {\
+color: rgb(191, 191, 191);\
+}\
+.ace-tm .ace_storage,\
+.ace-tm .ace_keyword {\
+color: blue;\
+}\
+.ace-tm .ace_constant {\
+color: rgb(197, 6, 11);\
+}\
+.ace-tm .ace_constant.ace_buildin {\
+color: rgb(88, 72, 246);\
+}\
+.ace-tm .ace_constant.ace_language {\
+color: rgb(88, 92, 246);\
+}\
+.ace-tm .ace_constant.ace_library {\
+color: rgb(6, 150, 14);\
+}\
+.ace-tm .ace_invalid {\
+background-color: rgba(255, 0, 0, 0.1);\
+color: red;\
+}\
+.ace-tm .ace_support.ace_function {\
+color: rgb(60, 76, 114);\
+}\
+.ace-tm .ace_support.ace_constant {\
+color: rgb(6, 150, 14);\
+}\
+.ace-tm .ace_support.ace_type,\
+.ace-tm .ace_support.ace_class {\
+color: rgb(109, 121, 222);\
+}\
+.ace-tm .ace_keyword.ace_operator {\
+color: rgb(104, 118, 135);\
+}\
+.ace-tm .ace_string {\
+color: rgb(3, 106, 7);\
+}\
+.ace-tm .ace_comment {\
+color: rgb(76, 136, 107);\
+}\
+.ace-tm .ace_comment.ace_doc {\
+color: rgb(0, 102, 255);\
+}\
+.ace-tm .ace_comment.ace_doc.ace_tag {\
+color: rgb(128, 159, 191);\
+}\
+.ace-tm .ace_constant.ace_numeric {\
+color: rgb(0, 0, 205);\
+}\
+.ace-tm .ace_variable {\
+color: rgb(49, 132, 149);\
+}\
+.ace-tm .ace_xml-pe {\
+color: rgb(104, 104, 91);\
+}\
+.ace-tm .ace_entity.ace_name.ace_function {\
+color: #0000A2;\
+}\
+.ace-tm .ace_heading {\
+color: rgb(12, 7, 255);\
+}\
+.ace-tm .ace_list {\
+color:rgb(185, 6, 144);\
+}\
+.ace-tm .ace_meta.ace_tag {\
+color:rgb(0, 22, 142);\
+}\
+.ace-tm .ace_string.ace_regex {\
+color: rgb(255, 0, 0)\
+}\
+.ace-tm .ace_marker-layer .ace_selection {\
+background: rgb(181, 213, 255);\
+}\
+.ace-tm.ace_multiselect .ace_selection.ace_start {\
+box-shadow: 0 0 3px 0px white;\
+border-radius: 2px;\
+}\
+.ace-tm .ace_marker-layer .ace_step {\
+background: rgb(252, 255, 0);\
+}\
+.ace-tm .ace_marker-layer .ace_stack {\
+background: rgb(164, 229, 101);\
+}\
+.ace-tm .ace_marker-layer .ace_bracket {\
+margin: -1px 0 0 -1px;\
+border: 1px solid rgb(192, 192, 192);\
+}\
+.ace-tm .ace_marker-layer .ace_active-line {\
+background: rgba(0, 0, 0, 0.07);\
+}\
+.ace-tm .ace_gutter-active-line {\
+background-color : #dcdcdc;\
+}\
+.ace-tm .ace_marker-layer .ace_selected-word {\
+background: rgb(250, 250, 255);\
+border: 1px solid rgb(200, 200, 250);\
+}\
+.ace-tm .ace_indent-guide {\
+background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bLly//BwAmVgd1/w11/gAAAABJRU5ErkJggg==\") right repeat-y;\
 }\
 ";
 
@@ -47525,7 +47835,7 @@ color: #4271AE\
 .ace-tomorrow .ace_support.ace_type {\
 color: #C99E00\
 }\
-.ace-tomorrow .ace_markup.ace_heading,\
+.ace-tomorrow .ace_heading,\
 .ace-tomorrow .ace_string {\
 color: #718C00\
 }\
@@ -47538,9 +47848,6 @@ color: #C82829\
 }\
 .ace-tomorrow .ace_comment {\
 color: #8E908C\
-}\
-.ace-tomorrow .ace_markup.ace_underline {\
-text-decoration: underline\
 }\
 .ace-tomorrow .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bdu3f/BwAlfgctduB85QAAAABJRU5ErkJggg==) right repeat-y\
@@ -47670,7 +47977,7 @@ color: #81A2BE\
 .ace-tomorrow-night .ace_support.ace_type {\
 color: #F0C674\
 }\
-.ace-tomorrow-night .ace_markup.ace_heading,\
+.ace-tomorrow-night .ace_heading,\
 .ace-tomorrow-night .ace_string {\
 color: #B5BD68\
 }\
@@ -47683,9 +47990,6 @@ color: #CC6666\
 }\
 .ace-tomorrow-night .ace_comment {\
 color: #969896\
-}\
-.ace-tomorrow-night .ace_markup.ace_underline {\
-text-decoration: underline\
 }\
 .ace-tomorrow-night .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYHB3d/8PAAOIAdULw8qMAAAAAElFTkSuQmCC) right repeat-y;\
@@ -47781,7 +48085,7 @@ color: #CDA869\
 .ace-twilight .ace_constant.ace_character,\
 .ace-twilight .ace_constant.ace_character.ace_escape,\
 .ace-twilight .ace_constant.ace_other,\
-.ace-twilight .ace_markup.ace_heading,\
+.ace-twilight .ace_heading,\
 .ace-twilight .ace_support.ace_constant {\
 color: #CF6A4C\
 }\
@@ -47804,7 +48108,7 @@ border-color: #F8F8F8\
 .ace-twilight .ace_support.ace_function {\
 color: #DAD085\
 }\
-.ace-twilight .ace_markup.ace_list,\
+.ace-twilight .ace_list,\
 .ace-twilight .ace_storage {\
 color: #F9EE98\
 }\
@@ -47828,9 +48132,6 @@ color: #7587A6\
 }\
 .ace-twilight .ace_xml-pe {\
 color: #494949\
-}\
-.ace-twilight .ace_markup.ace_underline {\
-text-decoration: underline\
 }\
 .ace-twilight .ace_indent-guide {\
 background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWMQERFpYLC1tf0PAAgOAnPnhxyiAAAAAElFTkSuQmCC) right repeat-y;\

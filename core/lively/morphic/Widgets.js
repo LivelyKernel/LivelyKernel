@@ -1651,16 +1651,16 @@ lively.morphic.World.addMethods(
                 ['Workspace', this.openWorkspace.bind(this)],
                 ['System Code Browser', this.openSystemBrowser.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
-                ['BuildSpecEditor', this.openBuildSpecEditor.bind(this)],
+                ['BuildSpec Editor', this.openBuildSpecEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
                 ['Text Editor', function() { require('lively.ide').toRun(function() { lively.ide.openFile(URL.source.toString()); }); }],
                 ['System Console', this.openSystemConsole.bind(this)],
                 ['OMeta Workspace', this.openOMetaWorkspace.bind(this)],
-                ['SubserverViewer', this.openSubserverViewer.bind(this)],
-                ['ServerWorkspace', this.openServerWorkspace.bind(this)],
+                ['Subserver Viewer', this.openSubserverViewer.bind(this)],
+                ['Server Workspace', this.openServerWorkspace.bind(this)],
                 ['Terminal', this.openTerminal.bind(this)],
-                ['GitControl', this.openGitControl.bind(this)]
+                ['Git Control', this.openGitControl.bind(this)]
             ]],
             ['Stepping', [
                 ['Start stepping',  function() { world.submorphs.each(

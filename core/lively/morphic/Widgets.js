@@ -1671,7 +1671,7 @@ lively.morphic.World.addMethods(
             ['Preferences', [
                 ['Set username', this.askForUserName.bind(this)],
                 ['My user config', this.showUserConfig.bind(this)],
-                ['Set extent', this.askForNewWorldExtent.bind(this)],
+                ['Set world extent', this.askForNewWorldExtent.bind(this)],
                 ['Set background color', this.askForNewBackgroundColor.bind(this)]]
             ],
             ['Debugging', this.debuggingMenuItems(world)],
@@ -1827,46 +1827,30 @@ lively.morphic.World.addMethods(
         var world = this;
         this.prompt("Please enter your username", function(name) {
             if (name) {
-                alertOK("setting username to: " + name)
                 world.setCurrentUser(name);
+                alertOK("set username to: " + name);
             } else {
                 alertOK("removing username")
                 world.setCurrentUser(undefined);
             }
         }, world.getUserName(true));
     },
-    askForUserNameInList: function(names) {
-        var world = this, current = world.getUserName();
-        return world.listPrompt(
-            'Please select your username.',
-            function(name) {
-                if (name) {
-                    alertOK("setting username to: " + name);
-                } else {
-                    alert("unknown user!");
-                }
-                    world.setCurrentUser(name);
-            },
-            names, current,
-            pt(300,200));
-    },
-
     askForNewWorldExtent: function() {
         var world = this;
-        this.prompt("Please, give new world extent", function(str) {
+        this.prompt("Please enter new world extent", function(str) {
             if (!str) return;
             var newExtent;
             try {
                 newExtent = eval(str);
             } catch(e) {
-                alert("could not eval: " + str)
+                alert("Could not eval: " + str)
             };
             if (! (newExtent instanceof lively.Point)) {
                 alert("" + newExtent + " " + "is not a proper extent")
                 return
             }
-            alert("set world extent to " +  newExtent);
-            world.setExtent(newExtent)
+            world.setExtent(newExtent);
+            alertOK("Set world extent to " +  newExtent);
         }, this.getExtent())
     },
     askForNewBackgroundColor: function() {
@@ -1875,23 +1859,22 @@ lively.morphic.World.addMethods(
         if(! (oldColor instanceof Color)){
             oldColor = Color.rgb(255,255,255);
         }
-        this.prompt("Please, give new world background color", function(str) {
+        this.prompt("Please enter new world background color", function(str) {
             if (!str) return;
             var newColor;
             try {
                 newColor = eval(str);
             } catch(e) {
-                alert("could not eval: " + str)
+                alert("Could not eval: " + str)
             };
             if (! (newColor instanceof Color)) {
                 alert("" + newColor + " " + "is not a proper Color")
                 return
             }
-            alert("set world background color " +  newColor);
-            world.setFill(newColor)
+            world.setFill(newColor);
+            alertOK("Set world background to " +  newColor);
         }, "Color." + oldColor)
     },
-
     setCurrentUser: function(username) {
         this.currentUser = username;
         if (lively.LocalStorage)

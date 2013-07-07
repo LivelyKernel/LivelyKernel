@@ -983,7 +983,6 @@ lively.morphic.World.addMethods(
             lively.ide.browse(url);
         });
     },
-
     isGrabbable: function(evt) {
         return false;
     }

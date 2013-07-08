@@ -82,7 +82,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.done();
     },
     testConnectToTextChange: function() {
-        var e = this.editor, changeTriggered, obj = {onChange: function(evt) { show(evt); changeTriggered = true; }};
+        var e = this.editor, changeTriggered, obj = {onChange: function(evt) { changeTriggered = true; }};
         e.textString = "some\ncontent";
         lively.bindings.connect(e, 'textChange', obj, 'onChange');
         e.insertAtCursor('foo');

@@ -198,7 +198,7 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
         var conns = codeEditor.attributeConnections;
         if (conns) {
             for (var i = 0; i < conns.length; i++) {
-                var con = conns[i++];
+                var con = conns[i];
                 if (con.sourceAttrName === 'textChange') con.update(evt);
                 if (con.sourceAttrName === 'textString') con.update(codeEditor.textString);
             }

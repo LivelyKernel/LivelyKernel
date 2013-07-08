@@ -246,7 +246,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             this.aceEditorAfterSetupCallbacks === this.constructor.prototype.aceEditorAfterSetupCallbacks,
             'contagious aceEditorAfterSetupCallbacks bug occured');
         delete this.aceEditorAfterSetupCallbacks;
-        cbs.invoke('call', this, e);
+        function invokeCallbacks() { cbs.invoke('call', this, e); }
+        if (!this.isRendered() || !this.world()) { 
+            connect(this, '_isRendered', invokeCallbacks, 'call', {
+                updater: function($upd) { $upd.delay(); }, removeAfterUpdate: true})
+        } else {
+            invokeCallbacks();
+        }
     },
 
     disableTextResizeOnZoom: function(aceEditor) {

@@ -37,27 +37,22 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
 },
 'morphic switcher', {
     startWindowSelection: function() {
-        // x= new lively.ide.WindowNavigation.WindowManager($world).startWindowSelection();
-        // lively.ide.WindowNavigation.windowLister.remove(); lively.ide.WindowNavigation.windowLister = null;
-        var list = this.narrowList;
-        if (!list) {
-            list = this.narrowList = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
-        }
+        var list = this.narrowList
+                || (this.narrowList = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph());
         lively.bindings.connect(list, 'confirmedSelection', this, 'makeWindowActive');
         lively.bindings.connect(list, 'selection', this, 'showWindow');
         lively.bindings.connect(list, 'confirmedSelection', this, 'resetList', {converter: function() { return this.sourceObj; }});
         lively.bindings.connect(list, 'escapePressed', this, 'resetListAndRevertActiveWindow');
         var windows = this.getWindows().reverse(),
             topMostWin = windows[0],
-            firstIsActive = lively.morphic.Morph.focusedMorph().ownerChain().include(topMostWin);
-        var spec = {
-            preselect: firstIsActive ? 1 : 0,
-            maxItems: 20,
-            candidates: windows.map(function(ea, i) {
-                return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; }),
-            // actions: [function(candidate) { show('selected ' + candidate); }],
-            // close: function() { show('narrower closed'); }
-        }
+            firstIsActive = lively.morphic.Morph.focusedMorph().ownerChain().include(topMostWin),
+            spec = {
+                prompt: "select window: ",
+                preselect: firstIsActive ? 1 : 0,
+                maxItems: 20,
+                candidates: windows.map(function(ea, i) {
+                    return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; })
+            };
         list.open(spec);
         return this;
     }

@@ -178,7 +178,9 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     //     narrowSpec = {
     //         init: function(whenDone) {},
     //         candidates: /*list ||*/function(func) {},
+    //         candidatesUpdater: function(input, callback) {}, /*called when called when input changed, callback should get new list*/
     //         prompt: 'string',
+    //         input: 'string', /*initial input*/
     //         preselect: 0,/*index || candidate*/
     //         ?keymap: {/*maps keyStrings to actions*/},
     //         ?history: [/*previous inputs*/],
@@ -207,6 +209,9 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         narrower.renderInputline(s.prompt, s.layout);
         narrower.selectN(spec.preselect || 0);
         narrower.focus();
+        if (spec.input) {
+            (function() { narrower.setInput(spec.input); }).delay(0);
+        }
     }
     if (spec.init) spec.init(run); else run();
 },
@@ -275,10 +280,19 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     }
     inputLine.setPosition(pt(0, this.getExtent().y-layout.inputLineHeight));
 },
-    selectInput: function selectInput() {
+    withInputLineDo: function(func) {
         var inputLine = this.get('inputLine');
-        if (inputLine) inputLine.selectAll();
-        else this.selectInput.bind(this).delay(0.1);
+        if (inputLine) func.call(this, inputLine);
+        else this.withInputLineDo.bind(this, func).delay(0.1);
+    },
+    selectInput: function selectInput() {
+        this.withInputLineDo(function(inputLine) { inputLine.selectAll(); });
+    },
+    setInput: function(string) {
+        this.withInputLineDo(function(inputLine) {
+            inputLine.setInput(string);
+            inputLine.withAceDo(function(ed) { ed.selection.moveCursorLineEnd(); });
+        });
     },
     renderList: function renderList(candidates, prevSel, currentSel, layout) {
     prevSel = prevSel || 0; currentSel = currentSel || 0;

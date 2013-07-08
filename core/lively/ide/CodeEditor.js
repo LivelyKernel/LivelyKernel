@@ -1196,7 +1196,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     enableGutter: function() { this.setShowGutter(true); },
     disableGutter: function() { this.setShowGutter(false); },
     setShowGutter: function(bool) {
-        this.withAceDo(function(ed) { ed.renderer.setShowGutter(bool); });
+        // FIXME rksm 07/07/13 ace init issue: when setting gutter before
+        // editor is rendered it will not show up correctly
+        if (!this.isRendered() || !this.world()) connect(this, '_isRendered', this, 'setShowGutter', {
+            updater: function($upd) { $upd.curry(this.sourceObj.getShowGutter()).delay(); }, removeAfterUpdate: true})
+        else this.withAceDo(function(ed) { ed.renderer.setShowGutter(bool); });
         return this._ShowGutter = bool;
     },
     getShowGutter: function(bool) {

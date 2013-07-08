@@ -2,6 +2,8 @@ module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ast.acorn').r
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
+    // disable currently broken worker
+    ace.require('ace/edit_session').EditSession.prototype.setUseWorker(false);
 })();
 
 lively.ide.ace = Object.extend(ace, {

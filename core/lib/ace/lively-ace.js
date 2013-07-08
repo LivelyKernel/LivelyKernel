@@ -183,7 +183,7 @@ var UndoManager = require("./undomanager").UndoManager;
 var Renderer = require("./virtual_renderer").VirtualRenderer;
 var MultiSelect = require("./multi_select").MultiSelect;
 var singleLineEdit = require("./single_line_edit").singleLineEdit;
-require("./worker/worker_client");
+var workerModule = require("./worker/worker_client");
 require("./keyboard/hash_handler");
 require("./placeholder");
 require("./mode/folding/fold_mode");
@@ -193,6 +193,8 @@ require("ace/snippets");
 require("ace/ext/language_tools"); // for autocompletion
 
 exports.config = require("./config");
+var workerModule = require("ace/worker/worker_client");
+workerModule.WorkerClient = workerModule.UIWorkerClient;
 exports.require = require;
 exports.edit = function(el) {
     if (typeof(el) == "string") {
@@ -37514,8 +37516,7 @@ var keywords = (
 oop.inherits(MatlabHighlightRules, TextHighlightRules);
 
 exports.MatlabHighlightRules = MatlabHighlightRules;
-});
-/* ***** BEGIN LICENSE BLOCK *****
+});/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2010, Ajax.org B.V.
@@ -37754,8 +37755,7 @@ oop.inherits(Mode, TextMode);
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
-});
-/* ***** BEGIN LICENSE BLOCK *****
+});/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2012, Ajax.org B.V.
@@ -43399,8 +43399,7 @@ var TypeScriptHighlightRules = function() {
 oop.inherits(TypeScriptHighlightRules, JavaScriptHighlightRules);
 
 exports.TypeScriptHighlightRules = TypeScriptHighlightRules;
-});
-/* ***** BEGIN LICENSE BLOCK *****
+});/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2010, Ajax.org B.V.

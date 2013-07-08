@@ -37,7 +37,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     run: function(commandString, options, thenDo) {
         /*
-        cmd = lively.ide.CommandLineInterface.run('ls', show);
+        cmd = lively.ide.CommandLineInterface.run('ls', {sync:true}, show);
         lively.ide.CommandLineInterface.run('grep 1 -', {stdin: '123\n567\n,4314'}, show);
         lively.ide.CommandLineInterface.kill();
         */
@@ -91,7 +91,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
                 startRequest: function() {
                     cmdLineInterface.commandInProgress = this;
-                    webR.post(JSON.stringify({command: parsedCommand, stdin: options.stdin}), 'application/json');
+                    webR.post(JSON.stringify({command: parsedCommand, cwd: options.cwd, stdin: options.stdin}), 'application/json');
                     this.startInterval();
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) {
@@ -122,7 +122,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     exec: function(commandString, options, thenDo) {
         /*
-        cmd = lively.ide.CommandLineInterface.exec('ls', show);
+        show(lively.ide.CommandLineInterface.exec('pwd', {cwd: '/Users/robert/', sync:true}).resultString());
         cmdLineInterface= lively.ide.CommandLineInterface
         cmdLineInterface.commandInProgress = null
         cmd
@@ -144,7 +144,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                         updater: function($upd, status) { if (status.isDone()) $upd(status); }});
                     if (options.sync) webR.beSync();
                     else webR.beAsync();
-                    webR.post(JSON.stringify({command: commandString}), 'application/json');
+                    webR.post(JSON.stringify({command: commandString, cwd: options.cwd}), 'application/json');
                 },
 
                 endRequest: function(status) {
@@ -591,52 +591,60 @@ Object.extend(lively.ide, {
             }
         },
 
-        findFiles: function(pattern, options) {
-            // lively.ide.CommandLineSearch.findFiles('*html', {sync:true})
+        findFiles: function(pattern, options, callback) {
+            // lively.ide.CommandLineSearch.findFiles('*html',
+            //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
             options = options || {};
-            var path = options.path || '.';
-            if (!path.endsWith('/')) path += '/';
-            // we expect an consistent timeformat to parse the results
-            var timeFormatFix =
-                "if [ `uname` == \"Darwin\" ]; "
-              + "  then timeformat='-T'; "
-              + "else "
-              + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
-              + "fi && ";
-            var excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
-                searchPart = options.re ? '-iregex "%s"' : '-iname "%s"';
-            // use GMT for time settings by default so the result is comparable
-            var commandString = timeFormatFix + Strings.format(
-                "env TZ=GMT find %s "
-              + (options.re ? '-E ' : '')
-              + '\\( ' + excludes + ' \\) -prune '
-              + '-o ' + searchPart + ' -exec ls -l \"$timeformat\" {} \\;',
-                path, pattern)
+            var rootDirectory = options.rootDirectory || '.';
+            if (!rootDirectory.endsWith('/')) rootDirectory += '/';
+            // we expect an consistent timeformat across OSs to parse the results
+            var timeFormatFix = "if [ `uname` == \"Darwin\" ]; "
+                              + "  then timeformat='-T'; "
+                              + "else "
+                              + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
+                              + "fi && ",
+                excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
+                searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : '-iname', pattern),
+                depth = options.hasOwnProperty('depth') ? ' -depth ' + options.depth : '',
+                // use GMT for time settings by default so the result is comparable
+                commandString = timeFormatFix + Strings.format(
+                    "env TZ=GMT find %s %s \\( %s \\) -prune -o %s %s -exec ls -ld \"$timeformat\" {} \\;",
+                rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth)
             function parseFindLsResult(string) {
                 var lines = Strings.lines(string);
                 return lines.map(function(line) {
                     // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
                     //                  file mode   no of links  user     group       size   date: month,day,   time,       year      file
-                    var match = line.match(/^\s*([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
-                    var path = match && match[7].replace(/\/\//g, '/'), pathAndLink = path && path.split(' -> '), isLink = path && pathAndLink.length === 2;
-                    return match ? {
-                        mode: match[1],
-                        // linkCount: Number(match[2]),
+                    var match = line.match(/^\s*(d|.)([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
+                    if (!match) return null;
+                    var name = match[8].replace(/\/\//g, '/'),
+                        nameAndLink = name && name.split(' -> '),
+                        isLink = name && nameAndLink.length === 2,
+                        path = isLink ? nameAndLink[0] : name,
+                        fileName = path && path.indexOf(rootDirectory) === 0 ? path.slice(rootDirectory.length) : path,
+                        isDirectory = match[1] === 'd';
+                    if (isDirectory) fileName += '/';
+                    return {
+                        mode: match[2],
+                        // linkCount: Number(match[3]),
                         isLink: isLink,
-                        linkTarget: pathAndLink[1],
-                        user: match[3],
-                        group: match[4],
-                        size: Number(match[5]),
-                        lastModified: new Date(match[6] + ' GMT'),
-                        path: isLink ? pathAndLink[0] : path,
+                        linkTarget: nameAndLink[1],
+                        user: match[4],
+                        group: match[5],
+                        size: Number(match[6]),
+                        lastModified: new Date(match[7] + ' GMT'),
+                        path: path,
+                        fileName: fileName,
+                        isDirectory: isDirectory,
                         toString: function() { return this.path; }
-                    } : null;
+                    };
                 }).compact();
             }
             var result = [],
                 cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
                     if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
                     result = parseFindLsResult(cmd.getStdout());
+                    callback && callback(result);
                 });
             return options.sync ? result : cmd;
         }

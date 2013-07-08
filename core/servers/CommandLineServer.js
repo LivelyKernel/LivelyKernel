@@ -20,7 +20,7 @@ runShellCommand = function(cmdInstructions) {
     var cmd = args.shift();
     if (!cmd) return;
 
-    var options = {cwd: dir, stdio: 'pipe'};
+    var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', [cmd].concat(args));
     shellCommand.process = spawn(cmd, args, options);
     if (stdin) {
@@ -50,7 +50,7 @@ runShellCommandExec = function(cmdInstructions) {
         callback = cmdInstructions.callback;
     if (!cmd) return;
 
-    var options = {cwd: dir, stdio: 'pipe'};
+    var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', cmd);
     shellCommand.process = exec(cmd, options, function(code, out, err) {
         shellCommand.process = null;
@@ -81,11 +81,12 @@ module.exports = function(route, app) {
     });
 
     app.post(route + 'exec', function(req, res) {
-        var command = req.body && req.body.command;
+        var command = req.body && req.body.command,
+            dir = req.body && req.body.cwd;
         if (!command) { res.status(400).end(); return; }
         if (shellCommand.process) { res.status(400).end((JSON.stringify({error: 'Shell command process still running!'}))); return; }
         try {
-            runShellCommandExec({command: command, callback: function(code, out, err) {
+            runShellCommandExec({command: command, cwd: dir, callback: function(code, out, err) {
                 res.end(JSON.stringify({code: code, out: out, err: err}));
             }});
         } catch(e) {
@@ -96,7 +97,8 @@ module.exports = function(route, app) {
 
     app.post(route, function(req, res) {
         var command = req.body && req.body.command,
-            stdin = req.body && req.body.stdin;
+            stdin = req.body && req.body.stdin,
+            dir = req.body && req.body.cwd;
         if (!command) { res.status(400).end(); return; }
         if (shellCommand.process) { res.status(400).end(JSON.stringify({error: 'Shell command process still running!'})); return; }
         var commandAndArgs = [];
@@ -106,7 +108,7 @@ module.exports = function(route, app) {
             commandAndArgs = command;
         }
         try {
-            runShellCommand({commandAndArgs: commandAndArgs, stdin: stdin});
+            runShellCommand({commandAndArgs: commandAndArgs, stdin: stdin, cwd: dir});
         } catch(e) {
              res.status(500).end(JSON.stringify({error: 'Error invoking shell: ' + e + '\n' + e.stack})); return;
         }

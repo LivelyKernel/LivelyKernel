@@ -2134,6 +2134,20 @@ Object.subclass('lively.Sound.Score', {
                     this.tracks.push(track);
             }
         }
+        // split single-track format into multiple tracks if needed
+        if (midi.header.formatType == 0) {
+            var splitTracks = [];
+            this.tracks[0].forEach(function(evt){
+                if (evt.isTempoEvent())
+                    this.tempos.push(evt);
+                else {
+                    var trk = splitTracks[evt.channel];
+                    if (!trk) {trk = splitTracks[evt.channel] = [] }
+                    trk.push(evt);
+                }
+            }.bind(this));
+            this.tracks = splitTracks.select(function(trk){return trk.length > 0});
+        }
     },
     getDurationInTicks: function() {
         if (this.durationInTicks) return this.durationInTicks;

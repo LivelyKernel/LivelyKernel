@@ -1154,7 +1154,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RenderingTest',
             copy = morph.copy();
         this.assertEquals(1, renderCalls);
         this.assert(copy.isRendered(), "copy not rendered?");
+    },
+    testWhenOpenedInWorld: function() {
+        this.morph.whenOpenedInWorld(function() { this.called = true; });
+        this.assert(!this.morph.called, 'whenOpenedInWorld to early');
+        this.world.addMorph(this.morph);
+        this.assert(this.morph.called, 'whenOpenedInWorld callback not called');
     }
+
 });
 
 

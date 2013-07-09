@@ -483,7 +483,26 @@ lively.morphic.Morph.addMethods(
         // this morph is in the DOM! (use !!this.world() for this test). More specifically,
         // even when you call #remove this will still return true since the morph
         return !!this._isRendered;
+    },
+    whenOpenedInWorld: function(doFunc) {
+        // use this function to add callbacks that are run when this morph
+        // is opened in the world (directly or as a submorphs)
+        if (this.isRendered() && this.world()) { doFunc.call(this); return; }
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        if (!this.hasOwnProperty('doNotSerialize')) this.doNotSerialize = [];
+        this.doNotSerialize.pushIfNotIncluded('whenOpenedInWorldCallbacks');
+        var cbs = this.whenOpenedInWorldCallbacks || (this.whenOpenedInWorldCallbacks = []);
+        cbs.pushIfNotIncluded(doFunc);
+        this.runWhenOpenedInWorldCallback || this.addScript(function runWhenOpenedInWorldCallbacks() {
+            var cbs = this.whenOpenedInWorldCallbacks || [], cb;
+            delete this.whenOpenedInWorldCallbacks;
+            delete this.runWhenOpenedInWorldCallbacks;
+            while ((cb = cbs.shift())) cb.call(this);
+        });
+        lively.bindings.connect(this, 'onOwnerChanged', this, 'runWhenOpenedInWorldCallbacks', {
+            updater: function($upd) { this.sourceObj.world() && $upd(); }, removeAfterUpdate: true});
     }
+
 });
 
 lively.morphic.Shapes.Shape.addMethods(

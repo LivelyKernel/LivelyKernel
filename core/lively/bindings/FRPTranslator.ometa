@@ -57,6 +57,20 @@ ometa FRPTranslator {
                         dependencies: [], isStream: false};
                 }
                     }.bind(this))()),
+    condExpr = trans:cc trans:tt trans:ff
+            -> ((function() {
+                var isStream = cc.isStream || tt.isStream || ff.isStream;
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeCond([cc, tt, ff]);
+                    var deps = cc.dependencies.clone().concat(tt.dependencies).concat(ff.dependencies);
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString: Strings.format('(%s) ? (%s) : (%s))', cc.refString, tt.refString, ff.refString),
+                        dependencies: [], isStream: false};
+                }
+                    }.bind(this))()),
     unop = :op trans:ll
             -> ((function() {
                 var isStream = ll.isStream;

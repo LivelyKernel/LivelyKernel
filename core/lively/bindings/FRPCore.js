@@ -174,7 +174,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     mergeE: function() {
         var ary = [];
         for (var i = 0; i < arguments.length; i++) {
-            ary[i] = this.ref(arguments[i]);
+            ary[i] = arguments[i];
         }
         this.setUp("mergeE", ary,
             function(space, evaluator) {
@@ -352,11 +352,11 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
 
     mergeEChecker: function(space, time, evaluator) {
     // The checker for mergeE().  For mergeE, an undefined in sources is allowed.
-        var dependencies = evaluator.dependencies[this.id];
+        var sources = evaluator.sources[this.id];
         var result = null;
         var args = evaluator.arguments[this.id];
-        for (var i = 0; i < dependencies.length; i++) {
-            var src = dependencies[i];
+        for (var i = 0; i < sources.length; i++) {
+            var src = sources[i];
             if (this.isEventStream(src)
                 && (this.isEarlierThan(src) && src.currentValue !== undefined)) {
                     if (result === null) {

@@ -1848,6 +1848,7 @@ lively.Sound.AbstractSound.subclass("lively.Sound.ScorePlayer", {
         this.rate = 1;              // relative playback speed
         this.beatsPerMinute = 120;  // initial tempo (changed by score events)
         this.cursors = [];          // one cursor per track
+        this.masterVolume = 0.25;
         $super();
     },
 
@@ -1912,6 +1913,8 @@ lively.Sound.AbstractSound.subclass("lively.Sound.ScorePlayer", {
     mixSamplesToBuffer: function(n, buffer, startIndex, leftVol, rightVol) {
         // play all active sounds, remove finished ones
         var someSoundIsDone = false;
+        leftVol *= this.masterVolume;
+        rightVol *= this.masterVolume;
         this.activeSounds.forEach(function(sound) {
             sound.mixSamplesToBuffer(n, buffer, startIndex, leftVol, rightVol);
             if (sound.samplesRemaining() <= 0) {

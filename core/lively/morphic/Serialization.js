@@ -255,6 +255,7 @@ lively.morphic.World.addMethods(
 
     visitNewPageAfterSaveAs: function(url) {
         if (!url) return;
+        if (url.toString().indexOf("autosave") >= 0) return;  // in users/AL... incognito
         this.confirm("visit " + url + "?", function(yes) {
             if (yes)
                 window.open(url.toString());

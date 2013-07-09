@@ -224,6 +224,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
         // 2) let the shape know about the editor, this let's us do some optimizations
         this.getShape().aceEditor = e;
+        // force resize when rendered, necessary in chrome
+        this.whenOpenedInWorld(function() { e.resize.bind(e,true).delay(0.1); });
 
         // 3) set modes / themes
         this.setupKeyBindings();
@@ -1198,9 +1200,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     setShowGutter: function(bool) {
         // FIXME rksm 07/07/13 ace init issue: when setting gutter before
         // editor is rendered it will not show up correctly
-        if (!this.isRendered() || !this.world()) connect(this, '_isRendered', this, 'setShowGutter', {
-            updater: function($upd) { $upd.curry(this.sourceObj.getShowGutter()).delay(); }, removeAfterUpdate: true})
-        else this.withAceDo(function(ed) { ed.renderer.setShowGutter(bool); });
+        this.whenOpenedInWorld(function() {
+            this.withAceDo(function(ed) { ed.renderer.setShowGutter(bool); }); });
         return this._ShowGutter = bool;
     },
     getShowGutter: function(bool) {
@@ -1210,11 +1211,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     getLineWrapping: function() {
         return this.hasOwnProperty("_LineWrapping") ? this._LineWrapping : this.withAceDo(function(ed) {
-            return ed.session.getUseWrapMode(); });
+            return ed.getOption('wrap'); });
     },
-    setLineWrapping: function(bool) {
-        this.withAceDo(function(ed) { ed.session.setUseWrapMode(bool); });
-        return this._LineWrapping = bool;
+    setLineWrapping: function(value) {
+        // value can either be a bool or "printMargin" or a number specifying the wrap limit
+        this.whenOpenedInWorld(function() {
+            this.withAceDo(function(ed) { ed.setOption('wrap', value); }); });
+        return this._LineWrapping = value;
     },
 
     setShowInvisibles: function(bool) {

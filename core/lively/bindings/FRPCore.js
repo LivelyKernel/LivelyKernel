@@ -669,11 +669,9 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             this.sort();
             this.detectContinuity();
         }
-
-        if (this.debug) {
-            debugger;
-        }
         this.changed = this.changedExternally;
+        var sent = this.frpSent;
+        this.frpSent = false;
         this.currentTime = time;
         var i;
         try {
@@ -702,7 +700,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         }
         if (this.changed) {
             for (i = 0; i < this.results.length; i++) {
-                this.results[i].sync(this.currentTime);
+                this.results[i].sync(sent ? this.currentTime : undefined);
             }
         }
         this.changedExternally = false;
@@ -712,6 +710,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.evaluateAt(this.currentTime);
     },
     realSend: function(parameter) {
+        parameter.target.owner.__evaluator.frpSent = true;
         parameter.target.frpSet(parameter.value, parameter.evaluator.currentTime);
     },
     installStream: function(strm) {

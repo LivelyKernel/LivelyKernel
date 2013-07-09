@@ -303,8 +303,25 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     modifyCommand: function(cmdName, properties) {
         // modifies the implementation of a command but only for this
         // sepcific editor, not globally
-        var cmd = Object.extend(Object.extend({}, this.aceEditor.commands.byName[cmdName]), properties);
-        this.aceEditor.commands.byName[cmdName] = cmd;
+        function augmentCommand(commands) {
+            if (!commands || !commands.byName || !commands.byName[cmdName]) return;
+            var cmd = Object.extend(Object.extend({}, commands.byName[cmdName]), properties);
+            commands.byName[cmdName] = cmd;
+            var ckb = commands.commmandKeyBinding;
+            if (!cmd.bindKey || !commands.parseKeys || !ckb) return;
+            if (typeof cmd.bindKey === 'object' && !commands.platform) return;
+            var keySpec = typeof cmd.bindKey === 'object' ? cmd.bindKey[commands.platform] : cmd.bindKey;
+            keySpec.split('|').forEach(function(keys) {
+                debugger;
+                var parsed = commands.parseKeys(keys),
+                    cmdForKey = ckb[parsed.hashId] && ckb[parsed.hashId][parsed.key];
+                if (cmdForKey) ckb[parsed.hashId][parsed.key] = cmd;
+            });
+        }
+        this.withAceDo(function(ed) {
+            augmentCommand(ed.commands);
+            augmentCommand(ed.getKeyboardHandler().commands);
+        });
     },
     setupKeyBindings: function() {
         function codeEditor() {

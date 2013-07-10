@@ -304,6 +304,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 },
 'collapsing', {
     toggleCollapseNavigation: function() {
+        if (this.view.isCollapsed) {
+            this.view.expand();
+        }
+        
         if (this.isNavigationExpanded()) { 
             this.collapseNavigation(); 
         } else {
@@ -343,6 +347,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     isNavigationExpanded: function() {
         return this.view.submorphs.include(this.panel);
     },
+    isNavigationCollapsed: function() {
+        return !this.isNavigationExpanded();
+    }
+
 },
 'opening', {
     openIn: function (world, pos, ext) {
@@ -857,7 +865,14 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
     onOwnerChanged: function(newOwner) {
         if (!newOwner || !newOwner.isWindow || !this.ownerWidget) return;
         this.ownerWidget.updateTitle();
+    },
+    onWindowCollapse: function() {
+        var browser = this.ownerWidget;
+        if (browser.isNavigationCollapsed()) {
+            browser.expandNavigation();
+        }
     }
+
 
 });
 

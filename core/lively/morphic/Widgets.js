@@ -2708,10 +2708,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
     collapse: function() {
         if (this.isCollapsed()) return;
+        this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
         this.expandedTransform = this.getTransform();
         this.expandedExtent = this.getExtent();
         this.expandedPosition = this.getPosition();
-        this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
         this.targetMorph.remove();
         this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
         this.helperMorphs.invoke('remove');

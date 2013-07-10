@@ -1617,7 +1617,7 @@ lively.morphic.World.addMethods(
         return false;
     },
     onMouseUp: function (evt) {
-        if (evt.isAltDown() && this.clickedOnMorph) {
+        if (evt.isAltDown() && this.clickedOnMorph && !this.draggedMorph) {
             if (!Global.thats) Global.thats = [];
             // thats: select multiple morphs
             // reset when clicked in world

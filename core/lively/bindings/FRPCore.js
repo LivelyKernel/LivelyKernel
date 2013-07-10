@@ -123,7 +123,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         return this;
     },
     delayE: function(event, interval) {
-        this.setUp("delayE", [this.ref(event)],
+        this.setUp("delayE", [event],
             function(space, evaluator) {
                 var val = space.frpGet(this.event);
                 var lastTime = space.lookup(this.event).lastTime;
@@ -146,10 +146,10 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             },
             function(space, time, evaluator) {
                 return this.basicChecker(space, time, evaluator)
-                    || this.pastValues.length > 0
-                        && this.pastValues[0].time <= (time - space.frpGet(this.interval));
+                    || (this.pastValues.length > 0
+                        && this.pastValues[0].time <= (time - space.frpGet(this.interval)));
             });
-        this.event = this.ref(event);
+        this.event = event;
         this.pastValues = [];
         this.interval = interval;
         return this;

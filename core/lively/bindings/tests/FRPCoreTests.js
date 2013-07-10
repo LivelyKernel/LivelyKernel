@@ -194,7 +194,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
 
         var timer = this.newStream().durationE(1000, 10000).setCode("durationE(1000, 10000)").finalize([]);
         timer.installTo(obj, "timer");
-        var delayer = this.newStream().delayE("timer", 3000).setCode("timer.delayE(3000)").finalize([]);
+        var delayer = this.newStream().delayE(this.ref("timer"), 3000).setCode("timer.delayE(3000)").finalize([]);
         delayer.installTo(obj, "delayer");
 
         evaluator.reset();
@@ -287,7 +287,7 @@ function(t) {return 0 - t}).setCode("0 - timer").finalize([]);
         timer1.installTo(obj, "timer1");
         var timer2 = this.newStream().durationE(500, 10000).setCode("durationE(500, 2000)").finalize([]);
         timer2.installTo(obj, "timer12");
-        var mergeE = this.newStream().mergeE("timer1", "timer2").finalize([]);
+        var mergeE = this.newStream().mergeE(this.ref("timer1"), this.ref("timer2")).finalize([]);
         mergeE.installTo(obj, "mergeE");
 
         evaluator.reset();

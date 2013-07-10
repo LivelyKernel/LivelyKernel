@@ -2388,7 +2388,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         return this.addNewButtonAt(pos, label, optLabelOffset, optWidth);
     },
     addNewButtonAt: function(pos, label, optLabelOffset, optWidth) {
-        var button = this.createNewButton(label, optLabelOffset, optWidth);
+        var button = this.createNewButton(label, optLabelOffset, optWidth);   
         this.buttons.pushAt(button, pos);
         this.adjustElementPositions();
         return button;
@@ -2503,10 +2503,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.closeButton.addStyleClassName('close');
         this.collapseButton = titleBar.addNewButton("–", pt(0,1));
         this.menuButton = titleBar.addNewButton("Menu", null, 40);
-
-        this.closeButton.plugTo(this, {getHelpText: '->getCloseHelp', fire: '->initiateShutdown'});
-        this.menuButton.plugTo(this, {getHelpText: '->getMenuHelp', fire: '->showTargetMorphMenu'});
-        this.collapseButton.plugTo(this, {getHelpText: '->getCollapseHelp', fire: '->toggleCollapse'});
+        
+        connect(this.closeButton, 'fire', this, 'initiateShutdown');
+        connect(this.menuButton, 'fire', this, 'showTargetMorphMenu');
+        connect(this.collapseButton, 'fire', this, 'toggleCollapse');
         
         return titleBar;
     },

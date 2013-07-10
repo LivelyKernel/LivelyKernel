@@ -356,7 +356,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.view = window;
         
         var navButton = window.titleBar.addNewButtonAt(2, "N");
-        navButton.plugTo(this, {fire: '->toggleCollapseNavigation'});
+        connect(navButton, 'fire', function() { 
+            var scb = view.targetMorph.ownerWidget;
+            scb.toggleCollapseNavigation();
+        }.asScript({view: window}), "call")
         
         return window;
     },

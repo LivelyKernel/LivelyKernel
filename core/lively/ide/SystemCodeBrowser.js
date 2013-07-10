@@ -25,17 +25,29 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     onDeserialize: function() {
         // rebuild the browser as its view on the system 
         // source might not be up to date anymore
-        var position = this.view.getPosition(),
-            extent = this.view.getExtent(),
-            world = lively.morphic.World.current(),
-            newBrowser = new this.constructor();
+        var position = this.panel.getPosition(),
+            extent = this.panel.getExtent(),
+            newBrowser = new this.constructor(),
+            newBrowserPanel = newBrowser.buildView(extent);
+            
+        if (this.isNavigationCollapsed()) {
+            this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));  
+        }
         
-        newBrowser.openIn(world, position, extent);
+        newBrowser.view = this.view;
+        this.view.targetMorph = newBrowserPanel;
+        this.view.addMorph(newBrowserPanel);
+        newBrowserPanel.setPosition(this.panel.getPosition());
+
+        if (this.isNavigationCollapsed()) {
+            newBrowser.collapseNavigation();
+        }
+
+        // FIXME: selectNode doesn't work
         newBrowser.selectNode(this.selectedNode());
-        this.view.remove();
-},
-
-
+        
+        this.panel.remove();
+    },
     setupLocationInput: function($super) {
         $super();
         var locInput = this.locationInput();

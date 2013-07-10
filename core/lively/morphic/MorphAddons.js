@@ -871,11 +871,7 @@ lively.morphic.World.addMethods(
             textMsg.textString = msg;
             var cssClass = (Color.red.equals(color) && 'failure')
                         || (Color.green.equals(color) && 'success');
-            // something's wrong here...
-            // cssClass &&  this.addStyleClassName(cssClass);
-            console.log(cssClass)
-            this._StyleClassNames.pushIfNotIncluded(cssClass);
-            if (cssClass) this.jQuery().attr('class', this.jQuery().attr('class') + ' ' + cssClass);
+            cssClass &&  this.addStyleClassName(cssClass);
             (function() {
                 var extent = textMsg.getTextExtent().minPt(this.getExtent().subXY(10,10));
                 textMsg.setExtent(extent);

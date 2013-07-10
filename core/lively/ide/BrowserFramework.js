@@ -304,14 +304,20 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 },
 'collapsing', {
     toggleCollapseNavigation: function() {
-        if (this.view.isCollapsed) {
+        if (this.view.isCollapsed()) {
+            this.panel.onWindowExpand = function() {
+                // necessary via callback as window expanding might
+                // happen asynchronously (animated)
+                this.collapseNavigation();
+                delete this.panel.onWindowExpand;
+            }.bind(this);
             this.view.expand();
-        }
-        
-        if (this.isNavigationExpanded()) { 
-            this.collapseNavigation(); 
         } else {
-            this.expandNavigation();
+            if (this.isNavigationExpanded()) {
+                this.collapseNavigation();
+            } else {
+                this.expandNavigation();
+            }
         }
     },
     collapseNavigation: function() {

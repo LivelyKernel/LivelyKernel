@@ -156,6 +156,27 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         this.reset();
     },
+
+    getListItemIndexFromMouseEvent: function getListItemIndexFromMouseEvent(evt) {
+        var target = evt.getTargetMorph(),
+            candidates = this.state.filteredCandidates,
+            idx = candidates.indexOf(target.candidate);
+        return idx;
+    },
+    onMouseMove: function onMouseMove(evt) {
+    var idx = this.getListItemIndexFromMouseEvent(evt);
+    if (idx === -1 || this.currentSel === idx) return $super(evt);
+    this.selectN(idx);
+    return $super(evt);
+},
+
+    onMouseUp: function onMouseUp(evt) {
+    var idx = this.getListItemIndexFromMouseEvent(evt);
+    if (idx === -1) return $super(evt);
+    this.onSelectionConfirmed();
+    evt.stop(); return true;
+    },
+
     onKeyDown: function onKeyDown(evt) {
     var modifierPressed = evt.isCtrlDown() || evt.isCommandKey();
     if (modifierPressed && evt.keyCode === 192) { // \"`\" key

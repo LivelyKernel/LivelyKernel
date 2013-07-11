@@ -36,7 +36,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     initialize: function($super) {
         $super();
         this.buttonCommands = [];
-        // init filters
+        this.isNavigationCollapsed = false;
         this.filterPlaces.forEach(function(ea) {  /*identity filter*/
             this['set' + ea + 'Filters']([new lively.ide.NodeFilter()]);
         }, this);
@@ -313,10 +313,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             }.bind(this);
             this.view.expand();
         } else {
-            if (this.isNavigationExpanded()) {
-                this.collapseNavigation();
-            } else {
+            if (this.isNavigationCollapsed) {
                 this.expandNavigation();
+            } else {
+                this.collapseNavigation();
             }
         }
     },
@@ -334,6 +334,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
         this.view.addMorph(this.sourceOnlyPanel);
         this.view.targetMorph = this.sourceOnlyPanel;
+        
+        this.isNavigationCollapsed = true;
     },
     expandNavigation: function() {
         var originalSourceEditHeight = this.panel.bounds().height - this.navigationHeight(),
@@ -349,16 +351,12 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));  
         this.view.addMorph(this.panel);
         this.view.targetMorph = this.panel;
+        
+        this.isNavigationCollapsed = false;
     },
     navigationHeight: function() {
         return this.panel.midResizer.bounds().bottomLeft().y;
     },
-    isNavigationExpanded: function() {
-        return this.view.submorphs.include(this.panel);
-    },
-    isNavigationCollapsed: function() {
-        return !this.isNavigationExpanded();
-    }
 
 },
 'opening', {
@@ -877,7 +875,7 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
     },
     onWindowCollapse: function() {
         var browser = this.ownerWidget;
-        if (browser.isNavigationCollapsed()) {
+        if (browser.isNavigationCollapsed) {
             browser.expandNavigation();
         }
     }

@@ -22,33 +22,46 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     onrestore: function() {
         if (this.panel) this.onDeserialize.bind(this).delay(0);
     },
+
+
     onDeserialize: function() {
-        // rebuild the browser as its view on the system
-        // source might not be up to date anymore
         var position = this.panel.getPosition(),
             extent = this.panel.getExtent(),
-            newBrowser = new this.constructor(),
-            newBrowserPanel = newBrowser.buildView(extent),
-            wasNavigationCollapsed = this.isNavigationCollapsed();
-
-        if (wasNavigationCollapsed) {
-            this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));
-            this.sourceOnlyPanel.remove();
-        } else {
-            this.panel.remove();
+            newBrowser = new this.constructor();
+        
+        if (this.targetURL) {
+            newBrowser.targetURL = this.targetURL;
         }
-
+        
+        if (this.isNavigationCollapsed) {
+            var fullExtent;
+            if (!this.view.isCollapsed()) {
+                fullExtent = this.view.getExtent().addPt(lively.pt(0, this.navigationHeight()));
+                this.view.setExtent(fullExtent);
+                this.sourceOnlyPanel.remove();
+            } else {
+                fullExtent = this.view.expandedExtent.addPt(lively.pt(0, this.navigationHeight()));
+                this.view.expandedExtent = fullExtent;
+            }   
+        }
+        
+        newBrowser.buildView(extent);
         newBrowser.view = this.view;
-        this.view.targetMorph = newBrowserPanel;
-        this.view.addMorph(newBrowserPanel);
-        newBrowserPanel.setPosition(this.panel.getPosition());
-
-        if (wasNavigationCollapsed) {
-            newBrowser.collapseNavigation();
+        
+        this.view.targetMorph = newBrowser.panel;
+        
+        if (!this.view.isCollapsed()) {
+            this.view.addMorph(newBrowser.panel);
         }
-
+        newBrowser.panel.setPosition(position);
+        this.panel.remove();
+            
         // FIXME: selectNode doesn't work
         newBrowser.selectNode(this.selectedNode());
+        
+        if (this.isNavigationCollapsed && !this.view.isCollapsed()) {
+            newBrowser.toggleCollapseNavigation();
+        }
     },
     setupLocationInput: function($super) {
         $super();

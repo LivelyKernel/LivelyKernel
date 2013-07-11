@@ -206,10 +206,34 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         return this.finalize([]);
     },
-    userEvent: function() {
-        this.setUp("userEvent", [], null, null, false);
-        this.dormant = false;
-        return this.finalize([]);
+    anyE: function(input, fieldName) {
+        this.setUp("anyE", [input],
+            function(space, evaluator) {
+	            if (this.__found__) {
+			        var f = this.__found__;
+			        this.__found__ = null;
+                    return space.frpGet(f);
+	            } else {
+                    return undefined;
+	            }
+            },
+            function(space, time, evaluator) {
+                var col = space.lookup(this.argCollection);
+                var field = space.lookup(this.fieldName);
+                for (var i = 0; i < col.length; i++) {
+                    var arg = col[i];
+                    var s = space.lookup(arg)[field];
+                    if (this.isEventStream(s) && this.isEarlierThan(s)) {
+                        this.__found__ = s;
+                        return true;
+                    }
+                }
+                this.__found__ = null;
+                return false;
+            })
+        this.argCollection = input;
+        this.fieldName = fieldName;
+        return this;
     },
     sendE: function(input, recipient) {
         this.recipient = recipient;
@@ -226,6 +250,11 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         );
         return this;
     },
+    userEvent: function() {
+        this.setUp("userEvent", [], null, null, false);
+        this.dormant = false;
+        return this.finalize([]);
+    }
 },
 'evaluation', {
     addSubExpression: function(id, stream) {

@@ -140,9 +140,13 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                     }
                     this.pastValues.shift();
                 }
-                return this.pastValues[0].time <= t
+                var result = this.pastValues[0].time <= t
                     ? this.pastValues.shift().value
                     : undefined;
+                if (this.pastValues.length > 0) {
+                    evaluator.addNextDelay(this, this.pastValues[0].time - space.frpGet(this.interval));
+                }
+                return result;
             },
             function(space, time, evaluator) {
                 return this.basicChecker(space, time, evaluator)
@@ -719,6 +723,9 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         if (strm.type === "timerE" || strm.type === "durationE") {
             this.addTimer(strm);
         }
+        if (strm.type === "delayE") {
+            this.addDelay(strm);
+        }
         if (strm.type === "userEvent") {
             this.setUpMorphicEvent(strm.streamName, strm);
         }
@@ -740,7 +747,15 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             timer.timerId = setInterval(function() {this.evaluate();}.bind(this), timer.interval);
         }
     },
-
+    addDelay: function(timer) {
+        if (this.syncWithRealTime) {
+            this.timers.push(timer);
+            this.constructor.allTimers.push(timer);
+        }
+    },
+    addNextDelay: function(timer, schedule) {
+        timer.timerId = setTimeout(function() {this.evaluate();}.bind(this), this.currentTime - schedule);
+    },
     removeTimer: function(strm) {
         window.clearInterval(strm.timerId);
         this.timers.remove(strm);

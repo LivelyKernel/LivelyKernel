@@ -2537,6 +2537,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 'accessing', {
     setTitle: function(string) { this.titleBar.setTitle(string) },
     getTitle: function() { return this.titleBar.getTitle() },
+    setExtent: function($super, newExtent) {
+        $super(newExtent);
+        this.alignAllHandles();
+    },
+
 
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {
@@ -2556,10 +2561,12 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
 
     alignAllHandles: function() {
-        if (this.isCollapsed()) return;
-        this.reframeHandle && this.reframeHandle.alignWithWindow();
-        this.bottomReframeHandle && this.bottomReframeHandle.alignWithWindow();
-        this.rightReframeHandle && this.rightReframeHandle.alignWithWindow();
+        var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
+        handles.forEach(function (each) {
+            if (each && each.owner) {
+                each.alignWithWindow();
+            }
+        })
     }
 
 },

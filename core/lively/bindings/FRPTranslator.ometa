@@ -37,7 +37,7 @@ ometa FRPTranslator {
                 if (isStream) {
                     var id = this.nextId();
                     var strmDef = this.makeFby(init, [body]);
-                    var deps = body.dependencies.clone().concat(trigger ? trigger.dependencies : []);
+                    var deps = (body.dependencies ? body.dependencies : []).concat(trigger ? trigger.dependencies : []);
                     this.addSubExpression(id, strmDef, deps);
                     return {refString: this.ref(id), dependencies: deps, isStream: true}
                 } else {
@@ -192,6 +192,26 @@ ometa FRPTranslator {
             -> ({refString: "this.owner", dependencies: [], isStream: false}),
     gget = anything:n
             -> ({refString: n, dependencies: [], isStream: false}),
+    arr = trans*:args
+            -> ((function() {
+                var isStream = args.inject(false, function(last, now) {
+                    return last || now.isStream});
+                if (isStream) {
+                    var id = this.nextId();
+                    var strmDef = this.makeArray(args);
+                    var deps = args.inject([], function(last, now) {
+                        return last.concat(now.dependencies);
+                    });
+                    this.addSubExpression(id, strmDef, deps);
+                    return {refString: this.ref(id), dependencies: deps, isStream: true}
+                } else {
+                    return {refString:
+                        Strings.format('[%s]',
+                            args.map(function(arg) {return arg.refString}).join(', ')),
+                        dependencies: [],
+                        isStream: false}
+                }
+            }.bind(this))()),
     begin = trans
 
 };

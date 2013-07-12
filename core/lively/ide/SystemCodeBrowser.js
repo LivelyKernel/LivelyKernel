@@ -20,29 +20,113 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     },
 
     onrestore: function() {
-        if (this.panel) this.panel.onDeserialize.bind(this.panel).delay(0);
+        if (this.panel) this.onDeserialize.bind(this).delay(0);
     },
 
+
+    onDeserialize: function() {
+        var position = this.panel.getPosition(),
+            extent = this.panel.getExtent(),
+            newBrowser = new this.constructor();
+        
+        if (this.targetURL) {
+            newBrowser.targetURL = this.targetURL;
+        }
+        
+        if (this.isNavigationCollapsed) {
+            var fullExtent;
+            if (!this.view.isCollapsed()) {
+                fullExtent = this.view.getExtent().addPt(lively.pt(0, this.navigationHeight()));
+                this.view.setExtent(fullExtent);
+                this.sourceOnlyPanel.remove();
+            } else {
+                fullExtent = this.view.expandedExtent.addPt(lively.pt(0, this.navigationHeight()));
+                this.view.expandedExtent = fullExtent;
+            }   
+        }
+        
+        newBrowser.buildView(extent);
+        newBrowser.view = this.view;
+        
+        this.view.targetMorph = newBrowser.panel;
+        
+        if (!this.view.isCollapsed()) {
+            this.view.addMorph(newBrowser.panel);
+        }
+        newBrowser.panel.setPosition(position);
+        this.panel.remove();
+            
+        // FIXME: selectNode doesn't work
+        newBrowser.selectNode(this.selectedNode());
+        
+        if (this.isNavigationCollapsed && !this.view.isCollapsed()) {
+            newBrowser.toggleCollapseNavigation();
+        }
+    },
     setupLocationInput: function($super) {
         $super();
-
-        connect(this, 'targetURL', this.locationInput(), 'setTextString',
-            {updater: function($upd, value) { value && $upd(String(value)) }});
-
-        connect(this.locationInput(), 'savedTextString', this, 'setTargetURL');
-        this.targetURL = this.targetURL; // hrmpf
+        var locInput = this.locationInput();
+        if (!locInput) return;
+        
+        locInput.addScript(function onMouseDown(evt) {
+            var wasHandled = $super(evt);
+            if (wasHandled || !evt.isRightMouseButtonDown()) { return false; }
+            
+            var menu = [
+                ['Codebase', self.switchToLivelyCodebase.bind(self)], 
+                ['Local', self.switchToLocalCodebase.bind(self) ]];
+            lively.morphic.Menu.openAtHand(null, menu);
+            evt.stop();
+            return true;   
+        }, undefined, {self: this});
+        
+        connect(this, 'targetURL', this, 'setLocationInputFromURL');
+        connect(this.locationInput(), 'savedTextString', this, 'setTargetUrlFromString');
         this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
+    },
+    switchToLocalCodebase: function() {
+        this.setTargetURL(
+            $world.getUserName() ? 
+                $world.getUserDir() : 
+                URL.source.getDirectory());
+    },
 
-        this.panel.codeBaseDirBtn.setLabel('Codebase');
-        connect(this.panel.codeBaseDirBtn, 'fire', this, 'setTargetURL',
-            {converter: function() { return URL.codeBase.withFilename('lively/'); } })
-        this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
+    switchToLivelyCodebase: function() {
+        this.setTargetURL(URL.codeBase.withFilename('lively/'));        
+    },
 
-        this.panel.localDirBtn.setLabel('Local');
-        connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL', {converter: function() {
-            return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory(); }});
-        this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
-    }
+    setLocationInputFromURL: function(targetUrl) {
+        var codeBaseString = String(this.sourceDatabase().codeBaseURL);
+        var targetString = String(targetUrl);
+        var locationInputString = targetString.replace(codeBaseString, '');
+        this.locationInput().setTextString(locationInputString);
+    },
+    setTargetUrlFromString: function(aString) {
+        var targetUrlString = aString; 
+        
+        if (aString.indexOf('.') > -1) {
+            var module = lively.module(urlOrString);
+            lively.ide.browse(null, null, {name: module.name()}, this);
+            return;
+        }
+        if (! aString.startsWith('http://')) {
+            targetUrlString = String(this.sourceDatabase().codeBaseURL).concat(aString);
+        }
+        this.setTargetURL(new URL(targetUrlString))
+    },
+    openIn: function($super, world, pos, ext) {
+        $super(world, pos, ext);
+        var lastOpened = lively.ide.SourceControl.registeredBrowsers.last();
+            lastOpened && this.setTargetURL(lastOpened.targetURL);
+    },
+
+
+
+
+
+
+
+
 
 },
 'accessing', {

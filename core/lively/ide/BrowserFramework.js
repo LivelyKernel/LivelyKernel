@@ -14,15 +14,13 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     })(),
 
     panelSpec: [
-        ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
-        ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
-        ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
-        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
-        ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
-        ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
-        ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
-        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
-        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
+        ['locationPane', newTextPane,                                                        [0,    0,    0.2485,  0.03]],
+        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.2485, 0.44]],
+        ['Pane2', newDragnDropListPane,                                                      [0.2505, 0, 0.2485, 0.47]],
+        ['Pane3', newDragnDropListPane,                                                      [0.5010,  0, 0.2485, 0.47]],
+        ['Pane4', newDragnDropListPane,                                                      [0.7515, 0, 0.2485, 0.47]],
+        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.47, 1,    0.01]],
+        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.48, 1,    0.52]]
     ],
 
     allPaneNames: ['Pane1', 'Pane2', 'Pane3', 'Pane4'],
@@ -38,7 +36,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     initialize: function($super) {
         $super();
         this.buttonCommands = [];
-        // init filters
+        this.isNavigationCollapsed = false;
         this.filterPlaces.forEach(function(ea) {  /*identity filter*/
             this['set' + ea + 'Filters']([new lively.ide.NodeFilter()]);
         }, this);
@@ -48,7 +46,11 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         function setupListPane(paneName) {
             var pane = browser.panel[paneName],
                 list = pane.innerMorph();
-            pane.applyStyle({scaleProportional: true});
+            pane.applyStyle({
+                scaleProportional: true,
+                borderWidth: 1,
+                borderColor: Color.gray
+                });
             lively.bindings.connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
                 updater: function($upd, v) {
                     var browser = this.targetObj, list = this.sourceObj;
@@ -124,7 +126,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.setupListPanes();
         this.setupSourceInput();
         this.setupLocationInput();
-        this.buildCommandButtons(panel);
         this.setupResizers(panel);
         panel.ownerWidget = this;
         this.start();
@@ -162,35 +163,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
         panel.midResizer.linkToStyles(["Browser_resizer"]);
     },
-
-    buildCommandButtons: function(morph) {
-        var cmds = this.commands()
-            .collect(function(ea) { return new ea(this) }, this)
-            .select(function(ea) { return ea.wantsButton() });
-
-        if (cmds.length === 0) return;
-
-        var height = Math.round(morph.getExtent().y * 0.04),
-            width = morph.getExtent().x / cmds.length,
-            y = morph.getExtent().y * 0.44 - height,
-            btns = cmds.forEach(function(cmd, i) {
-                // Refactor me!!!
-                var btn = new lively.morphic.Button(new Rectangle(i*width, y, width, height));
-                btn.command = cmd; // used in connection
-                btn.setLabel(cmd.asString());
-                lively.bindings.connect(btn, 'fire', cmd, 'trigger');
-                lively.bindings.connect(btn, 'fire', btn, 'setLabel', {
-                    converter: function() { return this.getSourceObj().command.asString() }
-                });
-                cmd.button = btn; // used in onPaneXUpdate, to be removed!!!
-                morph.addMorph(btn);
-                btn.applyStyle({padding: Rectangle.inset(0,4),
-                                scaleProportional: true,
-                                label: {fontSize: 9}})
-            })
-        this.buttonCommands = cmds;
-    },
-
     start: function() {
         this.setPane1Content(this.childsFilteredAndAsListItems(this.rootNode(), this.getRootFilters()));
         this.mySourceControl().registerBrowser(this);
@@ -198,9 +170,15 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
     stop: function() {
         this.mySourceControl().unregisterBrowser(this);
-    }
-
-},
+    },
+    morphMenuItems: function() {
+        var cmds = this.commands()
+            .collect(function(ea) { return new ea(this) }, this)
+            .select(function(ea) { return ea.wantsButton() });
+        
+        return cmds.collect(function(ea) { 
+            return [ea.asString(), ea.trigger.bind(ea)] });
+    },},
 'generated formal getters and setters', {
     generateGetterAndSetterSource: function() {
         this.formals.inject('', function(str, spec) {
@@ -324,6 +302,83 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         return this.panel.sourcePane.innerMorph().hasUnsavedChanges();
     },
 },
+'collapsing', {
+    toggleCollapseNavigation: function() {
+        if (this.view.isCollapsed()) {
+            this.panel.onWindowExpand = function() {
+                // necessary via callback as window expanding might
+                // happen asynchronously (animated)
+                this.collapseNavigation();
+                delete this.panel.onWindowExpand;
+            }.bind(this);
+            this.view.expand();
+        } else {
+            if (this.isNavigationCollapsed) {
+                this.expandNavigation();
+            } else {
+                this.collapseNavigation();
+            }
+        }
+    },
+    collapseNavigation: function() {
+        var sourcePane = this.getSourcePane();
+        
+        this.sourceOnlyPanel = new lively.morphic.Panel(sourcePane.getExtent());
+        this.sourceOnlyPanel.setPosition(this.panel.getPosition());
+        this.sourceOnlyPanel.ownerWidget = this;
+        
+        this.sourceOnlyPanel.addMorph(sourcePane);
+        sourcePane.setPosition(lively.pt(0, 0));
+        
+        this.panel.remove();
+        this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
+        this.view.addMorph(this.sourceOnlyPanel);
+        this.view.targetMorph = this.sourceOnlyPanel;
+        
+        this.isNavigationCollapsed = true;
+    },
+    expandNavigation: function() {
+        var originalSourceEditHeight = this.panel.bounds().height - this.navigationHeight(),
+            vResizing = this.sourceOnlyPanel.bounds().height / originalSourceEditHeight,
+            newHeight = this.panel.bounds().height * vResizing,
+            newWidth = this.sourceOnlyPanel.bounds().width;
+        this.panel.setExtent(lively.pt(newWidth, newHeight));
+        
+        this.panel.addMorph(this.getSourcePane());
+        this.getSourcePane().setPosition(this.panel.midResizer.getBounds().bottomLeft());
+        
+        this.sourceOnlyPanel.remove();
+        this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));  
+        this.view.addMorph(this.panel);
+        this.view.targetMorph = this.panel;
+        
+        this.isNavigationCollapsed = false;
+    },
+    navigationHeight: function() {
+        return this.panel.midResizer.bounds().bottomLeft().y;
+    },
+
+},
+'opening', {
+    openIn: function (world, pos, ext) {
+        var extent = ext || this.getInitialViewExtent(),
+            panel = this.buildView(extent),
+            window = world.addFramedMorph(panel, this.defaultTitle);
+        if (pos) window.setPosition(pos);
+        if (world.currentScene) world.currentScene.addMorph(window); // FIXME
+        panel.ownerApp = this;
+        this.panel = panel;
+        this.view = window;
+        
+        var navButton = window.titleBar.addNewButtonAt(2, "N");
+        connect(navButton, 'fire', function() { 
+            var scb = view.targetMorph.ownerWidget;
+            scb.toggleCollapseNavigation();
+        }.asScript({view: window}), "call")
+        
+        return window;
+    },
+},
 'accessing', {
 
     commands: function() { return [] },
@@ -337,6 +392,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (!ctrl) throw new Error('Browser has no SourceControl!');
         return ctrl;
     },
+    getSourcePane: function() {
+        return this.panel.sourcePane;
+    },
+
 },
 'browser nodes', {
 
@@ -671,9 +730,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
 
     ensureSourceNotAccidentlyDeleted: function (callback) {
-        // checks if the source code has unsaved changes if it hasn't or if the
-        // user wants to discard them then run the callback
-        // otherwise do nothing
+        // checks if the source code has unsaved changes, only run the callback 
+        // if it hasn't or if the user wants to discard them
         var browser = this;
         if (!browser.hasUnsavedChanges()) {
             callback.apply(browser);
@@ -702,16 +760,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
 lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
 'serialization', {
-
-    onDeserialize: function($super) {
-        var widget = new this.ownerWidget.constructor(),
-            selection = this.getSelectionSpec();
-        if (this.targetURL) widget.targetURL = this.targetURL;
-        this.owner.targetMorph = this.owner.addMorph(widget.buildView(this.getExtent()));
-        this.owner.targetMorph.setPosition(this.getPosition());
-        this.remove();
-        this.resetSelection(selection, widget);
-    }
 
 },
 'accessing', {
@@ -824,7 +872,14 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
     onOwnerChanged: function(newOwner) {
         if (!newOwner || !newOwner.isWindow || !this.ownerWidget) return;
         this.ownerWidget.updateTitle();
+    },
+    onWindowCollapse: function() {
+        var browser = this.ownerWidget;
+        if (browser.isNavigationCollapsed) {
+            browser.expandNavigation();
+        }
     }
+
 
 });
 

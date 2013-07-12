@@ -28,9 +28,7 @@
 	color: #333;
 	text-align: center;
 	text-shadow: 0 1px 0 #EEE;
-	background-image: -webkit-linear-gradient(top, #eee, #ccc);
-	background-image: -moz-linear-gradient(top, #eee, #ccc);
-	border-radius: 3px;
+	border-radius: 2px;
 	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
 	cursor: pointer;
 	border: 1px solid #888;
@@ -41,8 +39,6 @@
 }
 
 .Button.toggled {
-	background-image: -webkit-linear-gradient(top, #FFF, #EEE);
-	background-image: -moz-linear-gradient(top, #FFF, #EEE);
 	color: black;
 }
 
@@ -63,13 +59,13 @@
 }
 
 .Window {
-	background-color: rgba(244, 244, 244, 0.7);
+	background-color: rgb(244, 244, 244);
 	box-shadow: 0px 4px 15px #666;
-	border-radius: 5px;
+	border-radius: 3px;
 }
 
 .Window.highlighted {
-	background-color: rgba(222, 222, 222, 0.8);
+	background-color: rgba(222, 222, 222);
 	box-shadow: 0px 5px 20px #000;
 	border: 1px solid white;
 }
@@ -93,9 +89,9 @@
 
 .Window .Text.window-title {
 	font-size: 10pt;
-	text-align: center;
+	text-align: left;
+	margin-left: 2px;
 	color: #555;
-	text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white;
 }
 
 .Window.highlighted .Text.window-title {
@@ -105,7 +101,7 @@
 
 .Button.WindowControl {
 	border: 1px solid #aaa;
-	border-radius: 3px;
+	border-radius: 2px;
 	background: #EEE;
 	font-weight: normal;
 }

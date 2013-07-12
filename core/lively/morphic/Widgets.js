@@ -1025,6 +1025,12 @@ lively.morphic.Morph.addMethods(
         return lively.morphic.Menu.openAt(pos, this.name || this.toString(),
                                           itemFilter(this.morphMenuItems()));
     },
+    createMorphMenu: function(itemFilter) {
+        itemFilter = Object.isFunction(itemFilter) ? itemFilter : Functions.K;
+        return new lively.morphic.Menu(this.name || this.toString(),
+                                       itemFilter(this.morphMenuItems()));
+    },
+
     showMorphMenu: function(evt) {
         var pos = evt ? evt.getPosition() : this.firstHand().getPosition();
         evt && evt.stop();
@@ -1392,9 +1398,6 @@ lively.morphic.World.addMethods(
         require('lively.ide.SystemCodeBrowser').toRun(function() {
             browser = new lively.ide.SystemBrowser();
             browser.openIn(world);
-
-            var lastOpened = lively.ide.SourceControl.registeredBrowsers.last();
-            lastOpened && browser.setTargetURL(lastOpened.targetURL)
         });
         return browser;
     },
@@ -2347,16 +2350,12 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     }
 },
 'intitializing', {
-    initialize: function($super, headline, windowWidth, windowMorph, optSuppressControls) {
-        if (optSuppressControls)  {  // for dialog boxes
-            this.suppressControls = true;
-            this.barHeight = this.shortBarHeight;
-        }
+    initialize: function($super, headline, windowWidth, windowMorph) {
         var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
-
         $super(bounds);
 
         this.windowMorph = windowMorph;
+        this.buttons = [];
 
         // Note: Layout of submorphs happens in adjustForNewBounds (q.v.)
         var label;
@@ -2369,81 +2368,62 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         this.label.addStyleClassName('window-title');
         this.label.setTextStylingMode(true);
 
-        if (!this.suppressControls) {
-            var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
-
-            this.closeButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(0,-1)));
-            this.closeButton.applyStyle({moveHorizontal: true});
-            this.closeButton.addStyleClassName('close');
-
-            this.menuButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(0,0)));
-
-            this.collapseButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(0,1)));
-            this.collapseButton.applyStyle({moveHorizontal: true});
-
-
-            this.connectButtons(windowMorph);
-        }
-        // This will align the buttons and label properly
-        this.adjustForNewBounds();
-
         this.disableDropping();
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
     },
-
-    connectButtons: function(w) {
-        if (this.suppressControls) return;
-        this.closeButton.plugTo(w, {getHelpText: '->getCloseHelp', fire: '->initiateShutdown'});
-        this.menuButton.plugTo(w, {getHelpText: '->getMenuHelp', fire: '->showTargetMorphMenu'});
-        this.collapseButton.plugTo(w, {getHelpText: '->getCollapseHelp', fire: '->toggleCollapse'});
-    }
-
+    createNewButton: function(label, optLabelOffset, optWidth) {
+        var length = this.barHeight - 5,
+            extent = lively.pt(optWidth || length, length);
+        var button = this.addMorph(
+                new lively.morphic.WindowControl(
+                        lively.rect(lively.pt(0, 0), extent), 
+                        this.controlSpacing, 
+                        label, 
+                        optLabelOffset || pt(0,0)));
+        return button;
+    },
+    addNewButton: function(label, optLabelOffset, optWidth) {
+        var pos = this.buttons.size();
+        return this.addNewButtonAt(pos, label, optLabelOffset, optWidth);
+    },
+    addNewButtonAt: function(pos, label, optLabelOffset, optWidth) {
+        var button = this.createNewButton(label, optLabelOffset, optWidth);   
+        this.buttons.pushAt(button, pos);
+        this.adjustElementPositions();
+        return button;
+    },
 },
 'label', {
     setTitle: function(string) {
         this.label.replaceTextString(string);
-        this.adjustForNewBounds();
     },
 
     getTitle: function(string) { return this.label.textString }
 },
 'layouting', {
-    adjustForNewBounds: function($super) {
-        $super();
+    adjustElementPositions: function($super) {
         var innerBounds = this.innerBounds(),
-            sp = this.controlSpacing,
-            loc = this.innerBounds().topLeft().addXY(sp, sp),
-            l0 = loc,
-            dx = pt(this.barHeight - sp, 0);
-        if (this.menuButton) {
-            this.menuButton.setPosition(loc);
-            loc = loc.addPt(dx);
-        }
-        if (this.closeButton) {
-            loc = this.innerBounds().topRight().addXY(
-                -sp-this.closeButton.shape.getBounds().width, sp);
-            this.closeButton.setPosition(loc);
-            loc = loc.subPt(dx);
-        }
-        if (this.collapseButton) {
-            this.collapseButton.setPosition(loc);
-        };
+            sp = this.controlSpacing;
+        
+        var buttonLocation = this.innerBounds().topRight().subXY(sp, -sp);
+                
+        this.buttons.forEach(function(ea) {
+            buttonLocation = buttonLocation.subXY(ea.shape.getBounds().width, 0);
+            ea.setPosition(buttonLocation);
+            buttonLocation = buttonLocation.subXY(sp, 0)
+        });
+        
         if (this.label) {
-            var start = this.menuButton ? this.menuButton.bounds().topRight() : pt(0,0),
-                end = this.collapseButton ? this.collapseButton.bounds().bottomLeft() : innerBounds.bottomRight();
+            var start = this.innerBounds().topLeft().addXY(sp, sp),
+                end = lively.pt(buttonLocation.x,
+                        innerBounds.bottomRight().y).subXY(sp, sp);
             this.label.setBounds(rect(start, end));
         }
-
-/*        var style = this.styleNamed("titleBar");
-        var w = style.borderWidth || 1;
-        var r = style.borderRadius || 3;
-        this.contentMorph.setBounds(new Rectangle(w/2, w/2, innerBounds.width, this.barHeight + r));*/
     },
-
+    adjustForNewBounds: function() {
+        this.adjustElementPositions();
+    },
     lookCollapsedOrNot: function(collapsed) {
         this.applyStyle({borderRadius: collapsed ? "8px 8px 8px 8px" : "8px 8px 0px 0px"});
     }
@@ -2516,8 +2496,19 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
 
     makeTitleBar: function(titleString, width, optSuppressControls) {
-        // Overridden in TabbedPanelMorph
-        return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
+        var titleBar = new lively.morphic.TitleBar(titleString, width, this);
+        if (optSuppressControls) return titleBar;
+        
+        this.closeButton = titleBar.addNewButton("X", pt(0,-1));
+        this.closeButton.addStyleClassName('close');
+        this.collapseButton = titleBar.addNewButton("–", pt(0,1));
+        this.menuButton = titleBar.addNewButton("Menu", null, 40);
+        
+        connect(this.closeButton, 'fire', this, 'initiateShutdown');
+        connect(this.menuButton, 'fire', this, 'showTargetMorphMenu');
+        connect(this.collapseButton, 'fire', this, 'toggleCollapse');
+        
+        return titleBar;
     },
 
     resetTitleBar: function() {
@@ -2546,6 +2537,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 'accessing', {
     setTitle: function(string) { this.titleBar.setTitle(string) },
     getTitle: function() { return this.titleBar.getTitle() },
+    setExtent: function($super, newExtent) {
+        $super(newExtent);
+        this.alignAllHandles();
+    },
+
 
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {
@@ -2565,15 +2561,18 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
 
     alignAllHandles: function() {
-        if (this.isCollapsed()) return;
-        this.reframeHandle && this.reframeHandle.alignWithWindow();
-        this.bottomReframeHandle && this.bottomReframeHandle.alignWithWindow();
-        this.rightReframeHandle && this.rightReframeHandle.alignWithWindow();
+        var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
+        handles.forEach(function (each) {
+            if (each && each.owner) {
+                each.alignWithWindow();
+            }
+        })
     }
 
 },
 'menu', {
     showTargetMorphMenu: function() {
+        
         var target = this.targetMorph || this, itemFilter;
         if (this.targetMorph) {
             var self = this;
@@ -2602,10 +2601,20 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                         if (input !== null) self.titleBar.setTitle(input || '');
                     }, self.titleBar.getTitle());
                 }];
+                if (self.targetMorph.ownerApp && self.targetMorph.ownerApp.morphMenuItems) {
+                    self.targetMorph.ownerApp.morphMenuItems().each(function(ea) {items.push(ea)}) 
+                }
                 return items;
             }
         }
-        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);
+        
+        var menu = target.createMorphMenu(itemFilter);
+        var menuBtnTopLeft = this.menuButton.bounds().topLeft();
+        var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
+        menu.openIn(
+            lively.morphic.World.current(), 
+            this.getGlobalTransform().transformPoint(menuTopLeft), 
+            false);
     },
     morphMenuItems: function($super) {
         var self = this, world = this.world(), items = $super();
@@ -2706,10 +2715,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
     collapse: function() {
         if (this.isCollapsed()) return;
+        this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
         this.expandedTransform = this.getTransform();
         this.expandedExtent = this.getExtent();
         this.expandedPosition = this.getPosition();
-        this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
         this.targetMorph.remove();
         this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
         this.helperMorphs.invoke('remove');
@@ -2833,13 +2842,13 @@ Object.subclass('lively.morphic.App',
     }
 },
 'accessing', {
-    getInitialViewExtent: function(world, hint) {
+    getInitialViewExtent: function(hint) {
         return hint || this.initialViewExtent;
     }
 },
 'opening', {
     openIn: function(world, pos) {
-        var view = this.buildView(this.getInitialViewExtent(world));
+        var view = this.buildView(this.getInitialViewExtent());
         view.ownerApp = this; // for debugging
         this.view = view;
         if (pos) view.setPosition(pos);
@@ -3071,7 +3080,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
 lively.morphic.App.subclass('lively.morphic.WindowedApp',
 'opening', {
     openIn: function(world, pos) {
-        var view = this.buildView(this.getInitialViewExtent(world)),
+        var view = this.buildView(this.getInitialViewExtent()),
             window = world.addFramedMorph(view, this.defaultTitle);
         if (world.currentScene) world.currentScene.addMorph(window); // FIXME
         view.ownerApp = this; // for debugging

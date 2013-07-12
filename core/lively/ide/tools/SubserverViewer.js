@@ -19,7 +19,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
         adjustForNewBounds: true
     },
     name: "SubserverViewer",
-    prevDragPos: lively.pt(1597.0,20.0),
     sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
@@ -41,7 +40,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
         },
         name: "SubserverViewer",
         nodejsURL: URL.create("http://localhost:9001/nodejs/"),
-        selectedServer: "Store",
         sourceModule: "lively.morphic.Core",
         submorphs: [{
             _BorderColor: Color.rgb(221,221,221),
@@ -50,21 +48,19 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _ClipMode: "auto",
             _Extent: lively.pt(161.6,331.3),
             _Fill: Color.rgb(243,243,243),
+            _FontFamily: "Helvetica",
             _FontSize: 10,
             _Position: lively.pt(7.7,5.8),
             _StyleClassNames: ["Morph","Box","List","ServerList"],
             className: "lively.morphic.List",
             doNotCopyProperties: [],
             doNotSerialize: [],
-            grabbingEnabled: false,
             itemList: [],
             layout: {
                 resizeHeight: true,
                 resizeWidth: false
             },
             name: "ServerList",
-            selectedLineNo: 4,
-            selection: "Store",
             sourceModule: "lively.morphic.Core",
             submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
@@ -74,23 +70,23 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _ClipMode: "hidden",
             _Extent: lively.pt(600.5,18.4),
             _FontFamily: "Arial, sans-serif",
+            _HandStyle: null,
+            _InputAllowed: true,
             _MaxTextWidth: 120.695652,
             _MinTextWidth: 120.695652,
-            _Padding: lively.rect(5,5,0,0),
             _Position: lively.pt(173.5,342.0),
             _StyleClassNames: ["Morph","Text","StatusText"],
+            _TextColor: Color.rgb(64,64,64),
             _WordBreak: "break-all",
+            allowInput: true,
             className: "lively.morphic.Text",
             doNotSerialize: ["charsTyped"],
-            droppingEnabled: false,
             emphasis: [[0,0,{
                 fontWeight: "normal",
-                italics: "normal",
-                uri: URL.create("http://localhost:9001/nodejs/Store/")
+                italics: "normal"
             }]],
             fixedHeight: true,
             fixedWidth: true,
-            grabbingEnabled: false,
             layout: {
                 moveVertical: true,
                 resizeWidth: true
@@ -100,14 +96,13 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             submorphs: []
         },{
             _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(23.0,19.0),
             _Position: lively.pt(8.8,339.7),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
-            droppingEnabled: false,
-            grabbingEnabled: false,
             isPressed: false,
             label: "⟳",
             layout: {
@@ -123,10 +118,11 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "listSubservers", {});
         },
             doAction: function doAction() {
-
-        }
+        
+                }
         },{
             _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(23.0,19.0),
             _Position: lively.pt(33.8,339.7),
@@ -135,8 +131,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             doAction: false,
             doNotCopyProperties: [],
             doNotSerialize: [],
-            droppingEnabled: false,
-            grabbingEnabled: false,
             isPressed: false,
             label: "+",
             layout: {
@@ -154,14 +148,13 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
         }
         },{
             _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(23.0,19.0),
             _Position: lively.pt(59.1,339.6),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
-            droppingEnabled: false,
-            grabbingEnabled: false,
             isPressed: false,
             label: "-",
             layout: {
@@ -178,17 +171,24 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "removeSubserver", {});
         },
             doAction: function doAction() {
-
-        }
+        
+                }
         },{
+            _AutocompletionEnabled: true,
             _BorderColor: Color.rgb(95,94,95),
             _BorderWidth: 1,
-            _Extent: lively.pt(603.0,332.0),
+            _Extent: lively.pt(603.0,331.0),
             _FontSize: 12,
+            _LineWrapping: false,
             _Position: lively.pt(173.0,5.0),
+            _ShowActiveLine: false,
             _ShowGutter: true,
+            _ShowIndents: true,
+            _ShowInvisibles: false,
+            _ShowPrintMargin: false,
+            _SoftTabs: true,
             _StyleSheet: "#ace-editor {\n\
-        	position: absolute;\n\
+            position: absolute;\n\
         	top: 0;\n\
         	bottom: 0;\n\
         	left: 0;\n\
@@ -197,148 +197,179 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _TextMode: "javascript",
             _Theme: "twilight",
             accessibleInInactiveWindow: true,
+            allowInput: true,
             className: "lively.morphic.CodeEditor",
             doNotCopyProperties: [],
-            doNotSerialize: [],
-            grabbingEnabled: false,
+            doNotSerialize: ["whenOpenedInWorldCallbacks"],
+            hasRobertsKeys: true,
             layout: {
                 resizeHeight: true,
                 resizeWidth: true
             },
             name: "ServerSourceCode",
             sourceModule: "lively.ide.CodeEditor",
+            storedString: "",
             storedTextString: "",
             submorphs: [],
             textMode: "javascript",
             theme: "twilight",
             boundEval: function boundEval(string) {
-                var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
-                return nodejsServer.post(string).content;
-            },
-            printInspect: function printInspect() {
-                var s = this.getSelectionMaybeInComment();
-                s = 'require("util").inspect(' + s + ', null, 0)';
-                var result = this.tryBoundEval(s);
-                this.printObject(null, result);
-            },
+                        var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
+                        return nodejsServer.post(string).content;
+                    },
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "savedTextString", this.get("SubserverViewer"), "writeServerSource", {});
+        },
+            printInspect: function printInspect() {
+                        var s = this.getSelectionMaybeInComment();
+                        s = 'require("util").inspect(' + s + ', null, 0)';
+                        var result = this.tryBoundEval(s);
+                        this.printObject(null, result);
+                    }
+        },{
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(55.0,20.0),
+            _Position: lively.pt(111.9,338.5),
+            className: "lively.morphic.Button",
+            label: "open log",
+            name: "openServerLogButton",
+            sourceModule: "lively.morphic.Widgets",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "fire", this, "doAction", {});
+        },
+            doAction: function doAction() {
+            function start(logWindow) {
+                if (!logWindow.world() || !$world.visibleBounds().intersects(logWindow.globalBounds())) {
+                    logWindow.openInWorldCenter();
+                }
+                logWindow.comeForward();
+                logWindow.get('ServerLogPanel').startUpdating();
+            }
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            var logWindow = $world.get('ServerLog');
+            if (logWindow) { start(logWindow); return; }
+            require('lively.ide.tools.SubserverViewer').toRun(function() {
+               var logWindow = lively.BuildSpec('lively.ide.tools.ServerLog').createMorph();
+               start(logWindow);
+            });
         }
         }],
         subserverURL: URL.create("http://localhost:9001/nodejs/subservers/"),
         addSubserver: function addSubserver() {
-        this.world().prompt(
-            'Please enter a server name',
-            function(input) {
-                if (!input) { alert('aborting'); return };
-                var success = this.reallyAddSubserver(input);
-                if (!success) return;
-                this.listSubservers();
-                this.selectServer(input);
-            }.bind(this), 'NewServer')
-    },
+            this.world().prompt(
+                'Please enter a server name',
+                function(input) {
+                    if (!input) { alert('aborting'); return };
+                    var success = this.reallyAddSubserver(input);
+                    if (!success) return;
+                    this.listSubservers();
+                    this.selectServer(input);
+                }.bind(this), 'NewServer')
+        },
         getServerResource: function getServerResource(serverName) {
-        return this.subserverURL.withFilename(serverName).asWebResource();
-    },
+            return this.subserverURL.withFilename(serverName).asWebResource();
+        },
         listSubservers: function listSubservers() {
-        var list;
-        try {
-            list = JSON.parse(this.subserverURL.asWebResource().get().content);
-        } catch(e) {
-            list = []
-        }
-        this.get('ServerList').setList(list);
-        this.selectServer(null);
-    },
+            var list;
+            try {
+                list = JSON.parse(this.subserverURL.asWebResource().get().content);
+            } catch(e) {
+                list = []
+            }
+            this.get('ServerList').setList(list);
+            this.selectServer(null);
+        },
         onLoad: function onLoad() {
-        this.nodejsURL = URL.root.withFilename('nodejs/');
-        this.subserverURL = this.nodejsURL.withFilename('subservers/');
-        this.listSubservers();
-    },
+            this.nodejsURL = URL.root.withFilename('nodejs/');
+            this.subserverURL = this.nodejsURL.withFilename('subservers/');
+            this.listSubservers();
+        },
         onWindowGetsFocus: function onWindowGetsFocus() {
-        this.get('ServerSourceCode').focus();
-    },
+            this.get('ServerSourceCode').focus();
+        },
         reallyAddSubserver: function reallyAddSubserver(serverName) {
-        var src = "module.exports = function(route, app) {\n"
-                + "    app.get(route, function(req, res) {\n"
-                + "        res.end(\""
-                + serverName
-                + " is running!\");\n"
-                + "    });\n"
-                + "}\n",
-            status = this.getServerResource(serverName).put(src).status;
-        if (!status.isSuccess()) {
-            alert('Could not create server ' + serverName);
-            return false;
-        } else {
-            alertOK('Server ' + serverName + ' created');
-            return true;
-        }
-    },
+            var src = "module.exports = function(route, app) {\n"
+                    + "    app.get(route, function(req, res) {\n"
+                    + "        res.end(\""
+                    + serverName
+                    + " is running!\");\n"
+                    + "    });\n"
+                    + "}\n",
+                status = this.getServerResource(serverName).put(src).status;
+            if (!status.isSuccess()) {
+                alert('Could not create server ' + serverName);
+                return false;
+            } else {
+                alertOK('Server ' + serverName + ' created');
+                return true;
+            }
+        },
         reallyRemoveSubserver: function reallyRemoveSubserver(serverName) {
-        var status = this.getServerResource(serverName).del().status;
-        if (status.isSuccess()) {
-            alertOK('Server removed successfully!');
-        } else {
-            alert('Server could not be removed.');
-        }
-    },
+            var status = this.getServerResource(serverName).del().status;
+            if (status.isSuccess()) {
+                alertOK('Server removed successfully!');
+            } else {
+                alert('Server could not be removed.');
+            }
+        },
         removeSubserver: function removeSubserver() {
-        var serverName = this.get('ServerList').selection;
-        if (!serverName || serverName === "") {
-            $world.setStatusMessage('No server selected!', Color.red, 500);
-            return;
-        }
-        this.world().confirm(
-            'Really remove ' + serverName + '?' ,
-            function(input) {
-                if (!input) { alertOK('nothing removed'); return };
-                this.reallyRemoveSubserver(serverName);
-                this.listSubservers();
-            }.bind(this))
-    },
+            var serverName = this.get('ServerList').selection;
+            if (!serverName || serverName === "") {
+                $world.setStatusMessage('No server selected!', Color.red, 500);
+                return;
+            }
+            this.world().confirm(
+                'Really remove ' + serverName + '?' ,
+                function(input) {
+                    if (!input) { alertOK('nothing removed'); return };
+                    this.reallyRemoveSubserver(serverName);
+                    this.listSubservers();
+                }.bind(this))
+        },
         reset: function reset() {
-        this.get('ServerList').setList([]);
-        this.nodejsURL = URL.root.withFilename('nodejs/');
-        this.subserverURL = this.nodejsURL.withFilename('subservers/');
-        connect(this.get('ServerList'), 'selection', this, 'subserverSelected');
-        connect(this.get('AddSubserverButton'), 'fire', this, 'addSubserver');
-        connect(this.get('RemoveSubserverButton'), 'fire', this, 'removeSubserver');
-        connect(this.get('ServerSourceCode'), "savedTextString", this, "writeServerSource", {})
-    },
+            this.get('ServerList').setList([]);
+            this.nodejsURL = URL.root.withFilename('nodejs/');
+            this.subserverURL = this.nodejsURL.withFilename('subservers/');
+            connect(this.get('ServerList'), 'selection', this, 'subserverSelected');
+            connect(this.get('AddSubserverButton'), 'fire', this, 'addSubserver');
+            connect(this.get('RemoveSubserverButton'), 'fire', this, 'removeSubserver');
+            connect(this.get('ServerSourceCode'), "savedTextString", this, "writeServerSource", {})
+        },
         selectServer: function selectServer(serverName) {
-        this.get('ServerList').setSelection(serverName);
-    },
+            this.get('ServerList').setSelection(serverName);
+        },
         setStatus: function setStatus(msg) {
-        this.get("StatusText").textString = msg;
-    },
+            this.get("StatusText").textString = msg;
+        },
         subserverSelected: function subserverSelected(serverName) {
-        var src = '';
-        if (serverName && serverName !== '') {
-            src = this.getServerResource(serverName).get().content;
-            var serverURL = this.nodejsURL.withFilename(serverName + '/');
-            this.get("StatusText").textString = serverName + ' is running at ' + serverURL.pathname;
-            this.get("StatusText").emphasizeRegex(/([^ ]+)$/g, {uri: serverURL});
-        } else {
-            this.get("StatusText").textString = '';
-        }
-        this.get('ServerSourceCode').textString = src;
-        this.selectedServer = serverName;
-    },
+            var src = '';
+            if (serverName && serverName !== '') {
+                src = this.getServerResource(serverName).get().content;
+                var serverURL = this.nodejsURL.withFilename(serverName + '/');
+                this.get("StatusText").textString = serverName + ' is running at ' + serverURL.pathname;
+                this.get("StatusText").emphasizeRegex(/([^ ]+)$/g, {uri: serverURL});
+            } else {
+                this.get("StatusText").textString = '';
+            }
+            this.get('ServerSourceCode').textString = src;
+            this.selectedServer = serverName;
+        },
         writeServerSource: function writeServerSource(src) {
-        if (!this.selectedServer || this.selectedServer == '') {
-            return false;
+            if (!this.selectedServer || this.selectedServer == '') {
+                return false;
+            }
+            var serverName = this.selectedServer;
+            var status = this.getServerResource(serverName).put(src).status;
+            if (!status.isSuccess()) {
+                alert('Could not update source for ' + serverName);
+                return false;
+            } else {
+                alertOK('Server ' + serverName + ' updated');
+                return true;
+            }
         }
-        var serverName = this.selectedServer;
-        var status = this.getServerResource(serverName).put(src).status;
-        if (!status.isSuccess()) {
-            alert('Could not update source for ' + serverName);
-            return false;
-        } else {
-            alertOK('Server ' + serverName + ' updated');
-            return true;
-        }
-    }
     }],
     titleBar: "SubserverViewer",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {

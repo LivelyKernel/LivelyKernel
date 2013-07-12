@@ -721,7 +721,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 var worldNameMaxLength = maxLength - user.length;
                 var lastActivity = '';
                 if (session.lastActivity) {
-                    lastActivity += new Date(session.lastActivity).relativeTo(new Date());
+                    lastActivity += new Date(session.lastActivity).relativeTo(new Date()) + ' ago';
                 }
                 worldNameMaxLength -= lastActivity.length;
                 var worldNameMaxLength = maxLength - user.length;

@@ -137,6 +137,9 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
             this.get('ServerLogPanel').toggleUpdating();
         }
         }],
+        onWindowGetsFocus: function onWindowGetsFocus() {
+        this.get('stdout').focus();
+    },
         printServerStatus: function printServerStatus(report) {
         var uptime = (new Date(Date.now()-report.uptime*1000)).relativeTo(new Date()),
             pid = report.pid, platform = report.platform + '(' + report.arch + ')',
@@ -155,9 +158,13 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
         // var newString = (this.get('stdout').textString + log.stdout).slice(-maxSize);
         // this.get('stdout').textString = newString;
         var string = log.stdout.replace(lively.ide.CommandLineInterface.ansiAttributesRegexp, '');
-        this.get('stdout').textString += string;
-        this.get('stdout').withAceDo(function(ed) { ed.selection.moveCursorFileEnd(); })
         this.prevLog = {stdoutIndex: log.stdoutIndex};
+        if (string === '') return;
+        var logText = this.get('stdout')
+        logText.withAceDo(function(ed) {
+            var atBottom = ed.getCursorPosition().row >= (ed.session.getLength()-2);
+            logText.textString += string;
+            atBottom && ed.selection.moveCursorFileEnd(); })
     },
         reset: function reset() {
         // this.reset();

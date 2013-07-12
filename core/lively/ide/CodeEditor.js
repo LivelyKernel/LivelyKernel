@@ -240,6 +240,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setSoftTabs(this.getSoftTabs());
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
+        this.setInputAllowed(this.inputAllowed());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
@@ -1209,8 +1210,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     getFontFamily: function() { return this._FontFamily; },
 
-    inputAllowed: function() { return this.allowInput },
-    setInputAllowed: function(bool) { throw new Error('implement me'); },
+    inputAllowed: function() { return this.allowInput === undefined || !!this.allowInput; },
+    setInputAllowed: function(bool) {
+        this.withAceDo(function(ed) { return ed.setOption('readOnly', !bool); });
+        return this.allowInput = bool;
+    },
 
     enableGutter: function() { this.setShowGutter(true); },
     disableGutter: function() { this.setShowGutter(false); },

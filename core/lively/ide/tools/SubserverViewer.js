@@ -250,7 +250,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             var logWindow = $world.get('ServerLog');
             if (logWindow) { start(logWindow); return; }
-            require('lively.ide.tools.SubserverViewer').toRun(function() {
+            require('lively.ide.tools.ServerLog').toRun(function() {
                var logWindow = lively.BuildSpec('lively.ide.tools.ServerLog').createMorph();
                start(logWindow);
             });

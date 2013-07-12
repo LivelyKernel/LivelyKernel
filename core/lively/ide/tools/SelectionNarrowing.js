@@ -167,6 +167,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         return idx;
     },
     onMouseMove: function onMouseMove(evt) {
+    if (this.ignoreMouseInput) return $super(evt);
     var idx = this.getListItemIndexFromMouseEvent(evt);
     if (idx === -1 || this.currentSel === idx) return $super(evt);
     this.selectN(idx);
@@ -174,6 +175,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
 },
 
     onMouseUp: function onMouseUp(evt) {
+    if (this.ignoreMouseInput) return $super(evt);
     var idx = this.getListItemIndexFromMouseEvent(evt);
     if (idx === -1) return $super(evt);
     this.onSelectionConfirmed();
@@ -265,6 +267,11 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     this.align(
         this.bounds().bottomCenter(),
         visibleBounds.bottomCenter().addXY(0, -layout.padding));
+    // this is a fix for the issue that a line is selected if the mouse
+    // is in the area were the narrower appears when build/made visible
+    // even if the mouse is not moved/clicked
+    this.ignoreMouseInput = true;
+    (function() { delete this.ignoreMouseInput; }).bind(this).delay(0.6);
 },
     renderInputline: function renderInputline(prompt, layout) {
     var inputLine = this.getMorphNamed('inputLine');

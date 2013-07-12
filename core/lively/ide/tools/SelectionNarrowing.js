@@ -214,6 +214,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     //         prompt: 'string',
     //         input: 'string', /*initial input*/
     //         preselect: 0,/*index || candidate*/
+    //         keepInputOnReactivate: BOOL, /*should the previous input be removed when re-activated?*/
     //         ?keymap: {/*maps keyStrings to actions*/},
     //         ?history: [/*previous inputs*/],
     //         actions [/*list of functions receiving selected candidate*/],
@@ -235,21 +236,22 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             previousCandidateProjection: null,
             candidatesUpdater: spec.candidatesUpdater,
             candidatesUpdaterMinLength: spec.candidatesUpdaterMinLength,
+            keepInputOnReactivate: spec.keepInputOnReactivate,
             filters: []
         };
         narrower.renderContainer(s.layout);
         narrower.renderInputline(s.prompt, s.layout);
         narrower.selectN(spec.preselect || 0);
         narrower.focus();
-        if (spec.input) {
-            (function() { narrower.setInput(spec.input); }).delay(0);
-        }
+        (function() { narrower.setInput(spec.input || ''); }).delay(0);
     }
     if (spec.init) spec.init(run); else run();
 },
     activate: function activate() {
         this.renderContainer(this.state.layout);
-        this.get('inputLine').focus();
+        var inputLine = this.get('inputLine')
+        if (!this.state.keepInputOnReactivate) inputLine.clear();
+        inputLine.focus();
     },
     deactivate: function activate() {
         lively.ide.tools.SelectionNarrowing.lastActive = this;

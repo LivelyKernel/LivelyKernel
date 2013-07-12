@@ -189,6 +189,12 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         lively.bindings.signal(this, 'escapePressed', this);
         evt.stop(); return true;
     }
+    var keys = evt.getKeyString();
+    if (keys === 'Alt-Shift->') {
+        this.selectN(this.state.filteredCandidates.length);
+    } else if (keys === 'Alt-Shift-<') {
+        this.selectN(0);
+    }
     return false;
 },
     onSelectionConfirmed: function onSelectionConfirmed() {

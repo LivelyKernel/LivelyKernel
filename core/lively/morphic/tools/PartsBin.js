@@ -1190,9 +1190,11 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             webR.getSubElements(10)
         } else if (categoryName == "*latest*") {
             this.showMsg("loading latest...");
-            webR = new WebResource(this.partsBinURL()).beAsync();
-            lively.bindings.connect(webR, 'contentDocument', this, 'onLoadLatest');
-            webR.propfind('infinity')
+            var partsbinDir = this.partsBinURL().relativePathFrom(URL.root);
+            lively.ide.CommandLineSearch.findFiles('*.json', {rootDirectory: partsbinDir}, function(result) {
+                result = result.sortByKey('lastModified').reverse().slice(0,20);
+                this.onLoadLatest(result);
+            }.bind(this));
         } else if (categoryName == "*search*") {
             this.doSearch();
         } else {
@@ -1217,18 +1219,9 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         $super();
         this.reloadEverything();
     },
-        onLoadLatest: function onLoadLatest(propfindXML) {
-        var rawNodes = new Query("/D:multistatus/D:response").findAll(propfindXML.documentElement);
-    
-        var svnVersionInfos = rawNodes.map(function(rawNode) { return SVNVersionInfo.fromPropfindNode(rawNode) });
-    
-        var top20 = svnVersionInfos
-        .select(function(ea) { return ea.url.endsWith(".json")})
-        .sortBy(function(ea) { return ea.rev}).reverse().slice(0,20);
-        var top20URLs = top20.collect(function(ea) { 
-        return new URL("http://" + URL.codeBase.hostname + ea.url)})
-        
-        this.addPartsFromURLs(top20URLs)     
+        onLoadLatest: function onLoadLatest(latestFiles) {
+        var latestURLs = latestFiles.pluck('path').map(function(path) { return URL.root.withFilename(path); });
+        this.addPartsFromURLs(latestURLs);
     },
         doSearch: function doSearch() {
             this.showMsg("searching...");

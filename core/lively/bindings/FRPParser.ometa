@@ -1,7 +1,7 @@
 ometa FRPParser <: BSOMetaJSParser {
     isKeyword :x = ?this._isKeyword(x),
     primExpr    = primExpr:p (
-                      "fby" expr:b  ("on" expr | (empty -> null)):t  -> [#fby, t, p, b]
+                      "fby" expr:b  ("on" expr | (empty -> null)):t -> [#fby, t, p, b]
                     | "[" expr:i "]"                                -> [#getp, i, p]
                     | "." "name":m "(" listOf(#expr, ','):as ")"    -> [#send, m, p].concat(as)
                     | "." "name":f                                  -> [#getp, [#string, f], p]

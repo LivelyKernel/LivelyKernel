@@ -26,11 +26,13 @@ ometa FRPTranslator {
     curlyTrans  = [#begin curlyTrans:r]  -> r
                 | [#begin oTrans*:rs]     -> ('{' + rs.join(';') + '}')
                 | oTrans:r                -> ('{' + r + '}'),
-    fby   = trans:trigger
-            (empty -> this.triggerStack.push(trigger))
+    fby   = (anything:trigger ?(trigger === null)
+            | trans:trigger -> this.triggerStack.push(trigger))
             oTrans:init trans:body
             -> ((function() {
-                this.triggerStack.pop();
+                    if (trigger) {
+                        this.triggerStack.pop();
+                    }
                 var isStream = body.isStream || (trigger && trigger.isStream);
                 if (isStream) {
                     var id = this.nextId();
@@ -39,7 +41,7 @@ ometa FRPTranslator {
                     this.addSubExpression(id, strmDef, deps);
                     return {refString: this.ref(id), dependencies: deps, isStream: true}
                 } else {
-                    return {refString: Strings.format('(%s)', body.refString),
+                    return {refString: Strings.format('(%s)', init),
                         dependencies: [], isStream: false};
                 }
             }.bind(this))()),

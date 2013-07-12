@@ -532,15 +532,15 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.DateTest', {
         var d1 = new Date('Tue May 14 2013 14:00:00 GMT-0700 (PDT)'), d2;
         this.assertEquals('now', d1.relativeTo(d1));
         d2 = new Date(d1 - (2 * 1000));
-        this.assertEquals('2 secs ago', d2.relativeTo(d1));
+        this.assertEquals('2 secs', d2.relativeTo(d1));
         d2 = new Date(d1 - (60 * 1000 + 2*1000));
-        this.assertEquals('1 min 2 secs ago', d2.relativeTo(d1));
+        this.assertEquals('1 min 2 secs', d2.relativeTo(d1));
         d2 = new Date(d1 - (3 * 60 * 1000 + 2 * 1000));
-        this.assertEquals('3 mins ago', d2.relativeTo(d1));
+        this.assertEquals('3 mins', d2.relativeTo(d1));
         d2 = new Date(d1 - (60 * 60 * 1000 + 2 * 60 * 1000 + 2 * 1000));
-        this.assertEquals('1 hour 2 mins ago', d2.relativeTo(d1));
+        this.assertEquals('1 hour 2 mins', d2.relativeTo(d1));
         d2 = new Date(d1 - (4 *60 * 60 * 1000 + 2 * 60 * 1000 + 2 * 1000));
-        this.assertEquals('4 hours ago', d2.relativeTo(d1));
+        this.assertEquals('4 hours', d2.relativeTo(d1));
     }
 });
 

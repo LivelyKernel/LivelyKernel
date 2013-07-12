@@ -151,28 +151,30 @@ Object.extend(Date.prototype, {
         if (!(otherDate instanceof Date)) return '';
         if (otherDate < this) return '';
         if (otherDate === this) return 'now';
-        var minuteString = 'min';
-        var secondString = 'sec';
-        var hourString = 'hour';
-        var diff = otherDate - this;
-        var secs = Math.round(diff/1000);
-        var minSecs = secs % 60;
-        var mins = Math.floor(secs/60)%60;
-        var hours = Math.floor(secs/60/60);
-        var result = '';
+        var minuteString = 'min',
+            secondString = 'sec',
+            hourString = 'hour',
+            diff = otherDate - this,
+            secs = Math.round(diff/1000),
+            minSecs = secs % 60,
+            mins = Math.floor(secs/60)%60,
+            hours = Math.floor(secs/60/60),
+            parts = [];
         if (hours > 0) {
-            result += hours + ' ' + hourString;
-            result += hours > 1 ? 's ' : ' ';
+            parts.push(hours);
+            if (hours > 1) hourString += 's';
+            parts.push(hourString);
         }
         if (mins > 0 && hours < 3) {
-            result += mins + ' ' + minuteString;
-            result += mins > 1 ? 's ' : ' ';
+            parts.push(mins);
+            if (mins > 1) minuteString += 's';
+            parts.push(minuteString);
         }
         if (minSecs > 0 && mins < 3 && hours === 0) {
-            result += minSecs + ' ' + secondString;
-            result += minSecs > 1 ? 's ' : ' ';
+            parts.push(minSecs);
+            if (minSecs > 1) secondString += 's';
+            parts.push(secondString);
         }
-        result += 'ago';
-        return result;
+        return parts.join(' ');
     }
 });

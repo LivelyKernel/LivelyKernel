@@ -83,8 +83,11 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
 
     var listItems = container.getListItems();
     if (listItems.length > length) {
-        listItems.slice(length).invoke('setTextString', '');
-        listItems.slice(length).invoke("removeStyleClassName", "selected");
+        listItems.slice(length).forEach(function(text) { 
+            text.setTextString('');
+            text.removeStyleClassName("selected");
+            text.setHandStyle("default");
+        });
         listItems = listItems.slice(0,length);
     } else if (listItems.length < length) {
         var newItems = Array.range(listItems.length, length-1).collect(function(i) {
@@ -270,14 +273,12 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         lively.bindings.connect(inputLine, 'inputChanged', this, 'filter');
         lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed');
         inputLine.clearOnInput = false;
-        // remove up/down commands of orginal inputline
+        // also look at the key commands of the inputLine
         inputLine.addScript(function onKeyDown(evt) {
             var sig = evt.getKeyString();
             switch(sig) {
                 case 'Enter': this.commandLineInput(this.getInput()); evt.stop(); return true;
-                case 'Esc':
-                case 'Control-C':
-                case 'Control-G': this.clear(); evt.stop(); return true;
+                case 'Esc': case 'Control-C': case 'Control-G': this.clear(); evt.stop(); return true;
                 default: return $super(evt);        
             }
         });
@@ -327,8 +328,6 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         prevProj = this.state.previousCandidateProjection || lively.ArrayProjection.create(candidates, Math.min(candidates.length, layout.noOfCandidatesShown), prevSel),
         proj = lively.ArrayProjection.transformToIncludeIndex(prevProj, currentSel);
     this.state.previousCandidateProjection = proj;
-// show('prev candidates %o', prevProj)
-// show('candidates %o', proj)
 
     var projectedCandidates = lively.ArrayProjection.toArray(proj),
         projectedCurrentSelection = lively.ArrayProjection.originalToProjectedIndex(proj, currentSel);
@@ -336,6 +335,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         var candidate = projectedCandidates[i], string = this.candidateToString(candidate);
         item.candidate = candidate || string;
         item.textString = string;
+        item.setHandStyle("pointer");
         if (i === projectedCurrentSelection) {
             item.addStyleClassName('selected');
         } else {
@@ -344,7 +344,6 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     }, this);
 },
     reset: function reset() {
-    // this.reset();
     this.connections = {confirmedSelection: {}, selection: {}, escapePressed: {}};
     this.getPartsBinMetaInfo().addRequiredModule('lively.ide.tools.CommandLine');
     this.removeAllMorphs();

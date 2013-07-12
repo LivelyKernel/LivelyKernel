@@ -110,17 +110,29 @@ Object.extend(lively.ide.commands.byName, {
             n && n.activate();
         }
     },
+    'lively.ide.commands.execute': {
+        description: 'execute command',
         exec: function() {
-            // that's just a late night hack!
-            // $world._grepSearcher = null
             var w = lively.morphic.World.current();
-            if (w._grepSearcher) {
-                w._grepSearcher.activate();
-                return true;
+            var cachedName = '_lively.ide.commands.execute.NarrowingList';
+            if (w[cachedName]) { w[cachedName].activate(); return true; }
+            if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push(cachedName); else w.doNotSerialize = [cachedName];
+            var narrower = w[cachedName] = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
+            lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
+            lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
+            lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
+            var spec = {
+                prompt: 'exec command: ',
+                candidates: Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
+                    var label = cmd.description || name;
+                    return {isListItem: true, string: label, value: cmd}
+                }),
+                actions: [function(candidate) { candidate.exec(); }]
             }
-            if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push('_grepSearcher');
-            else w.doNotSerialize = ['_grepSearcher'];
-            var narrower = w._grepSearcher = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
+            narrower.open(spec);
+            return true;
+        },
+    },
     // search
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
@@ -143,12 +155,27 @@ Object.extend(lively.ide.commands.byName, {
                 candidatesUpdaterMinLength: 3,
                 candidates: Array.range(0,20).invoke('toString'),
                 candidatesUpdater: greper,
+                keepInputOnReactivate: true,
                 actions: [function(candidate) { lively.ide.CommandLineSearch.doBrowseGrepString(candidate); }]
             }
             narrower.open(spec);
             return true;
         }
     },
+    // tools
+    'lively.ide.openWorkspace': {description: 'open Workspace', exec: function() { $world.openWorkspace(); }},
+    'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', exec: function() { $world.openSystemBrowser(); }},
+    'lively.ide.openObjectEditor': {description: 'open ObjectEditor', exec: function() { $world.openObjectEditor(); }},
+    'lively.ide.openBuildSpecEditor': {description: 'open BuildSpecEditor', exec: function() { $world.openBuildSpecEditor(); }},
+    'lively.ide.openTestRunner': {description: 'open TestRunner', exec: function() { $world.openTestRunner(); }},
+    'lively.ide.openMethodFinder': {description: 'open MethodFinder', exec: function() { $world.openMethodFinder(); }},
+    'lively.ide.openTextEditor': {description: 'open TextEditor', exec: function() { lively.ide.openFile(URL.source.toString()); }},
+    'lively.ide.openSystemConsole': {description: 'open SystemConsole', exec: function() { $world.openSystemConsole(); }},
+    'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', exec: function() { $world.openOMetaWorkspace(); }},
+    'lively.ide.openSubserverViewer': {description: 'open SubserverViewer', exec: function() { $world.openSubserverViewer(); }},
+    'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', exec: function() { $world.openServerWorkspace(); }},
+    'lively.ide.openTerminal': {description: 'open Terminal', exec: function() { $world.openTerminal(); }},
+    'lively.ide.openGitControl': {description: 'open GitControl', exec: function() { $world.openGitControl(); }}
 });
 
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys

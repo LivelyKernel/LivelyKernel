@@ -732,12 +732,20 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             }
         }
         if (this.changed) {
-            for (i = 0; i < this.results.length; i++) {
-                this.results[i].sync(sent ? this.currentTime : undefined);
-            }
+            this.syncAll(sent);
         }
         this.changedExternally = false;
         return this.changed;
+    },
+    syncAll: function(sent) {
+        if (!this.results) {
+            this.addStreamsFrom(this.object);
+            this.sort();
+            this.detectContinuity();
+        }
+        for (var i = 0; i < this.results.length; i++) {
+            this.results[i].sync(sent ? this.currentTime : undefined);
+        }
     },
     reevaluate: function() {
         this.evaluateAt(this.currentTime);

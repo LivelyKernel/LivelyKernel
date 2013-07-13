@@ -37,6 +37,12 @@ Object.extend(lively.ide.commands.byName, {
             $world.saveWorld(); return true;
         }
     },
+    'lively.morphic.World.changeUserName': {
+        description: 'change user name',
+        exec: function() {
+            $world.askForUserName(); return true;
+        }
+    },
     // morphic
     'lively.morphic.Halos.show': {
         description: 'show halo',

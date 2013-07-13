@@ -1437,6 +1437,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     // Takes a selection or the current line and will insert line breaks so
                     // that all selected lines are not longer than printMarginColumn or the
                     // specified count parameter. Breaks at word bounds.
+                    if (args && args.count === 4/*Ctrl-U*/) { ed.execCommand('joinLines'); return; }
                     if (ed.selection.isEmpty()) ed.$morph.selectCurrentLine();
                     var col = args && args.count || ed.getOption('printMarginColumn') || 80,
                         rows = ed.$getSelectedRows(),
@@ -1462,6 +1463,16 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     if (rest !== '') lines.push(rest);
                     var formattedText = lines.join('\n');
                     ed.session.replace(range, formattedText);
+                },
+                multiSelectAction: "forEach"
+            }, {
+                name: "joinLines",
+                exec: function(ed, args) {
+                    if (ed.selection.isEmpty()) return;
+                    var rows = ed.$getSelectedRows(),
+                        range = ed.selection.getRange(),
+                        wholeText = ed.session.getTextRange(range);
+                    ed.session.replace(range, wholeText.split('\n').join(' '));
                 },
                 multiSelectAction: "forEach"
             }]);

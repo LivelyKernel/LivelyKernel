@@ -1325,6 +1325,18 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     allCommandsOf: function(codeEditor) {
         return codeEditor.withAceDo(function(ed) {
             return Object.merge(ed.keyBinding.$handlers.pluck('commands')); });
+    },
+    lookupCommand: function(codeEditor, keySpec) {
+        return codeEditor.withAceDo(function(ed) {
+            var handler = ed.commands,
+                binding = handler.parseKeys(keySpec),
+                command = handler.findKeyCommand(binding.hashId, binding.key);
+            if (!command) return null;
+            if (!command.hasOwnProperty('toString')) {
+                command.toString = function() { return '[cmd:' + command.name + ']' }
+            }
+            return command;
+        });
     }
 },
 'shortcuts', {

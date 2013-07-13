@@ -2402,7 +2402,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     getTitle: function(string) { return this.label.textString }
 },
 'layouting', {
-    adjustElementPositions: function($super) {
+    adjustElementPositions: function() {
         var innerBounds = this.innerBounds(),
             sp = this.controlSpacing;
         
@@ -3537,7 +3537,10 @@ Object.extend(lively.ide, {
         require('lively.ide.tools.TextEditor').toRun(function() {
             var editor = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph();
             if (url) {
-                if (!String(url).startsWith('http')) url = URL.codeBase.withFilename(url);
+                if (url.startsWith('/')) { // absolute local path
+                } else if (!String(url).startsWith('http')) {
+                    url = URL.codeBase.withFilename(url);
+                }
                 editor.openURL(url);
             }
             editor.openInWorld($world.positionForNewMorph(editor)).comeForward();

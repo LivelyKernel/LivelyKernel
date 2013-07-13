@@ -82,6 +82,7 @@ Migration Level History:
 6 - renderContextTables are no longer props of shapes/morphs, don't deserialize them
 7 - No more changesets
 8 - Reframe handles for windows
+9 - Buttons of a window are in titleBar.buttons array
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 if (false && LivelyMigrationSupport.documentMigrationLevel < 1) {
@@ -184,6 +185,29 @@ if (LivelyMigrationSupport.documentMigrationLevel < 8) {
     });
 };
 
+if (LivelyMigrationSupport.documentMigrationLevel < 9) {
+    // a flexible number of window controls are now accessible 
+    // via a window's titlebar's buttons property
+    cop.create('DocumentMigrationLevel9Layer')
+    .refineClass(lively.morphic.Window, {
+        onrestore: function() {
+            this.titleBar.buttons = [];
+            this.titleBar.submorphs.select(function (ea) {
+                return ea.constructor.name === 'WindowControl'
+            }).sortBy(function (ea) {
+                return ea.getPosition().x
+            }).reverse().forEach(function (ea) {
+                this.titleBar.buttons.push(ea);
+            }, this);
+            
+            this.menuButton = this.titleBar.menuButton;
+            this.collapseButton = this.titleBar.collapseButton;
+            this.closeButton = this.titleBar.closeButton;
+            
+            cop.proceed();
+        }
+    }).beGlobal();
+}
 
 if (Config.enableShapeGetterAndSetterRefactoringLayer) {
     // this layer will make shapes compatible that stored their properties

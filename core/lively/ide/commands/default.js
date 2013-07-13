@@ -121,12 +121,33 @@ Object.extend(lively.ide.commands.byName, {
             lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
             lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
             lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
-            var spec = {
-                prompt: 'exec command: ',
-                candidates: Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
+            function getDefaultCommands() {
+                return Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
                     var label = cmd.description || name;
                     return {isListItem: true, string: label, value: cmd}
-                }),
+                });
+            }
+            function getCodeEditorCommands(codeEditor) {
+                var shortcutMgr = lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance(),
+                    cmds = shortcutMgr.allCommandsOf(codeEditor),
+                    candidates = Properties.forEachOwn(cmds, function(name, cmd) {
+                        return {
+                            isListItem: true,
+                            string: '[text] ' + name,
+                            value: {exec: function(attribute) { cmd.exec(codeEditor.aceEditor); }}
+                        };
+                    });
+                return candidates;
+            }
+            function getCommands() {
+                var commands = getDefaultCommands(),
+                    focused = lively.morphic.Morph.focusedMorph();
+                focused.isCodeEditor && commands.pushAll(getCodeEditorCommands(focused));
+                return commands;
+            }
+            var spec = {
+                prompt: 'exec command: ',
+                candidates: getCommands(),
                 actions: [function(candidate) { candidate.exec(); }]
             }
             narrower.open(spec);
@@ -176,7 +197,8 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', exec: function() { $world.openServerWorkspace(); }},
     'lively.ide.openTerminal': {description: 'open Terminal', exec: function() { $world.openTerminal(); }},
     'lively.ide.openGitControl': {description: 'open GitControl', exec: function() { $world.openGitControl(); }},
-    'lively.ide.openServerLog': {description: 'open ServerLog', exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); }}
+    'lively.ide.openServerLog': {description: 'open ServerLog', exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); }},
+    'lively.PartsBin.open': {description: 'open PartsBin', exec: function() { $world.openPartsBin(); }}
 });
 
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys

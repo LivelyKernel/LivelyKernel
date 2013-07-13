@@ -1,8 +1,4 @@
-module('lively.tests.ToolsTests').requires(
-    'lively.TestFramework',
-    'lively.ide',
-    'tests.SerializationTests',
-    'lively.ide.AutoCompletion').toRun(function() {
+module('lively.tests.ToolsTests').requires('lively.TestFramework', 'lively.ide', 'tests.SerializationTests').toRun(function() {
 
 var tests = lively.tests;
 
@@ -128,51 +124,6 @@ TestCase.subclass('lively.tests.ToolsTests.MouseEventTest', {
 	},
 });
 
-TestCase.subclass('lively.tests.ToolsTests.TabCompletionTest', {
-
-	testAllSymbols: function() {
-		this.assert(lively.ide.AutoCompletion.TabCompletion.allSymbols().length > 1000)
-	},
-
-	testAllSymbolsAreUnique: function() {
-		var all = lively.ide.AutoCompletion.TabCompletion.allSymbols(true),
-			uniq = all.clone().uniq();
-		this.assertEquals(all.length, uniq.length, "not unique");
-	},
-
-	testExtractLocalSymbols: function() {
-		var text = "abc abbc\nabbd\tabbe",
-			all = lively.ide.AutoCompletion.TabCompletion.extractLocalSymbols(text)
-		this.assert(all.length == 4, "wrong lenth")
-	},
-
-});
-
-TestCase.subclass('lively.tests.ToolsTests.TabCompletionLayerTest',
-'helper', {
-	createText: function(string) {
-		var sut = new lively.morphic.Text(new Rectangle(0,0,100,100), string);
-		sut.setWithLayers([TabCompletionLayer]);
-		return sut
-	},
-},
-'testing', {
-	testTabCompletionChoicesForLastWord: function() {
-		var string = "\nfunc\nNextLine\n"
-		var sut = this.createText(string);
-		sut.setSelectionRange(string.indexOf("\nNextLine"), 0);
-		var coices = sut.tabCompletionChoicesForLastWord("func");
-		this.assert(coices.length > 0);
-	},
-
-	testTabCompletionChoicesForLastWord: function() {
-		var string = "\nfunc\nNextLine\n"
-		var sut = this.createText(string);
-		sut.setSelectionRange(string.indexOf("\nNextLine"), 0);
-		// this.assertEquals(sut.tabCompletionForLastWord("func", false), "function");
-	},
-});
-
 TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 'tests', {
 	testParseErrorStackLine: function() {
@@ -224,7 +175,7 @@ TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 	testErrorStackViewer: function() {
 		var w = new lively.ide.ErrorViewer.ErrorStackViewer();
 		w.setErrorStack(this.errorStackString())
-	},
+	}
 
 });
 

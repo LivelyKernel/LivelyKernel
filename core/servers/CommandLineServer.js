@@ -1,9 +1,9 @@
-spawn = require('child_process').spawn;
-exec = require('child_process').exec;
-util = require('util');
-i = util.inspect;
-dir = process.env.WORKSPACE_LK;
-debug = true;
+var spawn = require('child_process').spawn,
+    exec = require('child_process').exec,
+    util = require('util'),
+    i = util.inspect,
+    dir = process.env.WORKSPACE_LK,
+    debug = true;
 
 shellCommand = {process: null, stdout: '', stderr: '', lastExitCode: null}
 
@@ -41,6 +41,13 @@ runShellCommand = function(cmdInstructions) {
         debug && console.log('shell command exited with code ' + code);
         shellCommand.process = null;
         shellCommand.lastExitCode = code;
+    });
+
+    shellCommand.process.on('error', function (err) {
+        debug && console.log('shell command errored ' + err);
+        shellCommand.process = null;
+        shellCommand.stderr += err.stack;
+        shellCommand.lastExitCode = 1;
     });
 
 }

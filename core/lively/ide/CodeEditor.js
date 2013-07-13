@@ -228,7 +228,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.whenOpenedInWorld(function() { e.resize.bind(e,true).delay(0.1); });
 
         // 3) set modes / themes
-        this.setupKeyBindings();
+        lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(this);
         this.setTextMode(this.getTextMode() || "");
         this.setTheme(this.getTheme() || '');
         this.setFontSize(this.getFontSize());
@@ -324,259 +324,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             augmentCommand(ed.getKeyboardHandler().commands);
         });
     },
-    setupKeyBindings: function() {
-        function codeEditor() {
-            var focused = lively.morphic.Morph.focusedMorph();
-            return focused && focused.isCodeEditor ? focused : null
-        }
-        this.addCommands([
-            { // evaluation
-                name: 'doit',
-                bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
-                exec: this.doit.bind(this, false),
-                multiSelectAction: "forEach",
-                readOnly: true // false if this command should not apply in readOnly mode
-            }, {
-                name: 'printit',
-                bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
-                exec: this.doit.bind(this, true),
-                multiSelectAction: "forEach",
-                readOnly: false
-            }, {
-                name: 'list protocol',
-                bindKey: {win: 'Ctrl-Shift-P',  mac: 'Command-Shift-P'},
-                exec: this.doListProtocol.bind(this),
-                multiSelectAction: "single",
-                readOnly: false
-            }, {
-                name: 'doSave',
-                bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
-                exec: this.doSave.bind(this),
-                multiSelectAction: "single",
-                readOnly: false
-            }, {
-                name: 'printInspect',
-                bindKey: {win: 'Ctrl-I',  mac: 'Command-I'},
-                exec: function(ed, args) {
-                    codeEditor().printInspect({depth: args && args.count});
-                },
-                multiSelectAction: "forEach",
-                handlesCount: true,
-                readOnly: true
-            }, {
-                name: 'doInspect',
-                bindKey: {win: 'Ctrl-Shift-I',  mac: 'Command-Shift-I'},
-                exec: this.doInspect.bind(this),
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, { // text manipulation
-                name: 'removeSelectionOrLine',
-                bindKey: {win: 'Ctrl-X', mac: 'Command-X'},
-                exec: function(ed) {
-                    var sel = ed.selection;
-                    if (sel.isEmpty()) { sel.selectLine(); }
-                    // let a normal "cut" to the clipboard happen
-                    return false;
-                },
-                multiSelectAction: function(ed) {
-                    var sel = ed.selection;
-                    // for all cursors: if range is empty select line
-                    sel.getAllRanges().forEach(function(range) {
-                        if (!range.isEmpty())  return;
-                        var row = range.start.row,
-                            lineRange = sel.getLineRange(row, true);
-                        sel.addRange(lineRange);
-                    });
-                    // let a normal "cut" to the clipboard happen
-                    ed.execCommand('cut');
-                    return false;
-                },
-                readOnly: false
-            },
-            // code manipulation
-            {
-                name: "blockoutdent",
-                bindKey: {win: "Ctrl-[", mac: "Command-["},
-                exec: function(editor) { editor.blockOutdent(); },
-                multiSelectAction: "forEach"
-            }, {
-                name: "blockindent",
-                bindKey: {win: "Ctrl-]", mac: "Command-]"},
-                exec: function(editor) { editor.blockIndent(); },
-                multiSelectAction: "forEach"
-            },{ // selection / movement
-                name: 'clearSelection',
-                bindKey: 'Escape',
-                exec: this.clearSelection.bind(this),
-                readOnly: true
-            }, {
-                name: 'selectLine',
-                bindKey: {win: "Ctrl-L", mac: "Command-L"},
-                exec: this.selectCurrentLine.bind(this),
-                multiSelectAction: 'forEach',
-                readOnly: true
-            }, {
-                name: 'moveForwardToMatching',
-                bindKey: {win: 'Ctrl-Right',  mac: 'Command-Right'},
-                exec: this.moveForwardToMatching.bind(this, false),
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, {
-                name: 'moveBackwardToMatching',
-                bindKey: {win: 'Ctrl-Left',  mac: 'Command-Left'},
-                exec: this.moveBackwardToMatching.bind(this, false),
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, {
-                name: 'selectToMatchingForward',
-                bindKey: {win: 'Ctrl-Shift-Right',  mac: 'Command-Shift-Right'},
-                exec: this.moveForwardToMatching.bind(this, true),
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, {
-                name: 'selectToMatchingBackward',
-                bindKey: {win: 'Ctrl-Shift-Left',  mac: 'Command-Shift-Left'},
-                exec: this.moveBackwardToMatching.bind(this, true),
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, {
-                name: "selecttolinestart",
-                bindKey: 'Shift-Home|Ctrl-Shift-A',
-                exec: function(editor) { editor.getSelection().selectLineStart(); },
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, {
-                name: "gotolinestart",
-                bindKey: {win: "Home", mac: "Home|Ctrl-A"},
-                exec: function(editor) { editor.navigateLineStart(); },
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, {
-                name: "selecttolineend",
-                bindKey: "Shift-End|Ctrl-Shift-E",
-                exec: function(editor) { editor.getSelection().selectLineEnd(); },
-                multiSelectAction: "forEach",
-                readOnly: true
-            }, {
-                name: "gotolineend",
-                bindKey: "End|Ctrl-E",
-                exec: function(editor) { editor.navigateLineEnd(); },
-                multiSelectAction: "forEach",
-                readOnly: true
-            },
-            // search & find
-            {
-                name: "searchWithPrompt",
-                bindKey: {win: "Ctrl-F", mac: "Command-F"},
-                exec: this.searchWithPrompt.bind(this),
-                readOnly: true
-            }, {
-                name: "findnext",
-                bindKey: {win: "Ctrl-K", mac: "Command-G"},
-                exec: this.findNext.bind(this),
-                readOnly: true
-            }, {
-                name: "findprevious",
-                bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
-                exec: this.findPrev.bind(this),
-                readOnly: true
-            }, {
-                name: 'doBrowseAtPointOrRegion',
-                bindKey: {win: "Alt-.", mac: "Alt-."},
-                exec: function(editor) {
-                    lively.ide.CommandLineSearch.doBrowseAtPointOrRegion(codeEditor());
-                },
-                multiSelectAction: 'forEach'
-            }, {
-                name: 'doCommandLineSearch',
-                bindKey: {win: "Alt-/", mac: "Alt-/"},
-                exec: function(editor) {
-                    lively.ide.CommandLineSearch.doGrepFromWorkspace(codeEditor().getSelectionOrLineString());
-                },
-                multiSelectAction: 'forEach'
-            }, {
-                name: "multiSelectNext",
-                bindKey: "Ctrl-Shift-.",
-                exec: this.multiSelectNext.bind(this),
-                readOnly: true
-            }, {
-                name: "multiSelectPrev",
-                bindKey: "Ctrl-Shift-,",
-                exec: this.multiSelectPrev.bind(this),
-                readOnly: true
-            }, {
-                name: 'doBrowseImplementors',
-                bindKey: {win: 'Ctrl-Shift-F', mac: 'Command-Shift-F'},
-                exec: this.doBrowseImplementors.bind(this),
-                readOnly: true
-            },
-            // insertion
-            {
-                name: 'insertLineAbove',
-                bindKey: "Shift-Return",
-                exec: function(ed) { ed.navigateUp(); ed.navigateLineEnd(); ed.insert('\n'); },
-                multiSelectAction: 'forEach',
-                readOnly: false
-            }, {
-                name: 'insertLineBelow',
-                bindKey: "Command-Return",
-                exec: function(ed) { ed.navigateLineEnd(); ed.insert('\n'); },
-                multiSelectAction: 'forEach',
-                readOnly: false
-            },
-            // editor settings
-            {
-                name: 'increasefontsize',
-                bindKey: {win: "Ctrl-»", mac: "Command-»"},
-                exec: function(ed) { codeEditor().setFontSize(codeEditor().getFontSize() + 1); },
-                readOnly: true
-            }, {
-                name: 'decreasefontsize',
-                bindKey: {win: "Ctrl-½", mac: "Command-½"},
-                exec: function(ed) { codeEditor().setFontSize(codeEditor().getFontSize() - 1); },
-                readOnly: true
-            },
-            // command line
-            {
-                name: 'linebreak',
-                exec: function(ed) { cmdLine.insert("\n"); }
-            }, {
-                name: 'entercommand',
-                exec: function(ed) {
-                    if (codeEditor().commandLineInput) {
-                        codeEditor().commandLineInput(ed.getValue());
-                    } else {
-                        lively.morphic.show('CommandLine should implement #commandLineInput');
-                    }
-                }
-            }]);
-
-        this.aceEditor.commands.bindKey("Tab", function(editor) {
-            var success = codeEditor().getSnippets().getSnippetManager().expandWithTab(editor);
-            if (!success)
-                editor.execCommand("indent");
-        });
-
-        if (Object.isFunction(Config.codeEditorUserKeySetup)) {
-            Config.codeEditorUserKeySetup(this);
-            // update existing editors when #codeEditorUserKeySetup changes:
-            lively.bindings.connect(Config, 'codeEditorUserKeySetup', this, 'setupKeyBindings',
-                {forceAttributeConnection: true});
-        }
-    },
-
-    lookupCommand: function(keySpec) {
-        return this.withAceDo(function(ed) {
-            var handler = ed.commands,
-                binding = handler.parseKeys(keySpec),
-                command = handler.findKeyCommand(binding.hashId, binding.key);
-            if (!command) return null;
-            if (!command.hasOwnProperty('toString')) {
-                command.toString = function() { return '[cmd:' + command.name + ']' }
-            }
-            return command;
-        });
-    },
 
     withAceDo: function(doFunc) {
         if (this.aceEditor) return doFunc.call(this, this.aceEditor);
@@ -584,11 +331,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.aceEditorAfterSetupCallbacks.push(doFunc);
         return undefined;
     },
+
     withASTDo: function(func) {
         func = func || Functions.K;
         return this.withAceDo(function(ed) { return func(ed.session.$ast); });
     },
-
 
     loadAceModule: function(moduleName, callback) {
         return lively.ide.ace.require('./config').loadModule(moduleName, callback);
@@ -884,17 +631,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     doit: function(printResult, editor) {
         var text = this.getSelectionMaybeInComment(),
             result = this.tryBoundEval(text);
-        if (printResult) {
-            this.printObject(editor, result);
-            return;
-        }
-        if (result && result instanceof Error && Config.get('showDoitErrorMessages') && this.world()) {
+        if (printResult) { this.printObject(editor, result); return; }
+        if (result && result instanceof Error && lively.Config.get('showDoitErrorMessages') && this.world()) {
             this.world().alert(String(result));
         }
-        var sel = editor.selection;
-        if (sel && sel.isEmpty()) {
-            sel.selectLine();
-        }
+        var sel = this.getSelection();
+        if (sel && sel.isEmpty()) sel.selectLine();
     },
 
     doListProtocol: function() {
@@ -973,7 +715,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     getTextRange: function(range) {
-        return this.getSession().getTextRange(this.getSelectionRangeAce());
+        return this.getSession().getTextRange(range || this.getSelectionRangeAce());
     },
 
     selectAll: function() {
@@ -1540,8 +1282,17 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         codeEditor.withAceDo(function(ed) {
             var kbd = ed.getKeyboardHandler();
             if (kbd.hasLivelyKeys) return;
+            self.setupEvalBindings(kbd);
+            self.setupTextManipulationBindings(kbd);
+            self.setupSelectionAndNavigationBindings(kbd);
+            self.setupSearchBindings(kbd);
+            self.setupMultiSelectBindings(kbd);
+            self.setupEditorConfigBindings(kbd);
+            self.setupInputLineBindings(kbd);
+            self.setupSnippetBindings(kbd);
             self.setupASTNavigation(kbd);
-
+            self.setupUserKeyBindings(kbd, codeEditor);
+            kbd.hasLivelyKeys = true;
         });
     },
 
@@ -1570,9 +1321,15 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     }
 
 },
+"accessing", {
+    allCommandsOf: function(codeEditor) {
+        return codeEditor.withAceDo(function(ed) {
+            return Object.merge(ed.keyBinding.$handlers.pluck('commands')); });
+    }
+},
 'shortcuts', {
-    setupEvalBindings: function() {
-        this.addCommands([{
+    setupEvalBindings: function(kbd) {
+        this.addCommands(kbd, [{
                 name: 'doit',
                 bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
                 exec: this.morphBinding("doit", [false]),
@@ -1615,7 +1372,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     },
 
     setupTextManipulationBindings: function(kbd) {
-        this.addCommands([{
+        this.addCommands(kbd, [{
                 name: 'removeSelectionOrLine',
                 bindKey: {win: 'Ctrl-X', mac: 'Command-X'},
                 exec: function(ed) {
@@ -1663,8 +1420,8 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }]);
     },
 
-    setupSelectionAndNavigationnBindings: function() {
-        this.addCommands([{
+    setupSelectionAndNavigationBindings: function(kbd) {
+        this.addCommands(kbd, [{
                 name: 'clearSelection',
                 bindKey: 'Escape',
                 exec: this.morphBinding("clearSelection"),
@@ -1726,21 +1483,21 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }]);
     },
 
-    setupSearchBindings: function() {
-        this.addCommands([{
+    setupSearchBindings: function(kbd) {
+        this.addCommands(kbd, [{
                 name: "searchWithPrompt",
                 bindKey: {win: "Ctrl-F", mac: "Command-F"},
-                exec: this.searchWithPrompt.bind(this),
+                exec: function(ed) { ed.$morph.searchWithPrompt(); },
                 readOnly: true
             }, {
                 name: "findnext",
                 bindKey: {win: "Ctrl-K", mac: "Command-G"},
-                exec: this.findNext.bind(this),
+                exec: function(ed) { ed.$morph.findNext(); },
                 readOnly: true
             }, {
                 name: "findprevious",
                 bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
-                exec: this.findPrev.bind(this),
+                exec: function(ed) { ed.$morph.findPrev(); },
                 readOnly: true
             }, {
                 name: 'doBrowseAtPointOrRegion',
@@ -1753,32 +1510,33 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 name: 'doCommandLineSearch',
                 bindKey: {win: "Alt-/", mac: "Alt-/"},
                 exec: function(ed) {
-                    lively.ide.CommandLineSearch.doGrepFromWorkspace(codeEditor().getSelectionOrLineString());
+                    lively.ide.CommandLineSearch.doGrepFromWorkspace(ed.$morph.getSelectionOrLineString());
                 },
                 multiSelectAction: 'forEach'
             }, {
                 name: 'doBrowseImplementors',
                 bindKey: {win: 'Ctrl-Shift-F', mac: 'Command-Shift-F'},
-                exec: this.doBrowseImplementors.bind(this),
+                exec: function(ed) { ed.$morph.doBrowseImplementors(); },
                 readOnly: true
             }]);
     },
 
-    setupMultiSelectBindings: function() {
-        this.addCommands([{
+    setupMultiSelectBindings: function(kbd) {
+        this.addCommands(kbd, [{
                 name: "multiSelectNext",
                 bindKey: "Ctrl-Shift-.",
-                exec: this.multiSelectNext.bind(this),
+                exec: function(ed) { ed.$morph.multiSelectNext(); },
                 readOnly: true
             }, {
                 name: "multiSelectPrev",
                 bindKey: "Ctrl-Shift-,",
-                exec: this.multiSelectPrev.bind(this),
+                exec: function(ed) { ed.$morph.multiSelectPrev(); },
                 readOnly: true
             }]);
     },
-    setupEditorConfigBindings: function() {
-            this.addCommands([{
+
+    setupEditorConfigBindings: function(kbd) {
+            this.addCommands(kbd, [{
                 name: 'increasefontsize',
                 bindKey: {win: "Ctrl-»", mac: "Command-»"},
                 exec: function(ed) { ed.$morph.setFontSize(ed.$morph.getFontSize() + 1); },
@@ -1791,8 +1549,8 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }]);
     },
 
-    setupInputLineBindings: function() {
-        this.addComands([{
+    setupInputLineBindings: function(kbd) {
+        this.addCommands(kbd, [{
                 name: 'linebreak',
                 exec: function(ed) { cmdLine.insert("\n"); }
             }, {
@@ -1919,9 +1677,9 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         // kbd.bindKeys({"C-CMD-space": {command: 'contractRegion'}});
     },
 
-    setupUserKeyBindings: function(kbd) {
+    setupUserKeyBindings: function(kbd, codeEditor) {
         if (Object.isFunction(Config.codeEditorUserKeySetup)) {
-            Config.codeEditorUserKeySetup(kbd);
+            Config.codeEditorUserKeySetup(codeEditor);
             // update existing editors when #codeEditorUserKeySetup changes:
             lively.bindings.connect(Config, 'codeEditorUserKeySetup', this, 'setupUserKeyBindings',
                 {forceAttributeConnection: true});

@@ -1341,16 +1341,29 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 },
 'shortcuts', {
     setupEvalBindings: function(kbd) {
+        function doEval(ed, insertResult) {
+            // FIXME this should go into the modes or use at least
+            // double dispatch...    
+            switch (ed.$morph.getTextMode()) {
+                case 'sh':
+                    ed.execCommand('runShellCommand', {
+                        shellCommand: ed.$morph.getSelectionOrLineString(),
+                        insert: insertResult});
+                    break;
+                default:
+                    ed.$morph.doit(insertResult);
+            }
+        }
         this.addCommands(kbd, [{
                 name: 'doit',
                 bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
-                exec: this.morphBinding("doit", [false]),
+                exec: function(ed) { doEval(ed, false); },
                 multiSelectAction: "forEach",
                 readOnly: true // false if this command should not apply in readOnly mode
             }, {
                 name: 'printit',
                 bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
-                exec: this.morphBinding("doit", [true]),
+                exec: function(ed) { doEval(ed, true); },
                 multiSelectAction: "forEach",
                 readOnly: false
             }, {
@@ -1380,6 +1393,40 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: this.morphBinding("doInspect"),
                 multiSelectAction: "forEach",
                 readOnly: true
+            }, {
+                // shell eval
+                name: 'runShellCommand',
+                exec: function(ed, args) {
+                    var insertResult = !args || !!args.insert;
+                    function runCommand(command) {
+                        lively.shell.exec(command, function(cmd) {
+                            if (insertResult) ed.$morph.printObject(ed, cmd.resultString(true));
+                        });                    
+                    }
+                    var cmdString = args && args.shellCommand;
+                    if (cmdString) runCommand(cmdString);
+                    else $world.prompt('Enter shell command to run.', function(cmdString) {
+                        if (!cmdString) { show('No command entered, aborting...!'); return; }
+                        runCommand(cmdString);
+                    });
+                },
+                multiSelectAction: 'forEach',
+                handlesCount: true
+            }, {
+                name: 'runShellCommandOnRegion',
+                exec: function(ed, args) {
+                    var input = ed.$morph.getSelectionOrLineString();
+                    if (!input || input.length === 0) {
+                        show('Nothing to input into command, aborting...'); return; }
+                    $world.prompt('Enter shell command to run on region.', function(cmdString) {
+                        if (!cmdString) { show('No command entered, aborting...!'); return; }
+                        lively.shell.run(cmdString, {stdin: input}, function(cmd) {
+                            ed.session.replace(ed.selection.getRange(), cmd.resultString());
+                        });
+                    })
+                },
+                multiSelectAction: 'forEach',
+                handlesCount: true
             }])
     },
 

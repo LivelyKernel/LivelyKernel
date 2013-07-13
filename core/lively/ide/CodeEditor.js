@@ -1417,6 +1417,41 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 bindKey: {win: "Ctrl-]", mac: "Command-]"},
                 exec: function(ed) { ed.blockIndent(); },
                 multiSelectAction: "forEach"
+            }, {
+                name: "fitTextToColumn",
+                bindKey: "Alt-Q",
+                handlesCount: true,
+                exec: function(ed, args) {
+                    // Takes a selection or the current line and will insert line breaks so
+                    // that all selected lines are not longer than printMarginColumn or the
+                    // specified count parameter. Breaks at word bounds.
+                    if (ed.selection.isEmpty()) ed.$morph.selectCurrentLine();
+                    var col = args && args.count || ed.getOption('printMarginColumn') || 80,
+                        rows = ed.$getSelectedRows(),
+                        session = ed.session,
+                        range = ed.selection.getRange(),
+                        lines = [],
+                        splitRegex = /[^a-zA-Z_0-9\$\-]+/g,
+                        rest = '';
+                    for (var i = rows.first; i <= rows.last; i++) {
+                        var line = session.getLine(i), isEmptyLine = line.trim() === '';
+                        line = (rest + ' ' + line).trim(); rest = '';
+                        if (line.length <= col) { lines.push(line); if (isEmptyLine && line !== '') lines.push(''); continue; }
+                        while (line.length > col) {
+                            var firstChunk = line.slice(0, col) ,lastWordSplit = col;
+                            firstChunk.replace(splitRegex, function(match, idx) { lastWordSplit = idx; });
+                            var firstChunkWithWordBoundary = firstChunk.slice(0, lastWordSplit);
+                            lines.push(firstChunkWithWordBoundary);
+                            line = (firstChunk.slice(lastWordSplit) + line.slice(col)).trimLeft();
+                        }
+                        if (isEmptyLine) lines.push('');
+                        rest = line.trim();
+                    }
+                    if (rest !== '') lines.push(rest);
+                    var formattedText = lines.join('\n');
+                    ed.session.replace(range, formattedText);
+                },
+                multiSelectAction: "forEach"
             }]);
     },
 
@@ -1566,11 +1601,16 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     },
 
     setupSnippetBindings: function(kbd) {
-        kbd.bindKey("Tab", function(ed) {
-            var success = ed.$morph.getSnippets().getSnippetManager().expandWithTab(ed);
-            if (!success)
-                ed.execCommand("indent");
-        });
+        this.addCommands(kbd, [{
+            bindKey: 'Tab',
+            name: 'expandSnippetOrDoTab',
+            exec: function(ed) {
+                var success = ed.$morph.getSnippets().getSnippetManager().expandWithTab(ed);
+                if (!success)
+                    ed.execCommand("indent");
+            },
+            multiSelectAction: "forEach"
+        }]);
     },
 
     setupASTNavigation: function(kbd) {

@@ -148,6 +148,22 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         e.aceEditor.execCommand('printit');
         this.assertHasText(e, '1+12\n1+23\n');
         this.done();
+    },
+
+    testFitTextToColumn: function() {
+        var e = this.editor,
+            expected = "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
+                     + "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
+                     + "foo foo foo foo foo foo foo foo foo foo\n",
+            commandsMgr = lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance(),
+            cmd = commandsMgr.allCommandsOf(e).fitTextToColumn;
+        e.withAceDo(function(aceEditor) {
+            e.textString = "foo ".times(50) + '\n\n';
+            e.selectAll();
+            cmd.exec(aceEditor, {count: 80});
+            this.assertHasText(e, expected);
+            this.done();
+        }.bind(this));
     }
 
 });

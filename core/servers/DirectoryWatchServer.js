@@ -1,0 +1,105 @@
+// Watches a directory recursively for file changes.
+// Provides two http methods:
+//   GET files?dir=PATHNAME
+//     -- {files: {PATHSTRING: FILESTAT}, startTime: NUMBER}
+//   GET files?dir=PATHNAME&since=TIME&startWatchTime=TIME
+//     -- {changes: {time,path,type,stat}} with type = 'removal', 'creation', 'change'
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// s=global.DirectoryWatchServerState['/Users/robert/Dropbox/Projects/LivelyKernel']
+// s.changeList.length
+// s.changeList[0].time
+
+var watch = require('watch');
+var path = require("path");
+var watchState = global.DirectoryWatchServerState || (global.DirectoryWatchServerState = {});
+
+function ignore(ignoredDirectories, f) {
+    return ignoredDirectories.some(function(dir) { return f.indexOf(dir) === 0; });
+}
+
+function addChange(changeRecord, type, fileName, stat) {
+    changeRecord.lastChange = Date.now()
+    changeRecord.changeList.unshift({
+        time: changeRecord.lastChange,
+        path: fileName,
+        type: type,
+        stat: stat
+    });
+}
+
+function startWatching(dir, thenDo) {
+    var ignoredDirectories = [path.join(dir, 'node_modules')],
+        options = {ignoreDotFiles: true, filter: ignore.bind(null, ignoredDirectories)},
+        changes = watchState[dir] = {
+            monitor: null,
+            lastChange: null,
+            startTime: null,
+            changeList: []
+        };
+    watch.createMonitor(dir, options, function (monitor) {
+        changes.startTime = changes.lastChange = Date.now();
+        changes.monitor = monitor;
+        monitor.on("created", function (f, stat) { addChange(changes, 'creation', f, stat); });
+        monitor.on("changed", function (f, curr, prev) { addChange(changes, 'change', f, curr); })
+        monitor.on("removed", function (f, stat) { addChange(changes, 'removal', f); })
+        thenDo(null, changes);
+    });
+    return changes;
+}
+
+function ensureWatchState(dir, thenDo) {
+    if (watchState[dir]) thenDo(null, watchState[dir])
+    else startWatching(dir, thenDo);
+}
+
+function getChangesSince(dir, timestampSince, timestampStart, thenDo) {
+    timestampSince = timestampSince || 0;
+    ensureWatchState(dir, function(err, watchState) {
+        if (!err && timestampStart && timestampStart !== watchState.startTime) {
+            err = {error: 'Start time does not match! ' + timestampStart + ' vs ' +  watchState.startTime};
+        }
+        if (err) { thenDo(err, []); return; }
+        var changes = watchState.changeList, result = [];
+        for (var i = 0; i < changes.length; i++) {
+            if (changes[i].time > timestampSince) { result.push(changes[i]); continue; }
+            break;
+        }
+        thenDo(err, result, watchState.startTime);
+    });
+}
+
+function getWatchedFiles(dir, thenDo) {
+    ensureWatchState(dir, function(err, watchState) {
+        thenDo(
+            err,
+            watchState && watchState.monitor && watchState.monitor.files,
+            watchState && watchState.startTime);
+    });
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+module.exports = function(route, app) {
+
+    app.get(route + 'files', function(req, res) {
+        var dir = req.query.dir;
+        if (!dir) { res.status(400).json({error: 'No dir specified'}).end(); return; }
+        getWatchedFiles(dir, function(err, files, startTime) {
+            if (err) res.status(500).json({error: String(err)}).end();
+            else res.json({files: files, startTime: startTime}).end();
+        });
+    });
+
+    app.get(route + 'changes', function(req, res) {
+        var dir = req.query.dir,
+            since = Number(req.query.since),
+            startWatchTime = Number(req.query.startWatchTime);
+        if (!dir) { res.status(400).end(); return; }
+        getChangesSince(dir, since, startWatchTime, function(err, changes) {
+            if (err) res.status(500).json({error: i(err)}).end();
+            else res.json({changes: changes}).end();
+        });
+    });
+
+}

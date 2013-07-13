@@ -1,0 +1,81 @@
+module('lively.ide.DirectoryWatcher').requires('lively.Network').toRun(function() {
+
+// depends on the DirectoryWatcherServer
+
+Object.extend(lively.ide.DirectoryWatcher, {
+    watchServerURL: new URL(Config.nodeJSURL+'/DirectoryWatchServer/'),
+
+    dirs: {},
+
+    request: function(url, thenDo) {
+        var webR = url.asWebResource();
+        lively.bindings.connect(webR, 'content', thenDo, 'call', {
+            updater: function($upd, content) {
+                if (!this.sourceObj.status.isDone()) return;
+                var result;
+                try { result = JSON.parse(content); } catch (e) { result = {error: e} }
+                $upd(null, !result || result.error, result);
+            }});
+        webR.beAsync().get();
+    },
+
+    getFiles: function(dir, thenDo) {
+        this.request(this.watchServerURL.withFilename('files').withQuery({dir: dir}), thenDo);
+    },
+
+    getChanges: function(dir, since, startWatchTime, thenDo) {
+        this.request(this.watchServerURL.withFilename('changes').withQuery({
+            startWatchTime: startWatchTime, since: since, dir: dir}), thenDo);
+    },
+
+    withFilesOfDir: function(dir, doFunc) {
+        // Retrieves efficiently the files of dir. Uses a server side watcher that
+        // sends infos about file changes, deletions, creations.
+        // This methods synchs those with the cached state held in this object
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // dir = lively.shell.exec('pwd', {sync:true}).resultString()
+        // lively.ide.DirectoryWatcher.dirs[dir]
+        // lively.ide.DirectoryWatcher.withFilesOfDir(dir, function(files) { show(Object.keys(files).length); })
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var watchState = this.dirs[dir] || (this.dirs[dir] = {updateInProgress: false, callbacks: []});
+        doFunc && watchState.callbacks.push(doFunc);
+        if (watchState.updateInProgress) { return; }
+        watchState.updateInProgress = true;
+        function whenDone() {
+            watchState.updateInProgress = false;
+            var cb;
+            while ((cb = watchState.callbacks.shift())) cb(watchState.files);
+        }
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        if (!watchState.files) { // first time called
+            this.getFiles(dir, function(err, result) {
+                Object.extend(watchState, {
+                    files: result.files,
+                    lastUpdated: result.startTime,
+                    startTime: result.startTime
+                });
+                whenDone();
+            });
+            return;
+        }
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var timeSinceLastUpdate = Date.now() - (watchState.lastUpdated || 0);
+        if (timeSinceLastUpdate < 10 * 1000) { whenDone(); } // recently updated
+        // get updates
+        this.getChanges(dir, watchState.lastUpdated, watchState.startTime, function(err, result) {
+            if (!result.changes || result.changes.length === 0) { whenDone(); return; }
+            watchState.lastUpdated = result.changes[0].time;
+            console.log('%s files changed in %s: %s', result.changes.length, dir, result.changes.pluck('path').join('\n'));
+            result.changes.forEach(function(change) {
+                switch (change.type) {
+                    case 'removal': delete watchState.files[change.path]; break;
+                    case 'creation': case 'change': watchState.files[change.path] = change.stat; break;
+                }
+            });
+            whenDone();
+        });
+    }
+
+});
+
+}) // end of module

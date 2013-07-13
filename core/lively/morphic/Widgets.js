@@ -1829,7 +1829,7 @@ lively.morphic.World.addMethods(
     askForUserName: function() {
         var world = this;
         this.prompt("Please enter your username", function(name) {
-            if (name) {
+            if (name && name.length > 0) {
                 world.setCurrentUser(name);
                 alertOK("set username to: " + name);
             } else {
@@ -2998,7 +2998,6 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
     },
     buildTextInput: function(bounds) {
         var input = lively.BuildSpec("lively.ide.tools.CommandLine").createMorph();
-        input.textString = this.defaultInput || '';
         input.setBounds(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)));
         input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));
         lively.bindings.connect(input, 'savedTextString', this, 'result');
@@ -3006,6 +3005,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         lively.bindings.connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
         input.applyStyle({resizeWidth: true, moveVertical: true});
         this.inputText = this.panel.addMorph(input);
+        input.textString = this.defaultInput || '';
     },
 
     buildView: function($super, extent) {

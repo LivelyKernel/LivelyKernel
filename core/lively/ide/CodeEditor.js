@@ -1651,6 +1651,28 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 bindKey: {win: "Ctrl-½", mac: "Command-½"},
                 exec: function(ed) { ed.$morph.setFontSize(ed.$morph.getFontSize() - 1); },
                 readOnly: true
+            }, {
+                name: 'changeTextMode',
+                exec: function(ed) {
+                    var narrower = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph(),
+                        codeEditor = ed.$morph,
+                        currentTextMode = codeEditor.getTextMode(),
+                        candidates = lively.ide.ace.availableTextModes().map(function(mode) {
+                            return {
+                                string: Strings.format('[%s] %s', mode === currentTextMode ? 'X' : ' ', mode),
+                                value: mode, isListItem: true };
+                        }),
+                        spec = {
+                            candidates: candidates,
+                            actions: [function(mode) { codeEditor.setTextMode(mode); }]
+                        };
+                    lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'remove');
+                    lively.bindings.connect(narrower, 'escapePressed', narrower, 'remove');
+                    lively.bindings.connect(narrower, 'remove', codeEditor, 'focus');
+                    narrower.open(spec);
+                    return true;
+                },
+                handlesCount: true
             }]);
     },
 

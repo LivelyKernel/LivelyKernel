@@ -1301,7 +1301,7 @@ lively.morphic.World.addMethods(
     },
     openPartsBin: function(evt) {
         module('lively.morphic.tools.PartsBin').load(true);
-        return lively.BuildSpec('lively.morphic.tools.PartsBin').createMorph().openInWorldCenter();
+        return lively.BuildSpec('lively.morphic.tools.PartsBin').createMorph().openInWorldCenter().comeForward();
     },
     openInspectorFor: function(object, evt) {
         module('lively.ide.tools.Inspector').load(true);
@@ -1326,7 +1326,7 @@ lively.morphic.World.addMethods(
     },
     openObjectEditor: function() {
         module('lively.ide.tools.ObjectEditor').load(true);
-        return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter();
+        return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter().comeForward();
     },
     openTerminal: function() {
         require('lively.ide.tools.Terminal').toRun(function() {

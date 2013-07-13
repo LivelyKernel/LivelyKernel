@@ -113,6 +113,7 @@ Object.extend(lively.ide.commands.byName, {
             lively.morphic.KeyboardDispatcher.reset();
             delete $world['_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList'];
             delete $world['_lively.ide.commands.execute.NarrowingList'];
+            delete $world['_lively.ide.browseFiles.NarrowingList'];
             return true;
         },
     },
@@ -174,6 +175,59 @@ Object.extend(lively.ide.commands.byName, {
         description: 'browse user config.js',
         exec: function() { $world.showUserConfig(); }
     },
+    'lively.ide.browseFiles': {
+        description: 'browse files',
+        exec: function() {
+            var w = lively.morphic.World.current(),
+                cachedName = '_lively.ide.browseFiles.NarrowingList',
+                narrower = w[cachedName];
+            if (!narrower) {
+                narrower = w[cachedName] = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
+                if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push(cachedName); else w.doNotSerialize = [cachedName];
+                lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
+                lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
+                lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
+            }
+                        
+            function makeCandidates(files) {
+                return Object.keys(files).map(function(fullPath) {
+                    var relativePath = fullPath.slice(dir.length);
+                    if (relativePath.length === 0) return null;
+                    return {
+                        string: relativePath,
+                        value: fullPath,
+                        isListItem: true
+                    }
+                }).compact();
+            }
+            
+            function update(candidates, thenDo) {
+                require('lively.ide.DirectoryWatcher').toRun(function() {
+                    lively.ide.DirectoryWatcher.withFilesOfDir(dir, function(files) {
+                        candidates.length = 0;
+                        candidates.pushAll(makeCandidates(files));
+                        thenDo();
+                        (function() { narrower.selectInput(); }).delay(0);
+                        // narrower.selectN(narrower.currentSel);
+                    });
+                });
+            }
+
+            var dir = narrower.dir || (narrower.dir = lively.shell.exec('pwd', {sync:true}).resultString());
+            var candidates = []
+            var spec = {
+                candidates: candidates,
+                init: update.curry(candidates),
+                input: (narrower.get('inputLine') && narrower.get('inputLine').getInput()) || '',
+                keepInputOnReactivate: true,
+                actions: [function(candidate) {
+                    lively.ide.openFile(candidate);
+                }]
+            }
+            narrower.open(spec)
+            return true;
+        }
+    },
     // search
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
@@ -230,6 +284,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Window.gather':'cmd-s-l s t a c k w',
     'lively.morphic.Window.rename': 'cmd-s-l r e n',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-`"},
+    'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.commands.keys.reset': 'F8',
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-y",
     'lively.morphic.Halos.show': "cmd-h",

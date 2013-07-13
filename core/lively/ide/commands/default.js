@@ -113,14 +113,16 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.commands.execute': {
         description: 'execute command',
         exec: function() {
-            var w = lively.morphic.World.current();
-            var cachedName = '_lively.ide.commands.execute.NarrowingList';
-            if (w[cachedName]) { w[cachedName].activate(); return true; }
-            if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push(cachedName); else w.doNotSerialize = [cachedName];
-            var narrower = w[cachedName] = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
-            lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
-            lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
-            lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
+            var w = lively.morphic.World.current(),
+                cachedName = '_lively.ide.commands.execute.NarrowingList',
+                narrower = w[cachedName];
+            if (!narrower) {
+                narrower = w[cachedName] = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
+                if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push(cachedName); else w.doNotSerialize = [cachedName];
+                lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
+                lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
+                lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
+            }
             function getDefaultCommands() {
                 return Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
                     var label = cmd.description || name;

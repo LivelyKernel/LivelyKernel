@@ -37,6 +37,13 @@ Object.extend(lively.ide.commands.byName, {
             $world.saveWorld(); return true;
         }
     },
+    'lively.morphic.World.saveAs': {
+        description: 'save world as',
+        exec: function() {
+            $world.interactiveSaveWorldAs(); return true;
+        }
+    },
+
     'lively.morphic.World.changeUserName': {
         description: 'change user name',
         exec: function() {
@@ -162,6 +169,11 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         },
     },
+    // browsing
+    'lively.ide.SystemCodeBrowser.openUserConfig': {
+        description: 'browse user config.js',
+        exec: function() { $world.showUserConfig(); }
+    },
     // search
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
@@ -203,9 +215,11 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', exec: function() { $world.openOMetaWorkspace(); }},
     'lively.ide.openSubserverViewer': {description: 'open SubserverViewer', exec: function() { $world.openSubserverViewer(); }},
     'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', exec: function() { $world.openServerWorkspace(); }},
+    'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', exec: function() { var codeEditor = $world.openWorkspace(); codeEditor.setTextMode('sh'); codeEditor.owner.setTitle('Shell Workspace'); }},
     'lively.ide.openTerminal': {description: 'open Terminal', exec: function() { $world.openTerminal(); }},
     'lively.ide.openGitControl': {description: 'open GitControl', exec: function() { $world.openGitControl(); }},
     'lively.ide.openServerLog': {description: 'open ServerLog', exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); }},
+    'lively.ide.openDiffer': {description: 'open text differ', exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); }},
     'lively.PartsBin.open': {description: 'open PartsBin', exec: function() { $world.openPartsBin(); }}
 });
 

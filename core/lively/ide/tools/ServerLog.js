@@ -224,5 +224,22 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
     }
     }],
     titleBar: "Server Log"
-})
+});
+
+Object.extend(lively.ide.tools.ServerLog, {
+    open: function() {
+        function start(logWindow) {
+            if (!logWindow.world() || !$world.visibleBounds().intersects(logWindow.globalBounds())) {
+                logWindow.openInWorldCenter();
+            }
+            logWindow.comeForward();
+            logWindow.get('ServerLogPanel').startUpdating();
+        }
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var logWindow = $world.get('ServerLog');
+        if (logWindow) { start(logWindow); return; }
+        start(lively.BuildSpec('lively.ide.tools.ServerLog').createMorph());
+    }
+});
+
 }) // end of module

@@ -240,20 +240,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             lively.bindings.connect(this, "fire", this, "doAction", {});
         },
             doAction: function doAction() {
-            function start(logWindow) {
-                if (!logWindow.world() || !$world.visibleBounds().intersects(logWindow.globalBounds())) {
-                    logWindow.openInWorldCenter();
-                }
-                logWindow.comeForward();
-                logWindow.get('ServerLogPanel').startUpdating();
-            }
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            var logWindow = $world.get('ServerLog');
-            if (logWindow) { start(logWindow); return; }
-            require('lively.ide.tools.ServerLog').toRun(function() {
-               var logWindow = lively.BuildSpec('lively.ide.tools.ServerLog').createMorph();
-               start(logWindow);
-            });
+            require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); });
         }
         }],
         subserverURL: URL.create("http://localhost:9001/nodejs/subservers/"),

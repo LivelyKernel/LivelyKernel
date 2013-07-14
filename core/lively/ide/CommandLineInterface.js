@@ -640,14 +640,17 @@ Object.extend(lively.ide, {
                     };
                 }).compact();
             }
+            var lastFind = lively.ide.CommandLineSearch.lastFind;
+            if (lastFind) lastFind.kill();
             var result = [],
                 cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
                     if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
                     result = parseFindLsResult(cmd.getStdout());
                     callback && callback(result);
                 });
+            lively.ide.CommandLineSearch.lastFind = cmd;
             return options.sync ? result : cmd;
-        }
+        },
 
         interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {
             // usage:

@@ -2,6 +2,7 @@ module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.mor
 
 Object.extend(lively.ide.CommandLineInterface, {
 
+    rootDirectory: null,
     commandQueue: [],
     scheduleCommand: function(cmd) {
         this.commandQueue.push(cmd);
@@ -91,7 +92,11 @@ Object.extend(lively.ide.CommandLineInterface, {
 
                 startRequest: function() {
                     cmdLineInterface.commandInProgress = this;
-                    webR.post(JSON.stringify({command: parsedCommand, cwd: options.cwd, stdin: options.stdin}), 'application/json');
+                    webR.post(JSON.stringify({
+                        command: parsedCommand,
+                        cwd: options.cwd || cmdLineInterface.rootDirectory,
+                        stdin: options.stdin
+                    }), 'application/json');
                     this.startInterval();
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) {
@@ -144,7 +149,10 @@ Object.extend(lively.ide.CommandLineInterface, {
                         updater: function($upd, status) { if (status.isDone()) $upd(status); }});
                     if (options.sync) webR.beSync();
                     else webR.beAsync();
-                    webR.post(JSON.stringify({command: commandString, cwd: options.cwd}), 'application/json');
+                    webR.post(JSON.stringify({
+                        command: commandString,
+                        cwd: options.cwd || cmdLineInterface.rootDirectory
+                    }), 'application/json');
                 },
 
                 endRequest: function(status) {
@@ -240,9 +248,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         } catch(e) { return ''; }
     },
     
-    setWorkingDirectory: function(dir) {
-        throw new Error('not yet implemented');
-    },
+    setWorkingDirectory: function(dir) { return this.rootDirectory = dir; },
 
     readFile: function(path, options, thenDo) {
         options = options || {};
@@ -347,6 +353,235 @@ Object.extend(lively.ide.CommandLineInterface, {
 
 });
 
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// file search related
+module("lively.ide.CommandLineSearch");
+
+Object.extend(lively.ide.CommandLineSearch, {
+    doGrepFromWorkspace: function(string, path, thenDo) {
+        // will automaticelly insert grep results into currently focused workspace
+        var focused = lively.morphic.Morph.focusedMorph(),
+            codeEditor = focused instanceof lively.morphic.CodeEditor && focused;
+        path = path || 'core/lively/';
+        lively.ide.CommandLineSearch.doGrep(string, path, function(lines) {
+            thenDo && thenDo(lines);
+            if (!focused) return;
+            var out = lines.length === 0 ? 'nothing found' : lines.join('\n');
+            focused.printObject(null, '\n' + lines.join('\n'));
+            var sel = focused.getSelection();
+            sel.moveCursorToPosition(focused.indexToPosition(focused.positionToIndex(sel.anchor) + 1));
+            sel.clearSelection();
+        });
+    },
+    doGrep: function(string, path, thenDo) {
+        var lastGrep = lively.ide.CommandLineSearch.lastGrep;
+        if (lastGrep) lastGrep.kill();
+        path = path || '';
+        if (path.length && !path.endsWith('/')) path += '/';
+        var rootDirectory = lively.ide.CommandLineInterface.rootDirectory,
+            fullPath = rootDirectory ? rootDirectory + path : path;
+        if (!fullPath.length) fullPath = './';
+        var cmd = Strings.format("find %s -iname '*js' -exec grep -inH %s '{}' \\; ", fullPath, string);
+        lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
+            lively.ide.CommandLineSearch.lastGrep = null;
+            var lines = r.getStdout().split('\n').map(function(line) {
+                // return line.slice(line.indexOf('/core') + 6).replace(/\/\//g, '/'); })
+                return line.replace(/\/\//g, '/'); })
+            thenDo && thenDo(lines, fullPath);
+        });
+    },
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // browsing
+    getCurrentBrowser: function(spec) {
+        var focused = lively.morphic.Morph.focusedMorph(),
+            win = focused && focused.getWindow(),
+            widget = win && win.targetMorph.ownerWidget,
+            browser = widget && widget.isSystemBrowser ? widget : null;
+        return browser;
+    },
+    doBrowse: function(spec) {
+        var modWrapper = lively.ide.sourceDB().addModule(spec.fileName),
+            ff = modWrapper.ast();
+        if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
+        ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
+    },
+    extractBrowseRefFromGrepLine: function(line, baseDir) {
+        // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
+        // = {fileName: "lively/morphic/HTML.js", line: 235}
+        if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
+        if (line.startsWith('core/')) line = line.slice('core/'.length); // FIXME!!!
+        var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
+        return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir} : null;
+    },
+    extractModuleNameFromLine: function(line) {
+        var match = line.match(/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+/);
+        if (!match || !match[0]) return null;
+        return {fileName: module(match[0]).relativePath('js')};
+    },
+    doBrowseGrepString: function(grepString, baseDir) {
+        var spec = this.extractBrowseRefFromGrepLine(grepString, baseDir);
+        if (!spec) {
+            show("cannot extract browse ref from %s", grepString);
+        } else {
+            this.doBrowse(spec);
+        }
+    },
+
+    doBrowseAtPointOrRegion: function(codeEditor) {
+        try { 
+            var str = codeEditor.getSelectionOrLineString();
+            str = str.replace(/\/\//g, '/');
+            var spec = this.extractBrowseRefFromGrepLine(str) || this.extractModuleNameFromLine(str);
+            if (!spec) {
+                show("cannot extract browse ref from %s", str);
+            } else {
+                this.doBrowse(spec);
+            }
+        } catch(e) {
+            show('failure in doBrowseAtPointOrRegion: %s', e.stack);
+        }
+    },
+
+    findFiles: function(pattern, options, callback) {
+        // lively.ide.CommandLineSearch.findFiles('*html',
+        //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
+        options = options || {};
+        var rootDirectory = options.rootDirectory || '.';
+        if (!rootDirectory.endsWith('/')) rootDirectory += '/';
+        // we expect an consistent timeformat across OSs to parse the results
+        var timeFormatFix = "if [ `uname` == \"Darwin\" ]; "
+                          + "  then timeformat='-T'; "
+                          + "else "
+                          + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
+                          + "fi && ",
+            excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
+            searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : '-iname', pattern),
+            depth = options.hasOwnProperty('depth') ? ' -depth ' + options.depth : '',
+            // use GMT for time settings by default so the result is comparable
+            commandString = timeFormatFix + Strings.format(
+                "env TZ=GMT find %s %s \\( %s \\) -prune -o %s %s -exec ls -ld \"$timeformat\" {} \\;",
+            rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth)
+        function parseFindLsResult(string) {
+            var lines = Strings.lines(string);
+            return lines.map(function(line) {
+                // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
+                //                  file mode   no of links  user     group       size   date: month,day,   time,       year      file
+                var match = line.match(/^\s*(d|.)([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
+                if (!match) return null;
+                var name = match[8].replace(/\/\//g, '/'),
+                    nameAndLink = name && name.split(' -> '),
+                    isLink = name && nameAndLink.length === 2,
+                    path = isLink ? nameAndLink[0] : name,
+                    fileName = path && path.indexOf(rootDirectory) === 0 ? path.slice(rootDirectory.length) : path,
+                    isDirectory = match[1] === 'd';
+                if (isDirectory) fileName += '/';
+                return {
+                    mode: match[2],
+                    // linkCount: Number(match[3]),
+                    isLink: isLink,
+                    linkTarget: nameAndLink[1],
+                    user: match[4],
+                    group: match[5],
+                    size: Number(match[6]),
+                    lastModified: new Date(match[7] + ' GMT'),
+                    path: path,
+                    fileName: fileName,
+                    isDirectory: isDirectory,
+                    toString: function() { return this.path; }
+                };
+            }).compact();
+        }
+        var lastFind = lively.ide.CommandLineSearch.lastFind;
+        if (lastFind) lastFind.kill();
+        var result = [],
+            cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
+                if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
+                result = parseFindLsResult(cmd.getStdout());
+                callback && callback(result);
+            });
+        lively.ide.CommandLineSearch.lastFind = cmd;
+        return options.sync ? result : cmd;
+    },
+
+    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {
+        // usage:
+        // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+        //     'directory: '
+        //     lively.shell.exec('pwd', {sync:true}).resultString(),
+        //     function(files) { return files.filterByKey('isDirectory'); },
+        //     null,
+        //     [function(candidate) { show(candidate); }])
+        // search for file / directory matching input. Match rules are as follows
+        // up to the last slash the input is taken as directory
+        // everything that follows the last slash is a pattern.
+        // If there is space after the last slash take it as *pattern*
+        // other wise as pattern*
+        // Example: input = "/foo/bar": match all subdirectories of
+        // /foo/ that match "bar*".
+        // "/foo/ bar" match all subdirectories of /foo/ that match "*bar*".
+        function filesToListItems(files) {
+            return files.map(function(file) {
+                if  (Object.isString(file)) file = {path: file, toString: function() { return this.path; }}
+                return {isListItem: true, string: file.path, value: file};
+            });
+        }
+        function extractDirAndPatternFromInput(input) {
+            var result = {}, lastSlash = input.lastIndexOf('/');
+            if (!lastSlash) return null; // don't do search
+            result.dir = input.slice(0,lastSlash);
+            var pattern = input.slice(lastSlash+1);
+            if (pattern.startsWith(' ')) pattern = '*' + pattern.trim();
+            result.pattern = pattern += '*';
+            return result;
+        }
+        function doSearch(fileListSoFar, pattern, dir, filterFunc, thenDo) {
+            var continued = false, timeoutDelay = 5/*secs*/;
+            // in case findFiles crashes
+            (function() {
+                if (continued) return;
+                continued = true; thenDo(filesToListItems(fileListSoFar));
+            }).delay(timeoutDelay);
+            lively.ide.CommandLineSearch.findFiles(pattern, {rootDirectory: dir, depth: 1}, function(files) {
+                if (continued) return; continued = true;
+                filterFunc = filterFunc || Functions.K;
+                fileListSoFar = fileListSoFar.concat(filterFunc(files).pluck('path')).uniq();
+                thenDo(filesToListItems(fileListSoFar));
+            });
+        }
+        var searchForMatching = Functions.debounce(300, function(input, callback) {
+            var candidates = [input], patternAndDir = extractDirAndPatternFromInput(input);
+            if (patternAndDir) doSearch(candidates, patternAndDir.pattern, patternAndDir.dir, fileFilter, callback);
+            else callback(filesToListItems(candidates));
+        });
+        var initialCandidates = [rootDir];
+        lively.ide.tools.SelectionNarrowing.getNarrower({
+            name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
+            spec: {
+                candidates: initialCandidates,
+                prompt: prompt,
+                input: initialCandidates[0].toString(),
+                candidatesUpdater: searchForMatching,
+                maxItems: 25,
+                keepInputOnReactivate: true,
+                completeInputOnRightArrow: true,
+                actions: actions || [show]
+            }
+        });    
+    }
+});
+
+Object.extend(lively, {
+    shell: lively.ide.CommandLineInterface,
+    grep: lively.ide.CommandLineSearch.doGrepFromWorkspace
+});
+
+Object.extend(Global, {
+    $grep: lively.ide.CommandLineSearch.doGrepFromWorkspace
+});
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// diff / patching files
 Object.subclass("lively.ide.FilePatch",
 'initializing', {
     read: function(patchString) {
@@ -504,229 +739,6 @@ Object.subclass("lively.ide.FilePatchHunk",
 
 Object.extend(lively.ide.FilePatchHunk, {
     read: function(patchString) { return new this().read(patchString); }
-});
-
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-Object.extend(lively.ide, {
-    CommandLineSearch: {
-        doGrepFromWorkspace: function(string, path, thenDo) {
-            // will automaticelly insert grep results into currently focused workspace
-            var focused = lively.morphic.Morph.focusedMorph(),
-                codeEditor = focused instanceof lively.morphic.CodeEditor && focused;
-            lively.ide.CommandLineSearch.doGrep(string, path, function(lines) {
-                thenDo && thenDo(lines);
-                if (!focused) return;
-                var out = lines.length === 0 ? 'nothing found' : lines.join('\n');
-                focused.printObject(null, '\n' + lines.join('\n'));
-                var sel = focused.getSelection();
-                sel.moveCursorToPosition(focused.indexToPosition(focused.positionToIndex(sel.anchor) + 1));
-                sel.clearSelection();
-            });
-        },
-        doGrep: function(string, path, thenDo) {
-            var lastGrep = lively.ide.CommandLineSearch.lastGrep;
-            if (lastGrep) lastGrep.kill();
-            path = path || 'lively';
-            if (!path.endsWith('/')) path += '/';
-            var cmd = Strings.format("find %s -iname '*js' -exec grep -inH %s '{}' \\; ",
-                '$WORKSPACE_LK/core/' + path,
-                string);
-            // var cmd = 'grep -nR ' + string + ' $WORKSPACE_LK/core/' + path + '/*.js';
-            lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
-                lively.ide.CommandLineSearch.lastGrep = null;
-                var lines = r.getStdout().split('\n')
-                    .map(function(line) { return line.slice(line.indexOf('/core') + 6).replace(/\/\//g, '/'); })
-                thenDo && thenDo(lines);
-            });
-        },
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // browsing
-        getCurrentBrowser: function(spec) {
-            var focused = lively.morphic.Morph.focusedMorph(),
-                win = focused && focused.getWindow(),
-                widget = win && win.targetMorph.ownerWidget,
-                browser = widget && widget.isSystemBrowser ? widget : null;
-            return browser;
-        },
-        doBrowse: function(spec) {
-            var modWrapper =lively.ide.sourceDB().addModule(spec.fileName),
-                ff = modWrapper.ast();
-            if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
-            ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
-        },
-        extractBrowseRefFromGrepLine: function(line) {
-            // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
-            // = {fileName: "lively/morphic/HTML.js", line: 235}
-            var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
-            return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2])} : null;
-        },
-        extractModuleNameFromLine: function(line) {
-            var match = line.match(/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+/);
-            if (!match || !match[0]) return null;
-            return {fileName: module(match[0]).relativePath('js')};
-        },
-        doBrowseGrepString: function(grepString) {
-            var spec = this.extractBrowseRefFromGrepLine(grepString);
-            if (!spec) {
-                show("cannot extract browse ref from %s", grepString);
-            } else {
-                this.doBrowse(spec);
-            }
-        },
-
-        doBrowseAtPointOrRegion: function(codeEditor) {
-            try { 
-                var str = codeEditor.getSelectionOrLineString();
-                str = str.replace(/\/\//g, '/');
-                var spec = this.extractBrowseRefFromGrepLine(str) || this.extractModuleNameFromLine(str);
-                if (!spec) {
-                    show("cannot extract browse ref from %s", str);
-                } else {
-                    this.doBrowse(spec);
-                }
-            } catch(e) {
-                show('failure in doBrowseAtPointOrRegion: %s', e.stack);
-            }
-        },
-
-        findFiles: function(pattern, options, callback) {
-            // lively.ide.CommandLineSearch.findFiles('*html',
-            //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
-            options = options || {};
-            var rootDirectory = options.rootDirectory || '.';
-            if (!rootDirectory.endsWith('/')) rootDirectory += '/';
-            // we expect an consistent timeformat across OSs to parse the results
-            var timeFormatFix = "if [ `uname` == \"Darwin\" ]; "
-                              + "  then timeformat='-T'; "
-                              + "else "
-                              + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
-                              + "fi && ",
-                excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
-                searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : '-iname', pattern),
-                depth = options.hasOwnProperty('depth') ? ' -depth ' + options.depth : '',
-                // use GMT for time settings by default so the result is comparable
-                commandString = timeFormatFix + Strings.format(
-                    "env TZ=GMT find %s %s \\( %s \\) -prune -o %s %s -exec ls -ld \"$timeformat\" {} \\;",
-                rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth)
-            function parseFindLsResult(string) {
-                var lines = Strings.lines(string);
-                return lines.map(function(line) {
-                    // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
-                    //                  file mode   no of links  user     group       size   date: month,day,   time,       year      file
-                    var match = line.match(/^\s*(d|.)([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
-                    if (!match) return null;
-                    var name = match[8].replace(/\/\//g, '/'),
-                        nameAndLink = name && name.split(' -> '),
-                        isLink = name && nameAndLink.length === 2,
-                        path = isLink ? nameAndLink[0] : name,
-                        fileName = path && path.indexOf(rootDirectory) === 0 ? path.slice(rootDirectory.length) : path,
-                        isDirectory = match[1] === 'd';
-                    if (isDirectory) fileName += '/';
-                    return {
-                        mode: match[2],
-                        // linkCount: Number(match[3]),
-                        isLink: isLink,
-                        linkTarget: nameAndLink[1],
-                        user: match[4],
-                        group: match[5],
-                        size: Number(match[6]),
-                        lastModified: new Date(match[7] + ' GMT'),
-                        path: path,
-                        fileName: fileName,
-                        isDirectory: isDirectory,
-                        toString: function() { return this.path; }
-                    };
-                }).compact();
-            }
-            var lastFind = lively.ide.CommandLineSearch.lastFind;
-            if (lastFind) lastFind.kill();
-            var result = [],
-                cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
-                    if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
-                    result = parseFindLsResult(cmd.getStdout());
-                    callback && callback(result);
-                });
-            lively.ide.CommandLineSearch.lastFind = cmd;
-            return options.sync ? result : cmd;
-        },
-
-        interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {
-            // usage:
-            // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-            //     'directory: '
-            //     lively.shell.exec('pwd', {sync:true}).resultString(),
-            //     function(files) { return files.filterByKey('isDirectory'); },
-            //     null,
-            //     [function(candidate) { show(candidate); }])
-            // search for file / directory matching input. Match rules are as follows
-            // up to the last slash the input is taken as directory
-            // everything that follows the last slash is a pattern.
-            // If there is space after the last slash take it as *pattern*
-            // other wise as pattern*
-            // Example: input = "/foo/bar": match all subdirectories of
-            // /foo/ that match "bar*".
-            // "/foo/ bar" match all subdirectories of /foo/ that match "*bar*".
-            function filesToListItems(files) {
-                return files.map(function(file) {
-                    if  (Object.isString(file)) file = {path: file, toString: function() { return this.path; }}
-                    return {isListItem: true, string: file.path, value: file};
-                });
-            }
-            function extractDirAndPatternFromInput(input) {
-                var result = {}, lastSlash = input.lastIndexOf('/');
-                if (!lastSlash) return null; // don't do search
-                result.dir = input.slice(0,lastSlash);
-                var pattern = input.slice(lastSlash+1);
-                if (pattern.startsWith(' ')) pattern = '*' + pattern.trim();
-                result.pattern = pattern += '*';
-                return result;
-            }
-            function doSearch(fileListSoFar, pattern, dir, filterFunc, thenDo) {
-                var continued = false, timeoutDelay = 5/*secs*/;
-                // in case findFiles crashes
-                (function() {
-                    if (continued) return;
-                    continued = true; thenDo(filesToListItems(fileListSoFar));
-                }).delay(timeoutDelay);
-                lively.ide.CommandLineSearch.findFiles(pattern, {rootDirectory: dir, depth: 1}, function(files) {
-                    if (continued) return; continued = true;
-                    filterFunc = filterFunc || Functions.K;
-                    fileListSoFar = fileListSoFar.concat(filterFunc(files).pluck('path')).uniq();
-                    thenDo(filesToListItems(fileListSoFar));
-                });
-            }
-            var searchForMatching = Functions.debounce(300, function(input, callback) {
-                var candidates = [input], patternAndDir = extractDirAndPatternFromInput(input);
-                if (patternAndDir) doSearch(candidates, patternAndDir.pattern, patternAndDir.dir, fileFilter, callback);
-                else callback(filesToListItems(candidates));
-            });
-            var initialCandidates = [rootDir];
-            lively.ide.tools.SelectionNarrowing.getNarrower({
-                name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
-                spec: {
-                    candidates: initialCandidates,
-                    prompt: prompt,
-                    input: initialCandidates[0].toString(),
-                    candidatesUpdater: searchForMatching,
-                    maxItems: 25,
-                    keepInputOnReactivate: true,
-                    completeInputOnRightArrow: true,
-                    actions: actions || [show]
-                }
-            });    
-        }
-    }
-});
-
-Object.extend(lively, {
-    shell: lively.ide.CommandLineInterface,
-    grep: lively.ide.CommandLineSearch.doGrepFromWorkspace
-});
-
-Object.extend(Global, {
-    $grep: lively.ide.CommandLineSearch.doGrepFromWorkspace
 });
 
 }) // end of module

@@ -230,8 +230,15 @@ Object.extend(lively.ide.commands.byName, {
         description: 'code search (grep)',
         exec: function() {
             var greper = Functions.debounce(500, function(input, callback) {
-                lively.ide.CommandLineSearch.doGrep(input, null, function(lines) {
-                    callback(lines.asListItemArray()); });
+                lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
+                    callback(lines.map(function(line) {
+                        return {
+                            isListItem: true,
+                            string: line.slice(baseDir.length),
+                            value: {baseDir: baseDir, match: line}
+                        };
+                    }));
+                });
             });
             lively.ide.tools.SelectionNarrowing.getNarrower({
                 name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
@@ -243,7 +250,15 @@ Object.extend(lively.ide.commands.byName, {
                     maxItems: 25,
                     candidatesUpdater: greper,
                     keepInputOnReactivate: true,
-                    actions: [function(candidate) { lively.ide.CommandLineSearch.doBrowseGrepString(candidate); }]
+                    actions: [{
+                        name: 'open in system browser',
+                        exec: function(candidate) {
+                            lively.ide.CommandLineSearch.doBrowseGrepString(candidate.match, candidate.baseDir);
+                        }
+                    }, {
+                        name: 'open in text editor',
+                        exec: function(candidate) { ; }
+                    }]
                 }
             });
             return true;

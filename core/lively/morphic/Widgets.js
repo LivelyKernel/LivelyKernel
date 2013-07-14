@@ -3536,7 +3536,7 @@ Object.extend(lively.ide, {
         require('lively.ide.tools.TextEditor').toRun(function() {
             var editor = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph();
             if (url) {
-                if (url.startsWith('/')) { // absolute local path
+                if (String(url).startsWith('/')) { // absolute local path
                 } else if (!String(url).startsWith('http')) {
                     url = URL.codeBase.withFilename(url);
                 }

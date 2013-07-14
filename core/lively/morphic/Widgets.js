@@ -3823,7 +3823,7 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
 Object.extend(Array.prototype, {
     asListItemArray: function() {
         return this.collect(function(ea) {
-            return {isListItem: true, string: ea.toString(), value: ea};
+            return {isListItem: true, string: String(ea), value: ea};
         });
     }
 })

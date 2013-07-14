@@ -2333,7 +2333,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
                 return {isListItem: true, string: '[' + protoName + '] ' + name, value: completer}
             }));
             return candidates;
-        });
+        }, []);
         lively.ide.tools.SelectionNarrowing.getNarrower({
             setup: function(narrower) {
                 lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'remove');
@@ -2370,8 +2370,8 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     getListForProtocolOf: function(obj) {
         var items = this.getPrototypeChainOf(obj).collect(function(proto) {
-            return this.menuItemForProto(obj, proto, this.startLetters);
-        }, this).select(function(ea) { return ea != undefined });
+            return this.menuItemForProto(obj, proto, this.startLetters || '');
+        }, this).compact();
         delete this.startLetters;
         return items;
     },
@@ -2379,10 +2379,10 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
     menuItemForProto: function(originalObject, proto, startLetters) {
         var subItems = this.funcSignaturesOf(proto).collect(function(signa) {
             return signa.toString().startsWith(startLetters) && this.createSubMenuItemFromSignature(signa, startLetters);
-        }, this).select(function (ea) { return ea });
+        }, this).compact();
         if (subItems.length == 0) return null;
         var name = (originalObject === proto) ? originalObject.toString().truncate(60) :
-            proto.constructor.type || proto.constructor.name || '';
+            proto.constructor.type || proto.constructor.name || 'prototype';
         return [name, subItems];
     },
 

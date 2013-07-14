@@ -158,6 +158,8 @@ Object.extend(lively.ide.commands.byName, {
                 spec: {
                     prompt: 'exec command: ',
                     candidates: getCommands(),
+                    maxItems: 25,
+                    keepInputOnReactivate: true,
                     actions: [function(candidate) { candidate.exec(); }]
                 }
             });
@@ -216,8 +218,7 @@ Object.extend(lively.ide.commands.byName, {
         exec: function() {
             var greper = Functions.debounce(500, function(input, callback) {
                 lively.ide.CommandLineSearch.doGrep(input, null, function(lines) {
-                    callback(lines.asListItemArray());
-                })
+                    callback(lines.asListItemArray()); });
             });
             lively.ide.tools.SelectionNarrowing.getNarrower({
                 name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
@@ -225,7 +226,8 @@ Object.extend(lively.ide.commands.byName, {
                 spec: {
                     prompt: 'search for: ',
                     candidatesUpdaterMinLength: 3,
-                    candidates: Array.range(0,20).invoke('toString'),
+                    candidates: [],
+                    maxItems: 25,
                     candidatesUpdater: greper,
                     keepInputOnReactivate: true,
                     actions: [function(candidate) { lively.ide.CommandLineSearch.doBrowseGrepString(candidate); }]

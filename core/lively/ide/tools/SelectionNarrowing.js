@@ -11,7 +11,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
 + "}\n"
 + ".tab-list-item span {\n"
 + "	font-family: Verdana;\n"
-+ "	font-size: 14pt;\n"
++ "	font-size: 11pt;\n"
 + "	color: white !important;\n"
 + "	font-width: bold !important;\n"
 + "	text-shadow: none !important;\n"
@@ -34,16 +34,10 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     currentSel: 0,
     doNotSerialize: ["timeOpened","state"],
     droppingEnabled: false,
+    grabbingEnabled: false,
     initialSelection: 1,
     isEpiMorph: true,
     name: "NarrowList",
-    settings: {
-        inputLineHeight: 18,
-        listItemHeight: 30,
-        maxExtent: lively.pt(900.0,919.0),
-        maxListItems: 30,
-        padding: 20
-    },
     showDelay: 700,
     sourceModule: "lively.morphic.Core",
     state: null,
@@ -133,7 +127,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     initLayout: function initLayout(noOfCandidates) {
         var visibleBounds = lively.morphic.World.current().visibleBounds(),
             layout = {
-                listItemHeight: 30,
+                listItemHeight: 22,
                 inputLineHeight: 18,
                 padding: 20,
                 // computed below:
@@ -168,7 +162,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     },
 
     onMouseUp: function onMouseUp(evt) {
-        if (this.mouseInputIgnored) return $super(evt);
+        if (this.mouseInputIgnored || evt.isCommandKey()) return $super(evt);
+        this.focus();
         var idx = this.getListItemIndexFromMouseEvent(evt);
         if (idx === -1) return $super(evt);
         this.onSelectionConfirmed();
@@ -288,7 +283,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         this.renderContainer(this.state.layout);
         var inputLine = this.get('inputLine')
         if (!this.state.keepInputOnReactivate) inputLine.clear();
-        inputLine.focus();
+        this.selectInput(); inputLine.focus();
     },
     deactivate: function activate() {
         lively.ide.tools.SelectionNarrowing.lastActive = this;
@@ -367,13 +362,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         });
     },
     renderList: function renderList(candidates, prevSel, currentSel, layout) {
-        prevSel = prevSel || 0; currentSel = currentSel || 0;
-    
-        if (candidates.length === 0) {
-            this.ensureItems(0, layout);
-            return;
-        }
-    
+        prevSel = prevSel < 0 ? 0 : prevSel || 0; currentSel = currentSel || 0;
+        if (candidates.length === 0) { this.ensureItems(0, layout); return; }
         var container = this,
             prevProj = this.state.previousCandidateProjection || lively.ArrayProjection.create(candidates, Math.min(candidates.length, layout.noOfCandidatesShown), prevSel),
             proj = lively.ArrayProjection.transformToIncludeIndex(prevProj, currentSel);
@@ -446,15 +436,15 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         lively.bindings.signal(this, 'selection', item);
     },
     selectNext: function selectNext() {
-        var idx = (this.currentSel || 0) + 1;
-        var candidates = this.state.filteredCandidates;
+        var candidates = this.state.filteredCandidates,
+            idx = (this.currentSel || 0) + 1;
         if (!candidates[idx]) idx = 0;
         this.selectN(idx);
     },
     selectPrev: function selectPrev() {
-        var idx = (this.currentSel || 0) - 1;
-        var candidates = this.state.filteredCandidates;
-        if (!candidates[idx]) idx = candidates.length-1;
+        var candidates = this.state.filteredCandidates,
+            idx = (this.currentSel || 0) - 1;
+        if (!candidates[idx]) idx = candidates.length === 0 ? 0 : candidates.length-1;
         this.selectN(idx);
     },
     toggleShowActions: function toggleShowActions() {

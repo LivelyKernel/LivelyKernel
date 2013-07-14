@@ -1522,6 +1522,17 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     ed.session.replace(range, wholeText.split('\n').join(' '));
                 },
                 multiSelectAction: "forEach"
+            }, {
+                name: "cleanupWhitespace",
+                exec: function(ed, args) {
+                    var prevPos, sel = ed.selection;
+                    if (sel.isEmpty()) { prevPos = ed.getCursorPosition(); ed.$morph.selectAll();}
+                    var range = sel.getRange(),
+                        wholeText = ed.session.getTextRange(range);
+                    ed.session.replace(range, wholeText.split('\n').invoke('replace', /\s+$/, '').join('\n'));
+                    if (prevPos) { sel.clearSelection(); sel.moveCursorToPosition(prevPos); }
+                },
+                multiSelectAction: "forEach"
             }]);
     },
 

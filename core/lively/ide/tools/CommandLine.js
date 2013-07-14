@@ -105,7 +105,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         dir = dir || 'next';
         var hist = this.commandHistory, items = hist.items, len = items.length-1, i = hist.index;
         if (!Numbers.between(i, 0, len-1)) hist.index = i = len;
-        if (this.getInput() !== items[i]) { this.setInput(items[i]); return; }
+        if (this.getInput() !== items[i] && typeof items[i] !== 'undefined') { this.setInput(items[i]); return; }
         if (dir === 'next') {
             if (i >= len) return;
             i = ++hist.index;
@@ -130,9 +130,9 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
             case 'Enter': this.commandLineInput(this.getInput()); evt.stop(); return true;
             case 'Up':
             case 'Control-Up':
-            case 'Control-P': this.showPrevCommand(); this.focus(); evt.stop(); return true;
+            case 'Alt-P': this.showPrevCommand(); this.focus(); evt.stop(); return true;
             case 'Down':
-            case 'Control-N':
+            case 'Alt-å': // "Alt-N"
             case 'Control-Down': this.showNextCommand(); this.focus(); evt.stop(); return true;
             case 'Esc':
             case 'Control-C':

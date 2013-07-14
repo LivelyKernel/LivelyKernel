@@ -50,6 +50,10 @@ Object.extend(lively.ide.commands.byName, {
             $world.askForUserName(); return true;
         }
     },
+    'lively.morphic.World.setExtent': {
+        description: 'set world extent',
+        exec: function() { $world.askForNewWorldExtent(); }
+    },
     // morphic
     'lively.morphic.Halos.show': {
         description: 'show halo',
@@ -111,9 +115,7 @@ Object.extend(lively.ide.commands.byName, {
         exec: function() {
             lively.ide.WindowNavigation.WindowManager.reset();
             lively.morphic.KeyboardDispatcher.reset();
-            delete $world['_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList'];
-            delete $world['_lively.ide.commands.execute.NarrowingList'];
-            delete $world['_lively.ide.browseFiles.NarrowingList'];
+            lively.ide.tools.SelectionNarrowing.resetCache();
             return true;
         },
     },
@@ -127,16 +129,6 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.commands.execute': {
         description: 'execute command',
         exec: function() {
-            var w = lively.morphic.World.current(),
-                cachedName = '_lively.ide.commands.execute.NarrowingList',
-                narrower = w[cachedName];
-            if (!narrower) {
-                narrower = w[cachedName] = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
-                if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push(cachedName); else w.doNotSerialize = [cachedName];
-                lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
-                lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
-                lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
-            }
             function getDefaultCommands() {
                 return Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
                     var label = cmd.description || name;
@@ -161,14 +153,16 @@ Object.extend(lively.ide.commands.byName, {
                 focused.isCodeEditor && commands.pushAll(getCodeEditorCommands(focused));
                 return commands;
             }
-            var spec = {
-                prompt: 'exec command: ',
-                candidates: getCommands(),
-                actions: [function(candidate) { candidate.exec(); }]
-            }
-            narrower.open(spec);
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: 'lively.ide.commands.execute.NarrowingList',
+                spec: {
+                    prompt: 'exec command: ',
+                    candidates: getCommands(),
+                    actions: [function(candidate) { candidate.exec(); }]
+                }
+            });
             return true;
-        },
+        }
     },
     // browsing
     'lively.ide.SystemCodeBrowser.openUserConfig': {
@@ -178,53 +172,41 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.browseFiles': {
         description: 'browse files',
         exec: function() {
-            var w = lively.morphic.World.current(),
-                cachedName = '_lively.ide.browseFiles.NarrowingList',
-                narrower = w[cachedName];
-            if (!narrower) {
-                narrower = w[cachedName] = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
-                if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push(cachedName); else w.doNotSerialize = [cachedName];
-                lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
-                lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
-                lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
-            }
-                        
-            function makeCandidates(files) {
+            function makeCandidates(dir, files) {
                 return Object.keys(files).map(function(fullPath) {
-                    var relativePath = fullPath.slice(dir.length);
+                    var relativePath = fullPath.slice(dir.length+1);
                     if (relativePath.length === 0) return null;
                     return {
                         string: relativePath,
-                        value: fullPath,
+                        value: {dir: dir, fullPath: fullPath, relativePath: relativePath},
                         isListItem: true
                     }
                 }).compact();
             }
-            
-            function update(candidates, thenDo) {
+            function update(candidates, narrower, thenDo) {
+                dir = narrower.dir || lively.shell.exec('pwd', {sync:true}).resultString();
                 require('lively.ide.DirectoryWatcher').toRun(function() {
                     lively.ide.DirectoryWatcher.withFilesOfDir(dir, function(files) {
                         candidates.length = 0;
-                        candidates.pushAll(makeCandidates(files));
+                        candidates.pushAll(makeCandidates(dir, files));
                         thenDo();
-                        (function() { narrower.selectInput(); }).delay(0);
-                        // narrower.selectN(narrower.currentSel);
                     });
                 });
             }
-
-            var dir = narrower.dir || (narrower.dir = lively.shell.exec('pwd', {sync:true}).resultString());
-            var candidates = []
-            var spec = {
-                candidates: candidates,
-                init: update.curry(candidates),
-                input: (narrower.get('inputLine') && narrower.get('inputLine').getInput()) || '',
-                keepInputOnReactivate: true,
-                actions: [function(candidate) {
-                    lively.ide.openFile(candidate);
-                }]
-            }
-            narrower.open(spec)
+            var dir, candidates = [];
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: 'lively.ide.browseFiles.NarrowingList',
+                spec: {
+                    candidates: candidates,
+                    prompt: 'filename: ',
+                    init: update.curry(candidates),
+                    keepInputOnReactivate: true,
+                    actions: [
+                        {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
+                        {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
+                        {name: 'open in web browser', persistent: true, exec: function(candidate) { window.open(candidate.relativePath); }}]
+                }
+            });
             return true;
         }
     },
@@ -232,35 +214,30 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
         exec: function() {
-            var w = lively.morphic.World.current();
-            var cachedName = '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList';
-            if (w[cachedName]) { w[cachedName].activate(); return true; }
-            if (w.hasOwnProperty('doNotSerialize')) w.doNotSerialize.push(cachedName); else w.doNotSerialize = [cachedName];
-            var narrower = w[cachedName] = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
-            lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
-            lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
-            lively.bindings.connect(narrower, 'activate', narrower, 'selectInput');
             var greper = Functions.debounce(500, function(input, callback) {
                 lively.ide.CommandLineSearch.doGrep(input, null, function(lines) {
                     callback(lines.asListItemArray());
                 })
             });
-            var spec = {
-                prompt: 'search for: ',
-                candidatesUpdaterMinLength: 3,
-                candidates: Array.range(0,20).invoke('toString'),
-                candidatesUpdater: greper,
-                keepInputOnReactivate: true,
-                actions: [function(candidate) { lively.ide.CommandLineSearch.doBrowseGrepString(candidate); }]
-            }
-            narrower.open(spec);
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
+                reactivateWithoutInit: true,
+                spec: {
+                    prompt: 'search for: ',
+                    candidatesUpdaterMinLength: 3,
+                    candidates: Array.range(0,20).invoke('toString'),
+                    candidatesUpdater: greper,
+                    keepInputOnReactivate: true,
+                    actions: [function(candidate) { lively.ide.CommandLineSearch.doBrowseGrepString(candidate); }]
+                }
+            });
             return true;
         }
     },
     // tools
     'lively.ide.openWorkspace': {description: 'open Workspace', exec: function() { $world.openWorkspace(); }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', exec: function() { $world.openSystemBrowser(); }},
-    'lively.ide.openObjectEditor': {description: 'open ObjectEditor', exec: function() { $world.openObjectEditor(); }},
+    'lively.ide.openObjectEditor': {description: 'open ObjectEditor', exec: function() { $world.openObjectEditor().comeForward(); }},
     'lively.ide.openBuildSpecEditor': {description: 'open BuildSpecEditor', exec: function() { $world.openBuildSpecEditor(); }},
     'lively.ide.openTestRunner': {description: 'open TestRunner', exec: function() { $world.openTestRunner(); }},
     'lively.ide.openMethodFinder': {description: 'open MethodFinder', exec: function() { $world.openMethodFinder(); }},

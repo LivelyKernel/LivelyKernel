@@ -284,7 +284,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             spec.actions = spec.actions || [Functions.Null];
             narrower.replaceState(narrower.state = {
                 spec: spec,
-                preselect: spec.preselect || 0,
+                preselect: spec.preselect,
                 input: spec.input || '',
                 inputHistory: history,
                 prompt: spec.prompt || '',
@@ -424,7 +424,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 oldState.history = inputLine.history;
             }
         } else { // state is the same but we might set certain things for re-initing
-            oldState.preselect = this.currentSel;
+            if (newState.keepInputOnReactivate) newState.preselect = this.currentSel;
             if (inputLine) {
                 if (newState.keepInputOnReactivate) newState.input = inputLine.getInput();
                 if (!newState.history) newState.history = inputLine.history;

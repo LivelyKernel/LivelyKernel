@@ -473,6 +473,12 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         var mapGroupResult = group.map(function(groupName, groupEl) { return groupEl.b; });
         this.assertEqualState({foo: [1,3,5], bar: [2,6], baz: [4]}, mapGroupResult, 'mapGroupResult');
+    },
+    testUniqBy: function() {
+        var arr = [{x:33}, {x: 1}, {x: 2}, {x: 3}, {x: 99}, {x: 1}, {x: 2}, {x:1}, {x: 1}],
+            result = arr.uniqBy(function(a,b) { return a.x === b.x; }).pluck('x'),
+            expected = [33, 1,2,3,99];
+        this.assertEquals(expected, result);
     }
 
 });

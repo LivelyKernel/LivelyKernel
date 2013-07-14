@@ -49,6 +49,9 @@ Object.extend(Array.prototype, {
         }
         return results;
     },
+    filterByKey: function(key) {
+        return this.filter(function(ea) { return !!ea[key]; });
+    },
 
     grep: function(filter, iterator, context) {
         iterator = iterator || Functions.K;
@@ -136,6 +139,10 @@ Object.extend(Array.prototype, {
         return this.filter(iterator);
     },
 
+    rejectByKey: function(key) {
+        return this.filter(function(ea) { return !ea[key]; });
+    },
+
     sortBy: function(iterator, context) {
         return this.map(function(value, index) {
             return {
@@ -210,6 +217,21 @@ Object.extend(Array.prototype, {
     },
 
     uniqueElements: function() { return this.uniq(); },
+
+    uniqBy: function(comparator, context) {
+        // comparator(a,b) returns BOOL. True if a and be should be regarded
+        // equal, false otherwise
+        var result = this.clone();
+        for (var i = 0; i < result.length; i++) {
+            var item = this[i];
+            for (var j = i+1; j < result.length; j++) {
+                if (comparator.call(context, item, result[j])) {
+                    result.removeAt(j); j--;
+                }
+            }
+        }
+        return result;
+    },
 
     equals: function(otherArray) {
         if (!otherArray || this.length !== otherArray.length) return false;

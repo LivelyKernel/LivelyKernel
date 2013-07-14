@@ -207,6 +207,15 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             this.selectN(this.state.filteredCandidates.length);
         } else if (keys === 'Alt-Shift-<') {
             this.selectN(0);
+        } else if (keys === 'Right') {
+            var inputLine = this.get('inputLine');
+            if (this.state.completeInputOnRightArrow && inputLine && inputLine.isAtDocumentEnd()) {
+                var item = this.getSelectedListItem(this.state);
+                var string = item && item.string || String(item)
+                inputLine.setInput(string);
+                inputLine.withAceDo(function(ed) { ed.selection.moveCursorFileEnd(); })
+                evt.stop(); return true;
+            }
         }
         return false;
     },

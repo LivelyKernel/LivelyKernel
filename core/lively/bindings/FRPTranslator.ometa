@@ -161,7 +161,9 @@ ometa FRPTranslator {
             }.bind(this))()),
     binding = :name trans:val
             -> {refString: val.refString, val: val, dependencies: val.dependencies, name: name, isStream: val.isStream},
-    get = (anything:n ?(n.constructor === String))
+    get = (#undefined | #true | #false | #null)
+            -> ({refString: Objects.inspect(n), dependencies: [], isStream: false})
+        | anything:n ?(n.constructor === String)
             -> ((function() {
                 this.dependents.push(this.ref(n));
                 return {refString: this.ref(n),

@@ -653,7 +653,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 textMorph.insertAtCursor(replacer, true);
             }];
         }
-        pl.evalSelectionAndOpenListForProtocol();
+        pl.evalSelectionAndOpenNarrower();
     },
 
     doInspect: function() {

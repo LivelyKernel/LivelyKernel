@@ -2322,7 +2322,32 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
         var items = this.getListForProtocolOf(obj);
         var menu = lively.morphic.Menu.openAtHand(String(obj), items);
         lively.morphic.World.current().worldMenuOpened = menu;
+    },
+    evalSelectionAndOpenNarrower: function() {
+        var obj = this.evalCurrentSelection(this.textMorph);
+        if (!obj) return;
+        var candidates = this.getListForProtocolOf(obj).reduce(function(candidates, protoItem) {
+            var protoName = protoItem[0], protoList = protoItem[1];
+            candidates.pushAll(protoList.map(function(funcNameAndCompleter) {
+                var name = funcNameAndCompleter[0], completer = funcNameAndCompleter[1];
+                return {isListItem: true, string: '[' + protoName + '] ' + name, value: completer}
+            }));
+            return candidates;
+        });
+        lively.ide.tools.SelectionNarrowing.getNarrower({
+            setup: function(narrower) {
+                lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'remove');
+                lively.bindings.connect(narrower, 'escapePressed', narrower, 'remove');
+            },
+            spec: {
+                prompt: 'pattern: ',
+                candidates: candidates,
+                actions: [{name: 'insert completion', exec: function(candidate) { candidate(); }}]
+            }
+        });
     }
+
+
 },
 'accessing', {
 
@@ -2345,9 +2370,9 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     getListForProtocolOf: function(obj) {
         var items = this.getPrototypeChainOf(obj).collect(function(proto) {
-            return this.menuItemForProto(obj, proto, obj['#startLetters']);
+            return this.menuItemForProto(obj, proto, this.startLetters);
         }, this).select(function(ea) { return ea != undefined });
-        delete this['#startLetters'];
+        delete this.startLetters;
         return items;
     },
 
@@ -2378,21 +2403,21 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
                 range && textMorph.setSelectionRange(range[0], range[1]);
                 textMorph.insertAtCursor(replacer, true);
             }).delay(0)
-        }]
+        }];
     },
 
     evalCurrentSelection: function(textMorph) {
-        var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString());
-        var idx = selection.lastIndexOf('.');
-        var startLetters = '';
+        var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString()),
+            idx = selection.lastIndexOf('.'),
+            startLetters = '';
         if (idx >= 0) {
             startLetters = selection.substring(idx+1);
             selection = selection.slice(0,idx);
         }
         var evaled = textMorph.tryBoundEval(selection);
-        evaled['#startLetters'] = startLetters;
+        this.startLetters = startLetters;
         return evaled;
-    },
+    }
 
 });
 

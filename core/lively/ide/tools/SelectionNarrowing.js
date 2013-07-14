@@ -337,7 +337,10 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             inputLine.jQuery('.ace-scroller').css({'background-color': 'rgba(32, 32, 32, 0.3)'});
             lively.bindings.connect(inputLine, 'inputChanged', this, 'filter');
             lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed', {
-                updater: function($upd) { var n = this.targetObj; $upd(n.state, 0, n.getSelecteddCandidate(n.state)); },
+                updater: function($upd) {
+                    var n = this.targetObj, inputLine = n.get('inputLine'),
+                        actionIndex = (inputLine && inputLine.getUniversalArgument()) || 1;
+                    $upd(n.state, actionIndex-1, n.getSelecteddCandidate(n.state)); },
             });
             inputLine.clearOnInput = false;
             // also look at the key commands of the inputLine

@@ -94,6 +94,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             if (state.candidatesUpdaterMinLength && input.length < state.candidatesUpdaterMinLength) return;
             state.candidatesUpdater(input, function(candidates) {
                 // FIXME duplication with below...!
+                container.ignoreMouseInput();
                 var prevFiltered = state.filteredCandidates;
                 if (prevFiltered.equals(candidates)) return;
                 state.previousCandidateProjection = null;
@@ -229,11 +230,15 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     },
 
     getSelecteddCandidate: function getSelecteddCandidate(state) {
-        state = state || this.state;
-        var item = state.filteredCandidates[this.currentSel],
-            val = item && typeof item.value !== "undefined" ? item.value : item;
-        return val;
+        var item = this.getSelectedListItem(state);
+        return item && typeof item.value !== "undefined" ? item.value : item;
     },
+
+    getSelectedListItem: function getSelectedListItem(state) {
+        state = state || this.state;
+        return state.filteredCandidates[this.currentSel];
+    },
+
     getActions: function getActions(state) {
         return state.actions || state.spec.actions || [];
     },
@@ -259,7 +264,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         //         preselect: 0,/*index || candidate*/
         //         keepInputOnReactivate: BOOL, /*should the previous input be removed when re-activated?*/
         //         ?keymap: {/*maps keyStrings to actions*/},
-        //         ?history: [/*previous inputs*/],
+        //         ?history: [/*previous inputs*/] || {items: ARRAY, max: NUMBER, index: NUMBER},
         //         actions [/*list of functions receiving selected candidate*/],
         //         close: function() {},
         //         ?test: function(filter, candidate) {/**/},
@@ -268,12 +273,20 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         var narrower = this;
         function run() {
             var candidates = (Object.isArray(spec.candidates) ?
-                    spec.candidates : spec.candidates()) || [];
+                    spec.candidates : spec.candidates()) || [], history;
+            if (spec.history) {
+                if (Object.isObject(spec.history)) {
+                    history = spec.history;
+                } else if (Object.isArray(history)) {
+                    history = {items: spec.history, max: 100, index: 0};
+                }
+            }
             spec.actions = spec.actions || [Functions.Null];
             narrower.replaceState(narrower.state = {
                 spec: spec,
                 preselect: spec.preselect || 0,
                 input: spec.input || '',
+                inputHistory: history,
                 prompt: spec.prompt || '',
                 layout: narrower.initLayout(spec.maxItems || candidates.length),
                 allCandidates: candidates,
@@ -282,6 +295,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 candidatesUpdater: spec.candidatesUpdater,
                 candidatesUpdaterMinLength: spec.candidatesUpdaterMinLength,
                 keepInputOnReactivate: spec.keepInputOnReactivate,
+                completeInputOnRightArrow: spec.completeInputOnRightArrow,
                 filters: []
             });
         }
@@ -312,7 +326,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             visibleBounds.bottomCenter().addXY(0, -layout.padding));
         this.ignoreMouseInput();
     },
-    renderInputline: function renderInputline(prompt, layout) {
+    renderInputline: function renderInputline(prompt, history, layout) {
         var inputLine = this.getMorphNamed('inputLine');
         if (!inputLine) {
             inputLine = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
@@ -332,6 +346,10 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 switch(sig) {
                     case 'Enter': this.commandLineInput(this.getInput()); evt.stop(); return true;
                     case 'Esc': case 'Control-C': case 'Control-G': this.clear(); evt.stop(); return true;
+                    case 'Control-Up':
+                    case 'Alt-P': this.showPrevCommand(); this.focus(); evt.stop(); return true;
+                    case 'Alt-å': // "Alt-N"
+                    case 'Control-Down': this.showNextCommand(); this.focus(); evt.stop(); return true;
                     default: return $super(evt);
                 }
             });
@@ -355,6 +373,11 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         }
         inputLine.setPosition(pt(0, this.getExtent().y-layout.inputLineHeight));
         inputLine.setLabel(prompt || '');
+        if (history) {
+            if (!inputLine.history || (inputLine.history !== history && inputLine.history.items !== history)) {
+                inputLine.history = Object.isArray(history) ? {items: history, max: 30, index: 0} : history;
+            }
+        }
     },
     withInputLineDo: function withInputLineDo(func) {
         var inputLine = this.get('inputLine');
@@ -393,12 +416,19 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         }, this);
     },
     replaceState: function replaceState(newState) {
-        var oldState = this.state || {};
-        if (oldState !== newState) {
-            if (this.get('inputLine')) oldState.input = this.get('inputLine').getInput();
+        // FIXME time for a refactoring!
+        var oldState = this.state || {}, inputLine = this.get('inputLine');
+        if (oldState !== newState) { // state gets really replaced, remember
+            if (inputLine) {
+                oldState.input = inputLine.getInput();
+                oldState.history = inputLine.history;
+            }
+        } else { // state is the same but we might set certain things for re-initing
             oldState.preselect = this.currentSel;
-        } else if (newState.keepInputOnReactivate && this.get('inputLine')) {
-            newState.input = this.get('inputLine').getInput();
+            if (inputLine) {
+                if (newState.keepInputOnReactivate) newState.input = inputLine.getInput();
+                if (!newState.history) newState.history = inputLine.history;
+            }
         }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         newState.layout = newState.layout || oldState.layout;
@@ -408,7 +438,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         this.state = newState;
         this.renderContainer(newState.layout);
-        this.renderInputline(newState.prompt, newState.layout);
+        this.renderInputline(newState.prompt, newState.history, newState.layout);
         (function() {
             this.setInput(newState.input || '');
             this.selectN(newState.preselect || 0);

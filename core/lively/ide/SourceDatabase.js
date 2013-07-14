@@ -234,11 +234,9 @@ Object.extend(lively.ide.ModuleWrapper, {
         // TODO Implement reverse module lookup that takes
         //   Config.modulePaths into consideration
         // FIXME FIXME FIXME
-        while (moduleName.substring(0, 3) === '../') {
-            moduleName = moduleName.substring(3);
-        }
-        moduleName = moduleName.substring(0, moduleName.lastIndexOf('.'));
-        moduleName = moduleName.replace(/\//g, '.');
+        while (moduleName.substring(0, 3) === '../') moduleName = moduleName.substring(3); // remove relative parts
+        moduleName = moduleName.substring(0, moduleName.lastIndexOf('.')); // remove file extension like .js
+        moduleName = moduleName.replace(/\//g, '.'); // remove double slashes
         try {
             return new lively.ide.ModuleWrapper(moduleName, type, null, isVirtual);
         } catch(e) {

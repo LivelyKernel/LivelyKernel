@@ -85,22 +85,16 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         var codeEditor = this.panel.sourcePane;
         codeEditor.applyStyle({
             clipMode: 'auto',
-            fixedHeight: true,
-            fixedWidth: true,
+            fixedHeight: true, fixedWidth: true,
             fontFamily: Config.get('defaultCodeFontFamily'),
             fontSize: Config.get('defaultCodeFontSize'),
-            padding: Rectangle.inset(5,5,5,5),
+            accessibleInInactiveWindow: true,
             // layouting poliy
-            scaleProportional: true,
-            accessibleInInactiveWindow: true
+            padding: Rectangle.inset(5,5,5,5),
+            scaleProportional: true
         });
 
-        codeEditor.evalEnabled = false;
-
-        if (codeEditor.enableSyntaxHighlighting) {
-            codeEditor.enableSyntaxHighlighting();
-        }
-
+        codeEditor.evalEnabled = false; // no eval on save
         codeEditor.plugTo(this, {
             setTextString: {dir: '<-', name: 'setSourceString', options: {
                 updater: function($upd, val) {
@@ -178,7 +172,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         
         return cmds.collect(function(ea) { 
             return [ea.asString(), ea.trigger.bind(ea)] });
-    },},
+    }
+},
 'generated formal getters and setters', {
     generateGetterAndSetterSource: function() {
         this.formals.inject('', function(str, spec) {
@@ -322,19 +317,21 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
     collapseNavigation: function() {
         var sourcePane = this.getSourcePane();
-        
+
         this.sourceOnlyPanel = new lively.morphic.Panel(sourcePane.getExtent());
         this.sourceOnlyPanel.setPosition(this.panel.getPosition());
         this.sourceOnlyPanel.ownerWidget = this;
-        
-        this.sourceOnlyPanel.addMorph(sourcePane);
+        this.sourceOnlyPanel.addScript(function onWindowGetsFocus() {
+            this.sourcePane && this.sourcePane.focus(); });
+
+        this.sourceOnlyPanel.sourcePane = this.sourceOnlyPanel.addMorph(sourcePane);
         sourcePane.setPosition(lively.pt(0, 0));
-        
+
         this.panel.remove();
         this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
         this.view.addMorph(this.sourceOnlyPanel);
         this.view.targetMorph = this.sourceOnlyPanel;
-        
+
         this.isNavigationCollapsed = true;
     },
     expandNavigation: function() {

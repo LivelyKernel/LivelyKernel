@@ -649,6 +649,71 @@ Object.extend(lively.ide, {
             return options.sync ? result : cmd;
         }
 
+        interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {
+            // usage:
+            // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+            //     'directory: '
+            //     lively.shell.exec('pwd', {sync:true}).resultString(),
+            //     function(files) { return files.filterByKey('isDirectory'); },
+            //     null,
+            //     [function(candidate) { show(candidate); }])
+            // search for file / directory matching input. Match rules are as follows
+            // up to the last slash the input is taken as directory
+            // everything that follows the last slash is a pattern.
+            // If there is space after the last slash take it as *pattern*
+            // other wise as pattern*
+            // Example: input = "/foo/bar": match all subdirectories of
+            // /foo/ that match "bar*".
+            // "/foo/ bar" match all subdirectories of /foo/ that match "*bar*".
+            function filesToListItems(files) {
+                return files.map(function(file) {
+                    if  (Object.isString(file)) file = {path: file, toString: function() { return this.path; }}
+                    return {isListItem: true, string: file.path, value: file};
+                });
+            }
+            function extractDirAndPatternFromInput(input) {
+                var result = {}, lastSlash = input.lastIndexOf('/');
+                if (!lastSlash) return null; // don't do search
+                result.dir = input.slice(0,lastSlash);
+                var pattern = input.slice(lastSlash+1);
+                if (pattern.startsWith(' ')) pattern = '*' + pattern.trim();
+                result.pattern = pattern += '*';
+                return result;
+            }
+            function doSearch(fileListSoFar, pattern, dir, filterFunc, thenDo) {
+                var continued = false, timeoutDelay = 5/*secs*/;
+                // in case findFiles crashes
+                (function() {
+                    if (continued) return;
+                    continued = true; thenDo(filesToListItems(fileListSoFar));
+                }).delay(timeoutDelay);
+                lively.ide.CommandLineSearch.findFiles(pattern, {rootDirectory: dir, depth: 1}, function(files) {
+                    if (continued) return; continued = true;
+                    filterFunc = filterFunc || Functions.K;
+                    fileListSoFar = fileListSoFar.concat(filterFunc(files).pluck('path')).uniq();
+                    thenDo(filesToListItems(fileListSoFar));
+                });
+            }
+            var searchForMatching = Functions.debounce(300, function(input, callback) {
+                var candidates = [input], patternAndDir = extractDirAndPatternFromInput(input);
+                if (patternAndDir) doSearch(candidates, patternAndDir.pattern, patternAndDir.dir, fileFilter, callback);
+                else callback(filesToListItems(candidates));
+            });
+            var initialCandidates = [rootDir];
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
+                spec: {
+                    candidates: initialCandidates,
+                    prompt: prompt,
+                    input: initialCandidates[0].toString(),
+                    candidatesUpdater: searchForMatching,
+                    maxItems: 25,
+                    keepInputOnReactivate: true,
+                    completeInputOnRightArrow: true,
+                    actions: actions || [show]
+                }
+            });    
+        }
     }
 });
 

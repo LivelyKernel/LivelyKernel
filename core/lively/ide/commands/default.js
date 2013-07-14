@@ -174,6 +174,19 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.browseFiles': {
         description: 'browse files',
         exec: function() {
+            function changeBasePath(narrower) {
+                function setBasePath(candidate) {
+                    alertOK('base directory is now ' + candidate)
+                    narrower.dir = String(candidate);
+                    lively.ide.commands.exec('lively.ide.browseFiles');
+                }
+                lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+                    'choose directory: ',
+                    lively.shell.exec('pwd', {sync:true}).resultString(),
+                    function(files) { return files.filterByKey('isDirectory'); },
+                    "lively.ide.browseFiles.baseDir.NarrowingList",
+                    [setBasePath]);
+            }
             function makeCandidates(dir, files) {
                 return Object.keys(files).map(function(fullPath) {
                     var relativePath = fullPath.slice(dir.length+1);
@@ -195,8 +208,7 @@ Object.extend(lively.ide.commands.byName, {
                     });
                 });
             }
-            var dir, candidates = [];
-            lively.ide.tools.SelectionNarrowing.getNarrower({
+            var dir, candidates = [], spec = {
                 name: 'lively.ide.browseFiles.NarrowingList',
                 spec: {
                     candidates: candidates,
@@ -206,9 +218,10 @@ Object.extend(lively.ide.commands.byName, {
                     actions: [
                         {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
                         {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
-                        {name: 'open in web browser', persistent: true, exec: function(candidate) { window.open(candidate.relativePath); }}]
+                        {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
+                        {name: 'change base directory', exec: function(candidate) { changeBasePath(narrower); }}]
                 }
-            });
+            }, narrower = lively.ide.tools.SelectionNarrowing.getNarrower(spec);
             return true;
         }
     },

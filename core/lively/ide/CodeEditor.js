@@ -301,6 +301,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
         handler.addCommands(commands);
     },
+
     modifyCommand: function(cmdName, properties) {
         // modifies the implementation of a command but only for this
         // sepcific editor, not globally
@@ -323,6 +324,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             augmentCommand(ed.commands);
             augmentCommand(ed.getKeyboardHandler().commands);
         });
+    },
+
+    getUniversalArgument: function() {
+        // get numeric arg that is used for interactive commands
+        return this.withAceDo(function(ed) {
+            return ed.keyBinding.$data && ed.keyBinding.$data.count; }) || 0;
     },
 
     withAceDo: function(doFunc) {
@@ -590,10 +597,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.withAceDo(function(ed) { return ed.scrollToRow(row); })
     },
 
-
     doKeyCopy: Functions.Null,
     doKeyPaste: Functions.Null
-
 },
 'text morph eval interface', {
 

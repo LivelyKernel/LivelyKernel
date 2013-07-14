@@ -61,6 +61,10 @@ Object.subclass('lively.persistence.SpecObject',
         return this;
     },
 
+    customize: function(spec) {
+        return this.fromPlainObject(Object.extend(Object.extend({}, this.attributeStore), spec));
+    },
+
     fromString: function(string) {
         try {
             return this.fromPlainObject(eval('(' + string + ')'));

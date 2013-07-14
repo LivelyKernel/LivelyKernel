@@ -370,6 +370,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return ed.getCursorPositionScreen(); });
     },
 
+    isAtDocumentEnd: function() {
+        return this.withAceDo(function(ed) {
+            var row = ed.session.doc.getLength() - 1,
+                column = ed.session.doc.getLine(row).length,
+                pos = ed.getCursorPosition();
+            return row === pos.row && column === pos.column;
+        });
+    },
+
     moveToMatching: function(forward, shouldSelect, moveAnyway) {
         // This method tries to find a matching char to the one the cursor
         // currently points at. If a match is found it is set as the new

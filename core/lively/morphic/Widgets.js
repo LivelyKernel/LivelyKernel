@@ -1326,17 +1326,16 @@ lively.morphic.World.addMethods(
     },
     openObjectEditor: function() {
         module('lively.ide.tools.ObjectEditor').load(true);
-        return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter().comeForward();
+        return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter();
     },
     openTerminal: function() {
         require('lively.ide.tools.Terminal').toRun(function() {
-            lively.BuildSpec('lively.ide.tools.Terminal').createMorph().openInWorldCenter().comeForward();
-        });
+            lively.BuildSpec('lively.ide.tools.Terminal').createMorph().openInWorldCenter().comeForward(); });
     },
-
     openObjectEditorFor: function(morph) {
         var part = this.openObjectEditor();
         part.setTarget(morph);
+        part.comeForward();
         return part;
     },
     openMethodFinder: function() {

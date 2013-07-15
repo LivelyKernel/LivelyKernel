@@ -10,7 +10,13 @@
 // s.changeList.length
 // s.changeList[0].time
 
-var watch = require('watch');
+var watch;
+try {
+    watch = require('watch');
+} catch (e) {
+    console.warn('DirectoryWatcher could not load watch module!');
+}
+
 var path = require("path");
 var watchState = global.DirectoryWatchServerState || (global.DirectoryWatchServerState = {});
 
@@ -37,6 +43,7 @@ function startWatching(dir, thenDo) {
             startTime: null,
             changeList: []
         };
+    if (!watch) { thenDo({error: 'watch not available!'}, changes); return changes; }
     watch.createMonitor(dir, options, function (monitor) {
         changes.startTime = changes.lastChange = Date.now();
         changes.monitor = monitor;
@@ -70,6 +77,7 @@ function getChangesSince(dir, timestampSince, timestampStart, thenDo) {
 }
 
 function getWatchedFiles(dir, thenDo) {
+    if (!watch) { thenDo({error: 'watch not available'}, {}, null); return; }
     ensureWatchState(dir, function(err, watchState) {
         thenDo(
             err,
@@ -84,9 +92,9 @@ module.exports = function(route, app) {
 
     app.get(route + 'files', function(req, res) {
         var dir = req.query.dir;
-        if (!dir) { res.status(400).json({error: 'No dir specified'}).end(); return; }
+        if (!dir) { res.status(400).json({error: 'No dir specified', files: []}).end(); return; }
         getWatchedFiles(dir, function(err, files, startTime) {
-            if (err) res.status(500).json({error: String(err)}).end();
+            if (err) res.status(500).json({error: String(err), files: files}).end();
             else res.json({files: files, startTime: startTime}).end();
         });
     });

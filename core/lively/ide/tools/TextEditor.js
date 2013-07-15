@@ -122,6 +122,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(saveButton, 'fire', this, 'saveFile');
         lively.bindings.connect(editor, 'savedTextString', this, 'saveFile');
         lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
+        lively.bindings.connect(this, 'contentLoaded', this, 'gotoLocationLine');
         lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
             var ext = this.sourceObj.getFileExtension();
             switch(ext) {
@@ -137,8 +138,21 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             }
         }});
     },
+    getLine: function getLine() {
+        var string = this.get('urlText').textString,
+            match = string.match(/:([0-9]+)$/);
+        return match && Number(match[1]);
+    },
+    gotoLocationLine: function gotoLocationLine() {
+        var line = this.getLine();
+        if (!line) return;
+        var editor = this.get('editor');
+        editor.scrollToRow(line);
+        editor.setCursorPosition(pt(0, line-1));
+    },
     getLocation: function getLocation(asString) {
         var string = this.get('urlText').textString;
+        string = string.replace(/:[0-9]+$/, '');
         if (asString) return string;
         try {
             return new URL(string);

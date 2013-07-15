@@ -28,6 +28,7 @@
 	color: #333;
 	text-align: center;
 	text-shadow: 0 1px 0 #EEE;
+	background: #EEE;
 	border-radius: 2px;
 	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
 	cursor: pointer;

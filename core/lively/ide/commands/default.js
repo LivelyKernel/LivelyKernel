@@ -3,10 +3,10 @@ module('lively.ide.commands.default').requires().toRun(function() {
 Object.extend(lively.ide.commands, {
     byName: {},
     defaultBindings: {},
-    exec: function(commandName) {
+    exec: function(commandName, arg1, arg2, arg3, arg4) {
         var cmd = lively.ide.commands.byName[commandName];
         try {
-            return !cmd || !cmd.exec ? null : cmd.exec();
+            return !cmd || !cmd.exec ? null : cmd.exec(arg1, arg2, arg3, arg4);
         } catch(err) {
             show('Error when executing command %s:\n %s', commandName, err);
             return false;

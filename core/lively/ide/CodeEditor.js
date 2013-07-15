@@ -641,12 +641,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // the current selection is cleared and the stringified representation
         // is inserted at the end (in terms of document position) of the current
         // selection (or at the cursor pos if no sel is active)
-        editor = editor || this.aceEditor;
-        var sel = editor.selection, range = sel.getRange();
-        sel.moveCursorToPosition(range.end); sel.clearSelection();
-        var string = obj instanceof Error ? obj.stack || obj : String(obj);
-        editor.onPaste(string);
-        sel.setRange(range.constructor.fromPoints(range.end, sel.getCursor()));
+        function insert(ed) {
+            var sel = ed.selection, range = sel.getRange();
+            sel.moveCursorToPosition(range.end); sel.clearSelection();
+            var string = obj instanceof Error ? obj.stack || obj : String(obj);
+            ed.onPaste(string);
+            sel.setRange(range.constructor.fromPoints(range.end, sel.getCursor()));
+        }
+        if (editor) insert(editor); else this.withAceDo(insert);
     },
 
     doit: function(printResult, editor) {

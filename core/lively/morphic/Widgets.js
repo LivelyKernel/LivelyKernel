@@ -3546,7 +3546,7 @@ Object.extend(lively.ide, {
             if (url) {
                 if (String(url).startsWith('/')) { // absolute local path
                 } else if (!String(url).startsWith('http')) {
-                    url = URL.codeBase.withFilename(url);
+                    url = URL.root.withFilename(url).withRelativePartsResolved();
                 }
                 editor.openURL(url);
             }

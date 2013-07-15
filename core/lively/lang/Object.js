@@ -472,7 +472,7 @@ Object.extend(lively.PropertyPath.prototype, {
     },
 
     watch: function(options) {
-        // options: target, haltWhenChanged, uninstall
+        // options: target, haltWhenChanged, uninstall, onGet, onSet, verbose
         if (!options || this.isRoot()) return;
         var target = options.target,
             parent = this.get(target, -1),
@@ -507,14 +507,17 @@ Object.extend(lively.PropertyPath.prototype, {
         // observe slots, for debugging
         parent[newPropName] = parent[propName];
         parent.__defineSetter__(propName, function(v) {
+            var oldValue = parent[newPropName];
+            if (options.onSet) options.onSet(v, oldValue);
             var msg = Strings.format('%s.%s changed: %s -> %s',
-                parent, propName, parent[newPropName], v);
+                parent, propName, oldValue, v);
             if (showStack) msg += '\n' + lively.printStack();
-            show(msg);
+            if (options.verbose) show(msg);
             if (haltWhenChanged) debugger;
             return parent[newPropName] = v;
         });
         parent.__defineGetter__(propName, function() {
+            if (options.onGet) options.onGet(parent[newPropName]);
             return parent[newPropName];
         });
         var msg = Strings.format('Watcher for %s.%s installed', parent, propName);

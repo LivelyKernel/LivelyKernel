@@ -280,6 +280,35 @@ Object.extend(lively.ide.commands.byName, {
                 [setBasePath]);
         }
     },
+    'lively.ide.execShellCommand': {
+        description: 'execute shell command',
+        exec: function(codeEditor, args) {
+            var insertResult = !args || typeof args.insert === 'undefined' || !!args.insert,
+                openInWindow = !codeEditor || args.count !== 4/*universal argument*/;
+            function ensureCodeEditor(title) {
+                if (!openInWindow && codeEditor) return codeEditor;
+                var ed = $world.addCodeEditor({
+                    title: 'shell command: ' + title,
+                    gutter: false, textMode: 'text',
+                    extent: pt(400, 500), position: 'center'});
+                ed.owner.comeForward();
+                return ed;
+            }
+            function runCommand(command) {
+                lively.shell.exec(command, function(cmd) {
+                    insertResult && ensureCodeEditor(command).printObject(null, cmd.resultString(true));
+                });
+            }
+            var cmdString = args && args.shellCommand;
+            if (cmdString) runCommand(cmdString);
+            else {
+                $world.prompt('Enter shell command to run.', function(cmdString) {
+                    if (!cmdString) { show('No command entered, aborting...!'); return; }
+                    runCommand(cmdString);
+                }).panel.focus();
+            };
+        }
+    },
     // tools
     'lively.ide.openWorkspace': {description: 'open Workspace', exec: function() { $world.openWorkspace(); }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', exec: function() { $world.openSystemBrowser(); }},

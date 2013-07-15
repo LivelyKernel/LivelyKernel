@@ -532,7 +532,7 @@ Object.subclass('lively.morphic.Morph',
     applyStyle: function(spec) {
         if (!spec) return this;
 
-        if (spec.pos || spec.position) this.setPosition(spec.position);
+        if (spec.position) this.setPosition(spec.position);
         if (spec.extent !== undefined) this.setExtent(spec.extent);
         if (spec.scale !== undefined) this.setScale(spec.scale);
         if (spec.rotation !== undefined) this.setRotation(spec.rotation);

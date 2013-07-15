@@ -2,9 +2,10 @@ module('lively.ide.tools.tests.CommandLine').requires('lively.ide.tools.CommandL
 
 AsyncTestCase.subclass('lively.ide.tools.CommandLine.Interface',
 "running", {
-    setUp: function()  {
+    setUp: function($super, whenDone)  {
         this.sut = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
         this.sut.openInWorld();
+        this.waitFor(function() { return !!this.sut.aceEditor }, 10, whenDone);
     },
     tearDown: function()  {
         this.sut && this.sut.remove();

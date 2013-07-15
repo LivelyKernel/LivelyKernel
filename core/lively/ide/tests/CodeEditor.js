@@ -2,12 +2,15 @@ module('lively.ide.tests.CodeEditor').requires('lively.ide.CodeEditor', 'lively.
 
 AsyncTestCase.subclass('lively.ide.tests.CodeEditor.Base',
 'running', {
-    setUp: function($super) {
+    setUp: function($super, run) {
         $super();
         this.world = lively.morphic.World.current();
         this.editor = new lively.morphic.CodeEditor(lively.rect(0,0, 100, 100), 'some content');
         this.world.addMorph(this.editor);
         this.morphsToDelete = [this.editor];
+        var inited = false;
+        this.editor.withAceDo(function() { inited = true; });
+        this.waitFor(function() { return !!inited }, 10, run);
     },
     tearDown: function($super) {
         $super();
@@ -34,8 +37,12 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         var e2 = this.editor.copy();
         this.morphsToDelete.push(e2);
         e2.openInWorld();
-        this.assertHasText(e2, 'some content');
-        this.done();
+        var inited = false;
+        e2.withAceDo(function() { inited = true; });
+        this.waitFor(function() { return !!inited }, 10, function() {
+            this.assertHasText(e2, 'some content');
+            this.done();
+        });
     },
     testCopyHasStringEvenImmediatellyAfterCopy: function() {
         this.editor.textString = "some content";

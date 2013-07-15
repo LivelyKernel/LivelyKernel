@@ -69,7 +69,7 @@ ometa FRPTranslator {
                     this.addSubExpression(id, strmDef, deps);
                     return {refString: this.ref(id), dependencies: deps, isStream: true}
                 } else {
-                    return {refString: Strings.format('(%s) ? (%s) : (%s))', cc.refString, tt.refString, ff.refString),
+                    return {refString: Strings.format('((%s) ? (%s) : (%s))', cc.refString, tt.refString, ff.refString),
                         dependencies: [], isStream: false};
                 }
                     }.bind(this))()),
@@ -161,7 +161,7 @@ ometa FRPTranslator {
             }.bind(this))()),
     binding = :name trans:val
             -> {refString: val.refString, val: val, dependencies: val.dependencies, name: name, isStream: val.isStream},
-    get = (#undefined | #true | #false | #null)
+    get = (#undefined | #true | #false | #null):n
             -> ({refString: Objects.inspect(n), dependencies: [], isStream: false})
         | anything:n ?(n.constructor === String)
             -> ((function() {

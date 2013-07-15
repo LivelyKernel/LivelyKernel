@@ -502,12 +502,24 @@ TestCase.subclass('AsyncTestCase',
     },
     runTest: function(aSelector) {
         if (!this.shouldRun) return;
+        function detectAsyncSetUp(test) {
+            // FIXME! setUp should be async by default!!!
+            var args = test.setUp && test.setUp.argumentNames();
+            return args && args.length && args.last() !== '$super';
+        }
+        this.asyncSetUp = detectAsyncSetUp(this);
         this.currentSelector = aSelector || this.currentSelector;
         this.running();
-        try {
-            this.setUp();
-            this[this.currentSelector]();
-        } catch (e) { this.addAndSignalFailure(e) }
+        var runTest = function(test, selector) {
+            try { test[selector](); } catch (e) { test.addAndSignalFailure(e); return; }
+        }.curry(this, this.currentSelector);
+        var runSetUp = function(test) {
+            try {
+                test.setUp(test.asyncSetUp ? runTest : undefined);
+                if (!test.asyncSetUp) runTest();
+            } catch (e) { test.addAndSignalFailure(e); return; }
+        }
+        runSetUp(this);
     },
 
     runAll: function(statusUpdateFunc, whenDoneFunc, tests) {

@@ -662,6 +662,15 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
     //   - asynchronous tests are run only when earlier tests
     //     (both sync adn async) are marked as done
 
+    setUp: function($super, run) {
+        $super();
+        this.asyncSetupRun = false;
+        this.delay(function() {
+            this.asyncSetupRun = true;
+            run();
+        }, 20);
+    },
+
     runAll: function($super, statusUpdateFunc, whenDoneFunc) {
         // yeah, it's ugly
         Global.test1Called = false;
@@ -697,6 +706,7 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
         this.assertEquals(2, Global.tearDownCalled, 'tearDown not twice called');
         this.done();
     },
+
     test4WaitFor: function() {
         // This test is an example of an aync test using wait
         // which checks the correct order of execution
@@ -711,6 +721,11 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
             this.assertEqualState(['a', 'b', 'c', 'd', 'c', 'e'], steps);
             this.done();
         }, 50);
+    },
+
+    testAsyncSetUp: function() {
+        this.assert(this.asyncSetupRun, 'test called before async setup was done');
+        this.done();
     }
 });
 

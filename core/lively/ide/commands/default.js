@@ -284,7 +284,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'execute shell command',
         exec: function(codeEditor, args) {
             var insertResult = !args || typeof args.insert === 'undefined' || !!args.insert,
-                openInWindow = !codeEditor || args.count !== 4/*universal argument*/;
+                openInWindow = !codeEditor || (args && args.count !== 4)/*universal argument*/;
             function ensureCodeEditor(title) {
                 if (!openInWindow && codeEditor) return codeEditor;
                 var ed = $world.addCodeEditor({

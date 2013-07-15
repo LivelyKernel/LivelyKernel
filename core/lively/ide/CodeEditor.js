@@ -1371,12 +1371,14 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     setupEvalBindings: function(kbd) {
         function doEval(ed, insertResult) {
             // FIXME this should go into the modes or use at least
-            // double dispatch...    
+            // double dispatch...
             switch (ed.$morph.getTextMode()) {
                 case 'sh':
-                    ed.execCommand('runShellCommand', {
-                        shellCommand: ed.$morph.getSelectionOrLineString(),
-                        insert: insertResult});
+                    lively.ide.commands.exec('lively.ide.execShellCommand', ed.$morph, {
+                        insert: insertResult,
+                        count: 4,
+                        shellCommand: ed.$morph.getSelectionOrLineString()
+                    });
                     break;
                 default:
                     ed.$morph.doit(insertResult);
@@ -1900,7 +1902,7 @@ Object.extend(lively.ide, {
                 editor.focus();
                 return pane;
             },
-        
+
             openWorkspace: lively.morphic.World.prototype.openWorkspace.wrap(function($proceed, evt) {
                 if (!Config.get('useAceEditor')) { return $proceed(evt); }
                 var window = this.addCodeEditor({
@@ -1913,7 +1915,7 @@ Object.extend(lively.ide, {
                 window.selectAll();
                 return window;
             }),
-        
+
             openObjectEditor: lively.morphic.World.prototype.openObjectEditor.wrap(function($proceed) {
                 var objectEditor = $proceed(),
                     textMorph = objectEditor.get('ObjectEditorScriptPane');
@@ -1929,18 +1931,18 @@ Object.extend(lively.ide, {
                     objectEditorPane = textMorph.objectEditorPane,
                     scripts = textMorph.scripts,
                     codeMorph = new lively.morphic.CodeEditor(bounds, textString || '');
-        
+
                 lively.bindings.connect(codeMorph, 'textString',
                                         owner.get('ChangeIndicator'), 'indicateUnsavedChanges');
                 codeMorph.setName(name);
                 codeMorph.objectEditorPane = objectEditorPane;
                 codeMorph.applyStyle({resizeWidth: true, resizeHeight: true});
                 codeMorph.accessibleInInactiveWindow = true;
-        
+
                 Functions.own(textMorph).forEach(function(scriptName) {
                     textMorph[scriptName].asScriptOf(codeMorph);
                 });
-        
+
                 codeMorph.addScript(function displayStatus(msg, color, delay) {
                     if (!this.statusMorph) {
                         this.statusMorph = new lively.morphic.Text(pt(100,25).extentAsRectangle());
@@ -1956,11 +1958,11 @@ Object.extend(lively.ide, {
                     this.addMorph(this.statusMorph);
                     (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
                 });
-        
+
                 objectEditor.targetMorph.addScript(function onWindowGetsFocus() {
                     this.get('ObjectEditorScriptPane').focus();
                 });
-        
+
                 objectEditor.addScript(function onKeyDown(evt) {
                     var sig = evt.getKeyString(),
                         scriptList = this.get('ObjectEditorScriptList'),
@@ -1971,7 +1973,7 @@ Object.extend(lively.ide, {
                         default: $super(evt);
                     }
                 });
-        
+
                 owner.addMorphBack(codeMorph);
                 lively.bindings.disconnectAll(textMorph);
                 textMorph.remove();
@@ -1979,7 +1981,7 @@ Object.extend(lively.ide, {
                 objectEditor.comeForward();
                 return objectEditor;
             }),
-        
+
             openStyleEditorFor: lively.morphic.World.prototype.openStyleEditorFor.getOriginal().wrap(function(proceed, morph, evt) {
                 var editor = proceed(morph,evt);
                 if (Config.get('useAceEditor')) {
@@ -1999,7 +2001,7 @@ Object.extend(lively.ide, {
                 editor.comeForward();
                 return editor;
             }),
-        
+
             openWorldCSSEditor: function () {
                 var editor = this.openPartItem('WorldCSS', 'PartsBin/Tools');
                 if (Config.get('useAceEditor')) {
@@ -2019,7 +2021,7 @@ Object.extend(lively.ide, {
                 editor.comeForward();
                 return editor;
             },
-        
+
             openPartItem: lively.morphic.World.prototype.openPartItem.getOriginal().wrap(function($proceed, name, partsbinCat) {
                 var part = $proceed(name, partsbinCat);
                 if (!Config.get('useAceEditor')) { return part; }
@@ -2033,8 +2035,8 @@ Object.extend(lively.ide, {
                 }
                 return part;
             }),
-        
-        });        
+
+        });
     });
 })();
 

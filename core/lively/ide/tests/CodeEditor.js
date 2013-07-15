@@ -90,6 +90,20 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
             this.assert(changeTriggered, 'textChange connection not working');
             this.done();
         }, 300);
+    },
+    testSaveExcursion: function() {
+        var e = this.editor, textInExcursion, textAfterExcursion;
+        e.textString = "some\ncontent";
+        e.setSelectionRange(5, 13);
+        e.saveExcursion(function(whenDone) {
+            e.setSelectionRange(0,4);
+            textInExcursion = e.getTextRange();
+            whenDone();
+        });
+        textAfterExcursion = e.getTextRange();
+        this.assertEquals('some', textInExcursion, 'in');
+        this.assertEquals('content', textAfterExcursion, 'after');
+        this.done();
     }
 
 });

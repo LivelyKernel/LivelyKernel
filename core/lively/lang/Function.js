@@ -428,5 +428,24 @@ Global.Functions = {
             Global.clearTimeout(timeout);
             timeout = Global.setTimeout(later, wait);
         };
+    },
+
+    debounceNamed: function(name, wait, func, immediate) {
+        // debounce is based on the identity of the function called. When you call the
+        // identical method using debounce, multiple calls that happen between the first
+        // invocation and wait time will only cause execution once. However, wrapping a
+        // function with debounce and then storing (to be able to call the exact same
+        // function again) it is a repeating task and unpractical when using anonymous
+        // methods. debounceNamed() automatically maps function to ids and removes the
+        // need for this housekeeping code.
+        var store = Functions._debouncedByName || (Functions._debouncedByName = {});
+        if (store[name]) return store[name];
+        function debounceNamedWrapper() {
+            // cleaning up
+            delete store[name];
+            var context = this, args = arguments;
+            func.apply(context, args);
+        }
+        return store[name] = Functions.debounce(wait, debounceNamedWrapper, immediate);
     }
 };

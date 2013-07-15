@@ -605,4 +605,18 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayProjection', {
     }
 });
 
+AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
+"testing", {
+    testDebouncedCommand: function() {
+        var called = 0;
+        Array.range(1,10).forEach(function() {
+            Functions.debounceNamed('testDebouncedCommand', 20, function() { called++; })();
+        });
+        this.delay(function() {
+            this.assertEquals(1, called, 'debounce call cound');
+            this.done();
+        }, 30);
+    },
+});
+
 }) // end of module

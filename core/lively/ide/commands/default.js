@@ -174,19 +174,6 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.browseFiles': {
         description: 'browse files',
         exec: function() {
-            function changeBasePath(narrower) {
-                function setBasePath(candidate) {
-                    alertOK('base directory is now ' + candidate)
-                    narrower.dir = String(candidate);
-                    lively.ide.commands.exec('lively.ide.browseFiles');
-                }
-                lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-                    'choose directory: ',
-                    lively.shell.exec('pwd', {sync:true}).resultString(),
-                    function(files) { return files.filterByKey('isDirectory'); },
-                    "lively.ide.browseFiles.baseDir.NarrowingList",
-                    [setBasePath]);
-            }
             function makeCandidates(dir, files) {
                 return Object.keys(files).map(function(fullPath) {
                     var relativePath = fullPath.slice(dir.length+1);
@@ -218,8 +205,7 @@ Object.extend(lively.ide.commands.byName, {
                     actions: [
                         {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
                         {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
-                        {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
-                        {name: 'change base directory', exec: function(candidate) { changeBasePath(narrower); }}]
+                        {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }}]
                 }
             }, narrower = lively.ide.tools.SelectionNarrowing.getNarrower(spec);
             return true;
@@ -275,6 +261,23 @@ Object.extend(lively.ide.commands.byName, {
                 }
             });
             return true;
+        }
+    },
+    'lively.ide.CommandLineInterface.changeShellBaseDirectory': {
+        description: 'change the base directory for shell commands',
+        exec: function() {
+            function setBasePath(candidate) {
+                var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
+                if (result) alertOK('base directory is now ' + result);
+                else alertOK('resetting base directory to default');
+                lively.ide.CommandLineInterface.rootDirectory = result;
+            }
+            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+                'choose directory: ',
+                lively.shell.exec('pwd', {sync:true}).resultString(),
+                function(files) { return files.filterByKey('isDirectory'); },
+                "lively.ide.browseFiles.baseDir.NarrowingList",
+                [setBasePath]);
         }
     },
     // tools

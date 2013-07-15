@@ -155,7 +155,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     onOwnerChanged: function(newOwner) {
-        if (newOwner) this.initializeAce(true);
+        if (newOwner) Functions.debounceNamed(
+            this.id + ':onOwnerChanged:initializeAce',
+            400, this.initializeAce.bind(this, true), true);
     }
 },
 'styling', {
@@ -211,7 +213,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // 1) create ace editor object
         if (initializedEarlier && !force) return;
         var node = this.getShape().shapeNode,
-            e = this.aceEditor = this.aceEditor || ace.edit(node),
+            e = this.aceEditor || (this.aceEditor = ace.edit(node)),
             morph = this;
         e.$morph = this;
         if (!initializedEarlier) {
@@ -626,7 +628,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     evalAll: function() {
-        return this.tryBoundEval(this.textString);
+        return this.saveExcursion(function(whenDone) {
+            this.selectAll();
+            var result = this.doit();
+            whenDone();
+            return result;
+        });
     },
 
     printObject: function(editor, obj) {
@@ -651,6 +658,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();
+        return result;
     },
 
     doListProtocol: function() {
@@ -700,6 +708,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     onWindowGetsFocus: function(window) { this.focus(); }
 },
 'text morph selection interface', {
+
+    saveExcursion: function(doFunc) {
+        var currentRange = this.getSelectionRangeAce(), self = this;
+        function reset() { self.setSelectionRangeAce(currentRange); }
+        return doFunc.call(this, reset);
+    },
 
     getSelection: function() {
         return this.withAceDo(function(ed) { return ed.selection });
@@ -1369,6 +1383,10 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }
         }
         this.addCommands(kbd, [{
+                name: 'evalAll',
+                exec: function(ed) { ed.$morph.evalAll(); },
+                readOnly: true
+            }, {
                 name: 'doit',
                 bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
                 exec: function(ed) { doEval(ed, false); },
@@ -1407,24 +1425,11 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: this.morphBinding("doInspect"),
                 multiSelectAction: "forEach",
                 readOnly: true
-            }, {
-                // shell eval
+            }, { // shell eval
                 name: 'runShellCommand',
                 exec: function(ed, args) {
-                    var insertResult = !args || !!args.insert;
-                    function runCommand(command) {
-                        lively.shell.exec(command, function(cmd) {
-                            if (insertResult) ed.$morph.printObject(ed, cmd.resultString(true));
-                        });                    
-                    }
-                    var cmdString = args && args.shellCommand;
-                    if (cmdString) runCommand(cmdString);
-                    else $world.prompt('Enter shell command to run.', function(cmdString) {
-                        if (!cmdString) { show('No command entered, aborting...!'); return; }
-                        runCommand(cmdString);
-                    });
+                    lively.ide.commands.exec('lively.ide.execShellCommand', ed.$morph, args);
                 },
-                multiSelectAction: 'forEach',
                 handlesCount: true
             }, {
                 name: 'runShellCommandOnRegion',
@@ -1888,6 +1893,7 @@ Object.extend(lively.ide, {
                     title = options.title || 'Code editor',
                     editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
                     pane = this.internalAddWindow(editor, options.title, options.position);
+                if (Object.isString(options.position)) delete options.position;
                 editor.applyStyle({resizeWidth: true, resizeHeight: true});
                 editor.accessibleInInactiveWindow = true;
                 editor.applyStyle(options);

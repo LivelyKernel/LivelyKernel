@@ -240,7 +240,7 @@ Object.extend(lively.ide.commands.byName, {
                     }));
                 });
             });
-            lively.ide.tools.SelectionNarrowing.getNarrower({
+            var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
                 name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
                 reactivateWithoutInit: true,
                 spec: {
@@ -257,7 +257,20 @@ Object.extend(lively.ide.commands.byName, {
                         }
                     }, {
                         name: 'open in text editor',
-                        exec: function(candidate) { ; }
+                        exec: function(candidate) {
+                            var parts = candidate.match.split(':'),
+                                path = parts[0], line = parts[1];
+                            if (line) path += ':' + line;
+                            lively.ide.openFile(path);
+                        }
+                    }, {
+                        name: "open grep results in workspace",
+                        exec: function() {
+                            var state = narrower.state,
+                                content = narrower.getFilteredCandidates(state.originalState || state).pluck('match').join('\n'),
+                                title = 'search for: ' + narrower.getInput();
+                            $world.addCodeEditor({title: title, content: content, textMode: 'text'});
+                        }
                     }]
                 }
             });

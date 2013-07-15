@@ -381,7 +381,9 @@ Object.extend(lively.ide.CommandLineSearch, {
         var rootDirectory = lively.ide.CommandLineInterface.rootDirectory,
             fullPath = rootDirectory ? rootDirectory + path : path;
         if (!fullPath.length) fullPath = './';
-        var cmd = Strings.format("find %s -iname '*js' -exec grep -inH %s '{}' \\; ", fullPath, string);
+        var excludes = '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
+            baseCmd = "find %s \\( %s \\) -prune -o -iname '*js' -exec grep -inH %s '{}' \\; ",
+            cmd = Strings.format(baseCmd, fullPath, excludes, string);
         lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
             lively.ide.CommandLineSearch.lastGrep = null;
             var lines = r.getStdout().split('\n').map(function(line) {

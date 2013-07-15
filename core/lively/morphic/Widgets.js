@@ -2897,6 +2897,10 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
             enableDragging: false,
             lock: true
         });
+        this.panel.addScript(function focus() {
+            if (this.focusTarget) this.focusTarget.focus();
+            else $super();
+        });
     },
 
     buildLabel: function() {
@@ -3003,7 +3007,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         lively.bindings.connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
         lively.bindings.connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
         input.applyStyle({resizeWidth: true, moveVertical: true});
-        this.inputText = this.panel.addMorph(input);
+        this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
         input.textString = this.defaultInput || '';
     },
 
@@ -3049,7 +3053,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
                     textMode: 'text'
                 });
         input.setBounds(bounds);
-        this.inputText = this.panel.addMorph(input);
+        this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
         input.focus.bind(input).delay(0);
         lively.bindings.connect(input, 'savedTextString', this, 'result');
     },

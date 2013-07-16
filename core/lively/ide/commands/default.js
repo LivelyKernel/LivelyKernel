@@ -330,7 +330,19 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openGitControl': {description: 'open GitControl', exec: function() { $world.openGitControl(); }},
     'lively.ide.openServerLog': {description: 'open ServerLog', exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); }},
     'lively.ide.openDiffer': {description: 'open text differ', exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); }},
-    'lively.PartsBin.open': {description: 'open PartsBin', exec: function() { $world.openPartsBin(); }}
+    'lively.PartsBin.open': {description: 'open PartsBin', exec: function() { $world.openPartsBin(); }},
+    // network helper
+    'lively.net.loadJavaScriptFile': {
+        description: 'load JavaScript file',
+        exec: function() {
+            $world.prompt('URL of file to load', function(input) {
+                var url;
+                try { url = String(new URL(input)); } catch(e) { show('%s is not a valid URL', input); return; }
+                JSLoader.removeAllScriptsThatLinkTo(url);/*load even if loaded before*/
+                JSLoader.loadJs(url);
+            }, 'http://lively-web.org/say-hello.js');
+        }
+    }
 });
 
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys

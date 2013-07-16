@@ -8,15 +8,8 @@ Object.extend(lively.ide.DirectoryWatcher, {
     dirs: {},
 
     request: function(url, thenDo) {
-        var webR = url.asWebResource();
-        lively.bindings.connect(webR, 'content', thenDo, 'call', {
-            updater: function($upd, content) {
-                if (!this.sourceObj.status.isDone()) return;
-                var result;
-                try { result = JSON.parse(content); } catch (e) { result = {error: e} }
-                $upd(null, !result || result.error, result);
-            }});
-        webR.beAsync().get();
+        return url.asWebResource().beAsync().withJSONWhenDone(function(json, status) {
+            thenDo(!json || json.error, json); }).get();
     },
 
     getFiles: function(dir, thenDo) {

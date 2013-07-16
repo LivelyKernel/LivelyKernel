@@ -616,7 +616,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // Evaluate the string argument in a context in which "this" is
         // determined by the reuslt of #getDoitContext
         var ctx = this.getDoitContext() || this,
-            interactiveEval = function() { return eval(__evalStatement) };
+            interactiveEval = function() {
+                try { return eval("("+__evalStatement+")")} catch (e) { return eval(__evalStatement) }
+                };
         return interactiveEval.call(ctx);
     },
 

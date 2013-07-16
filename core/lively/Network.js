@@ -1299,9 +1299,24 @@ Object.subclass('WebResource',
     getName: function() { return this.getURL().filename(); },
     isCollection: function() { return !this.getURL().isLeaf() },
     getJSON: function() {
-        try {
-            return JSON.parse(this.content);
-        } catch(e) { return {error: e} }
+        try { return JSON.parse(this.content); } catch(e) { return {error: e} }
+    },
+    whenDone: function(callback) {
+        // run callback when request is done. arguments to callback: content, status
+        lively.bindings.connect(this, 'content', callback, 'call', {
+            updater: function($upd, content) {
+                var status = this.sourceObj.status;
+                if (!status || !status.isDone()) return;
+                $upd(null, content, status);
+            }, removeAfterUpdate: true});
+        return this;
+    },
+    withJSONWhenDone: function(callback) {
+        var webR = this;
+        return this.whenDone(function(content, status) {
+            var json;
+            try { json = JSON.parse(content); } catch(e) { json = {error: e} }
+            callback.call(null, json, status); });
     }
 },
 'configuration', {
@@ -1319,10 +1334,7 @@ Object.subclass('WebResource',
         return this;
     },
 
-    noProxy: function() {
-        this._noProxy = true;
-        return this;
-    }
+    noProxy: function() { this._noProxy = true; return this; }
 },
 'progress', {
     enableShowingProgress: function() { this.isShowingProgress = true; return this },

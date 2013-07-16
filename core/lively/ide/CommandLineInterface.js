@@ -114,6 +114,16 @@ Object.extend(lively.ide.CommandLineInterface, {
                 getStdout: function() { return this._stdout || ''; },
                 getStderr: function() { return this._stderr || ''; },
                 getCode: function() { return Number(this._code); },
+                kill: function(thenDo) {
+                    if (this._done) {
+                        thenDo && thenDo();
+                    } else if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
+                        lively.ide.CommandLineInterface.commandQueue.remove(this);
+                        thenDo && thenDo();
+                    } else {
+                        lively.ide.CommandLineInterface.kill(this, thenDo);
+                    }
+                },
                 resultString: function(bothErrAndOut) {
                     return bothErrAndOut ?
                         this.getStdout().trim() + '\n'+  this.getStderr().trim() :
@@ -174,12 +184,14 @@ Object.extend(lively.ide.CommandLineInterface, {
                 getStdout: function() { return this._stdout || ''; },
                 getStderr: function() { return this._stderr || ''; },
                 getCode: function() { return Number(this._code); },
-                kill: function() {
-                    if (this._done) return;
-                    if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
+                kill: function(thenDo) {
+                    if (this._done) {
+                        thenDo && thenDo();
+                    } else if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
                         lively.ide.CommandLineInterface.commandQueue.remove(this);
+                        thenDo && thenDo();
                     } else {
-                        lively.ide.CommandLineInterface.kill(this);
+                        lively.ide.CommandLineInterface.kill(this, thenDo);
                     }
                 },
                 resultString: function() {
@@ -197,12 +209,13 @@ Object.extend(lively.ide.CommandLineInterface, {
         return this.exec(commandString, options, null);
     },
 
-    kill: function(cmd) {
+    kill: function(cmd, thenDo) {
+        // FIXME just kills the running command, not looking for pid...
         /*
         lively.ide.CommandLineInterface.kill();
         */
-        var webR = this.commandLineServerURL.asWebResource()//.beAsync();
-        return webR.del().content;
+        this.commandLineServerURL.asWebResource().beAsync().withJSONWhenDone(function(json) {
+            thenDo && thenDo(json.message ? json.message : json); }).del();
     },
 
     runAll: function(commands, thenDo) {

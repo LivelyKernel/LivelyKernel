@@ -309,6 +309,10 @@ Object.extend(lively.ide.commands.byName, {
             };
         }
     },
+    'lively.ide.CommandLineInterface.killShellCommandProcess': {
+        description: 'kill shell command process',
+        exec: function(codeEditor, args) { lively.ide.CommandLineInterface.kill(null, show); }
+    },
     // tools
     'lively.ide.openWorkspace': {description: 'open Workspace', exec: function() { $world.openWorkspace(); }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', exec: function() { $world.openSystemBrowser(); }},

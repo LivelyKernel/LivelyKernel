@@ -933,10 +933,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     get textString() {
-        return this.withAceDo(function(ed) {
-            var doc = ed.getSession().getDocument();
-            return doc.getValue();
-        }) || this.storedString || '';
+        var result = this.withAceDo(function(ed) { return ed.getValue(); });
+        return typeof result === 'undefined' ? this.storedString || '' : result;
     },
 
     setTextString: function(string) { return this.textString = string; },

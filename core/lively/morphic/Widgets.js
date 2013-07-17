@@ -967,11 +967,41 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
     },
 
     onMouseOver: function(evt) {
-        if (this.isSelected) return true;
-        this.select();
-        this.item.onMouseOverCallback && this.item.onMouseOverCallback(evt);
+        //Selects a new menu option
+        //Allows user to move from a menu item with a submenu to the elements
+        //of its submenu while passing over other elements, but without 
+        //selecting them.
+        if (!this.owner.mouseoverPoint || this.newSelectionWanted(evt)) {
+            //Only set up submenu selection if this menuItem has a submenu
+            if(this.arrow) {
+                this.owner.mouseoverPoint = evt.getPosition();
+                this.owner.mouseoverTime = new Date();
+            } else {
+                this.owner.mouseoverPoint = null;
+            }
+            this.select();
+            this.item.onMouseOverCallback && this.item.onMouseOverCallback(evt);
+            evt.stop();
+            return true;
+        }
         evt.stop();
         return true;
+    },
+    
+    newSelectionWanted: function(evt) {
+        //Returns whether the user probably wants to pick something new in the menu,
+        //given that the mouse is above a new menu item.
+        //Returns true if the cursor is under BOUNDARY pixels to the right of
+        //the original mouseover position.
+        //Returns true if the total time since the user moused over exceeds WAIT ms
+        //Returns false if the slope of the line connecting the current mouse position
+        //the original mouseover position is within SLOPE from due right of the 
+        //original mouseover point, true otherwise
+        var BOUNDARY = 5, SLOPE = 1.0, WAIT = 800;
+        return (evt.getPosition().x < this.owner.mouseoverPoint.x + BOUNDARY) ||
+               (new Date() - this.owner.mouseoverTime > WAIT) ||
+               (Math.abs((evt.getPosition().y - this.owner.mouseoverPoint.y)
+                  / (evt.getPosition().x - this.owner.mouseoverPoint.x)) > SLOPE);
     },
 
     onMouseWheel: function(evt) {

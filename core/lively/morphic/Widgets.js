@@ -974,7 +974,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         //selecting them.
         if (!this.owner.mouseoverPoint || this.newSelectionWanted(evt)) {
             //Only set up submenu selection if this menuItem has a submenu
-            if(this.arrow) {
+            if(this.isSubMenu) {
                 this.owner.mouseoverPoint = evt.getPosition();
                 this.owner.mouseoverTime = new Date();
             } else {

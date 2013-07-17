@@ -1875,8 +1875,7 @@ lively.morphic.World.addMethods(
     },
 
     getScrollOffset: function () {
-        this.scrollOffset = this.visibleBounds().topLeft();
-        return this.scrollOffset;
+        return this.visibleBounds().topLeft();
     }
 });
 

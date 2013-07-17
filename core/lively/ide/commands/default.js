@@ -331,7 +331,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', exec: function() { $world.openOMetaWorkspace(); }},
     'lively.ide.openSubserverViewer': {description: 'open SubserverViewer', exec: function() { $world.openSubserverViewer(); }},
     'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', exec: function() { $world.openServerWorkspace(); }},
-    'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', exec: function() { var codeEditor = $world.openWorkspace(); codeEditor.setTextMode('sh'); codeEditor.owner.setTitle('Shell Workspace'); }},
+    'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', exec: function() { var codeEditor = $world.openWorkspace().applyStyle({textMode: 'sh', theme: 'pastel_on_dark'}); codeEditor.owner.setTitle('Shell Workspace'); }},
     'lively.ide.openTerminal': {description: 'open Terminal', exec: function() { $world.openTerminal(); }},
     'lively.ide.openGitControl': {description: 'open GitControl', exec: function() { $world.openGitControl(); }},
     'lively.ide.openServerLog': {description: 'open ServerLog', exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); }},

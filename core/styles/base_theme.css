@@ -197,7 +197,7 @@
 }
 
 .messageMorph.failure {
-	background: rgba(180,0,0,0.6);
+	background: rgb(180,0,0);
 }
 
 .messageMorph.failure .messageText {

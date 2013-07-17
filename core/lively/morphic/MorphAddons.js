@@ -898,7 +898,9 @@ lively.morphic.World.addMethods(
                 ext = self.getExtent().maxPt(ext);
                 self.setExtent(ext);
                 self.align(self.bounds().center(), visibleBounds.center());
-            }).delay(0);
+                text.setTextExtent(ext.addXY(-20,-20));
+                text.disableHalos();
+             }).delay(0);
         });
 
         msg && msgMorph.setMessage(msg, options.fill);

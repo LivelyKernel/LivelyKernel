@@ -635,14 +635,10 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         enableDragging: true
     },
     metaTags: [
-        {name: "apple-mobile-web-app-capable", content: "yes"},
-    ], 
+        {name: "apple-mobile-web-app-capable", content: "yes"}], 
     linkTags: [
         {rel: 'shortcut icon', href: 'core/media/lively.ico'},
-        {rel: 'apple-touch-icon-precomposed', href: 'core/media/apple-touch-icon.png'},
-    ],
-    doNotSerialize: ['worldMenuOpened', '_lastZoomAttemptDelta', 'cachedWindowBounds', 'currentMenu',
-                     'currentHaloTarget', 'clickedOnMorphTime', 'loadingMorph', 'savedWorldAsURL'],
+        {rel: 'apple-touch-icon-precomposed', href: 'core/media/apple-touch-icon.png'}],
     isWorld: true
 },
 'accessing -- morphic relationship', {

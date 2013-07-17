@@ -179,7 +179,10 @@ lively.morphic.Text.addMethods(
 
 lively.morphic.World.addMethods(
 'serialization', {
-    doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph', 'cachedWindowBounds'],
+    doNotSerialize: ["_lastZoomAttemptDelta","cachedWindowBounds","clickedOnMorph",
+                     "clickedOnMorphTime","currentHaloTarget","currentMenu","draggedMorph",
+                     "lastAlert","loadingMorph","revisionOnLoad","savedWorldAsURL","scrollOffset",
+                     "statusMessages","worldMenuOpened"],
 
     onrestore: function($super) {
         $super();

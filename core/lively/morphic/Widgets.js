@@ -966,7 +966,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         evt.stop();
         return true;
     },
-
+    
     onMouseOver: function(evt) {
         //Selects a new menu option
         //Allows user to move from a menu item with a submenu to the elements

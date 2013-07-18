@@ -654,7 +654,7 @@ Object.subclass('TestSuite', {
 
     shouldTestClassRun: function(testClass) {
         var filter = this.getTestCaseFilter();
-        return filter ? filter(Class.className(testClass)) : true;
+        return filter ? filter(lively.Class.className(testClass)) : true;
     },
 
     addTestCases: function(testClasses) {

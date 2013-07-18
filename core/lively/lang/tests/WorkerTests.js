@@ -5,16 +5,16 @@ AsyncTestCase.subclass('lively.lang.tests.WorkerTests.WorkerCreation',
 
     testCreateAndRunWorker: function() {
         var messageFromWorker = null,
-            worker = lively.Worker.create(),
+            worker = lively.Worker.create(function() { self.customInitRun = true; }),
             workerCode = "this.onmessage = function(evt) {\n"
-                       + "    self.postMessage('Worker got \"' + evt.data + '\"');\n"
+                       + "    self.postMessage('Worker custom init: ' + self.customInitRun + '. Worker got \"' + evt.data + '\"');\n"
                        + "}"
         this.waitFor(function() { return worker.ready; }, 100, function() {
             worker.postMessage({command: "eval", source: workerCode});
             worker.onMessage = function(evt) { messageFromWorker = evt.data; }
             worker.postMessage('message to worker');
             this.waitFor(function() { return !!messageFromWorker }, 20, function() {
-                this.assertEquals('Worker got "message to worker"', messageFromWorker);
+                this.assertEquals('Worker custom init: true. Worker got "message to worker"', messageFromWorker);
                 this.done();
             });
         });
@@ -42,7 +42,18 @@ AsyncTestCase.subclass('lively.lang.tests.WorkerTests.WorkerCreation',
                 this.done();
             });
         });
-    }
-});
+    },
+    testWorkerRun: function() {
+        var messageFromWorker = null,
+            worker = lively.Worker.create();
+        worker.onMessage = function(evt) { messageFromWorker = evt.data; }
+        this.waitFor(function() { return worker.ready; }, 100, function() {
+            worker.run(function(a, b) { postMessage(a+b); }, 1, 2);
+            this.waitFor(function() { return !!messageFromWorker }, 20, function() {
+                this.assertEquals(3, messageFromWorker);
+                this.done();
+            });
+        });
+    }});
 
 }); // end of module

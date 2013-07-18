@@ -3,32 +3,24 @@
 //////////////////////////////////////////////////////////
 
 /*** Usage ***
-
 var worker = lively.Worker.create(function() {
-  // code inside this function is run when the worker is created
-  setInterval(console.log.bind(console, "worker is still running"), 1000);
-  self.onmessage = function(evt) {
-    // code inside #onmessage is run when we send a message from the UI
-    // process. #postMessage here sends stuff back to the UI proc
-    console.log('Worker got message ' + evt.data);
-    self.postMessage("Hello from worker!");
-  }
+    // code inside this function is run in the worker context
+    // when the worker is created
+    setInterval(function() {
+        self.postMessage('Worker is still running...');
+    }, 1000);
+    self.postMessage("Init done!");
 });
-
-// this is triggered when the worker invokes #postMessage
-worker.onmessage = function(evt) {
-    console.log('UI got message: ' + evt.data);
-};
-
-worker.postMessage("Hello from UI");
-
-setTimeout(function() { worker.terminate(); }, 5000);
+worker.onMessage = function(evt) { show(evt.data); }
+worker.postMessage({command: "eval", source: "3+4"}); // direct eval
+worker.run(function(a, b) { postMessage(a+b); }, 1, 2); // run with arguments
+(function() { worker.postMessage({command: "close"}); }).delay(5);
 */
 
 lively.Worker = {
     isAvailable: !!window.Worker,
     errors: [],
-    create: function() {
+    create: function(customInitFunc) {
         // This code is triggered in the UI process directly after the
         // creation of the worker and sends the setup message to the worker
         // for initializing it.
@@ -43,7 +35,7 @@ lively.Worker = {
                 }
             });
             worker.onmessage = function(evt) {
-                if (evt.data.workerReady) { worker.ready = true; return; }
+                if (evt.data.workerReady !== undefined) { worker.ready = !!evt.data.workerReady; return; }
                 if (worker.onMessage) worker.onMessage(evt);
             }
             worker.errors = [];
@@ -51,6 +43,12 @@ lively.Worker = {
                 console.error(evt);
                 worker.errors.push(evt);
                 if (worker.onError) worker.onError(evt);
+            }
+            worker.run = function(/*func, args*/) {
+                var args = Array.from(arguments);
+                var doFunc = args.shift();
+                var code = Strings.format('(%s).apply(self, evt.data.args);', doFunc);
+                worker.postMessage({command: 'eval', silent: true, source: code, args: args});
             }
         }
 
@@ -89,7 +87,13 @@ lively.Worker = {
 
             self.onmessage = function(evt) {
                 if (evt.data.command == "eval") {
-                    postMessage({response: "response", value: String(eval(evt.data.source))});
+                    var result;
+                    try { result = eval(evt.data.source); } catch (e) { result = e.stack || e; }
+                    if (!evt.data.silent) postMessage({type: "response", value: String(result)});
+                    return;
+                } else if (evt.data.command == "close") {
+                    self.close();
+                    postMessage({type: "closed", workerReady: false});
                     return;
                 }
                 if (evt.data.command !== "setup") return;
@@ -122,6 +126,10 @@ lively.Worker = {
         // http://www.html5rocks.com/en/tutorials/workers/basics/
         // but with no success
         var workerCode = Strings.format('(%s)();', String(workerSetupCode));
+        if (customInitFunc) {
+            var code = Strings.format('(%s)();', customInitFunc);
+            workerCode += '\n' + code;
+        }
         var codeFile = URL.source.getDirectory().withFilename('temp-worker-code.js').asWebResource();
         codeFile.put(workerCode);
         var worker = new Worker(codeFile.getURL().toString());

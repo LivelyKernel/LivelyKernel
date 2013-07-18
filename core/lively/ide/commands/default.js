@@ -67,6 +67,27 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+    // lists
+    'lively.morphic.List.selectItem': {
+        exec: function() {
+            var focused = lively.morphic.Morph.focusedMorph();
+            if (!focused || !focused.isList) return false;
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: "lively.morphic.List.selectItem.NarrowingList",
+                spec: {
+                    prompt: 'item: ',
+                    // wrap list items in listItems...
+                    candidates: (focused.itemList||[]).map(function(ea, i) {
+                        var string = ea.isListItem ? ea.string : String(ea);
+                        return {isListItem: true, string: string, value: i};
+                    }),
+                    maxItems: 25,
+                    actions: [function(index) { focused.selectAt(index); }]
+                }
+            });
+            return true;
+        }
+    },
     // windows
     'lively.morphic.Window.rename': {
         description: 'rename active window',
@@ -362,6 +383,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.commands.keys.reset': 'F8',
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-y",
     'lively.morphic.Halos.show': "cmd-h",
+    'lively.morphic.List.selectItem': "m-space",
     'lively.ide.CommandLineInterface.doGrepSearch': "cmd-s-g",
     'lively.ide.commands.execute': "m-x"
 });

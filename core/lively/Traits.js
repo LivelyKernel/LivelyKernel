@@ -115,7 +115,7 @@ Object.subclass('RealTrait',
 'updating', {
     updateDependents: function() {
         Properties.forEachOwn(this.extendedObjectsAndOptions.classes, function(className, options) {
-            var klass = Class.forName(className);
+            var klass = lively.Class.forName(className);
             if (klass) this.applyToClass(klass, options)
         }, this);
         Properties.forEachOwn(this.extendedObjectsAndOptions.traits, function(traitName, options) {
@@ -133,7 +133,7 @@ Object.subclass('RealTrait',
         options = options || this.optionsForApply;
         // Fix wrong usage of override
         if (Object.isString(options.override)) options.override = [options.override];
-        if (Class.isClass(obj)) return this.applyToClass(obj, options);
+        if (lively.Class.isClass(obj)) return this.applyToClass(obj, options);
         if (obj.isTrait) return this.applyToTrait(obj, options);
         return this.applyToObject(obj, options);
     },
@@ -231,7 +231,7 @@ Object.subclass('RealTrait',
     },
     removeFromDependents: function() {
         Properties.forEachOwn(this.extendedObjectsAndOptions.classes, function(className, options) {
-            var klass = Class.forName(className);
+            var klass = lively.Class.forName(className);
             if (!klass) return;
             this.removeFrom(klass.prototype, options);
         }, this);

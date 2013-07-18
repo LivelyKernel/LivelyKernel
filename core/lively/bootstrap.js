@@ -726,9 +726,9 @@
                     // Filter out the modules already loaded
                     var allModules = combinedLoader.expectedModules,
                         realModules = allModules.select(function(ea) {
-                            // FIXME, better now throw error in Class.forName
+                            // FIXME, better now throw error in lively.Class.forName
                             return !ea.include('lively-libs')
-                                && Class.forName(ea) !== undefined;
+                                && lively.Class.forName(ea) !== undefined;
                         });
                     lively.require(realModules).toRun(callback);
                 };

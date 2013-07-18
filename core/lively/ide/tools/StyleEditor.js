@@ -1657,12 +1657,12 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
     },
         setLayouter: function setLayouter(layoutClassName) {
         if (layoutClassName && layoutClassName !== 'none')
-            var newLayoutClass = Class.forName(layoutClassName);
+            var newLayoutClass = lively.Class.forName(layoutClassName);
     
         if (!this.target) return;
     
         var currentLayoutClass = this.target.getLayouter() && 
-            Class.getConstructor(this.target.getLayouter());
+            lively.Class.getConstructor(this.target.getLayouter());
     
         if (currentLayoutClass === newLayoutClass) return;
     

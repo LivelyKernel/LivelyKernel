@@ -49,10 +49,10 @@ Object.extend(Function.prototype, {
             shortName = null;
 
         if (className) {
-            targetScope = Class.namespaceFor(className);
-            shortName = Class.unqualifiedNameFor(className);
+            targetScope = lively.Class.namespaceFor(className);
+            shortName = lively.Class.unqualifiedNameFor(className);
         }  else {
-            shortName = "anonymous_" + (Class.anonymousCounter++);
+            shortName = "anonymous_" + (lively.Class.anonymousCounter++);
             className = shortName;
         }
 
@@ -61,7 +61,7 @@ Object.extend(Function.prototype, {
             // preserve the class to allow using the subclass construct in interactive development
             klass = targetScope[shortName];
         } else {
-            klass = Class.newInitializer(shortName);
+            klass = lively.Class.newInitializer(shortName);
             klass.superclass = this;
             var protoclass = function() { }; // that's the constructor of the new prototype object
             protoclass.prototype = this.prototype;
@@ -111,8 +111,8 @@ Object.extend(Function.prototype, {
         // copy all the methods and properties from {source} into the
         // prototype property of the receiver, which is intended to be
         // a class constructor.     Method arguments named '$super' are treated
-        // specially, see Prototype.js documentation for "Class.create()" for details.
-        // derived from Class.Methods.addMethods() in prototype.js
+        // specially, see Prototype.js documentation for "lively.Class.create()" for details.
+        // derived from lively.Class.Methods.addMethods() in prototype.js
 
         // prepare the categories
         if (!this.categories) this.categories = {};
@@ -183,7 +183,7 @@ Object.extend(Function.prototype, {
 
             if (property === "formals") { // rk FIXME remove this cruft
                 // special property (used to be pins, but now called formals to disambiguate old and new style
-                Class.addPins(this, value);
+                lively.Class.addPins(this, value);
             } else if (Object.isFunction(value)) {
                 // remember name for profiling in WebKit
                 value.displayName = className + "$" + property;
@@ -208,7 +208,7 @@ Object.extend(Function.prototype, {
 
 
     addProperties: function(spec, recordType) {
-        Class.addMixin(this, recordType.prototype.create(spec).prototype);
+        lively.Class.addMixin(this, recordType.prototype.create(spec).prototype);
     },
 
     isSubclassOf: function(aClass) {
@@ -260,22 +260,22 @@ Object.extend(Function.prototype, {
     },
 
     remove: function() {
-        var ownerNamespace = Class.namespaceFor(this.type),
-            ownName = Class.unqualifiedNameFor(this.type);
+        var ownerNamespace = lively.Class.namespaceFor(this.type),
+            ownName = lively.Class.unqualifiedNameFor(this.type);
         delete ownerNamespace[ownName];
     }
 
 });
 
-Global.Class = {
+lively.Class = {
 
     anonymousCounter: 0,
 
-    initializerTemplate: (function CLASS(){ Class.initializer.apply(this, arguments) }).toString(),
+    initializerTemplate: (function CLASS(){ lively.Class.initializer.apply(this, arguments) }).toString(),
 
     newInitializer: function(name) {
         // this hack ensures that class instances have a name
-        return eval(Class.initializerTemplate.replace(/CLASS/g, name) + ";" + name);
+        return eval(lively.Class.initializerTemplate.replace(/CLASS/g, name) + ";" + name);
     },
 
     initializer: function initializer() {
@@ -314,21 +314,21 @@ Global.Class = {
 
     forName: function forName(name) {
         // lookup the class object given the qualified name
-        var ns = Class.namespaceFor(name),
-            shortName = Class.unqualifiedNameFor(name);
+        var ns = lively.Class.namespaceFor(name),
+            shortName = lively.Class.unqualifiedNameFor(name);
         return ns[shortName];
     },
 
     deleteObjectNamed: function Class$deleteObjectNamed(name) {
-        var ns = Class.namespaceFor(name),
-            shortName = Class.unqualifiedNameFor(name);
+        var ns = lively.Class.namespaceFor(name),
+            shortName = lively.Class.unqualifiedNameFor(name);
         delete ns[shortName];
     },
 
     unqualifiedNameFor: function Class$unqualifiedNameFor(name) {
         var lastDot = name.lastIndexOf('.'), // lastDot may be -1
             unqualifiedName = name.substring(lastDot + 1);
-        if (!Class.isValidIdentifier(unqualifiedName)) throw new Error('not a name ' + unqualifiedName);
+        if (!lively.Class.isValidIdentifier(unqualifiedName)) throw new Error('not a name ' + unqualifiedName);
         return unqualifiedName;
     },
 
@@ -342,7 +342,7 @@ Global.Class = {
     withAllClassNames: function Class$withAllClassNames(scope, callback) {
         for (var name in scope) {
             try {
-                if (Class.isClass(scope[name]))
+                if (lively.Class.isClass(scope[name]))
                     callback(name);
             } catch (er) { // FF exceptions
             }
@@ -388,7 +388,7 @@ Global.Class = {
 
     addPins: function Class$addPins(cls, spec) {
         if (Global.Relay) {
-            Class.addMixin(cls, Relay.newDelegationMixin(spec).prototype);
+            lively.Class.addMixin(cls, Relay.newDelegationMixin(spec).prototype);
             return;
         }
         // this is for refactoring away from Relay and friends
@@ -404,7 +404,7 @@ Global.Class = {
             if (needsGetter(specString))
                 mixinSpec['get' + name] = function() { return this['_' + name] }
         })
-        Class.addMixin(cls, mixinSpec);
+        lively.Class.addMixin(cls, mixinSpec);
     },
 
     addMixin: function Class$addMixin(cls, source) {

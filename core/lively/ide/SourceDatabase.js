@@ -526,7 +526,7 @@ AnotherSourceDatabase.addMethods(
                 var propNames = [];
                 for (var name in ns) {
                     var value = ns[name];
-                    if (!value || Class.isClass(value) || value.namespaceIdentifier) continue;
+                    if (!value || lively.Class.isClass(value) || value.namespaceIdentifier) continue;
                     propNames.push(name)
                 }
                 return propNames })

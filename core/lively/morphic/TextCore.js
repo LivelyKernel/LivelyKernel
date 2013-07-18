@@ -2352,14 +2352,14 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 'accessing', {
 
     getPrototypeChainOf: function(obj) {
-        var result = [obj], proto = Class.getPrototype(obj);
-        while(proto) { result.push(proto); proto = Class.getSuperPrototype(proto) }
+        var result = [obj], proto = lively.Class.getPrototype(obj);
+        while(proto) { result.push(proto); proto = lively.Class.getSuperPrototype(proto) }
         return result;
     },
 
     funcSignaturesOf: function(obj) {
         var funcs = obj && obj.nodeType ? Functions.all(obj) : Functions.own(obj)
-        funcs = funcs.select(function(name) { return !Class.isClass(obj[name]) });
+        funcs = funcs.select(function(name) { return !lively.Class.isClass(obj[name]) });
         return funcs.collect(function(name) {
             var source = obj[name].toString(),
                 match = source.match(/function\s*[a-zA-Z0-9_$]*\s*\(([^\)]*)\)/),

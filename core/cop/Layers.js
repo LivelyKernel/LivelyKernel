@@ -58,10 +58,10 @@ Object.extend(Function.prototype, {
 			shortName = null;
 
 		if (className) {
-			targetScope = Class.namespaceFor(className);
-			shortName = Class.unqualifiedNameFor(className);
+			targetScope = lively.Class.namespaceFor(className);
+			shortName = lively.Class.unqualifiedNameFor(className);
 		}  else {
-			shortName = "anonymous_" + (Class.anonymousCounter++);
+			shortName = "anonymous_" + (lively.Class.anonymousCounter++);
 			className = shortName;
 		}
 
@@ -70,7 +70,7 @@ Object.extend(Function.prototype, {
 			// preserve the class to allow using the subclass construct in interactive development
 			klass = targetScope[shortName];
 		} else {
-			klass = Class.newInitializer(shortName);
+			klass = lively.Class.newInitializer(shortName);
 			klass.superclass = this;
 			var protoclass = function() { }; // that's the constructor of the new prototype object
 			protoclass.prototype = this.prototype;
@@ -415,8 +415,8 @@ Object.extend(cop, {
 Object.extend(cop, {
     // creates a named global layer
     create: function(name, silent) {
-        var context = Class.namespaceFor(name),
-            layerName = Class.unqualifiedNameFor(name);
+        var context = lively.Class.namespaceFor(name),
+            layerName = lively.Class.unqualifiedNameFor(name);
         return context[layerName] = cop.basicCreate(layerName, context);
     },
     basicCreate: function(layerName, context) {
@@ -601,7 +601,7 @@ Object.subclass("Layer",
     layeredClasses: function() {
         return this.layeredObjects()
             .collect(function(ea) { return ea.constructor })
-            .select(function(ea) {return Class.isClass(ea) })
+            .select(function(ea) {return lively.Class.isClass(ea) })
     },
 
 

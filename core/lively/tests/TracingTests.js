@@ -10,7 +10,7 @@ TestCase.subclass('lively.tests.TracingTests.AbstractTracingTests',
     },
     createClass: function(name, def, optSuperClass) {
         var fullName = "TracingsTests" + name,
-            existing = Class.forName(fullName),
+            existing = lively.Class.forName(fullName),
             superClass = optSuperClass || Object;
         if (existing) existing.remove();
         return superClass.subclass(fullName, def);

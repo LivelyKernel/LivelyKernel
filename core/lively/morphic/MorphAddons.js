@@ -237,7 +237,7 @@ lively.morphic.Morph.addMethods(
             showUnnamed = options["showUnnamed"]
 
         if (this.name || showUnnamed) {
-            var item = {name: this.name || "a " + Class.getConstructor(this).displayName, value: this},
+            var item = {name: this.name || "a " + lively.Class.getConstructor(this).displayName, value: this},
                 children = this.submorphs.invoke('treeItemsOfMorphNames', options).compact()
             if (children.length > 0) {
                 item.children = children
@@ -1052,7 +1052,7 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
                     new lively.Rectangle(spec[2][0], spec[2][1], spec[2][2], spec[2][3]),
                 paneRect = extent.extentAsRectangle().scaleByRect(relativeRect),
                 // fix for mixed class vs. function initialization bug
-                pane = Class.isClass(paneConstructor) ?
+                pane = lively.Class.isClass(paneConstructor) ?
                     new paneConstructor() :
                     pane = paneConstructor(paneRect);
             pane.setBounds(paneRect);
@@ -1072,7 +1072,7 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
             
             var paneRect = self.bounds().scaleByRect(relativeRect);
                 // fix for mixed class vs. function initialization bug
-            var pane = Class.isClass(paneConstructor) ?
+            var pane = lively.Class.isClass(paneConstructor) ?
                     new paneConstructor() :
                     pane = paneConstructor(paneRect);
             pane.setBounds(paneRect);

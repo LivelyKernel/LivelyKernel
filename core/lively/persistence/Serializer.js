@@ -411,7 +411,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
         // if (!persistentCopy.hasOwnProperty[this.classNameProperty]) return;
         var className = persistentCopy[this.classNameProperty];
         if (!className) return;
-        var klass = Class.forName(className);
+        var klass = lively.Class.forName(className);
         if (!klass || ! (klass instanceof Function)) {
             var msg = 'ObjectGraphLinearizer is trying to deserialize instance of ' +
                 className + ' but this class cannot be found!';
@@ -1060,7 +1060,7 @@ ObjectLinearizerPlugin.subclass('lively.persistence.GenericConstructorPlugin',
 
     deserializeObj: function(persistentCopy) {
         var name = persistentCopy[this.constructorProperty],
-            constr = name && Class.forName(name);
+            constr = name && lively.Class.forName(name);
         if (!constr) return undefined;
         // we use a new constructor function instead of the real constructor
         // here so that we don't need to know any arguments that might be expected

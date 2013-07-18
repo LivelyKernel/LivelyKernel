@@ -135,8 +135,8 @@ Object.extend(Object, {
             lookupObj = obj;
         while (true) {
             if (lookupObj.hasOwnProperty(name)) result.push(lookupObj[name])
-            var proto = Class.getPrototype(lookupObj);
-            if (!proto || proto === lookupObj) proto = Class.getSuperPrototype(lookupObj);
+            var proto = lively.Class.getPrototype(lookupObj);
+            if (!proto || proto === lookupObj) proto = lively.Class.getSuperPrototype(lookupObj);
             if (!proto) return result.reverse();
             lookupObj = proto;
         }

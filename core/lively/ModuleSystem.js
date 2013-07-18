@@ -8,7 +8,7 @@ Object.extend(lively, {
             var parts = spec.split('.');
             for (var i = 0, len = parts.length; i < len; i++) {
                 spec = parts[i];
-                if (!Class.isValidIdentifier(spec)) {
+                if (!lively.Class.isValidIdentifier(spec)) {
                     throw new Error('"' + spec + '" is not a valid name for a module.');
                 }
                 if (!context[spec]) {
@@ -165,7 +165,7 @@ Object.subclass('lively.Module',
     classes: function(recursive) {
         var normalClasses = this.gather(
             'classes',
-            function(ea) { return ea && ea !== this.constructor && Class.isClass(ea) },
+            function(ea) { return ea && ea !== this.constructor && lively.Class.isClass(ea) },
             recursive);
         return this === Global ?
             [Array, Number, String, Function].concat(normalClasses) : normalClasses;
@@ -176,7 +176,7 @@ Object.subclass('lively.Module',
             'functions',
             function(ea) {
                 return ea
-                    && !Class.isClass(ea)
+                    && !lively.Class.isClass(ea)
                     && Object.isFunction(ea)
                     && !ea.declaredClass
                     && this.requires !== ea
@@ -445,8 +445,8 @@ Object.subclass('lively.Module',
 },
 'removing', {
     remove: function() {
-        var ownerNamespace = Class.namespaceFor(this.namespaceIdentifier),
-            ownName = Class.unqualifiedNameFor(this.namespaceIdentifier);
+        var ownerNamespace = lively.Class.namespaceFor(this.namespaceIdentifier),
+            ownName = lively.Class.unqualifiedNameFor(this.namespaceIdentifier);
         JSLoader.removeAllScriptsThatLinkTo(this.uri());
         delete ownerNamespace[ownName];
     },

@@ -37,7 +37,7 @@ Function.addMethods(
         lively.ast.Meta.ChangeSet.getCurrent().addChange(newFun);
     },
     getClass: function() {
-        return Class.forName(this.declaredClass);
+        return lively.Class.forName(this.declaredClass);
     }
 });
 

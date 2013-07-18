@@ -218,7 +218,7 @@ Layer.addMethods(
 
     namesOfLayeredMethods: function(obj) {
         var layerDef = this.layerDefOfObject(obj);
-        return Functions.all(layerDef).reject(function(ea) { return Class.isClass(layerDef[ea]) });
+        return Functions.all(layerDef).reject(function(ea) { return lively.Class.isClass(layerDef[ea]) });
     },
     
     namesOfLayeredProperties: function(obj) {
@@ -325,21 +325,21 @@ Layer.addMethods(
     },
 
     objectName: function(obj) {
-        if (Class.isClass(obj))
+        if (lively.Class.isClass(obj))
             return obj.type;
         if (obj.namespaceIdentifier)
             obj.namespaceIdentifier;
-        if (Class.isClass(obj.constructor))
+        if (lively.Class.isClass(obj.constructor))
             return obj.constructor.type + '.prototype';
         return null;
     },
 
     objectDef: function(obj, bodyString) {
-        if (Class.isClass(obj))
+        if (lively.Class.isClass(obj))
             return 'Object.extend(' + obj.type + ', {' + bodyString + '});';
         if (obj.namespaceIdentifier)
             return 'Object.extend(' + obj.namespaceIdentifier + ', {' + bodyString + '});';
-        if (Class.isClass(obj.constructor))
+        if (lively.Class.isClass(obj.constructor))
             return obj.constructor.type + '.addMethods({' + bodyString + '});';
         return null;
     },
@@ -603,11 +603,7 @@ cache[hashForLayers] = inlinedMethod;
     invalidateInlineMethodCache: function() {
         cop.inlinedMethodCache = {}
     },
-    inlinedMethodCache: {},
-
-
-
-
+    inlinedMethodCache: {}
 });
 
 }) // end of module

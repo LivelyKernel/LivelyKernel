@@ -506,7 +506,7 @@ Object.extend(lively.bindings, {
                             || (sourceObj.connections),
             connectionPoint = connectionPoints && connectionPoints[attrName],
             klass = (connectionPoint && connectionPoint.map && lively.morphic && lively.morphic.GeometryConnection)
-                 || (connectionPoint && connectionPoint.connectionClassType && Class.forName(connectionPoint.connectionClassType))
+                 || (connectionPoint && connectionPoint.connectionClassType && lively.Class.forName(connectionPoint.connectionClassType))
                  || AttributeConnection,
             spec;
 

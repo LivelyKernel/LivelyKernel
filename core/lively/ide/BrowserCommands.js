@@ -246,7 +246,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
     viewHierarchy: function(klassName) {
         var w = lively.morphic.World.current();
 
-        var klass = Class.forName(klassName)
+        var klass = lively.Class.forName(klassName)
         if (!klass) {
             w.alert('Cannot find class ' + klassName)
             return
@@ -278,7 +278,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.UnloadClassCommand', {
     },
 
     unloadClass: function(klassName) {
-        var klass = Class.forName(klassName);
+        var klass = lively.Class.forName(klassName);
         if (!klass) {
             console.log('Class %s not loaded', klassName);
             return;
@@ -459,8 +459,8 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
             klassName = (node.isClassNode && node.target.getName())
                      || (node.target.getClassName && node.target.getClassName())
                      || node.target.className,
-            klass = Class.forName(klassName);
-        return Class.isClass(klass) && Global.TestCase && klass.isSubclassOf(TestCase) && klass;
+            klass = lively.Class.forName(klassName);
+        return lively.Class.isClass(klass) && Global.TestCase && klass.isSubclassOf(TestCase) && klass;
     },
 
     isActive: function(pane) {

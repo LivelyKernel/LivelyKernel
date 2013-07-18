@@ -3196,7 +3196,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             this.myWorld = this.world();
         }
         // this.myWorld.currentSelection = null;
-        Class.getSuperPrototype(this).remove.call(this);
+        lively.Class.getSuperPrototype(this).remove.call(this);
     },
 },
 'accessing', {

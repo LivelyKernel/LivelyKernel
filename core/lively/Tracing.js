@@ -295,13 +295,13 @@ Object.extend(lively.Tracing, {
     tallyLOC: function() {
         console.log("Tallying lines of code by decompilation");
         var classNames = [];
-        Class.withAllClassNames(Global, function(n) { classNames.push(n)});
+        lively.Class.withAllClassNames(Global, function(n) { classNames.push(n)});
         classNames.sort();
         var tallies = "";
         for (var ci= 0; ci < classNames.length; ci++) {
             var cName = classNames[ci];
             if (cName != 'Global' && cName != 'Object') {
-                var theClass = Class.forName(cName);
+                var theClass = lively.Class.forName(cName);
                 var methodNames = theClass.localFunctionNames();
                 var loc = 0;
                 for (var mi = 0; mi < methodNames.length; mi++) {
@@ -408,7 +408,7 @@ Object.extend(lively.Tracing, {
 
     canBeInstrumented: function(method, obj, selector) {
         // leave the constructor alone and other classes alone
-        return !Class.isClass(method) &&
+        return !lively.Class.isClass(method) &&
                 !method.isContextJSWrapper &&
                 !this.excludedMethods.include([method.declaredClass, '>>', selector].join('')) &&
                 obj.hasOwnProperty(selector) &&

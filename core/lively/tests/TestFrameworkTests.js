@@ -177,7 +177,7 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
 
     testRunWitTestSelectorFilter: function() {
         var firstRun = false, secondRun = false;
-        Class.forName('Dummy1') && Class.forName('Dummy1').remove();
+        lively.Class.forName('Dummy1') && lively.Class.forName('Dummy1').remove();
         TestCase.subclass('Dummy1', {
             testFirst: function() { firstRun = true },
             testSecond: function() { secondRun = true } });

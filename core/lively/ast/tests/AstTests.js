@@ -578,7 +578,7 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
             mapping = {Dummy_test25InstantiateClass: klass},
             result  = ast.startInterpretation(mapping);
         this.assertEquals(1, result);
-        this.assert(Class.isClass(Global[className]), 'Class changed!')
+        this.assert(lively.Class.isClass(Global[className]), 'Class changed!')
         } finally {
             delete Global[className];
         }

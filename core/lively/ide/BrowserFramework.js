@@ -14,13 +14,14 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     })(),
 
     panelSpec: [
-        ['locationPane', newTextPane,                                                        [0,    0,    0.2485,  0.03]],
-        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.2485, 0.44]],
-        ['Pane2', newDragnDropListPane,                                                      [0.2505, 0, 0.2485, 0.47]],
-        ['Pane3', newDragnDropListPane,                                                      [0.5010,  0, 0.2485, 0.47]],
-        ['Pane4', newDragnDropListPane,                                                      [0.7515, 0, 0.2485, 0.47]],
-        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.47, 1,    0.01]],
-        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.48, 1,    0.52]]
+        ['locationPane', newTextPane,                                                         [0,    0,   0.2235,  0.03]],
+        ['locationPaneMenuButton', function(bnds) { return new lively.morphic.Button(bnds) }, [0.2255, 0,  0.023, 0.03]],
+        ['Pane1', newDragnDropListPane,                                                       [0.002, 0.03, 0.2485, 0.44]],
+        ['Pane2', newDragnDropListPane,                                                       [0.2505, 0, 0.2485, 0.47]],
+        ['Pane3', newDragnDropListPane,                                                       [0.5010,  0, 0.2485, 0.47]],
+        ['Pane4', newDragnDropListPane,                                                       [0.7515, 0, 0.2485, 0.47]],
+        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) },  [0,    0.47, 1,    0.01]],
+        ['sourcePane', lively.ide.newCodeEditor,                                              [0,    0.48, 1,    0.52]]
     ],
 
     allPaneNames: ['Pane1', 'Pane2', 'Pane3', 'Pane4'],
@@ -131,6 +132,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (!locInput) return;
         locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, scaleProportional: true, padding: Rectangle.inset(1)});
         locInput.evalEnabled = false;
+        
+        this.panel.locationPaneMenuButton.applyStyle({scaleProportional: true});
     },
 
     setupResizers: function() {
@@ -142,14 +145,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.allPaneNames.collect(function(name) {
             panel.midResizer.addScalingAbove(panel[name]);
         });
-        panel.midResizer.addScalingBelow(panel.sourcePane)
-
-        // buttons
-        panel.submorphs.forEach(function(m) {
-            if (m instanceof lively.morphic.Button && m != panel.codeBaseDirBtn && m != panel.localDirBtn) {
-                panel.midResizer.addFixed(m);
-            }
-        });
+        panel.midResizer.addScalingBelow(panel.sourcePane);
 
         (function() {
             panel.midResizer.divideRelativeToParent(1-Config.get("defaultSCBSourcePaneToListPaneRatio"));

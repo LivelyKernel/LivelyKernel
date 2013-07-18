@@ -68,22 +68,31 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         var locInput = this.locationInput();
         if (!locInput) return;
         
-        locInput.addScript(function onMouseDown(evt) {
-            var wasHandled = $super(evt);
-            if (wasHandled || !evt.isRightMouseButtonDown()) { return false; }
-            
-            var menu = [
-                ['Codebase', self.switchToLivelyCodebase.bind(self)], 
-                ['Local', self.switchToLocalCodebase.bind(self) ]];
-            lively.morphic.Menu.openAtHand(null, menu);
-            evt.stop();
-            return true;   
-        }, undefined, {self: this});
-        
         connect(this, 'targetURL', this, 'setLocationInputFromURL');
         connect(this.locationInput(), 'savedTextString', this, 'setTargetUrlFromString');
         this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
+        
+        var button = this.panel.locationPaneMenuButton;
+        button.setLabel('...');
+        button.label.setPosition(button.label.getPosition().subPt(pt(0, 2)));
+        connect(button, 'fire', this, 'openLocationPaneMenu');
     },
+    openLocationPaneMenu: function() {
+        var button = this.panel.locationPaneMenuButton;
+        var self = this;
+        var items = [
+            ['Your directory', function() {self.switchToLocalCodebase()}],
+            ['Lively code base', function() {self.switchToLivelyCodebase()}]]; 
+        var menu = new lively.morphic.Menu('Location ...', items);
+        var menuBtnTopLeft = button.bounds().topLeft();
+        var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
+        
+        menu.openIn(
+            lively.morphic.World.current(), 
+            button.getGlobalTransform().transformPoint(pt(0-menu.bounds().width, 0)), 
+            false);
+    },
+
     switchToLocalCodebase: function() {
         this.setTargetURL(
             $world.getUserName() ? 
@@ -96,7 +105,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     },
 
     setLocationInputFromURL: function(targetUrl) {
-        var codeBaseString = String(this.sourceDatabase().codeBaseURL);
+        var codeBaseString = this.codeBaseUrlString();
         var targetString = String(targetUrl);
         var locationInputString = targetString.replace(codeBaseString, '');
         this.locationInput().setTextString(locationInputString);
@@ -110,7 +119,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
             return;
         }
         if (! aString.startsWith('http://')) {
-            targetUrlString = String(this.sourceDatabase().codeBaseURL).concat(aString);
+            targetUrlString = String(this.codeBaseUrlString()).concat(aString);
         }
         this.setTargetURL(new URL(targetUrlString))
     },
@@ -119,14 +128,9 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         var lastOpened = lively.ide.SourceControl.registeredBrowsers.last();
             lastOpened && this.setTargetURL(lastOpened.targetURL);
     },
-
-
-
-
-
-
-
-
+    codeBaseUrlString: function() {
+        return String(this.sourceDatabase().codeBaseURL).replace('core/', '');
+    }
 
 },
 'accessing', {
@@ -229,7 +233,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         } finally {
             currentModule && currentModule.deactivate();
         }
-    }
+    },
 });
 
 Object.extend(lively.ide.SystemBrowser, {

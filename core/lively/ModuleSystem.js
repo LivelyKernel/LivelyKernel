@@ -457,6 +457,7 @@ Object.subclass('lively.Module',
 },
 'debugging', {
     toString: function() { return 'lively.module("' + this.namespaceIdentifier + '")' },
+    serializeExpr: function() { return this.toString(); },
     inspect: function() { return this.toString() + ' defined at ' + this.defStack; },
     logError: function(e, optCode) {
         var list = this.traceDependendModules(),

@@ -643,12 +643,6 @@ ObjectLinearizerPlugin.subclass('IgnoreDOMElementsPlugin',
     ignoreProp: function(obj, propName, value) {
         if (!value) return false;
         if (value.nodeType) return true;
-        if (value === Global) {
-            alert('trying to deserialize Global (pointer from '
-                 + obj + '[' + propName + ']' + '\n path:'
-                 + this.serializer.getPath())
-            return true;
-        }
         return false;
     }
 });

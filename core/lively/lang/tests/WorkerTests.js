@@ -54,6 +54,58 @@ AsyncTestCase.subclass('lively.lang.tests.WorkerTests.WorkerCreation',
                 this.done();
             });
         });
-    }});
+    }
+});
+
+AsyncTestCase.subclass('lively.lang.tests.WorkerTests.FunctionInterface',
+"running", {
+    setUp: function() {
+        this.previousIdleTimeOfPoolWorker = Config.get('lively.Worker.idleTimeOfPoolWorker');
+        Config.set('lively.Worker.idleTimeOfPoolWorker', 100);
+    },
+    tearDown: function() {
+        Config.set('lively.Worker.idleTimeOfPoolWorker', this.previousIdleTimeOfPoolWorker);
+    }
+},
+'testing', {
+
+    testForkFunction: function() {
+        var test = this, whenDoneResult;;
+        function whenDone(err, result) { whenDoneResult = result; }
+        var worker = Functions.forkInWorker(
+            function(whenDone, a, b) { whenDone(null, '' + (a + b) + ' ' + self.isBusy); },
+            {args: [1, 2],
+            whenDone: whenDone
+        });
+        this.waitFor(function() { return !!worker.ready}, 10, function() {
+            this.delay(function() {
+                test.assertEquals('3 true', whenDoneResult);
+                this.assertEquals(1, lively.Worker.pool.length, 'worker pool size with worker running.');
+            }, 50);
+            this.delay(function() {
+                this.assertEquals(0, lively.Worker.pool.length, 'worker pool size with worker stopped.');
+                this.done();
+            }, 200);
+        });
+    },
+    testForkLongRunningFunctionKeepsWorkerAlive: function() {
+        var test = this, whenDoneResult,
+            worker = Functions.forkInWorker(
+                function(whenDone) { setTimeout(function() { whenDone(null, 'OK'); }, 400); },
+                {whenDone: function(err, result) { whenDoneResult = result; }});
+        this.waitFor(function() { return !!worker.ready}, 10, function() {
+            this.delay(function() {
+                test.assert(!whenDoneResult, 'result came to early');
+                this.assertEquals(1, lively.Worker.pool.length, 'worker pool size with worker running.');
+            }, 200);
+            this.delay(function() {
+                test.assertEquals('OK', whenDoneResult);
+                this.assertEquals(0, lively.Worker.pool.length, 'worker pool size with worker stopped.');
+                this.done();
+            }, 500);
+        });
+    }
+
+});
 
 }); // end of module

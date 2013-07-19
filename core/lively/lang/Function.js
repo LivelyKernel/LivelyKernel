@@ -447,5 +447,15 @@ Global.Functions = {
             func.apply(context, args);
         }
         return store[name] = Functions.debounce(wait, debounceNamedWrapper, immediate);
+    },
+
+    forkInWorker: function(workerFunc, options) {
+        options = options || {};
+        var worker = lively.Worker.createInPool(null, Config.get('lively.Worker.idleTimeOfPoolWorker'));
+        worker.onMessage = function(evt) {
+            evt.data.type === 'runResponse' && options.whenDone && options.whenDone(evt.data.error, evt.data.result);
+        }
+        worker.basicRun({func: workerFunc, args: options.args || [], useWhenDone: true});
+        return worker;
     }
 };

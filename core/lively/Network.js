@@ -306,12 +306,12 @@ Object.subclass('URL', {
 
 // create URLs often needed
 Object.extend(URL, {
-    source: new URL(document.URL),
+    source: new URL(Global.document.URL),
     codeBase: (function setURLCodeBase() {
         var url;
         try { url = new URL(Config.codeBase) } catch(e) {
             console.warn('Cannot correctly set URL.codeBase because of ' + e);
-            url = new URL(document.URL).getDirectory();
+            url = new URL(Global.document.URL).getDirectory();
         }
         return url.withRelativePartsResolved();
     })(),
@@ -319,7 +319,7 @@ Object.extend(URL, {
         var url;
         try { url = new URL(Config.rootPath) } catch(e) {
             console.warn('Cannot correctly set URL.rootPath because of ' + e);
-            url = new URL(document.URL).getDirectory();
+            url = new URL(Global.document.URL).getDirectory();
         }
         return url.withRelativePartsResolved();
     })(),
@@ -393,7 +393,6 @@ Object.extend(URL, {
     },
 
 });
-
 
 Object.subclass('NetRequestStatus',
 'documentation', {

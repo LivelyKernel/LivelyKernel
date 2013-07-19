@@ -19,7 +19,18 @@ worker.run(function(a, b) { postMessage(a+b); }, 1, 2); // run with arguments
 
 lively.Worker = {
     isAvailable: !!window.Worker,
-    errors: [],
+    pool: [],
+    createInPool: function(customInitFunc, autoShutdownDelay/*ms*/) {
+        var worker = this.create(customInitFunc);
+        if (autoShutdownDelay) {
+            var shutdownCode =  Strings.format("self.terminateIfNotBusyIn(%s);", autoShutdownDelay);
+            worker.postMessage({command: 'eval', source: shutdownCode});
+        }
+        lively.Worker.pool.push(worker);
+        lively.bindings.connect(worker, 'ready', lively.Worker.pool, 'remove', {
+            updater: function($upd, readyState) { if (readyState) return; $upd(this.sourceObj); }});
+        return worker;
+    },
     create: function(customInitFunc) {
         // This code is triggered in the UI process directly after the
         // creation of the worker and sends the setup message to the worker
@@ -31,7 +42,9 @@ lively.Worker = {
                 command: 'setup',
                 options: {
                     locationDirectory: JSLoader.currentDir(),
-                    bootstrapFiles: bootstrapFiles
+                    bootstrapFiles: bootstrapFiles,
+                    codeBase: Config.codeBase,
+                    rootPath: Config.rootPath
                 }
             });
             worker.onmessage = function(evt) {
@@ -45,17 +58,33 @@ lively.Worker = {
                 if (worker.onError) worker.onError(evt);
             }
             worker.run = function(/*func, args*/) {
-                var args = Array.from(arguments);
-                var doFunc = args.shift();
-                var code = Strings.format('(%s).apply(self, evt.data.args);', doFunc);
-                worker.postMessage({command: 'eval', silent: true, source: code, args: args});
+                var args = Array.from(arguments), doFunc = args.shift(),
+                    code = Strings.format('(%s).apply(self, evt.data.args);', doFunc);
+                this.basicRun({func: doFunc, args: args, useWhenDone: false});
+            }
+            worker.basicRun = function(options) {
+                // options = {
+                //   func: FUNCTION,
+                //   args: ARRAY,  /*transported to worker and applied to func*/
+                //   useWhenDone: BOOL
+                /* If true, func receives a callback as first parameter that should be called
+                   with two arguments: (error, result) to indicate worker func is done. */
+                var func = options.func,
+                    args = options.args,
+                    passInWhenDoneCallback = !!options.useWhenDone,
+                    codeTemplate = passInWhenDoneCallback ?
+                        'self.isBusy = true;\n'
+                      + 'function whenDone(err, result) { self.isBusy = false; postMessage({type: "runResponse", error: err, result: result}); }\n;'
+                      + ';(%s).apply(self, [whenDone].concat(evt.data.args));' :
+                        ';(%s).apply(self, evt.data.args);',
+                    code = Strings.format(codeTemplate, func);
+                worker.postMessage({command: 'eval', silent: true, source: code, args: args || []});
             }
         }
 
         // This code is run inside the worker and initializes it. It installs
         // a console.log method since since this is not available by default.
         function workerSetupCode() {
-
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             // yoshiki and robert, 05/08/13: Inserted code that sets up the lively context
             // and globals of Lively:
@@ -67,15 +96,18 @@ lively.Worker = {
                 Global.console = {
                     log: function() {}, error: function() {}, warn: function() {}
                 }
+                if (!Global.Config) Global.Config = {codeBase: options.codeBase, rootPath: options.rootPath};
+                if (!Global.document) Global.document = {location: self.location, URL: self.location.toString()}
+                var loadedURLs = [];
                 Global.JSLoader = {
                     loadJs: function(url, callback) {
                         var match = url.match(/http:\/\/[^\/]+(\/?.*)/);
                         if (match && match[1]) url = match[1];
+                        loadedURLs.push(url);
                         importScripts(url);
                     },
-                    currentDir: function () {
-                        return options.locationDirectory;
-                    }
+                    currentDir: function () { return options.locationDirectory; },
+                    scriptInDOM: function(url) { return loadedURLs.indexOf(url) !== -1; },
                 }
                 Global.LivelyMigrationSupport = {
                     fixModuleName: function(n) { return n; },
@@ -89,7 +121,7 @@ lively.Worker = {
                 if (evt.data.command == "eval") {
                     var result;
                     try { result = eval(evt.data.source); } catch (e) { result = e.stack || e; }
-                    if (!evt.data.silent) postMessage({type: "response", value: String(result)});
+                    if (!evt.data.silent) postMessage({type: "evalResponse", value: String(result)});
                     return;
                 } else if (evt.data.command == "close") {
                     self.close();
@@ -115,6 +147,14 @@ lively.Worker = {
                     req.onreadystatechange = handleStateChange;
                     req.open(method, options.url);
                     req.send();
+                }
+
+                self.terminateIfNotBusyIn = function(ms) {
+                    setTimeout(function() {
+                        if (self.isBusy) { self.terminateIfNotBusyIn(ms); return; }
+                        self.postMessage({type: "closed", workerReady: false});
+                        self.close();
+                    }, ms);
                 }
 
                 postMessage({workerReady: true});

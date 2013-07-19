@@ -500,6 +500,9 @@ Config.addOptions(
     ["lively2livelyCentral", "http://lively-kernel.org:4009/nodejs/SessionTracker/", 'Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate.'],
     ["lively2livelyAllowRemoteEval", true, 'Allow eval actions from other Lively worlds.'],
     ["lively2livelyEnableConnectionIndicator", true, 'Show a morph that indicates whether lively2lively is running and which provides access to collab actions.']
+],
+'lively.Worker', [
+    ['lively.Worker.idleTimeOfPoolWorker', 60*1000, 'Seconds a lively.Worker that is automatically added to the worker pool is kept alive.']
 ]);
 
 })(Global.Config, Global.UserAgent, Global.ExistingConfig);

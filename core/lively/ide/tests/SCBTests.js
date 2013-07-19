@@ -431,7 +431,7 @@ TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
             this.assertEquals(sut.pane1Selection.asString(), "Events.js")
 
             this.assert(sut.pane2Selection, "no selection in Pane2")
-            this.assertEquals(sut.pane2Selection.asString(), "lively.morphic.Morph (extension)")
+            this.assertEquals(sut.pane2Selection.asString(), "Morph (extension)")
 
             // this.assertEquals(sut.pane3Selection.asString(), "event handling")
             this.assertEquals(sut.pane4Selection.asString(), "onMouseDown (proto)")

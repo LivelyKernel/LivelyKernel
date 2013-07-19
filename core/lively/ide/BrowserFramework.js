@@ -1041,8 +1041,12 @@ Object.subclass('lively.ide.NodeFilter', {
 lively.ide.NodeFilter.subclass('lively.ide.SortFilter', {
     apply: function(nodes) {
         return nodes.sort(function(a,b) {
+            if (a.asString().endsWith('/') && !b.asString().endsWith('/')) return -1;
+            if (b.asString().endsWith('/') && !a.asString().endsWith('/')) return 1;
+            
             if (a.asString().toLowerCase() < b.asString().toLowerCase()) return -1;
             if (a.asString().toLowerCase() > b.asString().toLowerCase()) return 1;
+            
             return 0;
         });
     }

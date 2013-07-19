@@ -2447,7 +2447,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 },
 'settings and state', {
     state: 'expanded',
-    spacing: 4, // window border
+    spacing: 3, // window border
     minWidth: 200,
     minHeight: 100,
     debugMode: false,

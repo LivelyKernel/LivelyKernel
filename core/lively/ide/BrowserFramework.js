@@ -16,7 +16,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     panelSpec: [
         ['locationPane', newTextPane,                                                         [0,    0,   0.2235,  0.03]],
         ['locationPaneMenuButton', function(bnds) { return new lively.morphic.Button(bnds) }, [0.2255, 0,  0.023, 0.03]],
-        ['Pane1', newDragnDropListPane,                                                       [0.002, 0.03, 0.2485, 0.44]],
+        ['Pane1', newDragnDropListPane,                                                       [0, 0.03, 0.2485, 0.44]],
         ['Pane2', newDragnDropListPane,                                                       [0.2505, 0, 0.2485, 0.47]],
         ['Pane3', newDragnDropListPane,                                                       [0.5010,  0, 0.2485, 0.47]],
         ['Pane4', newDragnDropListPane,                                                       [0.7515, 0, 0.2485, 0.47]],
@@ -48,9 +48,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             var pane = browser.panel[paneName],
                 list = pane.innerMorph();
             pane.applyStyle({
-                scaleProportional: true,
-                borderWidth: 1,
-                borderColor: Color.gray
+                scaleProportional: true
                 });
             lively.bindings.connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
                 updater: function($upd, v) {

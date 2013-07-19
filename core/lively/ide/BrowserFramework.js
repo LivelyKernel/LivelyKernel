@@ -690,24 +690,37 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 },
 'browser related', {
 
-    installFilter: function(filter, paneName) {
+    installFilterInPane: function(filter, paneName) {
         var getter = 'get' + paneName + 'Filters';
         var setter = 'set' + paneName + 'Filters';
         this[setter](this[getter]().concat([filter]).uniq());
     },
-
-    uninstallFilters: function(testFunc, paneName) {
-        // testFunc returns true if the filter should be removed
+    installFilter: function(filter) {
+        this.filterPlaces.forEach((function(ea) {
+            this.installFilterInPane(filter, ea);
+        }).bind(this));
+    },
+    uninstallFiltersMatchingInPane: function(testFunc, paneName) {
         var getter = 'get' + paneName + 'Filters';
         var setter = 'set' + paneName + 'Filters';
         this[setter](this[getter]().reject(testFunc));
     },
-
+    uninstallFilter: function(filter) {
+        this.uninstallFiltersMatching(function(f) { return f === filter });
+    },
+    uninstallFiltersMatching: function(testFunc) {
+        this.filterPlaces.forEach((function(ea) {
+            this.uninstallFiltersMatchingInPane(testFunc, ea);
+        }).bind(this));
+    },
     commandMenuSpec: function(pane) {
-        var result = this.commands()
-            .collect(function(ea) { return new ea(this); }, this)
-            .select(function(ea) { return ea.wantsMenu() && ea.isActive(pane); })
-            .inject([], function(all, ea) { return all.concat(ea.trigger()); });
+        var result = this.commands().collect(function(ea) { 
+            return new ea(this); 
+        }, this).select(function(ea) { 
+            return ea.wantsMenu() && ea.isActive(pane); 
+        }).inject([], function(all, ea) { 
+            return all.concat(ea.trigger()); 
+        });
         if (result.length > 0) result.unshift(['-------']);
         return result;
     },

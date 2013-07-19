@@ -14,16 +14,14 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
 
     initialize: function($super) {
         $super();
-        this.installFilter(lively.ide.NodeTypeFilter.defaultInstance(), 'Pane1');
         this.evaluate = true;
         this.targetURL = null;
-    },
 
+        this.installDefaultFilters();
+    },
     onrestore: function() {
         if (this.panel) this.onDeserialize.bind(this).delay(0);
     },
-
-
     onDeserialize: function() {
         var position = this.panel.getPosition(),
             extent = this.panel.getExtent(),
@@ -132,7 +130,15 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     },
     codeBaseUrlString: function() {
         return String(this.sourceDatabase().codeBaseURL).replace('core/', '');
+    },
+    installDefaultFilters: function() {
+        var sortFilter = (new lively.ide.SortCommand(this)).filter,
+            nodeTypeFilter = lively.ide.NodeTypeFilter.defaultInstance();
+
+        this.installFilterInPane(nodeTypeFilter, 'Pane1');
+        this.installFilter(sortFilter);
     }
+
 
 },
 'accessing', {

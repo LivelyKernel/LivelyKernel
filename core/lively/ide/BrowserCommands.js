@@ -97,7 +97,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.SortCommand', {
 
     asString: function() {
         if (this.browserIsSorting()) return 'Unsort';
-        return 'Sort'
+        return 'Sort';
     },
 
     trigger: function() {
@@ -106,14 +106,13 @@ lively.ide.BrowserCommand.subclass('lively.ide.SortCommand', {
         var isSorting = this.browserIsSorting();
 
         browser.ensureSourceNotAccidentlyDeleted(function() {
-            browser.filterPlaces.forEach(function(ea) {
-                isSorting ?
-                    browser.uninstallFilters(function(f) { return f === filter }, ea) :
-                    browser.installFilter(filter, ea);
-            });
-            browser.allChanged();
+            if (isSorting) {
+                browser.uninstallFilter(filter);
+            } else {
+                browser.installFilter(filter);
+            }
         });
-
+        browser.allChanged();
     },
 
     browserIsSorting: function() {

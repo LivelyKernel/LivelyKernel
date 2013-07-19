@@ -56,9 +56,11 @@ AsyncTestCase.subclass('lively.ide.tests.SCBTests.SystemBrowserTests', {
 
     testUninstallFilter: function() {
         var browser = this.browser;
-        browser.installFilter(new lively.ide.NodeFilter(), 'Pane1');
+        browser.installFilterInPane(new lively.ide.NodeFilter(), 'Pane1');
         this.assert(browser.getPane1Filters().length > 0);
-        browser.uninstallFilters(function(filter) { return filter instanceof lively.ide.NodeFilter }, 'Pane1')
+        browser.uninstallFiltersMatching(function(filter) { 
+            return filter instanceof lively.ide.NodeFilter 
+        }, 'Pane1');
         this.assertEquals(browser.getPane1Filters().length, 0);
         this.done();
     },

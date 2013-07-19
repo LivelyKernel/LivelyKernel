@@ -66,7 +66,7 @@
 }
 
 .Window.highlighted {
-	background-color: rgba(222, 222, 222);
+	background-color: rgb(222, 222, 222);
 	box-shadow: 0px 5px 20px #000;
 	border: 1px solid white;
 }
@@ -218,7 +218,7 @@
 
 .ace-global-var {
 	position: absolute;
-	border-bottom: 2px rgba(255,120, 0, 1) dotted;
+	border-bottom: 2px rgb(255,120, 0) dotted;
 }
 
 .ace_dark .ace-global-var {

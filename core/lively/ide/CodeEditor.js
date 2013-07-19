@@ -1209,6 +1209,71 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
     snippets.readSnippetsFromURL(URL.codeBase.withFilename('lively/ide/snippets/javascript.snippets'));
 })();
 
+(function setupCompletions() {
+
+    function wordsFromFiles(next) {
+        Functions.forkInWorker(
+            function(whenDone, options) {
+                module('lively.lang.Closure').load();
+                module('lively.ide.CommandLineInterface').load();
+                function wordsFromFiles(next) {
+                    var files = lively.ide.CommandLineSearch.findFiles('*js', {sync:true}),
+                        livelyJSFiles = files.grep('core/'),
+                        urls = livelyJSFiles.map(function(fn) { return URL.root.withFilename(fn).withRelativePartsResolved(); }),
+                        splitRegex = /[^a-zA-Z_0-9\$\-]+/,
+                        parseTimes = {},
+                        words = Global.words = {};
+                    urls.forEach(function(url) {
+                        var t1 = new Date(),
+                            content = url.asWebResource().get().content,
+                            wordsInFile = content.split(splitRegex);
+                        wordsInFile.forEach(function(word) {
+                            if (word.length === 0) return;
+                            var first = word[0].toLowerCase();
+                            if (!words[first]) words[first] = {};
+                            if (!words[first][word]) words[first][word] = 0;
+                            words[first][word]++;
+                        });
+                        parseTimes[url] = (new Date() - t1);
+                    });
+                    next(words);
+                }
+        
+                try {
+                    wordsFromFiles(function(words) { whenDone(null, words); });
+                } catch(e) { whenDone(e.stack, null); }
+            }, {args: [], whenDone: function(err, result) { if (err) show(err); else Global.words = result; next(); }
+        });
+    }
+
+    function installCompleter(next) {
+        lively.ide.WordCompleter = {};
+        lively.ide.ace.require('ace/ext/language_tools').addCompleter(lively.ide.WordCompleter);
+        Object.extend(lively.ide.WordCompleter, {
+            getCompletions: function(editor, session, pos, prefix, callback) {
+                if (prefix.length === 0) { callback(null, []); return }
+                var startLetter = prefix[0].toLowerCase(),
+                    wordList = words[startLetter], result = [];
+                for (var word in wordList) {
+                    if (word.lastIndexOf(prefix, 0) !== 0) continue;
+                    result.push({
+                        name: word,
+                        value: word,
+                        score: wordList[word],
+                        meta: "lively"
+                    });
+                }
+                callback(null, result);
+            }
+        });
+        next();
+    }
+
+    function done(next) { alertOK('Word completion installed!'); next(); }
+
+    [wordsFromFiles, installCompleter, done].doAndContinue()
+})();
+
 Object.subclass('lively.morphic.CodeEditorEvalMarker',
 'initialization', {
     initialize: function(codeEditor, range) {

@@ -34,7 +34,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
                 elements.push(new klass(true, p.x, p.y));
                 continue;
             }
-            throw new Error('Cannot do setVertives with vertex ' + p)
+            throw new Error('Cannot do setVertices with vertex ' + p)
         }
 
         // if there were more elements before than remove the remaining

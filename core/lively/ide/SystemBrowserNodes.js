@@ -26,8 +26,10 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
                 + url + ' error ' + e, Color.red, 6);
             this.allFiles = [];
         }
-
-        this.parentNamespacePath = url.withFilename('../');
+        
+        var isUrlRootOfRepository = this.browser.codeBaseUrlString() == String(url);
+        this.parentNamespacePath = isUrlRootOfRepository ? null : url.withFilename('../');
+        
         this.subNamespacePaths = this.pathsToSubNamespaces(url);
     },
 

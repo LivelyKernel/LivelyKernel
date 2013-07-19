@@ -111,16 +111,18 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         this.locationInput().setTextString(locationInputString);
     },
     setTargetUrlFromString: function(aString) {
-        var targetUrlString = aString; 
+        var isCompleteUrlString = aString.startsWith('http://');
+        if (isCompleteUrlString) {
+            return this.setTargetURL(new URL(aString));
+        }
         
-        if (aString.indexOf('.') > -1) {
-            var module = lively.module(urlOrString);
-            lively.ide.browse(null, null, {name: module.name()}, this);
+        var isModuleSyntax = aString.indexOf('.') > -1; // e.g. 'lively.ide.SystemCodeBrowser.js'
+        if (isModuleSyntax) {
+            var module = lively.module(aString);
+            this.browse(module.name());
             return;
         }
-        if (! aString.startsWith('http://')) {
-            targetUrlString = String(this.codeBaseUrlString()).concat(aString);
-        }
+        var targetUrlString = String(this.codeBaseUrlString()).concat(aString);
         this.setTargetURL(new URL(targetUrlString))
     },
     openIn: function($super, world, pos, ext) {
@@ -234,14 +236,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
             currentModule && currentModule.deactivate();
         }
     },
-});
-
-Object.extend(lively.ide.SystemBrowser, {
-    // lively.ide.SystemBrowser.browse('lively.Examples')
     browse: function(moduleName, klassName, methodName) {
-        var browser = new lively.ide.SystemBrowser();
-        browser.openIn(lively.morphic.World.current());
-
         var targetModule = module(moduleName),
             moduleURL = new URL(targetModule.uri()),
             dir = moduleURL.getDirectory(),
@@ -250,11 +245,18 @@ Object.extend(lively.ide.SystemBrowser, {
         var srcCtrl = lively.ide.startSourceControl();
         srcCtrl.addModule(targetModule.relativePath());
 
-        browser.setTargetURL(dir);
-        fileName && browser.inPaneSelectNodeNamed('Pane1', fileName);
-        klassName && browser.inPaneSelectNodeNamed('Pane2', klassName);
-        methodName && browser.inPaneSelectNodeNamed('Pane4', methodName);
+        this.setTargetURL(dir);
+        fileName && this.inPaneSelectNodeNamed('Pane1', fileName);
+        klassName && this.inPaneSelectNodeNamed('Pane2', klassName);
+        methodName && this.inPaneSelectNodeNamed('Pane4', methodName);
+    },});
 
+Object.extend(lively.ide.SystemBrowser, {
+    // lively.ide.SystemBrowser.browse('lively.Examples')
+    browse: function(moduleName, klassName, methodName) {
+        var browser = new lively.ide.SystemBrowser();
+        browser.openIn(lively.morphic.World.current());
+        browser.browse(moduleName, klassName, methodName);
         return browser;
     },
 });

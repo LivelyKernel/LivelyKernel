@@ -458,12 +458,11 @@ Object.extend(lively.ide.CommandLineSearch, {
         }
     },
 
-    findFiles: function(pattern, options, callback) {
-        // lively.ide.CommandLineSearch.findFiles('*html',
-        //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
+    findFilesCommandString: function(pattern, options) {
         options = options || {};
         var rootDirectory = options.rootDirectory || '.';
         if (!rootDirectory.endsWith('/')) rootDirectory += '/';
+        options.rootDirectory = rootDirectory;
         // we expect an consistent timeformat across OSs to parse the results
         var timeFormatFix = "if [ `uname` == \"Darwin\" ]; "
                           + "  then timeformat='-T'; "
@@ -476,12 +475,21 @@ Object.extend(lively.ide.CommandLineSearch, {
             // use GMT for time settings by default so the result is comparable
             commandString = timeFormatFix + Strings.format(
                 "env TZ=GMT find %s %s \\( %s \\) -prune -o %s %s -exec ls -ld \"$timeformat\" {} \\;",
-            rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth)
+                rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth);
+        return commandString;
+    },
+
+    findFiles: function(pattern, options, callback) {
+        // lively.ide.CommandLineSearch.findFiles('*html',
+        //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
+        options = options || {};
+        var commandString = this.findFilesCommandString(pattern, options),
+            rootDirectory = options.rootDirectory;
         function parseFindLsResult(string) {
             var lines = Strings.lines(string);
             return lines.map(function(line) {
                 // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
-                //                  file mode   no of links  user     group       size   date: month,day,   time,       year      file
+                //    file mode   no of links  user     group       size   date: month,day,   time,       year      file
                 var match = line.match(/^\s*(d|.)([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
                 if (!match) return null;
                 var name = match[8].replace(/\/\//g, '/'),

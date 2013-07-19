@@ -508,7 +508,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
     isClassNode: true,
 
     getName: function($super) {
-        return $super() + (this.target.type == 'klassExtensionDef' ? ' (extension)' : '')
+        return $super().split('.').last() + (this.target.type == 'klassExtensionDef' ? ' (extension)' : '')
     },
 
     childNodes: function() {

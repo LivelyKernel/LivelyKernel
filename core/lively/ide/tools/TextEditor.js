@@ -204,7 +204,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         require("lively.ide.CommandLineInterface").toRun(function() {
             lively.ide.CommandLineInterface.writeFile(path, {content: content}, function(cmd) {
                 var err = cmd.getCode() && cmd.getStderr();
-                if (err) { self.message(Strings.format("Could not write file.\nError: %s", err)); return; }
+                if (err) { self.message(Strings.format("Could not write file.\nError: %s", err), Color.red); return; }
+                self.message("File saved successfully.", Color.green);
                 lively.bindings.signal(self, 'contentStored');
             });
         });
@@ -223,7 +224,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         this.get('urlText').textString = String(url);
         this.loadFile();
     },
-    message: function(msg) { this.get('editor').setStatusMessage(msg); },
+    message: function(/*msg, color, ...*/) { var ed = this.get('editor'); ed.setStatusMessage.apply(ed,arguments); },
     onKeyDown: function onKeyDown(evt) {
         var keys = evt.getKeyString();
         if (keys === 'F1') {

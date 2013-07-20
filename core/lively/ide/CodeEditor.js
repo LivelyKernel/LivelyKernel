@@ -1914,12 +1914,16 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     },
 
     setupUserKeyBindings: function(kbd, codeEditor) {
-        if (Object.isFunction(Config.codeEditorUserKeySetup)) {
-            Config.codeEditorUserKeySetup(codeEditor);
-            // update existing editors when #codeEditorUserKeySetup changes:
-            lively.bindings.connect(Config, 'codeEditorUserKeySetup', this, 'setupUserKeyBindings',
-                {forceAttributeConnection: true});
-        }
+        var c = lively.Config;
+        if (!Object.isFunction(c.codeEditorUserKeySetup)) return;
+        c.codeEditorUserKeySetup(codeEditor, kbd);
+        var invalidaterInstalled = c.attributeConnections && c.attributeConnections.any(function(con) {
+            return con.targetMethodName === 'reinitKeyBindingsForAllOpenEditors' });
+        if (invalidaterInstalled) return;
+        // force update existing editors when #codeEditorUserKeySetup changes:
+        var shortcuts = lively.ide.CodeEditor.KeyboardShortcuts;
+        lively.bindings.connect(c, 'codeEditorUserKeySetup', shortcuts, 'reinitKeyBindingsForAllOpenEditors', {
+            forceAttributeConnection: true});
     }
 
 });
@@ -1927,6 +1931,14 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
     defaultInstance: function() {
         return this._instance || (this._instance = new this());
+    },
+    reinitKeyBindingsForAllOpenEditors: function() {
+        lively.morphic.World.current().withAllSubmorphsDo(function(ea) { /*reinit codeeditor key bindings*/
+            ea.isCodeEditor && ea.withAceDo(function(ed) {
+                ed.getKeyboardHandler().hasLivelyKeys = false;
+                lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(ea);
+            });
+        });
     }
 });
 

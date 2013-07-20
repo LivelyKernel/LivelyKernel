@@ -7230,10 +7230,21 @@ var Selection = function(session) {
         range.desiredColumn = this.$desiredColumn;
         return range;
     }
+    this.getRangeOfMovements = function(func) {
+        var start = this.getCursor();
+        try {
+            func.call(null, this);
+            var end = this.getCursor();
+            return Range.fromPoints(start,end);
+        } catch(e) {
+            return Range.fromPoints(start,start);
+        } finally {
+            this.moveCursorToPosition(start);
+        }
+    }
 
 }).call(Selection.prototype);
 
-exports.Selection = Selection;
 });
 
 ace.define('ace/range', ['require', 'exports', 'module' ], function(require, exports, module) {
@@ -17927,7 +17938,10 @@ oop.inherits(IncrementalSearch, Search);
         this.$options.needle = '';
         this.$options.backwards = backwards;
         ed.keyBinding.addKeyboardHandler(this.$keyboardHandler);
-        this.$mousedownHandler = ed.addEventListener('mousedown', this.onMouseDown.bind(this));
+        this.$originalEditorOnPaste = ed.onPaste;
+        ed.onPaste = this.onPaste.bind(this);
+        this.$mousedownHandler = ed.addEventListener('mousedown', this.onPaste.bind(this));
+        this.$onPasteHandler = ed.addEventListener('paste', this.onMouseDown.bind(this));
         this.selectionFix(ed);
         this.statusMessage(true);
     }
@@ -17939,6 +17953,7 @@ oop.inherits(IncrementalSearch, Search);
             this.$editor.removeEventListener('mousedown', this.$mousedownHandler);
             delete this.$mousedownHandler;
         }
+        this.$editor.onPaste = this.$originalEditorOnPaste;
         this.message('');
     }
 
@@ -17995,9 +18010,9 @@ oop.inherits(IncrementalSearch, Search);
         return found;
     }
 
-    this.addChar = function(c) {
+    this.addString = function(string) {
         return this.highlightAndFindWithNeedle(false, function(needle) {
-            return needle + c;
+            return needle + string;
         });
     }
 
@@ -18020,6 +18035,10 @@ oop.inherits(IncrementalSearch, Search);
     this.onMouseDown = function(evt) {
         this.deactivate();
         return true;
+    }
+
+    this.onPaste = function(text) {
+        this.addString(text);
     }
 
     this.statusMessage = function(found) {
@@ -18150,14 +18169,14 @@ exports.iSearchCommands = [{
 }, {
     name: "extendSearchTerm",
     exec: function(iSearch, string) {
-        iSearch.addChar(string);
+        iSearch.addString(string);
     },
     readOnly: true,
     isIncrementalSearchCommand: true
 }, {
     name: "extendSearchTermSpace",
     bindKey: "space",
-    exec: function(iSearch) { iSearch.addChar(' '); },
+    exec: function(iSearch) { iSearch.addString(' '); },
     readOnly: true,
     isIncrementalSearchCommand: true
 }, {
@@ -18165,6 +18184,28 @@ exports.iSearchCommands = [{
     bindKey: "backspace",
     exec: function(iSearch) {
         iSearch.removeChar();
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: "yankNextWord",
+    bindKey: "Ctrl-w",
+    exec: function(iSearch) {
+        var ed = iSearch.$editor,
+            range = ed.selection.getRangeOfMovements(function(sel) { sel.moveCursorWordRight(); }),
+            string = ed.session.getTextRange(range);
+        iSearch.addString(string);
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: "yankNextChar",
+    bindKey: "Ctrl-Alt-y",
+    exec: function(iSearch) {
+        var ed = iSearch.$editor,
+            range = ed.selection.getRangeOfMovements(function(sel) { sel.moveCursorRight(); }),
+            string = ed.session.getTextRange(range);
+        iSearch.addString(string);
     },
     readOnly: true,
     isIncrementalSearchCommand: true
@@ -18219,6 +18260,8 @@ oop.inherits(IncrementalSearchKeyboardHandler, HashHandler);
 
     var handleKeyboard$super = this.handleKeyboard;
     this.handleKeyboard = function(data, hashId, key, keyCode) {
+        if (((hashId === 1/*ctrl*/ || hashId === 8/*command*/) && key === 'v')
+         || (hashId === 1/*ctrl*/ && key === 'y')) return null;
         var cmd = handleKeyboard$super.call(this, data, hashId, key, keyCode);
         if (cmd.command) { return cmd; }
         if (hashId == -1) {

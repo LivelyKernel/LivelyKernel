@@ -219,6 +219,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!initializedEarlier) {
             e.on('focus', function() { morph._isFocused = true; });
             e.on('blur', function() { morph._isFocused = false; });
+            e.showCommandLine = function(msg) {
+                if (msg && msg.length) this.$morph.setStatusMessage(msg);
+                else this.$morph.hideStatusMessage();
+            };
             this.listenForDocumentChanges();
         }
         node.setAttribute('id', 'ace-editor');
@@ -1158,12 +1162,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!world) return;
         var sm = this._statusMorph;
         if (!sm) {
-            this._statusMorph = sm = new lively.morphic.Text(pt(400,80).extentAsRectangle());
+            this._statusMorph = sm = new lively.morphic.Text(this.getExtent().withY(80).extentAsRectangle());
             sm.applyStyle({
                 borderWidth: 0, borderRadius: 2,
-                fill: Color.gray.lighter(2),
+                fill: Color.gray.lighter(),
                 fontSize: this.getFontSize() + 1,
-                fixedWidth: false, fixedHeight: false
+                fixedWidth: true, fixedHeight: false
             });
             sm.isEpiMorph = true;
             this._sm = sm;
@@ -1172,11 +1176,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         world.addMorph(sm);
         sm.setTextColor(color || Color.black);
         sm.ignoreEvents();
-        sm.align(sm.bounds().bottomCenter(),
-            this.worldPoint(this.innerBounds().bottomCenter()));
-        (function() { sm.remove() }).delay(delay || 4);
+        sm.align(sm.bounds().bottomCenter(), this.worldPoint(this.innerBounds().bottomCenter()));
+        sm.fit();
+        if (!sm.removeDebounced) sm.removeDebounced = Functions.debounce(1000*(delay||4), sm.remove.bind(sm));
+        sm.removeDebounced();
     },
-
+    hideStatusMessage: function () {
+        if (this._statusMorph && this._statusMorph.owner) this._statusMorph.remove();
+    },
     showError: function (e, offset) {
         this.setStatusMessage(String(e), Color.red);
     }

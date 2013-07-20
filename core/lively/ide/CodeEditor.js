@@ -1691,6 +1691,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: function(ed) { ed.navigateLineEnd(); },
                 multiSelectAction: "forEach",
                 readOnly: true
+            }, {
+                name: "selectAllLikeThis",
+                bindKey: "Ctrl-Shift-/",
+                exec: function(ed) {
+                    ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
+                    ed.findAll(ed.$morph.getTextRange()); },
+                readOnly: true
             }]);
     },
 
@@ -1898,6 +1905,17 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         ed.$expandRegionState = newState;
                     }
                     ed.selection.once('changeCursor', function(evt) { ed.$expandRegionState = null; });
+                });
+            },
+            multiSelectAction: 'forEach',
+            readOnly: true
+        }, {
+            name: 'gotoNextError',
+            bindKey: 'Ctrl-`',
+            exec: function(ed) {
+                ed.$morph.withASTDo(function(ast) {
+                    var pos = ed.$morph.indexToPosition(ast.parseError.pos);
+                    ed.$morph.setCursorPosition(pos);
                 });
             },
             multiSelectAction: 'forEach',

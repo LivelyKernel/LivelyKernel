@@ -7245,6 +7245,7 @@ var Selection = function(session) {
 
 }).call(Selection.prototype);
 
+exports.Selection = Selection;
 });
 
 ace.define('ace/range', ['require', 'exports', 'module' ], function(require, exports, module) {

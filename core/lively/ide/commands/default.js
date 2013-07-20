@@ -134,12 +134,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.commands.keys.reset': {
         description: 'reset key bindings',
         exec: function() {
-            $world.withAllSubmorphsDo(function(ea) { /*reinit codeeditor key bindings*/
-                ea.isCodeEditor && ea.withAceDo(function(ed) {
-                    ed.getKeyboardHandler().hasLivelyKeys = false;
-                    lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(ea);
-                });
-            });
+            lively.ide.CodeEditor.KeyboardShortcuts.reinitKeyBindingsForAllOpenEditors();
             lively.ide.WindowNavigation.WindowManager.reset();
             lively.morphic.KeyboardDispatcher.reset();
             lively.ide.tools.SelectionNarrowing.resetCache();

@@ -560,6 +560,13 @@ Object.extend(lively.Module, {
 		    console.warn(msg);
 
             if (lively.Config.ignoreMissingModules) {
+                var msg = Strings.format(
+                    "Since Config.ignoreMissingModules is enabled we will try to load the module\n"
+                  + "  %s\n"
+                  + "although its requirements\n"
+                  + "  %s\n"
+                  + "are missing", ea, ea.pendingRequirementNames().join('\n  '));
+                console.error(msg);
                 ea.pendingRequirements = [];
                 ea.load();
                 lively.Module.checkModuleLoadStates.delay(6);

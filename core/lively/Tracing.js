@@ -8,7 +8,7 @@ Object.extend(lively.Tracing, {
     setCurrentContext: function(context) { currentContext = context }
 });
 
-Object.subclass('TracerStackNode', {
+Object.subclass('lively.Tracing.StackNode', {
 
     isTracerNode: true,
 
@@ -21,7 +21,7 @@ Object.subclass('TracerStackNode', {
 
     copyMe: function() {
         var caller = this.caller ? this.caller.copyMe() : null;
-        var result = new TracerStackNode(caller, this.method);
+        var result = new lively.Tracing.StackNode(caller, this.method);
         result.itsThis = this.itsThis;
         result.args = this.args;
         if (this.isRoot) result.isRoot = true;
@@ -33,7 +33,7 @@ Object.subclass('TracerStackNode', {
         // this is the currentContext (top of stack)
         // method has been called with itsThis as receiver, and args as arguments
         // --> Check here for exceptions
-        var newNode = new TracerStackNode(this, method);
+        var newNode = new lively.Tracing.StackNode(this, method);
         newNode.itsThis = itsThis;
         newNode.args = args;
         currentContext = newNode;
@@ -72,7 +72,7 @@ Object.subclass('TracerStackNode', {
 
 });
 
-TracerStackNode.subclass('TracerTreeNode', {
+lively.Tracing.StackNode.subclass('lively.Tracing.TreeNode', {
 
     initialize: function($super, caller, method) {
         $super(caller, method);
@@ -89,7 +89,7 @@ TracerStackNode.subclass('TracerTreeNode', {
         var newNode = this.callees[method];
         if (!newNode) {
             // First hit -- need to make a new node
-            newNode = new TracerTreeNode(this, method);
+            newNode = new lively.Tracing.TreeNode(this, method);
             this.callees[method] = newNode;
         }
         newNode.itsThis = itsThis;
@@ -183,7 +183,7 @@ TracerStackNode.subclass('TracerTreeNode', {
 Object.extend(lively.Tracing, {
     resetDebuggingStack: function resetDebuggingStack() {
         var rootMethod = arguments.callee.caller;
-        rootContext = new TracerStackNode(null, rootMethod);
+        rootContext = new lively.Tracing.StackNode(null, rootMethod);
         currentContext = rootContext;
         Function.prototype.logAllCalls = false;
     },
@@ -254,7 +254,7 @@ Object.extend(lively.Tracing, {
     trace: function(method, options) {
         // options: openWindow, printToConsole, returnTrace, repeat, threshold
         if (!options) options = {};
-        var traceRoot = new TracerTreeNode(currentContext, method);
+        var traceRoot = new lively.Tracing.TreeNode(currentContext, method);
         currentContext = traceRoot;
         for (var result, i = 1; i <= (options.repeat || 1); i++)
             result = method.call(this);
@@ -286,6 +286,9 @@ Object.extend(lively.Tracing, {
         });
         lively.morphic.World.current().withAllSubmorphsDo(function(morph) {
            lively.Tracing.instrumentObject(morph, remove);
+        });
+        Global.subNamespaces(true).forEach(function(ns) {
+           lively.Tracing.instrumentObject(ns, remove);
         });
         return this;
     },
@@ -321,7 +324,7 @@ Object.extend(lively.Tracing, {
 
 Object.extend(lively.Tracing, {
 
-    excludedClasses: ["TracerTreeNode", "TracerStackNode", "Global", "String", "Object"],
+    excludedClasses: ["lively.Tracing.TreeNode", "lively.Tracing.StackNode", "Global", "String", "Object"],
     excludedMethods: ["class Array>>from", "Function>>qualifiedMethodName"],
     excludedModules: ["lively.Tracing", "lively.ast.Parser", "lively.ast.generated.Nodes", "lively.ast.Interpreter", "lively.ast.Morphic"],
 
@@ -369,19 +372,11 @@ Object.extend(lively.Tracing, {
         });
     },
 
-    isExcluded: function(m) {
-        for (var i = 0; i < this.excludedModules.length; i++) {
-            if (module(this.excludedModules[i]) === m) {
-                return true;
-            }
-        }
-        return false;
-    },
-
     instrumentClass: function(klass, should_remove) {
         var cName = klass.type || klass.name;
         if (this.excludedClasses.include(cName)) return;
-        if (this.isExcluded(klass.sourceModule)) return;
+        if (this.excludedModules.map(function(name) {
+            return lively.module(name); }).include(klass.sourceModule)) return;
         this.instrumentObject(klass.prototype, should_remove, {declaredClass: cName});
         this.instrumentObject(klass, should_remove, {declaredClass: "class " + cName});
     },
@@ -442,7 +437,7 @@ Object.extend(lively.Tracing, {
             this.centerAt(this.world().visibleBounds().center());
             this.applyStyle(this.tracingStyle);
             this.label.applyStyle(this.tracingStyle.labelStyle);
-            this.collectedContexts = new TracerTreeNode(null, {
+            this.collectedContexts = new lively.Tracing.TreeNode(null, {
                 qualifiedMethodName: function() { return "trace root" },
                 tallies: 0, ticks: 0});
 
@@ -483,7 +478,7 @@ Function.addMethods(
         // Make a proxy method (traceFunc) that calls the tracing routines before
         // and after this method
         var originalFunction = this;
-        var traceFunc = function () {
+        function traceFunc() {
             if (!currentContext) return originalFunction.apply(this, arguments);  // not started yet
             try {
                 currentContext.traceCall(originalFunction, this, arguments);
@@ -500,7 +495,7 @@ Function.addMethods(
             } finally {
                 currentContext.traceReturn(originalFunction);
             }
-        };
+        }
         // Attach this (the original function) to the tracing proxy, used by #getOriginal
         traceFunc.originalFunction = originalFunction;
         traceFunc.isLivelyTracingWrapper = true;

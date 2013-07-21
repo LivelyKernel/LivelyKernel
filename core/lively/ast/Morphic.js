@@ -88,7 +88,7 @@ cop.create('DebugGlobalErrorHandlerLayer')
 
 Object.extend(lively.Tracing, {
     startGlobalDebugging: function() {
-        var root = new TracerStackNode(null, {
+        var root = new lively.Tracing.StackNode(null, {
             qualifiedMethodName: function() { return "trace root" }
         });
         root.isRoot = true;

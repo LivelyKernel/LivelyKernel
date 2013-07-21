@@ -18217,6 +18217,12 @@ exports.iSearchCommands = [{
     readOnly: true,
     isIncrementalSearchCommand: true
 }, {
+    name: 'recenterTopBottom',
+    bindKey: 'Ctrl-l',
+    exec: function(iSearch) { iSearch.$editor.execCommand('recenterTopBottom'); },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
     name: 'cancelSearch',
     bindKey: 'esc|Ctrl-G',
     exec: function(iSearch) { iSearch.deactivate(true); },

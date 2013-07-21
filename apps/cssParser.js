@@ -19,6 +19,8 @@ module('apps.cssParser').requires('lively.Network', 'lively.morphic.StyleSheetRe
                   + '}).call(apps.cssParser);';
     try {
         eval(rewritten);
+        // to streamline it with our classes:
+        apps.cssParser.CSSParser.superclass = Object;
     } catch(e) {
         alert('CSS Parser lib failed to load because of:\n' + e);
     }

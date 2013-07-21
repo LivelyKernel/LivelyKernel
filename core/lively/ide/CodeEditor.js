@@ -1164,7 +1164,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!sm) {
             this._statusMorph = sm = new lively.morphic.Text(this.getExtent().withY(80).extentAsRectangle());
             sm.applyStyle({
-                borderWidth: 0, borderRadius: 2,
+                borderWidth: 0, borderRadius: 6,
                 fill: Color.gray.lighter(),
                 fontSize: this.getFontSize() + 1,
                 fixedWidth: true, fixedHeight: false
@@ -1173,11 +1173,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             this._sm = sm;
         }
         sm.textString = msg;
-        world.addMorph(sm);
-        sm.setTextColor(color || Color.black);
         sm.ignoreEvents();
-        sm.align(sm.bounds().bottomCenter(), this.worldPoint(this.innerBounds().bottomCenter()));
+        world.addMorph(sm);
+        sm.applyStyle({
+            textColor: color || Color.black,
+            position: this.worldPoint(this.innerBounds().bottomLeft()),
+        });
         sm.fit();
+        (function() {
+            var world = sm.world(), visibleBounds = world.visibleBounds(),
+                overlapY = sm.bounds().bottom() - visibleBounds.bottom();
+            if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+        }).delay(0);
         if (!sm.removeDebounced) sm.removeDebounced = Functions.debounce(1000*(delay||4), sm.remove.bind(sm));
         sm.removeDebounced();
     },

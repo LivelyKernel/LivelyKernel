@@ -1224,6 +1224,7 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
 })();
 
 (function setupCompletions() {
+    if (UserAgent.isNodejs) return;
 
     function wordsFromFiles(next) {
         Functions.forkInWorker(

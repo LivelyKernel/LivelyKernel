@@ -384,6 +384,7 @@ Object.extend(lively.net.SessionTracker, {
 });
 
 (function setupSessionTrackerConnection() {
+    if (UserAgent.isNodejs) return;
     lively.whenLoaded(function(world) {
         if (!Config.get('lively2livelyAutoStart')) return;
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

@@ -90,7 +90,7 @@ Object.extend(lively, {
                         code.apply(this, requiredModules);
                         module._isLoaded = true;
                     } catch(e) {
-                        module.logError(module + '>>basicRequire: ' + e, debugCode);
+                        module.logError(e, debugCode);
                     } finally {
                         module.deactivate();
                     }
@@ -461,12 +461,12 @@ Object.subclass('lively.Module',
     inspect: function() { return this.toString() + ' defined at ' + this.defStack; },
     logError: function(e, optCode) {
         var list = this.traceDependendModules(),
-            msg = 'Error while loading ' + this.moduleName + ': ' + e
+            msg = 'Error while loading ' + (this.moduleName || this) + ': ' + e
                 + '\ndependencies: ' + Strings.printNested(list),
             world = Global.lively && lively.morphic
                  && lively.morphic.World && lively.morphic.World.current();
-        if (e.stack) msg = msg + e.stack;
-        if (optCode) msg += "code:\n" + optCode;
+        if (e.stack) msg += e.stack;
+        if (optCode) msg += ("code:\n" + optCode).truncate(1000);
         if (world && world.logError) {
             world.logError(e);
         } else {

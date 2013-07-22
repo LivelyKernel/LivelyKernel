@@ -401,6 +401,10 @@ Object.extend(lively, {
     }
 });
 
+Object.extend(lively.PropertyPath, {
+    superclass: Object
+});
+
 Object.extend(lively.PropertyPath.prototype, {
 
     isPathAccessor: true,

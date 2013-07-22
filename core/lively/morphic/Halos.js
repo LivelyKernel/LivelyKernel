@@ -455,7 +455,7 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
 },
 'halo actions', {
     clickAction: function(evt) {
-        this.dragStartAction(evt)
+        //this.dragStartAction(evt)     ael: making copy happen only on drag (not click) seems ok...?
     },
     dragAction: function(evt, moveDelta) {
         // Nothing to do here - morph is in the hand
@@ -463,7 +463,6 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
             this.copiedTarget.halos.invoke('alignAtTarget');
     },
     dragStartAction: function(evt) {
-        if(this.hasClicked) return;
         this.targetMorph.removeHalos();
 
         try {
@@ -482,10 +481,8 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
 
         evt.hand.grabMorph(this.copiedTarget, evt);
         this.copiedTarget.showSelectedHalos([this]);
-        this.hasClicked = true;
     },
     dragEndAction: function(evt) {
-        this.hasClicked = false;
         evt.world.dispatchDrop(evt);
         if (this.copiedTarget) {
             this.copiedTarget.removeHalos();

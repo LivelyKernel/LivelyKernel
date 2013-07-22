@@ -66,8 +66,8 @@ Global.UserAgent = {
 
     touchIsMouse: false,
 
-    isNodejs: // typeof window === "undefined" &&
-        Global.process && !!Global.process.versions.node
+    isNodejs: (Global.process && !!Global.process.versions.node)
+        || navigator.userAgent.indexOf("Node.js") !== -1
 }
 
 })();

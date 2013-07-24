@@ -11,10 +11,10 @@ lively.BuildSpec('lively.ide.tools.Terminal', {
         adjustForNewBounds: true
     },
     name: "Terminal",
-    submorphs: [{
+    submorphs: [
+        lively.BuildSpec('lively.ide.tools.CommandLine').customize({name: 'CommandLine'}), {
         _Position: lively.pt(4.0,22.0),
         _Extent: lively.pt(727.0,380.0),
-        _StyleClassNames: ["Morph","CodeEditor","ace_editor","emacs-mode","Morph","CodeEditor","ace_nobold","ace-chrome"],
         style: {
             borderColor: Color.rgb(212,212,212), borderWidth: 1,
             fontSize: 11,
@@ -40,7 +40,7 @@ lively.BuildSpec('lively.ide.tools.Terminal', {
         onWindowGetsFocus: function onWindowGetsFocus() {
             this.get('CommandLine').focus();
         }
-    }, lively.BuildSpec('lively.ide.tools.CommandLine')],
+    }],
     titleBar: "Terminal",
     onKeyDown: function onKeyDown(evt) {
         var sig = evt.getKeyString(),
@@ -53,7 +53,7 @@ lively.BuildSpec('lively.ide.tools.Terminal', {
         switch(sig) {
             case 'Alt-Up': output.focus(); evt.stop(); return true;
             case 'Alt-Down': cmdLine.focus(); evt.stop(); return true;
-            default: $super(evt);        
+            default: $super(evt);
         }
     },
     sendCommand: function sendCommand(commandString, thenDo) {
@@ -68,15 +68,14 @@ lively.BuildSpec('lively.ide.tools.Terminal', {
 
     connectionRebuilder: function connectionRebuilder() {
         var cmdLine = this.get('CommandLine');
-        lively.bindings.connect(cmdLine, 'input', this, 'sendCommand', {
-            
+        cmdLine && lively.bindings.connect(cmdLine, 'input', this, 'sendCommand', {
             updater: function($upd, cmdString) { $upd(cmdString, function() { this.scrollToRow(0); this.setSelectionRange(0,0); }.bind(this.targetObj.get('Output'))); },
         });
     },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         $super();
         var cmdLine = this.get('CommandLine'), output = this.get('Output');
-        (function() { 
+        (function() {
             output.setExtent(output.getExtent().withX(output.owner.getExtent().x-8))
             cmdLine.setExtent(cmdLine.getExtent().withX(output.getExtent().x));
             cmdLine.align(cmdLine.bounds().topLeft(), output.bounds().bottomLeft().addXY(0, 3));

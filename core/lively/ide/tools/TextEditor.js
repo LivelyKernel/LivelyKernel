@@ -200,14 +200,14 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         }
     },
     saveFileFileSystem: function saveFileFileSystem() {
-        var self = this, path = this.getLocation(true), content = this.get('editor').textString;
+        var path = this.getLocation(true), content = this.get('editor').textString;
         require("lively.ide.CommandLineInterface").toRun(function() {
             lively.ide.CommandLineInterface.writeFile(path, {content: content}, function(cmd) {
                 var err = cmd.getCode() && cmd.getStderr();
-                if (err) { self.message(Strings.format("Could not write file.\nError: %s", err), Color.red); return; }
-                self.message("File saved successfully.", Color.green);
-                lively.bindings.signal(self, 'contentStored');
-            });
+                if (err) { this.message(Strings.format("Could not write file.\nError: %s", err), Color.red); return; }
+                this.message("File saved successfully.", Color.green);
+                lively.bindings.signal(this, 'contentStored');
+            }.bind(this));
         });
     },
     saveFileNetwork: function saveFileNetwork() {

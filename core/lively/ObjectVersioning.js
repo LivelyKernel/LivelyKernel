@@ -1,88 +1,100 @@
 module('lively.ObjectVersioning').requires().toRun(function() {
         
-    Object.subclass('lively.ObjectVersioning.ObjectVersionManager', 
-    'initialization', {
-        initialize: function() {
-            this.currentObjectTable = {};
-            this.history = []; // linear history, for now
-            this.history.push(this.currentObjectTable);
+Object.subclass('lively.ObjectVersioning.ObjectVersioner', 
+'initialization', {
+    initialize: function() {
+        this.currentVersion = {};
+        this.versionHistory = []; // linear versionHistory, for now
+        this.versionHistory.push(this.currentVersion);
+    }
+},
+'version handling', {
+    nextVersion: function() {
+        this.currentVersion = Object.create(this.currentVersion);
+        this.versionHistory.push(this.currentVersion);
+    },
+    write: function(key, value) {
+        this.nextVersion();
+        this.currentVersion[key] = value;
+    },
+    read: function(key) {
+        return this.currentVersion[key];
+    },
+    previousVersion: function() {
+        var index = this.versionHistory.indexOf(this.currentVersion) - 1;
+        if (index < 0) {
+            return undefined;
+        }
+        return this.versionHistory[index];
+    },
+    followingVersion: function() {
+        var index = this.versionHistory.indexOf(this.currentVersion) + 1;
+        if (index === this.versionHistory.size()) {
+            return undefined;
+        }
+        return this.versionHistory[index];
+    },
+    undo: function() {
+        var previousVersion = this.previousVersion();
+        if (!previousVersion) {
+            throw new TypeError("No changes can't be undone");
+        }
+        this.currentVersion = previousVersion;
+    },
+    redo: function() {
+        var followingVersion = this.followingVersion();
+        if (!followingVersion) {
+            throw new TypeError("No changes can't be redone");
+        }
+        this.currentVersion = followingVersion;
+    },
+});
+
+Object.extend(lively.ObjectVersioning, {
+    init: function() {
+        if (!this.activeVersioner) {
+            this.activeVersioner = new lively.ObjectVersioning.ObjectVersioner();
         }
     },
-    'object table handling', {
-        newObjectTableFrom: function(oldObjectTable) {
-            return Object.create(oldObjectTable);
-        },
-        write: function(name, value) {
-            var newObjectTable = this.newObjectTableFrom(this.currentObjectTable);
-            newObjectTable[name] = value;
-            this.history.push(newObjectTable);
-            this.currentObjectTable = newObjectTable;
-        },
-        read: function(name) {
-            return this.currentObjectTable[name];
-        },
-        previousTableVersion: function() {
-            var index = this.history.indexOf(this.currentObjectTable) - 1;
-            if (index < 0) {
-                return undefined;
-            }
-            return this.history[index];
-        },
-        followingTableVersion: function() {
-            var index = this.history.indexOf(this.currentObjectTable) + 1;
-            if (index === this.history.size()) {
-                return undefined;
-            }
-            return this.history[index];
-        },
-        undo: function() {
-            var previousVersion = this.previousTableVersion();
-            if (!previousVersion) {
-                throw new TypeError("No changes can't be undone");
-            }
-            this.currentObjectTable = previousVersion;
-        },
-        redo: function() {
-            var followingVersion = this.followingTableVersion();
-            if (!followingVersion) {
-                throw new TypeError("No changes can't be redone");
-            }
-            this.currentObjectTable = followingVersion;
-        }
-    });
-        
-    Object.extend(lively.ObjectVersioning, {
-        versionedObjectProxyHandler: function() {
-            return {
-                set: function(target, name, value, receiver) {
-                    if (!this[name]) {
-                        this[name] = new UUID().id;
-                    }
-                    lively.VersionManager.write([this[name]], value);
-                    return true;
-                },
-                get: function(target, name, receiver) {
-                    if (this[name]) {
-                        return lively.VersionManager.read([this[name]]);
-                    } else {
-                        return undefined;
-                    }
-                },
-            };
-        },
-        createVersionedObject: function() {
-            return Proxy({}, this.versionedObjectProxyHandler());
-        },
-        start: function() {
-            if (!lively.VersionManager) {
-                lively.VersionManager = new lively.ObjectVersioning.ObjectVersionManager();
-            }
-        },
-        reset: function() {
-            delete lively.VersionManager;
-            this.start();
-        }
-    });
-    
-    lively.ObjectVersioning.start();
+    reset: function() {
+        delete this.activeVersioner;
+        this.init();
+    },
+    undo: function() {
+        this.activeVersioner.undo();
+    },
+    redo: function() {
+        this.activeVersioner.redo();
+    },
+    versioningProxyFor: function(target) {
+        return Proxy(target, this.versioningProxyHandler());
+    },
+    write: function(key, value) {
+        this.activeVersioner.write(key, value);
+    },
+    read: function(key) {
+        return this.activeVersioner.read(key);
+    },
+    versioningProxyHandler: function() {
+        return {
+            set: function(target, name, value, receiver) {
+                if (!this[name]) {
+                    this[name] = new UUID().id;
+                }
+                lively.ObjectVersioning.write(this[name], value);
+                return true;
+            },
+            get: function(target, name, receiver) {
+                if (this[name]) {
+                    return lively.ObjectVersioning.read(this[name]);
+                } else {
+                    return undefined;
+                }
+            },
+        };
+    },
+});
+
+lively.ObjectVersioning.init();
+
 });

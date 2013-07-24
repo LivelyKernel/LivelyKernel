@@ -190,8 +190,12 @@ if (LivelyMigrationSupport.documentMigrationLevel < 9) {
     // via a window's titlebar's buttons property
     cop.create('DocumentMigrationLevel9Layer')
     .refineClass(lively.morphic.Window, {
-        onrestore: function() {
+        onrestore: function() {        
             var widget = this.targetMorph && this.targetMorph.ownerWidget;
+            
+            // only migrate older windows
+            if (this.titleBar.buttons) return;
+            
             this.titleBar.buttons = [];
             this.titleBar.submorphs.select(function (ea) {
                 return ea.constructor.name === 'WindowControl'
@@ -204,7 +208,7 @@ if (LivelyMigrationSupport.documentMigrationLevel < 9) {
             this.menuButton = this.titleBar.menuButton;
             this.collapseButton = this.titleBar.collapseButton;
             this.closeButton = this.titleBar.closeButton;
-            
+                        
             if (widget && widget.constructor.name === 'SystemBrowser') {
                 widget.addNavigationCollapseButton();
             }

@@ -248,8 +248,8 @@ Object.extend(lively.ide.CommandLineInterface, {
         lively.ide.CommandLineInterface.runAll([
           {name: "cmd1", command: "du -sh ."},
           {name: "cmd2", command: "echo dir size ${cmd1}"},
-         ], show)
-        lively.ide.CommandLineInterface.runAll([{name: "cmd1", command: "ls ."},], show);
+         ], function(commands) { show(Object.values(commands).invoke('resultString').join('\n')); })
+        lively.ide.CommandLineInterface.runAll([{name: "cmd1", command: "ls ."}], function(commands) { show(commands.cmd1.resultString()); });
         */
         thenDo = thenDo || Functions.Null;
         var results = {};

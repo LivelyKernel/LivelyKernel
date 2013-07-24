@@ -6,78 +6,79 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.PropertyProxyTest',
         // global reset on each test for now
         lively.ObjectVersioning.reset();
     },
-    test01VersionedObjectPropertyRetrievable: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.versionedProperty = 14;
-        this.assertEquals(versionedObject.versionedProperty, 14);
+    test01PropertyRetrievable: function() {
+        var person = lively.ObjectVersioning.versioningProxyFor({});
+        person.age = 24;
+        this.assertEquals(person.age, 24);
     },
-    test02VersionedObjectPropertyCanBeOverwritten: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.versionedProperty = 1;
-        versionedObject.versionedProperty = 2;
-        versionedObject.versionedProperty = 3;
-        this.assertEquals(versionedObject.versionedProperty, 3);
+    test02PropertyCanBeOverwritten: function() {
+        var app = lively.ObjectVersioning.versioningProxyFor({});
+        app.counter = 1;
+        app.counter = 2;
+        app.counter = 3;
+        this.assertEquals(app.counter, 3);
     },
-    test03ChangesToPropertyOfVersionedObjectCanBeUndone: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.versionedProperty = 1;
-        versionedObject.versionedProperty = 2;
+    test03ChangesCanBeUndone: function() {
+        var app = lively.ObjectVersioning.versioningProxyFor({});
+        app.counter = 1;
+        app.counter = 2;
         lively.ObjectVersioning.undo();
-        this.assertEquals(versionedObject.versionedProperty, 1);
+        this.assertEquals(app.counter, 1);
     },
-    test04ChangesThatCreateAPropertyOfAVersionedObjectCanBeUndone: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.misplacedProperty = 1;
+    test04PropertyCreationCanBeUndone: function() {
+        var obj = lively.ObjectVersioning.versioningProxyFor({});
+        obj.isPropertyDefined = true;
         lively.ObjectVersioning.undo();
-        this.assert(true, versionedObject.misplacedProperty === undefined);
+        this.assert(true, obj.isPropertyDefined === undefined);
     },
-    test05UndoneChangesToVersionedObjectCanBeRedone: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.versionedProperty = 'eins';
-        versionedObject.versionedProperty = 'zwei';
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.redo();
-        this.assertEquals(versionedObject.versionedProperty, 'zwei');
-    },
-    test06UndonePropertyAdditionCanBeReadded: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.firstProperty = 'eins';
-        versionedObject.secondProperty = 'zwei';
-        lively.ObjectVersioning.undo();
+    test05UndoneChangesCanBeRedone: function() {
+        var address = lively.ObjectVersioning.versioningProxyFor({});
+        address.street = 'Meanstreet';
+        address.city = 'Chicago';
         lively.ObjectVersioning.undo();
         lively.ObjectVersioning.redo();
-        this.assertEquals(versionedObject.firstProperty, 'eins');
+        this.assertEquals(address.city, 'Chicago');
     },
-    test07VersionedObjectWithVersionedObjectAsProperty: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.position = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.position.x = 13;
-        versionedObject.position.y = 25;
-        versionedObject.position.x = 0;
-        versionedObject.position.y = 0;
-        this.assertEquals(versionedObject.position.x, 0);
-        this.assertEquals(versionedObject.position.y, 0);
-    },
-    test08ChangesToVersionedPropertyObjectCanBeUndone: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.versionedProperty = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.versionedProperty.versionedProperty = Color.red;
-        versionedObject.versionedProperty.versionedProperty = Color.green;
+    test06UndonePropertyAdditionCanBeRedone: function() {
+        var address = lively.ObjectVersioning.versioningProxyFor({});
+        address.street = 'Meanstreet';
+        address.city = 'Chicago';
         lively.ObjectVersioning.undo();
-        this.assertEquals(versionedObject.versionedProperty.versionedProperty, Color.red);
+        lively.ObjectVersioning.undo();
+        lively.ObjectVersioning.redo();
+        this.assertEquals(address.street, 'Meanstreet');
+        this.assert(true, address.city === undefined);
     },
-    test09ReferencesCanBeSharedAmongVersionedObjects: function() {
-        var versionedObject = lively.ObjectVersioning.versioningProxyFor({}),
-            anotherVersionedObject = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.shared = lively.ObjectVersioning.versioningProxyFor({});
-        versionedObject.shared.color = Color.red;
+    test07CompoundPropertyRetrievable: function() {
+        var graphic = lively.ObjectVersioning.versioningProxyFor({});
+        graphic.position = lively.ObjectVersioning.versioningProxyFor({});
+        graphic.position.x = 13;
+        graphic.position.y = 25;
+        graphic.position.x = 0;
+        graphic.position.y = 0;
+        this.assertEquals(graphic.position.x, 0);
+        this.assertEquals(graphic.position.y, 0);
+    },
+    test08ChangesToCompoundPropertyCanBeUndone: function() {
+        var app = lively.ObjectVersioning.versioningProxyFor({});
+        app.view = lively.ObjectVersioning.versioningProxyFor({});
+        app.view.color = Color.red;
+        app.view.color = Color.green;
+        lively.ObjectVersioning.undo();
+        this.assertEquals(app.view.color, Color.red);
+    },
+    test09ReferenceSharedAmongObjects: function() {
+        var client1 = lively.ObjectVersioning.versioningProxyFor({}),
+            client2 = lively.ObjectVersioning.versioningProxyFor({});
+        client1.sharedServer = lively.ObjectVersioning.versioningProxyFor({});
+        client1.sharedServer.color = Color.red;
         
-        anotherVersionedObject.shared = versionedObject.shared;
-        anotherVersionedObject.shared.color = Color.green;
+        client2.sharedServer = client1.sharedServer;
+        client2.sharedServer.color = Color.green;
         
-        this.assertEquals(versionedObject.shared.color, Color.green);
+        this.assertEquals(client1.sharedServer.color, Color.green);
     }
-    // test09VersionedObjectHasItsProperties: function() {
+    // test10VersionedObjectHasItsProperties: function() {
     //     var versionedObject = lively.ObjectVersioning.versioningProxyFor({});
     //     versionedObject.firstProperty = 'erstesMerkmal';
     //     this.assertEquals(true, 'firstProperty' in versionedObject);

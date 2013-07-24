@@ -1,18 +1,31 @@
 module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.morphic.Graphics').toRun(function() {
 
 Object.extend(lively.ide.CommandLineInterface, {
-
     rootDirectory: null,
-    commandQueue: [],
-    scheduleCommand: function(cmd) {
-        this.commandQueue.push(cmd);
-        lively.bindings.connect(this.commandInProgress, 'end', this, 'commandFromQueue');
+    commandQueue: {},
+    getGroupCommandQueue: function(group) {
+        return this.commandQueue[group] || (this.commandQueue[group] = []);
     },
-    commandFromQueue: function() {
-        var cmd = this.commandQueue.shift();
-        cmd && cmd.startRequest();
+    scheduleCommand: function(cmd, group) {
+        lively.bindings.connect(cmd, 'end', lively.ide.CommandLineInterface, 'unscheduleCommand', {
+            updater: function($upd, cmd) { $upd(cmd, cmd.getGroup()); }});
+        var queue = group && this.getGroupCommandQueue(group);
+        if (queue) { queue.push(cmd); }
+        if (!queue || queue.indexOf(cmd) === 0) cmd.startRequest();
     },
-
+    unscheduleCommand: function(cmd, group) {
+        var queue = group && this.getGroupCommandQueue(group);
+        if (queue) queue.remove(cmd);
+        if (group) this.startCommandFromQueue(group);
+    },
+    startCommandFromQueue: function(group) {
+        if (!group) return null;
+        var cmd = this.getGroupCommandQueue(group).shift();
+        return cmd && cmd.startRequest();
+    },
+    groupCommandInProgress: function(group) {
+        return group && this.getGroupCommandQueue(group).length > 0;
+    },
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
     commandLineServerURL: URL.create(Config.nodeJSURL).asDirectory().withFilename('CommandLineServer/'),
@@ -50,11 +63,14 @@ Object.extend(lively.ide.CommandLineInterface, {
             ansiAttributesRegexp = !options.hasOwnProperty("ansiAttributeEscape") || options.ansiAttributeEscape ? this.ansiAttributesRegexp : null,
             cmd = {
                 isShellCommand: true,
+                _commandString: commandString,
                 streamPos: 0,
                 interval: null,
                 _stdout: '',
                 _stderr: '',
                 _code: '',
+                _done: false,
+                _options: options,
 
                 readInterval: function() {
                     var xhr = webR.status && webR.status.transport;
@@ -91,7 +107,6 @@ Object.extend(lively.ide.CommandLineInterface, {
                 },
 
                 startRequest: function() {
-                    cmdLineInterface.commandInProgress = this;
                     webR.post(JSON.stringify({
                         command: parsedCommand,
                         cwd: options.cwd || cmdLineInterface.rootDirectory,
@@ -101,10 +116,11 @@ Object.extend(lively.ide.CommandLineInterface, {
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) {
                             if (status.isDone()) $upd.curry(status).delay(0.1); }});
+                    return this;
                 },
 
                 endRequest: function(status) {
-                    cmdLineInterface.commandInProgress = null;
+                    this._done = true;
                     this.endInterval();
                     this.read(status.transport.responseText);
                     lively.bindings.signal(this, 'end', this);
@@ -114,6 +130,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                 getStdout: function() { return this._stdout || ''; },
                 getStderr: function() { return this._stderr || ''; },
                 getCode: function() { return Number(this._code); },
+                getGroup: function() { return this._options.group || null; },
                 kill: function(thenDo) {
                     if (this._done) {
                         thenDo && thenDo();
@@ -128,10 +145,10 @@ Object.extend(lively.ide.CommandLineInterface, {
                     return bothErrAndOut ?
                         this.getStdout().trim() + '\n'+  this.getStderr().trim() :
                         (this.getCode() ? this.getStderr() : this.getStdout()).trim();
-                }
+                },
+                isDone: function() { return !!this._done; }
             };
-        if (!cmdLineInterface.commandInProgress) cmd.startRequest();
-        else cmdLineInterface.scheduleCommand(cmd);
+        cmdLineInterface.scheduleCommand(cmd, options.group);
         return cmd;
     },
 
@@ -139,7 +156,6 @@ Object.extend(lively.ide.CommandLineInterface, {
         /*
         show(lively.ide.CommandLineInterface.exec('pwd', {cwd: '/Users/robert/', sync:true}).resultString());
         cmdLineInterface= lively.ide.CommandLineInterface
-        cmdLineInterface.commandInProgress = null
         cmd
         */
         thenDo = Object.isFunction(options) ? options : thenDo;
@@ -148,13 +164,14 @@ Object.extend(lively.ide.CommandLineInterface, {
             webR = cmdLineInterface.commandLineServerURL.withFilename('exec').asWebResource(),
             cmd = {
                 isShellCommand: true,
+                _commandString: commandString,
                 _stdout: '',
                 _stderr: '',
                 _code: '',
                 _done: false,
+                _options: options,
 
                 startRequest: function() {
-                    cmdLineInterface.commandInProgress = this;
                     lively.bindings.connect(webR, 'status', this, 'endRequest', {
                         updater: function($upd, status) { if (status.isDone()) $upd(status); }});
                     if (options.sync) webR.beSync();
@@ -163,11 +180,11 @@ Object.extend(lively.ide.CommandLineInterface, {
                         command: commandString,
                         cwd: options.cwd || cmdLineInterface.rootDirectory
                     }), 'application/json');
+                    return this;
                 },
 
                 endRequest: function(status) {
                     this._done = true;
-                    cmdLineInterface.commandInProgress = null;
                     try {
                         result = JSON.parse(status.transport.responseText);
                         this._code = result.code;
@@ -184,6 +201,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                 getStdout: function() { return this._stdout || ''; },
                 getStderr: function() { return this._stderr || ''; },
                 getCode: function() { return Number(this._code); },
+                getGroup: function() { return this._options.group || null; },
                 kill: function(thenDo) {
                     if (this._done) {
                         thenDo && thenDo();
@@ -196,10 +214,11 @@ Object.extend(lively.ide.CommandLineInterface, {
                 },
                 resultString: function() {
                     var output = (!this.getCode() ? this.getStdout() : this.getStderr()) || '';
-                    return output.trim(); }
+                    return output.trim();
+                },
+                isDone: function() { return !!this._done; }
             };
-        if (!cmdLineInterface.commandInProgress) cmd.startRequest();
-        else cmdLineInterface.scheduleCommand(cmd);
+        cmdLineInterface.scheduleCommand(cmd, options.group);
         return cmd;
     },
 

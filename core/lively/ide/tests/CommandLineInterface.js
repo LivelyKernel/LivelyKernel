@@ -263,4 +263,37 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.AnsiColorParser',
     }
 });
 
+AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProcess',
+'testing', {
+    testRunSimpleCommand: function() {
+        var cmdString = 'echo 1', result = '',
+            cmd = lively.ide.CommandLineInterface.run(cmdString,{}, function() { result += cmd.resultString(); });
+        this.waitFor(function() { return cmd.isDone(); }, 10, function() {
+            this.assertEquals('1', result);
+            this.done();
+        });
+    },
+
+    testRunTwoCommandsConcurrently: function() {
+        var cmd1String = 'bash -c "sleep 0.2; echo 1"', cmd2String = 'bash -c "echo 2"', result = '',
+            cmd1 = lively.ide.CommandLineInterface.run(cmd1String, function() { result += cmd1.resultString(); }),
+            cmd2 = lively.ide.CommandLineInterface.run(cmd2String, function() { result += cmd2.resultString(); });
+        this.waitFor(function() { return cmd1.isDone() && cmd2.isDone(); }, 10, function() {
+            this.assertEquals('21', result);
+            this.done();
+        });
+    },
+
+    testRunGroupCommandsConsecutively: function() {
+        // lively.ide.CommandLineInterface.commandQueue
+        var cmd1String = 'bash -c "sleep 0.2; echo 1"', cmd2String = 'echo 2', result = '',
+            cmd1 = lively.ide.CommandLineInterface.run(cmd1String, {group: this.currentSelector}, function() { result += cmd1.resultString(); }),
+            cmd2 = lively.ide.CommandLineInterface.run(cmd2String, {group: this.currentSelector}, function() { result += cmd2.resultString(); });
+        this.waitFor(function() { return cmd1.isDone() && cmd2.isDone(); }, 10, function() {
+            this.assertEquals('12', result);
+            this.done();
+        });
+    }
+});
+
 }) // end of module

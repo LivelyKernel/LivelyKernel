@@ -5,7 +5,8 @@ var spawn = require('child_process').spawn,
     dir = process.env.WORKSPACE_LK,
     debug = true;
 
-shellCommand = {process: null, stdout: '', stderr: '', lastExitCode: null}
+// [{process: null, stdout: '', stderr: '', lastExitCode: null}]
+var shellCommands = global.shellCommands = [];
 
 runShellCommand = function(cmdInstructions) {
     var args = cmdInstructions.commandAndArgs,
@@ -22,6 +23,8 @@ runShellCommand = function(cmdInstructions) {
 
     var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', [cmd].concat(args));
+    var shellCommand = {process: null, stdout: '', stderr: '', lastExitCode: null};
+    shellCommands.push(shellCommand);
     shellCommand.process = spawn(cmd, args, options);
     if (stdin) {
         console.log('setting stdin to: %s', stdin);
@@ -50,6 +53,7 @@ runShellCommand = function(cmdInstructions) {
         shellCommand.lastExitCode = 1;
     });
 
+    return shellCommand;
 }
 
 runShellCommandExec = function(cmdInstructions) {
@@ -59,6 +63,8 @@ runShellCommandExec = function(cmdInstructions) {
 
     var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', cmd);
+    var shellCommand = {process: null, stdout: '', stderr: '', lastExitCode: null};
+    shellCommands.push(shellCommand);
     shellCommand.process = exec(cmd, options, function(code, out, err) {
         shellCommand.process = null;
         shellCommand.lastExitCode = code;
@@ -66,6 +72,8 @@ runShellCommandExec = function(cmdInstructions) {
         shellCommand.stderr = err;
         callback && callback(code, out, err);
     });
+
+    return shellCommand;
 }
 
 function formattedResponseText(type, data) {
@@ -80,26 +88,32 @@ module.exports = function(route, app) {
     });
 
     app.delete(route, function(req, res) {
-        if (!shellCommand.process) { res.end(JSON.stringify({message: "process not running"})); return }
-        var pid = shellCommand.process.pid;
-        console.log('Killing CommandLineServer command process with pid ' + pid);
-        shellCommand.process.kill('SIGKILL');
-        res.end(JSON.stringify({message: 'process with pid ' + pid + ' killed'}));
+        var pid = req.body && req.body.pid,
+            commandsToKill = pid ? shellCommands.filter(function(cmd) { return cmd.process && cmd.process.pid === pid; }) : shellCommands,
+            pids = [];
+        commandsToKill.forEach(function(cmd) {
+            if (!cmd.process) return;
+            var pid = cmd.process.pid;
+            pids.push(pid);
+            console.log('Killing CommandLineServer command process with pid ' + pid);
+            cmd.process && cmd.process.kill('SIGKILL');
+        });
+        res.end(JSON.stringify({message: 'processes with pids ' + pids + ' killed'}));
     });
 
     app.post(route + 'exec', function(req, res) {
         var command = req.body && req.body.command,
             dir = req.body && req.body.cwd;
         if (!command) { res.status(400).end(); return; }
-        if (shellCommand.process) { res.status(400).end((JSON.stringify({error: 'Shell command process still running!'}))); return; }
         try {
             runShellCommandExec({command: command, cwd: dir, callback: function(code, out, err) {
                 res.end(JSON.stringify({code: code, out: out, err: err}));
             }});
         } catch(e) {
-             res.status(500).end(JSON.stringify({error: 'Error invoking shell: ' + e + '\n' + e.stack})); return;
+            var msg = 'Error invoking shell: ' + e + '\n' + e.stack;
+            console.error(msg);
+            res.status(500).json({error: msg}).end(); return;
         }
-        if (!shellCommand.process) { res.status(400).end(JSON.stringify({error: 'Could not run ' + commandAndArgs})); return; }
     });
 
     app.post(route, function(req, res) {
@@ -107,19 +121,21 @@ module.exports = function(route, app) {
             stdin = req.body && req.body.stdin,
             dir = req.body && req.body.cwd;
         if (!command) { res.status(400).end(); return; }
-        if (shellCommand.process) { res.status(400).end(JSON.stringify({error: 'Shell command process still running!'})); return; }
         var commandAndArgs = [];
         if (typeof command === 'string') {
             commandAndArgs = command.split(' ');
         } else if (util.isArray(command)) {
             commandAndArgs = command;
         }
+        var cmd;
         try {
-            runShellCommand({commandAndArgs: commandAndArgs, stdin: stdin, cwd: dir});
+            cmd = runShellCommand({commandAndArgs: commandAndArgs, stdin: stdin, cwd: dir});
         } catch(e) {
-             res.status(500).end(JSON.stringify({error: 'Error invoking shell: ' + e + '\n' + e.stack})); return;
+            var msg = 'Error invoking shell: ' + e + '\n' + e.stack;
+            console.error(msg);
+            res.status(500).json({error: msg}).end(); return;
         }
-        if (!shellCommand.process) { res.status(400).end(JSON.stringify({error: 'Could not run ' + commandAndArgs})); return; }
+        if (!cmd || !cmd.process) { res.status(400).json({error: 'Could not run ' + commandAndArgs}).end(); return; }
 
         // make ir a streaming response:
         res.removeHeader('Content-Length');
@@ -128,18 +144,22 @@ module.exports = function(route, app) {
           'Transfer-Encoding': 'chunked'
         });
 
-        shellCommand.process.stdout.on('data', function (data) {
+        cmd.process.stdout.on('data', function (data) {
             res.write(formattedResponseText('STDOUT', data));
         });
 
-        shellCommand.process.stderr.on('data', function (data) {
+        cmd.process.stderr.on('data', function (data) {
             res.write(formattedResponseText('STDERR', data));
         });
 
-        shellCommand.process.on('close', function(code) {
-            res.write(formattedResponseText('CODE', shellCommand.lastExitCode));
+        cmd.process.on('close', function(code) {
+            res.write(formattedResponseText('CODE', cmd.lastExitCode));
             res.end();
         });
     });
 
 }
+
+module.exports.shellCommands = shellCommands;
+module.exports.runShellCommand = runShellCommand;
+module.exports.runShellCommandExec = runShellCommandExec;

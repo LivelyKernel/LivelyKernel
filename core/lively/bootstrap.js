@@ -885,8 +885,10 @@
 
     // TODO: Something is wrong with the lively-libs, use debug only to
     // activate loading on ios 5
+    // FIXME: add lib/reflect.js to lively-libs (and probably lk builds-libs),
+    // at least after es5-shim and IE-fixes
     var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
-        libsFiles = [libsFile],
+        libsFiles = [libsFile, 'lib/reflect.js'],
         bootstrapFiles = [
             'lively/Migration.js',
             'lively/JSON.js',
@@ -1028,8 +1030,8 @@
                     combinedModulesUrl, thenDoFunc, hash);
                 return;
             }
-
-            Global.JSLoader.resolveAndLoadAll(cb, [this.libsFiles], function() {
+            
+            Global.JSLoader.resolveAndLoadAll(cb, this.libsFiles, function() {
                 (function setupjQuery(Global) {
                     var lively = Global.lively,
                         jQuery = Global.jQuery;

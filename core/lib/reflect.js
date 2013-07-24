@@ -1557,32 +1557,34 @@ Array.isArray = function(subject) {
 
 // setPrototypeOf support on platforms that support __proto__
 
-// FIXME: 
-// the original implementation threw "TypeError: Generic use of 
-// __proto__ accessor not allowed" when setting __proto__ 
-
-// this implementation assumes, that we're using 
-// Object.setPrototypeOf(target, newProto)
-// exclusively instead of target.__proto__ = newProto
-
-// // patch and extract original __proto__ setter
-// var __proto__setter = (function() {
-//   var protoDesc = prim_getOwnPropertyDescriptor(Object.prototype,'__proto__');
-//   if (protoDesc === undefined ||
-//       typeof protoDesc.set !== "function") {
-//     return function() {
-//       throw new TypeError("setPrototypeOf not supported on this platform");
-//     }
-//   }
-//   
-//   prim_defineProperty(Object.prototype, '__proto__', {
-//     set: function(newProto) {
-//       return Object.setPrototypeOf(this, newProto);
-//     }
-//   });
-//   
-//   return protoDesc.set;
-// }());
+// patch and extract original __proto__ setter
+var __proto__setter = (function() {
+  var protoDesc = prim_getOwnPropertyDescriptor(Object.prototype,'__proto__');
+  if (protoDesc === undefined ||
+      typeof protoDesc.set !== "function") {
+    return function() {
+      throw new TypeError("setPrototypeOf not supported on this platform");
+    }
+  }
+  
+  // see if we can actually mutate a prototype with the generic setter
+  // (e.g. Chrome v28 doesn't allow setting __proto__ via the generic setter)
+  try {
+    protoDesc.set.call({},{});
+  } catch (e) {
+    return function() {
+      throw new TypeError("setPrototypeOf not supported on this platform");
+    }
+  }
+  
+  prim_defineProperty(Object.prototype, '__proto__', {
+    set: function(newProto) {
+      return Object.setPrototypeOf(this, newProto);
+    }
+  });
+  
+  return protoDesc.set;
+}());
 
 Object.setPrototypeOf = function(target, newProto) {
   var handler = directProxies.get(target);
@@ -1596,7 +1598,7 @@ Object.setPrototypeOf = function(target, newProto) {
     if (!Object_isExtensible(target)) {
       throw new TypeError("can't set prototype on non-extensible object: " + target);
     }
-    target.__proto__ = newProto;
+    __proto__setter.call(target, newProto);
     return target;
   }
 }

@@ -136,6 +136,14 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+    'lively.morphic.Window.selectAll': {
+        description: 'Select all windows',
+        exec: function() {
+            var windows = $world.submorphs.select(function(ea) { return ea.isWindow; });
+            $world.setSelectedMorphs(windows);
+            return true;
+        }
+    },
     'lively.morphic.Window.close': {
         description: 'close active window',
         exec: function() {

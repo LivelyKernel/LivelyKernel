@@ -1,68 +1,10 @@
 module('lively.ObjectVersioning').requires().toRun(function() {
-        
-// Object.subclass('lively.ObjectVersioning.ObjectVersioner', 
-// 'initialization', {
-//     initialize: function() {
-//         this.currentVersion = {};
-//         this.versionHistory = []; // linear versionHistory, for now
-//         this.versionHistory.push(this.currentVersion);
-//     }
-// },
-// 'version handling', {
-//     nextVersion: function() {
-//         this.currentVersion = Object.create(this.currentVersion);
-//         this.versionHistory.push(this.currentVersion);
-//     },
-//     write: function(key, value) {
-//         this.nextVersion();
-//         this.currentVersion[key] = value;
-//     },
-//     read: function(key) {
-//         return this.currentVersion[key];
-//     },
-//     previousVersion: function() {
-//         var index = this.versionHistory.indexOf(this.currentVersion) - 1;
-//         if (index < 0) {
-//             return undefined;
-//         }
-//         return this.versionHistory[index];
-//     },
-//     followingVersion: function() {
-//         var index = this.versionHistory.indexOf(this.currentVersion) + 1;
-//         if (index === this.versionHistory.size()) {
-//             return undefined;
-//         }
-//         return this.versionHistory[index];
-//     },
-//     undo: function() {
-//         var previousVersion = this.previousVersion();
-//         if (!previousVersion) {
-//             throw new TypeError("No changes can't be undone");
-//         }
-//         this.currentVersion = previousVersion;
-//     },
-//     redo: function() {
-//         var followingVersion = this.followingVersion();
-//         if (!followingVersion) {
-//             throw new TypeError("No changes can't be redone");
-//         }
-//         this.currentVersion = followingVersion;
-//     },
-// });
 
 Object.extend(lively.ObjectVersioning, {
     init: function() {
-        if (!lively.CurrentObjectTable) {
-            lively.CurrentObjectTable = [];
-        }
-        if (!lively.Versions) {
-            lively.Versions = [];
-        }
-    },
-    reset: function() {
-        delete lively.CurrentObjectTable;
-        delete lively.Versions;
-        this.init();
+        lively.CurrentObjectTable = [];
+        lively.Versions = []; // a linear history (for now)
+        lively.Versions.push(lively.CurrentObjectTable);
     },
     makeVersionedObjectFor: function(target) {
         var id = lively.CurrentObjectTable.length;
@@ -96,8 +38,8 @@ Object.extend(lively.ObjectVersioning, {
                 // and the object that gets changed
                 var newObjectTable = Object.clone(lively.CurrentObjectTable.clone()),
                     newObject = Object.clone(targetObject);
+                lively.Versions.push(newObjectTable);
                 targetObject = newObject;
-                lively.Versions.push(lively.CurrentObjectTable);
                 lively.CurrentObjectTable = newObjectTable;
                 lively.CurrentObjectTable[receiver.__alias.id] = newObject;
                        
@@ -132,7 +74,32 @@ Object.extend(lively.ObjectVersioning, {
         };
     },
     undo: function() {
-        lively.CurrentObjectTable = lively.Versions.pop();
+        var previousVersion = this.previousVersion();
+        if (!previousVersion) {
+            throw new TypeError('Changes can\'t be undone because there\'s no previous version.');
+        }
+        lively.CurrentObjectTable = previousVersion;
+    },
+    redo: function() {
+        var followingVersion = this.followingVersion();
+        if (!followingVersion) {
+            throw new TypeError('Changes can\'t be undone because there\'s no more recent version.');
+        }
+        lively.CurrentObjectTable = this.followingVersion();
+    },
+    previousVersion: function() {
+        var index = lively.Versions.indexOf(lively.CurrentObjectTable) - 1;
+        if (index < 0) {
+            return undefined;
+        }
+        return lively.Versions[index];
+    },
+    followingVersion: function() {
+        var index = lively.Versions.indexOf(lively.CurrentObjectTable) + 1;
+        if (index >= lively.Versions.size()) {
+            return undefined;
+        }
+        return lively.Versions[index];
     },
 });
 

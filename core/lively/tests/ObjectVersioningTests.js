@@ -4,7 +4,7 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.VersioningTests',
 'testing', {
     setUp: function() {
         // global reset on each test (for now)
-        lively.ObjectVersioning.reset();
+        lively.ObjectVersioning.init();
     },
     test01PrimitivePropertyRetrievable: function() {
         var person = lively.ObjectVersioning.makeVersionedObjectFor({});
@@ -64,35 +64,35 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.VersioningTests',
         lively.ObjectVersioning.undo();
         this.assert(true, obj.isPropertyDefined === undefined);
     },
-    // test05UndoneChangesCanBeRedone: function() {
-    //     var address = lively.ObjectVersioning.makeVersionedObjectFor({});
-    //     address.street = 'Meanstreet';
-    //     address.city = 'Chicago';
-    //     lively.ObjectVersioning.undo();
-    //     lively.ObjectVersioning.redo();
-    //     this.assertEquals(address.city, 'Chicago');
-    // },
-    // test06UndonePropertyAdditionCanBeRedone: function() {
-    //     var address = lively.ObjectVersioning.makeVersionedObjectFor({});
-    //     address.street = 'Meanstreet';
-    //     address.city = 'Chicago';
-    //     lively.ObjectVersioning.undo();
-    //     lively.ObjectVersioning.undo();
-    //     lively.ObjectVersioning.redo();
-    //     this.assertEquals(address.street, 'Meanstreet');
-    //     this.assert(true, address.city === undefined);
-    // },
-    // test09ReferenceSharedAmongObjects: function() {
-    //     var client1 = lively.ObjectVersioning.makeVersionedObjectFor({}),
-    //         client2 = lively.ObjectVersioning.makeVersionedObjectFor({});
-    //     client1.sharedServer = lively.ObjectVersioning.makeVersionedObjectFor({});
-    //     client1.sharedServer.color = Color.red;
+    test09UndoneChangesCanBeRedone: function() {
+        var address = lively.ObjectVersioning.makeVersionedObjectFor({});
+        address.street = 'Meanstreet';
+        address.city = 'Chicago';
+        lively.ObjectVersioning.undo();
+        lively.ObjectVersioning.redo();
+        this.assertEquals(address.city, 'Chicago');
+    },
+    test10UndonePropertyAdditionCanBeRedone: function() {
+        var address = lively.ObjectVersioning.makeVersionedObjectFor({});
+        address.street = 'Meanstreet';
+        address.city = 'Chicago';
+        lively.ObjectVersioning.undo();
+        lively.ObjectVersioning.undo();
+        lively.ObjectVersioning.redo();
+        this.assertEquals(address.street, 'Meanstreet');
+        this.assert(true, address.city === undefined);
+    },
+    test11ReferenceSharedAmongObjects: function() {
+        var client1 = lively.ObjectVersioning.makeVersionedObjectFor({}),
+            client2 = lively.ObjectVersioning.makeVersionedObjectFor({});
+        client1.sharedServer = lively.ObjectVersioning.makeVersionedObjectFor({});
+        client1.sharedServer.color = Color.red;
         
-    //     client2.sharedServer = client1.sharedServer;
-    //     client2.sharedServer.color = Color.green;
+        client2.sharedServer = client1.sharedServer;
+        client2.sharedServer.color = Color.green;
         
-    //     this.assertEquals(client1.sharedServer.color, Color.green);
-    // }
+        this.assertEquals(client1.sharedServer.color, Color.green);
+    }
     // test10VersionedObjectHasItsProperties: function() {
     //     var versionedObject = lively.ObjectVersioning.makeVersionedObjectFor({});
     //     versionedObject.firstProperty = 'erstesMerkmal';

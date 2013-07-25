@@ -51,76 +51,89 @@ module('lively.ObjectVersioning').requires().toRun(function() {
 // });
 
 Object.extend(lively.ObjectVersioning, {
-    proxyMetaProperties: ['__alias', '__target'],
     init: function() {
-        if (!lively.currentObjectTable) {
-            lively.currentObjectTable = [];
+        if (!lively.CurrentObjectTable) {
+            lively.CurrentObjectTable = [];
+        }
+        if (!lively.Versions) {
+            lively.Versions = [];
         }
     },
     reset: function() {
-        delete lively.currentObjectTable;
+        delete lively.CurrentObjectTable;
+        delete lively.Versions;
         this.init();
     },
-    wrap: function(target) {
-        var proxy = Proxy(target, this.versioningProxyHandler());
-        lively.currentObjectTable.push(proxy);
-        proxy.__target = target;
+    makeVersionedObjectFor: function(target) {
+        var id = lively.CurrentObjectTable.length;
+        lively.CurrentObjectTable.push(target);
+        return this.aliasFor(id);
+    },
+    aliasFor: function(id) {        
+        // proxies are fully virtual objects and don't really reference their target
+        // as the target will change (newer versions of the target are full copies):
+        // the whole point of the OTs
+        var proxy = Proxy({}, this.versioningProxyHandler());
         proxy.__alias = {
             isAlias: true,
-            id: lively.currentObjectTable.length - 1
+            id: id
         };        
         return proxy;
-    },
-    unwrap: function(proxy){
-        return proxy.__target;
     },
     versioningProxyHandler: function() {
         return {
             set: function(target, name, value, receiver) {
+                var targetObject;
                 
-                if (lively.ObjectVersioning.proxyMetaProperties.include(name)) {
+                if (name === '__alias') {
                     this[name] = value;
                     return true;
                 }
-                                                
+                                
+                targetObject = lively.CurrentObjectTable[receiver.__alias.id];
+                                
+                // create a new version of both the current OT
+                // and the object that gets changed
+                var newObjectTable = Object.clone(lively.CurrentObjectTable.clone()),
+                    newObject = Object.clone(targetObject);
+                targetObject = newObject;
+                lively.Versions.push(lively.CurrentObjectTable);
+                lively.CurrentObjectTable = newObjectTable;
+                lively.CurrentObjectTable[receiver.__alias.id] = newObject;
+                       
+                // assumes that all non-primitive properties are proxied
                 if (value.__alias) {
-                    // proxied object
-                    target[name] = value.__alias;
+                    // setting an alias property
+                    targetObject[name] = value.__alias;
                 } else {
-                    // primitive object
-                    target[name] = value;
+                    // setting a primitive property
+                    targetObject[name] = value;
                 }
                 return true;
             },
             get: function(target, name, receiver) {
+                var targetObject,
+                    result;
                 
-                if (lively.ObjectVersioning.proxyMetaProperties.include(name)) {
+                if (name === '__alias') {
+                    // the alias object for this proxy
                     return this[name];
                 }
                                 
-                if (target[name].isAlias) {
+                targetObject = lively.CurrentObjectTable[receiver.__alias.id];                
+                if (targetObject[name] && targetObject[name].isAlias) {
                     // alias property
-                    return lively.currentObjectTable[target[name].id];
+                    return lively.ObjectVersioning.aliasFor(targetObject[name].id); 
                 } else {
-                    // primitive object
-                    return target[name];
+                    // primitive property
+                    return targetObject[name];
                 }
             },
         };
     },
-
-    // undo: function() {
-    //     this.activeVersioner.undo();
-    // },
-    // redo: function() {
-    //     this.activeVersioner.redo();
-    // },
-    // write: function(key, value) {
-    //     this.activeVersioner.write(key, value);
-    // },
-    // read: function(key) {
-    //     return this.activeVersioner.read(key);
-    // },
+    undo: function() {
+        lively.CurrentObjectTable = lively.Versions.pop();
+    },
 });
 
 lively.ObjectVersioning.init();

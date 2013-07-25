@@ -513,7 +513,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             borderWidth: 0,
             fixedWidth: false, fixedHeight: false,
             allowInput: false,
-            clipMode: 'hidden'
+            clipMode: 'hidden',
+            whiteSpaceHandling: "nowrap"
         };
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
         this.ignoreEvents();

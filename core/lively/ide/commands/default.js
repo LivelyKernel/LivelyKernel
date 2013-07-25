@@ -27,6 +27,7 @@ Object.extend(lively.ide.commands.byName, {
             var world = lively.morphic.World.current(), h = world.firstHand();
             if (h.submorphs.length > 0) { h.dropContentsOn(world); return true; }
             if (world.worldMenuOpened) { h.removeOpenMenu(event); return true; }
+            if (world.hasSelection()) { world.resetSelection(); return true; }
             if (world.currentHaloTarget) { world.removeHalosOfCurrentHaloTarget(); return true; }
             return false;
         }

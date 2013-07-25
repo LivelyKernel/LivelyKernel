@@ -117,6 +117,25 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+    'lively.morphic.Window.rearrangeSelectedIntoVisibleBounds': {
+        description: 'Rearrange selected morphs to fit into visible world bounds.',
+        exec: function() {
+            function fitMorphsIntoBounds(morphs, bounds) {
+                // Unions the bounds of morphs together and moves them so that the top left
+                // most morph is aligned with topLeft of bounds. Changes the position of all
+                // morphs so that they are evenly placed into bounds
+                var morphBounds = morphs.invoke('globalBounds'),
+                    morphBoundsCombined = morphBounds.inject(morphBounds[0], function(combinedBounds, eaBounds) { return combinedBounds.union(eaBounds); }),
+                    offsetTopLeft = bounds.topLeft().subPt(morphBoundsCombined.topLeft()),
+                    scalePoint = bounds.extent().scaleByPt(morphBoundsCombined.extent().inverted());
+                morphs.forEach(function(ea) { ea.setPosition(ea.getPosition().scaleByPt(scalePoint).addPt(offsetTopLeft)); });
+            }
+            var morphs = $world.getSelectedMorphs();
+            if (!morphs || !morphs.length) { alert('No morph selected!'); return; }
+            fitMorphsIntoBounds(morphs, $world.visibleBounds().insetBy(8));
+            return true;
+        }
+    },
     'lively.morphic.Window.close': {
         description: 'close active window',
         exec: function() {

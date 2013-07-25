@@ -780,6 +780,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     openSubMenu: function(evt, name, items) {
         var m = new lively.morphic.Menu(null, items);
         this.addMorph(m);
+        m.setVisible(false); //To avoid flickering
         m.fitToItems.bind(m).delay(0);
         this.subMenu = m;
         m.ownerMenu = this;
@@ -997,7 +998,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         //Returns false if the slope of the line connecting the current mouse position
         //the original mouseover position is within SLOPE from due right of the 
         //original mouseover point, true otherwise
-        var BOUNDARY = 5, SLOPE = 1.0, WAIT = 800;
+        var BOUNDARY = 5, SLOPE = 1.0, WAIT = 900;
         return (evt.getPosition().x < this.owner.mouseoverPoint.x + BOUNDARY) ||
                (new Date() - this.owner.mouseoverTime > WAIT) ||
                (Math.abs((evt.getPosition().y - this.owner.mouseoverPoint.y)

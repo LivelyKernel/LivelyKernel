@@ -12,28 +12,27 @@ Object.extend(lively.ObjectVersioning, {
         return this.aliasFor(id);
     },
     aliasFor: function(id) {        
-        // proxies are fully virtual objects and don't really reference their target
-        // as the target will change (newer versions of the target are full copies):
-        // the whole point of the OTs
+        // proxies are fully virtual objects: don't point to their target, but
+        // refer to it by __objectID
         var proxy = Proxy({}, this.versioningProxyHandler());
-        proxy.__alias = {
-            isAlias: true,
-            id: id
-        };        
+        proxy.__objectID = id;
         return proxy;
     },
     versioningProxyHandler: function() {
         return {
-            set: function(target, name, value, receiver) {
+            // first parameter of >>set: and >>get: is the proxy's target
+            // but as these proxies are fully virtual, it's an empty object
+            set: function(virtualTarget, name, value, receiver) {
                 var targetObject;
                 
-                if (name === '__alias') {
+                if (name === '__objectID') {
                     this[name] = value;
                     return true;
                 }
-                                
-                targetObject = lively.CurrentObjectTable[receiver.__alias.id];
-                                
+                                                
+                targetObject = lively.CurrentObjectTable[receiver.__objectID];
+                
+                
                 // create a new version of both the current OT
                 // and the object that gets changed
                 var newObjectTable = Object.clone(lively.CurrentObjectTable.clone()),
@@ -41,35 +40,24 @@ Object.extend(lively.ObjectVersioning, {
                 lively.Versions.push(newObjectTable);
                 targetObject = newObject;
                 lively.CurrentObjectTable = newObjectTable;
-                lively.CurrentObjectTable[receiver.__alias.id] = newObject;
+                lively.CurrentObjectTable[receiver.__objectID] = newObject;
+                
                        
-                // assumes that all non-primitive properties are proxied
-                if (value.__alias) {
-                    // setting an alias property
-                    targetObject[name] = value.__alias;
-                } else {
-                    // setting a primitive property
-                    targetObject[name] = value;
-                }
+                targetObject[name] = value;
+                
                 return true;
             },
-            get: function(target, name, receiver) {
+            get: function(virtualTarget, name, receiver) {
                 var targetObject,
                     result;
                 
-                if (name === '__alias') {
+                if (name === '__objectID') {
                     // the alias object for this proxy
                     return this[name];
                 }
-                                
-                targetObject = lively.CurrentObjectTable[receiver.__alias.id];                
-                if (targetObject[name] && targetObject[name].isAlias) {
-                    // alias property
-                    return lively.ObjectVersioning.aliasFor(targetObject[name].id); 
-                } else {
-                    // primitive property
-                    return targetObject[name];
-                }
+                                                
+                targetObject = lively.CurrentObjectTable[receiver.__objectID];                
+                return targetObject[name]; 
             },
         };
     },

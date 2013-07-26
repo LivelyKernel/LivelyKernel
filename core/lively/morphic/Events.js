@@ -1813,6 +1813,20 @@ lively.morphic.World.addMethods(
         var files = evt.dataTransfer.files;
         if (files && files.length > 0) {
             new lively.FileUploader().handleDroppedFiles(files, evt);
+            return;
+        }
+        var items = evt.dataTransfer.items;
+        if (items && items.length) {
+            var content = evt.dataTransfer.getData('text/html');
+            if (content) {
+                lively.morphic.HtmlWrapperMorph.renderHTML(content);
+                return;
+            }
+            content = evt.dataTransfer.getData('text/plain');
+            if (content) {
+                this.addCodeEditor({content: content, gutter: false, textMode: 'text'});
+                return;
+            }
         } else if (false) { // currently disabled because self-drops are annoying
             // this needs to be extracted!
             var types = Array.from(evt.dataTransfer.types),

@@ -293,6 +293,12 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
             this.assertEquals('12', result);
             this.done();
         });
+    },
+
+    testExecCommandSynchronous: function() {
+        var result = lively.ide.CommandLineInterface.exec('expr 1 + 2', {sync:true}).resultString();
+        this.assertEquals(3, result);
+        this.done();
     }
 });
 

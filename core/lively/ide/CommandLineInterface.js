@@ -1,5 +1,139 @@
 module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.morphic.Graphics').toRun(function() {
 
+Object.subclass('lively.ide.CommandLineInterface.Command',
+"initializing", {
+    isShellCommand: true,
+    _options: {},
+    _commandString: null,
+    _stdout: '',
+    _stderr: '',
+    _code: '',
+    _done: false,
+    interval: null,
+    streamPos: 0,
+
+    initialize: function(commandString, options) {
+        this._commandString = commandString;
+        options = options || {};
+        options.cwd = options.cwd || lively.ide.CommandLineInterface.rootDirectory;
+        options.commandLineServerURL = options.commandLineServerURL = lively.ide.CommandLineInterface.commandLineServerURL;
+        options.ansiAttributesRegexp = options.hasOwnProperty("ansiAttributeEscape") ? options.ansiAttributeEscape : lively.ide.CommandLineInterface.ansiAttributesRegexp;
+        this._options = options;
+    }
+
+},
+"testing", {
+    isDone: function() { return !!this._done; },
+},
+"accessing", {
+
+    getStdout: function() { return this._stdout || ''; },
+
+    getStderr: function() { return this._stderr || ''; },
+
+    getCode: function() { return Number(this._code); },
+
+    getGroup: function() { return this._options.group || null; },
+
+    kill: function(thenDo) {
+        if (this._done) {
+            thenDo && thenDo();
+        } else if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
+            lively.ide.CommandLineInterface.commandQueue.remove(this);
+            thenDo && thenDo();
+        } else {
+            lively.ide.CommandLineInterface.kill(this, thenDo);
+        }
+    },
+
+    resultString: function(bothErrAndOut) {
+        return bothErrAndOut ?
+            this.getStdout().trim() + '\n'+  this.getStderr().trim() :
+            (this.getCode() ? this.getStderr() : this.getStdout()).trim();
+    },
+
+    whenDone: function(func) {
+        this._options.whenDone = func;
+        return this;
+    }
+
+},
+"server communication", {
+
+    getWebResource: function() {
+        return this._webResource
+           || (this._webResource = this._options.commandLineServerURL.asWebResource());
+    },
+
+    readInterval: function() {
+        var webR = this.getWebResource();
+        var xhr = webR.status && webR.status.transport;
+        if (!xhr) return;
+        this.read(xhr.responseText);
+    },
+
+    startInterval: function() {
+        this.endInterval();
+        this.interval = Global.setInterval(this.readInterval.bind(this), 50);
+    },
+
+    endInterval: function() {
+        if (this.interval) { Global.clearInterval(this.interval); }
+    },
+
+    read: function(string) {
+        var input = string.slice(this.streamPos, string.length),
+            headerMatch = input.match(/^<SHELLCOMMAND\$([A-Z]+)([0-9]+)>/);
+        if (!headerMatch) return;
+        // show('pos: %s, reading: %s', this.streamPos, string);
+        var header = headerMatch[0],
+            type = headerMatch[1].toLowerCase(),
+            length = Number(headerMatch[2]),
+            readContent = input.slice(header.length, header.length+length),
+            remaining = input.slice(header.length + length);
+        if (this._options.ansiAttributesRegexp) readContent = readContent.replace(this._options.ansiAttributesRegexp, '');
+        // show('type: %s, length: %s, content: %s, remaining: %s',
+        //     type, length, readContent, remaining);
+        lively.bindings.signal(this, type, readContent);
+        this['_' + type] += readContent;
+        this.streamPos += header.length + length;
+        if (this.streamPos < string.length) this.read(string);
+    },
+
+    startRequest: function() {
+        var webR = this.getWebResource();
+        if (this._options.sync) webR.beSync(); else webR.beAsync();
+        lively.bindings.connect(webR, 'status', this, 'endRequest', {
+            updater: function($upd, status) {
+                if (!status.isDone()) return;
+                var update = $upd.curry(status);
+                if (this.sourceObj.isSync()) update(); else update.delay(0.1);
+            }
+        });
+        webR.post(JSON.stringify({
+            command: this.getCommand(),
+            cwd: this._options.cwd,
+            stdin: this._options.stdin,
+            isExec: !!this._options.exec
+        }), 'application/json');
+        if (!this._options.sync) this.startInterval();
+        return this;
+    },
+
+    endRequest: function(status) {
+        this._done = true;
+        this.endInterval();
+        this.read(status.transport.responseText);
+        lively.bindings.signal(this, 'end', this);
+        if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,this);
+    }
+},
+'internal', {
+    getCommand: function() {
+        return this._options.exec ? this._commandString : lively.ide.CommandLineInterface.parseCommandIntoCommandAndArgs(this._commandString);
+    }
+});
+
 Object.extend(lively.ide.CommandLineInterface, {
     rootDirectory: null,
     commandQueue: {},
@@ -51,174 +185,32 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     run: function(commandString, options, thenDo) {
         /*
-        cmd = lively.ide.CommandLineInterface.run('ls', {sync:true}, show);
-        lively.ide.CommandLineInterface.run('grep 1 -', {stdin: '123\n567\n,4314'}, show);
+        cmd = lively.ide.CommandLineInterface.run('ls', {sync:true}, function(cmd) { show(cmd.resultString()); });
+        cmd = lively.ide.CommandLineInterface.run('ls', {}, function(cmd) { show(cmd.resultString()); });
+        cmd.resultString()
+        lively.ide.CommandLineInterface.run('grep 1 -', {stdin: '123\n567\n,4314'}, function(cmd) { show(cmd.resultString()); });
         lively.ide.CommandLineInterface.kill();
         */
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
-        var cmdLineInterface = this,
-            parsedCommand = this.parseCommandIntoCommandAndArgs(commandString),
-            webR = this.commandLineServerURL.asWebResource().beAsync(),
-            ansiAttributesRegexp = !options.hasOwnProperty("ansiAttributeEscape") || options.ansiAttributeEscape ? this.ansiAttributesRegexp : null,
-            cmd = {
-                isShellCommand: true,
-                _commandString: commandString,
-                streamPos: 0,
-                interval: null,
-                _stdout: '',
-                _stderr: '',
-                _code: '',
-                _done: false,
-                _options: options,
-
-                readInterval: function() {
-                    var xhr = webR.status && webR.status.transport;
-                    if (!xhr) return;
-                    this.read(xhr.responseText);
-                },
-
-                startInterval: function() {
-                    this.endInterval();
-                    this.interval = Global.setInterval(this.readInterval.bind(this), 50);
-                },
-
-                endInterval: function() {
-                    if (this.interval) { Global.clearInterval(this.interval); }
-                },
-
-                read: function(string) {
-                    var input = string.slice(this.streamPos, string.length),
-                        headerMatch = input.match(/^<SHELLCOMMAND\$([A-Z]+)([0-9]+)>/);
-                    if (!headerMatch) return;
-                    // show('pos: %s, reading: %s', this.streamPos, string);
-                    var header = headerMatch[0],
-                        type = headerMatch[1].toLowerCase(),
-                        length = Number(headerMatch[2]),
-                        readContent = input.slice(header.length, header.length+length),
-                        remaining = input.slice(header.length + length);
-                    if (ansiAttributesRegexp) readContent = readContent.replace(ansiAttributesRegexp, '');
-                    // show('type: %s, length: %s, content: %s, remaining: %s',
-                    //     type, length, readContent, remaining);
-                    lively.bindings.signal(this, type, readContent);
-                    this['_' + type] += readContent;
-                    this.streamPos += header.length + length;
-                    if (this.streamPos < string.length) this.read(string);
-                },
-
-                startRequest: function() {
-                    webR.post(JSON.stringify({
-                        command: parsedCommand,
-                        cwd: options.cwd || cmdLineInterface.rootDirectory,
-                        stdin: options.stdin
-                    }), 'application/json');
-                    this.startInterval();
-                    lively.bindings.connect(webR, 'status', this, 'endRequest', {
-                        updater: function($upd, status) {
-                            if (status.isDone()) $upd.curry(status).delay(0.1); }});
-                    return this;
-                },
-
-                endRequest: function(status) {
-                    this._done = true;
-                    this.endInterval();
-                    this.read(status.transport.responseText);
-                    lively.bindings.signal(this, 'end', this);
-                    if (thenDo) thenDo(cmd);
-                },
-
-                getStdout: function() { return this._stdout || ''; },
-                getStderr: function() { return this._stderr || ''; },
-                getCode: function() { return Number(this._code); },
-                getGroup: function() { return this._options.group || null; },
-                kill: function(thenDo) {
-                    if (this._done) {
-                        thenDo && thenDo();
-                    } else if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
-                        lively.ide.CommandLineInterface.commandQueue.remove(this);
-                        thenDo && thenDo();
-                    } else {
-                        lively.ide.CommandLineInterface.kill(this, thenDo);
-                    }
-                },
-                resultString: function(bothErrAndOut) {
-                    return bothErrAndOut ?
-                        this.getStdout().trim() + '\n'+  this.getStderr().trim() :
-                        (this.getCode() ? this.getStderr() : this.getStdout()).trim();
-                },
-                isDone: function() { return !!this._done; }
-            };
-        cmdLineInterface.scheduleCommand(cmd, options.group);
+        if (thenDo) options.whenDone = thenDo;
+        var cmd = new lively.ide.CommandLineInterface.Command(commandString, options);
+        this.scheduleCommand(cmd, options.group);
         return cmd;
     },
 
     exec: function(commandString, options, thenDo) {
         /*
-        show(lively.ide.CommandLineInterface.exec('pwd', {cwd: '/Users/robert/', sync:true}).resultString());
+        show(lively.ide.CommandLineInterface.exec('expr 1 + 2', {sync:true}).resultString());
         cmdLineInterface= lively.ide.CommandLineInterface
         cmd
         */
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
-        var cmdLineInterface = this,
-            webR = cmdLineInterface.commandLineServerURL.withFilename('exec').asWebResource(),
-            cmd = {
-                isShellCommand: true,
-                _commandString: commandString,
-                _stdout: '',
-                _stderr: '',
-                _code: '',
-                _done: false,
-                _options: options,
-
-                startRequest: function() {
-                    lively.bindings.connect(webR, 'status', this, 'endRequest', {
-                        updater: function($upd, status) { if (status.isDone()) $upd(status); }});
-                    if (options.sync) webR.beSync();
-                    else webR.beAsync();
-                    webR.post(JSON.stringify({
-                        command: commandString,
-                        cwd: options.cwd || cmdLineInterface.rootDirectory
-                    }), 'application/json');
-                    return this;
-                },
-
-                endRequest: function(status) {
-                    this._done = true;
-                    try {
-                        result = JSON.parse(status.transport.responseText);
-                        this._code = result.code;
-                        this._stderr = result.err;
-                        this._stdout = result.out;
-                    } catch(e) {
-                        this._stderr = String(e);
-                        this._code = -1;
-                    }
-                    lively.bindings.signal(this, 'end', this);
-                    if (thenDo) thenDo(cmd);
-                },
-
-                getStdout: function() { return this._stdout || ''; },
-                getStderr: function() { return this._stderr || ''; },
-                getCode: function() { return Number(this._code); },
-                getGroup: function() { return this._options.group || null; },
-                kill: function(thenDo) {
-                    if (this._done) {
-                        thenDo && thenDo();
-                    } else if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
-                        lively.ide.CommandLineInterface.commandQueue.remove(this);
-                        thenDo && thenDo();
-                    } else {
-                        lively.ide.CommandLineInterface.kill(this, thenDo);
-                    }
-                },
-                resultString: function() {
-                    var output = (!this.getCode() ? this.getStdout() : this.getStderr()) || '';
-                    return output.trim();
-                },
-                isDone: function() { return !!this._done; }
-            };
-        cmdLineInterface.scheduleCommand(cmd, options.group);
+        if (thenDo) options.whenDone = thenDo;
+        options.exec = true;
+        var cmd = new lively.ide.CommandLineInterface.Command(commandString, options);
+        this.scheduleCommand(cmd, options.group);
         return cmd;
     },
 

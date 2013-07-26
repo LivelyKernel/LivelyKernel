@@ -81,7 +81,23 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         this.assertEquals(proto.prop, 15);
         this.assertEquals(descendant.prop, 15);
     },
-    test07CommitedVersionDoesntChange: function() {
+    test07FunctionsCanBeProxied: function() {
+        var func = this.proxyFor(function(a) {
+            return 1;
+        });
+    
+        this.assert(this.isProxy(func));
+    },
+    test08MethodApplicationWorksOnProxies: function() {
+        var obj = this.proxyFor({});
+        obj.prop = 24;
+        obj.method = this.proxyFor(function(a) {
+            return this.prop;
+        });
+                
+        this.assert(obj.method(), 24);
+    },
+    test09CommitedVersionDoesntChange: function() {
         var person, versionBefore, previousVersionOfPerson;
         
         person = this.proxyFor({});
@@ -100,7 +116,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         // currently
         this.assertEquals(person.age, 25);
     },
-    test08ChangesAfterCommitCanBeUndone: function() {
+    test10ChangesAfterCommitCanBeUndone: function() {
         var app = this.proxyFor({});
         app.counter = 1;
         
@@ -112,7 +128,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(app.counter, 1);
     },
-    test09ChangesToCompoundPropertyCanBeUndone: function() {
+    test11ChangesToCompoundPropertyCanBeUndone: function() {
         var app = this.proxyFor({});
         app.view = this.proxyFor({});
         app.view.color = 'red';
@@ -125,7 +141,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(app.view.color, 'red');
     },
-    test10PropertyCreationCanBeUndone: function() {
+    test12PropertyCreationCanBeUndone: function() {
         var obj = this.proxyFor({});
         
         this.commitVersion();
@@ -136,7 +152,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assert(obj.isPropertyDefined === undefined);
     },
-    test11UndoneChangesCanBeRedone: function() {
+    test13UndoneChangesCanBeRedone: function() {
         var address = this.proxyFor({});
         address.street = 'Meanstreet';
         address.city = 'Chicago';
@@ -148,7 +164,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(address.city, 'Chicago');
     },
-    test12UndonePropertyAdditionCanBeRedone: function() {
+    test14UndonePropertyAdditionCanBeRedone: function() {
         var address = this.proxyFor({});
         this.commitVersion();
         address.street = 'Meanstreet';

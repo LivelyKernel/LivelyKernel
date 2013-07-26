@@ -8,9 +8,9 @@ Object.extend(lively.ObjectVersioning, {
         lively.Versions.push(lively.CurrentObjectTable);
     },
     addObject: function(target) {        
-        // proxies are fully virtual objects: don't point to their target, but
-        // refer to it by __objectID
-        var id, proxy;
+        // proxies are fully virtual objects: they don't point to their target, 
+        // but refer to it by __objectID
+        var id, proxy, virtualTarget;
         
         if (target !== Object(target)) {
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
@@ -18,7 +18,10 @@ Object.extend(lively.ObjectVersioning, {
         
         lively.CurrentObjectTable.push(target);
         
-        proxy = Proxy({}, this.versioningProxyHandler());
+        // only functions trap function application
+        virtualTarget = Object.isFunction(target) ? function() {} : {};
+                
+        proxy = Proxy(virtualTarget, this.versioningProxyHandler());
         id = lively.CurrentObjectTable.length - 1;
         
         proxy.__objectID = id;
@@ -48,7 +51,7 @@ Object.extend(lively.ObjectVersioning, {
                     this[name] = value;
                     return true;
                 }
-                                                
+                                
                 targetObject = lively.ObjectVersioning.getObjectForProxy(receiver);
                 
                 // copy-on-first-write when object is commited in previous version
@@ -70,10 +73,16 @@ Object.extend(lively.ObjectVersioning, {
                 if (name === '__objectID') {
                     return this[name];
                 }
-                                                
+                                                                
                 targetObject = lively.ObjectVersioning.getObjectForProxy(receiver);                
                 return targetObject[name]; 
             },
+            apply: function(virtualTarget, thisArg, args) {
+                var method = lively.CurrentObjectTable[this.__objectID],
+                targetObject = lively.ObjectVersioning.getObjectForProxy(thisArg);
+    
+                return method.apply(targetObject, args);
+            }
         };
     },
     commitVersion: function() {

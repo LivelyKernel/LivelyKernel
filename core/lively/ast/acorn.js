@@ -169,6 +169,19 @@ Object.extend(lively.ast.acorn, {
 
     nodeSource: function(source, node) {
         return source.slice(node.start, node.end);
+    },
+
+    transformReturnLastStatement: function(source) {
+        // lively.ast.acorn.transformReturnLastStatement('foo + 3;\n this.baz(99 * 3) + 4;')
+        // source = that.getTextRange()
+        var ast = lively.ast.acorn.parse(source),
+            last = ast.body.pop(),
+            newLastsource = 'return ' + lively.ast.acorn.nodeSource(source, last),
+            newLast = lively.ast.acorn.fuzzyParse(newLastsource).body.last(),
+            newSource = source.slice(0, last.start) + 'return ' + source.slice(last.start)
+        ast.body.push(newLast);
+        ast.end += 'return '.length
+        return lively.ast.acorn.nodeSource(newSource, ast);
     }
 
 });

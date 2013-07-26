@@ -350,7 +350,7 @@ Object.subclass('lively.ide.FileFragment',
     browseIt: function(options) {
         options = options || {};
         var browser = options.browser || (options.browser = new lively.ide.SystemBrowser());
-        browser.openIn(lively.morphic.World.current());
+        if (!browser.panel || !browser.panel.world()) browser.openIn(lively.morphic.World.current());
 
         // set the correct path
         var m = this.fileName.match(/(.*\/)(.+)/);
@@ -358,7 +358,8 @@ Object.subclass('lively.ide.FileFragment',
         browser.setTargetURL(URL.codeBase.withFilename(pathName));
 
         this.basicBrowseIt(options);
-        browser.panel.getWindow().comeForward();
+        var win = browser.panel.getWindow()
+        if (!win.isActive()) win.comeForward();
         return browser;
     },
 

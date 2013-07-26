@@ -323,14 +323,16 @@ lively.morphic.Morph.addMethods(
         pos && this.setPosition(pos);
         return this;
     },
-    openInWindow: function(optPos) {
+    openInWindow: function(optPosOrOptions) {
+        var options = optPosOrOptions || {};
+        if (options.x !== undefined && options.y !== undefined) options = {pos: options};
         lively.morphic.World.current().internalAddWindow(this,
-            this.name, optPos || this.getPosition());
+            options.title || this.name, options.pos || this.getPosition());
         this.applyStyle({resizeWidth: true, resizeHeight: true});
         if (this.partsBinMetaInfo) {
             this.owner.setPartsBinMetaInfo(this.getPartsBinMetaInfo());
             this.owner.setName(this.name);
-            this.owner.setTitle(this.name);
+            this.owner.setTitle(options.title || this.name);
         }
     },
     openInWorldCenter: function() {

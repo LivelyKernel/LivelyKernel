@@ -1,28 +1,50 @@
 module('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.ObjectVersioning').toRun(function() {
     
-var proxyFor = lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
-    isProxy = lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning);
+TestCase.subclass('lively.tests.ObjectVersioning.ObjectVersioningTestCase', 
+'versioning testing', {
+    proxyFor: lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
+    isProxy: lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning),
+    objectForProxy: lively.ObjectVersioning.getObjectForProxy.bind(lively.ObjectVersioning),
+    commitVersion: lively.ObjectVersioning.commitVersion.bind(lively.ObjectVersioning),
+    undo: lively.ObjectVersioning.undo.bind(lively.ObjectVersioning),
+    redo: lively.ObjectVersioning.redo.bind(lively.ObjectVersioning),
     
-TestCase.subclass('lively.tests.ObjectVersioningTests.VersioningTests',
+    assertEqualsInVersion: function(a, b, version) {
+        // TODO: no good idea how to do this, yet...
+        
+        // more specifically, no idea how parameters should be passed in a way
+        // that they can get be fully evaluated in the context of the previous version
+        
+        // example: this.assertEqualsInVersion(person.age, 24, aVersion) in a way that both
+        // personProxy->person and ageProxy->age can be resolved using aVersion
+        
+        // then subclass this test case instead
+    },
+    
+}
+);
+
+lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
+'lively.tests.ObjectVersioningTests.VersioningTests',
 'testing', {
     setUp: function() {
         // global reset on each test (for now)
         lively.ObjectVersioning.init();
     },
     test01ProxyCreation: function() {
-        var object = proxyFor({});
+        var object = this.proxyFor({});
         
-        this.assert(true, isProxy(object));
+        this.assert(this.isProxy(object));
     },
     test02ProxyRetrievesPrimitiveProperty: function() {
-        var person = proxyFor({});
+        var person = this.proxyFor({});
         person.age = 24;
         
         this.assertEquals(person.age, 24);
     },
     test03ProxyRetrievesNonPrimitiveProperty: function() {
-        var person = proxyFor({});
-        person.address = proxyFor({
+        var person = this.proxyFor({});
+        person.address = this.proxyFor({
             street: 'Friedrichstraße', 
             number: '112b'
         });
@@ -31,361 +53,117 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.VersioningTests',
         this.assertEquals(person.address.number, '112b');
     },
     test04ProxyIdentity: function() {
-        var person = proxyFor({}),
-            roomMate = proxyFor({});
+        var person = this.proxyFor({}),
+            roomMate = this.proxyFor({});
         
-        person.address = proxyFor({
+        person.address = this.proxyFor({
                 street: 'Wrangelstraße', 
                 number: '24'
             });
         
         roomMate.address = person.address;
         
-        this.assert(true, isProxy(person.address));
-        this.assert(true, isProxy(roomMate.address));
+        this.assert(this.isProxy(person.address));
+        this.assert(this.isProxy(roomMate.address));
         this.assertEquals(person.address, roomMate.address);
     },
     test05ProxyReturnsUndefinedForUndefinedProperties: function() {
-        var place = proxyFor({});
+        var place = this.proxyFor({});
         
-        this.assert(true, place.coordinates === undefined);
+        this.assert(place.coordinates === undefined);
     },
     test06ProtoLookupWorksOnProxies: function() {
-        var proto = proxyFor({}),
+        var proto = this.proxyFor({}),
             descendant;
         proto.prop = 15;
-        descendant = proxyFor(Object.create(proto));
+        descendant = this.proxyFor(Object.create(proto));
         
         this.assertEquals(proto.prop, 15);
         this.assertEquals(descendant.prop, 15);
     },
-    test07ChangesCanBeUndone: function() {
-        var app = proxyFor({});
+    test07CommitedVersionDoesntChange: function() {
+        var person, versionBefore, previousVersionOfPerson;
+        
+        person = this.proxyFor({});
+        person.age = 23;
+        
+        versionBefore = this.commitVersion();
+        
+        person.age = 24;
+        person.age = 25;
+        
+        // in the previous version
+        // TODO: provide some way of this.assertEqualsInVersion(...)
+        previousVersionOfPerson = this. objectForProxy(person, versionBefore);
+        this.assertEquals(previousVersionOfPerson.age, 23);
+        
+        // currently
+        this.assertEquals(person.age, 25);
+    },
+    test08ChangesAfterCommitCanBeUndone: function() {
+        var app = this.proxyFor({});
         app.counter = 1;
+        
+        this.commitVersion();
+        
         app.counter = 2;
         
-        lively.ObjectVersioning.undo();
+        this.undo();
         
         this.assertEquals(app.counter, 1);
     },
-    test08ChangesToCompoundPropertyCanBeUndone: function() {
-        var app = proxyFor({});
-        app.view = proxyFor({});
+    test09ChangesToCompoundPropertyCanBeUndone: function() {
+        var app = this.proxyFor({});
+        app.view = this.proxyFor({});
         app.view.color = 'red';
+        
+        this.commitVersion();
+        
         app.view.color = 'green';
         
-        lively.ObjectVersioning.undo();
+        this.undo();
         
         this.assertEquals(app.view.color, 'red');
     },
-    test09PropertyCreationCanBeUndone: function() {
-        var obj = proxyFor({});
+    test10PropertyCreationCanBeUndone: function() {
+        var obj = this.proxyFor({});
+        
+        this.commitVersion();
+        
         obj.isPropertyDefined = true;
         
-        lively.ObjectVersioning.undo();
+        this.undo();
         
-        this.assert(true, obj.isPropertyDefined === undefined);
+        this.assert(obj.isPropertyDefined === undefined);
     },
-    test10UndoneChangesCanBeRedone: function() {
-        var address = proxyFor({});
+    test11UndoneChangesCanBeRedone: function() {
+        var address = this.proxyFor({});
         address.street = 'Meanstreet';
         address.city = 'Chicago';
         
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.redo();
+        this.commitVersion();
+        
+        this.undo();
+        this.redo();
         
         this.assertEquals(address.city, 'Chicago');
     },
-    test11UndonePropertyAdditionCanBeRedone: function() {
-        var address = proxyFor({});
+    test12UndonePropertyAdditionCanBeRedone: function() {
+        var address = this.proxyFor({});
+        this.commitVersion();
         address.street = 'Meanstreet';
+        this.commitVersion();
         address.city = 'Chicago';
         
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.redo();
+        this.undo();
+        this.undo();
+        this.redo();
         
         this.assertEquals(address.street, 'Meanstreet');
-        this.assert(true, address.city === undefined);
-    }
-    // test10VersionedObjectHasItsProperties: function() {
-    //     var versionedObject = proxyFor({});
-    //     versionedObject.firstProperty = 'erstesMerkmal';
-    //     this.assertEquals(true, 'firstProperty' in versionedObject);
-    // }
-});
-    
-});odule('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.ObjectVersioning').toRun(function() {
-    
-var proxyFor = lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
-    isProxy = lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning);
-    
-TestCase.subclass('lively.tests.ObjectVersioningTests.VersioningTests',
-'testing', {
-    setUp: function() {
-        // global reset on each test (for now)
-        lively.ObjectVersioning.init();
+        this.assert(address.city === undefined);
     },
-    test01ProxyCreation: function() {
-        var object = proxyFor({});
-        
-        this.assert(true, isProxy(object));
-    },
-    test02PrimitiveProperty: function() {
-        var person = proxyFor({});
-        person.age = 24;
-        
-        this.assertEquals(person.age, 24);
-    },
-    test04ProxyHoldsProxy: function() {
-        var person = proxyFor({});
-        var address = proxyFor({
-            street: 'Friedrichstraße', 
-            number: '112b'
-        });
-        person.address = address;
-        
-        this.assert(true, isProxy(person.address));
-        
-        this.assertEquals(person.address, address);
-        this.assertEquals(person.address.street, address.street);
-        this.assertEquals(person.address.number, address.number);
-    },
-    test05UndefinedPropertyIsUndefined: function() {
-        var place = proxyFor({});
-        
-        this.assert(true, place.coordinates === undefined);
-    },
-    test05ChangesCanBeUndone: function() {
-        var app = proxyFor({});
-        app.counter = 1;
-        app.counter = 2;
-        
-        lively.ObjectVersioning.undo();
-        
-        this.assertEquals(app.counter, 1);
-    },
-    test06ChangesToCompoundPropertyCanBeUndone: function() {
-        var app = proxyFor({});
-        app.view = proxyFor({});
-        app.view.color = Color.red;
-        app.view.color = Color.green;
-        
-        lively.ObjectVersioning.undo();
-        
-        this.assertEquals(app.view.color, Color.red);
-    },
-    test07PropertyCreationCanBeUndone: function() {
-        var obj = proxyFor({});
-        obj.isPropertyDefined = true;
-        
-        lively.ObjectVersioning.undo();
-        
-        this.assert(true, obj.isPropertyDefined === undefined);
-    },
-    test08UndoneChangesCanBeRedone: function() {
-        var address = proxyFor({});
-        address.street = 'Meanstreet';
-        address.city = 'Chicago';
-        
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.redo();
-        
-        this.assertEquals(address.city, 'Chicago');
-    },
-    test09UndonePropertyAdditionCanBeRedone: function() {
-        var address = proxyFor({});
-        address.street = 'Meanstreet';
-        address.city = 'Chicago';
-        
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.redo();
-        
-        this.assertEquals(address.street, 'Meanstreet');
-        this.assert(true, address.city === undefined);
-    },
-    test10ReferenceSharedAmongObjects: function() {
-        var client1 = proxyFor({}),
-            client2 = proxyFor({});
-        client1.sharedServer = proxyFor({});
-        client1.sharedServer.color = Color.red;
-        
-        client2.sharedServer = client1.sharedServer;
-        client2.sharedServer.color = Color.green;
-        
-        this.assertEquals(client1.sharedServer.color, Color.green);
-    },
-    test11ProtoLookup: function() {
-        var proto = proxyFor({}),
-            descendant;
-        proto.prop = 15;
-        descendant = proxyFor(Object.create(proto));
-        
-        this.assertEquals(proto.prop, 15);
-        this.assertEquals(descendant.prop, 15);
-    },
-    test12ProtoLookup: function() {
-        var proto = proxyFor({}),
-            descendant;
-        proto.prop = 1;
-        descendant = proxyFor(Object.create(proto));
-        descendant.prop = 2;
-        
-        this.assertEquals(proto.prop, 1);
-        this.assertEquals(descendant.prop, 2);
-    },
-    test13ProxyIdentity: function() {
-        var client1 = proxyFor({}),
-            client2 = proxyFor({});
-        client1.sharedServer = proxyFor({});
-        client2.sharedServer = client1.sharedServer;
-        
-        this.assertEquals(client1.sharedServer, client2.sharedServer);
-    }
-    // test10VersionedObjectHasItsProperties: function() {
-    //     var versionedObject = proxyFor({});
-    //     versionedObject.firstProperty = 'erstesMerkmal';
-    //     this.assertEquals(true, 'firstProperty' in versionedObject);
-    // }
-});
-    
-});odule('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.ObjectVersioning').toRun(function() {
-    
-var proxyFor = lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
-    isProxy = lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning);
-    
-TestCase.subclass('lively.tests.ObjectVersioningTests.VersioningTests',
-'testing', {
-    setUp: function() {
-        // global reset on each test (for now)
-        lively.ObjectVersioning.init();
-    },
-    test01ProxyCreation: function() {
-        var object = proxyFor({});
-        
-        this.assert(true, isProxy(object));
-    },
-    test01PrimitivePropertyRetrievable: function() {
-        var person = proxyFor({});
-        person.age = 24;
-        
-        this.assertEquals(person.age, 24);
-    },
-    test02UndefinedPropertyIsUndefined: function() {
-        var place = proxyFor({});
-        
-        this.assert(true, place.coordinates === undefined);
-    },
-    test03PropertyCanBeOverwritten: function() {
-        var app = proxyFor({});
-        app.counter = 1;
-        app.counter = 2;
-        app.counter = 3;
-        
-        this.assertEquals(app.counter, 3);
-    },
-    test04ObjectPropertyRetrievable: function() {
-        var person = proxyFor({});
-        var address = proxyFor({
-            street: 'Friedrichstraße', 
-            number: '112b'
-        });
-        person.address = address;
-        // note: person.address and address are different proxy objects...
-        
-        this.assertEquals(person.address.street, address.street);
-        this.assertEquals(person.address.number, address.number);
-    },
-    test05ChangesCanBeUndone: function() {
-        var app = proxyFor({});
-        app.counter = 1;
-        app.counter = 2;
-        
-        lively.ObjectVersioning.undo();
-        
-        this.assertEquals(app.counter, 1);
-    },
-    test06ChangesToCompoundPropertyCanBeUndone: function() {
-        var app = proxyFor({});
-        app.view = proxyFor({});
-        app.view.color = Color.red;
-        app.view.color = Color.green;
-        
-        lively.ObjectVersioning.undo();
-        
-        this.assertEquals(app.view.color, Color.red);
-    },
-    test07PropertyCreationCanBeUndone: function() {
-        var obj = proxyFor({});
-        obj.isPropertyDefined = true;
-        
-        lively.ObjectVersioning.undo();
-        
-        this.assert(true, obj.isPropertyDefined === undefined);
-    },
-    test08UndoneChangesCanBeRedone: function() {
-        var address = proxyFor({});
-        address.street = 'Meanstreet';
-        address.city = 'Chicago';
-        
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.redo();
-        
-        this.assertEquals(address.city, 'Chicago');
-    },
-    test09UndonePropertyAdditionCanBeRedone: function() {
-        var address = proxyFor({});
-        address.street = 'Meanstreet';
-        address.city = 'Chicago';
-        
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.undo();
-        lively.ObjectVersioning.redo();
-        
-        this.assertEquals(address.street, 'Meanstreet');
-        this.assert(true, address.city === undefined);
-    },
-    test10ReferenceSharedAmongObjects: function() {
-        var client1 = proxyFor({}),
-            client2 = proxyFor({});
-        client1.sharedServer = proxyFor({});
-        client1.sharedServer.color = Color.red;
-        
-        client2.sharedServer = client1.sharedServer;
-        client2.sharedServer.color = Color.green;
-        
-        this.assertEquals(client1.sharedServer.color, Color.green);
-    },
-    test11ProtoLookup: function() {
-        var proto = proxyFor({}),
-            descendant;
-        proto.prop = 15;
-        descendant = proxyFor(Object.create(proto));
-        
-        this.assertEquals(proto.prop, 15);
-        this.assertEquals(descendant.prop, 15);
-    },
-    test12ProtoLookup: function() {
-        var proto = proxyFor({}),
-            descendant;
-        proto.prop = 1;
-        descendant = proxyFor(Object.create(proto));
-        descendant.prop = 2;
-        
-        this.assertEquals(proto.prop, 1);
-        this.assertEquals(descendant.prop, 2);
-    },
-    test13ProxyIdentity: function() {
-        var client1 = proxyFor({}),
-            client2 = proxyFor({});
-        client1.sharedServer = proxyFor({});
-        client2.sharedServer = client1.sharedServer;
-        
-        this.assertEquals(client1.sharedServer, client2.sharedServer);
-    }
-    // test10VersionedObjectHasItsProperties: function() {
-    //     var versionedObject = proxyFor({});
+    // testXYVersionedObjectHasItsProperties: function() {
+    //     var versionedObject = this.proxyFor({});
     //     versionedObject.firstProperty = 'erstesMerkmal';
     //     this.assertEquals(true, 'firstProperty' in versionedObject);
     // }

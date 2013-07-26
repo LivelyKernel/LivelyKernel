@@ -1524,7 +1524,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     $world.prompt('Enter shell command to run on region.', function(cmdString) {
                         if (!cmdString) { show('No command entered, aborting...!'); return; }
                         lively.shell.run(cmdString, {stdin: input}, function(cmd) {
-                            ed.session.replace(ed.selection.getRange(), cmd.resultString());
+                            ed.session.replace(ed.selection.getRange(), cmd.resultString(true));
                         });
                     })
                 },

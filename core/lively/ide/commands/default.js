@@ -261,6 +261,44 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+    'lively.ide.SystemCodeBrowser.browseModuleStructure': {
+        description: 'browse module',
+        exec: function() {
+            var win = $world.getActiveWindow(),
+                widget = win && win.targetMorph && win.targetMorph.ownerWidget,
+                browser = widget && widget.isSystemBrowser ? widget : null,
+                ff = browser && browser.getPane1Selection() && browser.getPane1Selection().target;
+            if (!ff) { show('No browser active or no module selected!'); return false; }
+            function withSubelementsOfFFDo(ff, func, context, depth) {
+                depth = depth || 0;
+                var results = [func.call(context, ff, depth)];
+                ff.subElements().forEach(function(ff) {
+                    results.pushAll(withSubelementsOfFFDo(ff, func, context, depth+1));
+                });
+                return results;
+            }
+
+            var candidates = withSubelementsOfFFDo(ff, function(ff, depth) {
+                return ff.name ? {isListItem: true, string: Strings.indent(ff.name, '  ', depth), value: ff} : null;
+            }).compact();
+
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: 'lively.ide.SystemBrowser.browseModuleStructure',
+                input: '',
+                spec: {
+                    prompt: 'what to browse? ',
+                    candidates: candidates,
+                    actions: [
+                        function(ff) {
+                            browser.disableSourceNotAccidentlyDeletedCheck = true;
+                            try { ff.browseIt({browser: browser}); } finally { browser.disableSourceNotAccidentlyDeletedCheck = false }
+                        }
+                    ]
+                }
+            });
+            return true;
+        }
+    },
     // search
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
@@ -403,6 +441,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Window.rename': 'cmd-s-l r e n',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-`"},
     'lively.ide.browseFiles': 'Alt-t',
+    'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-y",
     'lively.morphic.Halos.show': "cmd-h",

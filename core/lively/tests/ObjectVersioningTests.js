@@ -1,6 +1,7 @@
 module('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.ObjectVersioning').toRun(function() {
     
-var proxyFor = lively.ObjectVersioning.makeVersionedObjectFor.bind(lively.ObjectVersioning);
+var proxyFor = lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
+    isProxy = lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning);
     
 TestCase.subclass('lively.tests.ObjectVersioningTests.VersioningTests',
 'testing', {

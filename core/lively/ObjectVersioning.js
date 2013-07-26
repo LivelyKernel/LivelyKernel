@@ -6,17 +6,25 @@ Object.extend(lively.ObjectVersioning, {
         lively.Versions = []; // a linear history (for now)
         lively.Versions.push(lively.CurrentObjectTable);
     },
-    makeVersionedObjectFor: function(target) {
-        var id = lively.CurrentObjectTable.length;
-        lively.CurrentObjectTable.push(target);
-        return this.aliasFor(id);
-    },
-    aliasFor: function(id) {        
+    addObject: function(target) {        
         // proxies are fully virtual objects: don't point to their target, but
         // refer to it by __objectID
-        var proxy = Proxy({}, this.versioningProxyHandler());
+        var id, proxy;
+        
+        if (target !== Object(target)) {
+            throw new TypeError('Primitive objects shouldn\'t be wrapped');
+        }
+        
+        lively.CurrentObjectTable.push(target);
+        
+        proxy = Proxy({}, this.versioningProxyHandler());
+        id = lively.CurrentObjectTable.length - 1;
+        
         proxy.__objectID = id;
         return proxy;
+    },
+    isProxy: function(obj) {
+        return obj.__objectID ? true : false;
     },
     versioningProxyHandler: function() {
         return {

@@ -8,28 +8,51 @@ var spawn = require('child_process').spawn,
 // [{process: null, stdout: '', stderr: '', lastExitCode: null}]
 var shellCommands = global.shellCommands = [];
 
-runShellCommand = function(cmdInstructions) {
-    var args = cmdInstructions.commandAndArgs,
+function startSpawn(cmdInstructions) {
+    var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
+        command = cmdInstructions.command, args = [],
         stdin = cmdInstructions.stdin;
+    if (typeof command === 'string') {
+        args = command.split(' ');
+    } else if (util.isArray(command)) {
+        args = command;
+    }
 
-// hmm (variable) expansion seems not to work with spawn
+    // hmm (variable) expansion seems not to work with spawn
     // as a quick hack do it manually here
     args = args.map(function(arg) {
         return arg.replace(/\$[a-zA-Z_]+/g, function(match) {
             return process.env[match.slice(1,match.length)] || ''; }); });
+    command = args.shift();
 
-    var cmd = args.shift();
-    if (!cmd) return;
-
-    var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
-    if (debug) console.log('Running command: %s', [cmd].concat(args));
-    var shellCommand = {process: null, stdout: '', stderr: '', lastExitCode: null};
-    shellCommands.push(shellCommand);
-    shellCommand.process = spawn(cmd, args, options);
+    if (debug) console.log('Running command: %s', [command].concat(args));
+    var proc = spawn(command, args, options);
     if (stdin) {
         console.log('setting stdin to: %s', stdin);
-        shellCommand.process.stdin.end(stdin);
+        proc.stdin.end(stdin);
     }
+    return proc;
+}
+
+function startExec(cmdInstructions) {
+    var cmd = cmdInstructions.command,
+        callback = cmdInstructions.callback,
+        options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
+    if (debug) console.log('Running command: %s', cmd);
+    return exec(cmd, options, function(code, out, err) {
+        callback && callback(code, out, err);
+    });
+}
+
+function runShellCommand(cmdInstructions) {
+    var callback = cmdInstructions.callback,
+        shellCommand = {
+            process: cmdInstructions.isExec ? startExec(cmdInstructions) : startSpawn(cmdInstructions),
+            stdout: '', stderr: '',
+            lastExitCode: null};
+    shellCommands.push(shellCommand);
+    // util._extend(shellCommand, require('events').EventEmitter.prototype);
+
     shellCommand.process.stdout.on('data', function (data) {
         debug && console.log('STDOUT: ' + data);
         shellCommand.stdout += data;
@@ -40,10 +63,11 @@ runShellCommand = function(cmdInstructions) {
         shellCommand.stderr += data;
     });
 
-    shellCommand.process.on('close', function (code) {
+    shellCommand.process.on('close', function(code) {
         debug && console.log('shell command exited with code ' + code);
         shellCommand.process = null;
         shellCommand.lastExitCode = code;
+        callback && callback(code, shellCommand.stdout, shellCommand.stdout);
     });
 
     shellCommand.process.on('error', function (err) {
@@ -51,26 +75,6 @@ runShellCommand = function(cmdInstructions) {
         shellCommand.process = null;
         shellCommand.stderr += err.stack;
         shellCommand.lastExitCode = 1;
-    });
-
-    return shellCommand;
-}
-
-runShellCommandExec = function(cmdInstructions) {
-    var cmd = cmdInstructions.command,
-        callback = cmdInstructions.callback;
-    if (!cmd) return;
-
-    var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
-    if (debug) console.log('Running command: %s', cmd);
-    var shellCommand = {process: null, stdout: '', stderr: '', lastExitCode: null};
-    shellCommands.push(shellCommand);
-    shellCommand.process = exec(cmd, options, function(code, out, err) {
-        shellCommand.process = null;
-        shellCommand.lastExitCode = code;
-        shellCommand.stdout = out;
-        shellCommand.stderr = err;
-        callback && callback(code, out, err);
     });
 
     return shellCommand;
@@ -101,43 +105,31 @@ module.exports = function(route, app) {
         res.end(JSON.stringify({message: 'processes with pids ' + pids + ' killed'}));
     });
 
-    app.post(route + 'exec', function(req, res) {
-        var command = req.body && req.body.command,
-            dir = req.body && req.body.cwd;
-        if (!command) { res.status(400).end(); return; }
-        try {
-            runShellCommandExec({command: command, cwd: dir, callback: function(code, out, err) {
-                res.end(JSON.stringify({code: code, out: out, err: err}));
-            }});
-        } catch(e) {
-            var msg = 'Error invoking shell: ' + e + '\n' + e.stack;
-            console.error(msg);
-            res.status(500).json({error: msg}).end(); return;
-        }
-    });
-
     app.post(route, function(req, res) {
         var command = req.body && req.body.command,
             stdin = req.body && req.body.stdin,
-            dir = req.body && req.body.cwd;
+            dir = req.body && req.body.cwd,
+            isExec = req.body && req.body.isExec;
         if (!command) { res.status(400).end(); return; }
-        var commandAndArgs = [];
-        if (typeof command === 'string') {
-            commandAndArgs = command.split(' ');
-        } else if (util.isArray(command)) {
-            commandAndArgs = command;
-        }
-        var cmd;
+        var cmd, cmdInstructions = {
+            command: command,
+            cwd: dir,
+            isExec: isExec,
+            stdin: stdin
+        };
         try {
-            cmd = runShellCommand({commandAndArgs: commandAndArgs, stdin: stdin, cwd: dir});
+            cmd = runShellCommand(cmdInstructions);
         } catch(e) {
             var msg = 'Error invoking shell: ' + e + '\n' + e.stack;
             console.error(msg);
             res.status(500).json({error: msg}).end(); return;
         }
-        if (!cmd || !cmd.process) { res.status(400).json({error: 'Could not run ' + commandAndArgs}).end(); return; }
+        if (!cmd || !cmd.process) {
+            res.status(400).json({error: 'Could not run ' + command}).end();
+            return;
+        }
 
-        // make ir a streaming response:
+        // make it a streaming response:
         res.removeHeader('Content-Length');
         res.set({
           'Content-Type': 'text/plain',
@@ -162,4 +154,3 @@ module.exports = function(route, app) {
 
 module.exports.shellCommands = shellCommands;
 module.exports.runShellCommand = runShellCommand;
-module.exports.runShellCommandExec = runShellCommandExec;

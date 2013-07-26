@@ -228,8 +228,8 @@ lively.morphic.World.addMethods(
             linkTags = this.getLinkTags(),
             docSpec = {
                 title: title,
-                metaTags: metaTags, 
-                linkTags: linkTags, 
+                metaTags: metaTags,
+                linkTags: linkTags,
                 migrationLevel: LivelyMigrationSupport.migrationLevel,
                 serializedWorld: json,
                 html: preview,
@@ -362,6 +362,7 @@ Object.extend(lively.morphic.World, {
         world.prepareForNewRenderContext(world.renderContext());
         return world;
     },
+
     loadInIFrame: function(url, bounds) {
         url = new URL(url); //.withQuery({dontBootstrap: true});
         function createIFrame(url, bounds) {
@@ -382,29 +383,53 @@ Object.extend(lively.morphic.World, {
 
         morph.url = url;
 
+        morph.addScript(function morphMenuItems() {
+            var target = this;
+            return $super().concat([
+                ['Reload', function() { target.reload(); }],
+                ['Open workspace', function() {
+                    var workspace = $world.addCodeEditor({title: String(target.url)});
+                    workspace.iframe = target;
+                    workspace.addScript(function boundEval(__evalStatement) {
+                        var ctx = this.getDoitContext() || this,
+                            __evalStatement = lively.ast.acorn.transformReturnLastStatement(__evalStatement),
+                            interactiveEval = new Function(__evalStatement);
+                        return this.iframe.run(interactiveEval);
+                    });
+                    workspace.addScript(function getDoitContext() {
+                        return this.iframe.getGlobal();
+                    });
+                }]
+            ]);
+        });
+
         morph.addScript(function getIFrame() {
             return this.renderContext().shapeNode;
-        })
+        });
 
         morph.addScript(function getGlobal() {
             return this.getIFrame().contentWindow;
-        })
+        });
 
         morph.addScript(function getWorld() {
             return this.getGlobal().lively.morphic.World.current()
-        })
+        });
 
         morph.addScript(function reload() {
             return this.getIFrame().src = this.url;
-        })
+        });
 
         morph.addScript(function run(func) {
             return this.getGlobal().eval('(' + func + ')();');
-        })
+        });
 
         return morph;
     },
 
+    loadInIFrameWithWindow: function(url, bounds) {
+        var iframe = this.loadInIFrame(url, bounds && bounds.extent().extentAsRectangle());
+        return iframe.openInWindow({pos: bounds && bounds.topLeft(), title: String(iframe.url)});
+    }
 });
 
 lively.morphic.Script.addMethods(

@@ -6,7 +6,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     initialize: function($super, optBounds) {
         $super(this.createShape());
         this.setExtent(optBounds || this.defaultBounds);
-        this.disableDropping();    // because children are not shown 
+        this.disableDropping();    // because children are not shown
     },
     createShape: function() {
         var node = this.renderContextDispatch('createCanvasNode');
@@ -536,7 +536,7 @@ cop.create('lively.morphic.PathOriginHackLayer')
 }).beNotGlobal();
 
 lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
-'default category', {
+'initializing', {
     initialize: function($super, initialExtent) {
         this.rootElement = document.createElement('div');
         this.shape = new lively.morphic.Shapes.External(this.rootElement)
@@ -546,7 +546,9 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
             topLeft: function() {return pt(0,0);}});
 
         this.setFill(Color.rgb(200,200,200));
-    },
+    }
+},
+"serialization", {
 
     doNotSerialize: ['rootElement'],
 
@@ -566,6 +568,8 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         }
         return JSON.stringify(result);
     },
+},
+"HTML access", {
     appendElement: function(elementMap) {
         var element = document.createElement(elementMap['name']);
         for (var property in elementMap) {
@@ -586,12 +590,52 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
     children: function() {
         return this.renderContext().shapeNode.children;
     },
-    asJQuery: function() {
-        return jQuery(this.renderContext().shapeNode);
+
+    getHTML: function() {
+        return this.asJQuery().html();
     },
 
+    setHTML: function(html) {
+        return this.asJQuery().html(html);
+    },
+
+    asJQuery: function() {
+        return lively.$(this.renderContext().shapeNode);
+    }
+},
+"menu", {
+    morphMenuItems: function($super) {
+        var items = $super();
+        var target = this;
+        items.push(['edit HTML', function() {
+            var ed = target.world().addCodeEditor({content: target.getHTML(), gutter: false, textMode: 'html'});
+            ed.owner.align(ed.owner.bounds().center(), target.globalBounds().center());
+            lively.bindings.connect(ed, 'savedTextString', target, 'setHTML');
+            lively.bindings.connect(ed, 'savedTextString', Global, 'alertOK', {
+                converter: function(htmlString) { return 'set HTML'; },
+            });
+        }]);
+        items.push(['as text', function() {
+            var ed = target.world().addCodeEditor({content: target.asJQuery().text(), gutter: false, textMode: 'text'});
+            ed.owner.align(ed.owner.bounds().center(), target.globalBounds().center());
+        }]);
+        return items;
+    },
 });
 
+Object.extend(lively.morphic.HtmlWrapperMorph, {
+    renderHTML: function(html, bounds) {
+        bounds = bounds || lively.rect(0,0, 500, 500);
+        var morph = new lively.morphic.HtmlWrapperMorph(bounds.extent());
+        morph.asJQuery().html(html);
+        morph.setFill(Color.white);
+        morph.name = 'HTMLMorph';
+        morph.setClipMode('auto');
+        morph.openInWindow();
+        morph.owner.openInWorld(bounds.topLeft());
+        return morph;
+    }
+});
 
 lively.morphic.Morph.subclass('lively.morphic.TabContainer',
 'documentation', {

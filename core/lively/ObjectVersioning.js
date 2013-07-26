@@ -40,7 +40,7 @@ Object.extend(lively.ObjectVersioning, {
                                                 
                 targetObject = lively.CurrentObjectTable[receiver.__objectID];
                 
-                
+
                 // create a new version of both the current OT
                 // and the object that gets changed
                 var newObjectTable = Object.clone(lively.CurrentObjectTable.clone()),

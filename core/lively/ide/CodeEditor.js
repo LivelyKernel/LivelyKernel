@@ -1402,6 +1402,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             self.setupInputLineBindings(kbd);
             self.setupSnippetBindings(kbd);
             self.setupASTNavigation(kbd);
+            self.setupUsefulHelperBindings(kbd);
             self.setupUserKeyBindings(kbd, codeEditor);
             kbd.hasLivelyKeys = true;
         });
@@ -1938,6 +1939,20 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         // kbd.bindKeys({"C-M-h": {command: 'markDefun'}});
         // kbd.bindKeys({"S-CMD-space": {command: 'expandRegion'}});
         // kbd.bindKeys({"C-CMD-space": {command: 'contractRegion'}});
+    },
+
+    setupUsefulHelperBindings: function(kbd) {
+        kbd.addCommands([{
+            name: 'insertDate',
+            exec: function(ed, args) {
+                var dateString = args && args.count ?
+                    new Date().format('isoDate')/*short*/ :
+                    new Date().format('mediumDate')/*long*/;
+                ed.onPaste(dateString);
+            },
+            multiSelectAction: 'forEach',
+            handlesCount: true
+        }]);
     },
 
     setupUserKeyBindings: function(kbd, codeEditor) {

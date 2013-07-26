@@ -1790,7 +1790,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                             }),
                             actions: [function(mode) { codeEditor.setTextMode(mode); }]
                         }
-                    })
+                    });
                     return true;
                 },
                 handlesCount: true

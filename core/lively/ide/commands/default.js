@@ -279,7 +279,13 @@ Object.extend(lively.ide.commands.byName, {
             }
 
             var candidates = withSubelementsOfFFDo(ff, function(ff, depth) {
-                return ff.name ? {isListItem: true, string: Strings.indent(ff.name, '  ', depth), value: ff} : null;
+                var string = ff.name;
+                if (ff.type === 'propertyDef') {
+                    var owner = ff.findOwnerFragment();
+                    if (owner) string = owner.name + ' -- ' + string;
+                }
+                string = Strings.indent(string, '  ', depth);
+                return ff.name ? {isListItem: true, string: string, value: ff} : null;
             }).compact();
 
             lively.ide.tools.SelectionNarrowing.getNarrower({

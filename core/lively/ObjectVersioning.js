@@ -130,6 +130,9 @@ Object.extend(lively.ObjectVersioning, {
             isExtensible: function(virtualTarget) {
                 return Object.isExtensible(this.targetObject());
             },
+            getPrototypeOf: function(virtualTarget) {
+                return Object.getPrototypeOf(this.targetObject());
+            }
         };
     },
     commitVersion: function() {

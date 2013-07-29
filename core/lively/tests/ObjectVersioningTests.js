@@ -166,6 +166,12 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         this.assertEquals(Object.isExtensible(proxy), false);
         this.assertEquals(Object.isExtensible(obj), false);
     },
+    test16GetPrototypeOfProxy: function() {
+        var proto = this.proxyFor({}),
+            descendant = this.proxyFor(Object.create(proto));
+            
+        this.assertEquals(Object.getPrototypeOf(descendant), proto);
+    }
 });
     
 lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(

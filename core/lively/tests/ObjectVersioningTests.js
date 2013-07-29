@@ -2,6 +2,7 @@ module('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'l
     
 TestCase.subclass('lively.tests.ObjectVersioning.ObjectVersioningTestCase', 
 'versioning testing', {
+    // shortcuts
     proxyFor: lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
     isProxy: lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning),
     objectForProxy: lively.ObjectVersioning.getObjectForProxy.bind(lively.ObjectVersioning),
@@ -72,11 +73,9 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
     },
     test06ProtoLookupWorksOnProxies: function() {
         var proto = this.proxyFor({}),
-            descendant;
+            descendant = this.proxyFor(Object.create(proto));
         proto.prop = 15;
-        descendant = this.proxyFor(Object.create(proto));
         
-        this.assertEquals(proto.prop, 15);
         this.assertEquals(descendant.prop, 15);
     },
     test07FunctionsCanBeProxied: function() {
@@ -95,7 +94,18 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
                 
         this.assert(obj.method(), 24);
     },
-    test09CommitedVersionDoesntChange: function() {
+    test09PrototypeMethodApplication: function() {
+        var proto = this.proxyFor({}),
+            descendant = this.proxyFor(Object.create(proto));
+        
+        descendant.prop = 24;
+        proto.method = this.proxyFor(function(a) {
+            return this.prop;
+        });
+        
+        this.assert(descendant.method(), 24);
+    },
+    test10CommitedVersion: function() {
         var person, versionBefore;
         
         person = this.proxyFor({});
@@ -106,13 +116,12 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         person.age = 24;
         person.age = 25;
         
-        // in the previous version
+        // in the previous version:
         this.assertInVersion(function() {return person.age === 23}, versionBefore);
-        
-        // currently
+        // currently:
         this.assertEquals(person.age, 25);
     },
-    test10ChangesAfterCommitCanBeUndone: function() {
+    test11ChangesAfterCommitCanBeUndone: function() {
         var app = this.proxyFor({});
         app.counter = 1;
         
@@ -124,7 +133,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(app.counter, 1);
     },
-    test11ChangesToCompoundPropertyCanBeUndone: function() {
+    test12ChangesToCompoundPropertyCanBeUndone: function() {
         var app = this.proxyFor({});
         app.view = this.proxyFor({});
         app.view.color = 'red';
@@ -137,7 +146,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(app.view.color, 'red');
     },
-    test12PropertyCreationCanBeUndone: function() {
+    test13PropertyCreationCanBeUndone: function() {
         var obj = this.proxyFor({});
         
         this.commitVersion();
@@ -148,7 +157,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assert(obj.isPropertyDefined === undefined);
     },
-    test13UndoneChangesCanBeRedone: function() {
+    test14UndoneChangesCanBeRedone: function() {
         var address = this.proxyFor({});
         address.street = 'Meanstreet';
         address.city = 'Chicago';
@@ -160,7 +169,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(address.city, 'Chicago');
     },
-    test14UndonePropertyAdditionCanBeRedone: function() {
+    test15UndonePropertyAdditionCanBeRedone: function() {
         var address = this.proxyFor({});
         this.commitVersion();
         address.street = 'Meanstreet';

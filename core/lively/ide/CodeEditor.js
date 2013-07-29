@@ -1798,6 +1798,27 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     return true;
                 },
                 handlesCount: true
+            }, {
+                name: "toggleShowGutter",
+                exec: function(ed) { ed.$morph.setShowGutter(!ed.$morph.getShowGutter()); }
+            }, {
+                name: "toggleShowInvisibles",
+                exec: function(ed) { ed.$morph.setShowInvisibles(!ed.$morph.getShowInvisibles()); }
+            }, {
+                name: "toggleShowPrintMargin",
+                exec: function(ed) { ed.$morph.setShowPrintMargin(!ed.$morph.getShowPrintMargin()); }
+            }, {
+                name: "toggleShowIndents",
+                exec: function(ed) { ed.$morph.setShowIndents(!ed.$morph.getShowIndents()); }
+            }, {
+                name: "toggleShowActiveLine",
+                exec: function(ed) { ed.$morph.setShowActiveLine(!ed.$morph.getShowActiveLine()); }
+            }, {
+                name: "toggleSoftTabs",
+                exec: function(ed) { ed.$morph.setSoftTabs(!ed.$morph.getSoftTabs()); }
+            }, {
+                name: "toggleLineWrapping",
+                exec: function(ed) { ed.$morph.setLineWrapping(!ed.$morph.getLineWrappig()); }
             }]);
     },
 

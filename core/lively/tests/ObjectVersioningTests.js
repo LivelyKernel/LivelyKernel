@@ -105,6 +105,24 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assert(descendant.method(), 24);
     },
+    
+    test10ProxyHasCorrectProperties: function() {
+        var obj = this.proxyFor({});
+        obj.firstProperty = 'ein merkmal';
+        
+        this.assert('firstProperty' in obj);
+    },
+    test11ProxyHasCorrectOwnProperties: function() {
+        var proto = this.proxyFor({}),
+            descendant = this.proxyFor(Object.create(proto));
+            
+        proto.protoProp = 12;
+        descendant.ownProp = 24;
+        
+        this.assert(descendant.hasOwnProperty('ownProp'));
+        this.assert(!descendant.hasOwnProperty('protoProp'));
+    },
+    
     test10CommitedVersion: function() {
         var person, versionBefore;
         
@@ -121,6 +139,9 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         // currently:
         this.assertEquals(person.age, 25);
     },
+    
+    
+    
     test11ChangesAfterCommitCanBeUndone: function() {
         var app = this.proxyFor({});
         app.counter = 1;
@@ -183,11 +204,6 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         this.assertEquals(address.street, 'Meanstreet');
         this.assert(address.city === undefined);
     },
-    // testXYVersionedObjectHasItsProperties: function() {
-    //     var versionedObject = this.proxyFor({});
-    //     versionedObject.firstProperty = 'erstesMerkmal';
-    //     this.assertEquals(true, 'firstProperty' in versionedObject);
-    // }
 });
     
 });

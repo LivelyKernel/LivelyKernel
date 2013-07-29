@@ -40,8 +40,13 @@ Object.extend(lively.ObjectVersioning, {
     },
     versioningProxyHandler: function() {
         return {
-            // first parameter of >>set: and >>get: is the proxy's target
-            // but as these proxies are fully virtual, it's an empty object
+            // these proxies are fully virtual, so the first parameter to all 
+            // traps is an empty object and shouldn't be touched
+            
+            // === meta info ===
+            __objectID: '', // points via global object table to the target object
+            
+            // === traps ===
             set: function(virtualTarget, name, value, receiver) {
                 var targetObject,
                     newObject;
@@ -78,10 +83,21 @@ Object.extend(lively.ObjectVersioning, {
                 return targetObject[name]; 
             },
             apply: function(virtualTarget, thisArg, args) {
-                var method = lively.CurrentObjectTable[this.__objectID],
+                var method = this.targetObject(),
                 targetObject = lively.ObjectVersioning.getObjectForProxy(thisArg);
     
                 return method.apply(targetObject, args);
+            },
+            has: function(target, name) {
+                return name in this.targetObject();
+            },
+            hasOwn: function(target, name) {
+                return this.targetObject().hasOwnProperty(name);
+            },
+            
+            // === helpers ===
+            targetObject: function() {
+                return lively.CurrentObjectTable[this.__objectID];
             }
         };
     },

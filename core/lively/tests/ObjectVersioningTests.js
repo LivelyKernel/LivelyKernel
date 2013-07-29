@@ -9,18 +9,16 @@ TestCase.subclass('lively.tests.ObjectVersioning.ObjectVersioningTestCase',
     undo: lively.ObjectVersioning.undo.bind(lively.ObjectVersioning),
     redo: lively.ObjectVersioning.redo.bind(lively.ObjectVersioning),
     
-    assertEqualsInVersion: function(a, b, version) {
-        // TODO: no good idea how to do this, yet...
+    assertInVersion: function(func, version) {
+        var a, b,
+            previousVersion = lively.CurrentObjectTable;
         
-        // more specifically, no idea how parameters should be passed in a way
-        // that they can get be fully evaluated in the context of the previous version
+        lively.CurrentObjectTable = version;
         
-        // example: this.assertEqualsInVersion(person.age, 24, aVersion) in a way that both
-        // personProxy->person and ageProxy->age can be resolved using aVersion
+        this.assert(func.apply());
         
-        // then subclass this test case instead
+        lively.CurrentObjectTable = previousVersion;
     },
-    
 }
 );
 
@@ -98,7 +96,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         this.assert(obj.method(), 24);
     },
     test09CommitedVersionDoesntChange: function() {
-        var person, versionBefore, previousVersionOfPerson;
+        var person, versionBefore;
         
         person = this.proxyFor({});
         person.age = 23;
@@ -109,9 +107,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         person.age = 25;
         
         // in the previous version
-        // TODO: provide some way of this.assertEqualsInVersion(...)
-        previousVersionOfPerson = this. objectForProxy(person, versionBefore);
-        this.assertEquals(previousVersionOfPerson.age, 23);
+        this.assertInVersion(function() {return person.age === 23}, versionBefore);
         
         // currently
         this.assertEquals(person.age, 25);

@@ -131,7 +131,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         softTabs: Config.get('useSoftTabs'),
         autocompletion: Config.get('aceDefaultEnableAutocompletion')
     },
-    doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
+    doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
+    _aceInitialized: false,
     evalEnabled: true,
     isAceEditor: true,
     isCodeEditor: true,
@@ -209,9 +210,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'ace', {
 
     initializeAce: function(force) {
-        var initializedEarlier = !!this.aceEditor;
-        // 1) create ace editor object
+        var initializedEarlier = this._aceInitialized;
         if (initializedEarlier && !force) return;
+        // initialize pending...
+        if (initializedEarlier && !this.aceEditor) return;
+        // 1) create ace editor object
+        this._aceInitialized = true;
         var node = this.getShape().shapeNode,
             e = this.aceEditor || (this.aceEditor = ace.edit(node)),
             morph = this;

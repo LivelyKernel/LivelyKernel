@@ -122,6 +122,18 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         this.assert(descendant.hasOwnProperty('ownProp'));
         this.assert(!descendant.hasOwnProperty('protoProp'));
     },
+    test12GetOwnPropertyNames: function() {
+        var person = this.proxyFor({}),
+            student = this.proxyFor(Object.create(person));
+            
+        person.age = 21;
+        student.averageGrade = 2;
+        student.currentSemester = 3;
+        
+        this.assert(Object.getOwnPropertyNames(student).include('averageGrade'));
+        this.assert(Object.getOwnPropertyNames(student).include('currentSemester'));
+        this.assert(!Object.getOwnPropertyNames(student).include('age'));
+    },
     
     test10CommitedVersion: function() {
         var person, versionBefore;

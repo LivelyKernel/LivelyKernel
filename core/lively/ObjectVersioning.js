@@ -94,6 +94,9 @@ Object.extend(lively.ObjectVersioning, {
             hasOwn: function(target, name) {
                 return this.targetObject().hasOwnProperty(name);
             },
+            getOwnPropertyNames: function(target) {
+                return Object.getOwnPropertyNames(this.targetObject());
+            },
             
             // === helpers ===
             targetObject: function() {

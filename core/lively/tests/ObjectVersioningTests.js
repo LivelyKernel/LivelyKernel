@@ -24,7 +24,7 @@ TestCase.subclass('lively.tests.ObjectVersioning.ObjectVersioningTestCase',
 );
 
 lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
-'lively.tests.ObjectVersioningTests.VersioningTests',
+'lively.tests.ObjectVersioningTests.ProxyTests',
 'testing', {
     setUp: function() {
         // global reset on each test (for now)
@@ -105,7 +105,6 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assert(descendant.method(), 24);
     },
-    
     test10ProxyHasCorrectProperties: function() {
         var obj = this.proxyFor({});
         obj.firstProperty = 'ein merkmal';
@@ -120,7 +119,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         descendant.ownProp = 24;
         
         this.assert(descendant.hasOwnProperty('ownProp'));
-        this.assert(!descendant.hasOwnProperty('protoProp'));
+        this.assertEquals(descendant.hasOwnProperty('protoProp'), false);
     },
     test12GetOwnPropertyNames: function() {
         var person = this.proxyFor({}),
@@ -132,10 +131,51 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assert(Object.getOwnPropertyNames(student).include('averageGrade'));
         this.assert(Object.getOwnPropertyNames(student).include('currentSemester'));
-        this.assert(!Object.getOwnPropertyNames(student).include('age'));
+        this.assertEquals(Object.getOwnPropertyNames(student).include('age'), false);
     },
+    test13ProxiedObjectsCanBeFrozen: function() {
+        var obj = {},
+            proxy = this.proxyFor(obj);
+            
+        this.assertEquals(Object.isFrozen(proxy), false);
+                
+        Object.freeze(proxy);
+        
+        this.assert(Object.isFrozen(proxy));
+        this.assert(Object.isFrozen(obj));
+    },
+    test14ProxiedObjectsCanBeSealed: function() {
+        var obj = {},
+            proxy = this.proxyFor(obj);
+            
+        this.assertEquals(Object.isSealed(proxy), false);
+            
+        Object.seal(proxy);
+        
+        this.assert(Object.isSealed(proxy));
+        this.assert(Object.isSealed(obj));
+    },
+    test15ExtensionsToProxiedObjectsCanBePrevented: function() {
+        var obj = {},
+            proxy = this.proxyFor(obj);
+            
+        this.assert(Object.isExtensible(proxy));
+            
+        Object.preventExtensions(proxy);
+        
+        this.assertEquals(Object.isExtensible(proxy), false);
+        this.assertEquals(Object.isExtensible(obj), false);
+    },
+});
     
-    test10CommitedVersion: function() {
+lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
+'lively.tests.ObjectVersioningTests.VersionsTests',
+'testing', {
+    setUp: function() {
+        // global reset on each test (for now)
+        lively.ObjectVersioning.init();
+    },
+    test01CommitedVersion: function() {
         var person, versionBefore;
         
         person = this.proxyFor({});
@@ -151,10 +191,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         // currently:
         this.assertEquals(person.age, 25);
     },
-    
-    
-    
-    test11ChangesAfterCommitCanBeUndone: function() {
+    test02ChangesAfterCommitCanBeUndone: function() {
         var app = this.proxyFor({});
         app.counter = 1;
         
@@ -166,7 +203,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(app.counter, 1);
     },
-    test12ChangesToCompoundPropertyCanBeUndone: function() {
+    test03ChangesToCompoundPropertyCanBeUndone: function() {
         var app = this.proxyFor({});
         app.view = this.proxyFor({});
         app.view.color = 'red';
@@ -179,7 +216,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(app.view.color, 'red');
     },
-    test13PropertyCreationCanBeUndone: function() {
+    test04PropertyCreationCanBeUndone: function() {
         var obj = this.proxyFor({});
         
         this.commitVersion();
@@ -190,7 +227,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assert(obj.isPropertyDefined === undefined);
     },
-    test14UndoneChangesCanBeRedone: function() {
+    test05UndoneChangesCanBeRedone: function() {
         var address = this.proxyFor({});
         address.street = 'Meanstreet';
         address.city = 'Chicago';
@@ -202,7 +239,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         
         this.assertEquals(address.city, 'Chicago');
     },
-    test15UndonePropertyAdditionCanBeRedone: function() {
+    test06UndonePropertyAdditionCanBeRedone: function() {
         var address = this.proxyFor({});
         this.commitVersion();
         address.street = 'Meanstreet';
@@ -217,5 +254,5 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
         this.assert(address.city === undefined);
     },
 });
-    
+
 });

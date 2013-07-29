@@ -46,6 +46,11 @@ Object.extend(lively.ObjectVersioning, {
             // === meta info ===
             __objectID: '', // points via global object table to the target object
             
+            // === helpers ===
+            targetObject: function() {
+                return lively.CurrentObjectTable[this.__objectID];
+            },
+            
             // === traps ===
             set: function(virtualTarget, name, value, receiver) {
                 var targetObject,
@@ -88,20 +93,43 @@ Object.extend(lively.ObjectVersioning, {
     
                 return method.apply(targetObject, args);
             },
-            has: function(target, name) {
+            has: function(virtualTarget, name) {
                 return name in this.targetObject();
             },
-            hasOwn: function(target, name) {
+            hasOwn: function(virtualTarget, name) {
                 return this.targetObject().hasOwnProperty(name);
             },
-            getOwnPropertyNames: function(target) {
+            getOwnPropertyNames: function(virtualTarget) {
                 return Object.getOwnPropertyNames(this.targetObject());
             },
-            
-            // === helpers ===
-            targetObject: function() {
-                return lively.CurrentObjectTable[this.__objectID];
-            }
+            freeze: function(virtualTarget) {
+                // must freeze (virtual) target as well (required by the proxy specification)
+                Object.freeze(virtualTarget);
+                
+                return Object.freeze(this.targetObject());
+            },
+            isFrozen: function(virtualTarget) {
+                return Object.isFrozen(this.targetObject());
+            },
+            seal: function(virtualTarget) {
+                // must seal (virtual) target as well (required by the proxy specification)
+                Object.seal(virtualTarget);
+                
+                return Object.seal(this.targetObject());
+            },
+            isSealed: function(virtualTarget) {
+                return Object.isSealed(this.targetObject());
+            },
+            preventExtensions: function(virtualTarget) {
+                // must prevent extensions to the  (virtual) target as well 
+                // (required by the proxy specification)
+                Object.preventExtensions(virtualTarget);
+                
+                return Object.preventExtensions(this.targetObject());
+            },
+            isExtensible: function(virtualTarget) {
+                return Object.isExtensible(this.targetObject());
+            },
         };
     },
     commitVersion: function() {
@@ -114,6 +142,8 @@ Object.extend(lively.ObjectVersioning, {
         
         // freeze all objects as previous versions shouldn't change,
         // so objects need to be copied on (first) write
+        // however: using Object.freeze() for this has the drawback that frozen objects
+        // can be written again in the next version...
         nextVersion.forEach(function (ea) {
             Object.freeze(ea);
         })

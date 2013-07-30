@@ -40,6 +40,13 @@ Object.subclass('lively.persistence.SpecObject',
                 if (value.name) {
                     morphRef.name = value.name;
                     value = morphRef;
+                } else if (morph.submorphs.include(value)) {
+                    var idx = morph.submorphs.indexOf(value);
+                    morphRef.path = 'submorphs.' + idx;
+                    value = morphRef;
+                } else {
+                    console.warn('Cannot add morph ' + key + ' to buildspec');
+                    return;
                 }
             } else {
                 try { JSON.stringify(value); } catch(e) { value = Strings.print(value); }
@@ -169,8 +176,11 @@ Object.subclass('lively.persistence.SpecObject',
             // morphRef
             if (val && val.isMorphRef) {
                 val.name && options.morphRefRebuilders.push(function() {
-                    instance[key] = instance.get(val.name); })
-                return; }
+                    instance[key] = instance.get(val.name); });
+                val.path && options.morphRefRebuilders.push(function() {
+                    instance[key] = lively.PropertyPath(val.path).get(instance); });
+                return;
+            }
             if (!key.startsWith('_')) { instance[key] = val; return; }
             // normal attributes
             var setter = instance['set' + key.replace(/^_/, '').capitalize()];

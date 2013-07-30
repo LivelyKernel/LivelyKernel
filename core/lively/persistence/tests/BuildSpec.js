@@ -146,15 +146,24 @@ Functions.timeToRun(function() {
         this.assertEqualState(['abc', 'def'], recreated.getList());
     },
 
-    test13MorphRef: function() {
+    test13MorphRefWithName: function() {
         var m1 = lively.morphic.newMorph(), m2 = lively.morphic.newMorph();
         m1.name = 'BarMorph'; m2.name = 'FooMorph';
         m1.addMorph(m2);
-        m1.foo = m2;
-        m2.bar = m1;
+        m1.foo = m2; m2.bar = m1;
         var recreated = m1.buildSpec().createMorph();
         this.assertIdentity(recreated.foo, recreated.submorphs[0]);
         this.assertIdentity(recreated.foo.bar, recreated);
+    },
+
+    test14MorphRefWithId: function() {
+        var m1 = lively.morphic.newMorph(), m2 = lively.morphic.newMorph();
+        m1.addMorph(m2);
+        m1.foo = m2;
+        var spec = m1.buildSpec();
+        this.assertEqualState({isMorphRef: true, path: 'submorphs.0'}, spec.attributeStore.foo, 'buildspec');
+        var recreated = spec.createMorph();
+        this.assertIdentity(recreated.foo, recreated.submorphs[0], 'recreated');
     }
 
 });

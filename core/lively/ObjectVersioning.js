@@ -1,4 +1,4 @@
-module('lively.ObjectVersioning').requires().toRun(function() {
+module('lively.ObjectVersioning').requires('lively.ast.Parser').toRun(function() {
 
 Object.extend(lively.ObjectVersioning, {
     init: function() {
@@ -7,7 +7,7 @@ Object.extend(lively.ObjectVersioning, {
         
         lively.Versions.push(lively.CurrentObjectTable);
     },
-    addObject: function(target) {        
+    proxy: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 
         // but refer to it by __objectID
         var id, proxy, virtualTarget;
@@ -198,6 +198,21 @@ Object.extend(lively.ObjectVersioning, {
         }
         return lively.Versions[index];
     },
+    transformSource: function(source) {
+        var ast = lively.ast.Parser.parse(source);
+                
+        ast.replaceNodesMatching(
+            function(node) {
+                return node.isObjectLiteral || node.isArrayLiteral || node.isFunction;
+            },
+            function(node) {
+                var fn = new lively.ast.Variable(node.pos, "lively.ObjectVersioning.proxy");
+                return new lively.ast.Call(node.pos, fn, [node]);
+            }
+        );
+        
+        return ast.asJS();
+    }
 });
 
 lively.ObjectVersioning.init();

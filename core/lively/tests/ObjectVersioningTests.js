@@ -3,7 +3,7 @@ module('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'l
 TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTestCase', 
 'versioning testing', {
     // shortcuts
-    proxyFor: lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
+    proxyFor: lively.ObjectVersioning.proxy.bind(lively.ObjectVersioning),
     isProxy: lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning),
     objectForProxy: lively.ObjectVersioning.getObjectForProxy.bind(lively.ObjectVersioning),
     commitVersion: lively.ObjectVersioning.commitVersion.bind(lively.ObjectVersioning),
@@ -333,6 +333,33 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
     //     
     //     this.assertEquals(descendant.method(), 1);
     // },
+});
+
+TestCase.subclass('lively.tests.ObjectVersioningTests.SourceTransformationTests',
+'helpers',{
+    transform: function(source) {
+        return lively.ObjectVersioning.transformSource(source);
+    }
+},
+'testing',{
+   test01ObjectLiterals: function() {
+        var input = 'var obj = {}',
+            expectedOutput = 'var obj = lively.ObjectVersioning.proxy({})';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+   },
+   test02ArrayLiterals: function() {
+       var input = 'var arr = []',
+            expectedOutput = 'var arr = lively.ObjectVersioning.proxy([])';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+   },
+   test03FunctionLiteral: function() {
+       var input = 'var func = function() {\nreturn 12;\n}',
+            expectedOutput = 'var func = lively.ObjectVersioning.proxy(function() {\nreturn 12\n})';
+                
+        this.assertEquals(this.transform(input), expectedOutput);
+   }
 });
 
 });

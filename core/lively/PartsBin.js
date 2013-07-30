@@ -504,7 +504,11 @@ Object.subclass('lively.PartsBin.PartsSpace',
         names.forEach(function(name) { items[name] = this.createPartItemNamed(name) }, this);
         this.partItems = items;
     },
-    getName: function() { return this.name }
+    getName: function() {
+        var name = this.name;
+        if (name.startsWith('http')) name = new URL(name).pathname.replace(/^\/?/, '');
+        return name;
+    }
 },
 'loading', {
     load: function(async) {
@@ -579,9 +583,12 @@ Object.extend(lively.PartsBin, {
 
         return metainfosToRemove
     },
+    getLocalPartsBinURL: function(attribute) {
+        return URL.root.withFilename('PartsBin/');
+    },
     getPartsBinURLs: function() {
         // source URLs of all known PartsBins... a hack for now...
-        var localURL = URL.root.withFilename('PartsBin/'),
+        var localURL = this.getLocalPartsBinURL(),
             additionalURLs = [new URL('http://lively-web.org/PartsBin/')].reject(function(ea) { return ea.eq(localURL); })
         return [localURL].concat(additionalURLs);
     }

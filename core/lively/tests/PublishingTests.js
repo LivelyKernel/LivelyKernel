@@ -1,5 +1,20 @@
 module('lively.tests.PublishingTests').requires('lively.PartsTestFramework').toRun(function() {
 
+TestCase.subclass('lively.tests.PublishingTests.PartsBinLocation',
+"testing", {
+    testGetPartItemLocalAndRemote: function() {
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m1.getPartsBinMetaInfo().setPartsSpaceName('PartsBin/Foo');
+        var url = m1.getPartItem().getPartsSpace().getURL();
+        this.assertEquals(URL.root.withFilename('PartsBin/Foo/'), url);
+        m1.getPartsBinMetaInfo().setPartsSpaceName('http://foo.bar.com/PartsBin/Foo');
+        url = m1.getPartItem().getPartsSpace().getURL();
+        this.assertEquals(new URL('http://foo.bar.com/').withFilename('PartsBin/Foo/'), url);
+        // hack to make multiple partsbin urls work
+        this.assertEquals('PartsBin/Foo', m1.getPartItem().getPartsSpace().getName());
+    }
+});
+
 TestCase.subclass('lively.tests.PublishingTests.PublishingTests',
 'testing', {
 

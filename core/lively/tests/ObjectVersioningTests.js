@@ -181,6 +181,14 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
             
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
     },
+    test18ProxiedConstructorReturnsProxiedInstance: function() {
+        var NewType = function () {this.prop = 3},
+            ProxiedConstructor = this.proxyFor(NewType),
+            newInstance = new ProxiedConstructor();
+                
+        this.assert(this.isProxy(newInstance));
+        this.assertEquals(newInstance.prop, 3);
+    },
     
     // === PENDING ===
     // 

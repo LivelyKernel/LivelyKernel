@@ -98,6 +98,12 @@ Object.extend(lively.ObjectVersioning, {
     
                 return method.apply(targetObject, args);
             },
+            construct: function(virtualTarget, args) {
+                var OriginalContructor = this.targetObject(),
+                    newInstance = new OriginalContructor(args);
+                
+                return lively.ObjectVersioning.proxy(newInstance);
+            },
             has: function(virtualTarget, name) {
                 // proxy meta-information
                 if (name === '__objectID') {

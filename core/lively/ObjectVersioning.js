@@ -12,6 +12,10 @@ Object.extend(lively.ObjectVersioning, {
         // but refer to it by __objectID
         var id, proxy, virtualTarget;
         
+        if (this.isProxy(target)) {
+            throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
+        }
+        
         if (target !== Object(target)) {
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
         }
@@ -28,10 +32,11 @@ Object.extend(lively.ObjectVersioning, {
         return proxy;
     },
     isProxy: function(obj) {
-        return obj.__objectID !== undefined ? true : false;
+        return obj.hasOwnProperty('__objectID');
     },
     getObjectForProxy: function(proxy, optObjectTable) {
         var objectTable = optObjectTable || lively.CurrentObjectTable;
+        
         return objectTable[proxy.__objectID];
     },
     setObjectForProxy: function(target, proxy, optObjectTable) {
@@ -81,7 +86,7 @@ Object.extend(lively.ObjectVersioning, {
                 
                 // proxy meta-information
                 if (name === '__objectID') {
-                    return this[name];
+                    return this.__objectID;
                 }
                                                                 
                 targetObject = lively.ObjectVersioning.getObjectForProxy(receiver);                
@@ -94,9 +99,19 @@ Object.extend(lively.ObjectVersioning, {
                 return method.apply(targetObject, args);
             },
             has: function(virtualTarget, name) {
+                // proxy meta-information
+                if (name === '__objectID') {
+                    return true;
+                }
+                
                 return name in this.targetObject();
             },
             hasOwn: function(virtualTarget, name) {
+                // proxy meta-information
+                if (name === '__objectID') {
+                    return true;
+                }
+                
                 return this.targetObject().hasOwnProperty(name);
             },
             getOwnPropertyNames: function(virtualTarget) {

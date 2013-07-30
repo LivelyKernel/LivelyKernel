@@ -1,6 +1,6 @@
 module('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.ObjectVersioning').toRun(function() {
     
-TestCase.subclass('lively.tests.ObjectVersioning.ObjectVersioningTestCase', 
+TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTestCase', 
 'versioning testing', {
     // shortcuts
     proxyFor: lively.ObjectVersioning.addObject.bind(lively.ObjectVersioning),
@@ -23,7 +23,7 @@ TestCase.subclass('lively.tests.ObjectVersioning.ObjectVersioningTestCase',
 }
 );
 
-lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
+lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
 'lively.tests.ObjectVersioningTests.ProxyTests',
 'testing', {
     setUp: function() {
@@ -94,16 +94,17 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
                 
         this.assert(obj.method(), 24);
     },
-    test09PrototypeMethodApplication: function() {
+    test09MethodFromPrototypeIsAppliedCorrectly: function() {
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(Object.create(proto));
         
-        descendant.prop = 24;
+        proto.prop = 1;
+        descendant.prop = 2;
         proto.method = this.proxyFor(function(a) {
             return this.prop;
         });
         
-        this.assert(descendant.method(), 24);
+        this.assert(descendant.method(), 2);
     },
     test10ProxyHasCorrectProperties: function() {
         var obj = this.proxyFor({});
@@ -174,7 +175,7 @@ lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
     }
 });
     
-lively.tests.ObjectVersioning.ObjectVersioningTestCase.subclass(
+lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
 'lively.tests.ObjectVersioningTests.VersionsTests',
 'testing', {
     setUp: function() {

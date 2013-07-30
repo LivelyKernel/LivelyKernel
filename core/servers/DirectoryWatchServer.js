@@ -18,6 +18,7 @@ try {
 }
 
 var path = require("path");
+var url = require('url');
 var watchState = global.DirectoryWatchServerState || (global.DirectoryWatchServerState = {});
 
 function ignore(ignoredDirectories, f) {
@@ -91,7 +92,7 @@ function getWatchedFiles(dir, thenDo) {
 module.exports = function(route, app) {
 
     app.get(route + 'files', function(req, res) {
-        var dir = req.query.dir;
+        var query = url.parse(req.url, true).query, dir = query.dir;
         if (!dir) { res.status(400).json({error: 'No dir specified', files: []}).end(); return; }
         getWatchedFiles(dir, function(err, files, startTime) {
             if (err) res.status(500).json({error: String(err), files: files}).end();
@@ -100,9 +101,10 @@ module.exports = function(route, app) {
     });
 
     app.get(route + 'changes', function(req, res) {
-        var dir = req.query.dir,
-            since = Number(req.query.since),
-            startWatchTime = Number(req.query.startWatchTime);
+        var query = url.parse(req.url, true).query,
+            dir = query.dir,
+            since = Number(query.since),
+            startWatchTime = Number(query.startWatchTime);
         if (!dir) { res.status(400).end(); return; }
         getChangesSince(dir, since, startWatchTime, function(err, changes) {
             if (err) res.status(500).json({error: i(err)}).end();

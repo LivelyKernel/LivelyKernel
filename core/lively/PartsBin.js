@@ -578,6 +578,12 @@ Object.extend(lively.PartsBin, {
         })
 
         return metainfosToRemove
+    },
+    getPartsBinURLs: function() {
+        // source URLs of all known PartsBins... a hack for now...
+        var localURL = URL.root.withFilename('PartsBin/'),
+            additionalURLs = [new URL('http://lively-web.org/PartsBin/')].reject(function(ea) { return ea.eq(localURL); })
+        return [localURL].concat(additionalURLs);
     }
 });
 

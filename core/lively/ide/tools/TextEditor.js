@@ -1,5 +1,8 @@
 module('lively.ide.tools.TextEditor').requires('lively.persistence.BuildSpec').toRun(function() {
 
+// currently used for filesystem read/write
+module("lively.ide.CommandLineInterface").load();
+
 var defaultExtent = lively.Config.defaultTextEditorExtent,
     extent = pt(defaultExtent[0], defaultExtent[1]) || pt(500, 400);
 
@@ -177,14 +180,12 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         }
     },
     loadFileFileSystem: function loadFileFileSystem() {
-        var self = this, path = this.getLocation(true);
-        require("lively.ide.CommandLineInterface").toRun(function() {
-            lively.ide.CommandLineInterface.readFile(path, {}, function(cmd) {
-                var err = cmd.getCode() && cmd.getStderr();
-                if (err) { self.message(Strings.format("Could not read file.\nError: %s", err)); return; }
-                lively.bindings.signal(self, 'contentLoaded', cmd.getStdout());
-            });
-        });
+        var path = this.getLocation(true);
+        lively.ide.CommandLineInterface.readFile(path, {}, function(cmd) {
+            var err = cmd.getCode() && cmd.getStderr();
+            if (err) { this.message(Strings.format("Could not read file.\nError: %s", err)); return; }
+            lively.bindings.signal(this, 'contentLoaded', cmd.getStdout());
+        }.bind(this));
     },
     loadFileNetwork: function loadFileNetwork() {
         var webR = this.getWebResource();
@@ -201,14 +202,12 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     },
     saveFileFileSystem: function saveFileFileSystem() {
         var path = this.getLocation(true), content = this.get('editor').textString;
-        require("lively.ide.CommandLineInterface").toRun(function() {
-            lively.ide.CommandLineInterface.writeFile(path, {content: content}, function(cmd) {
-                var err = cmd.getCode() && cmd.getStderr();
-                if (err) { this.message(Strings.format("Could not write file.\nError: %s", err), Color.red); return; }
-                this.message("File saved successfully.", Color.green);
-                lively.bindings.signal(this, 'contentStored');
-            }.bind(this));
-        });
+        lively.ide.CommandLineInterface.writeFile(path, {content: content}, function(cmd) {
+            var err = cmd.getCode() && cmd.getStderr();
+            if (err) { this.message(Strings.format("Could not write file.\nError: %s", err), Color.red); return; }
+            this.message("File saved successfully.", Color.green);
+            lively.bindings.signal(this, 'contentStored');
+        }.bind(this));
     },
     saveFileNetwork: function saveFileNetwork() {
         var webR = this.getWebResource();

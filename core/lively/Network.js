@@ -224,6 +224,12 @@ Object.subclass('URL', {
             throw new Error('pathname differs in relativePathFrom ' + origin + ' vs ' + this);
         return relPath;
     },
+    saveRelativePathFrom: function(url) {
+        // if hostname of this and url is the same just return #relativePathFrom
+        // otherwise return the whole relative path of this
+        return this.hostname === url.hostname ? this.relativePathFrom(url) : this.pathname.replace(/^\/?/, '');
+    },
+
 
     svnWorkspacePath: function() {
         // heuristics to figure out the Subversion path

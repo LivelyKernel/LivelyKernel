@@ -69,7 +69,7 @@ Object.subclass('lively.PartsBin.PartItem',
     fetchLastModifiedDate: function() {
         // FIXME this should also consider the current rev of the part,
         // unfortunately it's hard to get it...
-        return this.getFileURL().asWebResource().head().lastModified;
+        return this.getFileURL().asWebResource().noProxy().head().lastModified;
     }
 
 },
@@ -186,9 +186,9 @@ Object.subclass('lively.PartsBin.PartItem',
 },
 'upload and download', {
     load: function(isAsync, rev) {
-        var webR = new WebResource(this.getFileURL()).forceUncached();
+        var webR = new WebResource(this.getFileURL()).noProxy().forceUncached();
         if (isAsync) webR.beAsync();
-        connect(webR, 'content', this, 'json', {updater: function($upd, json) {
+        lively.bindings.connect(webR, 'content', this, 'json', {updater: function($upd, json) {
             if (!this.sourceObj.status.isSuccess()) { $upd(null); return; }
             if (!this.sourceObj.status.isDone()) { return; }
             this.targetObj.lastModifiedDate = this.sourceObj.lastModified;
@@ -508,7 +508,7 @@ Object.subclass('lively.PartsBin.PartsSpace',
 },
 'loading', {
     load: function(async) {
-        var webR = new WebResource(this.getURL());
+        var webR = new WebResource(this.getURL()).noProxy();
         if (async) webR.beAsync();
         // ask for the files of a directory and update so that the partItems correspond to the files found
         connect(webR, 'subDocuments', this, 'setPartItemsFromURLList', {

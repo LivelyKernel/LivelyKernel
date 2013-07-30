@@ -32,6 +32,11 @@
 
 module('lively.Network').requires('lively.bindings', 'lively.Data', 'lively.net.WebSockets').toRun(function(thisModule) {
 
+(function saveNativeURLObject() {
+    if (Global.URL && !lively.Class.isClass(Global.URL)) {
+        Global._URL = Global.URL;
+    }
+})();
 Object.subclass('URL', {
     isURL: true,
     splitter: new RegExp('^(http|https|file)://([^/:]*)(:([0-9]+))?(/.*)?$'),
@@ -394,6 +399,11 @@ Object.extend(URL, {
 
 });
 
+(function setupNativeURLObject() {
+    Functions.own(Global._URL).forEach(function(name) { 
+        Global.URL[name] = Global._URL[name];
+    });
+})();
 Object.subclass('NetRequestStatus',
 'documentation', {
     documentation: "nice parsed status information, returned by NetRequest.getStatus when request done",

@@ -172,7 +172,46 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
             descendant = this.proxyFor(Object.create(proto));
             
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
-    }
+    },
+    
+    // === PENDING ===
+    // 
+    // TODO: __proto__ slot is not working with proxies correctly
+    //       see the following broken test case for details
+    // 
+    // test17ProxiesCanBePrototypes: function() {
+    //     var proto = {a:3},
+    //         protoProxy = this.proxyFor({a:3}),
+    //         descendantObj = Object.create(proto);
+    //     
+    //     this.assertEquals(descendantObj.__proto__ === proto);
+    //     this.assertEquals(descendantObj.__proto__ === protoProxy);
+    //     this.assert(this.isProxy(descendantObj.__proto__));
+    //     
+    //     // all of the above assertions currently fail, however, the following doesn't fail:
+    //     this.assertEquals(descendantObj.a, 3);
+    //     
+    //     // while __proto__ doesn't return the correct object it appears 
+    //     // proto lookup still works correctly... :-/
+    //     
+    //     // // normally, without proxies, the example would look like this
+    //     proto = {a:3};
+    //     descendantObj = Object.create(proto);
+    //     this.assertEquals(descendantObj.__proto__, proto); // correct assertion
+    // },
+    // test17PrototypeOfProxyCanBeChanged: function() {
+    //     var originalPrototype = this.proxyFor({}),
+    //         otherPrototype = this.proxyFor({}),
+    //         descendant = this.proxyFor(Object.create(originalPrototype));
+    //     
+    //     originalPrototype.method = this.proxyFor(function() {return 1});
+    //     otherPrototype.method = this.proxyFor(function() {return 2});
+    //                             
+    //     descendant.__proto__ = otherPrototype;
+    //     
+    //     // this.assertEquals(Object.getPrototypeOf(descendant), otherPrototype);
+    //     this.assertEquals(descendant.method(), 2);
+    // },
 });
     
 lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
@@ -260,6 +299,40 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assertEquals(address.street, 'Meanstreet');
         this.assert(address.city === undefined);
     },
+    
+    // === PENDING ===
+    // 
+    // TODO: first fix the pending __proto__ test cases of ProxyTests
+    //
+    // test07ChangingPrototypeUndone: function() {
+    //     var originalPrototype = this.proxyFor({}),
+    //         otherPrototype = this.proxyFor({}),
+    //         descendant = this.proxyFor(Object.create(originalPrototype));
+    //     
+    //     this.commitVersion();
+    //     
+    //     descendant.__proto__ = otherPrototype;
+    //     
+    //     this.undo();
+    //     
+    //     this.assertEquals(Object.getPrototypeOf(descendant), originalPrototype);
+    // },
+    // test08UndoingPrototypeChangeIsEffective: function() {
+    //     var originalPrototype = this.proxyFor({}),
+    //         otherPrototype = this.proxyFor({}),
+    //         descendant = this.proxyFor(Object.create(originalPrototype));
+    //     
+    //     originalPrototype.method = this.proxyFor(function() {return 1});
+    //     otherPrototype.method = this.proxyFor(function() {return 2});
+    //     
+    //     this.commitVersion();
+    //     
+    //     descendant.__proto__ = otherPrototype;
+    //             
+    //     this.undo();
+    //     
+    //     this.assertEquals(descendant.method(), 1);
+    // },
 });
 
 });

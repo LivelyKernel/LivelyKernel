@@ -482,11 +482,13 @@ Object.extend(lively.ide.CommandLineSearch, {
                           + "fi && ",
             excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
             searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : '-iname', pattern),
-            depth = options.hasOwnProperty('depth') ? ' -depth ' + options.depth : '',
+            depth = options.hasOwnProperty('depth') ? ' -maxdepth ' + options.depth : '',
             // use GMT for time settings by default so the result is comparable
             // also force US ordering of date/time elements, to help with the parsing
             commandString = timeFormatFix + Strings.format(
-                "env TZ=GMT LANG=en_US.UTF-8 find %s %s \\( %s \\) -prune -o %s %s -exec ls -ld \"$timeformat\" {} \\;",
+                "env TZ=GMT LANG=en_US.UTF-8 "
+              + "find %s %s \\( %s \\) -prune -o "
+              + "%s %s -exec ls -ld \"$timeformat\" {} \\;",
                 rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth);
         return commandString;
     },

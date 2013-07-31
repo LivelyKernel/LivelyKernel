@@ -1397,6 +1397,9 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         codeEditor.withAceDo(function(ed) {
             var kbd = ed.getKeyboardHandler();
             if (kbd.hasLivelyKeys) return;
+            // so that mutli key shortcuts can be transfered from the global
+            // key handler:
+            ed.keyBinding.$data.keyChain = "";
             self.setupEvalBindings(kbd);
             self.setupTextManipulationBindings(kbd);
             self.setupSelectionAndNavigationBindings(kbd);

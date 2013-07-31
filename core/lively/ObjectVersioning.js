@@ -59,14 +59,11 @@ Object.extend(lively.ObjectVersioning, {
             targetObject: function() {
                 return lively.CurrentObjectTable[this.__objectID];
             },
-            isPrimitiveObject: function(obj) {
-                return obj !== Object(obj);
-            },
             proxyNonPrimitiveObjects: function(obj) {
                 var result = obj;
                 
                 if (!lively.ObjectVersioning.isProxy(obj)) {
-                    if (!this.isPrimitiveObject(obj)) {
+                    if (!lively.ObjectVersioning.isPrimitiveObject(obj)) {
                         result = lively.ObjectVersioning.proxy(obj);
                     }
                 }
@@ -225,6 +222,9 @@ Object.extend(lively.ObjectVersioning, {
         }
         return lively.Versions[index];
     },
+    isPrimitiveObject: function(obj) {
+        return obj !== Object(obj);
+    },
     transformSource: function(source) {
         var ast = lively.ast.Parser.parse(source);
                 
@@ -239,9 +239,27 @@ Object.extend(lively.ObjectVersioning, {
         );
         
         return ast.asJS();
+    },
+    wrapEval: function() {
+        var originalEval = eval;
+        eval = function(code) {
+            var transformedCode = lively.ObjectVersioning.transformSource(code);
+            return originalEval(transformedCode);
+        }
+    },
+    wrapGlobalObjects: function() {
+        Properties.all(Global).forEach((function(ea) {
+            if (this.isProxy(Global[ea]) || this.isPrimitiveObject(Global[ea])) return;
+            
+            Global[ea] = this.proxy(Global[ea]);
+        }).bind(this));
+    },
+    start: function() {
+        this.init();
+        this.wrapEval();
+        this.wrapGlobalObjects();
     }
 });
-
 lively.ObjectVersioning.init();
 
 });

@@ -409,4 +409,23 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.SourceTransformationTests'
    }
 });
 
+lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
+'lively.tests.ObjectVersioningTests.GlobalActivationTests',
+'testing', {
+    test01WrappedEvalTest: function() {
+        var originalEval = eval;
+        
+        try {
+            lively.ObjectVersioning.wrapEval();
+            
+            this.assertEquals(eval('15 + 12'), 27);
+            this.assert(this.isProxy(eval('a = {}')));
+            
+        } finally {
+            eval = originalEval;
+        }
+        
+    }
+})
+
 });

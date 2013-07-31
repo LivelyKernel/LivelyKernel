@@ -1406,11 +1406,12 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPublishPartDialogFor: function(morph) {
-                var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
-        var metaInfo = morph.getPartsBinMetaInfo();
-        publishDialog.targetMorph.setTarget(morph);
+        module('lively.morphic.tools.PublishPartDialog').load(true);
+        var publishDialog = lively.BuildSpec('lively.morphic.tools.PublishPartDialog').createMorph(),
+            metaInfo = morph.getPartsBinMetaInfo();
         publishDialog.openInWorldCenter();
-        $world.publishPartDialog = publishDialog;
+        publishDialog.targetMorph.setTarget(morph);
+        this.publishPartDialog = publishDialog;
         return publishDialog;
     },
     openConnectDocumentation: function() {

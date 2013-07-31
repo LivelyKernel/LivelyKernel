@@ -24,15 +24,19 @@ Object.extend(lively.ObjectVersioning, {
         
         // only functions trap function application
         virtualTarget = Object.isFunction(target) ? function() {} : {};
-                
+        
         proxy = Proxy(virtualTarget, this.versioningProxyHandler());
         id = lively.CurrentObjectTable.length - 1;
-        
+                
         proxy.__objectID = id;
         return proxy;
     },
     isProxy: function(obj) {
-        return obj.hasOwnProperty('__objectID');
+        if (!obj) {
+            return false;
+        }
+        
+        return ({}).hasOwnProperty.call(obj, '__objectID');
     },
     getObjectForProxy: function(proxy, optObjectTable) {
         var objectTable = optObjectTable || lively.CurrentObjectTable;

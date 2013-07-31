@@ -1977,6 +1977,27 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             },
             multiSelectAction: 'forEach',
             handlesCount: true
+        }, {
+            name: 'browseURLOrPathInWebBrowser',
+            exec: function(ed, args) {
+                var col = ed.getCursorPosition().column,
+                    source = ed.$morph.getSelectionOrLineString(),
+                    urlRe = /(?:file|https?):\/\/[^\s]+/g,
+                    matches = Strings.reMatches(source, urlRe),
+                    browseThing = '';
+                if (matches.length > 0) {
+                    browseThing = (matches.detect(function(ea) {
+                        return ea.start <= col && col <= ea.end;
+                    }) || matches.first()).match;
+                } else {
+                    var start = Strings.peekLeft(source, col, ' ') || 0,
+                        end = Strings.peekRight(source, col, ' ') || source.length;
+                    browseThing = source.slice(start, end);
+                }
+                window.open(browseThing);
+            },
+            multiSelectAction: 'forEach',
+            handlesCount: true
         }]);
     },
 

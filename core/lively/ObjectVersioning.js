@@ -53,11 +53,25 @@ Object.extend(lively.ObjectVersioning, {
             // traps is an empty object and shouldn't be touched
             
             // === meta info ===
-            __objectID: '', // points via global object table to the target object
+            __objectID: null, // points via global object table to the target object
             
             // === helpers ===
             targetObject: function() {
                 return lively.CurrentObjectTable[this.__objectID];
+            },
+            isPrimitiveObject: function(obj) {
+                return obj !== Object(obj);
+            },
+            proxyNonPrimitiveObjects: function(obj) {
+                var result = obj;
+                
+                if (!lively.ObjectVersioning.isProxy(obj)) {
+                    if (!this.isPrimitiveObject(obj)) {
+                        result = lively.ObjectVersioning.proxy(obj);
+                    }
+                }
+                
+                return result;
             },
             
             // === traps ===
@@ -92,15 +106,18 @@ Object.extend(lively.ObjectVersioning, {
                 if (name === '__objectID') {
                     return this.__objectID;
                 }
-                                                                
+                
                 targetObject = lively.ObjectVersioning.getObjectForProxy(receiver);                
-                return targetObject[name]; 
+                result = targetObject[name];
+                return this.proxyNonPrimitiveObjects(result); 
             },
             apply: function(virtualTarget, thisArg, args) {
-                var method = this.targetObject(),
-                targetObject = lively.ObjectVersioning.getObjectForProxy(thisArg);
-    
-                return method.apply(targetObject, args);
+                var result,
+                    method = this.targetObject(),
+                    targetObject = lively.ObjectVersioning.getObjectForProxy(thisArg);
+                
+                result = method.apply(targetObject, args);
+                return this.proxyNonPrimitiveObjects(result);
             },
             construct: function(virtualTarget, args) {
                 var OriginalContructor = this.targetObject(),

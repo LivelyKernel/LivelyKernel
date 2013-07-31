@@ -5,18 +5,18 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
     className: "lively.morphic.Window",
     name: "PublishPartDialog",
     sourceModule: "lively.morphic.Widgets",
-    contentOffset: lively.pt(0.0,21.0),
+    contentOffset: lively.pt(3,22.0),
+    draggingEnabled: true,
     layout: {adjustForNewBounds: true},
     minExtent: lively.pt(479.0,437.0),
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
-        _Extent: lively.pt(479.0,415.0),
+        _Extent: lively.pt(473,411.0),
         _Fill: Color.rgb(243,243,243),
-        _Position: lively.pt(0.0,21.0),
+        _Position: lively.pt(3,23),
         className: "lively.morphic.Box",
         doNotCopyProperties: [],
         doNotSerialize: [],
-        droppingEnabled: true,
         layout: {
             adjustForNewBounds: true,
             resizeHeight: true,
@@ -35,7 +35,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _FontFamily: "Helvetica",
             _MaxTextWidth: 164,
             _MinTextWidth: 164,
-            _Position: lively.pt(10.0,78.0),
+            _Position: lively.pt(10.0,60),
             _WordBreak: "break-all",
             allowInput: true,
             className: "lively.morphic.Text",
@@ -70,7 +70,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _InputAllowed: true,
             _MaxTextWidth: 444,
             _MinTextWidth: 444,
-            _Position: lively.pt(10.0,275.0),
+            _Position: lively.pt(10.0,262),
             _WordBreak: "break-all",
             allowInput: true,
             className: "lively.morphic.Text",
@@ -99,7 +99,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _MaxTextWidth: 114,
             _MinTextWidth: 114,
             _Padding: lively.rect(5,5,0,0),
-            _Position: lively.pt(5.0,58.0),
+            _Position: lively.pt(5.0,40),
             className: "lively.morphic.Text",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -123,7 +123,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _MaxTextWidth: 250,
             _MinTextWidth: 250,
             _Padding: lively.rect(5,5,0,0),
-            _Position: lively.pt(5,255.0),
+            _Position: lively.pt(5,237),
             className: "lively.morphic.Text",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -143,7 +143,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _MaxTextWidth: 114,
             _MinTextWidth: 114,
             _Padding: lively.rect(5,5,0,0),
-            _Position: lively.pt(195.0,58.0),
+            _Position: lively.pt(195.0,40),
             className: "lively.morphic.Text",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -162,48 +162,11 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             submorphs: [],
             textString: "category"
         },{
-            _Extent: lively.pt(325.0,18.0),
-            _FontFamily: "Arial, sans-serif",
-            _FontSize: 10,
-            _MaxTextWidth: 325,
-            _MinTextWidth: 325,
-            _Padding: lively.rect(5,5,0,0),
-            _Position: lively.pt(10.0,5.0),
-            className: "lively.morphic.Text",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            emphasis: [[0,36,{
-                fontWeight: "normal",
-                italics: "normal"
-            }]],
-            fixedWidth: true,
-            name: "Text8",
-            sourceModule: "lively.morphic.TextCore",
-            submorphs: [],
-            textString: "Upload part to the shared repository"
-        },{
             _BorderColor: Color.rgb(214,214,214),
-            _BorderRadius: 5.2,
-            _BorderWidth: 1.1840000000000002,
+            _BorderRadius: 5,
+            _BorderWidth: 1,
             _Extent: lively.pt(101.0,21.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(355.0,382.0),
+            _Position: lively.pt(355.0,376),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -213,41 +176,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
                 moveHorizontal: true,
                 moveVertical: true
             },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             name: "Button",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             toggle: false,
@@ -260,24 +189,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _BorderRadius: 5.2,
             _BorderWidth: 1.1840000000000002,
             _Extent: lively.pt(101.0,21.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(245.0,382.0),
+            _Position: lively.pt(245.0,376),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -287,41 +199,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
                 moveHorizontal: true,
                 moveVertical: true
             },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             name: "Button1",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             toggle: false,
@@ -340,7 +218,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _InputAllowed: true,
             _MaxTextWidth: 445,
             _MinTextWidth: 445,
-            _Position: lively.pt(10.0,130.0),
+            _Position: lively.pt(10.0,112),
             _WordBreak: "break-all",
             allowInput: true,
             className: "lively.morphic.Text",
@@ -368,7 +246,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _MaxTextWidth: 250,
             _MinTextWidth: 250,
             _Padding: lively.rect(5,5,0,0),
-            _Position: lively.pt(5,110.0),
+            _Position: lively.pt(5,92),
             className: "lively.morphic.Text",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -386,24 +264,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _BorderRadius: 5.2,
             _BorderWidth: 1.1840000000000002,
             _Extent: lively.pt(150.0,21.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(10.0,382.0),
+            _Position: lively.pt(15.0,376),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -412,41 +273,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             layout: {
                 moveVertical: true
             },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             name: "DiffButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             toggle: false,
@@ -464,7 +291,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _FontFamily: "Helvetica",
             _MaxTextWidth: 250,
             _MinTextWidth: 250,
-            _Position: lively.pt(200.0,78.0),
+            _Position: lively.pt(200.0,60),
             _WordBreak: "break-all",
             allowInput: true,
             className: "lively.morphic.Text",
@@ -490,7 +317,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _Extent: lively.pt(389.0,23.0),
             _Fill: Color.rgb(243,243,243),
             _FontSize: 10,
-            _Position: lively.pt(71.0,32.5),
+            _Position: lively.pt(71.0,16),
             className: "lively.morphic.DropDownList",
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
@@ -511,7 +338,7 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _MaxTextWidth: 114,
             _MinTextWidth: 114,
             _Padding: lively.rect(5,5,0,0),
-            _Position: lively.pt(5,33.0),
+            _Position: lively.pt(5,15),
             className: "lively.morphic.Text",
             doNotSerialize: ["charsTyped"],
             emphasis: [[0,8,{

@@ -535,6 +535,37 @@ Global.Strings = {
 		}
 
 		return hex(md51(string));
-	}
+	},
+
+    reMatches: function(string, re) {
+        var matches = [];
+        string.replace(re, function(match, idx) {
+            matches.push({match: match, start: idx, end: idx + match.length}); });
+        return matches;
+    },
+
+    peekRight: function(string, start, needle) {
+        string = string.slice(start);
+        if (Object.isString(needle)) {
+            var idx = string.indexOf(needle);
+            return idx === -1 ? null : idx + start;
+        } else if (Object.isRegExp(needle)) {
+            var matches = this.reMatches(string, needle);
+            return matches[0] ? matches[0].start : null;
+        }
+        return null;
+    },
+
+    peekLeft: function(string, start, needle) {
+        string = string.slice(0, start);
+        if (Object.isString(needle)) {
+            var idx = string.lastIndexOf(needle);
+            return idx === -1 ? null : idx;
+        } else if (Object.isRegExp(needle)) {
+            var matches = this.reMatches(string, needle);
+            return matches.last() ? matches.last().start : null;
+        }
+        return null;
+    }
 
 };

@@ -1284,6 +1284,10 @@ lively.morphic.Text.addMethods(
             (self.inputAllowed() ? '[X]' : '[  ]') + ' input allowed',
             function() { self.setInputAllowed(!self.inputAllowed()); }
         ], [
+            (self.isInputLine ? '[X]' : '[  ]') + ' Return Key accepts value',
+            function() { self.beInputLine(!self.isInputLine);
+                        self.isInputLine = !self.isInputLine;}
+        ], [
             (self.evalEnabled ? '[X]' : '[  ]') + ' eval',
             function() { self.evalEnabled = !self.evalEnabled }
         ], [

@@ -68,8 +68,8 @@ var baseTests = [
     "lively.persistence.tests.PersistenceTests",
     "lively.persistence.tests.TraitPersistenceTests",
 
-    //bindings
-    "lively.bindings.tests.BindingTests"
+    // bindings
+    "lively.bindings.tests.BindingTests",
 ];
 
 var browserTests = [
@@ -129,7 +129,10 @@ var browserTests = [
     "cop.tests.LayerTests",
 
     // apps
-    "apps.tests.Handlebars"
+    "apps.tests.Handlebars",
+    
+    // object versioning
+    "lively.tests.ObjectVersioningTests"
 ];
 
 var testList = baseTests;

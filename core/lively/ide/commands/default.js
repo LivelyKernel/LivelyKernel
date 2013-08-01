@@ -377,7 +377,9 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.openBaseDirectoryChooser': {
         description: 'Open BaseDirectoryChooser',
         exec: function() {
-            lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser').createMorph().openInWorldCenter().comeForward();
+            require('lively.ide.tools.BaseDirectoryChooser').toRun(function() {
+                lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser').createMorph().openInWorldCenter().comeForward();
+            });
         }
     },
     'lively.ide.execShellCommand': {

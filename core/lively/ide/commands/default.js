@@ -374,6 +374,12 @@ Object.extend(lively.ide.commands.byName, {
                 [setBasePath]);
         }
     },
+    'lively.ide.CommandLineInterface.openBaseDirectoryChooser': {
+        description: 'Open BaseDirectoryChooser',
+        exec: function() {
+            lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser').createMorph().openInWorldCenter().comeForward();
+        }
+    },
     'lively.ide.execShellCommand': {
         description: 'execute shell command',
         exec: function(codeEditor, args) {

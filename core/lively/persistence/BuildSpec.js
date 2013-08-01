@@ -370,7 +370,39 @@ lively.morphic.Morph.addMethods(
         isInLayoutCycle: {exclude: true},
         modalMorph: {exclude: true},
         currentMenu: {exclude: true},
-        layout: {exlude: true}
+        layout: {
+            defaultValue: {},
+            getter: function(morph, val) {
+                // FIXME this code should go into the layouter!
+                var result = {};
+                if (!val) return result;
+                if (Object.isString(val)) { return val; }
+                    Properties.forEachOwn(val, function(name, prop) {
+                    if (name === "layouter" && prop.constructor) {
+                        result.type = prop.constructor.type;
+                        result.borderSize = prop.borderSize;
+                        result.spacing = prop.spacing;
+                        return;
+                    }
+                    result[name] = prop;
+                });
+                return result;
+            },
+            recreate: function(instance, spec) {
+                var layout = instance.layout = {};
+                if (!spec.layout) return;
+                var layouterKlassName = Object.isString(spec.layout) ? spec.layout : spec.layout.type;
+                if (layouterKlassName) {
+                    var layouterKlass = lively.lookup(layouterKlassName);
+                    layout.layouter = new layouterKlass();
+                    layout.layouter.spacing = spec.layout.spacing;
+                    layout.layouter.borderSize = spec.layout.borderSize;
+                }
+                var excludes = ['type', 'borderSize', 'spacing']
+                Properties.forEachOwn(spec.layout, function(name, prop) {
+                    if (!excludes.include(name)) layout[name] = prop; });
+            }
+        }
     },
 
     getBuildSpecProperties: function(rawProps) {

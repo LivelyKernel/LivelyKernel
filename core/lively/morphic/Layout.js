@@ -62,10 +62,7 @@ lively.morphic.Morph.addMethods(
     },
 
     getLayouter: function() {
-        if (!this.layout) {
-            return undefined;
-        }
-        return this.layout.layouter;
+        return this.layout ? this.layout.layouter: undefined;
     },
     getMinWidth: function() {
         if (!this.doesResize('width')) {

@@ -164,6 +164,17 @@ Functions.timeToRun(function() {
         this.assertEqualState({isMorphRef: true, path: 'submorphs.0'}, spec.attributeStore.foo, 'buildspec');
         var recreated = spec.createMorph();
         this.assertIdentity(recreated.foo, recreated.submorphs[0], 'recreated');
+    },
+
+    test15MorphWithLayout: function() {
+        var m = lively.morphic.newMorph(), l = new lively.morphic.Layout.TileLayout();
+        l.setContainer(m);
+        l.setSpacing(10);
+        var buildSpec = m.buildSpec();
+        this.assertMatches({type: "lively.morphic.Layout.TileLayout", spacing: 10}, buildSpec.attributeStore.layout);
+        var recreated = buildSpec.createMorph();
+        this.assertEquals("TileLayout", recreated.getLayouter().constructor.name);
+        this.assertEquals(10, recreated.getLayouter().spacing);
     }
 
 });

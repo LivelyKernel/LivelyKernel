@@ -426,6 +426,38 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.SourceTransformationTests'
             expectedOutput = 'var func = lively.ObjectVersioning.proxy(function() {\nreturn 12\n})';
                 
         this.assertEquals(this.transform(input), expectedOutput);
+   },
+   test04IndicatesFailureOnSyntaxError: function() {
+       var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
+       
+       this.assertRaises((function() {
+           this.transform(incorrectInput);
+        }).bind(this));
+   },
+   test05BiggerExample: function() {
+       var input = 
+"var joe = {    \
+    name: 'Joe', \
+    age: 25, \
+    address: { \
+        street: 'Mainstr. 20', \
+        zipCode: '12125' \
+    }, \
+    friends: [], \
+    becomeFriendsWith: function(otherPerson) { \
+        this.friends.push(otherPerson.name); \
+    }, \
+    isFriendOf: function(otherPerson) { \
+        return this.friends.include(otherPerson.name); \
+    } \
+}";
+    var expectedOutput = 'var joe = lively.ObjectVersioning.proxy({"name": "Joe","age": 25,"address": lively.ObjectVersioning.proxy({"street": "Mainstr. 20","zipCode": "12125"}),"friends": lively.ObjectVersioning.proxy([]),"becomeFriendsWith": lively.ObjectVersioning.proxy(function(otherPerson) {\n\
+this["friends"]["push"](otherPerson["name"])\n\
+}),"isFriendOf": lively.ObjectVersioning.proxy(function(otherPerson) {\n\
+return this["friends"]["include"](otherPerson["name"])\n\
+})})'
+
+    this.assertEquals(this.transform(input), expectedOutput);
    }
 });
 

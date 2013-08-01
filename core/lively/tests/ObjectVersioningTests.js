@@ -24,34 +24,53 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTestCase',
 );
 
 lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
-'lively.tests.ObjectVersioningTests.ProxyTests',
+'lively.tests.ObjectVersioningTests.ProxyObjectTests',
 'testing', {
     setUp: function() {
         // global reset on each test (for now)
         lively.ObjectVersioning.init();
     },
     test01ProxyCreation: function() {
-        var object = this.proxyFor({});
+        var proxy = this.proxyFor({});
         
-        this.assert(this.isProxy(object));
+        this.assert(this.isProxy(proxy));
+    },
+    test02ProxyResolvesToObjectViaObjectTable: function() {
+        var object = {},
+            proxy = this.proxyFor(object);
+        
+        this.assertEquals(this.objectForProxy(proxy), object);
     },
     test02ProxyRetrievesPrimitiveProperty: function() {
-        var person = this.proxyFor({});
-        person.age = 24;
+        var obj = {},
+            proxy = this.proxyFor(obj);
+            
+        obj.age = 24;
         
-        this.assertEquals(person.age, 24);
+        this.assertEquals(proxy.age, 24);
     },
-    test03ProxyRetrievesNonPrimitiveProperty: function() {
-        var person = this.proxyFor({});
-        person.address = this.proxyFor({
-            street: 'Friedrichstraße', 
-            number: '112b'
-        });
+    test03ProxyCanWritePrimitiveProperty: function() {
+        var obj = {},
+            proxy = this.proxyFor(obj);
+            
+        proxy.age = 24;
         
-        this.assertEquals(person.address.street, 'Friedrichstraße');
-        this.assertEquals(person.address.number, '112b');
+        this.assertEquals(obj.age, 24);
     },
-    test04ProxyIdentity: function() {
+    test04ProxyRetrievesNonPrimitiveProperty: function() {
+        var personProxy = this.proxyFor({age : 24}),
+            address = {
+                street: 'Friedrichstraße', 
+                number: '112b'
+            },
+            addressProxy = this.proxyFor(address);
+            
+        personProxy.address = addressProxy;
+        
+        this.assert(this.isProxy(personProxy.address));
+        this.assertEquals(this.objectForProxy(personProxy.address), address);
+    },
+    test05ProxiesGetPassedByReference: function() {
         var person = this.proxyFor({}),
             roomMate = this.proxyFor({});
         
@@ -62,21 +81,12 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         
         roomMate.address = person.address;
         
-        this.assert(this.isProxy(person.address));
-        this.assert(this.isProxy(roomMate.address));
-        this.assertEquals(person.address, roomMate.address);
+        this.assertIdentity(person.address, roomMate.address);
     },
-    test05ProxyReturnsUndefinedForUndefinedProperties: function() {
+    test06ProxiesReturnUndefinedForNotDefinedProperties: function() {
         var place = this.proxyFor({});
         
         this.assert(place.coordinates === undefined);
-    },
-    test06ProtoLookupWorksOnProxies: function() {
-        var proto = this.proxyFor({}),
-            descendant = this.proxyFor(Object.create(proto));
-        proto.prop = 15;
-        
-        this.assertEquals(descendant.prop, 15);
     },
     test07FunctionsCanBeProxied: function() {
         var func = this.proxyFor(function(a) {
@@ -93,46 +103,56 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assert(this.isProxy(arr));
         this.assert(this.isProxy(arr[0]));
     },
-    test09MethodApplicationWorksOnProxies: function() {
-        var obj = this.proxyFor({});
-        obj.prop = 24;
+    test09ProxiedMethodCanBeApplied: function() {
+        var obj = this.proxyFor({prop: 24});
+
         obj.method = this.proxyFor(function(a) {
             return this.prop;
         });
-                
+        
         this.assert(obj.method(), 24);
     },
-    test10MethodFromPrototypeIsAppliedCorrectly: function() {
+    test10ProtoLookupWorksOnProxies: function() {
+        var proto = this.proxyFor({}),
+            descendant = this.proxyFor(Object.create(proto));
+        proto.prop = 15;
+        
+        this.assertEquals(descendant.prop, 15);
+    },
+    test11MethodFromPrototypeIsAppliedCorrectly: function() {
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(Object.create(proto));
         
         proto.prop = 1;
-        descendant.prop = 2;
         proto.method = this.proxyFor(function(a) {
             return this.prop;
         });
         
+        this.assert(descendant.method(), 1);
+        
+        descendant.prop = 2;
         this.assert(descendant.method(), 2);
     },
-    test11ProxyReturnsProxiedObjects: function() {
+    test12ProxyReturnsProxiedObjects: function() {
         var obj = {prop: {}},
             proxy = this.proxyFor(obj);
             
         this.assert(this.isProxy(proxy.prop));
     },
-    test12MethodInvokationOnProxyReturnsProxy: function() {
+    test13MethodInvokationOnProxyReturnsProxy: function() {
         var ProxiedObject = this.proxyFor(Object),
             newObject = ProxiedObject.create({});
                         
         this.assert(this.isProxy(newObject));
     },
-    test13ProxyHasCorrectProperties: function() {
+    test14ProxyHasCorrectProperties: function() {
         var obj = this.proxyFor({});
         obj.firstProperty = 'ein merkmal';
         
         this.assert('firstProperty' in obj);
+        this.assertEquals(('undefinedProperty' in obj), false);
     },
-    test14ProxyHasCorrectOwnProperties: function() {
+    test15ProxyHasCorrectOwnProperties: function() {
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(Object.create(proto));
             
@@ -142,7 +162,7 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assert(descendant.hasOwnProperty('ownProp'));
         this.assertEquals(descendant.hasOwnProperty('protoProp'), false);
     },
-    test15GetOwnPropertyNames: function() {
+    test16GetOwnPropertyNames: function() {
         var person = this.proxyFor({}),
             student = this.proxyFor(Object.create(person));
             
@@ -154,7 +174,7 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assert(Object.getOwnPropertyNames(student).include('currentSemester'));
         this.assertEquals(Object.getOwnPropertyNames(student).include('age'), false);
     },
-    test16ProxiedObjectsCanBeFrozen: function() {
+    test17ProxiedObjectsCanBeFrozen: function() {
         var obj = {},
             proxy = this.proxyFor(obj);
             
@@ -165,7 +185,7 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assert(Object.isFrozen(proxy));
         this.assert(Object.isFrozen(obj));
     },
-    test17ProxiedObjectsCanBeSealed: function() {
+    test18ProxiedObjectsCanBeSealed: function() {
         var obj = {},
             proxy = this.proxyFor(obj);
             
@@ -176,7 +196,7 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assert(Object.isSealed(proxy));
         this.assert(Object.isSealed(obj));
     },
-    test18ExtensionsToProxiedObjectsCanBePrevented: function() {
+    test19ExtensionsToProxiedObjectsCanBePrevented: function() {
         var obj = {},
             proxy = this.proxyFor(obj);
             
@@ -187,13 +207,13 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assertEquals(Object.isExtensible(proxy), false);
         this.assertEquals(Object.isExtensible(obj), false);
     },
-    test19GetPrototypeOfProxy: function() {
+    test20GetPrototypeOfProxy: function() {
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(Object.create(proto));
             
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
     },
-    test20ProxiedConstructorReturnsProxiedInstance: function() {
+    test21ProxiedConstructorReturnsProxiedInstance: function() {
         var NewType = function () {this.prop = 3},
             ProxiedConstructor = this.proxyFor(NewType),
             newInstance = new ProxiedConstructor();

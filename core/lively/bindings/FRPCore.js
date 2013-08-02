@@ -188,7 +188,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         return this;
     },
     mapE: function(input, expression) {
-        this.expr([input], expression);
+        this.expr([input], function(x) {return expression.call(this.owner, x)});
         return this;
     },
     expr: function(arguments, expression, isContinuous, initialValue) {

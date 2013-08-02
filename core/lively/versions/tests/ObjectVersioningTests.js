@@ -422,27 +422,6 @@ lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
     //     this.assertEquals(descendant.method(), 1);
     // },
 });
-TestCase.subclass('IntegrationTestBenchmarks',
-'default category', {
-    transformAndRunJavaScriptFrom: function(url) {
-        var absoluteURL = URL.ensureAbsoluteURL(url),
-            source = JSLoader.getSync(absoluteURL),
-            transformedSource = lively.versions.ObjectVersioning.transformSource(source);
-
-        eval(transformedSource);
-    },
-    // benchmarks from http://github.com/v8/v8/, stripped v8's benchmarking
-    
-    // both don't work, yet... and debugging crashes Chrome's JS engine
-    
-    // test01RichardsBenchmark: function() {
-    //     this.transformAndRunJavaScriptFrom('core/lively/versions/tests/benchmarks/richards.js');
-    // },
-    // test02DeltaBlueBenchmark: function() {
-    //     this.transformAndRunJavaScriptFrom('core/lively/versions/tests/benchmarks/deltablue.js');
-    // }
-    
-});
 
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
 'helpers',{

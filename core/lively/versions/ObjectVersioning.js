@@ -1,6 +1,6 @@
-module('lively.ObjectVersioning').requires('lively.ast.Parser').toRun(function() {
+module('lively.versions.ObjectVersioning').requires('lively.ast.Parser').toRun(function() {
 
-Object.extend(lively.ObjectVersioning, {
+Object.extend(lively.versions.ObjectVersioning, {
     init: function() {
         lively.CurrentObjectTable = [];
         lively.Versions = []; // a linear history (for now)
@@ -62,9 +62,9 @@ Object.extend(lively.ObjectVersioning, {
             proxyNonPrimitiveObjects: function(obj) {
                 var result = obj;
                 
-                if (!lively.ObjectVersioning.isProxy(obj)) {
-                    if (!lively.ObjectVersioning.isPrimitiveObject(obj)) {
-                        result = lively.ObjectVersioning.proxy(obj);
+                if (!lively.versions.ObjectVersioning.isProxy(obj)) {
+                    if (!lively.versions.ObjectVersioning.isPrimitiveObject(obj)) {
+                        result = lively.versions.ObjectVersioning.proxy(obj);
                     }
                 }
                 
@@ -82,12 +82,12 @@ Object.extend(lively.ObjectVersioning, {
                     return true;
                 }
                                 
-                targetObject = lively.ObjectVersioning.getObjectForProxy(receiver);
+                targetObject = lively.versions.ObjectVersioning.getObjectForProxy(receiver);
                 
                 // copy-on-first-write when object is commited in previous version
                 if (Object.isFrozen(targetObject)) {
                     newObject = Object.clone(targetObject);
-                    lively.ObjectVersioning.setObjectForProxy(newObject, receiver);
+                    lively.versions.ObjectVersioning.setObjectForProxy(newObject, receiver);
                     targetObject = newObject;
                 }
                        
@@ -104,13 +104,13 @@ Object.extend(lively.ObjectVersioning, {
                     return this.__objectID;
                 }
                 
-                targetObject = lively.ObjectVersioning.getObjectForProxy(receiver);                
+                targetObject = lively.versions.ObjectVersioning.getObjectForProxy(receiver);                
                 result = targetObject[name];
                 return this.proxyNonPrimitiveObjects(result); 
             },
             apply: function(virtualTarget, thisArg, args) {
                 var result,
-                    OV = lively.ObjectVersioning,
+                    OV = lively.versions.ObjectVersioning,
                     method = this.targetObject(),
                     targetObject = OV.isProxy(thisArg) ? OV.getObjectForProxy(thisArg) : thisArg;
                 
@@ -121,7 +121,7 @@ Object.extend(lively.ObjectVersioning, {
                 var OriginalContructor = this.targetObject(),
                     newInstance = new OriginalContructor(args);
                 
-                return lively.ObjectVersioning.proxy(newInstance);
+                return lively.versions.ObjectVersioning.proxy(newInstance);
             },
             has: function(virtualTarget, name) {
                 // proxy meta-information
@@ -234,7 +234,7 @@ Object.extend(lively.ObjectVersioning, {
                 return node.isObjectLiteral || node.isArrayLiteral || node.isFunction;
             },
             function(node) {
-                var fn = new lively.ast.Variable(node.pos, "lively.ObjectVersioning.proxy");
+                var fn = new lively.ast.Variable(node.pos, "lively.versions.ObjectVersioning.proxy");
                 return new lively.ast.Call(node.pos, fn, [node]);
             }
         );
@@ -244,7 +244,7 @@ Object.extend(lively.ObjectVersioning, {
     wrapEval: function() {
         var originalEval = eval;
         eval = function(code) {
-            var transformedCode = lively.ObjectVersioning.transformSource(code);
+            var transformedCode = lively.versions.ObjectVersioning.transformSource(code);
             return originalEval(transformedCode);
         }
     },
@@ -261,6 +261,6 @@ Object.extend(lively.ObjectVersioning, {
         this.wrapGlobalObjects();
     }
 });
-lively.ObjectVersioning.init();
+lively.versions.ObjectVersioning.init();
 
 });

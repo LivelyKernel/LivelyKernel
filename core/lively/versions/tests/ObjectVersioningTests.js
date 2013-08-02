@@ -1,14 +1,14 @@
-module('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.ObjectVersioning').toRun(function() {
+module('lively.versions.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.versions.ObjectVersioning').toRun(function() {
     
-TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTest', 
+TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest', 
 'versioning testing', {
     // shortcuts
-    proxyFor: lively.ObjectVersioning.proxy.bind(lively.ObjectVersioning),
-    isProxy: lively.ObjectVersioning.isProxy.bind(lively.ObjectVersioning),
-    objectForProxy: lively.ObjectVersioning.getObjectForProxy.bind(lively.ObjectVersioning),
-    commitVersion: lively.ObjectVersioning.commitVersion.bind(lively.ObjectVersioning),
-    undo: lively.ObjectVersioning.undo.bind(lively.ObjectVersioning),
-    redo: lively.ObjectVersioning.redo.bind(lively.ObjectVersioning),
+    proxyFor: lively.versions.ObjectVersioning.proxy.bind(lively.versions.ObjectVersioning),
+    isProxy: lively.versions.ObjectVersioning.isProxy.bind(lively.versions.ObjectVersioning),
+    objectForProxy: lively.versions.ObjectVersioning.getObjectForProxy.bind(lively.versions.ObjectVersioning),
+    commitVersion: lively.versions.ObjectVersioning.commitVersion.bind(lively.versions.ObjectVersioning),
+    undo: lively.versions.ObjectVersioning.undo.bind(lively.versions.ObjectVersioning),
+    redo: lively.versions.ObjectVersioning.redo.bind(lively.versions.ObjectVersioning),
     
     assertInVersion: function(func, version) {
         var a, b,
@@ -23,12 +23,12 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTest',
 }
 );
 
-lively.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
-'lively.tests.ObjectVersioningTests.ProxyObjectTests',
+lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
+'lively.versions.tests.ObjectVersioningTests.ProxyObjectTests',
 'testing', {
     setUp: function() {
         // global reset on each test (for now)
-        lively.ObjectVersioning.init();
+        lively.versions.ObjectVersioning.init();
     },
     test01ProxyCreation: function() {
         var proxy = this.proxyFor({});
@@ -283,12 +283,12 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
     // },
 });
     
-lively.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
-'lively.tests.ObjectVersioningTests.VersionsTests',
+lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
+'lively.versions.tests.ObjectVersioningTests.VersionsTests',
 'testing', {
     setUp: function() {
         // global reset on each test (for now)
-        lively.ObjectVersioning.init();
+        lively.versions.ObjectVersioning.init();
     },
     test01CommitedVersion: function() {
         var person, versionBefore;
@@ -427,7 +427,7 @@ TestCase.subclass('IntegrationTestBenchmarks',
     transformAndRunJavaScriptFrom: function(url) {
         var absoluteURL = URL.ensureAbsoluteURL(url),
             source = JSLoader.getSync(absoluteURL),
-            transformedSource = lively.ObjectVersioning.transformSource(source);
+            transformedSource = lively.versions.ObjectVersioning.transformSource(source);
 
         eval(transformedSource);
     },
@@ -436,36 +436,36 @@ TestCase.subclass('IntegrationTestBenchmarks',
     // both don't work, yet... and debugging crashes Chrome's JS engine
     
     // test01RichardsBenchmark: function() {
-    //     this.transformAndRunJavaScriptFrom('core/lively/tests/benchmarks/richards.js');
+    //     this.transformAndRunJavaScriptFrom('core/lively/versions/tests/benchmarks/richards.js');
     // },
     // test02DeltaBlueBenchmark: function() {
-    //     this.transformAndRunJavaScriptFrom('core/lively/tests/benchmarks/deltablue.js');
+    //     this.transformAndRunJavaScriptFrom('core/lively/versions/tests/benchmarks/deltablue.js');
     // }
     
 });
 
-TestCase.subclass('lively.tests.ObjectVersioningTests.SourceTransformationTests',
+TestCase.subclass('lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
 'helpers',{
     transform: function(source) {
-        return lively.ObjectVersioning.transformSource(source);
+        return lively.versions.ObjectVersioning.transformSource(source);
     }
 },
 'testing',{
    test01ObjectLiterals: function() {
         var input = 'var obj = {}',
-            expectedOutput = 'var obj = lively.ObjectVersioning.proxy({})';
+            expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxy({})';
         
         this.assertEquals(this.transform(input), expectedOutput);
    },
    test02ArrayLiterals: function() {
        var input = 'var arr = []',
-            expectedOutput = 'var arr = lively.ObjectVersioning.proxy([])';
+            expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxy([])';
         
         this.assertEquals(this.transform(input), expectedOutput);
    },
    test03FunctionLiteral: function() {
        var input = 'var func = function() {\nreturn 12;\n}',
-            expectedOutput = 'var func = lively.ObjectVersioning.proxy(function() {\nreturn 12\n})';
+            expectedOutput = 'var func = lively.versions.ObjectVersioning.proxy(function() {\nreturn 12\n})';
                 
         this.assertEquals(this.transform(input), expectedOutput);
    },
@@ -493,9 +493,9 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.SourceTransformationTests'
         return this.friends.include(otherPerson.name); \
     } \
 }";
-    var expectedOutput = 'var joe = lively.ObjectVersioning.proxy({"name": "Joe","age": 25,"address": lively.ObjectVersioning.proxy({"street": "Mainstr. 20","zipCode": "12125"}),"friends": lively.ObjectVersioning.proxy([]),"becomeFriendsWith": lively.ObjectVersioning.proxy(function(otherPerson) {\n\
+    var expectedOutput = 'var joe = lively.versions.ObjectVersioning.proxy({"name": "Joe","age": 25,"address": lively.versions.ObjectVersioning.proxy({"street": "Mainstr. 20","zipCode": "12125"}),"friends": lively.versions.ObjectVersioning.proxy([]),"becomeFriendsWith": lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n\
 this["friends"]["push"](otherPerson["name"])\n\
-}),"isFriendOf": lively.ObjectVersioning.proxy(function(otherPerson) {\n\
+}),"isFriendOf": lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n\
 return this["friends"]["include"](otherPerson["name"])\n\
 })})'
 
@@ -503,14 +503,14 @@ return this["friends"]["include"](otherPerson["name"])\n\
    }
 });
 
-lively.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
-'lively.tests.ObjectVersioningTests.GlobalActivationTests',
+lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
+'lively.versions.tests.ObjectVersioningTests.GlobalActivationTests',
 'testing', {
     test01WrappedEvalTest: function() {
         var originalEval = eval;
         
         try {
-            lively.ObjectVersioning.wrapEval();
+            lively.versions.ObjectVersioning.wrapEval();
             
             this.assertEquals(eval('15 + 12'), 27);
             this.assert(this.isProxy(eval('a = {}')));

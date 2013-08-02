@@ -112,6 +112,11 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         
         this.assert(obj.method(), 24);
     },
+    test10ProxiedAnonymousFunctionCanBeApplied: function() {
+        var func = this.proxyFor(function() {return 123});
+        
+        this.assertEquals(func(), 123);
+    },
     test10ProtoLookupWorksOnProxies: function() {
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(Object.create(proto));

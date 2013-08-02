@@ -110,8 +110,9 @@ Object.extend(lively.ObjectVersioning, {
             },
             apply: function(virtualTarget, thisArg, args) {
                 var result,
+                    OV = lively.ObjectVersioning,
                     method = this.targetObject(),
-                    targetObject = lively.ObjectVersioning.getObjectForProxy(thisArg);
+                    targetObject = OV.isProxy(thisArg) ? OV.getObjectForProxy(thisArg) : thisArg;
                 
                 result = method.apply(targetObject, args);
                 return this.proxyNonPrimitiveObjects(result);

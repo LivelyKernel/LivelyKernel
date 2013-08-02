@@ -221,6 +221,22 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
         this.assert(this.isProxy(newInstance));
         this.assertEquals(newInstance.prop, 3);
     },
+    test22MethodCanBeAddedToPrototypeOfConstructor: function() {
+        var instance,
+            NewType = this.proxyFor(function() {
+                this.prop = 12;
+            });
+        
+        NewType.prototype.getProp = this.proxyFor(function() {
+            return this.prop;
+        });
+        
+        instance = new NewType();
+        
+            
+        this.assert(this.isProxy(instance.getProp));
+        this.assertEquals(instance.getProp(), 12);
+    },
     
     // === PENDING ===
     // 

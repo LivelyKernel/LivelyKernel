@@ -1,4 +1,6 @@
-module('lively.versions.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.versions.ObjectVersioning').toRun(function() {
+module('lively.versions.tests.ObjectVersioningTests').
+requires('lively.TestFramework', 'lively.versions.ObjectVersioning').
+toRun(function() {
     
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest', 
 'versioning testing', {
@@ -481,24 +483,5 @@ return this["friends"]["include"](otherPerson["name"])\n\
     this.assertEquals(this.transform(input), expectedOutput);
    }
 });
-
-lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
-'lively.versions.tests.ObjectVersioningTests.GlobalActivationTests',
-'testing', {
-    test01WrappedEvalTest: function() {
-        var originalEval = eval;
-        
-        try {
-            lively.versions.ObjectVersioning.wrapEval();
-            
-            this.assertEquals(eval('15 + 12'), 27);
-            this.assert(this.isProxy(eval('a = {}')));
-            
-        } finally {
-            eval = originalEval;
-        }
-        
-    }
-})
 
 });

@@ -1,6 +1,6 @@
 module('lively.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.ObjectVersioning').toRun(function() {
     
-TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTestCase', 
+TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTest', 
 'versioning testing', {
     // shortcuts
     proxyFor: lively.ObjectVersioning.proxy.bind(lively.ObjectVersioning),
@@ -23,7 +23,7 @@ TestCase.subclass('lively.tests.ObjectVersioningTests.ObjectVersioningTestCase',
 }
 );
 
-lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
+lively.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
 'lively.tests.ObjectVersioningTests.ProxyObjectTests',
 'testing', {
     setUp: function() {
@@ -283,7 +283,7 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
     // },
 });
     
-lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
+lively.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
 'lively.tests.ObjectVersioningTests.VersionsTests',
 'testing', {
     setUp: function() {
@@ -422,6 +422,27 @@ lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
     //     this.assertEquals(descendant.method(), 1);
     // },
 });
+TestCase.subclass('IntegrationTestBenchmarks',
+'default category', {
+    transformAndRunJavaScriptFrom: function(url) {
+        var absoluteURL = URL.ensureAbsoluteURL(url),
+            source = JSLoader.getSync(absoluteURL),
+            transformedSource = lively.ObjectVersioning.transformSource(source);
+
+        eval(transformedSource);
+    },
+    // benchmarks from http://github.com/v8/v8/, stripped v8's benchmarking
+    
+    // both don't work, yet... and debugging crashes Chrome's JS engine
+    
+    // test01RichardsBenchmark: function() {
+    //     this.transformAndRunJavaScriptFrom('core/lively/tests/benchmarks/richards.js');
+    // },
+    // test02DeltaBlueBenchmark: function() {
+    //     this.transformAndRunJavaScriptFrom('core/lively/tests/benchmarks/deltablue.js');
+    // }
+    
+});
 
 TestCase.subclass('lively.tests.ObjectVersioningTests.SourceTransformationTests',
 'helpers',{
@@ -482,7 +503,7 @@ return this["friends"]["include"](otherPerson["name"])\n\
    }
 });
 
-lively.tests.ObjectVersioningTests.ObjectVersioningTestCase.subclass(
+lively.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
 'lively.tests.ObjectVersioningTests.GlobalActivationTests',
 'testing', {
     test01WrappedEvalTest: function() {

@@ -544,6 +544,12 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         this.changedExternally = false;
         return this;
     },
+    setSyncWithRealTime: function(aBoolean) {
+        this.syncWithRealTime = aBoolean;
+        if (aBoolean) {
+            this.currentTime = this.object.__startTime;
+        }
+    },
     onstore: function() {
         this.reset();
     },

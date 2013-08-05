@@ -107,7 +107,7 @@ module.exports = function(route, app, subserver) {
     app.get(route + 'read', function(req, res) {
         // get log starting from lastReadIndex. If log is longer
         // than length then only get the tail of the log fitting length
-        var length = Number(req.query.length) || 1024,
+        var length = req.query.length ? Number(req.query.length) : null/*1024*/,
             index = Number(req.query.lastReadIndex) || 0,
             type = req.query.type || 'stdout', result;
         try {

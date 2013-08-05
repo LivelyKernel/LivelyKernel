@@ -619,6 +619,9 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
             var ed = target.world().addCodeEditor({content: target.asJQuery().text(), gutter: false, textMode: 'text'});
             ed.owner.align(ed.owner.bounds().center(), target.globalBounds().center());
         }]);
+        items.push(['open in web page', function() {
+            window.open('data:text/html;charset=utf-8,' + encodeURIComponent(target.getHTML()));
+        }]);
         return items;
     },
 });

@@ -37,26 +37,28 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
 },
 'morphic switcher', {
     startWindowSelection: function() {
-        var winMgr = this,
-            windows = this.getWindows().reverse(),
-            topMostWin = windows[0],
+        var winMgr = this, windows = this.getWindows().reverse(), topMostWin = windows[0],
             firstIsActive = lively.morphic.Morph.focusedMorph().ownerChain().include(topMostWin);
-        lively.ide.tools.SelectionNarrowing.getNarrower({
+        function windowList() {
+            return winMgr.getWindows().reverse().map(function(ea, i) {
+                return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; })
+        }
+        var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
             name: 'lively.ide.WindowNavigation.NarrowingList',
             setup: function(narrower) {
-                lively.bindings.connect(narrower, 'confirmedSelection', winMgr, 'makeWindowActive');
                 lively.bindings.connect(narrower, 'selection', winMgr, 'showWindow');
-                lively.bindings.connect(narrower, 'confirmedSelection', winMgr, 'resetList', {converter: function() { return this.sourceObj; }});
                 lively.bindings.connect(narrower, 'escapePressed', winMgr, 'resetListAndRevertActiveWindow');
             },
             spec: {
                 prompt: "select window: ",
                 preselect: firstIsActive ? 1 : 0,
                 maxItems: 20,
-                candidates: windows.map(function(ea, i) {
-                    return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; })
+                candidates: windowList(),
+                actions: [
+                    {name: 'come forward', exec: function(candidate) { winMgr.makeWindowActive(candidate); winMgr.resetList(narrower); }},
+                    {name: 'close', exec: function(candidate) { candidate.initiateShutdown(); narrower.state.allCandidates = windowList(); narrower.filter(narrower.getInput()); }}]
             }
-        })
+        });
         return this;
     }
 

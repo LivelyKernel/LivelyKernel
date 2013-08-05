@@ -182,7 +182,6 @@ Scheduler.prototype.addTask = function (id, priority, queue, task) {
 Scheduler.prototype.schedule = function () {
   this.currentTcb = this.list;
   while (this.currentTcb != null) {
-      debugger;
     if (this.currentTcb.isHeldOrSuspended()) {
       this.currentTcb = this.currentTcb.link;
     } else {

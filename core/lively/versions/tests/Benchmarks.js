@@ -4,27 +4,51 @@ toRun(function() {
     
 // some benchmarks from http://github.com/v8/v8/
 
-// don't work, yet... and debugging crashes Chrome's JS engine
-
-TestCase.subclass('lively.versions.tests.Benchmarks.V8Benchmarks',
+TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
+'initializing',{
+    initialize: function($super, testResult, optTestSelector) {
+        $super(testResult, optTestSelector);
+        if (this.benchmarkURL) {
+            this.benchmarkSources = JSLoader.getSync(this.benchmarkURL);
+            this.transformedSources = this.transformSource(this.benchmarkSources);
+        }
+    }, 
+}, 
 'helper', {
-    transformAndRunJavaScriptFrom: function(url) {
-        var absoluteURL = URL.ensureAbsoluteURL(url),
-            source = JSLoader.getSync(absoluteURL),
-            transformedSource = lively.versions.ObjectVersioning.transformSource(source);
-
-        eval(transformedSource);
+    transformSource: function(source) {
+        return lively.versions.ObjectVersioning.transformSource(source);
     },
     dir: function() {
         return 'core/lively/versions/tests/benchmarkLibs/';
     },
 },
-'testing', {
-    test01RichardsBenchmark: function() {
-        this.transformAndRunJavaScriptFrom(this.dir() + 'richards.js');
+'benchmarking', {
+    setUp: function() {
+        this.startTime = (new Date()).getTime();
     },
-    test02DeltaBlueBenchmark: function() {
-        this.transformAndRunJavaScriptFrom(this.dir() + 'deltablue.js');
+    tearDown: function() {
+        this.result.setTimeToRun(this.fullTestName(), (new Date()).getTime() - this.startTime);
+    },
+    fullTestName: function() {
+        return this.name() + ' : ' + this.currentSelector;
+    },
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8Richards', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkURL = URL.ensureAbsoluteURL(this.dir() + 'richards.js');
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        this.transformSource(this.benchmarkSources);
+    },
+    test02aBenchmarkExecution:function() {
+        eval(this.transformedSources);
+    },
+    test02bNoProxyReferenceExecution: function() {
+        eval(this.benchmarkSources);
     }
 });
 

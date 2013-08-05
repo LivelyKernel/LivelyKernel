@@ -119,7 +119,17 @@ Object.extend(lively.versions.ObjectVersioning, {
             },
             construct: function(virtualTarget, args) {
                 var OriginalContructor = this.targetObject(),
-                    newInstance = new OriginalContructor(args);
+                    newInstance;
+                    
+                // workaround as it's not possible to supply a variable
+                // number of arguments to a constructor, an alternative
+                // to this approach is constructing the constructor call
+                // in a string and to pass that call to eval()
+                function ConstructorWrapper() {
+                    return OriginalContructor.apply(this, args);
+                }
+                ConstructorWrapper.prototype = OriginalContructor.prototype;
+                newInstance = new ConstructorWrapper();
                 
                 return lively.versions.ObjectVersioning.proxy(newInstance);
             },

@@ -235,12 +235,16 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
     },
     test21ProxiedConstructorReturnsProxiedInstance: function() {
-        var NewType = function () {this.prop = 3},
-            ProxiedConstructor = this.proxyFor(NewType),
-            newInstance = new ProxiedConstructor();
+        var PersonType = function (name, age) {
+                this.name = name;
+                this.age = age;
+            },
+            ProxiedConstructor = this.proxyFor(PersonType),
+            aPerson = new ProxiedConstructor('Joe', '19');
                 
-        this.assert(this.isProxy(newInstance));
-        this.assertEquals(newInstance.prop, 3);
+        this.assert(this.isProxy(aPerson));
+        this.assertEquals(aPerson.name, 'Joe');
+        this.assertEquals(aPerson.age, 19);
     },
     test22MethodCanBeAddedToPrototypeOfConstructor: function() {
         var instance,

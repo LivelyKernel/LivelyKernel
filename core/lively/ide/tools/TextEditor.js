@@ -12,6 +12,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     contentOffset: lively.pt(4.0,22.0),
     state: "expanded",
     draggingEnabled: true,
+    layout: {adjustForNewBounds: true},
     submorphs: [{
         _BorderWidth: 1,
         _Position: lively.pt(4.0,22.0),
@@ -29,7 +30,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.BuildSpec('lively.ide.tools.CommandLine').customize({
             _Extent: extent.withY(18),
             clearOnInput: false,
-            name: 'urlText'
+            name: 'urlText',
+            layout: {resizeWidth: true},
         }), {
             className: "lively.morphic.Button",
             name: 'saveButton',

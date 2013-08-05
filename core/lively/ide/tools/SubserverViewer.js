@@ -1,68 +1,45 @@
 module('lively.ide.tools.SubserverViewer').requires('lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.SubserverViewer', {
-    LK2: true,
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(788.8,391.0),
     className: "lively.morphic.Window",
-    collapsedExtent: null,
-    collapsedTransform: null,
     contentOffset: lively.pt(4.0,22.0),
-    doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
     draggingEnabled: true,
     droppingEnabled: false,
-    expandedExtent: null,
-    expandedTransform: null,
-    highlighted: false,
-    ignoreEventsOnExpand: false,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: {adjustForNewBounds: true},
     name: "SubserverViewer",
-    sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _BorderWidth: 1,
         _Extent: lively.pt(780.8,365.0),
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(4.0,22.0),
-        _StyleClassNames: ["Morph","Box","SubserverViewer"],
+        _StyleClassNames: ["SubserverViewer"],
         _StyleSheet: ".SubserverViewer .StatusText {\n\
         font-size: 8px;\n\
     }",
         className: "lively.morphic.Box",
-        doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
         grabbingEnabled: false,
-        layout: {
-            adjustForNewBounds: true,
-            resizeHeight: true,
-            resizeWidth: true
-        },
+        layout: {adjustForNewBounds: true,resizeHeight: true,resizeWidth: true},
         name: "SubserverViewer",
-        nodejsURL: URL.create("http://localhost:9001/nodejs/"),
+        doNotSerialize: ["nodejsURL", "subserverURL"],
         sourceModule: "lively.morphic.Core",
         submorphs: [{
             _BorderColor: Color.rgb(221,221,221),
             _BorderStyle: "inset",
-            _BorderWidth: 1.278,
+            _BorderWidth: 1,
             _ClipMode: "auto",
             _Extent: lively.pt(161.6,331.3),
             _Fill: Color.rgb(243,243,243),
             _FontFamily: "Helvetica",
             _FontSize: 10,
             _Position: lively.pt(7.7,5.8),
-            _StyleClassNames: ["Morph","Box","List","ServerList"],
+            _StyleClassNames: ["ServerList"],
             className: "lively.morphic.List",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             itemList: [],
-            layout: {
-                resizeHeight: true,
-                resizeWidth: false
-            },
+            layout: {resizeHeight: true,resizeWidth: false},
             name: "ServerList",
-            sourceModule: "lively.morphic.Core",
-            submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "selection", this.get("SubserverViewer"), "subserverSelected", {});
         }
@@ -72,19 +49,15 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _FontFamily: "Arial, sans-serif",
             _HandStyle: null,
             _InputAllowed: true,
-            _MaxTextWidth: 120.695652,
-            _MinTextWidth: 120.695652,
+            _MaxTextWidth: 120,
+            _MinTextWidth: 120,
             _Position: lively.pt(173.5,342.0),
-            _StyleClassNames: ["Morph","Text","StatusText"],
+            _StyleClassNames: ["StatusText"],
             _TextColor: Color.rgb(64,64,64),
             _WordBreak: "break-all",
             allowInput: true,
             className: "lively.morphic.Text",
             doNotSerialize: ["charsTyped"],
-            emphasis: [[0,0,{
-                fontWeight: "normal",
-                italics: "normal"
-            }]],
             fixedHeight: true,
             fixedWidth: true,
             layout: {
@@ -93,7 +66,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             },
             name: "StatusText",
             sourceModule: "lively.morphic.TextCore",
-            submorphs: []
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
@@ -101,49 +73,27 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _Extent: lively.pt(23.0,19.0),
             _Position: lively.pt(8.8,339.7),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             isPressed: false,
             label: "⟳",
-            layout: {
-                moveVertical: true
-            },
+            layout: {moveVertical: true},
             name: "UpdateButton",
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this, "doAction", {});
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "listSubservers", {});
         },
-            doAction: function doAction() {
-        
-                }
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(23.0,19.0),
             _Position: lively.pt(33.8,339.7),
-            addSubserver: false,
             className: "lively.morphic.Button",
-            doAction: false,
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            isPressed: false,
             label: "+",
-            layout: {
-                moveVertical: true
-            },
+            layout: {moveVertical: true},
             name: "AddSubserverButton",
             removeSubserver: false,
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this, "doAction", {});
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "addSubserver", {});
         }
         },{
@@ -153,40 +103,20 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             _Extent: lively.pt(23.0,19.0),
             _Position: lively.pt(59.1,339.6),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             isPressed: false,
             label: "-",
-            layout: {
-                moveVertical: true
-            },
+            layout: {moveVertical: true},
             name: "RemoveSubserverButton",
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this, "doAction", {});
-            lively.bindings.connect(this, "fire", this.get("AddSubserverButton"), "removeSubserver", {});
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "removeSubserver", {});
         },
-            doAction: function doAction() {
-        
-                }
         },{
-            _AutocompletionEnabled: true,
             _BorderColor: Color.rgb(95,94,95),
             _BorderWidth: 1,
             _Extent: lively.pt(603.0,331.0),
             _FontSize: 12,
-            _LineWrapping: false,
             _Position: lively.pt(173.0,5.0),
-            _ShowActiveLine: false,
-            _ShowGutter: true,
-            _ShowIndents: true,
-            _ShowInvisibles: false,
-            _ShowPrintMargin: false,
-            _SoftTabs: true,
             _StyleSheet: "#ace-editor {\n\
             position: absolute;\n\
         	top: 0;\n\
@@ -194,14 +124,10 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
         	left: 0;\n\
         	right: 0;\n\
         }",
-            _TextMode: "javascript",
-            _Theme: "twilight",
             accessibleInInactiveWindow: true,
             allowInput: true,
             className: "lively.morphic.CodeEditor",
-            doNotCopyProperties: [],
             doNotSerialize: ["whenOpenedInWorldCallbacks"],
-            hasRobertsKeys: true,
             layout: {
                 resizeHeight: true,
                 resizeWidth: true
@@ -210,7 +136,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             sourceModule: "lively.ide.CodeEditor",
             storedString: "",
             storedTextString: "",
-            submorphs: [],
             textMode: "javascript",
             theme: "twilight",
             boundEval: function boundEval(string) {
@@ -235,7 +160,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             className: "lively.morphic.Button",
             label: "open log",
             name: "openServerLogButton",
-            sourceModule: "lively.morphic.Widgets",
+            layout: {moveVertical: true},
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this, "doAction", {});
         },
@@ -243,7 +168,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); });
         }
         }],
-        subserverURL: URL.create("http://localhost:9001/nodejs/subservers/"),
         addSubserver: function addSubserver() {
             this.world().prompt(
                 'Please enter a server name',
@@ -356,7 +280,22 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
                 alertOK('Server ' + serverName + ' updated');
                 return true;
             }
-        }
+        },
+
+        onKeyDown: function onKeyDown(evt) {
+            var keys = evt.getKeyString();
+            if (keys === "F1") {
+                this.get("ServerList").focus();
+                evt.stop(); return true;
+            } else if (keys === "F2") {
+                this.get("ServerSourceCode").focus();
+                evt.stop(); return true;
+            } else if (keys === "Backspace" && this.get("ServerList").isFocused()) {
+                this.removeSubserver();
+                evt.stop(); return true;
+            }
+            return false;
+        },
     }],
     titleBar: "SubserverViewer",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {

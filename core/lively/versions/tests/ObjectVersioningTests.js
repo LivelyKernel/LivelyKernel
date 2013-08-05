@@ -2,16 +2,31 @@ module('lively.versions.tests.ObjectVersioningTests').
 requires('lively.TestFramework', 'lively.versions.ObjectVersioning').
 toRun(function() {
     
-TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest', 
-'versioning testing', {
-    // shortcuts
-    proxyFor: lively.versions.ObjectVersioning.proxy.bind(lively.versions.ObjectVersioning),
-    isProxy: lively.versions.ObjectVersioning.isProxy.bind(lively.versions.ObjectVersioning),
-    objectForProxy: lively.versions.ObjectVersioning.getObjectForProxy.bind(lively.versions.ObjectVersioning),
-    commitVersion: lively.versions.ObjectVersioning.commitVersion.bind(lively.versions.ObjectVersioning),
-    undo: lively.versions.ObjectVersioning.undo.bind(lively.versions.ObjectVersioning),
-    redo: lively.versions.ObjectVersioning.redo.bind(lively.versions.ObjectVersioning),
-    
+TestCase.subclass('lively.versions.tests.TestCase', 
+'versioning shortcuts', {
+    proxyFor: function(target) {
+        return lively.versions.ObjectVersioning.proxy(target);
+    },
+    isProxy: function(obj) {
+        return lively.versions.ObjectVersioning.isProxy(obj);
+    },
+    objectForProxy: function(proxy) {
+        return lively.versions.ObjectVersioning.getObjectForProxy(proxy);
+    },
+    commitVersion: function() {
+        return lively.versions.ObjectVersioning.commitVersion();
+    },
+    undo: function() {
+        lively.versions.ObjectVersioning.undo();
+    },
+    redo: function() {
+        lively.versions.ObjectVersioning.redo();
+    },
+    transform: function(source) {
+        return lively.versions.ObjectVersioning.transformSource(source);
+    },
+}, 
+'testing', {
     assertInVersion: function(func, version) {
         var a, b,
             previousVersion = lively.CurrentObjectTable;
@@ -22,10 +37,9 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ObjectVersioningT
         
         lively.CurrentObjectTable = previousVersion;
     },
-}
-);
+});
 
-lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
+lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.ProxyObjectTests',
 'testing', {
     setUp: function() {
@@ -285,7 +299,7 @@ lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
     // },
 });
     
-lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
+lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.VersionsTests',
 'testing', {
     setUp: function() {
@@ -425,12 +439,8 @@ lively.versions.tests.ObjectVersioningTests.ObjectVersioningTest.subclass(
     // },
 });
 
-TestCase.subclass('lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
-'helpers',{
-    transform: function(source) {
-        return lively.versions.ObjectVersioning.transformSource(source);
-    }
-},
+lively.versions.tests.TestCase.subclass(
+'lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
 'testing',{
    test01ObjectLiterals: function() {
         var input = 'var obj = {}',

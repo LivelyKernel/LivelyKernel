@@ -1,5 +1,5 @@
 module('lively.versions.tests.Benchmarks').
-requires('lively.TestFramework','lively.versions.ObjectVersioning').
+requires('lively.TestFramework', 'lively.versions.ObjectVersioning').
 toRun(function() {
     
 // some benchmarks from http://github.com/v8/v8/

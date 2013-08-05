@@ -232,6 +232,12 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             this.get('urlText').focus(); evt.stop(); return true;
         } else if (keys === 'F2') {
             this.get('editor').focus(); evt.stop(); return true;
+        } else if (keys === "Command-U") {
+            $world.confirm('Revert input / reload file?', function(input) {
+                if (!input) { alertOK('Rever canceled'); return; }
+                this.loadFile();
+            }.bind(this));
+            return true;
         }
         return $super(evt);
     }

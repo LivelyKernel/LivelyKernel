@@ -122,6 +122,8 @@ var sessionActions = {
 
 }
 
+var services = require("./LivelyServices").services;
+util._extend(services, sessionActions);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // SessionTracker
@@ -165,7 +167,7 @@ function SessionTracker(options) {
 
     this.getActions = function(informFunc) {
         var sessionTracker = this;
-        return Object.keys(sessionActions).reduce(function(actions, name) {
+        return Object.keys(services).reduce(function(actions, name) {
             if (informFunc) {
                 actions[name] = function(con, msg) { informFunc(sessionTracker, con, msg); sessionActions[name](sessionTracker, con, msg) };
             } else {
@@ -229,7 +231,7 @@ function SessionTracker(options) {
             inResponseTo: msg.messageId,
             data: {error: 'cannot dispatch message'},
             target: msg.sender,
-            messageId: response.messageId
+            messageId: 'tracker-msg:'+uuid()
         });
     }
 

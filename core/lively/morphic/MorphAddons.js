@@ -833,7 +833,11 @@ lively.morphic.World.addMethods(
         var msgMorph = lively.newMorph({extent: options.extent || pt(200, 68)});
         msgMorph.isEpiMorph = true;
         msgMorph.openInWorld()
-        msgMorph.applyStyle({adjustForNewBounds: true, clipMode: 'hidden', enableGrabbing: false, enableDragging: true});
+        msgMorph.applyStyle({
+            adjustForNewBounds: true, clipMode: 'hidden',
+            enableGrabbing: false, enableDragging: true, enableDropping: false,
+            zIndex: 999});
+        Trait('lively.morphic.DragMoveTrait').applyTo(msgMorph, {override: ['onDrag','onDragStart', 'onDragEnd']});
         msgMorph.name = 'messageMorph'
         msgMorph.addStyleClassName(msgMorph.name);
 
@@ -844,7 +848,7 @@ lively.morphic.World.addMethods(
             fixedWidth: true, fixedHeight: true,
             resizeWidth: true, resizeHeight: true,
             allowInput: false,
-            clipMode: 'visible'
+            clipMode: 'visible', whiteSpaceHandling: 'pre'
         });
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -879,7 +883,6 @@ lively.morphic.World.addMethods(
                 textMsg.setExtent(extent);
                 textMsg.align(textMsg.bounds().center(), this.innerBounds().center());
             }).bind(this).delay(0);
-
         });
 
         msgMorph.addScript(function onDoubleClick(evt) {
@@ -889,14 +892,14 @@ lively.morphic.World.addMethods(
             this.addStyleClassName('maximized');
             this.stayOpen = true;
             world.statusMessages.remove(this);
-            var self = this,
-                text = this.get('messageText');
+            var self = this, text = this.get('messageText');
             text.applyStyle({allowInput: true, fixedWidth: false });
             text.fit();
             (function() {
                 var ext = text.getTextExtent().addXY(20,20),
                     visibleBounds = world.visibleBounds();
                 if (ext.y > visibleBounds.extent().y) ext.y = visibleBounds.extent().y - 20;
+                if (ext.x > visibleBounds.extent().x) ext.x = visibleBounds.extent().x - 20;
                 ext = self.getExtent().maxPt(ext);
                 self.setExtent(ext);
                 self.align(self.bounds().center(), visibleBounds.center());

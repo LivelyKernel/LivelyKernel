@@ -112,4 +112,10 @@ module.exports = function(route, app) {
         });
     });
 
+    app.post(route + 'reset', function(req, res) {
+        Object.keys(global.DirectoryWatchServerState).forEach(function(name) {
+            delete global.DirectoryWatchServerState[name]; });
+        res.json({message: 'OK'}).end();
+    });
+
 }

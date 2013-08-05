@@ -7,6 +7,12 @@ Object.extend(lively.ide.DirectoryWatcher, {
 
     dirs: {},
 
+    reset: function() {
+        // lively.ide.DirectoryWatcher.reset()
+        this.dirs = {};
+        this.watchServerURL.withFilename('reset').asWebResource().post();
+    },
+
     request: function(url, thenDo) {
         return url.asWebResource().beAsync().withJSONWhenDone(function(json, status) {
             thenDo(!json || json.error, json); }).get();

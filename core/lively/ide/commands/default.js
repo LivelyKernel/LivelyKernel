@@ -245,6 +245,15 @@ Object.extend(lively.ide.commands.byName, {
                     });
                 });
             }
+            var actions = [
+                {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
+                {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
+                {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
+                {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
+            if (lively.ide.CommandLineInterface.rootDirectory) {
+                // SCB is currently only supported for Lively files
+                actions.shift();
+            }
             var dir, candidates = [], spec = {
                 name: 'lively.ide.browseFiles.NarrowingList',
                 spec: {
@@ -252,10 +261,7 @@ Object.extend(lively.ide.commands.byName, {
                     prompt: 'filename: ',
                     init: update.curry(candidates),
                     keepInputOnReactivate: true,
-                    actions: [
-                        {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
-                        {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
-                        {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }}]
+                    actions: actions
                 }
             }, narrower = lively.ide.tools.SelectionNarrowing.getNarrower(spec);
             return true;

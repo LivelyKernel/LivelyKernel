@@ -7,9 +7,16 @@ var spawn = require('child_process').spawn,
 
 // [{process: null, stdout: '', stderr: '', lastExitCode: null}]
 var shellCommands = global.shellCommands = [];
+var env = {
+    __proto__: process.env,
+    SHELL: '/bin/bash',
+    PAGER:'ul | cat -s',
+    MANPAGER:'ul | cat -s',
+    TERM:"xterm"
+}
 
 function startSpawn(cmdInstructions) {
-    var options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
+    var options = {env: env, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
         command = cmdInstructions.command, args = [],
         stdin = cmdInstructions.stdin;
     if (typeof command === 'string') {
@@ -37,7 +44,7 @@ function startSpawn(cmdInstructions) {
 function startExec(cmdInstructions) {
     var cmd = cmdInstructions.command,
         callback = cmdInstructions.callback,
-        options = {cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
+        options = {env: env, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', cmd);
     return exec(cmd, options, function(code, out, err) {
         callback && callback(code, out, err);
@@ -100,7 +107,7 @@ module.exports = function(route, app) {
             var pid = cmd.process.pid;
             pids.push(pid);
             console.log('Killing CommandLineServer command process with pid ' + pid);
-            cmd.process && cmd.process.kill('SIGKILL');
+            cmd.process && cmd.process.kill();
         });
         res.end(JSON.stringify({message: 'processes with pids ' + pids + ' killed'}));
     });

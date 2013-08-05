@@ -168,8 +168,7 @@ function exportAce(ns) {
 exportAce(ACE_NAMESPACE);
 
 })();
-
-ace.define('ace/lively', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/dom', 'ace/lib/event', 'ace/editor', 'ace/edit_session', 'ace/undomanager', 'ace/virtual_renderer', 'ace/multi_select', 'ace/single_line_edit', 'ace/worker/worker_client', 'ace/keyboard/hash_handler', 'ace/placeholder', 'ace/mode/folding/fold_mode', 'ace/theme/textmate', 'ace/snippets', 'ace/ext/language_tools', 'ace/config'], function(require, exports, module) {
+ace.define('ace/lively', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/dom', 'ace/lib/event', 'ace/editor', 'ace/edit_session', 'ace/undomanager', 'ace/virtual_renderer', 'ace/multi_select', 'ace/single_line_edit', 'ace/keyboard/hash_handler', 'ace/placeholder', 'ace/mode/folding/fold_mode', 'ace/theme/textmate', 'ace/snippets', 'ace/ext/language_tools', 'ace/config', 'ace/worker/worker_client'], function(require, exports, module) {
 
 
 require("./lib/fixoldbrowsers");
@@ -183,7 +182,6 @@ var UndoManager = require("./undomanager").UndoManager;
 var Renderer = require("./virtual_renderer").VirtualRenderer;
 var MultiSelect = require("./multi_select").MultiSelect;
 var singleLineEdit = require("./single_line_edit").singleLineEdit;
-var workerModule = require("./worker/worker_client");
 require("./keyboard/hash_handler");
 require("./placeholder");
 require("./mode/folding/fold_mode");
@@ -7246,6 +7244,7 @@ var Selection = function(session) {
 }).call(Selection.prototype);
 
 exports.Selection = Selection;
+
 });
 
 ace.define('ace/range', ['require', 'exports', 'module' ], function(require, exports, module) {
@@ -15381,198 +15380,6 @@ function singleLineEdit(el) {
 exports.singleLineEdit = singleLineEdit;
 
 });
-
-ace.define('ace/worker/worker_client', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event_emitter', 'ace/config'], function(require, exports, module) {
-
-
-var oop = require("../lib/oop");
-var EventEmitter = require("../lib/event_emitter").EventEmitter;
-var config = require("../config");
-
-var WorkerClient = function(topLevelNamespaces, mod, classname) {
-    this.$sendDeltaQueue = this.$sendDeltaQueue.bind(this);
-    this.changeListener = this.changeListener.bind(this);
-    this.onMessage = this.onMessage.bind(this);
-    this.onError = this.onError.bind(this);
-    if (require.nameToUrl && !require.toUrl)
-        require.toUrl = require.nameToUrl;
-
-    var workerUrl;
-    if (config.get("packaged") || !require.toUrl) {
-        workerUrl = config.moduleUrl(mod, "worker");
-    } else {
-        var normalizePath = this.$normalizePath;
-        workerUrl = normalizePath(require.toUrl("ace/worker/worker.js", null, "_"));
-
-        var tlns = {};
-        topLevelNamespaces.forEach(function(ns) {
-            tlns[ns] = normalizePath(require.toUrl(ns, null, "_").replace(/(\.js)?(\?.*)?$/, ""));
-        });
-    }
-
-    this.$worker = new Worker(workerUrl);
-    this.$worker.postMessage({
-        init : true,
-        tlns: tlns,
-        module: mod,
-        classname: classname
-    });
-
-    this.callbackId = 1;
-    this.callbacks = {};
-
-    this.$worker.onerror = this.onError;
-    this.$worker.onmessage = this.onMessage;
-};
-
-(function(){
-
-    oop.implement(this, EventEmitter);
-
-    this.onError = function(e) {
-        window.console && console.log && console.log(e);
-        throw e;
-    };
-
-    this.onMessage = function(e) {
-        var msg = e.data;
-        switch(msg.type) {
-            case "log":
-                window.console && console.log && console.log.apply(console, msg.data);
-                break;
-
-            case "event":
-                this._emit(msg.name, {data: msg.data});
-                break;
-
-            case "call":
-                var callback = this.callbacks[msg.id];
-                if (callback) {
-                    callback(msg.data);
-                    delete this.callbacks[msg.id];
-                }
-                break;
-        }
-    };
-
-    this.$normalizePath = function(path) {
-        if (!location.host) // needed for file:// protocol
-            return path;
-        path = path.replace(/^[a-z]+:\/\/[^\/]+/, ""); // Remove domain name and rebuild it
-        path = location.protocol + "//" + location.host
-            + (path.charAt(0) == "/" ? "" : location.pathname.replace(/\/[^\/]*$/, ""))
-            + "/" + path.replace(/^[\/]+/, "");
-        return path;
-    };
-
-    this.terminate = function() {
-        this._emit("terminate", {});
-        this.deltaQueue = null;
-        this.$worker.terminate();
-        this.$worker = null;
-        this.$doc.removeEventListener("change", this.changeListener);
-        this.$doc = null;
-    };
-
-    this.send = function(cmd, args) {
-        this.$worker.postMessage({command: cmd, args: args});
-    };
-
-    this.call = function(cmd, args, callback) {
-        if (callback) {
-            var id = this.callbackId++;
-            this.callbacks[id] = callback;
-            args.push(id);
-        }
-        this.send(cmd, args);
-    };
-
-    this.emit = function(event, data) {
-        try {
-            this.$worker.postMessage({event: event, data: {data: data.data}});
-        }
-        catch(ex) {}
-    };
-
-    this.attachToDocument = function(doc) {
-        if(this.$doc)
-            this.terminate();
-
-        this.$doc = doc;
-        this.call("setValue", [doc.getValue()]);
-        doc.on("change", this.changeListener);
-    };
-
-    this.changeListener = function(e) {
-        if (!this.deltaQueue) {
-            this.deltaQueue = [e.data];
-            setTimeout(this.$sendDeltaQueue, 1);
-        } else
-            this.deltaQueue.push(e.data);
-    };
-
-    this.$sendDeltaQueue = function() {
-        var q = this.deltaQueue;
-        if (!q) return;
-        this.deltaQueue = null;
-        if (q.length > 20 && q.length > this.$doc.getLength() >> 1) {
-            this.call("setValue", [this.$doc.getValue()]);
-        } else
-            this.emit("change", {data: q});
-    }
-
-}).call(WorkerClient.prototype);
-
-
-var UIWorkerClient = function(topLevelNamespaces, mod, classname) {
-    this.$sendDeltaQueue = this.$sendDeltaQueue.bind(this);
-    this.changeListener = this.changeListener.bind(this);
-    this.callbackId = 1;
-    this.callbacks = {};
-    this.messageBuffer = [];
-
-    var main = null;
-    var sender = Object.create(EventEmitter);
-    var _self = this;
-
-    this.$worker = {};
-    this.$worker.terminate = function() {};
-    this.$worker.postMessage = function(e) {
-        _self.messageBuffer.push(e);
-        main && setTimeout(processNext);
-    };
-
-    var processNext = function() {
-        var msg = _self.messageBuffer.shift();
-        if (msg.command)
-            main[msg.command].apply(main, msg.args);
-        else if (msg.event)
-            sender._emit(msg.event, msg.data);
-    };
-
-    sender.postMessage = function(msg) {
-        _self.onMessage({data: msg});
-    };
-    sender.callback = function(data, callbackId) {
-        this.postMessage({type: "call", id: callbackId, data: data});
-    };
-    sender.emit = function(name, data) {
-        this.postMessage({type: "event", name: name, data: data});
-    };
-
-    config.loadModule(["worker", mod], function(Main) {
-        main = new Main[classname](sender);
-        while (_self.messageBuffer.length)
-            processNext();
-    });
-};
-
-UIWorkerClient.prototype = WorkerClient.prototype;
-
-exports.UIWorkerClient = UIWorkerClient;
-exports.WorkerClient = WorkerClient;
-
-});
 ace.define('ace/placeholder', ['require', 'exports', 'module' , 'ace/range', 'ace/lib/event_emitter', 'ace/lib/oop'], function(require, exports, module) {
 
 
@@ -17361,7 +17168,200 @@ ace.define('ace/autocomplete/text_completer', ['require', 'exports', 'module' , 
             };
         }));
     };
-});;
+});
+
+ace.define('ace/worker/worker_client', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event_emitter', 'ace/config'], function(require, exports, module) {
+
+
+var oop = require("../lib/oop");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
+var config = require("../config");
+
+var WorkerClient = function(topLevelNamespaces, mod, classname) {
+    this.$sendDeltaQueue = this.$sendDeltaQueue.bind(this);
+    this.changeListener = this.changeListener.bind(this);
+    this.onMessage = this.onMessage.bind(this);
+    this.onError = this.onError.bind(this);
+    if (require.nameToUrl && !require.toUrl)
+        require.toUrl = require.nameToUrl;
+
+    var workerUrl;
+    if (config.get("packaged") || !require.toUrl) {
+        workerUrl = config.moduleUrl(mod, "worker");
+    } else {
+        var normalizePath = this.$normalizePath;
+        workerUrl = normalizePath(require.toUrl("ace/worker/worker.js", null, "_"));
+
+        var tlns = {};
+        topLevelNamespaces.forEach(function(ns) {
+            tlns[ns] = normalizePath(require.toUrl(ns, null, "_").replace(/(\.js)?(\?.*)?$/, ""));
+        });
+    }
+
+    this.$worker = new Worker(workerUrl);
+    this.$worker.postMessage({
+        init : true,
+        tlns: tlns,
+        module: mod,
+        classname: classname
+    });
+
+    this.callbackId = 1;
+    this.callbacks = {};
+
+    this.$worker.onerror = this.onError;
+    this.$worker.onmessage = this.onMessage;
+};
+
+(function(){
+
+    oop.implement(this, EventEmitter);
+
+    this.onError = function(e) {
+        window.console && console.log && console.log(e);
+        throw e;
+    };
+
+    this.onMessage = function(e) {
+        var msg = e.data;
+        switch(msg.type) {
+            case "log":
+                window.console && console.log && console.log.apply(console, msg.data);
+                break;
+
+            case "event":
+                this._emit(msg.name, {data: msg.data});
+                break;
+
+            case "call":
+                var callback = this.callbacks[msg.id];
+                if (callback) {
+                    callback(msg.data);
+                    delete this.callbacks[msg.id];
+                }
+                break;
+        }
+    };
+
+    this.$normalizePath = function(path) {
+        if (!location.host) // needed for file:// protocol
+            return path;
+        path = path.replace(/^[a-z]+:\/\/[^\/]+/, ""); // Remove domain name and rebuild it
+        path = location.protocol + "//" + location.host
+            + (path.charAt(0) == "/" ? "" : location.pathname.replace(/\/[^\/]*$/, ""))
+            + "/" + path.replace(/^[\/]+/, "");
+        return path;
+    };
+
+    this.terminate = function() {
+        this._emit("terminate", {});
+        this.deltaQueue = null;
+        this.$worker.terminate();
+        this.$worker = null;
+        this.$doc.removeEventListener("change", this.changeListener);
+        this.$doc = null;
+    };
+
+    this.send = function(cmd, args) {
+        this.$worker.postMessage({command: cmd, args: args});
+    };
+
+    this.call = function(cmd, args, callback) {
+        if (callback) {
+            var id = this.callbackId++;
+            this.callbacks[id] = callback;
+            args.push(id);
+        }
+        this.send(cmd, args);
+    };
+
+    this.emit = function(event, data) {
+        try {
+            this.$worker.postMessage({event: event, data: {data: data.data}});
+        }
+        catch(ex) {}
+    };
+
+    this.attachToDocument = function(doc) {
+        if(this.$doc)
+            this.terminate();
+
+        this.$doc = doc;
+        this.call("setValue", [doc.getValue()]);
+        doc.on("change", this.changeListener);
+    };
+
+    this.changeListener = function(e) {
+        if (!this.deltaQueue) {
+            this.deltaQueue = [e.data];
+            setTimeout(this.$sendDeltaQueue, 1);
+        } else
+            this.deltaQueue.push(e.data);
+    };
+
+    this.$sendDeltaQueue = function() {
+        var q = this.deltaQueue;
+        if (!q) return;
+        this.deltaQueue = null;
+        if (q.length > 20 && q.length > this.$doc.getLength() >> 1) {
+            this.call("setValue", [this.$doc.getValue()]);
+        } else
+            this.emit("change", {data: q});
+    }
+
+}).call(WorkerClient.prototype);
+
+
+var UIWorkerClient = function(topLevelNamespaces, mod, classname) {
+    this.$sendDeltaQueue = this.$sendDeltaQueue.bind(this);
+    this.changeListener = this.changeListener.bind(this);
+    this.callbackId = 1;
+    this.callbacks = {};
+    this.messageBuffer = [];
+
+    var main = null;
+    var sender = Object.create(EventEmitter);
+    var _self = this;
+
+    this.$worker = {};
+    this.$worker.terminate = function() {};
+    this.$worker.postMessage = function(e) {
+        _self.messageBuffer.push(e);
+        main && setTimeout(processNext);
+    };
+
+    var processNext = function() {
+        var msg = _self.messageBuffer.shift();
+        if (msg.command)
+            main[msg.command].apply(main, msg.args);
+        else if (msg.event)
+            sender._emit(msg.event, msg.data);
+    };
+
+    sender.postMessage = function(msg) {
+        _self.onMessage({data: msg});
+    };
+    sender.callback = function(data, callbackId) {
+        this.postMessage({type: "call", id: callbackId, data: data});
+    };
+    sender.emit = function(name, data) {
+        this.postMessage({type: "event", name: name, data: data});
+    };
+
+    config.loadModule(["worker", mod], function(Main) {
+        main = new Main[classname](sender);
+        while (_self.messageBuffer.length)
+            processNext();
+    });
+};
+
+UIWorkerClient.prototype = WorkerClient.prototype;
+
+exports.UIWorkerClient = UIWorkerClient;
+exports.WorkerClient = WorkerClient;
+
+});
+;
             (function() {
                 ace.require(["ace/lively"], function(a) {
                     a && a.config.init();
@@ -17371,8 +17371,7 @@ ace.define('ace/autocomplete/text_completer', ['require', 'exports', 'module' , 
                         ace[key] = a[key];
                 });
             })();
-
-/* ***** BEGIN LICENSE BLOCK *****
+        /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2010, Ajax.org B.V.
@@ -17939,10 +17938,8 @@ oop.inherits(IncrementalSearch, Search);
         this.$options.needle = '';
         this.$options.backwards = backwards;
         ed.keyBinding.addKeyboardHandler(this.$keyboardHandler);
-        this.$originalEditorOnPaste = ed.onPaste;
-        ed.onPaste = this.onPaste.bind(this);
-        this.$mousedownHandler = ed.addEventListener('mousedown', this.onPaste.bind(this));
-        this.$onPasteHandler = ed.addEventListener('paste', this.onMouseDown.bind(this));
+        this.$originalEditorOnPaste = ed.onPaste; ed.onPaste = this.onPaste.bind(this);
+        this.$mousedownHandler = ed.addEventListener('mousedown', this.onMouseDown.bind(this));
         this.selectionFix(ed);
         this.statusMessage(true);
     }
@@ -18211,15 +18208,15 @@ exports.iSearchCommands = [{
     readOnly: true,
     isIncrementalSearchCommand: true
 }, {
-    name: 'confirmSearch',
-    bindKey: 'return',
-    exec: function(iSearch) { iSearch.deactivate(); },
-    readOnly: true,
-    isIncrementalSearchCommand: true
-}, {
     name: 'recenterTopBottom',
     bindKey: 'Ctrl-l',
     exec: function(iSearch) { iSearch.$editor.execCommand('recenterTopBottom'); },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: 'confirmSearch',
+    bindKey: 'return',
+    exec: function(iSearch) { iSearch.deactivate(); },
     readOnly: true,
     isIncrementalSearchCommand: true
 }, {
@@ -23761,6 +23758,8 @@ var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var DiffHighlightRules = function() {
+
+
 
     this.$rules = {
         "start" : [{

@@ -565,6 +565,7 @@ Object.subclass('lively.morphic.Morph',
         if (spec.focusHaloInset !== undefined) this.focusHaloInset = spec.focusHaloInset;
         if (spec.padding !== undefined) this.setPadding(spec.padding);
         if (spec.margin !== undefined) this.margin = spec.margin;
+        if (spec.zIndex !== undefined) this.setZIndex(spec.zIndex);
 
         /*DEPRECATED*/if (spec.overflow !== undefined) this.setClipMode(spec.overflow);
         if (spec.clipMode !== undefined) this.setClipMode(spec.clipMode);

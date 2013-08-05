@@ -2045,8 +2045,7 @@ lively.morphic.List.addMethods(
     updateList: function(items) {
         if (!items) items = [];
         this.itemList = items;
-        var that = this,
-            itemStrings = items.collect(function(ea) { return that.renderFunction(ea); });
+        var itemStrings = items.collect(function(ea) { return this.renderFunction(ea); }, this);
         this.renderContextDispatch('updateListContent', itemStrings);
     },
     addItem: function(item) {

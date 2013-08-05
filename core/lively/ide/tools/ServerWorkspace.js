@@ -3,23 +3,12 @@ module('lively.ide.tools.ServerWorkspace').requires('lively.persistence.BuildSpe
 lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(605.0,302.0),
-    _Position: lively.pt(2274.0,408.0),
     className: "lively.morphic.Window",
-    collapsedExtent: null,
-    collapsedTransform: null,
     contentOffset: lively.pt(4.0,22.0),
-    doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
     draggingEnabled: true,
     droppingEnabled: false,
-    expandedExtent: null,
-    expandedTransform: null,
-    highlighted: false,
-    ignoreEventsOnExpand: false,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: {adjustForNewBounds: true},
     name: "ServerWorkspace",
-    prevDragPos: lively.pt(2751.0,439.0),
     sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
@@ -27,35 +16,17 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
         _Extent: lively.pt(597.0,275.0),
         _FontSize: 12,
         _Position: lively.pt(4.0,22.0),
-        _StyleSheet: "#ace-editor {\n\
-        position: absolute;\n\
-        top: 0;\n\
-    	bottom: 0;\n\
-    	left: 0;\n\
-    	right: 0;\n\
-    	font-family: Monaco,monospace;\n\
-    }",
-        _TextMode: "javascript",
         _Theme: "twilight",
         accessibleInInactiveWindow: true,
         className: "lively.morphic.CodeEditor",
-        doNotSerialize: ["aceEditor","aceEditorAfterSetupCallbacks","savedTextString"],
         grabbingEnabled: false,
-        layout: {
-            resizeHeight: true,
-            resizeWidth: true
-        },
+        layout: {resizeHeight: true,resizeWidth: true},
         sourceModule: "lively.ide.CodeEditor",
-        submorphs: [],
         textMode: "javascript",
-        textString: "// all this code is evaluated in the server context!\n\
-    \n\
-    // try to print it:\n\
-    \n\
-    process.env.WORKSPACE_LK",
+        textString: "// all this code is evaluated in the server context!\n// try to print it:\nprocess.env.WORKSPACE_LK",
         theme: "twilight",
         boundEval: function boundEval(string) {
-            var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
+            var nodejsServer = this.serverURL.asWebResource();
             return nodejsServer.post(string).content;
         },
         printInspect: function printInspect() {
@@ -63,10 +34,28 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
             s = 'require("util").inspect(' + s + ', null, 0)';
             var result = this.tryBoundEval(s);
             this.printObject(null, result);
+        },
+        setServerURL: function setServerURL(url) {
+            this.serverURL = new URL(url);
+            this.owner.setTitle('ServerWorkspace -- ' + this.serverURL);
+        },
+        setServerURLInteractively: function setServerURL() {
+            this.world().prompt('Change server URL', function(url) {
+                if(!url) { alert('no url!'); return; }
+                this.setServerURL(url);
+            }.bind(this), this.serverURL);
+        },
+        onKeyDown: function onKeyDown(evt) {
+            var keys = evt.getKeyString();
+            if (keys === 'Command-U') { this.setServerURLInteractively(); return true; }
+            return false;
+        },
+        onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+            $super();
+            this.setServerURL(URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/'));
         }
     }],
-    titleBar: "ServerWorkspace",
-    withoutLayers: "[[GrabbingLayer]]"
+    titleBar: "ServerWorkspace"
 });
 
 }) // end of module

@@ -1526,6 +1526,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 handlesCount: true
             }, {
                 name: 'runShellCommandOnRegion',
+                bindKeys: "Alt-Shift-\\",
                 exec: function(ed, args) {
                     var input = ed.$morph.getSelectionOrLineString();
                     if (!input || input.length === 0) {
@@ -1821,7 +1822,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: function(ed) { ed.$morph.setSoftTabs(!ed.$morph.getSoftTabs()); }
             }, {
                 name: "toggleLineWrapping",
-                exec: function(ed) { ed.$morph.setLineWrapping(!ed.$morph.getLineWrappig()); }
+                exec: function(ed) { ed.$morph.setLineWrapping(!ed.$morph.getLineWrapping()); }
             }]);
     },
 

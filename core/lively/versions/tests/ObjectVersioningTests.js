@@ -43,7 +43,7 @@ lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.ProxyObjectTests',
 'testing', {
     setUp: function() {
-        // global reset on each test (for now)
+        // reset global object table on each test (for now)
         lively.versions.ObjectVersioning.init();
     },
     test01ProxyCreation: function() {

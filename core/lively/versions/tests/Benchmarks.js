@@ -28,12 +28,18 @@ TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
 },
 'benchmarking', {
     setUp: function() {
+        // reset global object table on each test (for now)
+        lively.versions.ObjectVersioning.init();
+        
         this.startTime = (new Date()).getTime();
     },
     tearDown: function() {
         this.result.setTimeToRun(this.fullTestName(), (new Date()).getTime() - this.startTime);
     },
 });
+
+// Benchmarks from google's v8 "octance-benchmark" suite
+// https://code.google.com/p/octane-benchmark/
 
 lively.versions.tests.Benchmarks.TestCase.subclass(
 'lively.versions.tests.Benchmarks.v8Richards', {
@@ -71,5 +77,99 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
 //         eval(this.transformedSources);
 //     }
 // });
+
+
+// Benchmarks from "The Computer Language Benchmarks Game"-benchmark suite
+// http://benchmarksgame.alioth.debian.org/
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.shootoutObjInst', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'objinst.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.shootoutNBody', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'nbody.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.shootoutLists', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'lists.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.shootoutBinaryTrees', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'binarytrees.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.shootoutFannkuch', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'fannkuch.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
 
 });

@@ -1,5 +1,7 @@
 var i = require('util').inspect
 var debug = true;
+var spawn = require("child_process").spawn;
+
 var WebSocketServer = require('./support/websockets').WebSocketServer;
 
 // call func until it answers true or timeout is reached
@@ -19,7 +21,7 @@ function waitMax(timeout, func, optTimeoutFunc) {
 var R = {process: null, stdout: '', stderr: '', lastExitCode: null}
 
 function runR(args) {
-    var cmd = "R";
+    var cmd = "R", dir = process.env.WORKSPACE_LK;
     var options = {cwd: dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', [cmd].concat(args));
     R.process = spawn(cmd, args, options);

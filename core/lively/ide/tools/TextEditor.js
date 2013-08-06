@@ -139,6 +139,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 case "sh": $upd("sh"); return;
                 case "xml": $upd("xml"); return;
                 case "svg": $upd("svg"); return;
+                case "el": $upd("lisp"); return;
+                case "clj": $upd("clojure"); return;
                 default: $upd("text");
             }
         }});

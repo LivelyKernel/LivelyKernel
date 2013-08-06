@@ -9,6 +9,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     _stderr: '',
     _code: '',
     _done: false,
+    _killed: false,
     interval: null,
     streamPos: 0,
 
@@ -24,6 +25,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 },
 "testing", {
     isDone: function() { return !!this._done; },
+    wasKilled: function() { return !!this._killed; },
 },
 "accessing", {
 
@@ -38,10 +40,12 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     kill: function(thenDo) {
         if (this._done) {
             thenDo && thenDo();
-        } else if (lively.ide.CommandLineInterface.commandQueue.include(this)) {
-            lively.ide.CommandLineInterface.commandQueue.remove(this);
+        } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
+            this._killed = true;
+            lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
             thenDo && thenDo();
         } else {
+            this._killed = true;
             lively.ide.CommandLineInterface.kill(this, thenDo);
         }
     },
@@ -139,6 +143,10 @@ Object.extend(lively.ide.CommandLineInterface, {
     commandQueue: {},
     getGroupCommandQueue: function(group) {
         return this.commandQueue[group] || (this.commandQueue[group] = []);
+    },
+    isScheduled: function(cmd, group) {
+        var queue = group && this.getGroupCommandQueue(group);
+        return queue && queue.include(cmd);
     },
     scheduleCommand: function(cmd, group) {
         lively.bindings.connect(cmd, 'end', lively.ide.CommandLineInterface, 'unscheduleCommand', {

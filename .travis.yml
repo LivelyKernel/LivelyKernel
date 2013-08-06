@@ -28,18 +28,19 @@ branches:
 
 notifications:
   email:
-    - astrid.thomschke@gmail.com
-    - bgnauk@gmail.com
-    - conrad@calmez.net
-    - cschuster@ucdavis.edu
-    - danhhingalls@gmail.com
-    - fbornhofen@gmail.com
-    - jens.lincke@hpi.uni-potsdam.de
     - lauritz.thamsen@gmail.com
-    - Marko.Roeder@student.hpi.uni-potsdam.de
-    - robert.krahn@gmail.com
-    - yoshiki.ohshima@gmail.com
-    - bert@freudenbergs.de
     - bastian.steinert@gmail.com
-    - aranlunzer@gmail.com
-    - justinkk@stanford.edu
+    # - astrid.thomschke@gmail.com
+    # - bgnauk@gmail.com
+    # - conrad@calmez.net
+    # - cschuster@ucdavis.edu
+    # - danhhingalls@gmail.com
+    # - fbornhofen@gmail.com
+    # - jens.lincke@hpi.uni-potsdam.de
+    # - lauritz.thamsen@gmail.com
+    # - Marko.Roeder@student.hpi.uni-potsdam.de
+    # - robert.krahn@gmail.com
+    # - yoshiki.ohshima@gmail.com
+    # - bert@freudenbergs.de
+    # - aranlunzer@gmail.com
+    # - justinkk@stanford.edu

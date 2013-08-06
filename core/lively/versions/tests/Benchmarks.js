@@ -2,24 +2,28 @@ module('lively.versions.tests.Benchmarks').
 requires('lively.TestFramework', 'lively.versions.ObjectVersioning').
 toRun(function() {
     
-// some benchmarks from http://github.com/v8/v8/
-
 TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
 'initializing',{
     initialize: function($super, testResult, optTestSelector) {
         $super(testResult, optTestSelector);
-        if (this.benchmarkURL) {
-            this.benchmarkSources = JSLoader.getSync(this.benchmarkURL);
-            this.transformedSources = this.transformSource(this.benchmarkSources);
+        
+        // this test case is meant to be abstract
+        if (this.benchmarkFileName) {
+            // loading the benchmark file is excluded from measurements
+            var url = URL.ensureAbsoluteURL(this.benchmarkLibsDir() + this.benchmarkFileName);
+            this.sources = JSLoader.getSync(url);
+            this.transformedSources = lively.versions.ObjectVersioning.transformSource(this.sources);
+            
+            $super(testResult, optTestSelector);
         }
     }, 
 }, 
-'helper', {
-    transformSource: function(source) {
-        return lively.versions.ObjectVersioning.transformSource(source);
-    },
-    dir: function() {
+'test helper', {
+    benchmarkLibsDir: function() {
         return 'core/lively/versions/tests/benchmarkLibs/';
+    },
+    fullTestName: function() {
+        return this.name() + ' : ' + this.currentSelector;
     },
 },
 'benchmarking', {
@@ -29,27 +33,43 @@ TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
     tearDown: function() {
         this.result.setTimeToRun(this.fullTestName(), (new Date()).getTime() - this.startTime);
     },
-    fullTestName: function() {
-        return this.name() + ' : ' + this.currentSelector;
-    },
 });
 
 lively.versions.tests.Benchmarks.TestCase.subclass(
 'lively.versions.tests.Benchmarks.v8Richards', {
     initialize: function($super, testResult, optTestSelector) {
-        this.benchmarkURL = URL.ensureAbsoluteURL(this.dir() + 'richards.js');
+        this.benchmarkFileName = 'richards.js'
         
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        this.transformSource(this.benchmarkSources);
+        lively.versions.ObjectVersioning.transformSource(this.sources);
     },
-    test02aBenchmarkExecution:function() {
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
         eval(this.transformedSources);
-    },
-    test02bNoProxyReferenceExecution: function() {
-        eval(this.benchmarkSources);
     }
 });
+
+// // currently not working, infinite recursion...
+// lively.versions.tests.Benchmarks.TestCase.subclass(
+// 'lively.versions.tests.Benchmarks.v8DeltaBlue', {
+//     initialize: function($super, testResult, optTestSelector) {
+//         this.benchmarkFileName = 'deltablue.js'
+        
+//         $super(testResult, optTestSelector);
+//     },
+//     test01SourceToSourceTransformation: function() {
+//         lively.versions.ObjectVersioning.transformSource(this.sources);
+//     },
+//     test02aNoProxyReferenceExecution: function() {
+//         eval(this.sources);
+//     },
+//     test02bBenchmarkExecution: function() {
+//         eval(this.transformedSources);
+//     }
+// });
 
 });

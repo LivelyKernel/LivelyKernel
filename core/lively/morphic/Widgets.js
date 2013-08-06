@@ -4143,16 +4143,19 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.childNodes ? this.collapse() : this.expand();
     },
     select: function(tree) {
+        var unselectedTrees = [];
         this.withAllTreesDo(function(t) {
             if (t.item.isSelected) {
                 delete t.item.isSelected;
                 t.label.setFill(null);
+                unselectedTrees.push(t);
             }
         });
-        if (tree) {
+        if (tree && !unselectedTrees.include(tree)) {
             tree.label.setFill(Color.rgb(218, 218, 218));
             tree.item.isSelected = true;
             tree.item.onSelect(tree);
+            return true;
         }
     },
     layoutAfter: function(callback) {

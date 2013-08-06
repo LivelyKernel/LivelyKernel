@@ -132,8 +132,7 @@ var browserTests = [
     "apps.tests.Handlebars",
     
     // object versioning
-    "lively.versions.tests.ObjectVersioningTests",
-    "lively.versions.tests.Benchmarks"
+    "lively.versions.tests.ObjectVersioningTests"
 ];
 
 var testList = baseTests;

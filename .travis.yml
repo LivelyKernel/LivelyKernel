@@ -1,3 +1,7 @@
+# TODO / FIXME 
+# this file / changes should not be merged into master...
+# TODO / FIXME
+
 language: node_js
 
 node_js:
@@ -17,7 +21,7 @@ before_script:
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "lk server --forever"
 
-script: "lk test --nodejs && lk test --display :1"
+script: "lk test --nodejs && lk test --display :1 && lk test --display :1 && lk test --display :1 -m 'lively.versions.tests.Benchmarks' -f 'Benchmarks|.*|.*'"
 
 branches:
   except: ww-mirror-2.1.3

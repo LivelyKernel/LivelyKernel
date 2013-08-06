@@ -417,6 +417,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             baseCmd = "find %s \\( %s \\) -prune -o -iname '*js' -exec grep -inH %s '{}' \\; ",
             cmd = Strings.format(baseCmd, fullPath, excludes, string);
         lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
+            if (r.wasKilled()) return;
             lively.ide.CommandLineSearch.lastGrep = null;
             var lines = r.getStdout().split('\n').map(function(line) {
                 // return line.slice(line.indexOf('/core') + 6).replace(/\/\//g, '/'); })
@@ -599,6 +600,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             if (patternAndDir) doSearch(candidates, patternAndDir.pattern, patternAndDir.dir, fileFilter, callback);
             else callback(filesToListItems(candidates));
         });
+        function candidateBuilder(input, callback) { callback(['searching...']); searchForMatching(input, callback); };
         var initialCandidates = [rootDir];
         lively.ide.tools.SelectionNarrowing.getNarrower({
             name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
@@ -606,7 +608,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                 candidates: initialCandidates,
                 prompt: prompt,
                 input: initialCandidates[0].toString(),
-                candidatesUpdater: searchForMatching,
+                candidatesUpdater: candidateBuilder,
                 maxItems: 25,
                 keepInputOnReactivate: true,
                 completeInputOnRightArrow: true,

@@ -40,11 +40,18 @@
 
 /* --- O b j e c t   M o d e l --- */
 
-Object.prototype.inheritsFrom = function (shuper) {
-  function Inheriter() { }
-  Inheriter.prototype = shuper.prototype;
-  this.prototype = new Inheriter();
-  this.superConstructor = shuper;
+// Object.prototype.inheritsFrom = function (shuper) {
+//   function Inheriter() { }
+//   Inheriter.prototype = shuper.prototype;
+//   this.prototype = new Inheriter();
+//   this.superConstructor = shuper;
+// }
+
+var inheritsFrom = function (sub, shuper) {
+    function Inheriter() { }
+    Inheriter.prototype = shuper.prototype;
+    sub.prototype = new Inheriter();
+    sub.superConstructor = shuper;
 }
 
 function OrderedCollection() {
@@ -133,6 +140,8 @@ Strength.NORMAL          = new Strength(4, "normal");
 Strength.WEAK_DEFAULT    = new Strength(5, "weakDefault");
 Strength.WEAKEST         = new Strength(6, "weakest");
 
+
+
 /* --- *
  * C o n s t r a i n t
  * --- */
@@ -210,7 +219,7 @@ function UnaryConstraint(v, strength) {
   this.addConstraint();
 }
 
-UnaryConstraint.inheritsFrom(Constraint);
+inheritsFrom(UnaryConstraint, Constraint);
 
 /**
  * Adds this constraint to the constraint graph
@@ -288,7 +297,7 @@ function StayConstraint(v, str) {
   StayConstraint.superConstructor.call(this, v, str);
 }
 
-StayConstraint.inheritsFrom(UnaryConstraint);
+inheritsFrom(StayConstraint, UnaryConstraint);
 
 StayConstraint.prototype.execute = function () {
   // Stay constraints do nothing
@@ -306,7 +315,7 @@ function EditConstraint(v, str) {
   EditConstraint.superConstructor.call(this, v, str);
 }
 
-EditConstraint.inheritsFrom(UnaryConstraint);
+inheritsFrom(EditConstraint, UnaryConstraint);
 
 /**
  * Edits indicate that a variable is to be changed by imperative code.
@@ -340,7 +349,7 @@ function BinaryConstraint(var1, var2, strength) {
   this.addConstraint();
 }
 
-BinaryConstraint.inheritsFrom(Constraint);
+inheritsFrom(BinaryConstraint, Constraint);
 
 /**
  * Decides if this constraint can be satisfied and which way it
@@ -453,7 +462,7 @@ function ScaleConstraint(src, scale, offset, dest, strength) {
   ScaleConstraint.superConstructor.call(this, src, dest, strength);
 }
 
-ScaleConstraint.inheritsFrom(BinaryConstraint);
+inheritsFrom(ScaleConstraint, BinaryConstraint);
 
 /**
  * Adds this constraint to the constraint graph.
@@ -509,7 +518,7 @@ function EqualityConstraint(var1, var2, strength) {
   EqualityConstraint.superConstructor.call(this, var1, var2, strength);
 }
 
-EqualityConstraint.inheritsFrom(BinaryConstraint);
+inheritsFrom(EqualityConstraint, BinaryConstraint);
 
 /**
  * Enforce this constraint. Assume that it is satisfied.

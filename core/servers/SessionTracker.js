@@ -169,9 +169,9 @@ function SessionTracker(options) {
         var sessionTracker = this;
         return Object.keys(services).reduce(function(actions, name) {
             if (informFunc) {
-                actions[name] = function(con, msg) { informFunc(sessionTracker, con, msg); sessionActions[name](sessionTracker, con, msg) };
+                actions[name] = function(con, msg) { informFunc(sessionTracker, con, msg); services[name](sessionTracker, con, msg) };
             } else {
-                actions[name] = sessionActions[name].bind(null, sessionTracker);
+                actions[name] = services[name].bind(null, sessionTracker);
             }
             return actions;
         }, {});

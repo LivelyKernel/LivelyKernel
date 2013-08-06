@@ -19,6 +19,11 @@ Object.extend(apps.RInterface, {
     },
 
     processResult: function(msg, callback) {
+        if (msg.action === "error") {
+            show('R handler got error: %o', msg.data.message || msg);
+            callback && callback(msg.data.message || msg, null);
+            return;
+        }
         var err = null, result = msg.data.result.trim();
         if (false && msg.data.type === 'stdout') {
             // by default stdout of R includes line number indicators

@@ -317,15 +317,18 @@ Object.extend(lively.ide.commands.byName, {
         exec: function() {
             var greper = Functions.debounce(500, function(input, callback) {
                 lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
-                    callback(lines.map(function(line) {
-                        return {
+                    var candidates = lines.map(function(line) {
+                        return line.trim() === '' ? null : {
                             isListItem: true,
                             string: line.slice(baseDir.length),
                             value: {baseDir: baseDir, match: line}
                         };
-                    }));
+                    }).compact();
+                    if (candidates.length === 0) candidates = ['nothing found'];
+                    callback(candidates);
                 });
             });
+            function candidateBuilder(input, callback) { callback(['searching...']); greper(input, callback); };
             var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
                 name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
                 reactivateWithoutInit: true,
@@ -334,16 +337,18 @@ Object.extend(lively.ide.commands.byName, {
                     candidatesUpdaterMinLength: 3,
                     candidates: [],
                     maxItems: 25,
-                    candidatesUpdater: greper,
+                    candidatesUpdater: candidateBuilder,
                     keepInputOnReactivate: true,
                     actions: [{
                         name: 'open in system browser',
                         exec: function(candidate) {
+                            if (Object.isString(candidate)) return;
                             lively.ide.CommandLineSearch.doBrowseGrepString(candidate.match, candidate.baseDir);
                         }
                     }, {
                         name: 'open in text editor',
                         exec: function(candidate) {
+                            if (Object.isString(candidate)) return;
                             var parts = candidate.match.split(':'),
                                 path = parts[0], line = parts[1];
                             if (line) path += ':' + line;
@@ -467,6 +472,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Halos.show': "cmd-h",
     'lively.morphic.List.selectItem': "m-space",
     'lively.ide.CommandLineInterface.doGrepSearch': "cmd-s-g",
+    'lively.ide.execShellCommand': "m-s-!",
     'lively.ide.commands.execute': "m-x"
 });
 

@@ -17,6 +17,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     menu: null,
     name: "Lively2LivelyStatus",
     sourceModule: "lively.morphic.Core",
+    style: {zIndex: 998},
     statusText: {
         isMorphRef: true,
         name: "statusText"
@@ -490,33 +491,21 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(650.0,386.0),
     _Position: lively.pt(3921.0,533.5),
-    _StyleClassNames: ["Morph","Window"],
     _StyleSheet: ".SessionList, .CodeEditor {\n\
     border: 1px solid #DDD;\n\
 }",
-    cameForward: false,
     className: "lively.morphic.Window",
-    collapsedExtent: null,
-    collapsedTransform: null,
     contentOffset: lively.pt(4.0,22.0),
-    doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
     draggingEnabled: true,
-    expandedExtent: null,
-    expandedTransform: null,
-    highlighted: false,
-    ignoreEventsOnExpand: false,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: {adjustForNewBounds: true},
     name: "Lively2LivelyInspector",
-    sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _BorderWidth: 1,
         _Extent: lively.pt(642.0,360.0),
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(4.0,22.0),
-        _StyleClassNames: ["Morph","Box","Lively2LivelyInspector"],
+        _StyleClassNames: ["Lively2LivelyInspector"],
         _StyleSheet: ".Lively2LivelyInspector {\n\
         background: white;\n\
     }\n\
@@ -525,15 +514,9 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         border: 0;\n\
     }",
         className: "lively.morphic.Box",
-        doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
         droppingEnabled: true,
-        layout: {
-            adjustForNewBounds: true,
-            resizeHeight: true,
-            resizeWidth: true
-        },
+        layout: {adjustForNewBounds: true,resizeHeight: true,resizeWidth: true},
         name: "Lively2LivelyInspector",
-        sourceModule: "lively.morphic.Core",
         submorphs: [{
             _BorderWidth: 1,
             _ClipMode: "auto",
@@ -541,22 +524,15 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _Fill: Color.rgb(243,243,243),
             _FontSize: 10,
             _Position: lively.pt(10.0,35.0),
-            _StyleClassNames: ["Morph","Box","List","SessionList"],
+            _StyleClassNames: ["SessionList"],
             _StyleSheet: ".List {\n\
         	border: 1px solid #DDD;\n\
         }",
             className: "lively.morphic.List",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             droppingEnabled: true,
             itemList: [],
-            layout: {
-                resizeHeight: false,
-                resizeWidth: true
-            },
+            layout: {resizeHeight: false,resizeWidth: true},
             name: "SessionList",
-            sourceModule: "lively.morphic.Core",
-            submorphs: [],
             addMorph: function addMorph(m) {
                     $world.addMorph(m);
                     m.setPositionAnimated.bind(m, $world.eventStartPos, 300).delay();
@@ -581,49 +557,25 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _Extent: lively.pt(20.0,20.0),
             _Position: lively.pt(10.0,10.0),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            isPressed: true,
             label: "⟳",
             name: "RefreshButton",
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this, "doAction", {});
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "updateSessions", {});
-        },
-            doAction: function doAction() {
-                                    
-                                }
+        }
         },{
             _BorderColor: Color.rgb(95,94,95),
             _BorderWidth: 1,
             _Extent: lively.pt(622.0,213.0),
-            _FontSize: 12,
-            _LineWrapping: false,
             _Position: lively.pt(10.0,140.0),
-            _StyleClassNames: ["Morph","CodeEditor","ace_editor","emacs-mode","ace_nobold","ace-tm"],
-            _TextMode: "javascript",
-            _setShowIndents: true,
             accessibleInInactiveWindow: true,
             className: "lively.morphic.CodeEditor",
-            doNotSerialize: ["aceEditor","aceEditorAfterSetupCallbacks","savedTextString"],
-            droppingEnabled: true,
-            hasRobertsKeys: true,
-            layout: {
-                moveVertical: false,
-                resizeHeight: true,
-                resizeWidth: true
-            },
+            layout: {moveVertical: false,resizeHeight: true,resizeWidth: true},
             name: "RemoteWorkspace",
             sourceModule: "lively.ide.CodeEditor",
             storedString: "// Text here gets evaluated in other Lively worlds",
-            submorphs: [],
             textMode: "javascript",
             textString: "// Text here gets evaluated in other Lively worlds",
-            theme: "",
             boundEval: function boundEval(string) {
                                     if (!this.selectedSession) { lively.bindings.signal(self, 'evalResult', 'no remote session selected'); return; }
                                     var localSess = this.get('Lively2LivelyInspector').getLocalSession();
@@ -646,7 +598,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                                             }
                                             this.tryBoundEval(text);
                                             if (printResult) return;
-                                            var sel = editor.selection;
+                                            var sel = this.getSelection();
                                             if (sel && sel.isEmpty()) sel.selectLine();
                                         },
             printInspect: function printInspect() {
@@ -665,22 +617,12 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _Extent: lively.pt(40.0,20.0),
             _Position: lively.pt(40.0,10.0),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             isPressed: false,
             label: "view",
             name: "PreviewButton",
-            sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this, "doAction", {});
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "openWorldPreview", {});
-        },
-            doAction: function doAction() {
-                            
-                        }
+        }
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
@@ -688,21 +630,14 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _Extent: lively.pt(80.0,20.0),
             _Position: lively.pt(90.0,10.0),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             isPressed: false,
             label: "send morph",
             name: "SendMorphButton",
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
             toggle: false,
             value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this, "doAction", {});
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "sendMorphOnUserClick", {});
-        },
-            doAction: function doAction() {
-            
         }
         }],
         zoom: 1,
@@ -888,7 +823,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             }
     }],
     titleBar: "Lively2LivelyInspector",
-    withoutLayers: "[[GrabbingLayer]]",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         $super();
         this.onLoad();

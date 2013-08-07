@@ -759,7 +759,7 @@ lively.morphic.Halo.subclass('lively.morphic.InspectHalo',
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
         if (evt.isShiftDown()) {
-            module("lively.bindings.FRPCore").load(true);
+            module("lively.bindings.FRP").load(true);
             this.targetMorph.openFRPInspector();
             return;
         }

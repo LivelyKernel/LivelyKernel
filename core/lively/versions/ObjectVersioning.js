@@ -118,7 +118,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return this.proxyNonPrimitiveObjects(result);
             },
             construct: function(virtualTarget, args) {
-                var OriginalContructor = this.targetObject(),
+                var OriginalConstructor = this.targetObject(),
                     newInstance;
                     
                 // workaround as it's not possible to supply a variable
@@ -126,9 +126,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // to this approach is constructing the constructor call
                 // in a string and to pass that call to eval()
                 function ConstructorWrapper() {
-                    return OriginalContructor.apply(this, args);
+                    return OriginalConstructor.apply(this, args);
                 }
-                ConstructorWrapper.prototype = OriginalContructor.prototype;
+                ConstructorWrapper.prototype = OriginalConstructor.prototype;
                 newInstance = new ConstructorWrapper();
                 
                 return lively.versions.ObjectVersioning.proxy(newInstance);

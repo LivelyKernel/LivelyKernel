@@ -74,13 +74,19 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 showMoreNode: null,
                 sourceModule: "lively.morphic.Widgets",
                 submorphs: [],
+                select: function select(tree) {
+                    var wasSelected = $super(tree);
+                    if (!wasSelected) {
+                        this.get("ObjectInspectorText").doitContext = this.item.data;
+                    }
+                },
                 reset: function reset() {
-                this.item = null;
-                this.submorphs.invoke("remove");
-                this.childNodes = null;
-                this.setExtent(pt(1,1));
-                this.applyLayout();
-            }
+                    this.item = null;
+                    this.submorphs.invoke("remove");
+                    this.childNodes = null;
+                    this.setExtent(pt(1,1));
+                    this.applyLayout();
+                }
             }]
         },{
             _BorderColor: Color.rgb(204,0,0),

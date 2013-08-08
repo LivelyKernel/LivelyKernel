@@ -185,8 +185,8 @@
             Global.getSelection = function() {};
             Global.UserAgent = {isNodeJS: true};
             Global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-            Global._require = module.parent.require.bind(module.parent); // native NodeJS require
-            Global.__dirname = require('path').dirname(module.parent.filename);
+            Global._require = module.require.bind(module); // native NodeJS require
+            Global.__dirname = require('path').dirname(module.filename);
             module.exports = Global;
         }
         // "Global" is the lively accessor to the toplevel JS scope
@@ -1263,6 +1263,7 @@
             } + ')');
             Global.require(bootstrapModules).toRun(finished);
         });
+        module.exports.Global = Global;
     }
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-

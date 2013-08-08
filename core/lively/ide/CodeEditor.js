@@ -715,7 +715,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'text morph event interface', {
-    focus: function() { this.withAceDo(function(ed) { return ed.focus(); }); },
+    focus: function() {
+        if (this.aceEditor) this.aceEditor.focus();
+        else this.withAceDo(function(ed) { return ed.focus.bind(ed).delay(0); });
+    },
     isFocused: function() { return this._isFocused; },
     requestKeyboardFocus: function(hand) { this.focus(); },
     onWindowGetsFocus: function(window) { this.focus(); }

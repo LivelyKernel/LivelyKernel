@@ -22,6 +22,7 @@ var url = require('url');
 var watchState = global.DirectoryWatchServerState || (global.DirectoryWatchServerState = {});
 
 function ignore(ignoredDirectories, f) {
+    if (f.indexOf('node_modules') > 0) return true;
     return ignoredDirectories.some(function(dir) { return f.indexOf(dir) === 0; });
 }
 

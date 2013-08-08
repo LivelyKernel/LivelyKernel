@@ -791,24 +791,26 @@ Object.subclass('TestResult', {
         });
     },
 
-    asJSON: function() {
+    asJSON: function(optSortFunction) {
         var resultData = Properties.all(this.timeToRun);
-        var sortedByExecTime = resultData.sortBy(function(result) {
+        var sortByExecTime = function(result) {
             return this.getTimeToRun(result);
-        }, this);
+        };
+        var sortBy = optSortFunction || sortByExecTime;
+        var sorted = resultData.sortBy(sortBy, this);
         return {
             runs: this.runs(),
             fails: this.failed.length,
             failedTestNames: this.failuresToString(),
             messages: this.failuresToString(true),
-            runtimes: sortedByExecTime.map(function(ea) {
+            runtimes: sorted.map(function(ea) {
                 return {time: this.getTimeToRun(ea), module: ea};
             }, this).concat({time: this.getTimeToRun(), module: 'all'})
         };
     },
 
-    asJSONString: function() {
-        return JSON.stringify(this.asJSON());
+    asJSONString: function(optSortFunction) {
+        return JSON.stringify(this.asJSON(optSortFunction));
     },
 
     shortResult: function() {

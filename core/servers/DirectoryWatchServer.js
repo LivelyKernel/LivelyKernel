@@ -21,9 +21,13 @@ var path = require("path");
 var url = require('url');
 var watchState = global.DirectoryWatchServerState || (global.DirectoryWatchServerState = {});
 
-function ignore(ignoredDirectories, f) {
-    if (f.indexOf('node_modules') > 0) return true;
-    return ignoredDirectories.some(function(dir) { return f.indexOf(dir) === 0; });
+function ignore(ignoredItems, f) {
+    for (var i = 0; i < ignoredItems.length; i++) {
+        var ign = ignoredItems[i];
+        if (typeof ign === 'string' && f.indexOf(ign) >= 0) return true;
+        if (util.isRegExp(ign) && f.match(ign)) return true;
+    }
+    return false;
 }
 
 function addChange(changeRecord, type, fileName, stat) {
@@ -37,8 +41,8 @@ function addChange(changeRecord, type, fileName, stat) {
 }
 
 function startWatching(dir, thenDo) {
-    var ignoredDirectories = [path.join(dir, 'node_modules')],
-        options = {ignoreDotFiles: true, filter: ignore.bind(null, ignoredDirectories)},
+    var ignoredItems = ['node_modules'],
+        options = {ignoreDotFiles: true, filter: ignore.bind(null, ignoredItems)},
         changes = watchState[dir] = {
             monitor: null,
             lastChange: null,

@@ -1696,6 +1696,7 @@ lively.morphic.World.addMethods(
             targetMorph.owner.addMorph(copy); // FIXME for setting the right position
             evt.hand.grabMorph(copy);
             targetMorph = copy;
+            this.draggedMorph = targetMorph;
             return false;
         }
 

@@ -17,8 +17,8 @@ function waitMax(timeout, func, optTimeoutFunc) {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-var R = {process: null, stdout: '', stderr: '', lastExitCode: null}
+global.R = global.R || {process: null, stdout: '', stderr: '', lastExitCode: null}
+// global.R.process.stdin.write('\x1b')
 
 function runR(args) {
     var cmd = "R", dir = process.env.WORKSPACE_LK;

@@ -155,6 +155,10 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
         lively.bindings.connect(this.get('DirAdd'), 'fire', this, 'addDirInteractively');
         lively.bindings.connect(this.get('DirRm'), 'fire', this, 'removeDir');
         lively.bindings.connect(this.get('DirList'), 'selection', this, 'changeBaseDir');
+    },
+        onLoad: function onLoad() {
+        var sel = this.get('DirList').selection;
+        sel && this.changeBaseDir(sel);
     }
     }],
     titleBar: "BaseDirectoryChooser"

@@ -1,6 +1,7 @@
 module('lively.ide.tools.SelectionNarrowing').requires("lively.ide.tools.CommandLine").toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.NarrowingList', {
+    isNarrowingList: true,
     _ClipMode: "hidden",
     _Extent: lively.pt(900.0,138.0),
     _StyleClassNames: ["tab-list"],
@@ -438,7 +439,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 oldState.history = inputLine.history;
             }
         } else { // state is the same but we might set certain things for re-initing
-            if (newState.keepInputOnReactivate) newState.preselect = this.currentSel;
+            if (newState.keepInputOnReactivate && !newState.preselect) newState.preselect = this.currentSel;
             if (inputLine) {
                 if (newState.keepInputOnReactivate) newState.input = inputLine.getInput();
                 if (!newState.history) newState.history = inputLine.history;

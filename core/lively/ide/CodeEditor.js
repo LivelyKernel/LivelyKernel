@@ -158,7 +158,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     onOwnerChanged: function(newOwner) {
         if (newOwner) Functions.debounceNamed(
             this.id + ':onOwnerChanged:initializeAce',
-            400, this.initializeAce.bind(this, true), true);
+            200, this.initializeAce.bind(this), true);
     }
 },
 'styling', {
@@ -211,9 +211,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     initializeAce: function(force) {
         var initializedEarlier = this._aceInitialized;
-        if (initializedEarlier && !force) return;
-        // initialize pending...
-        if (initializedEarlier && !this.aceEditor) return;
+        if (initializedEarlier) return;
         // 1) create ace editor object
         this._aceInitialized = true;
         var node = this.getShape().shapeNode,

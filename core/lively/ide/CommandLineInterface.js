@@ -381,7 +381,22 @@ Object.extend(lively.ide.CommandLineInterface, {
             ranges.push([idx, nextIdx, Object.merge(nextStyles)]);
         }
         return {string: string, ranges: ranges};
-    }
+    },
+
+    withShellCompletionsDo: function(doFunc) {
+        // lively.ide.CommandLineInterface.shellCompletions
+        // lively.ide.CommandLineInterface.withShellCompletionsDo(function(err, compl) { show(compl.length) })
+        var cmdLineInterface = lively.ide.CommandLineInterface;
+        if (cmdLineInterface.shellCompletions) { doFunc(null, cmdLineInterface.shellCompletions); return; }
+        cmdLineInterface.exec('compgen  -abckA function', function(cmd) {
+            // show(Objects.inspect(cmd, {maxDepth: 1}));
+            cmdLineInterface.shellCompletions = cmd.getStdout()
+                .split('\n')
+                .invoke('trim')
+                .select(function(line) { return line.length && line; });
+            doFunc(null, cmdLineInterface.shellCompletions);
+        });
+    },
 
 });
 

@@ -1228,6 +1228,13 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
     snippets.readSnippetsFromURL(URL.codeBase.withFilename('lively/ide/snippets/javascript.snippets'));
 })();
 
+(function setupModes() {
+    // R
+    Object.extend(
+        lively.ide.ace.require('ace/mode/r').Mode.prototype,
+        lively.ide.ace.require('ace/mode/javascript').Mode.prototype);
+})();
+
 (function setupCompletions() {
     if (UserAgent.isNodejs) return;
 

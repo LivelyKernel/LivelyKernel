@@ -118,7 +118,7 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'settings', {
     style: {
-        enableGrabbing: false,
+        enableGrabbing: false, enableDropping: false,
         fontSize: Config.get('defaultCodeFontSize'),
         gutter: Config.get('aceDefaultShowGutter'),
         textMode: Config.get('aceDefaultTextMode'),

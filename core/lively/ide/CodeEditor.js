@@ -1495,7 +1495,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         }
         this.addCommands(kbd, [{
                 name: 'evalAll',
-                exec: function(ed) { ed.$morph.evalAll(); },
+                exec: function(ed) {
+                    ed.$morph.saveExcursion(function(whenDone) {
+                        ed.$morph.selectAll();
+                        doEval(ed, false);
+                        whenDone();
+                    });
+                },
                 readOnly: true
             }, {
                 name: 'doit',

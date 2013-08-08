@@ -131,6 +131,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
             var ext = this.sourceObj.getFileExtension();
             switch(ext) {
+                case "r": $upd("r"); return;
                 case "css": $upd("css"); return;
                 case "diff": $upd("diff"); return;
                 case "html": $upd("html"); return;

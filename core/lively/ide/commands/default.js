@@ -68,6 +68,74 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+    'lively.morphic.Morph.showSceneGraph': {
+        description: 'show scene graph',
+        exec: function() {
+            // withAllSubmorphsDo isn't good enough for ignoring certain morphs and their
+            // submorphs
+            function withSubmorphsDoWhenTruthy(morph, iterator, depth) {
+                depth = depth || 0;
+                var callResult = iterator(morph, depth);
+                if (!callResult) return []; // don't descent into submorphs
+                return [callResult].concat(morph.submorphs.clone().reverse().map(function(ea) {
+                    return withSubmorphsDoWhenTruthy(ea, iterator, depth+1);
+                })).flatten();
+            }
+            var results = [], preselect = $world.currentHaloTarget, i = 0, preselectIndex = 0;
+            var candidates = withSubmorphsDoWhenTruthy($world, function(ea, depth) {
+                if (ea.isNarrowingList) return null;
+                if (ea === preselect) preselectIndex = i; i++;
+                var string = ea.name || ea.toString();
+                string = Strings.indent(string, '    ', depth);
+                return {isListItem: true, string: string, value: ea};
+            });
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: 'lively.morphic.Morph.showSceneGraph',
+                setup: function(narrower) {
+                    lively.bindings.connect(narrower, 'selection', Global, 'show', {updater: function($upd, val) {
+                        val && val.isMorph && $upd(val); }});
+                },
+                input: '',
+                spec: {
+                    prompt: 'choose morph: ',
+                    candidates: candidates,
+                    keepInputOnReactivate: true,
+                    preselect: preselectIndex,
+                    actions: [
+                        {name: 'show halos', exec: function(morph) { morph.showHalos(); }},
+                        {name: 'open ObjectEditor', exec: function(morph) { lively.morphic.edit(morph); }},
+                        {name: 'inspect', exec: function(morph) { lively.morphic.inspect(morph); }},
+                        {name: 'remove', exec: function(morph) { morph.remove(); }}]
+                }
+            });
+            return true;
+        }
+    },
+    'lively.morphic.Morph.copy': {
+        description: 'copy morph',
+        exec: function() {
+            var focused = lively.morphic.Morph.focusedMorph(),
+                morph = $world.getActiveWindow() || focused, copy;
+            if (!morph) return true;
+            try { copy = morph.copy(); } catch (e) {
+                show('failed to copy ' + morph + '\n' + e); return true; }
+            copy.openInWorld();
+            alertOK('copied ' + morph);
+            (function() { 
+                copy[copy.isWindow ? 'comeForward' : 'focus']();
+                copy.showHalos();
+            }).delay(0);
+            return true;
+        }
+    },
+    'lively.morphic.Morph.openObjectEditor': {
+        description: 'open ObjectEditor for focused Morph',
+        exec: function() {
+            var morph = $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
+            $world.openObjectEditorFor(morph);
+            return true;
+        }
+    },
     // lists
     'lively.morphic.List.selectItem': {
         exec: function() {
@@ -99,6 +167,16 @@ Object.extend(lively.ide.commands.byName, {
             $world.prompt('Enter new window title', function(input) {
                 if (input !== null) win.titleBar.setTitle(input || '');
             }, win.titleBar.getTitle());
+            return true;
+        }
+    },
+    'lively.morphic.Window.toggleCollapse': {
+        description: 'collapse/uncollapse window',
+        exec: function() {
+            var win = $world.getActiveWindow();
+            if (!win) { show('Cannot find active window!'); return; }
+            win.toggleCollapse();
+            if (!win.isCollapsed()) win.comeForward();
             return true;
         }
     },
@@ -464,6 +542,10 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Window.close': "cmd-esc",
     'lively.morphic.Window.gather':'cmd-s-l s t a c k w',
     'lively.morphic.Window.rename': 'cmd-s-l r e n',
+    'lively.morphic.Window.toggleCollapse': 'cmd-s-l c o l',
+    'lively.morphic.Morph.copy': 'cmd-s-l c o p y',
+    'lively.morphic.Morph.showSceneGraph': {mac: "cmd-m", win: 'ctrl-m'},
+    'lively.morphic.Morph.openObjectEditor': 'cmd-s-l o e',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-`"},
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},

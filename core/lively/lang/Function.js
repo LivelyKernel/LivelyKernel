@@ -443,8 +443,7 @@ Global.Functions = {
         function debounceNamedWrapper() {
             // cleaning up
             delete store[name];
-            var context = this, args = arguments;
-            func.apply(context, args);
+            func.apply(this, arguments);
         }
         return store[name] = Functions.debounce(wait, debounceNamedWrapper, immediate);
     },

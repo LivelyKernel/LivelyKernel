@@ -1471,6 +1471,17 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         shellCommand: ed.$morph.getSelectionOrLineString()
                     });
                     break;
+                case 'r':
+                    if (!module('apps.RInterface').isLoaded()) module('apps.RInterface').load(true);
+                    if (insertResult) {
+                        apps.RInterface.doEval(ed.$morph.getSelectionOrLineString(), function(err, result) {
+                            if (insertResult) { ed.$morph.printObject(ed, err ? err : result); }
+                        });
+                    } else {
+                        var sel = ed.$morph.getSelection();
+                        if (sel && sel.isEmpty()) sel.selectLine();
+                    }
+                    return;
                 default:
                     ed.$morph.doit(insertResult);
             }

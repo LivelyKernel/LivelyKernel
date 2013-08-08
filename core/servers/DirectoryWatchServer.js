@@ -18,7 +18,15 @@ try {
 }
 
 var path = require("path");
+var util = require("util");
 var url = require('url');
+var domain = require('domain');
+var dirWatcherDomain = domain.create();
+
+dirWatcherDomain.on('error', function(er) {
+    console.error('DirectoryWatchServer error %s\n%s©', er, er.stack);
+});
+
 var watchState = global.DirectoryWatchServerState || (global.DirectoryWatchServerState = {});
 
 function ignore(ignoredItems, f) {
@@ -94,14 +102,16 @@ function getWatchedFiles(dir, thenDo) {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-module.exports = function(route, app) {
+module.exports = dirWatcherDomain.bind(function(route, app) {
 
     app.get(route + 'files', function(req, res) {
         var query = url.parse(req.url, true).query, dir = query.dir;
         if (!dir) { res.status(400).json({error: 'No dir specified', files: []}).end(); return; }
-        getWatchedFiles(dir, function(err, files, startTime) {
-            if (err) res.status(500).json({error: String(err), files: files}).end();
-            else res.json({files: files, startTime: startTime}).end();
+        dirWatcherDomain.run(function() {
+            getWatchedFiles(dir, function(err, files, startTime) {
+                if (err) res.status(500).json({error: String(err), files: files}).end();
+                else res.json({files: files, startTime: startTime}).end();
+            });
         });
     });
 
@@ -111,16 +121,20 @@ module.exports = function(route, app) {
             since = Number(query.since),
             startWatchTime = Number(query.startWatchTime);
         if (!dir) { res.status(400).end(); return; }
-        getChangesSince(dir, since, startWatchTime, function(err, changes) {
-            if (err) res.status(500).json({error: i(err)}).end();
-            else res.json({changes: changes}).end();
+        dirWatcherDomain.run(function() {
+            getChangesSince(dir, since, startWatchTime, function(err, changes) {
+                if (err) res.status(500).json({error: i(err)}).end();
+                else res.json({changes: changes}).end();
+            });
         });
     });
 
     app.post(route + 'reset', function(req, res) {
-        Object.keys(global.DirectoryWatchServerState).forEach(function(name) {
-            delete global.DirectoryWatchServerState[name]; });
-        res.json({message: 'OK'}).end();
+        dirWatcherDomain.run(function() {
+            Object.keys(global.DirectoryWatchServerState).forEach(function(name) {
+                delete global.DirectoryWatchServerState[name]; });
+            res.json({message: 'OK'}).end();
+        });
     });
 
-}
+});

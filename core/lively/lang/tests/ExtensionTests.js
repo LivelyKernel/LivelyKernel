@@ -608,15 +608,18 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayProjection', {
 AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
 "testing", {
     testDebouncedCommand: function() {
-        var called = 0;
-        Array.range(1,10).forEach(function() {
-            Functions.debounceNamed('testDebouncedCommand', 20, function() { called++; })();
+        var called = 0, result;
+        Array.range(1,10).doAndContinue(function(next, i) {
+            Functions.debounceNamed('testDebouncedCommand', 20, function(i) {
+                result = i; called++; }, false)(i);
+            setTimeout(next, 0);
         });
-        this.delay(function() {
+        this.waitFor(function() { return typeof result !== 'undefined'; }, 10, function() {
             this.assertEquals(1, called, 'debounce call cound');
+            this.assertEquals(10, result, 'debounce result');
             this.done();
-        }, 30);
-    },
+        });
+    }
 });
 
 }) // end of module

@@ -60,12 +60,12 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         return this.textString = text;
     },
 
-    initializeAce: function initializeAce(force) {
+    initializeAce: function initializeAce() {
         this.withAceDo(function(ed) { this.makeEditorLabelAware(ed); });
         lively.bindings.connect(this, 'textString', this, 'inputChanged', {
             converter: function(string) { return this.sourceObj.getInput(); }
         });
-        return $super(force);
+        return $super();
     },
 
     makeEditorLabelAware: function makeEditorLabelAware(ed) {

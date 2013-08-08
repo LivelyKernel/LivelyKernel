@@ -170,7 +170,7 @@ lively.Worker = {
             var code = Strings.format('(%s)();', customInitFunc);
             workerCode += '\n' + code;
         }
-        var codeFile = URL.source.getDirectory().withFilename('temp-worker-code.js').asWebResource();
+        var codeFile = URL.root.getDirectory().withFilename('temp-worker-code.js').asWebResource();
         codeFile.put(workerCode);
         var worker = new Worker(codeFile.getURL().toString());
         lively.bindings.connect(worker, 'ready', codeFile, 'del');

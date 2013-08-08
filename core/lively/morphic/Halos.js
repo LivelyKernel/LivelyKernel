@@ -743,7 +743,7 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
-        $world.openObjectEditorFor(this.targetMorph, evt)
+        $world.openObjectEditorFor(this.targetMorph, evt);
     },
 
 });

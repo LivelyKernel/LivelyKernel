@@ -20,7 +20,7 @@ TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
 }, 
 'test helper', {
     benchmarkLibsDir: function() {
-        return 'core/lively/versions/tests/benchmarkLibs/';
+        return 'core/lively/versions/tests/benchmarks/';
     },
     fullTestName: function() {
         return this.name() + ' : ' + this.currentSelector;

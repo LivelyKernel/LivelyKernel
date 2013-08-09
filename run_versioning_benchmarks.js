@@ -47,7 +47,7 @@ function postResult(message) {
 
 prepareConfig();
 
-// everything above is a duplicatation from run_tests.js
+// everything above is an unmodified copy from run_tests.js
 
 require(['lively.TestFramework', 'lively.versions.tests.Benchmarks']).
 toRun(function() {

@@ -226,9 +226,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     getSelectedModule: function() {
         var currentModule, moduleName = this.currentModuleName;
         if (!moduleName || moduleName.include('undefined')) return null;
-        var isFilePath = /^\/?([^\/\.]+(\/|\.js$))+/.test(moduleName);
-        if (isFilePath) moduleName = moduleName.replace(/\..*$/, '').replace(/\//g, '.');
-        return lively.lookup(moduleName);
+        return lively.lookup(lively.ide.sourceDB().addModule(moduleName).moduleName());
     },
 
     withCurrentModuleActiveDo: function(func) {

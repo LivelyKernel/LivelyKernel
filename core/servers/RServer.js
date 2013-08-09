@@ -185,6 +185,31 @@ module.exports = function(route, app, subserver) {
         res.end("RServer is running!");
     });
 
+    app.post(route + 'eval', function(req,res) {
+        var expr = req.body && req.body.expr,
+            evalTimeout = req.body && req.body.evalTimeout || 1*1000;
+        if (!expr) {
+            res.status(400);
+            res.json({
+                error: 'Cannot deal request',
+                message: 'No expression ' + JSON.stringify(req.body)
+            }).end();
+            return;
+        }
+        try {
+            ensureRIsRunning(function(R) {
+                evalRExpression(R, expr.trim() + '\n', function(evalResult) {
+                    res.json(evalResult).end();
+                }, {timeout: evalTimeout});
+            }, {timeout: 2*1000, timoutCallback: function() {
+                res.status(400); res.json({error: 'timeout', message: 'R could not be started'});
+            }});
+        } catch(e) {
+            console.error(e.stack);
+            res.status(400); res.json({error: 'error', message: String(e)});
+        }
+    });
+
     app.post(route + 'reset', function(req, res) {
         console.log('Resetting R process');
         if (!R.process) { console.log("R process not running") }

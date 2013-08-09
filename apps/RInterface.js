@@ -8,7 +8,7 @@ Object.extend(apps.RInterface, {
         return this.webSocket = new lively.net.WebSocket(url, {protocol: 'lively-json'});
     },
 
-    doEval: function(expr, callback) {
+    doEvalWebSocket: function(expr, callback) {
         var ws = this.ensureConnection();
         var escaped = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
         var exprWithTryCatch = Strings.format(
@@ -16,6 +16,19 @@ Object.extend(apps.RInterface, {
         this.webSocket.send({action: 'doEval', data: {expr: exprWithTryCatch}}, function(msg) {
             this.processResult(msg, callback);
         }.bind(this));
+    },
+
+    doEvalHTTP: function(expr, callback) {
+        var escaped = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        var exprWithTryCatch = Strings.format(
+            "tryCatch({expr <- parse(text=\"%s\"); eval(expr)}, error = function(e) print(e))", escaped);
+        new URL(Config.nodeJSURL+'/').withFilename('RServer/eval').asWebResource().withJSONWhenDone(function(json, status) {
+            this.processResult({data: json}, callback);
+        }.bind(this)).post(JSON.stringify({expr: expr, evalTimeout: 5*1000}), 'application/json');
+    },
+
+    doEval: function(expr, callback) {
+        return this.doEvalHTTP(expr, callback);
     },
 
     processResult: function(msg, callback) {

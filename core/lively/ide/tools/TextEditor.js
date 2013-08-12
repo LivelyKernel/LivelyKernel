@@ -228,7 +228,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         this.get('urlText').textString = String(url);
         this.loadFile();
     },
-    message: function(/*msg, color, ...*/) { var ed = this.get('editor'); ed.setStatusMessage.apply(ed,arguments); },
+    message: function message(/*msg, color, ...*/) { var ed = this.get('editor'); ed.setStatusMessage.apply(ed,arguments); },
     onKeyDown: function onKeyDown(evt) {
         var keys = evt.getKeyString();
         if (keys === 'F1') {

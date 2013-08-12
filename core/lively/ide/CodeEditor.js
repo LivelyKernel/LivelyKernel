@@ -649,10 +649,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // the current selection is cleared and the stringified representation
         // is inserted at the end (in terms of document position) of the current
         // selection (or at the cursor pos if no sel is active)
+        function printError(err) {
+            var string = String(err.stack || err);
+            return string.include(err) ? string : err + '\n' + string;
+        }
         function insert(ed) {
             var sel = ed.selection, range = sel.getRange();
             sel.moveCursorToPosition(range.end); sel.clearSelection();
-            var string = obj instanceof Error ? obj.stack || obj : String(obj);
+            var string = obj instanceof Error ? printError(obj) : String(obj);
             ed.onPaste(string);
             sel.setRange(range.constructor.fromPoints(range.end, sel.getCursor()));
         }

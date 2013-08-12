@@ -432,6 +432,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             this.setExtent(this.getTextExtent());
         }
     },
+
     fit: function() {
         // expensive operation, only do when we are in world since we cannot
         // figure out the real bounds before we are in DOM anyway
@@ -466,6 +467,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (width !== extent.x || height !== extent.y) {
             this.setExtent(pt(width, height));
         }
+    },
+
+    fitThenDo: function(thenDo) {
+        // call fit once! register callbacks along the lines...
+        var text = this, id = text.id+'_fitThenDo',
+            queue = Functions.createQueue(id, function(afterFitFunc, next) {
+                afterFitFunc.call(text); next(); });
+        queue.pushNoActivate(thenDo);
+        Functions.debounceNamed(id, 20, function() {
+            text.fit(); queue.activateWorker(); })();
+        return this;
     },
 
     setTextNodeToFitMorphExtent: function() {

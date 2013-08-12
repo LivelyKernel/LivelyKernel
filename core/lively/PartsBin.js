@@ -624,7 +624,7 @@ Trait('lively.PartsBin.PartTrait', {
 
     copyToMyPartsBin: function() {
         // FIXME this code was not yet refactored to work with the new PartsSpace/PartItem model
-        var userName = lively.LocalStorage.get('UserName');
+        var userName = lively.Config.get('UserName');
         if (!userName) throw Error('Cannot copyToMyPartsBin without userName')
 
         var userDir = URL.codeBase.withFilename(userName + '/MyPartsBin/');
@@ -645,7 +645,7 @@ Trait('lively.PartsBin.PartTrait', {
     },
 
     interactiveCopyToMyPartsBin: function() {
-        if (!lively.LocalStorage.get('UserName'));
+        if (!lively.Config.get('UserName'));
             this.world().askForUserName();
         if (!this.name) {
             this.world().promt('cannot copy to partsBin without a name', function(name) {

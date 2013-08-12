@@ -317,8 +317,14 @@ Config.addOptions(
     ['ignoredepricatedProceed', true]
 ],
 
-'lively.Config', [
-    ['trackUsage', false, 'to inspect how and where the Config was accessed and modified']
+'user', [
+    {
+        name: 'UserName',
+        type: 'String',
+        doc: 'UserName identifies the current Lively user',
+        get: function() { return lively.LocalStorage.get('UserName'); },
+        set: function(val) { return lively.LocalStorage.set('UserName', val); }
+    }
 ],
 
 'lively.Network', [

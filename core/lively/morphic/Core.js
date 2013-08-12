@@ -541,6 +541,7 @@ Object.subclass('lively.morphic.Morph',
         if (spec.borderColor !== undefined) this.setBorderColor(spec.borderColor);
         if (spec.fill !== undefined) this.setFill(spec.fill);
         if (spec.opacity !== undefined) this.setOpacity(spec.opacity);
+        if (spec.visible !== undefined) this.setVisible(spec.visible);
 
         if (spec.fillOpacity !== undefined) this.setFillOpacity(spec.fillOpacity);
         if (spec.strokeOpacity !== undefined) this.setStrokeOpacity(spec.strokeOpacity);

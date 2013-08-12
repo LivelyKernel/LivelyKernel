@@ -606,6 +606,18 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayProjection', {
 });
 
 AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
+"running", {
+    setUp: function()  {
+        this._queues = Functions._queues;
+        Functions._queues = {};
+        this._debouncedByName = Functions._debouncedByName;
+        Functions._debouncedByName = {};
+    },
+    tearDown: function()  {
+        Functions._queues = this._queues;
+        Functions._debouncedByName = this._debouncedByName;
+    }
+},
 "testing", {
     testDebouncedCommand: function() {
         var called = 0, result;
@@ -617,6 +629,24 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         this.waitFor(function() { return typeof result !== 'undefined'; }, 10, function() {
             this.assertEquals(1, called, 'debounce call cound');
             this.assertEquals(10, result, 'debounce result');
+            this.done();
+        });
+    },
+
+    testQueue: function() {
+        var test = this,
+            drainRun = false, finishedTasks = [],
+            q = Functions.createQueue('testQueue-queue', function(task, callback) {
+                finishedTasks.push(task); callback.delay(0); }),
+            q2 =  Functions.createQueue('testQueue-queue', function(task, callback) {
+                test.assert(false, "redefining worker should not work"); });
+        this.assertIdentity(q,q2, 'id queues not identical');
+        q.pushAll([1,2,3,4]);
+        this.assertEquals(1, finishedTasks.length, "tasks prematurely finished?");
+        q.drain = function() { drainRun = true }
+        this.waitFor(function() { return !!drainRun; }, 10, function() {
+            this.assertEquals([1,2,3,4], finishedTasks, "tasks not ok");
+            this.assert(!Functions._queues.hasOwnProperty('testQueue-queue'), 'queue store not cleaned up');
             this.done();
         });
     }

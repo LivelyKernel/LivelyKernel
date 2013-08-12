@@ -27,7 +27,7 @@ Object.extend(Function.prototype, {
         var __method = this,
             args = Array.from(arguments),
             timeout = args.shift() * 1000;
-        return window.setTimeout(function delayed() {
+        return setTimeout(function delayed() {
             return __method.apply(__method, args);
         }, timeout);
     },
@@ -456,5 +456,35 @@ Global.Functions = {
         }
         worker.basicRun({func: workerFunc, args: options.args || [], useWhenDone: true});
         return worker;
+    },
+
+    createQueue: function(id, workerFunc) {
+        var store = Functions._queues || (Functions._queues = {});
+        var queue = store[id] || (store[id] = {
+            _workerActive: false,
+            worker: workerFunc, tasks: [],
+            drain: null, // can be a function
+            push: function(task) { queue.tasks.push(task); queue.activateWorker(); },
+            pushAll: function(tasks) { queue.tasks.pushAll(tasks); queue.activateWorker(); },
+            pushNoActivate: function(task) { queue.tasks.push(task); },
+            handleError: function(err) {
+                if (!err) return;
+            },
+            activateWorker: function() {
+                var tasks = queue.tasks, active = queue._workerActive;
+                if (tasks.length === 0) {
+                    if (active) {
+                        queue._workerActive = false;
+                        if (Object.isFunction(queue.drain)) queue.drain();
+                    }
+                    delete store[id];
+                } else {
+                    if (!active) queue._workerActive = true;
+                    function callback(err) { queue.handleError(err); queue.activateWorker(); }
+                    try { queue.worker(tasks.shift(), callback); } catch(err) { callback(err); }
+                }
+            }
+        });
+        return queue;
     }
 };

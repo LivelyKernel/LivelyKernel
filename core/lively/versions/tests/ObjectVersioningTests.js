@@ -234,7 +234,22 @@ lively.versions.tests.TestCase.subclass(
             
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
     },
-    test21ProxiedConstructorReturnsProxiedInstance: function() {
+    test21PropertyEnumerationWorks: function() {
+        var obj = this.proxyFor({a:1, b:2, c:3}),
+            enumeratedProps = [];
+            
+        for (var prop in obj) {
+            enumeratedProps.push(prop);
+        }
+
+        this.assertEquals(['a', 'b', 'c'], enumeratedProps);
+    },
+    test22ObjectKeysWorks: function() {
+        var obj = this.proxyFor({a:1, b:2, c:3});
+            
+        this.assertEquals(['a', 'b', 'c'], Object.keys(obj));
+    },
+    test23ProxiedConstructorReturnsProxiedInstance: function() {
         var PersonType = function (name, age) {
                 this.name = name;
                 this.age = age;
@@ -246,7 +261,7 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(aPerson.name, 'Joe');
         this.assertEquals(aPerson.age, 19);
     },
-    test22MethodCanBeAddedToPrototypeOfConstructor: function() {
+    test24MethodCanBeAddedToPrototypeOfConstructor: function() {
         var instance,
             NewType = this.proxyFor(function() {
                 this.prop = 12;

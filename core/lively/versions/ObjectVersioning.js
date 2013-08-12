@@ -84,7 +84,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                                 
                 targetObject = lively.versions.ObjectVersioning.getObjectForProxy(receiver);
                 
-                // copy-on-first-write when object is commited in previous version
+                // copy-on-first-write objects commited in previous versions
                 if (Object.isFrozen(targetObject)) {
                     newObject = Object.clone(targetObject);
                     lively.versions.ObjectVersioning.setObjectForProxy(newObject, receiver);
@@ -182,6 +182,19 @@ Object.extend(lively.versions.ObjectVersioning, {
             },
             getPrototypeOf: function(virtualTarget) {
                 return Object.getPrototypeOf(this.targetObject());
+            },
+            enumerate: function(virtualTarget) {
+                var targetObject = this.targetObject(),
+                    enumerableProps = [];
+                    
+                for (var prop in targetObject) {
+                    enumerableProps.push(prop);
+                }
+                
+                return enumerableProps;
+            },
+            keys: function(virtualTarget) {
+                return Object.keys(this.targetObject());
             }
         };
     },

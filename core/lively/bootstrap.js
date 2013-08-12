@@ -897,6 +897,7 @@
             'lively/lang/Number.js',
             'lively/lang/Date.js',
             'lively/lang/Worker.js',
+            'lively/lang/LocalStorage.js',
             'lively/defaultconfig.js',
             'lively/Base.js',
             'lively/ModuleSystem.js'
@@ -985,7 +986,6 @@
                 'lively.lang.Closure',
                 'lively.lang.UUID',
                 'lively.bindings',
-                'lively.LocalStorage',
                 'lively.Main'
             ];
             require(bootstrapModules).toRun(function() {

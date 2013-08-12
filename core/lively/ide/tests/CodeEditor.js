@@ -172,19 +172,33 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
     },
 
     testFitTextToColumn: function() {
-        var e = this.editor,
-            expected = "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
-                     + "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
-                     + "foo foo foo foo foo foo foo foo foo foo\n",
+        var test = this, e = this.editor,
+            testData = [{
+                input: "foo ".times(50) + '\nbar bar bar\n\n',
+                expected: "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
+                         + "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
+                         + "foo foo foo foo foo foo foo foo foo foo\n"
+                         + "bar bar bar\n"
+            },{ // spaces in front
+                input: "    1 2 3 4 5 6 7 8 9 ",
+                expected: "    1 2 3 4\n    5 6 7 8\n    9",
+                fillColumn: 12
+            }, {
+                input: "Hello there, world",
+                expected: "Hello\nthere,\nworld",
+                fillColumn: 11
+            }],
             commandsMgr = lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance(),
             cmd = commandsMgr.allCommandsOf(e).fitTextToColumn;
-        e.withAceDo(function(aceEditor) {
-            e.textString = "foo ".times(50) + '\n\n';
-            e.selectAll();
-            cmd.exec(aceEditor, {count: 80});
-            this.assertHasText(e, expected);
-            this.done();
-        }.bind(this));
+        testData.doAndContinue(function(next, spec) {
+            e.withAceDo(function(aceEditor) {
+                e.textString = spec.input;
+                e.selectAll();
+                cmd.exec(aceEditor, {count: spec.fillColumn || 80});
+                test.assertHasText(e, spec.expected);
+                next();
+            });
+        }, function() { test.done(); });
     }
 
 });

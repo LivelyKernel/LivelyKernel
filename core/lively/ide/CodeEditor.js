@@ -1625,29 +1625,28 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     if (args && args.count === 4/*Ctrl-U*/) { ed.execCommand('joinLines'); return; }
                     if (ed.selection.isEmpty()) ed.$morph.selectCurrentLine();
                     var col = args && args.count || ed.getOption('printMarginColumn') || 80,
-                        rows = ed.$getSelectedRows(),
+                        rows = ed.$getSelectedRows(), lines = [],
                         session = ed.session,
                         range = ed.selection.getRange(),
-                        lines = [],
-                        splitRegex = /[^a-zA-Z_0-9\$\-]+/g,
-                        rest = '';
+                        splitRegex = /[^a-zA-Z_0-9\$\-!\?,\.]+/g,
+                        whitespacePrefixRegex = /^[\s\t]+/;
                     for (var i = rows.first; i <= rows.last; i++) {
-                        var line = session.getLine(i), isEmptyLine = line.trim() === '';
-                        line = (rest + ' ' + line).trim(); rest = '';
+                        var line = session.getLine(i), isEmptyLine = line.trim() === '',
+                            whitespacePrefixMatch = line.match(whitespacePrefixRegex),
+                            whitespacePrefix = whitespacePrefixMatch ? whitespacePrefixMatch[0] : '';
+                        line = whitespacePrefix + line.trim();
                         if (line.length <= col) { lines.push(line); if (isEmptyLine && line !== '') lines.push(''); continue; }
                         while (line.length > col) {
-                            var firstChunk = line.slice(0, col) ,lastWordSplit = col;
-                            firstChunk.replace(splitRegex, function(match, idx) { lastWordSplit = idx; });
-                            var firstChunkWithWordBoundary = firstChunk.slice(0, lastWordSplit);
+                            var firstChunk = line.slice(0, col),
+                                splitMatch = Strings.reMatches(firstChunk, splitRegex).last(),
+                                lastWordSplit = splitMatch && splitMatch.start > 0 ? splitMatch.start : col,
+                                firstChunkWithWordBoundary = firstChunk.slice(0, lastWordSplit);
                             lines.push(firstChunkWithWordBoundary);
-                            line = (firstChunk.slice(lastWordSplit) + line.slice(col)).trimLeft();
+                            line = whitespacePrefix + (firstChunk.slice(lastWordSplit) + line.slice(col)).trimLeft();
                         }
-                        if (isEmptyLine) lines.push('');
-                        rest = line.trim();
+                        lines.push(isEmptyLine ? '' : whitespacePrefix + line.trim());
                     }
-                    if (rest !== '') lines.push(rest);
-                    var formattedText = lines.join('\n');
-                    ed.session.replace(range, formattedText);
+                    ed.session.replace(range, lines.join('\n'));
                 },
                 multiSelectAction: "forEach"
             }, {

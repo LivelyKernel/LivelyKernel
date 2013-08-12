@@ -6,22 +6,22 @@
  *  to be overridden.
  */
 
-;(function setupUserAgent() {
+;(function setupUserAgent(Global) {
 
 var webKitVersion = (function() {
-    if (!window.navigator) return 0;
-    var match = window.navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/);
+    if (!Global.navigator) return 0;
+    var match = Global.navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/);
     return match ? parseInt(match[1]) : 0;
 })();
 
-var isRhino = !window.navigator || window.navigator.userAgent.indexOf("Rhino") > -1,
-    isMozilla = window.navigator && window.navigator.userAgent.indexOf("Mozilla") > -1,
-    isChrome = window.navigator && window.navigator.userAgent.indexOf("Chrome") > -1,
-    isOpera = window.navigator && window.navigator.userAgent.indexOf("Opera") > -1,
-    isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1,
-    fireFoxVersion = window.navigator &&
-    (window.navigator.userAgent.split("Firefox/")[1] ||
-     window.navigator.userAgent.split("Minefield/")[1]); // nightly
+var isRhino = !Global.navigator || Global.navigator.userAgent.indexOf("Rhino") > -1,
+    isMozilla = Global.navigator && Global.navigator.userAgent.indexOf("Mozilla") > -1,
+    isChrome = Global.navigator && Global.navigator.userAgent.indexOf("Chrome") > -1,
+    isOpera = Global.navigator && Global.navigator.userAgent.indexOf("Opera") > -1,
+    isIE = Global.navigator && Global.navigator.userAgent.indexOf("MSIE") > -1,
+    fireFoxVersion = Global.navigator &&
+    (Global.navigator.userAgent.split("Firefox/")[1] ||
+     Global.navigator.userAgent.split("Minefield/")[1]); // nightly
 
 Global.UserAgent = {
     // Newer versions of WebKit implement proper SVGTransform API, with
@@ -53,24 +53,24 @@ Global.UserAgent = {
 
     fireFoxVersion: fireFoxVersion ? fireFoxVersion.split('.') : null,
 
-    isWindows: window.navigator && window.navigator.platform == "Win32",
+    isWindows: Global.navigator && Global.navigator.platform == "Win32",
 
-    isLinux: window.navigator && window.navigator.platform.startsWith("Linux"),
+    isLinux: Global.navigator && Global.navigator.platform.startsWith("Linux"),
 
-    isMacOS: window.navigator && window.navigator.platform.startsWith("Mac"),
+    isMacOS: Global.navigator && Global.navigator.platform.startsWith("Mac"),
 
-    isTouch: window.navigator
-          && (window.navigator.platform == "iPhone"
-            || window.navigator.platform == "iPad"
-            || window.navigator.platform == "iPod"),
+    isTouch: Global.navigator
+          && (Global.navigator.platform == "iPhone"
+            || Global.navigator.platform == "iPad"
+            || Global.navigator.platform == "iPod"),
 
     touchIsMouse: false,
 
     isNodejs: (Global.process && !!Global.process.versions.node)
-        || navigator.userAgent.indexOf("Node.js") !== -1
+        || Global.navigator.userAgent.indexOf("Node.js") !== -1
 }
 
-})();
+})(typeof Global !== 'undefined' ? Global : window);
 
 
 //--------------------------
@@ -88,21 +88,53 @@ Global.Config = {
 
     _options: {},
 
-    addOption: function(name, value, docString, group, type) {
-        if (name === '_options') {
+    addOption: function(option) {
+        // option: {name: STRING, value: OBJECT, docString: STRING, group: STRING, type: STRING, [get: FUNCTION,] [set: FUNCTION]}
+        if (arguments.length > 1) { // old form of defining
+            // args: name, value, docString, group, type
+            return this.addOption({
+                name: arguments[0],
+                value: arguments[1],
+                docString: arguments[2],
+                group: arguments[3],
+                type: arguments[4]
+            });
+        }
+        var name = option.name, value = option.value,
+            type = option.type, docString = option.docString,
+            group = option.group;
+        if (option.name === '_options') {
             throw new Error('Cannot set Config._options! Reserved!');
         }
-        this[name] = value;
+        if (!option.hasOwnProperty('value') && option.get) {
+            value = option.get();
+        }
+        if (!type && typeof value !== 'undefined') {
+            if (Object.isRegExp(value)) type = 'RegExp'
+            else if (Object.isArray(value)) type = 'Array'
+            else if (typeof value === 'string') type = 'String'
+            else if (typeof value === 'number') type = 'Number'
+            else if (typeof value === 'function') type = 'Function'
+        }
         this._options[name] = {
             doc: docString,
+            get: option.get,
+            set: option.set,
             type: type,
             default: value,
             group: group
         }
+        if (!option.set) this[name] = value;
+        else option.set(value);
     },
 
     hasOption: function(name) {
         return !!this._options[name];
+    },
+
+    hasDefaultValue: function(name) {
+        var spec = this._options[name];
+        return spec && spec.default === this[name];
     },
 
     addOptions: function(/*group - options pairs*/) {
@@ -114,14 +146,19 @@ Global.Config = {
         //   optional:
         //   [2] docString
         //   [3] type
+        //   alernative: spec option as expected by addOption
         var config = this, args = Array.from(arguments);
         for (var i = 0; i < args.length; i += 2) {
-            var group = args[i],
-                options = args[i+1];
+            var group = args[i], options = args[i+1];
             options.forEach(function(optionSpec) {
-                optionSpec[4] = optionSpec[3]; // type, optional
-                optionSpec[3] = group;
-                config.addOption.apply(config, optionSpec);
+                if (Object.isArray(optionSpec)) {
+                    optionSpec[4] = optionSpec[3]; // type, optional
+                    optionSpec[3] = group;
+                    config.addOption.apply(config, optionSpec);
+                } else {
+                    if (!optionSpec.group) optionSpec.group = group;
+                    config.addOption.call(config, optionSpec);
+                }
             });
         }
     },
@@ -153,18 +190,22 @@ Global.Config = {
     },
 
     set: function(name, value) {
-        if (!this._options[name]) {
-            throw new Error('Trying to set unknown option lively.Config.' + name);
-        }
-        return this[name] = value;
+        var spec = this._options[name];
+        if (!spec) throw new Error('Trying to set unknown option lively.Config.' + name);
+        return spec && spec.set ? spec.set.call(null, value) : (this[name] = value);
     },
 
     get: function(name, ignoreIfUndefinedOption) {
-        if (!ignoreIfUndefinedOption && !this._options[name]) {
-            throw new Error('Trying to get unknown option lively.Config.' + name);
-        }
-        var value = this[name];
-        return typeof value === "function" ? value() : value;
+        var spec = this._options[name];
+        if (!ignoreIfUndefinedOption && !spec) throw new Error('Trying to get unknown option lively.Config.' + name);
+        return spec && spec.get ?
+            spec.get.call() : (typeof this[name] === "function" ? this[name].call() : this[name]);
+    },
+
+    lookup: function(name) {
+        // retrieve the Config value. If its a function: don't call it.
+        var spec = this._options[name];
+        return spec && spec.get ? this.get(name) : this[name];
     },
 
     add: function(name, value) {
@@ -184,7 +225,7 @@ Global.Config = {
     location: (function setupLocation() {
         if (typeof document !== "undefined") return document.location;
         var url = JSLoader.currentDir(),
-            match = url.match(/(^[^:]+:)[\/]+([^/]+).*/),
+            match = url.match(/(^[^:]+:)[\/]+([^\/]+).*/),
             protocol = match[1],
             host = match[2];
         return {
@@ -200,8 +241,8 @@ Global.Config = {
         return Properties.own(this)
                .pushAll(Properties.own(this._options))
                .uniq()
-               .withoutAll(['_options', 'usage'])
-               .reject(function(ea) { return ea.startsWith('__') });
+               .withoutAll(this._nonOptions)
+               .reject(function(ea) { return ea.startsWith('__') || ea.startsWith('$$') });
     },
 
     manualOptionNames: function() {
@@ -223,7 +264,7 @@ Global.Config = {
                   'font-family': 'sans-serif',
                   "font-size": "20px"});
         warn.appendTo('body');
-        window.setTimeout(function() { warn.remove(); }, 4000);
+        setTimeout(function() { warn.remove(); }, 4000);
     },
 
     inspect: function() {
@@ -234,7 +275,7 @@ Global.Config = {
             var option = config._options[name],
                 groupName = (option && option.group) || '- undefined group -',
                 group = groups[groupName] = groups[groupName] || [],
-                groupItem = [name, config.get(name, true)];
+                groupItem = [name, config.lookup(name, true)];
             if (option && option.doc) groupItem.push(option.doc);
             groupItem = groupItem.collect(function(ea) { return Strings.print(ea) });
             group.push(groupItem);
@@ -251,80 +292,18 @@ Global.Config = {
         });
 
         return 'lively.Config:\n  [' + groupStrings.join(',\n\n  ') + ']';
-    },
-
-    enableTracking: function() {
-        var config = this;
-
-        /*
-         * Usage tracking for cleanup.
-         * Config.unusedOptionNames() to find out never used options
-         * Config.usedOptionNames() to find out where options are read/write
-         * Config.manualOptionNames() to find out what options are assigned inline
-         *   without using #addOption.
-         */
-
-        Object.extend(config, {
-
-            usage: {},
-
-            usedOptionNames: function() { return Properties.own(this.usedOptions()) },
-
-            unusedOptionNames: function() {
-                return this.allOptionNames().withoutAll(this.usedOptionNames());
-            },
-
-            usedOptions: function() {
-                function printUsed() {
-                    return "Config usage:\n" + Properties.own(used).collect(function(name) {
-                        var usageStats = used[name],
-                        readString = usageStats.read.join('\n\n'),
-                        writeString = usageStats.write.join('\n\n');
-                        return Strings.format('%s:\nread:\n%s\n\nwrite:\n%s',
-                                              name, readString, writeString);
-                    }).join('\n= = = = =\n');
-                }
-                var used = { toString: printUsed }
-                Properties.forEachOwn(this.usage, function(name, usageStats) {
-                    if (usageStats.read.length > 0 || usageStats.write.length > 0) {
-                        used[name] = usageStats;
-                    };
-                })
-                return used;
-            },
-
-            addOption: (function() {
-                var proceed = config.addOption;
-
-                return function(name, value, docString, group, type) {
-                    proceed.apply(this, arguments);
-
-                    var internalName = '__' + name,
-                        usageStats = {read: [], write: []},
-                    self = this;
-                    this.usage[name] = usageStats;
-                    this[internalName] = value;
-                    this.__defineGetter__(name, function() {
-                        var stack = "no stack obtained";
-                        try { throw new Error() } catch(e) { stack = e.stack }
-                        stack = stack.replace('Error\n', '');
-                        usageStats.read.push(stack);
-                        return self[internalName];
-                    });
-                    this.__defineSetter__(name, function(value) {
-                        var stack = "no stack obtained";
-                        try { throw new Error() } catch(e) { stack = e.stack }
-                        stack = stack.replace('Error\n', '');
-                        usageStats.write.push(stack);
-                        return self[internalName] = value;
-                    });
-                }
-            })()
-
-        });
     }
 
 };
+
+(function finishCoreConfigDefinition(Config) {
+    // All the methods and properties defined in Config at this point are for
+    // managing/reading/writing the Config itself and should not be considered as
+    // Config options
+    if (Config._nonOptions) return;
+    var knownNoOptions = ['_nonOptions', "doNotCopyProperties", "doNotSerialize", "attributeConnections", "finishLoadingCallbacks"];
+    Config._nonOptions = Object.keys(Config).concat(knownNoOptions);
+})(Global.Config);
 
 (function addConfigOptions(Config, UserAgent, ExistingConfig) {
 
@@ -544,21 +523,15 @@ Config.addOptions(
     lively.Config = Global.Config;
 })();
 
-(function setupTracking() {
-    if (lively.Config.get('trackUsage')) {
-        lively.Config.enableTracking();
-    }
-})();
-
 (function loadConfigCustomization() {
     try {
         JSLoader.loadJs(Config.codeBase + 'lively/localconfig.js', null, true);
     } catch(e) {
-        console.log('localconfig.js could not be loaded.')
+        console.log('localconfig.js could not be loaded.');
     }
     try {
         lively.Config.urlQueryOverride();
     } catch(e) {
-        console.log('Config customization via URL query could not be applied.')
+        console.log('Config customization via URL query could not be applied.');
     }
 })();

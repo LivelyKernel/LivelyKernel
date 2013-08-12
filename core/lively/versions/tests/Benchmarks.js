@@ -27,10 +27,7 @@ TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
     },
 },
 'benchmarking', {
-    setUp: function() {
-        // reset global object table on each test (for now)
-        lively.versions.ObjectVersioning.init();
-        
+    setUp: function() {        
         this.startTime = (new Date()).getTime();
     },
     tearDown: function() {

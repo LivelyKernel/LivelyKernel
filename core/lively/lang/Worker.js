@@ -18,7 +18,7 @@ worker.run(function(a, b) { postMessage(a+b); }, 1, 2); // run with arguments
 */
 
 lively.Worker = {
-    isAvailable: !!window.Worker,
+    isAvailable: !!Global.Worker,
     pool: [],
     createInPool: function(customInitFunc, autoShutdownDelay/*ms*/) {
         var worker = this.create(customInitFunc);

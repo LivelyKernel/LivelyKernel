@@ -103,8 +103,9 @@ Object.extend(lively.ide.commands.byName, {
                     preselect: preselectIndex,
                     actions: [
                         {name: 'show halos', exec: function(morph) { morph.showHalos(); }},
-                        {name: 'open ObjectEditor', exec: function(morph) { lively.morphic.edit(morph); }},
                         {name: 'inspect', exec: function(morph) { lively.morphic.inspect(morph); }},
+                        {name: 'open ObjectEditor', exec: function(morph) { lively.morphic.edit(morph); }},
+                        {name: 'open StyleEditor', exec: function(morph) { $world.openStyleEditorFor(morph); }},
                         {name: 'remove', exec: function(morph) { morph.remove(); }}]
                 }
             });

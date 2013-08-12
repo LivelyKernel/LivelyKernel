@@ -307,7 +307,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (spec.whiteSpaceHandling !== undefined) this.setWhiteSpaceHandling(spec.whiteSpaceHandling);
         if (spec.wordBreak !== undefined) this.setWordBreak(spec.wordBreak);
         if (spec.syntaxHighlighting !== undefined) spec.syntaxHighlighting ? this.enableSyntaxHighlighting() : this.disableSyntaxHighlighting();
-        if (spec.emphasize !== undefined) this.emphasizeAll(spec.emphasize);
+        if (spec.cssStylingMode !== undefined) this.setTextStylingMode(spec.cssStylingMode);
         return this;
     }
 },

@@ -888,7 +888,7 @@
     // FIXME: add lib/reflect.js to lively-libs (and probably lk builds-libs),
     // at least after es5-shim and IE-fixes
     var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
-        libsFiles = [libsFile, 'lib/reflect.js'],
+        libsFiles = [libsFile, 'lib/reflect.js', 'lib/uglifyjs.js'],
         bootstrapFiles = [
             'lively/Migration.js',
             'lively/JSON.js',

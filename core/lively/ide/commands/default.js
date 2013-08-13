@@ -490,7 +490,7 @@ Object.extend(lively.ide.commands.byName, {
             var insertResult = !args || typeof args.insert === 'undefined' || !!args.insert,
                 openInWindow = !codeEditor || (args && args.count !== 4)/*universal argument*/;
             function ensureCodeEditor(title) {
-                if (!openInWindow && codeEditor) return codeEditor;
+                if (!openInWindow && codeEditor && codeEditor.isCodeEditor) return codeEditor;
                 var ed = $world.addCodeEditor({
                     title: 'shell command: ' + title,
                     gutter: false, textMode: 'text',
@@ -551,23 +551,23 @@ Object.extend(lively.ide.commands.byName, {
 
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys
     'lively.morphic.World.escape': "esc",
-    'lively.morphic.World.save': 'cmd-s-l s a v e',
-    'lively.morphic.Window.close': "cmd-esc",
-    'lively.morphic.Window.gather':'cmd-s-l s t a c k w',
-    'lively.morphic.Window.rename': 'cmd-s-l r e n',
-    'lively.morphic.Window.toggleCollapse': 'cmd-s-l c o l',
-    'lively.morphic.Morph.copy': 'cmd-s-l c o p y',
+    'lively.morphic.World.save': {mac: 'cmd-s-l s a v e', win: 'ctrl-s-l s a v e'},
+    'lively.morphic.Window.close': {mac: "cmd-esc", win: "ctrl-esc"},
+    'lively.morphic.Window.gather':{mac: 'cmd-s-l s t a c k w', win: 'ctrl-s-l s t a c k w'},
+    'lively.morphic.Window.rename': {mac: 'cmd-s-l r e n', win: 'ctrl-s-l r e n'},
+    'lively.morphic.Window.toggleCollapse': {mac: 'cmd-s-l c o l', win: 'ctrl-s-l c o l'},
+    'lively.morphic.Morph.copy': {mac: 'cmd-s-l c o p y', win: 'ctrl-s-l c o p y'},
     'lively.morphic.Morph.showSceneGraph': {mac: "cmd-m", win: 'ctrl-m'},
-    'lively.morphic.Morph.openObjectEditor': 'cmd-s-l o e',
+    'lively.morphic.Morph.openObjectEditor': {mac: 'cmd-s-l o e', win: 'ctrl-s-l o e'},
     'lively.ide.evalJavaScript': 'm-s-:',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-`"},
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-y",
-    'lively.morphic.Halos.show': "cmd-h",
+    'lively.morphic.Halos.show': {mac: "cmd-h", win: ''},
     'lively.morphic.List.selectItem': "m-space",
-    'lively.ide.CommandLineInterface.doGrepSearch': "cmd-s-g",
+    'lively.ide.CommandLineInterface.doGrepSearch': {mac: "cmd-s-g", win: 'ctrl-s-g'},
     'lively.ide.execShellCommand': "m-s-!",
     'lively.ide.commands.execute': "m-x"
 });

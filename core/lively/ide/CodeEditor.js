@@ -2036,7 +2036,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     setupUserKeyBindings: function(kbd, codeEditor) {
         var c = lively.Config;
         if (!Object.isFunction(c.codeEditorUserKeySetup)) return;
-        c.codeEditorUserKeySetup(codeEditor, kbd);
+        c.codeEditorUserKeySetup(codeEditor);
         var invalidaterInstalled = c.attributeConnections && c.attributeConnections.any(function(con) {
             return con.targetMethodName === 'reinitKeyBindingsForAllOpenEditors' });
         if (invalidaterInstalled) return;

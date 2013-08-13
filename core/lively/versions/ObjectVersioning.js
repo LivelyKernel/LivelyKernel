@@ -273,11 +273,27 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
     },
     wrapGlobalObjects: function() {
-        Properties.all(Global).forEach((function(ea) {
-            if (this.isProxy(Global[ea]) || this.isPrimitiveObject(Global[ea])) return;
-            
-            Global[ea] = this.proxy(Global[ea]);
-        }).bind(this));
+        // TODO: built-in functions that create new objects
+        // have to return proxies for the new objects, e.g.
+
+        // Object.create()
+        // JSON.parse()
+        // Array methods: concat(), slice(), map(), filter()...
+        // Date constructor and parse() and UTC()
+        // and other global objects in Global / window
+
+        // just proxying every global object doesn't work (reloads, bookmarks..)
+        
+        // Properties.all(Global).forEach((function(ea) {
+        //     if (this.isProxy(Global[ea]) ||
+        //         this.isPrimitiveObject(Global[ea])) 
+        //             return;
+        //
+        //     Global[ea] = this.proxy(Global[ea]);
+        // }).bind(this));
+
+        Object.create = this.proxy(Object.create);
+        JSON.parse = this.proxy(JSON.parse);
     },
     start: function() {
         this.init();

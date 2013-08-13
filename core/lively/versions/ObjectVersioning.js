@@ -27,8 +27,8 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         proxy = Proxy(virtualTarget, this.versioningProxyHandler());
         id = lively.CurrentObjectTable.length - 1;
-                
         proxy.__objectID = id;
+        
         return proxy;
     },
     isProxy: function(obj) {
@@ -53,7 +53,8 @@ Object.extend(lively.versions.ObjectVersioning, {
             // traps is an empty object and shouldn't be touched
             
             // === meta info ===
-            __objectID: null, // points via global object table to the target object
+            // __objectID can be resolved via global object table
+            __objectID: null,
             
             // === helpers ===
             targetObject: function() {
@@ -71,7 +72,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return result;
             },
             
-            // === traps ===
+            // === proxy handler traps ===
             set: function(virtualTarget, name, value, receiver) {
                 var targetObject,
                     newObject;
@@ -121,10 +122,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 var OriginalConstructor = this.targetObject(),
                     newInstance;
                     
-                // workaround as it's not possible to supply a variable
-                // number of arguments to a constructor, an alternative
-                // to this approach is constructing the constructor call
-                // in a string and to pass that call to eval()
+                // the following workaround is necessary as it's not possible
+                // to supply a variable number of arguments to a constructor
                 function ConstructorWrapper() {
                     return OriginalConstructor.apply(this, args);
                 }
@@ -153,7 +152,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return Object.getOwnPropertyNames(this.targetObject());
             },
             freeze: function(virtualTarget) {
-                // must freeze (virtual) target as well (required by the proxy specification)
+                // freeze the virtual target as well, as required by the spec
                 Object.freeze(virtualTarget);
                 
                 return Object.freeze(this.targetObject());
@@ -162,7 +161,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return Object.isFrozen(this.targetObject());
             },
             seal: function(virtualTarget) {
-                // must seal (virtual) target as well (required by the proxy specification)
+                // seal the virtual target as well, as required by the spec
                 Object.seal(virtualTarget);
                 
                 return Object.seal(this.targetObject());
@@ -171,8 +170,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return Object.isSealed(this.targetObject());
             },
             preventExtensions: function(virtualTarget) {
-                // must prevent extensions to the  (virtual) target as well 
-                // (required by the proxy specification)
+                // prevent extensions to the virtual target as well, as
+                // required by the spec
                 Object.preventExtensions(virtualTarget);
                 
                 return Object.preventExtensions(this.targetObject());
@@ -207,9 +206,9 @@ Object.extend(lively.versions.ObjectVersioning, {
         lively.Versions.push(nextVersion);
         
         // freeze all objects as previous versions shouldn't change,
-        // so objects need to be copied on (first) write
-        // however: using Object.freeze() for this has the drawback that frozen objects
-        // can be written again in the next version...
+        // so objects need to be copied on write in following versions
+        // however: using Object.freeze() for this has the drawback that
+        // objects frozen elsewhere can be written again in following versions
         nextVersion.forEach(function (ea) {
             Object.freeze(ea);
         })
@@ -254,7 +253,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
         ast.replaceNodesMatching(
             function(node) {
-                return node.isObjectLiteral || node.isArrayLiteral || node.isFunction;
+                return node.isObjectLiteral ||
+                        node.isArrayLiteral ||
+                        node.isFunction;
             },
             function(node) {
                 var fn = new lively.ast.Variable(node.pos, "lively.versions.ObjectVersioning.proxy");

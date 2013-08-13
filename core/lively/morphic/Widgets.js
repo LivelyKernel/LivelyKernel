@@ -1856,8 +1856,8 @@ lively.morphic.World.addMethods(
         return this.addModal(listPrompt);
     },
 
-    editPrompt: function (message, callback, defaultInput) {
-        return this.openDialog(new lively.morphic.EditDialog(message, callback, defaultInput))
+    editPrompt: function (message, callback, defaultInputOrOptions) {
+        return this.openDialog(new lively.morphic.EditDialog(message, callback, defaultInputOrOptions))
     }
 },
 'progress bar', {
@@ -3086,7 +3086,10 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
 'initializing', {
-    initialize: function($super, label, callback, defaultInput) {
+    initialize: function($super, label, callback, defaultInputOrOptions) {
+        this.options = Object.isObject(defaultInputOrOptions) ? defaultInputOrOptions : {};
+        var defaultInput = (Object.isString(defaultInputOrOptions) && defaultInputOrOptions)
+                        || this.options.input || null;
         $super(label, callback, defaultInput);
         this.defaultInput = defaultInput;
     },
@@ -3096,7 +3099,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
                     resizeWidth: true, moveVertical: true,
                     gutter: false, lineWrapping: true,
                     borderWidth: 1, borderColor: Color.gray.lighter(),
-                    textMode: 'text'
+                    textMode: this.options.textMode || 'text'
                 });
         input.setBounds(bounds);
         this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
@@ -3110,7 +3113,28 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
         this.buildTextInput();
         lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
             converter: function() { return null }});
-        lively.bindings.connect(this.okButton, 'fire', this.inputText, 'doSave')
+        lively.bindings.connect(this.okButton, 'fire', this.inputText, 'doSave');
+        ['inputText', 'okButton', 'cancelButton'].forEach(function(prop) { this.panel[prop] = this[prop]; }, this);
+        this.panel.addScript(function onKeyDown(evt) {
+            var keys = evt.getKeyString();
+            if (keys === 'Command-Enter' || keys === 'Control-Enter') {
+                this.inputText.doSave();
+                evt.stop(); return true;
+            }
+            if (keys === 'Esc') {
+                this.cancelButton.simulateButtonClick()
+                evt.stop(); return true;
+            }
+            if (keys === 'Tab') {
+                var focusOrder = [this.inputText, this.okButton, this.cancelButton]
+                var focused = lively.morphic.Morph.focusedMorph();
+                var idx = (focusOrder.indexOf(focused) + 1) % 3;
+                focusOrder[idx].focus();
+                focusOrder[idx].show();
+                evt.stop(); return true;
+            }
+            return false;
+        });
         return panel;
     }
 },

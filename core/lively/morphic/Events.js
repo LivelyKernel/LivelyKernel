@@ -528,7 +528,7 @@ Trait('ScrollableTrait',
     },
 
     stopScrollWhenBordersAreReached: function(evt) {
-        if (!this.isScrollable() || this.isInInactiveWindow() || !this.isScrollTarget(evt)) return false;
+        if (!this.isScrollable() || this.isInInactiveWindow()) return false;
         // FIXME HTML specfic! Move to HTML module
         var div = this.getScrollableNode(evt);
         if (evt.wheelDeltaX) {
@@ -2378,7 +2378,6 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         return comboParts.map(function(ea) { return this.normalizeComboPart(ea); }, this).join(' ');
     },
 
-
     bindingsWithPrefix: function(prefix, dontNormalize) {
         // prefix is something like C-c
         // returns stuff like C-c, C-c x, C-c C-c y, ...
@@ -2425,8 +2424,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             if (typeof keys === 'object') keys = keys[platform];
             this.addKeyCombo(keys, command);
         }, this);
-    },
-
+    }
 },
 'key lookup', {
     lookup: function(comboPart) {

@@ -1500,6 +1500,12 @@ lively.morphic.World.addMethods(
         });
     },
 
+    openPreferences: function() {
+        require('lively.morphic.tools.Preferences').toRun(function() {
+            lively.BuildSpec('lively.morphic.tools.Preferences').createMorph().openInWorldCenter().comeForward();
+        });
+    },
+
     openServerWorkspace: function() {
         require('lively.ide.tools.ServerWorkspace').toRun(function() {
             lively.BuildSpec('lively.ide.tools.ServerWorkspace').createMorph().openInWorldCenter().comeForward();
@@ -1707,6 +1713,7 @@ lively.morphic.World.addMethods(
                         function(ea) {ea.stopStepping && ea.stopStepping()})}],
             ]],
             ['Preferences', [
+                ['Preferences', this.openPreferences.bind(this)],
                 ['Set username', this.askForUserName.bind(this)],
                 ['My user config', this.showUserConfig.bind(this)],
                 ['Set world extent', this.askForNewWorldExtent.bind(this)],

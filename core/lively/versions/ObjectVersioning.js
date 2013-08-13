@@ -1,58 +1,11 @@
 module('lively.versions.ObjectVersioning').requires('lively.ast.Parser').toRun(function() {
-
+    
 Object.extend(lively.versions.ObjectVersioning, {
-    init: function() {
-        lively.CurrentObjectTable = [];
-        lively.Versions = []; // a linear history (for now)
-        
-        lively.Versions.push(lively.CurrentObjectTable);
-    },
-    proxy: function(target) {        
-        // proxies are fully virtual objects: they don't point to their target, 
-        // but refer to it by __objectID
-        var id, proxy, virtualTarget;
-        
-        if (this.isProxy(target)) {
-            throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
-        }
-        
-        if (target !== Object(target)) {
-            throw new TypeError('Primitive objects shouldn\'t be wrapped');
-        }
-        
-        lively.CurrentObjectTable.push(target);
-        
-        // only functions trap function application
-        virtualTarget = Object.isFunction(target) ? function() {} : {};
-        
-        proxy = Proxy(virtualTarget, this.versioningProxyHandler());
-        id = lively.CurrentObjectTable.length - 1;
-        proxy.__objectID = id;
-        
-        return proxy;
-    },
-    isProxy: function(obj) {
-        if (!obj) {
-            return false;
-        }
-        
-        return ({}).hasOwnProperty.call(obj, '__objectID');
-    },
-    getObjectForProxy: function(proxy, optObjectTable) {
-        var objectTable = optObjectTable || lively.CurrentObjectTable;
-        
-        return objectTable[proxy.__objectID];
-    },
-    setObjectForProxy: function(target, proxy, optObjectTable) {
-        var objectTable = optObjectTable || lively.CurrentObjectTable;
-        objectTable[proxy.__objectID] = target;
-    },
     versioningProxyHandler: function() {
         return {
             // these proxies are fully virtual, so the first parameter to all 
             // traps is an empty object and shouldn't be touched
             
-            // === meta info ===
             // __objectID can be resolved via global object table
             __objectID: null,
             
@@ -196,6 +149,58 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return Object.keys(this.targetObject());
             }
         };
+    }
+});
+
+Object.extend(lively.versions.ObjectVersioning, {
+    init: function() {
+        lively.CurrentObjectTable = [];
+        lively.Versions = []; // a linear history (for now)
+        
+        lively.Versions.push(lively.CurrentObjectTable);
+    },
+    proxy: function(target) {        
+        // proxies are fully virtual objects: they don't point to their target, 
+        // but refer to it by __objectID
+        var id, proxy, virtualTarget;
+        
+        if (this.isProxy(target)) {
+            throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
+        }
+        
+        if (target !== Object(target)) {
+            throw new TypeError('Primitive objects shouldn\'t be wrapped');
+        }
+        
+        lively.CurrentObjectTable.push(target);
+        
+        // only proxies for functions do trap function application
+        virtualTarget = Object.isFunction(target) ? function() {} : {};
+        
+        proxy = Proxy(virtualTarget, this.versioningProxyHandler());
+        id = lively.CurrentObjectTable.length - 1;
+        proxy.__objectID = id;
+        
+        return proxy;
+    },
+    getObjectForProxy: function(proxy, optObjectTable) {
+        var objectTable = optObjectTable || lively.CurrentObjectTable;
+        
+        return objectTable[proxy.__objectID];
+    },
+    setObjectForProxy: function(target, proxy, optObjectTable) {
+        var objectTable = optObjectTable || lively.CurrentObjectTable;
+        objectTable[proxy.__objectID] = target;
+    },
+    isProxy: function(obj) {
+        if (!obj) {
+            return false;
+        }
+        
+        return ({}).hasOwnProperty.call(obj, '__objectID');
+    },
+    isPrimitiveObject: function(obj) {
+        return obj !== Object(obj);
     },
     commitVersion: function() {
         var previousVersion,
@@ -245,25 +250,10 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
         return lively.Versions[index];
     },
-    isPrimitiveObject: function(obj) {
-        return obj !== Object(obj);
-    },
-    transformSource: function(source) {
-        var ast = lively.ast.Parser.parse(source);
-                
-        ast.replaceNodesMatching(
-            function(node) {
-                return node.isObjectLiteral ||
-                        node.isArrayLiteral ||
-                        node.isFunction;
-            },
-            function(node) {
-                var fn = new lively.ast.Variable(node.pos, "lively.versions.ObjectVersioning.proxy");
-                return new lively.ast.Call(node.pos, fn, [node]);
-            }
-        );
-        
-        return ast.asJS();
+    start: function() {
+        this.init();
+        this.wrapEval();
+        this.wrapGlobalObjects();
     },
     wrapEval: function() {
         var originalEval = eval;
@@ -295,12 +285,28 @@ Object.extend(lively.versions.ObjectVersioning, {
         Object.create = this.proxy(Object.create);
         JSON.parse = this.proxy(JSON.parse);
     },
-    start: function() {
-        this.init();
-        this.wrapEval();
-        this.wrapGlobalObjects();
+});
+
+Object.extend(lively.versions.ObjectVersioning, {
+    transformSource: function(source) {
+        var ast = lively.ast.Parser.parse(source);
+                
+        ast.replaceNodesMatching(
+            function(node) {
+                return node.isObjectLiteral ||
+                        node.isArrayLiteral ||
+                        node.isFunction;
+            },
+            function(node) {
+                var fn = new lively.ast.Variable(node.pos, "lively.versions.ObjectVersioning.proxy");
+                return new lively.ast.Call(node.pos, fn, [node]);
+            }
+        );
+        
+        return ast.asJS();
     }
 });
+
 lively.versions.ObjectVersioning.init();
 
 });

@@ -40,6 +40,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.lastValue = undefined;
         this.checker = checker || this.basicChecker;
         this.isContinuous = isContinuous !== undefined ? isContinuous : null;
+        this.isNew = true;
         this.setLastTime(0);
         return this;
     },
@@ -65,9 +66,9 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.owner = object;
         this.streamName = name;
         if (this.isContinuous) {
-            this.setLastTime(object.__evaluator.currentTime + 1 /* hmm */);
+            this.setLastTime(object.__evaluator.currentTime);
         }
-        this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n)");
+        this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n, Date.now())");
         object.__evaluator.installStream(this);
         return this;
     },
@@ -221,7 +222,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                 for (var i = 0; i < col.length; i++) {
                     var arg = col[i];
                     var s = space.lookup(arg)[field];
-                    if (this.isEventStream(s) && this.isEarlierThan(s)) {
+                    if (this.isEventStream(s) && this.isEarlierThanIn(s, evaluator)) {
                         this.__found__ = s;
                         return true;
                     }
@@ -317,7 +318,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         var val = this.updater(space, evaluator);
         if (val !== undefined) {
             this.lastValue = this.currentValue = val;
-            this.setLastTime(this.type === "timerE" ? val : time);
+            this.setLastTime(this.type === "timerE" ? val : time, time);
             return true;
         }
         return false;
@@ -339,16 +340,13 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             val = this.updater(this, evaluator);
             if (val !== undefined) {
                 this.lastValue = this.currentValue;
-                this.setLastTime(this.type === "timerE" ? val : time);
+                this.setLastTime(this.type === "timerE" ? val : time, time);
                 this.currentValue = val;
                 changed = true;
             }
         }
         if (time > this.lastCheckTime) {
 			this.lastCheckTime = time;
-            if (this.lastTime === -1){
-                this.lastTime = time;
-            }
 		}
         if (this.type === "sendE" && val !== undefined) {
             this.thrower(val, this, evaluator);
@@ -367,7 +365,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             if (this.isEventStream(src)) {
                 if (src.currentValue === undefined)
                     result = result === null ? false : result;
-                if (this.isEarlierThan(src)) {
+                if (this.isEarlierThanIn(src, evaluator)) {
                     result = result === null ? true: result;
                 }
             }
@@ -389,7 +387,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         for (var i = 0; i < sources.length; i++) {
             var src = sources[i];
             if (this.isEventStream(src)
-                && (this.isEarlierThan(src) && src.currentValue !== undefined)) {
+                && (this.isEarlierThanIn(src, evaluator) && src.currentValue !== undefined)) {
                     if (result === null) {
                         result = true;
                         args[0] = src.currentValue;
@@ -431,7 +429,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
 
     frpSet: function(val, maybeTime) {
         this.currentValue = val;
-        this.setLastTime(maybeTime || this.owner.__evaluator.currentTime+1);
+        this.setLastTime(maybeTime || this.owner.__evaluator.currentTime /*+ 1 hmm */);
         this.owner.__evaluator.changedExternally = true;
         if (maybeTime) {
             this.owner.__evaluator.evaluateAt(maybeTime);
@@ -463,9 +461,15 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         return v;
     },
 
-    isEarlierThan: function(other) {
+    isEarlierThanIn: function(other, evaluator) {
         var otherTime = other.lastTime;
-        return otherTime === -1 || otherTime > this.lastCheckTime;
+        if (evaluator.continuity[this.id] === false) {
+            return otherTime > this.lastCheckTime &&
+                !(this.isNew &&  evaluator.currentTime !== other.realLastTime)
+        } else {
+            return otherTime > this.lastCheckTime ||
+                this.isNew
+        }
     },
     lookup: function(ref) {
         if (this.isStreamRef(ref)) {
@@ -473,9 +477,10 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         return ref;
     },
-    setLastTime: function(aNumber) {
+    setLastTime: function(aNumber, realTime) {
         this.lastTime = aNumber;
         this.lastCheckTime = aNumber;
+        this.realLastTime = realTime ? realTime : aNumber;
     },
     ceilTime: function(time, interval) {
         return Math.floor(time / interval) * interval;
@@ -491,6 +496,11 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             }
         }
 		this.lastValue = this.currentValue;
+        this.isNew = false;
+        for (var i = 0; i < this.subExpressiones; i++) {
+            var s = this[this.subExpressions[i]];
+            s.isNew = false;
+        }
     },
 
     isEventStream: function(v) {
@@ -549,14 +559,19 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             this.currentTime = this.object.__startTime;
         }
     },
-    onstore: function() {
-        this.reset();
-    },
     installTo: function(object) {
         object.__startTime = Date.now();
         object.__evaluator = this;
         this.object = object;
         return this;
+    },
+    onstore: function() {
+        this.reset();
+        this.currentTime = undefined;
+    },
+    onrestore: function() {
+        this.reset();
+        this.currentTime = undefined;
     },
     setUpMorphicEvent: function(fName, original) {
         var mName = "on" + fName.capitalize();
@@ -565,7 +580,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
 "           if (this.__evaluator && this.Y\n" +
 "               && this.Y instanceof lively.bindings.FRPCore.EventStream\n" +
 "                   && !this.Y.dormant) {\n" +
-"                   this.Y.frpSet(evt);\n" +
+"                   this.Y.frpSet(evt, evt.timeStamp);\n" +
 "                   return true;\n" +
 "           }\n" +
 "           return false;\n" +
@@ -747,7 +762,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
             this.detectContinuity();
         }
         for (var i = 0; i < this.results.length; i++) {
-            this.results[i].sync(sent ? this.currentTime : undefined);
+            this.results[i].sync(this.currentTime);
         }
     },
     reevaluate: function() {

@@ -30,17 +30,18 @@ TestCase.subclass('lively.bindings.tests.FRPSerialization.SerializationTests',
         a.installTo(src, "a");
         b.installTo(src, "b");
         src.__evaluator.evaluate();
-        this.assertEquals(src.adder.currentValue, 7);
-        strm.beContinuous(7);
+        this.assertEquals(src.adder.currentValue, 7, "a");
 
         var s = lively.persistence.Serializer.createObjectGraphLinearizer();
         s.addPlugin(new lively.bindings.FRP.EventStreamPlugin());
         var out = s.serialize(src), result = s.deserialize(out);
 
-        this.assertEquals(result.adder.currentValue, 7);
-        this.assertEquals(result.a.type, "value");
-        this.assertEquals(result.a.currentValue, "3");
-        this.assertEquals(result.b.currentValue, "4");
+        result.__evaluator.evaluate();
+
+        this.assertEquals(result.adder.currentValue, 7, "b");
+        this.assertEquals(result.a.type, "value", "c");
+        this.assertEquals(result.a.currentValue, "3", "d");
+        this.assertEquals(result.b.currentValue, "4", "e");
     }
 
 });

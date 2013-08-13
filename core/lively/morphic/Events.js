@@ -2436,6 +2436,12 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
     },
     lookupAll: function(comboParts) {
         return this.bindings[this.normalizeCombo(comboParts)] || null;
+    },
+    getGlobalKeybindings: function() {
+        return Object.keys(this.bindings).map(function(combo) {
+            var name = this.bindings[combo];
+            if (!name || name === 'null' || name === 'prefix') return null;
+            return {keys: combo, name: name}; }, this).compact();
     }
 },
 "event handling", {
@@ -2463,7 +2469,8 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         }
         return false;
     },
-
+},
+"code editor", {
     transferPrefixToActiveCodeEditor: function(prevKeysPressed) {
         // this hack is used in combination with ace codeeditors.
         // it's purpose is to allow both the global key handler
@@ -2491,8 +2498,67 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         if (kbd.commmandKeyBinding[combo] === undefined) return;
         // the current key will be read in by the editor, just send the last ones
         focused.aceEditor.keyBinding.$data.keyChain = combo;
+    },
+
+    getEditorKeybindings: function(codeEditor) {
+        var modifierHashIdMapping = (function() {
+            // => {C: 1, C-CMD: 9, C-M: 3...}
+            var modifierCombos = [
+                    "C-S-M-CMD",
+                    "S-M-CMD", "C-M-CMD", "C-S-CMD", "C-S-M",
+                    "M-CMD", "S-CMD", "S-M", "C-CMD", "C-M", "C-S",
+                    "CMD", "M", "S", "C"],
+                KEY_MODS= {
+                    "C": 1, "M": 2,
+                    "S": 4, "CMD": 8
+                };
+            return modifierCombos.inject({}, function(comboHashes, combo) {
+                var modIds = combo.split('-').map(function(part) { return KEY_MODS[part]; }),
+                    hashId = modIds.inject(0, function(hashId, modId) { return hashId | modId; });
+                comboHashes[hashId] = combo;
+                return comboHashes;
+            });
+        })();
+        function getCommandName(command) {
+            if (command.command) command = command.command;
+            return Object.isString(command) ? command : command.name || 'could not find name for command';
+        }
+        function prettifyModifiers(keys) {
+            return keys.replace(/C-/, 'Control-').replace(/M-/, 'Alt-').replace(/CMD-/, 'Command-').replace(/S-/, 'Shift-');
+        }
+        return codeEditor.withAceDo(function(ed) {
+            var kbd = ed.keyBinding.$handlers.first(); //ed.getKeyboardHandler();
+            var bindings = kbd.commmandKeyBinding;
+            if (false && kbd.isEmacs) {
+                return Object.keys(bindings).map(function(keys) { 
+                    if (!bindings[keys]
+                     || bindings[keys] === 'null'
+                     || bindings[keys] === 'prefix') return null;
+                    return {
+                        keys: keys,
+                        name: getCommandName(bindings[keys]),
+                        command: bindings[keys]
+                    }
+                }).compact();;
+            }
+            var keysAndCommands = [];
+            Object.keys(kbd.commmandKeyBinding).forEach(function(hashId) {
+                var cmdsForModifier = kbd.commmandKeyBinding[hashId];
+                var modifiers = modifierHashIdMapping[hashId] || '';
+                modifiers.length > 0 && (modifiers += '-');
+                keysAndCommands.pushAll(
+                    Properties.forEachOwn(cmdsForModifier, function(key, command) {
+                        return {
+                            keys: prettifyModifiers(modifiers + key),
+                            name: getCommandName(command),
+                            command: command};
+                        }));
+            });
+            return keysAndCommands;
+        });
     }
 });
+
 Object.extend(lively.morphic.KeyboardDispatcher, {
     global: function() {
         var global = this._global || (this._global = new this(lively.ide.commands.defaultBindings));

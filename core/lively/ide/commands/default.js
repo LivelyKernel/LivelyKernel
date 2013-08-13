@@ -295,6 +295,18 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+    // javascript
+    'lively.ide.evalJavaScript': {
+        description: 'eval JavaScript',
+        exec: function() {
+            var dlg = $world.editPrompt('Enter JavaScript code to evaluate', function(input) {
+                if (!input || !input.length) return;
+                var result = dlg.inputText.tryBoundEval(input);
+                alertOK('eval: ' + input.replace(/\n/g, '').truncate(40) + ':\n' + Strings.print(result));
+            }, {textMode: 'javascript'});
+            return true;
+        }
+    },
     // browsing
     'lively.ide.SystemCodeBrowser.openUserConfig': {
         description: 'browse user config.js',
@@ -547,6 +559,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Morph.copy': 'cmd-s-l c o p y',
     'lively.morphic.Morph.showSceneGraph': {mac: "cmd-m", win: 'ctrl-m'},
     'lively.morphic.Morph.openObjectEditor': 'cmd-s-l o e',
+    'lively.ide.evalJavaScript': 'm-s-:',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-`"},
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},

@@ -119,20 +119,13 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
                     type: "Boolean"
                 }],
                 sourceModule: "lively.morphic.Widgets",
-                submorphs: [],
-                toggle: false,
-                value: false,
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "fire", this, "doAction", {});
                 lively.bindings.connect(this, "fire", this.get("BaseDirectoryChooser"), "removeDir", {});
-            },
-                doAction: function doAction() {
-                
             }
             }]
         }],
         addDir: function addDir(dir) {
-        this.get('DirList').addItem({isListItem: true, string: dir, value: dir});
+        this.get('DirList').addItem({isListItem: true, string: String(dir), value: dir});
     },
         addDirInteractively: function addDirInteractively() {
         lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
@@ -143,8 +136,24 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
             [this.addDir.bind(this)]);
     },
         changeBaseDir: function changeBaseDir(dir) {
-        alertOK(dir ? 'base directory is now ' + dir : 'resetting base dir');
-        lively.ide.CommandLineInterface.setWorkingDirectory(dir ? String(dir) : null);
+        var path = dir && dir.path ? dir.path : (dir ? String(dir) : null);
+        alertOK(dir ? 'base directory is now ' + path : 'resetting base dir');
+        lively.ide.CommandLineInterface.setWorkingDirectory(path);
+    },
+        onKeyDown: function onKeyDown(evt) {
+        var keys = evt.getKeyString();
+        if (keys === 'Shift-+' || keys === '+') {
+            this.addDirInteractively();
+            evt.stop(); return true;
+        }
+        if (keys === 'Backspace' || keys === 'Del' || keys === '-') {
+            this.removeDir();
+            evt.stop(); return true;
+        }
+        return false;
+    },
+        onWindowGetsFocus: function onWindowGetsFocus() {
+        this.get("DirList").focus();
     },
         removeDir: function removeDir() {
         this.get('DirList').removeItemOrValue(this.get('DirList').selection)

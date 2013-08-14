@@ -458,53 +458,105 @@ lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
 'testing',{
    test01ObjectLiterals: function() {
-        var input = 'var obj = {}',
-            expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxy({})';
+        var input = 'var obj = {};',
+            expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxy({});';
         
         this.assertEquals(this.transform(input), expectedOutput);
    },
    test02ArrayLiterals: function() {
-       var input = 'var arr = []',
-            expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxy([])';
+       var input = 'var arr = [];',
+            expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxy([]);';
         
         this.assertEquals(this.transform(input), expectedOutput);
    },
-   test03FunctionLiteral: function() {
-       var input = 'var func = function() {\nreturn 12;\n}',
-            expectedOutput = 'var func = lively.versions.ObjectVersioning.proxy(function() {\nreturn 12\n})';
-                
+   test03FunctionExpression: function() {
+        var input =
+            'var funcVariable = function() {\n' +
+            '   return 12;\n' +
+            '};';
+        var expectedOutput =
+            'var funcVariable = lively.versions.ObjectVersioning.proxy(function() {\n' +
+            '    return 12;\n' +
+            '});';
+        
         this.assertEquals(this.transform(input), expectedOutput);
    },
-   test04IndicatesFailureOnSyntaxError: function() {
+   
+    test04NamedFunctionExpression: function() {
+        var input =
+            'var funcVariable = function funcName() {\n' +
+            '   return 12;\n' +
+            '};';
+        var expectedOutput =
+            'var funcVariable = lively.versions.ObjectVersioning.proxy(function funcName() {\n' +
+            '    return 12;\n' +
+            '});';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+   },
+   
+    test05FunctionDeclaration: function() {
+        // the transformation visible in this example is necessary due to the difference
+        // between a function declaration and a function expression. here, the input merely
+        // is a function declaration, which would make the function's name accessible in
+        // the declaration's parent's scope. for this reason, we need to make the function
+        // explcitily accessible under its name when we wrap it into the proxy function,
+        // because that transforms function declarations into function expressions...
+                
+        var input =
+            'function funcName() {\n' +
+            '   return 12;\n' +
+            '};';
+        var expectedOutput =
+            'var funcName = lively.versions.ObjectVersioning.proxy(function funcName() {\n' +
+            '    return 12;\n' +
+            '});\n\n';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+   },
+   
+   test06IndicatesFailureOnSyntaxError: function() {
        var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
        
        this.assertRaises((function() {
            this.transform(incorrectInput);
         }).bind(this));
    },
-   test05BiggerExample: function() {
-       var input = 
-"var joe = {    \
-    name: 'Joe', \
-    age: 25, \
-    address: { \
-        street: 'Mainstr. 20', \
-        zipCode: '12125' \
-    }, \
-    friends: [], \
-    becomeFriendsWith: function(otherPerson) { \
-        this.friends.push(otherPerson.name); \
-    }, \
-    isFriendOf: function(otherPerson) { \
-        return this.friends.include(otherPerson.name); \
-    } \
-}";
-    var expectedOutput = 'var joe = lively.versions.ObjectVersioning.proxy({"name": "Joe","age": 25,"address": lively.versions.ObjectVersioning.proxy({"street": "Mainstr. 20","zipCode": "12125"}),"friends": lively.versions.ObjectVersioning.proxy([]),"becomeFriendsWith": lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n\
-this["friends"]["push"](otherPerson["name"])\n\
-}),"isFriendOf": lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n\
-return this["friends"]["include"](otherPerson["name"])\n\
-})})'
-
+   
+   test07BiggerExample: function() {
+        var input = 
+            "var joe = {\n" +
+            "    name: 'Joe',\n" +
+            "    age: 25,\n" +
+            "    address: {\n" +
+            "        street: 'Mainstr. 20',\n" +
+            "        zipCode: '12125'\n" +
+            "    },\n" +
+            "    friends: [],\n" +
+            "    becomeFriendsWith: function(otherPerson) {\n" +
+            "        this.friends.push(otherPerson.name);\n" +
+            "    },\n" +
+            "    isFriendOf: function(otherPerson) {\n" +
+            "        return this.friends.include(otherPerson.name);\n" +
+            "    }\n" +
+            "}";
+    var expectedOutput = 
+        'var joe = lively.versions.ObjectVersioning.proxy({\n' +
+        '    name: "Joe",\n' +
+        '    age: 25,\n' +
+        '    address: lively.versions.ObjectVersioning.proxy({\n' +
+        '        street: "Mainstr. 20",\n' +
+        '        zipCode: "12125"\n' +
+        '    }),\n' +
+        '    friends: lively.versions.ObjectVersioning.proxy([]),\n' +
+        '    becomeFriendsWith: lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n' +
+        '        this.friends.push(otherPerson.name);\n' +
+        '    }),\n' +
+        '    isFriendOf: lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n' +
+        '        return this.friends.include(otherPerson.name);\n' +
+        '    })\n' +
+        '});';
+    
     this.assertEquals(this.transform(input), expectedOutput);
    }
 });

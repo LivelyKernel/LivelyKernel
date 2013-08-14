@@ -1,4 +1,4 @@
-module('lively.versions.ObjectVersioning').requires('lively.ast.Parser').toRun(function() {
+module('lively.versions.ObjectVersioning').requires('lively.versions.UglifyTransformer').toRun(function() {
     
 Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function() {
@@ -289,21 +289,7 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 Object.extend(lively.versions.ObjectVersioning, {
     transformSource: function(source) {
-        var ast = lively.ast.Parser.parse(source);
-                
-        ast.replaceNodesMatching(
-            function(node) {
-                return node.isObjectLiteral ||
-                        node.isArrayLiteral ||
-                        node.isFunction;
-            },
-            function(node) {
-                var fn = new lively.ast.Variable(node.pos, "lively.versions.ObjectVersioning.proxy");
-                return new lively.ast.Call(node.pos, fn, [node]);
-            }
-        );
-        
-        return ast.asJS();
+        return lively.versions.UglifyTransformer.transformSource(source);
     }
 });
 

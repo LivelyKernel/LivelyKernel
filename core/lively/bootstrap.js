@@ -885,10 +885,17 @@
 
     // TODO: Something is wrong with the lively-libs, use debug only to
     // activate loading on ios 5
-    // FIXME: add lib/reflect.js to lively-libs (and probably lk builds-libs),
-    // at least after es5-shim and IE-fixes
+    
+    // TODO: LT: add Object Versioning dependancies (reflect.js, uglifyjs.js,
+    // source-map.js) to lively-libs, after es5-shim and IE-fixes
+    
     var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
-        libsFiles = [libsFile, 'lib/reflect.js', 'lib/uglifyjs.js'],
+        libsFiles = [
+            libsFile, 
+            'lib/reflect.js', 
+            'lib/uglifyjs.js',
+            'lib/source-map.js'
+        ],
         bootstrapFiles = [
             'lively/Migration.js',
             'lively/JSON.js',

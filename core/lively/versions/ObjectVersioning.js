@@ -289,7 +289,7 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 Object.extend(lively.versions.ObjectVersioning, {
     transformSource: function(source) {
-        return lively.versions.UglifyTransformer.transformSource(source);
+        return lively.versions.UglifyTransformer.transformSource(source, {beautify: true});
     }
 });
 

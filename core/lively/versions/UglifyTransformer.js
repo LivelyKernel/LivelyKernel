@@ -1,6 +1,11 @@
 module('lively.versions.UglifyTransformer').requires().toRun(function() {
     
 Object.extend(lively.versions.UglifyTransformer, {
+    
+    // FIXME: instead of creating new nodes by parsing (assembled) strings
+    // it's probably faster and definitely cleaner to just use ordinary constructors
+    // to build the necessary sub-trees with which original nodes should be replaced
+    
     transformSource: function (source) {
         var originalAst,
             transformedAst,
@@ -9,7 +14,7 @@ Object.extend(lively.versions.UglifyTransformer, {
         printOptions = {
             beautify: true,
         };
-        
+                
         var wrapIntoProxyFunction = function(node) {
             var exprNode = UglifyJS.parse('lively.versions.ObjectVersioning.proxy()'),
                 callNode = exprNode.body[0].body;
@@ -49,12 +54,11 @@ Object.extend(lively.versions.UglifyTransformer, {
                 // for more info see:
                 // javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
                 
-                
-                // FIXME: Is node.name.name always correct? throw an error for now if not?
-                
-                var callNode = wrapIntoProxyFunction(node);
-                
-                var newStmt = 'var ' + node.name.name + ' = ' + callNode.print_to_string(printOptions);
+                // FIXME: is this really a problem? can this really happen?
+                if (!node.name.name || !Object.isString(node.name.name)) 
+                    throw new Error('Source Transformations encountered function declaration without name');
+                                
+                var newStmt = 'var ' + node.name.name + ' = ' + '"standin"';
                 
                 var newStmtAst = UglifyJS.parse(newStmt);
                 var newVarStmtAst = newStmtAst.body[0];
@@ -62,13 +66,12 @@ Object.extend(lively.versions.UglifyTransformer, {
                 newVarStmtAst.start = node.start;
                 newVarStmtAst.end = node.end;
                 
-                // FIXME: maybe it's better to exchange the node for the right-side of the assignment
-                // with the original node... !?!?
+                // exchange the AST node of the 'standin' string with the wrapped original node
+                newVarStmtAst.definitions[0].value = wrapIntoProxyFunction(node);
                 
                 return newVarStmtAst;
             } else if (node instanceof UglifyJS.AST_Accessor) {
                 // FIXME: what the heck is this?
-                debugger;
                 throw new Error('Transformations of AST_Accessor not yet implemented');
             } else {
                 result = node;
@@ -77,11 +80,8 @@ Object.extend(lively.versions.UglifyTransformer, {
             return result;
         });
         
-        
         originalAst = UglifyJS.parse(source);
-        
         transformedAst = originalAst.transform(wrapLiterals);
-        
         return transformedAst.print_to_string(printOptions);
     }
 });

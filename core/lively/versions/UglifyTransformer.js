@@ -8,7 +8,7 @@ Object.extend(lively.versions.UglifyTransformer, {
     // FIXME: instead of creating new nodes by parsing (assembled) strings
     // it's probably faster and definitely cleaner to just use ordinary constructors
     // to build the necessary sub-trees with which original nodes should be replaced
-    wrapAllLiterals: function (source, optCodeGeneratorOptions) {
+    transformSource: function (originalSource, optCodeGeneratorOptions) {
         var originalAst,
             transformedAst,
             sourceMap,
@@ -80,74 +80,56 @@ Object.extend(lively.versions.UglifyTransformer, {
             return result;
         });
         
-        originalAst = UglifyJS.parse(source);
+        originalAst = UglifyJS.parse(originalSource);
         
         transformedAst = originalAst.transform(wrapLiterals);
         
         outputStream = UglifyJS.OutputStream(codeGeneratorOptions);
         transformedAst.print(outputStream);
         
-        return outputStream;
+        return outputStream.toString();
     },
-    transformSource: function(source, optCodeGeneratorOptions) {
-        return this.wrapAllLiterals(source, optCodeGeneratorOptions).toString();
+    generateCodeWithMapping: function(originalSource, sourceMapOptions) {
+        var uglifySourceMap = UglifyJS.SourceMap({}),
+            generatedCode,
+            sourceMap,
+            dataUri;  
+        
+        generatedCode = this.transformSource(originalSource, {source_map: uglifySourceMap});
+                
+        sourceMap = JSON.parse(uglifySourceMap.toString());
+        Object.extend(sourceMap, sourceMapOptions);
+        
+        // see kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
+        dataUri = 'data:application/json;charset=utf-8;base64,'+ btoa(JSON.stringify(sourceMap));
+        
+        return generatedCode + '\n//@ sourceMappingURL=' + dataUri;
     },
-    generateSourceFromUrl: function(url) {
+    generateCodeFromUrl: function(url) {
         var absoluteUrl = URL.ensureAbsoluteURL(url),
-            originalSources = JSLoader.getSync(absoluteUrl),
-            uglifySourceMap = UglifyJS.SourceMap({}),
-            outputStream,
-            sourceMap,
-            dataUri,
-            generatedSources;
+            originalSource = JSLoader.getSync(absoluteUrl),
+            sourceMapOptions = {
+                sourceRoot: absoluteUrl.dirname(),
+                sources: [absoluteUrl.filename()]
+            };
         
-        outputStream = this.wrapAllLiterals(originalSources, {source_map: uglifySourceMap});
-        
-        sourceMap = JSON.parse(uglifySourceMap.toString());
-        sourceMap.sourceRoot = absoluteUrl.dirname();
-        sourceMap.sources[0] = absoluteUrl.filename();
-        // sourceMap.sourcesContent = [originalSources];
-
-        // see: http://kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
-        dataUri = 'data:application/json;charset=utf-8;base64,'+ btoa(JSON.stringify(sourceMap));
-        
-        generatedSources = outputStream.toString() 
-            + '\n//@ sourceMappingURL=' + dataUri;
-        
-        return generatedSources;
+        return this.generateCodeWithMapping(originalSource, sourceMapOptions);
     },
-    generateSourceFromSource: function(source, optScriptName) {
-        var originalSources = source,
-            uglifySourceMap = UglifyJS.SourceMap({}),
-            outputStream,
-            sourceMap,
-            scriptName = optScriptName || 'eval at runtime',
-            dataUri,
-            generatedSources;
-        
-        outputStream = this.wrapAllLiterals(originalSources, {source_map: uglifySourceMap});
-        
-        sourceMap = JSON.parse(uglifySourceMap.toString());
-        sourceMap.sources[0] = [scriptName];
-        sourceMap.sourcesContent = [originalSources];
+    generateCodeFromSource: function(originalSource, optScriptName) {
+        var sourceName = optScriptName || 'eval at runtime',
+            sourceMapOptions = {
+                sources: [sourceName],
+                sourcesContent: [originalSource]
+            };
 
-        // see: http://kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
-        dataUri = 'data:application/json;charset=utf-8;base64,'+ btoa(JSON.stringify(sourceMap));
-        
-        generatedSources = outputStream.toString() 
-            + '\n//@ sourceMappingURL=' + dataUri;
-        
-        return generatedSources;
+        return this.generateCodeWithMapping(originalSource, sourceMapOptions);
     },
     loadSource: function(url) {
-        eval(this.generateSourceFromUrl(url));
+        eval(this.generateCodeFromUrl(url));
     },
-    evalSource: function(sources, optScriptName) {
-        eval(this.generateSourceFromSource(sources, optScriptName));
+    evalCode: function(code, optScriptName) {
+        eval(this.generateCodeFromSource(code, optScriptName));
     }
-    // try this:
-    // lively.versions.UglifyTransformer.loadSources('core/lively/versions/tests/benchmarks/richards.js');
-    
 });
     
 });

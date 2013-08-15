@@ -558,7 +558,20 @@ lively.versions.tests.TestCase.subclass(
         '});';
     
     this.assertEquals(this.transform(input), expectedOutput);
+   },
+   
+   test08GenerateSourceWithMapping: function() {
+        var input = 'var obj = {};',
+            expectedOutput = 'var obj=lively.versions.ObjectVersioning.proxy({});\n' +
+                '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
+                'eyJ2ZXJzaW9uIjozLCJmaWxlIjpudWxsLCJzb3VyY2VzIjpbImV2YWwgYXQgcnVud' +
+                'GltZSJdLCJuYW1lcyI6WyJvYmoiXSwibWFwcGluZ3MiOiJBQUFBLEdBQUlBIiwic2' +
+                '91cmNlc0NvbnRlbnQiOlsidmFyIG9iaiA9IHt9OyJdfQ==',
+            output = lively.versions.UglifyTransformer.generateCodeFromSource(input);
+        
+        this.assertEquals(output, expectedOutput);
    }
+   
 });
 
 });

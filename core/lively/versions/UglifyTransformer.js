@@ -92,7 +92,7 @@ Object.extend(lively.versions.UglifyTransformer, {
     transformSource: function(source, optCodeGeneratorOptions) {
         return this.wrapAllLiterals(source, optCodeGeneratorOptions).toString();
     },
-    generateSourceFrom: function(url) {
+    generateSourceFromUrl: function(url) {
         var absoluteUrl = URL.ensureAbsoluteURL(url),
             originalSources = JSLoader.getSync(absoluteUrl),
             uglifySourceMap = UglifyJS.SourceMap({}),
@@ -106,9 +106,32 @@ Object.extend(lively.versions.UglifyTransformer, {
         sourceMap = JSON.parse(uglifySourceMap.toString());
         sourceMap.sourceRoot = absoluteUrl.dirname();
         sourceMap.sources[0] = absoluteUrl.filename();
-        sourceMap.sourcesContent = [originalSources];
+        // sourceMap.sourcesContent = [originalSources];
+
+        // see: http://kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
+        dataUri = 'data:application/json;charset=utf-8;base64,'+ btoa(JSON.stringify(sourceMap));
         
-        // see http://kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
+        generatedSources = outputStream.toString() 
+            + '\n//@ sourceMappingURL=' + dataUri;
+        
+        return generatedSources;
+    },
+    generateSourceFromSource: function(source, optScriptName) {
+        var originalSources = source,
+            uglifySourceMap = UglifyJS.SourceMap({}),
+            outputStream,
+            sourceMap,
+            scriptName = optScriptName || 'eval at runtime',
+            dataUri,
+            generatedSources;
+        
+        outputStream = this.wrapAllLiterals(originalSources, {source_map: uglifySourceMap});
+        
+        sourceMap = JSON.parse(uglifySourceMap.toString());
+        sourceMap.sources[0] = [scriptName];
+        sourceMap.sourcesContent = [originalSources];
+
+        // see: http://kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
         dataUri = 'data:application/json;charset=utf-8;base64,'+ btoa(JSON.stringify(sourceMap));
         
         generatedSources = outputStream.toString() 
@@ -117,11 +140,13 @@ Object.extend(lively.versions.UglifyTransformer, {
         return generatedSources;
     },
     loadSource: function(url) {
-        var source = this.generateSourceFrom(url);
-        eval(source);
+        eval(this.generateSourceFromUrl(url));
+    },
+    evalSource: function(sources, optScriptName) {
+        eval(this.generateSourceFromSource(sources, optScriptName));
     }
     // try this:
-    // lively.versions.UglifyTransformer.loadSource('core/lively/versions/tests/benchmarks/richards.js');
+    // lively.versions.UglifyTransformer.loadSources('core/lively/versions/tests/benchmarks/richards.js');
     
 });
     

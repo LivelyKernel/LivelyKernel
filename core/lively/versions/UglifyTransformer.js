@@ -104,6 +104,7 @@ Object.extend(lively.versions.UglifyTransformer, {
         outputStream = this.wrapAllLiterals(originalSources, {source_map: uglifySourceMap});
         
         sourceMap = JSON.parse(uglifySourceMap.toString());
+        sourceMap.sourceRoot = absoluteUrl.dirname();
         sourceMap.sources[0] = absoluteUrl.filename();
         sourceMap.sourcesContent = [originalSources];
         

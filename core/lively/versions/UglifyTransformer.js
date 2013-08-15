@@ -2,7 +2,7 @@ module('lively.versions.UglifyTransformer').requires().toRun(function() {
     
 // UglifyJS expects Mozilla's source-map library to be globally available as MOZ_SourceMap
 Global.MOZ_SourceMap = Global.sourceMap;
-    
+        
 Object.extend(lively.versions.UglifyTransformer, {
     
     // FIXME: instead of creating new nodes by parsing (assembled) strings
@@ -92,23 +92,35 @@ Object.extend(lively.versions.UglifyTransformer, {
     transformSource: function(source, optCodeGeneratorOptions) {
         return this.wrapAllLiterals(source, optCodeGeneratorOptions).toString();
     },
-    generateSourceAndSourceMapFor: function(url) {
+    generateSourceFrom: function(url) {
         var absoluteUrl = URL.ensureAbsoluteURL(url),
-            source = JSLoader.getSync(absoluteUrl) // + '//@ sourceURL=' + url,
-            sourceMap = UglifyJS.SourceMap({
-                // root: ??,
-                // file: url
-            }),
-            options = {
-                // beautify: true,
-                // comments: true,
-                source_map: sourceMap
-            }
-        var outputStream = this.wrapAllLiterals(source, options);
-        return [outputStream.toString(), sourceMap.toString()];
+            originalSources = JSLoader.getSync(absoluteUrl),
+            uglifySourceMap = UglifyJS.SourceMap({}),
+            outputStream,
+            sourceMap,
+            dataUri,
+            generatedSources;
+        
+        outputStream = this.wrapAllLiterals(originalSources, {source_map: uglifySourceMap});
+        
+        sourceMap = JSON.parse(uglifySourceMap.toString());
+        sourceMap.sources[0] = absoluteUrl.filename();
+        sourceMap.sourcesContent = [originalSources];
+        
+        // see http://kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
+        dataUri = 'data:application/json;charset=utf-8;base64,'+ btoa(JSON.stringify(sourceMap));
+        
+        generatedSources = outputStream.toString() 
+            + '\n//@ sourceMappingURL=' + dataUri;
+        
+        return generatedSources;
+    },
+    loadSource: function(url) {
+        var source = this.generateSourceFrom(url);
+        eval(source);
     }
     // try this:
-    // lively.versions.UglifyTransformer.generateSourceAndSourceMapFor('http://localhost:9001/core/lively/versions/tests/benchmarks/richards.js')
+    // lively.versions.UglifyTransformer.loadSource('core/lively/versions/tests/benchmarks/richards.js');
     
 });
     

@@ -457,19 +457,19 @@ lively.versions.tests.TestCase.subclass(
 lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
 'testing',{
-   test01ObjectLiterals: function() {
+    test01ObjectLiterals: function() {
         var input = 'var obj = {};',
             expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxy({});';
         
         this.assertEquals(this.transform(input), expectedOutput);
-   },
-   test02ArrayLiterals: function() {
+    },
+    test02ArrayLiterals: function() {
        var input = 'var arr = [];',
             expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxy([]);';
         
         this.assertEquals(this.transform(input), expectedOutput);
-   },
-   test03FunctionExpression: function() {
+    },
+    test03FunctionExpression: function() {
         var input =
             'var funcVariable = function() {\n' +
             '   return 12;\n' +
@@ -480,8 +480,7 @@ lively.versions.tests.TestCase.subclass(
             '});';
         
         this.assertEquals(this.transform(input), expectedOutput);
-   },
-   
+    },
     test04NamedFunctionExpression: function() {
         var input =
             'var funcVariable = function funcName() {\n' +
@@ -493,15 +492,14 @@ lively.versions.tests.TestCase.subclass(
             '});';
         
         this.assertEquals(this.transform(input), expectedOutput);
-   },
-   
+    },
     test05FunctionDeclaration: function() {
-        // the transformation visible in this example is necessary due to the difference
-        // between a function declaration and a function expression. here, the input merely
-        // is a function declaration, which would make the function's name accessible in
-        // the declaration's parent's scope. for this reason, we need to make the function
-        // explcitily accessible under its name when we wrap it into the proxy function,
-        // because that transforms function declarations into function expressions...
+        // here, the input is a function declaration, which would make the function's
+        // accessible in the declaration's parent's scope by its name, so we need to
+        // make the function explicitly accessible using a variable when we wrap the
+        // function declaration into our proxy function, because passing the declaration
+        // as argument to another function makes the function literal a function
+        // expression
                 
         var input =
             'function funcName() {\n' +
@@ -514,7 +512,6 @@ lively.versions.tests.TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
    },
-   
    test06IndicatesFailureOnSyntaxError: function() {
        var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
        
@@ -522,7 +519,6 @@ lively.versions.tests.TestCase.subclass(
            this.transform(incorrectInput);
         }).bind(this));
    },
-   
    test07BiggerExample: function() {
         var input = 
             "var joe = {\n" +
@@ -556,11 +552,10 @@ lively.versions.tests.TestCase.subclass(
         '        return this.friends.include(otherPerson.name);\n' +
         '    })\n' +
         '});';
-    
-    this.assertEquals(this.transform(input), expectedOutput);
-   },
-   
-   test08GenerateSourceWithMapping: function() {
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test08GenerateSourceWithMapping: function() {
         var input = 'var obj = {};',
             expectedOutput = 'var obj=lively.versions.ObjectVersioning.proxy({});\n' +
                 '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
@@ -570,8 +565,7 @@ lively.versions.tests.TestCase.subclass(
             output = lively.versions.UglifyTransformer.generateCodeFromSource(input);
         
         this.assertEquals(output, expectedOutput);
-   }
-   
+    }
 });
 
 });

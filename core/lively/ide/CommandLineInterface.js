@@ -841,7 +841,7 @@ lively.ide.CommandLineInterface.GitSupport = {
         var sess = lively.net.SessionTracker.getSession(),
             gitSupport = this;
         if (!sess || !sess.isConnected()) { thenDo({error: 'No Lively2Lively session!'}, null); return; }
-        var scriptFile, scriptSource, cmdFile, cmdSource, isWindows = false;
+        var scriptFile, scriptSource, cmdFile, cmdFileFullPath, cmdSource, isWindows = false;
         function prepareScript(next) {
             scriptSource = gitSupport.getAskPassScriptTemplate()
                 .replace('__TRACKERURL__', sess.sessionTrackerURL+'connect')
@@ -865,7 +865,7 @@ lively.ide.CommandLineInterface.GitSupport = {
         }
         function fullPathToCommandFile(next) {
             new WebResource(Config.nodeJSURL + '/' + 'NodeJSEvalServer/').beAsync().post('require("path").join(process.env.WORKSPACE_LK,"' + cmdFile + '")', 'text/plain').whenDone(function(result, status) {
-                cmdFile = result && String(result); next();
+                cmdFileFullPath = result && String(result); next();
             });
         }
         function writeCommand(next) {
@@ -887,7 +887,7 @@ lively.ide.CommandLineInterface.GitSupport = {
             });
         }
         [prepareScript, writeScript, determinePlatform, fullPathToCommandFile, writeCommand, makeCommmandExecutable].doAndContinue(null, function() {
-            thenDo(null, cmdFile);
+            thenDo(null, cmdFileFullPath);
         });
     },
 

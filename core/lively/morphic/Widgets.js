@@ -478,6 +478,9 @@ lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
         node.className = 'visibleSelection';
         return new lively.morphic.Shapes.External(node);
     },
+    getFocusNodeHTML: function(ctx) {
+        return ctx.shapeNode;
+    }
 },
 'accessing', {
     set value(string) {
@@ -494,6 +497,19 @@ lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
         // FIXME move to lively.morphic.HTML
         var inputNode = this.renderContext().shapeNode;
         return inputNode ? inputNode.value : '';
+    },
+    doSave: function() {
+        lively.bindings.signal(this, 'savedValue', this.value);
+    }
+},
+"key events handling", {
+    onKeyDown: function(evt) {
+        var keys = evt.getKeyString();
+        if (keys ===  'Enter' || keys ===  'Command+S' || keys ===  'Constrol+S') {
+            this.doSave();
+            evt.stop(); return true;
+        }
+        return false;
     }
 });
 
@@ -1844,6 +1860,9 @@ lively.morphic.World.addMethods(
     prompt: function (message, callback, defaultInput) {
         return this.openDialog(new lively.morphic.PromptDialog(message, callback, defaultInput))
     },
+    passwordPrompt: function (message, callback, options) {
+        return this.openDialog(new lively.morphic.PasswordPromptDialog(message, callback, options));
+    },
     listPrompt: function (message, callback, list, defaultInput, optExtent) {
         // $world.listPrompt('test', alert, [1,2,3,4], 3, pt(400,300));
         module('lively.morphic.tools.ConfirmList').load(true);
@@ -3085,6 +3104,47 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
     },
 });
 
+lively.morphic.AbstractDialog.subclass('lively.morphic.PasswordPromptDialog',
+// new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
+'initializing', {
+    initialize: function($super, label, callback, defaultInput) {
+        $super(label, callback, defaultInput);
+        this.defaultInput = defaultInput;
+    },
+    buildPasswordInput: function(bounds) {
+        var input = new lively.morphic.PasswordInput();
+        input.setBounds(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)));
+        input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));
+        lively.bindings.connect(input, 'savedValue', this, 'result');
+        lively.bindings.connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
+        lively.bindings.connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
+        input.applyStyle({resizeWidth: true, moveVertical: true});
+        this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
+    },
+
+    buildView: function($super, extent) {
+        var panel = $super(extent);
+        this.buildPasswordInput();
+
+        lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
+            converter: function() { return null }});
+        lively.bindings.connect(this.okButton, 'fire', this.inputText, 'doSave')
+
+        return panel;
+    },
+
+},
+'opening', {
+    openIn: function($super, owner, pos) {
+        var view = $super(owner, pos);
+        // delayed because selectAll will scroll the world on text focus
+        // sometimes the final pos of the dialog is different to the pos here
+        // so dialog will open at wrong place, focus, world scrolls to the top,
+        // dialog is moved and out of frame
+        this.inputText.focus();
+        return view;
+    }
+});
 
 lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()

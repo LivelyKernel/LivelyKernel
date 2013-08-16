@@ -221,7 +221,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     getActions: function() {
-        return Object.extend(Object.extend({}, this.constructor.defaultActions), this.actions);
+        return Object.extend(Object.extend({}, lively.net.SessionTracker.defaultActions), this.actions);
+    },
+
+    addActions: function(actions) {
+        return Object.extend(this.actions, actions);
     },
 
     remoteEval: function(targetId, expression, thenDo) {
@@ -229,7 +233,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     openForRequests: function() {
-        if (!this.actions) this.actions = Object.extend({}, lively.net.SessionTracker.defaultActions);
+        if (!this.actions) this.actions = {};
         this.listen();
     },
 
@@ -314,6 +318,10 @@ Object.extend(lively.net.SessionTracker, {
         messageNotUnderstood: function(msg, session) {
             show('Lively2Lively message not understood:\n%o', msg);
         }
+    },
+
+    registerActions: function(actions) {
+        return Object.extend(this.defaultActions, actions);
     },
 
     getSession: function(optURL) {

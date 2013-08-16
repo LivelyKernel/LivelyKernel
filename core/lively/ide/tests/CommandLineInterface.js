@@ -299,6 +299,12 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
         var result = lively.ide.CommandLineInterface.exec('expr 1 + 2', {sync:true}).resultString();
         this.assertEquals(3, result);
         this.done();
+    },
+
+    testExecCommandWithSettingEnvVar: function() {
+        var result = lively.ide.CommandLineInterface.exec('echo $FOO', {sync:true, env: {FOO: 'bar'}}).resultString();
+        this.assertEquals('bar', result);
+        this.done();
     }
 });
 

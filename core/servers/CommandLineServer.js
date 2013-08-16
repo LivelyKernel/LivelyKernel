@@ -16,7 +16,8 @@ var env = {
 }
 
 function startSpawn(cmdInstructions) {
-    var options = {env: env, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
+    var commandEnv = util._extend(cmdInstructions.env || {}, env),
+        options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
         command = cmdInstructions.command, args = [],
         stdin = cmdInstructions.stdin;
     if (typeof command === 'string') {
@@ -42,9 +43,10 @@ function startSpawn(cmdInstructions) {
 }
 
 function startExec(cmdInstructions) {
-    var cmd = cmdInstructions.command,
+    var commandEnv = util._extend(cmdInstructions.env || {}, env),
+        cmd = cmdInstructions.command,
         callback = cmdInstructions.callback,
-        options = {env: env, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
+        options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', cmd);
     return exec(cmd, options, function(code, out, err) {
         callback && callback(code, out, err);
@@ -115,12 +117,14 @@ module.exports = function(route, app) {
     app.post(route, function(req, res) {
         var command = req.body && req.body.command,
             stdin = req.body && req.body.stdin,
+            env = req.body && req.body.env,
             dir = req.body && req.body.cwd,
             isExec = req.body && req.body.isExec;
         if (!command) { res.status(400).end(); return; }
         var cmd, cmdInstructions = {
             command: command,
             cwd: dir,
+            env: env,
             isExec: isExec,
             stdin: stdin
         };

@@ -117,6 +117,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
         webR.post(JSON.stringify({
             command: this.getCommand(),
             cwd: this._options.cwd,
+            env: this._options.env,
             stdin: this._options.stdin,
             isExec: !!this._options.exec
         }), 'application/json');

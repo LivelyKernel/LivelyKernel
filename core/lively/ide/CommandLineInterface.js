@@ -803,4 +803,93 @@ Object.extend(lively.ide.FilePatchHunk, {
     read: function(patchString) { return new this().read(patchString); }
 });
 
+
+lively.ide.CommandLineInterface.GitSupport = {
+    getAskPassScriptTemplate: function() {
+        return     "/*\n"
+                 + " * This script conforms to and can be used as SSH_ASKPASS / GIT_ASKPASS tool.\n"
+                 + " * It will be called by ssh/git with a query string as process.argv[2]. This\n"
+                 + " * script will then connect to a Lively session via websocket/lively-json\n"
+                 + " * protocol and prompt the query. The prompt input will be written to stdout.\n"
+                 + " */\n"
+                 + "if (!process.env.WORKSPACE_LK) process.env.WORKSPACE_LK = __dirname;\n"
+                 + "var path = require(\"path\"),\n"
+                 + "    clientSessionId = '__SESSIONID__',\n"
+                 + "    sessionTrackerURL = '__TRACKERURL__',\n"
+                 + "    ws = require(path.join(process.env.WORKSPACE_LK, 'core/servers/support/websockets')),\n"
+                 + "    wsClient = new ws.WebSocketClient(sessionTrackerURL, {protocol: 'lively-json', sender: 'GitAuth', debugLevel: 10});\n"
+                 + "function sendQuery(query, thenDo) {\n"
+                 + "    wsClient.send({\n"
+                 + "        action: 'askFor',\n"
+                 + "        data: {query: query},\n"
+                 + "        target: clientSessionId\n"
+                 + "    }, processAnswer);\n"
+                 + "}\n"
+                 + "function processAnswer(answerMsg) {\n"
+                 + "    wsClient && wsClient.close();\n"
+                 + "    process.stdout.write(answerMsg.data.answer ?\n"
+                 + "        answerMsg.data.answer + '\\n' : '');\n"
+                 + "}\n"
+                 + "wsClient.on('connect', function() {\n"
+                 + "    sendQuery(process.argv[2] || 'No query from GitAsk');\n"
+                 + "});\n"
+                 + "wsClient.connect();\n"
+    },
+
+    createGitAskPassScript: function(thenDo) {
+        var sess = lively.net.SessionTracker.getSession(),
+            gitSupport = this;
+        if (!sess || !sess.isConnected()) { thenDo({error: 'No Lively2Lively session!'}, null); return; }
+        var scriptFile, scriptSource, cmdFile, cmdSource, isWindows = false;
+        function prepareScript(next) {
+            scriptSource = gitSupport.getAskPassScriptTemplate()
+                .replace('__TRACKERURL__', sess.sessionTrackerURL+'connect')
+                .replace('__SESSIONID__', sess.sessionId);
+            scriptFile = 'git-askpass_' + sess.sessionId.split(':').last() + '.js';
+            cmdFile = scriptFile + '.cmd';
+            next();
+        }
+        function writeScript(next) {
+            URL.root.withFilename(scriptFile).asWebResource().beAsync().put(scriptSource, 'text/plain').whenDone(function(_, status) {
+                if (!status.isSuccess()) { thenDo({error: 'Could not write askpass script: ' + status}, null); return; }
+                next();
+            });
+        }
+        function determinePlatform(next) {
+            new WebResource(Config.nodeJSURL + '/' + 'NodeJSEvalServer/').beAsync().post('process.platform', 'text/plain').whenDone(function(result, status) {
+                result = result && String(result).toLowerCase()
+                isWindows = result !== 'linux' && result !== 'darwin' && result.include('win');
+                next();
+            });
+        }
+        function writeCommand(next) {
+            if (isWindows) {
+                cmdSource = 'node.exe ' + scriptFile + '%*';
+            } else {
+                cmdSource = '#!/usr/bin/env bash\n\nnode $WORKSPACE_LK/' + scriptFile + ' $1';
+            }
+            URL.root.withFilename(cmdFile).asWebResource().beAsync().put(cmdSource, 'text/plain').whenDone(function(_, status) {
+                if (!status.isSuccess()) { thenDo({error: 'Could not write askpass command: ' + status}, null); return; }
+                next();
+            });
+        }
+        function makeCommmandExecutable(next) {
+            if (isWindows) { next(); return; }
+            lively.shell.exec('chmod a+x $WORKSPACE_LK/'+cmdFile, {}, function(cmd) {
+                if (cmd.getCode()) { thenDo({error: 'Could not make script executable!'}, null); return; }
+                next();
+            });
+        }
+        [prepareScript, writeScript, determinePlatform, writeCommand, makeCommmandExecutable].doAndContinue(null, function() {
+            thenDo(null, cmdFile);
+        });
+    },
+
+    removeGitAskPassScript: function(scriptFile, thenDo) {
+        URL.root.withFilename(scriptFile).asWebResource().beAsync().del().whenDone(function(_, status) {
+            thenDo(status.isSuccess() ? null : status);
+        });
+    }
+};
+
 }) // end of module

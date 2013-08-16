@@ -1995,7 +1995,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             readOnly: true
         }, {
             name: 'contractRegion',
-            bindKey: {win: 'Shift-Ctrl-S', mac: 'Shift-Ctrl-Space'},
+            bindKey: {win: 'Shift-Ctrl-S', mac: 'Ctrl-Command-space'},
             exec: function(ed) {
                 ed.$morph.withASTDo(function(ast) {
                     var state = ed.$expandRegionState;

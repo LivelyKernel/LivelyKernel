@@ -587,6 +587,10 @@ SessionTracker.removeServer = function(route) {
     return true;
 }
 
+SessionTracker.default = function() {
+    return global.tracker;
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // setup HTTP / websocket interface
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

@@ -16,8 +16,9 @@ var env = {
 }
 
 function startSpawn(cmdInstructions) {
-    var commandEnv = util._extend(cmdInstructions.env || {}, env),
-        options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
+    var commandEnv = cmdInstructions.env || {};
+    commandEnv.__proto__ = env;
+    var options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
         command = cmdInstructions.command, args = [],
         stdin = cmdInstructions.stdin;
     if (typeof command === 'string') {
@@ -43,8 +44,9 @@ function startSpawn(cmdInstructions) {
 }
 
 function startExec(cmdInstructions) {
-    var commandEnv = util._extend(cmdInstructions.env || {}, env),
-        cmd = cmdInstructions.command,
+    var commandEnv = cmdInstructions.env || {};
+    commandEnv.__proto__ = env;
+    var cmd = cmdInstructions.command,
         callback = cmdInstructions.callback,
         options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', cmd);

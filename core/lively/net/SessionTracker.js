@@ -311,6 +311,13 @@ Object.extend(lively.net.SessionTracker, {
             }
             session.answer(msg, {result: String(result), error: error});
         },
+        askFor: function(msg, session) {
+            var query = msg.data.query,
+                promptMethod = query.toLowerCase().include('password') ? 'passwordPrompt' : 'prompt';
+            $world[promptMethod](query, function(input) {
+                session.answer(msg, {answer: input});
+            });
+        },
         chatMessage: function(msg, session) {
             lively.log('Got chat message from %s: %s', msg.data.user, msg.data.message);
             session.answer(msg, {message: 'chat message received', error: null});

@@ -23,6 +23,8 @@ var url = require('url');
 var domain = require('domain');
 var dirWatcherDomain = domain.create();
 
+function i(obj) { return util.inspect(obj, {depth: 1}); }
+
 dirWatcherDomain.on('error', function(er) {
     console.error('DirectoryWatchServer error %s\n%s©', er, er.stack);
 });

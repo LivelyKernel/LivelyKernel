@@ -390,8 +390,8 @@ OMeta = {
     return r
   },
   space: function() {
-    var r = this._apply("char")
-    this._pred(r.charCodeAt(0) <= 32)
+    var r = this._apply("char"), code = r.charCodeAt(0);
+    this._pred(code <= 32 || code === 160);
     return r
   },
   spaces: function() {

@@ -887,9 +887,13 @@ lively.ide.CommandLineInterface.GitSupport = {
     },
 
     removeGitAskPassScript: function(scriptFile, thenDo) {
-        URL.root.withFilename(scriptFile).asWebResource().beAsync().del().whenDone(function(_, status) {
-            thenDo(status.isSuccess() ? null : status);
-        });
+        var cmdFile = scriptFile + '.cmd';
+        [scriptFile, cmdFile].doAndContinue(function(next, fn) {
+            URL.root.withFilename(fn).asWebResource().beAsync().del().whenDone(function(_, status) {
+                if (status.isSuccess()) console.warn('Removing %s: %s', fn, status);
+                next();
+            });
+        }, function() { thenDo(); });
     }
 };
 

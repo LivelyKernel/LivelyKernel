@@ -1384,11 +1384,23 @@ lively.morphic.World.addMethods(
         return part;
     },
     openMethodFinder: function() {
-        this.prompt("find source: ", function(s) {
+        this.prompt("find implementors: ", function(s) {
             if (!s) { alertOK('nothing to search...'); return; }
-            this.openMethodFinderFor(s);
+            this.openMethodFinderFor(s, '__implementor');
         }.bind(this));
     },
+openReferencingMethodFinder: function () {
+    this.prompt("find source: ", function(s) {
+        if (!s) { alertOK('nothing to search...'); return; }
+        this.openMethodFinderFor(s);
+    }.bind(this));
+},
+
+
+    newMethod: function() {
+        // enter comment here
+    },
+
     openMethodFinderFor: function(searchString, searchType) {
         var toolPane = this.get('ToolTabPane');
         if (!toolPane) {

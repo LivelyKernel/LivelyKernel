@@ -1563,7 +1563,7 @@ lively.morphic.World.addMethods(
             switch (key) {
                 case "f": {
                     LastWorld = this;
-                    this.openMethodFinder();
+                    this.openReferencingMethodFinder();
                     return true;
                 }
             }

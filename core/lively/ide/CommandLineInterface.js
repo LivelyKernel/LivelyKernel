@@ -863,9 +863,14 @@ lively.ide.CommandLineInterface.GitSupport = {
                 next();
             });
         }
+        function fullPathToCommandFile(next) {
+            new WebResource(Config.nodeJSURL + '/' + 'NodeJSEvalServer/').beAsync().post('require("path").join(process.env.WORKSPACE_LK,"' + cmdFile + '")', 'text/plain').whenDone(function(result, status) {
+                cmdFile = result && String(result); next();
+            });
+        }
         function writeCommand(next) {
             if (isWindows) {
-                cmdSource = 'node.exe ' + scriptFile + '%*';
+                cmdSource = 'node.exe ' + scriptFile + ' %*';
             } else {
                 cmdSource = '#!/usr/bin/env bash\n\nnode $WORKSPACE_LK/' + scriptFile + ' $1';
             }
@@ -881,7 +886,7 @@ lively.ide.CommandLineInterface.GitSupport = {
                 next();
             });
         }
-        [prepareScript, writeScript, determinePlatform, writeCommand, makeCommmandExecutable].doAndContinue(null, function() {
+        [prepareScript, writeScript, determinePlatform, fullPathToCommandFile, writeCommand, makeCommmandExecutable].doAndContinue(null, function() {
             thenDo(null, cmdFile);
         });
     },

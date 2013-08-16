@@ -832,13 +832,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (obj) this.world().openObjectEditorFor(obj);
     },
     doBrowseSenders: function() {
-        this.world().openBrowseSendersFor(this.getSelectionOrLineString())
+        this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__sender')
     },
     doBrowseClass: function() {
         this.world().openClassBrowserFor(this.getSelectionOrLineString())
     },
     doBrowseImplementors: function() {
-        this.world().openMethodFinderFor(this.getSelectionOrLineString())
+        this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__implementor')
     },
     rememberSelectionForDoMore: function(fromWhere) {
         // This gets called from any typing.  It can tell what is being

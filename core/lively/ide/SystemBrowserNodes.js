@@ -688,22 +688,9 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         var searchName = fragment.name;
         return [
             ['senders', function() {
-                    var list = lively.ide.SourceControl
-                        .searchFor(searchName)
-                        .select(function(ea) {
-                            if (!ea.name || !ea.name.include(searchName)) return true;
-                            var src = ea.getSourceCodeWithoutSubElements();
-                            return src.indexOf(searchName) !== src.lastIndexOf(searchName)
-                    }); // we don't want pure implementors, but implementors which are also senders should appear
-                    var title = 'senders of' + searchName;
-                    new ChangeList(title, null, list, searchName).openIn(lively.morphic.World.current()) }],
+                lively.morphic.World.current().openMethodFinderFor(searchName, '__sender'); }],
             ['implementors', function() {
-                    var list = lively.ide.SourceControl
-                        .searchFor(searchName)
-                        .without(fragment)
-                        .select(function(ea) { return ea.name === searchName });
-                    var title = 'implementers of' + searchName;
-                    new ChangeList(title, null, list, searchName).openIn(lively.morphic.World.current()) }]
+                lively.morphic.World.current().openMethodFinderFor(searchName, '__implementor'); }]
         ].concat(menu);
     },
 

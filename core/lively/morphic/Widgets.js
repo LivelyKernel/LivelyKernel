@@ -1374,9 +1374,12 @@ lively.morphic.World.addMethods(
         return part;
     },
     openMethodFinder: function() {
-        return this.openPartItem('MethodFinder', 'PartsBin/Tools');
+        this.prompt("find source: ", function(s) {
+            if (!s) { alertOK('nothing to search...'); return; }
+            this.openMethodFinderFor(s);
+        }.bind(this));
     },
-    openMethodFinderFor: function(searchString) {
+    openMethodFinderFor: function(searchString, searchType) {
         var toolPane = this.get('ToolTabPane');
         if (!toolPane) {
             toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs');
@@ -1388,7 +1391,7 @@ lively.morphic.World.addMethods(
             });
             corner && toolPane.owner.addMorph(corner)
         }
-        var part = toolPane.openMethodFinderFor(searchString.strip())
+        var part = toolPane.openMethodFinderFor(searchString.strip(), searchType)
         part.setExtent(toolPane.tabPaneExtent)
         part.owner.layout = part.owner.layout || {};
         part.owner.layout.resizeWidth = true;

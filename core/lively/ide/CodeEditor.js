@@ -536,8 +536,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     doBrowseImplementors: function(ed) {
-        this.world().openMethodFinderFor(this.getSelectionOrLineString());
-    }
+        this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__implementor');
+    },
+    doBrowseSenders: function() {
+        this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__sender')
+    },
+
 
 },
 'event handling', {
@@ -1098,11 +1102,42 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     codeEditorMenuItems: function() {
         var editor = this, items = [], self = this, world = this.world(),
             range = this.getSelectionRangeAce();
-
+debugger;
         // eval marker
         var evalMarkerItems = ['Eval marker', []];
         items.push(evalMarkerItems);
         if (!range.isEmpty()) {
+            var selectedText = this.getSelectionOrLineString();
+            var indexOfDot = selectedText.lastIndexOf('.')
+            if(indexOfDot + 1 !== selectedText.length) {
+                var firstChar = selectedText.charAt(indexOfDot + 1);
+                if(firstChar.toLowerCase() === firstChar && indexOfDot === -1) {
+                    var selectorItems = ['Selector...', []];
+                    items.push(selectorItems);
+                    selectorItems[1].push(['Implementors', function() {
+                        self.doBrowseImplementors(); }]);
+                    selectorItems[1].push(['Senders', function() {
+                        self.doBrowseSenders(); }]);
+                } else {
+                    if(firstChar.toUpperCase() === firstChar) {
+                        try {
+                            var potentialClass = this.boundEval(selectedText);
+                            if(potentialClass && potentialClass.isClass() && potentialClass.name() === selectedText.subString(indexOfDot + 1)) {
+                                var classItems = ['Class...', []];
+                                items.push(classItems);
+                                classItems[1].push(['Browse', function() {
+                                    self.browseClass(potentialClass); }]);
+                                classItems[1].push(['Browse Hierarchy', function() {
+                                    self.browseHierarchy(potentialClass); }]);
+                                classItems[1].push(['References', function() {
+                                    self.browseReferencesTo(potentialClass); }]);
+                            }
+                        } catch(e) {
+                        }
+//                        Global.classes(true);
+                    }
+                }
+            }
             evalMarkerItems[1].push(['Mark expression', function() {
                 self.addEvalMarker(); }]);
         }

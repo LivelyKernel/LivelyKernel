@@ -1558,16 +1558,7 @@ lively.morphic.World.addMethods(
             switch (key) {
                 case "f": {
                     LastWorld = this;
-
-                this.world();
-                    var world = this;
-                    world.prompt("find source: ", function(s) {
-                        if (!s) {
-                            alertOK('nothing to search...');
-                            return
-                        }
-                        world.openMethodFinderFor(s);
-                    })
+                    this.openMethodFinder();
                     return true;
                 }
             }

@@ -37,7 +37,7 @@ function addCallback(sender, msg, callback) {
     if (!sender._messageOutCounter) sender._messageOutCounter = 0;
     if (!sender.callbacks) sender.callbacks = {};
     msg.messageIndex = ++sender._messageOutCounter;
-    msg.messageId = msg.messageId || (sender ? sender.toString() + '-' : '') + 'msg:' + uuid();
+    msg.messageId = msg.messageId || 'lively-msg:' + uuid();
     var callbacks = sender.callbacks[msg.messageId] = sender.callbacks[msg.messageId] || [];
     callbacks.push(callback);
     // log(this.debugLevel, 'adding callback %s for sender %s. Message:', callback, sender, msg);
@@ -88,6 +88,7 @@ function sendLivelyMessage(sender, connection, msg, callback) {
         msg.action && log(sender.debugLevel+1, '\n%s sending: %s to %s\n', sender, msg.action, connection.id || 'unknown', msg);
         if (typeof msg !== 'string') {
             if (sender.sender && !msg.sender) msg.sender = sender.sender;
+            if (!msg.messageId) msg.messageId = 'lively-msg:' + uuid();
             msg = JSON.stringify(msg);
         }
         var sendMethod;
@@ -113,7 +114,7 @@ function WebSocketClient(url, options) {
     this.protocol = options.protocol;
     this.sender = options.sender || null;
     this.setupClient();
-    this.debugLevel = options.debugLevel || 1;
+    this.debugLevel = options.debugLevel !== undefined ?  options.debugLevel : 1;
 }
 
 util.inherits(WebSocketClient, EventEmitter);
@@ -288,7 +289,7 @@ function WebSocketServer(options) {
     EventEmitter.call(this);
     this.sender = options.sender || null;
     this.connections = [];
-    this.debugLevel = options.debugLevel || 1;
+    this.debugLevel = options.debugLevel !== undefined ?  options.debugLevel : 1;
     this.route = '';
     this.subserver = null;
     this.requiresSender = false;

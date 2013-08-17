@@ -806,6 +806,9 @@ Object.extend(lively.ide.FilePatchHunk, {
 
 
 lively.ide.CommandLineInterface.GitSupport = {
+    getScriptBaseName: function(sessionId) {
+        return 'git-askpass_' + sessionId.split(':').last();
+    },
     getAskPassScriptTemplate: function() {
         return     "/*\n"
                  + " * This script conforms to and can be used as SSH_ASKPASS / GIT_ASKPASS tool.\n"
@@ -838,15 +841,15 @@ lively.ide.CommandLineInterface.GitSupport = {
     },
 
     createGitAskPassScript: function(thenDo) {
-        var sess = lively.net.SessionTracker.getSession(),
-            gitSupport = this;
+        var sess = lively.net.SessionTracker.getSession(), gitSupport = this;
         if (!sess || !sess.isConnected()) { thenDo({error: 'No Lively2Lively session!'}, null); return; }
         var scriptFile, scriptSource, cmdFile, cmdFileFullPath, cmdSource, isWindows = false;
         function prepareScript(next) {
             scriptSource = gitSupport.getAskPassScriptTemplate()
                 .replace('__TRACKERURL__', sess.sessionTrackerURL+'connect')
                 .replace('__SESSIONID__', sess.sessionId);
-            scriptFile = 'git-askpass_' + sess.sessionId.split(':').last() + '.js';
+            var baseName = gitSupport.getScriptBaseName(sess.sessionId);
+            scriptFile = baseName + '.js';
             cmdFile = scriptFile + '.cmd';
             next();
         }
@@ -891,8 +894,10 @@ lively.ide.CommandLineInterface.GitSupport = {
         });
     },
 
-    removeGitAskPassScript: function(scriptFile, thenDo) {
-        var cmdFile = scriptFile + '.cmd';
+    removeGitAskPassScript: function(sessionId, thenDo) {
+        var baseName = this.getScriptBaseName(sessionId || 'noSessionId'),
+            scriptFile = baseName + '.js',
+            cmdFile = scriptFile + '.cmd';
         [scriptFile, cmdFile].doAndContinue(function(next, fn) {
             URL.root.withFilename(fn).asWebResource().beAsync().del().whenDone(function(_, status) {
                 if (status.isSuccess()) console.warn('Removing %s: %s', fn, status);

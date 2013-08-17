@@ -1340,6 +1340,19 @@ lively.morphic.List.addMethods(
     }
 },
 'mouse events', {
+    disableList: function() {
+        this.renderContextDispatch('disableList');
+    },
+    enableList: function() {
+        this.renderContextDispatch('enableList');
+    },
+    onMouseDownEntry: function($super, evt) {
+        if (evt.isCommandKey()) {
+            this.disableList();
+            this.enableList.bind(this).delay(0);
+        }
+        return $super(evt);
+    },
     onMouseDown: function(evt) {
         if (evt.isCommandKey()) {
             evt.preventDefault()

@@ -628,6 +628,8 @@ lively.morphic.List.addMethods(
         selectAllAt: 'selectAllAtHTML',
         clearSelections: 'clearSelectionsHTML',
         deselectAt: 'deselectAtHTML',
+        disableList: 'disableListHTML',
+        enableList: 'enableListHTML'
     },
 },
 'rendering', {
@@ -711,6 +713,12 @@ lively.morphic.List.addMethods(
         if (ctx.subNodes) {
             ctx.subNodes.forEach(function(ea) { ea.selected = false })
         }
+    },
+    disableListHTML: function(ctx) {
+        ctx.listNode && (ctx.listNode.style.display = 'none');
+    },
+    enableListHTML: function(ctx) {
+        ctx.listNode && (ctx.listNode.style.display = '');
     }
 },
 'drop down support HTML', {

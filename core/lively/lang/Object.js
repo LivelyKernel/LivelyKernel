@@ -453,10 +453,20 @@ Object.extend(lively.PropertyPath.prototype, {
         return this.isParentPathOf(otherPath) ? otherPath.slice(this.size(), otherPath.size()) : undefined;
     },
 
-    set: function(obj, val) {
+    set: function(obj, val, ensure) {
         if (this.isRoot()) return undefined;
-        var parent = this.get(obj, -1);
-        return parent ? parent[this._parts[this._parts.length-1]] = val : undefined;
+        var parent = obj
+        for (var i = 0; i < this._parts.length-1; i++) {
+            var part = this._parts[i];
+            if (parent.hasOwnProperty(part)) {
+                parent = parent[part];
+            } else if (ensure) {
+                parent = parent[part] = {};
+            } else {
+                return undefined;
+            }
+        }
+        return parent[this._parts[this._parts.length-1]] = val;
     },
 
     get: function(obj, n) {

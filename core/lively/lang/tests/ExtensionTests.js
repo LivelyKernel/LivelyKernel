@@ -166,6 +166,16 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
             p2 = lively.PropertyPath('baz.zork');
         this.assertEquals('baz.zork.foo.bar', p2.concat(p1));
         this.assertEquals('foo.bar.baz.zork', p1.concat(p2));
+    },
+    testSet: function() {
+        var obj = {foo:[{},{bar:{}}]}, p = lively.PropertyPath('foo.1.bar.baz');
+        p.set(obj, 3);
+        this.assertEquals(3, obj.foo[1].bar.baz);
+    },
+    testEnsure: function() {
+        var obj = {}, p = lively.PropertyPath('foo.bar.baz');
+        p.set(obj, 3, true);
+        this.assertEquals(3, obj.foo.bar.baz);
     }
 });
 

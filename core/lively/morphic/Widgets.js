@@ -2721,13 +2721,13 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 
         var inner = this.targetMorph,
             callGetsFocus = inner && !!inner.onWindowGetsFocus;
-        if (this.isInFront()) { if (callGetsFocus) { inner.onWindowGetsFocus(this); }; return; }
+        if (this.isInFront()) { if (callGetsFocus) { inner.onWindowGetsFocus(this); }; return this; }
 
         // step 2: make me the frontmost morph of the world
         var scrolledMorphs = [], scrolls = [];
         this.withAllSubmorphsDo(function(ea) {
             var scroll = ea.getScroll();
-            if (!scroll[0] && !scroll[1]) return;
+            if (!scroll[0] && !scroll[1]) return this;
             scrolledMorphs.push(ea); scrolls.push(scroll);
         });
         this.owner.addMorphFront(this); // come forward
@@ -2736,6 +2736,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             scrolledMorphs.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
             if (callGetsFocus) { inner.onWindowGetsFocus(this); }
         }).bind(this).delay(0);
+        return this;
     },
 
     onMouseDown: function(evt) {

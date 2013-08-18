@@ -15,6 +15,14 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.getSessionsCacheInvalidationTimeout = options.getSessionsCacheInvalidationTimeout || null;
     }
 },
+'l2l state storage', {
+    getL2lStore: function(path) {
+        return lively.LocalStorage.get('lively2lively' + path);
+    },
+    setL2lStore: function(path, val) {
+        return lively.LocalStorage.set('lively2lively'+path, val);
+    }
+},
 'net accessors', {
 
     getWebResource: function(subServiceName) {
@@ -137,7 +145,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
             }
             thenDo(result);
         });
-    },
+    }
 
 },
 'session management', {
@@ -184,6 +192,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         }).delay(Numbers.random(timeoutCheckPeriod-5, timeoutCheckPeriod+5)); // to balance server load
         actions && (this.actions = actions);
         this.whenOnline(this.listen.bind(this));
+        this.whenOnline(this.ensureServerToServerConnection.bind(this));
         this.send('registerClient', {
             id: this.sessionId,
             worldURL: URL.source.toString(),
@@ -198,6 +207,15 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.sessionId = null;
         this.trackerId = null;
         this.stopReportingActivities();
+    },
+
+    ensureServerToServerConnection: function() {
+        var livelyCentral = Config.get('lively2livelyCentral');
+        if (!livelyCentral) return;
+        var now = Date.now(), last = this.getL2lStore('serverToServerConnect.'+livelyCentral);
+        if (last && (now-last < 5*1000)) return;
+        this.setL2lStore('serverToServerConnect.'+livelyCentral, now);
+        this.initServerToServerConnect(livelyCentral);
     },
 
     initServerToServerConnect: function(serverURL, options, cb) {
@@ -404,8 +422,7 @@ Object.extend(lively.net.SessionTracker, {
         s && s.isConnected() && s.initServerToServerDisconnect();
         this.closeSessions();
         s = this.createSession();
-        livelyCentral = Config.get('lively2livelyCentral');
-        livelyCentral && s.initServerToServerConnect(livelyCentral);
+        s.ensureServerToServerConnection();
         return s;
     }
 });

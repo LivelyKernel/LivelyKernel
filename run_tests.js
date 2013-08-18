@@ -113,6 +113,7 @@ var browserTests = [
     'lively.morphic.tests.HTML',
     'lively.morphic.tests.HTMLText',
     "lively.morphic.tests.Layout",
+    "lively.morphic.tests.Lists",
     "lively.morphic.tests.Morphic",
     "lively.morphic.tests.Morphic2",
     "lively.morphic.tests.MorphAddons",

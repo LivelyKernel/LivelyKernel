@@ -124,6 +124,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
             while ((cb = self._getSessionsQueue.shift())) cb && cb(sessions);
         });
     },
+
     getUserInfo: function(thenDo) {
         // flatten the session data and group by user so that it becomes
         // easier to consume
@@ -301,6 +302,9 @@ Object.extend(lively.net.SessionTracker, {
     _sessions: lively.net.SessionTracker._sessions || {},
 
     defaultActions: {
+        reportServices: function(msg, session) {
+            session.answer(msg, {services: Object.keys(session.getActions())});
+        },
         remoteEvalRequest: function(msg, session) {
             var result;
             if (!Config.get('lively2livelyAllowRemoteEval')) {
@@ -354,6 +358,7 @@ Object.extend(lively.net.SessionTracker, {
         },
         messageNotUnderstood: function(msg, session) {
             show('Lively2Lively message not understood:\n%o', msg);
+            session.answer(msg, {error: 'messageNotUnderstood'});
         }
     },
 

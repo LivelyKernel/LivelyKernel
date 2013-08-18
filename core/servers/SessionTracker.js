@@ -29,6 +29,14 @@ function log(/*level, msg, arguments*/) {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var sessionActions = {
 
+    reportServices: function(sessionServer, connection, msg) {
+        connection.send({
+            action: msg.action + 'Result',
+            inResponseTo: msg.messageId,
+            data: {services: Object.keys(sessionServer.getActions())}
+        });
+    },
+
     registerClient: function(sessionServer, connection, msg) {
         var sessions = sessionServer.getLocalSessions()[sessionServer.id()],
             session = sessions[msg.sender] = sessions[msg.sender] || {};
@@ -222,14 +230,13 @@ function SessionTracker(options) {
     this.dispatchLivelyMessage = function(msg, connection) {
         if (msg.target && msg.target !== this.trackerId) {
             this.routeMessage(msg, connection); return; }
-        var actions = this.getActions(),
-            action = actions[msg.action];
+        var actions = this.getActions(), action = actions[msg.action];
         if (action) action(connection, msg);
         else if (actions.messageNotUnderstood) actions.messageNotUnderstood(connection, msg);
         else connection.send({
             action: msg.action + 'Result',
             inResponseTo: msg.messageId,
-            data: {error: 'cannot dispatch message'},
+            data: {error: 'messageNotUnderstood'},
             target: msg.sender,
             messageId: 'tracker-msg:'+uuid()
         });

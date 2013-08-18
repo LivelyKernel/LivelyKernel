@@ -320,6 +320,18 @@ Object.extend(lively.net.SessionTracker, {
         },
         chatMessage: function(msg, session) {
             lively.log('Got chat message from %s: %s', msg.data.user, msg.data.message);
+            var chat = $morph('Lively2LivelyChat');
+            if (!chat) {
+                var spec = lively.BuildSpec('lively.net.tools.Lively2LivelyChat');
+                if (spec) {
+                    chat = spec.createMorph().openInWorldCenter().comeForward().targetMorph;
+                    chat.selectUser(msg.data.user);
+                }
+            }
+            if (chat) {
+                chat = chat.targetMorph || chat;
+                chat.addText(msg.data.user + ': ' + msg.data.message);
+            }
             session.answer(msg, {message: 'chat message received', error: null});
         },
         messageNotUnderstood: function(msg, session) {

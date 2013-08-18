@@ -208,7 +208,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(4.0,22.0),
         className: "lively.morphic.Box",
-        doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
+        doNotSerialize: ['usersInitialized'],
         droppingEnabled: true,
         layout: {
             adjustForNewBounds: true,
@@ -229,31 +229,10 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             outline: 3px orange solid;\n\
         }",
             className: "lively.morphic.MorphList",
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
-            isInLayoutCycle: false,
-            itemList: "[[[object Object]]]",
-            itemMorphs: "[[<lively.morphic.Box#5A8D1... - unknown>, <lively.morphic.Box#8A0BE... - SAPLivelyScreen>, <lively.morphic.Box#1E8C2... - robertkrahn>]]",
-            layout: "[object Object]",
             name: "UserList",
             selection: null,
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            addMorph: function addMorph(morph, optMorphBefore) {
-            this.itemMorphs.pushIfNotIncluded(morph);
-            return $super(morph, optMorphBefore);
-        },
-            getListItemFromEvent: function getListItemFromEvent(evt) {
-            var morph = evt.getTargetMorph();
-            if (this.itemMorphs.include(morph)) return morph;
-            var owners = morph.ownerChain();
-            if (!owners.include(this)) return null;
-            return owners.detect(function(ea) {
-                return this.itemMorphs.include(ea); }, this);
-        },
-            getSelectedItemMorphs: function getSelectedItemMorphs() {
-            return this.submorphs.select(function(ea) { return ea.hasStyleClassName('selected'); });
-        },
             onFromBuildSpecCreated: function onFromBuildSpecCreated() {
             $super();
             this.layout = null;
@@ -263,50 +242,12 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             // ?????
             this.applyStyle({borderColor: Color.rgb(242,242,242), borderWidth: 3.404})
         },
-            onMouseDown: function onMouseDown(evt) {
-            if (evt.isCommandKey()) return false;
-            var item = this.getListItemFromEvent(evt);
-            if (!item) return false;
-            this._mouseDownOn = item.id;
-            evt.stop(); return true;
-        },
-            onMouseUp: function onMouseUp(evt) {
-            if (evt.isCommandKey()) return false;
-            var item = this.getListItemFromEvent(evt);
-            if (!item) return false;
-            var clickedDownId = this._mouseDownOn;
-            delete this._mouseDownOn;
-            if (clickedDownId === item.id) {
-                this.select(item, evt);
-            }
-            evt.stop(); return true;
-        },
-            removeMorph: function removeMorph(morph) {
-            this.itemMorphs.remove(morph);
-            return $super(morph);
-        },
             reset: function reset() {
             this.initializeLayout({type: 'tiling'});
             this.grabbingEnabled = false;
             this.removeAllMorphs();
             this.selection = null;
             this.applyStyle({borderColor: Color.rgb(242,242,242), borderWidth: 3.404})
-        },
-            select: function select(itemMorph, evt) {
-            var selectionCSSClass = 'selected';
-            var doMultiSelect = evt.isShiftDown();
-            if (!doMultiSelect) {
-                this.itemMorphs.forEach(function(ea) {
-                    if (ea === itemMorph) return;
-                    ea.removeStyleClassName(selectionCSSClass); }, this);
-            }
-            if (itemMorph.hasStyleClassName(selectionCSSClass)) {
-                itemMorph.removeStyleClassName(selectionCSSClass);
-                this.selection = null;
-            } else {
-                itemMorph.addStyleClassName(selectionCSSClass);
-                this.selection = itemMorph.isListItem ? itemMorph.value : itemMorph;
-            }
         }
         },{
             _BorderColor: Color.rgb(242,242,242),
@@ -382,7 +323,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
             isInLayoutCycle: false,
-            layout: "[object Object]",
             name: "MessageList",
             sourceModule: "lively.morphic.Core",
             submorphs: []
@@ -397,13 +337,38 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         this.onLoad();
     },
         onLoad: function onLoad() {
+        this.updateUserList.bind(this).delay(0);
         this.startStepping(5*1000, 'updateUserList');
     },
         reset: function reset() {
         // this.reset();
+        this.usersInitialized = false;
         this.get("UserList").reset();
         this.get("MessageList").removeAllMorphs();
         this.stopStepping();
+    },
+    onWindowGetsFocus: function onWindowGetsFocus() {
+        this.get('CommandLine').focus();
+    },
+    selectUser: function selectUser(username) {
+        if (!this.usersInitialized) {
+            lively.bindings.connect(this, 'usersInitialized', this.selectUser.bind(this, username), "call", {
+                removeAfterUpdate: true});
+            return;
+        }
+        var list = this.get("UserList"),
+            idx = list.getList().pluck('morph').pluck('name').indexOf(username);
+        idx > -1 && list.selectAt(idx);
+    },
+        addText: function addText(string) {
+        var messages = this.get('MessageList')
+        var y = messages.submorphs.length ? messages.submorphs.last().bounds().bottom() : 0;
+        var t = new lively.morphic.Text(lively.rect(0,y, messages.getExtent().x-6, 20), string);
+        t.applyStyle({fixedWidth: true, fixedHeight: false,
+            borderWidth: 1, borderColor: Color.white});
+        t.fit();
+        messages.addMorph(t);
+        messages.scrollToBottom();
     },
         sendMessage: function sendMessage(string, thenDo) {
         // messages.removeAllMorphs();
@@ -418,16 +383,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             return;
         }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // adding text
-        var addText = function() {
-            var messages = this.get('MessageList')
-            var t = new lively.morphic.Text(lively.rect(0,messages.getExtent().y, messages.getExtent().x-6, 20), string);
-            t.applyStyle({fixedWidth: true, fixedHeight: false,
-                borderWidth: 1, borderColor: Color.white});
-            t.fit();
-            messages.addMorph(t);
-        }.bind(this);
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // finding send target, doing the network stuff
         var id = this.getLastActiveSessionIfFor(userMorph);
         if (!id) { show('cannot find last active world of ' + userMorph.name); return }
@@ -436,9 +391,9 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             fromWorld: URL.source,
             user: this.world().getUserName(true)
         }, function(response) {
-            addText();
+            this.addText(string);
             thenDo(response);
-        });
+        }.bind(this));
     },
         session: function session() {
         return lively.net.SessionTracker.getSession();
@@ -453,21 +408,19 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         function createUserItem(userName) { 
             var imgWidth = 64, imgHeight = 64, textHeight = 20,
                 width = 100, height = imgHeight + textHeight;
-            var url = new URL("http://lively-kernel.org/core/nodejs/org/images/" + userName);
-            var img = lively.morphic.Image.fromURL(url,
-                lively.rect(width/2-imgWidth/2,0, imgWidth, imgHeight));
-            var label = lively.morphic.Text.makeLabel(userName, {
-                fixedWidth: true,
-                clipMode: "hidden",
-                extent: pt(width, textHeight), align: 'center'});
-            var item = lively.morphic.Morph.makeRectangle(0,0, width, height).applyStyle({
-                fill: null, borderWidth: 0});
+            new URL('http://lively-web.org/nodejs/UserServer/avatar/' + userName).asWebResource().beAsync().get().whenDone(function(url, _) {
+                img.setImageURL(url, false);
+            });
+            var img = lively.morphic.Image.fromURL('',lively.rect(width/2-imgWidth/2,0, imgWidth, imgHeight));
+            var label = lively.morphic.Text.makeLabel(userName, {fixedWidth: true, clipMode: "hidden", extent: pt(width, textHeight), align: 'center'});
+            var item = lively.morphic.Morph.makeRectangle(0,0, width, height).applyStyle({fill: null, borderWidth: 0});
             item.lock();
             item.addMorph(img);
             item.addMorph(label);
             label.setPosition(pt(0,imgHeight));
             return item;
         }
+        var chat = this;
         this.session().getUserInfo(function(users) {
             var offline = list.itemMorphs.clone();
             Properties.forEachOwn(users, function(user, sessions) {
@@ -478,6 +431,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
                 item.name = user;
             });
             offline.invoke('remove');
+            chat.usersInitialized = true;
         });
     }
     }],

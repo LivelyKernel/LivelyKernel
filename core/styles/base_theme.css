@@ -112,6 +112,10 @@
 	color: white;
 }
 
+.MorphList .selected {
+    outline: 3px orange solid;
+}
+
 .HorizontalDivider {
 	cursor: n-resize;
 }

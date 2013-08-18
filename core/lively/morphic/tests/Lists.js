@@ -1,4 +1,4 @@
-module('lively.morphic.tests.Morphic').requires('lively.morphic.tests.Helper', 'lively.morphic.Layout').toRun(function() {
+module('lively.morphic.tests.Lists').requires('lively.morphic.tests.Helper', 'lively.morphic.Layout').toRun(function() {
     
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
 'testing', {

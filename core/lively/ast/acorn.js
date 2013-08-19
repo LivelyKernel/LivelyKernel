@@ -456,8 +456,8 @@ Object.subclass('lively.ide.CodeEditor.JS.CodeMarker',
                 }
             }
         }
-        marker.globals = this.scopeAnalyzer ? this.scopeAnalyzer.findGlobalVarReferences(evt.ast) : [];
-        marker.errors = evt.ast.parseError ? [evt.ast.parseError] : [];
+        marker.globals = this.scopeAnalyzer && codeEditor.getShowWarnings() ? this.scopeAnalyzer.findGlobalVarReferences(evt.ast) : [];
+        marker.errors = evt.ast.parseError && codeEditor.getShowErrors() ? [evt.ast.parseError] : [];
         if (!(marker.id in sess.$backMarkers)) sess.addDynamicMarker(marker);
         sess._emit("changeBackMarker");
     }

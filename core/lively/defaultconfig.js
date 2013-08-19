@@ -457,6 +457,8 @@ Config.addOptions(
     ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"],
     ['aceDefaultShowActiveLine', false, "Current line is highlighted"],
     ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
+    ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
+    ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
     ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."]
 ],
 

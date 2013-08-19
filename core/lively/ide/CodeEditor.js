@@ -129,13 +129,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         showActiveLine: Config.get('aceDefaultShowActiveLine'),
         showIndents: Config.get('aceDefaultShowIndents'),
         softTabs: Config.get('useSoftTabs'),
-        autocompletion: Config.get('aceDefaultEnableAutocompletion')
+        autocompletion: Config.get('aceDefaultEnableAutocompletion'),
+        showWarnings: Config.get('aceDefaultShowWarnings'),
+        showErrors: Config.get('aceDefaultShowErrors')
     },
     doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
     _aceInitialized: false,
     evalEnabled: true,
     isAceEditor: true,
     isCodeEditor: true,
+    showsMorphMenu: true,
     connections: {textChange: {}, textString: {}, savedTextString: {}}
 },
 'initializing', {
@@ -180,6 +183,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.showActiveLine !== undefined) this.setShowActiveLine(spec.showActiveLine);
         if (spec.softTabs !== undefined) this.setSoftTabs(spec.softTabs);
         if (spec.autocompletion !== undefined) this.setAutocompletionEnabled(spec.autocompletion);
+        if (spec.showWarnings !== undefined) this.setShowWarnings(spec.showWarnings);
+        if (spec.showErrors !== undefined) this.setShowErrors(spec.showErrors);
         return this;
     }
 },
@@ -248,6 +253,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setSoftTabs(this.getSoftTabs());
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
+        this.setShowWarnings(this.getShowWarnings());
         this.setInputAllowed(this.inputAllowed());
 
         // 4) run after setup callbacks
@@ -554,7 +560,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         function upHandler(evt) {
             document.removeEventListener("mouseup", upHandler, true);
             lively.morphic.EventHandler.prototype.patchEvent(evt);
-            if (menuOpened) { evt.world.clickedOnMorph = null; evt.stop(); return true; }
+            evt.world.clickedOnMorph = evt.getTargetMorph();
             [self].concat(self.ownerChain()).reverse().forEach(function(ea) {
                 ea.onMouseUpEntry(evt); });
         }
@@ -1083,6 +1089,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getAutocompletionEnabled: function() {
         return this.hasOwnProperty("_AutocompletionEnabled") ? this._AutocompletionEnabled : this.withAceDo(function(ed) {
             return ed.getOption("enableBasicAutocompletion"); });
+    },
+
+    setShowWarnings: function(bool) { return this._ShowWarnings = bool; },
+    getShowWarnings: function() {
+        return this.hasOwnProperty("_ShowWarnings") ? this._ShowWarnings : true
+    },
+
+    setShowErrors: function(bool) { return this._ShowErrors = bool; },
+    getShowErrors: function() {
+        return this.hasOwnProperty("_ShowErrors") ? this._ShowErrors : true
     }
 
 },
@@ -1102,7 +1118,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     codeEditorMenuItems: function() {
         var editor = this, items = [], self = this, world = this.world(),
             range = this.getSelectionRangeAce();
-debugger;
         // eval marker
         var evalMarkerItems = ['Eval marker', []];
         items.push(evalMarkerItems);
@@ -1188,7 +1203,9 @@ debugger;
          {name: "ShowActiveLine", menuString: "show active line"},
          {name: "ShowIndents", menuString: "show indents"},
          {name: "SoftTabs", menuString: "use soft tabs"},
-         {name: "LineWrapping", menuString: "line wrapping"}].forEach(function(itemSpec) {
+         {name: "LineWrapping", menuString: "line wrapping"},
+         {name: "ShowWarnings", menuString: "show warnings"},
+         {name: "ShowErrors", menuString: "show Errors"}].forEach(function(itemSpec) {
             var enabled = editor["get"+itemSpec.name]();
             items.push([Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
                 editor['set'+itemSpec.name](!enabled); }]);

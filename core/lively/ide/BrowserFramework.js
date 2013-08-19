@@ -162,10 +162,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     morphMenuItems: function() {
         var cmds = this.commands()
             .collect(function(ea) { return new ea(this) }, this)
-            .select(function(ea) { return ea.wantsButton() });
+            .select(function(ea) { return ea.wantsButton() })
+            .collect(function(ea) { return [ea.asString(), ea.trigger.bind(ea)] });
         
-        return cmds.collect(function(ea) { 
-            return [ea.asString(), ea.trigger.bind(ea)] });
+        return [['Browser configuration', cmds]];
     }
 },
 'generated formal getters and setters', {

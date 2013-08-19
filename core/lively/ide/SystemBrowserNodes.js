@@ -700,10 +700,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         if (!view) {
             return src;
         }
-        if (view != 'javascript') {
-            return 'unknown source view';
+        if (view !== 'javascript') {
+            throw new Error('unknown source view');
         }
-        return result;
+        return src;
     },
 
     evalSource: function(newSource) {

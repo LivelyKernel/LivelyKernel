@@ -239,7 +239,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ViewSourceCommand', {
             });
         }];
     });
-    var menu = new lively.morphic.Menu(items);
+    var menu = new lively.morphic.Menu(this.asString(), items);
     menu.openIn(world,world.firstHand().getPosition());
 }
 

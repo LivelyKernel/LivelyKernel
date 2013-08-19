@@ -2762,8 +2762,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                         if (input !== null) self.titleBar.setTitle(input || '');
                     }, self.titleBar.getTitle());
                 }];
-                if (self.targetMorph.ownerApp && self.targetMorph.ownerApp.morphMenuItems) {
-                    self.targetMorph.ownerApp.morphMenuItems().each(function(ea) {items.push(ea)}) 
+                var browser = self.targetMorph.ownerWidget;
+                if (browser && browser.morphMenuItems) {
+                    items.pushAll(browser.morphMenuItems());
                 }
                 return items;
             }

@@ -89,12 +89,13 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     var self = this;
     var items = [
         ['open chat', function() {
-            lively.BuildSpec('lively.net.tools.Lively2LivelyChat').createMorph().openInWorldCenter();
+            if ($morph('Lively2LivelyChat')) $morph('Lively2LivelyChat').openInWorldCenter().comeForward();
+            else lively.BuildSpec('lively.net.tools.Lively2LivelyChat').createMorph().openInWorldCenter();
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             self.collapse();
         }],
         ['open inspector', function() {
-            lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter();
+            lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter().comeForward();
             self.collapse();
         }],
         ['reset connection', function() {

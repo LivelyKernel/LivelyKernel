@@ -756,11 +756,11 @@ handleOnCapture);
 
         if (this.showsMorphMenu
           && !this.eventsAreIgnored
-          && evt.isRightMouseButtonDown() // only world morph is present?
-          && this.world().morphsContainingPoint(evt.getPosition()).length === 1) {
+          && evt.isRightMouseButtonDown()
+          && evt.getTargetMorph() == this) {
+              evt.world.clickedOnMorph=this;
             this.world().worldMenuOpened = true;
-            this.showMorphMenu(evt);
-            return false;
+            return this.showMorphMenu(evt);
         }
 
         if (this.isHalo) {
@@ -801,7 +801,7 @@ handleOnCapture);
             return false;
         }
         var world = evt.world,
-            completeClick = world.clickedOnMorph === this,
+            completeClick = evt.getTargetMorph() === this,
             internalCompleteClick = evt.hand.internalClickedOnMorph === this,
             invokeHalos = (evt.hand.haloTarget === this) && (
                             (evt.isLeftMouseButtonDown() && evt.isCommandKey())
@@ -821,21 +821,7 @@ handleOnCapture);
         }
 
         if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
-            // special behavior for world menu:
-            // you can navigate the world menu with a pressed right mouse button
-            if (this.isWorld) {
-                if (this.worldMenuOpened) {
-                    this.worldMenuOpened = false;
-                    return this.onMouseUp(evt); // open a menu item
-                } else {
-                    this.worldMenuOpened = true;
-                    this.showMorphMenu(evt);
-                    return true;
-                }
-            } else {
-                this.showMorphMenu(evt);
-                return true;
-            }
+            return evt.world.currentMenu || this.currentMenu || this.showMorphMenu(evt);
         }
 
         // From this point, events can be ignored (grab, onClick, ...)
@@ -1008,6 +994,12 @@ handleOnCapture);
 
     doKeyPaste: function() {
         this.withClipboardEventDo(function(evt, data) {
+            if (data.types.any(function(type) { return type.toLowerCase() === 'files'})) {
+                evt.getPosition = function() { return $world.firstHand().getPosition(); };
+                var items = Array.from(data.items);
+                new lively.FileUploader().handleDroppedFiles(items.invoke('getAsFile'), evt);
+                return false;
+            }
             var text = data.getData('Text');
             if (!text) return false;
             var match = text.match(/LIVELYKERNELCLIPBOARDDATA\|([0-9]+)\|(.+)/i);
@@ -1622,31 +1614,30 @@ lively.morphic.World.addMethods(
         return false;
     },
     onMouseUp: function (evt) {
+        var evtTarget = evt.getTargetMorph();
         if (evt.isAltDown() && this.clickedOnMorph && !this.draggedMorph) {
             if (!Global.thats) Global.thats = [];
             // thats: select multiple morphs
             // reset when clicked in world
-
-            if (this.clickedOnMorph === this) {
+            if (evtTarget === this) {
                 Global.thats = [];
                 alertOK('thats array emptied');
             } else {
-                Global.thats.pushIfNotIncluded(this.clickedOnMorph);
+                Global.thats.pushIfNotIncluded(evtTarget);
             }
             // "that" construct from Antero Taivalsaari's Lively Qt
-            Global.that = this.clickedOnMorph;
+            Global.that = evtTarget;
             Global.that.show && Global.that.show();
             return true;
         }
 
-        evt.hand.removeOpenMenu(evt);
-        if (!evt.isCommandKey() && (!this.clickedOnMorph || !this.clickedOnMorph.isHalo)
+        if (!evt.isRightMouseButtonDown()) evt.hand.removeOpenMenu(evt);
+        if (!evt.isCommandKey() && (!evtTarget || !evtTarget.isHalo)
                                 && !this.ignoreHalos) {
             this.removeHalosOfCurrentHaloTarget(); }
 
         var activeWindow = this.getActiveWindow();
-        if (activeWindow
-         && (!this.clickedOnMorph || this.clickedOnMorph.getWindow() !== activeWindow)) {
+        if (activeWindow && (!evtTarget || evtTarget.getWindow() !== activeWindow)) {
             activeWindow.highlight(false); };
 
         // FIXME should be hand.draggedMorph!

@@ -688,7 +688,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var owner = parentMorph || lively.morphic.World.current();
         this.remainOnScreen = remainOnScreen;
         if (!remainOnScreen) {
-            if (owner.currentMenu) { owner.currentMenu.remove() };
+            if (owner.currentMenu && owner.currentMenu !== this) { owner.currentMenu.remove() };
             owner.currentMenu = this;
         } else {
             this.isEpiMorph = false;
@@ -704,13 +704,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         // this.offsetForWorld.curry(pos).bind(this).delay(0);
 
         return this;
-    },
-},
-'removing', {
-    remove: function($super) {
-        var w = this.world();
-        if (w && w.currentMenu === this) w.currentMenu = null;
-        $super();
     },
 },
 'item management', {
@@ -826,10 +819,11 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 },
 'removal', {
     remove: function($super) {
+        if (this.owner && this.owner.currentMenu === this) this.owner.currentMenu = null;
         $super();
         this.removeSubMenu();
         this.removeOwnerMenu();
-    },
+    }
 },
 'bounds calculation', {
     moveBoundsForVisibility: function(menuBounds, visibleBounds) {

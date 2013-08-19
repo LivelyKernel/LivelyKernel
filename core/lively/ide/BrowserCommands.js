@@ -6,7 +6,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AllModulesLoadCommand', {
 
     wantsButton: Functions.True,
 
-    asString: function() { return 'Load all' },
+    asString: function() { return 'Load visible modules'; },
 
     trigger: function() {
         var srcCtrl = lively.ide.SourceControl;
@@ -27,7 +27,10 @@ lively.ide.BrowserCommand.subclass('lively.ide.ShowLineNumbersCommand', {
 
     wantsButton: Functions.True,
 
-    asString: function() { return 'LineNo' },
+    asString: function() {
+        var checkboxString = this.browser.showLines ? '[X]' : '[ ]';
+        return checkboxString + ' ' + 'Show line numbers in panes';
+    },
 
     trigger: function() {
         browser = this.browser;
@@ -61,7 +64,10 @@ lively.ide.BrowserCommand.subclass('lively.ide.ParserDebugCommand', {
 
     wantsButton: Functions.True,
 
-    asString: function() { return this.browser.showsParserErrors() ? 'Dbg errors is on' : 'Dbg errors is off' },
+    asString: function() {
+        var checkboxString = this.browser.showsParserErrors() ? '[X]' : '[ ]';
+        return checkboxString + ' ' + 'Show parser errors';
+    },
 
     trigger: function() {
         if (this.browser.showsParserErrors()) this.browser.turnParserErrorsOff();
@@ -77,8 +83,8 @@ lively.ide.BrowserCommand.subclass('lively.ide.EvaluateCommand', {
     wantsButton: Functions.True,
 
     asString: function() {
-        if (this.browser.evaluate) return 'Eval on';
-        return 'Eval off'
+        var checkboxString = this.browser.evaluate ? '[X]' : '[ ]';
+        return checkboxString + ' ' + 'Evaluate code when saving';
     },
 
     trigger: function() {
@@ -96,8 +102,8 @@ lively.ide.BrowserCommand.subclass('lively.ide.SortCommand', {
     wantsButton: Functions.True,
 
     asString: function() {
-        if (this.browserIsSorting()) return 'Unsort';
-        return 'Sort';
+        if (this.browserIsSorting()) return 'Order as in File';
+        return 'Order alphabetically';
     },
 
     trigger: function() {
@@ -127,7 +133,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
 
     wantsButton: Functions.True,
 
-    asString: function() { return 'Add module' },
+    asString: function() { return 'Create new module'; },
 
     world: function() { return lively.morphic.World.current() },
 

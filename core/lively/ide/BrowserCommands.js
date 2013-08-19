@@ -75,8 +75,11 @@ lively.ide.BrowserCommand.subclass('lively.ide.ParserDebugCommand', {
     },
 
     trigger: function() {
-        if (this.browser.showsParserErrors()) this.browser.turnParserErrorsOff();
-        else this.browser.turnParserErrorsOn();
+        if (this.browser.showsParserErrors()) {
+            this.browser.turnParserErrorsOff();
+        } else {
+            this.browser.turnParserErrorsOn();
+        }
     },
 
 });

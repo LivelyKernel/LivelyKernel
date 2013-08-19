@@ -83,7 +83,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 scaleHorizontal: true
             }
         },{
-            _FontFamily: "Monaco",
+            _FontFamily: "Monaco,monospace",
             className: "lively.morphic.CodeEditor",
             name: 'editor',
             evalEnabled: false,

@@ -565,14 +565,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 ea.onMouseUpEntry(evt); });
         }
         document.addEventListener("mouseup", upHandler, true);
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        var menuOpened = false;
-        if (evt.isCtrlDown() || evt.isRightMouseButtonDown()) {
-            lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
-            evt.world.clickedOnMorph = this; // to suppress drag since owner would be target
-            evt.stop();
-            return true;
-        }
+        evt.world.clickedOnMorph = this;
         return $super(evt);
     },
 
@@ -1215,6 +1208,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
     morphMenuItems: function($super) {
         return $super().concat([['CodeEditor...', this.codeEditorMenuItems()]]);
+    },
+    showMorphMenu: function ($super, evt) {
+        show($world.currentMenu)
+        if (!evt || !evt.isRightMouseButtonDown()) return $super(evt);
+        lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
+        evt && evt.stop();
+        return true;
     }
 },
 'messaging', {

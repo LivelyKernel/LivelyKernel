@@ -377,7 +377,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         var world = lively.morphic.World.current(),
             moduleName = lively.ide.ModuleWrapper.forFile(node.moduleName).moduleName(),
             hasWorldRequirement = world.hasWorldRequirement(moduleName),
-            entryName = (hasWorldRequirement ? 'Remove from' : 'Add to') + ' world requirements';
+            entryName = (hasWorldRequirement ? 'remove from' : 'add to') + ' world requirements';
 
         menu.unshift([entryName, function() {
             if (hasWorldRequirement) {

@@ -721,7 +721,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         }).inject([], function(all, ea) { 
             return all.concat(ea.trigger()); 
         });
-        if (result.length > 0) result.unshift(['-------']);
         return result;
     },
 

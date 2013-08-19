@@ -2,22 +2,27 @@ module('lively.ide.BrowserCommands').requires('lively.ide.BrowserFramework').toR
 
 lively.ide.BrowserCommand.subclass('lively.ide.AllModulesLoadCommand', {
 
-    isActive: Functions.True,
+    wantsMenu: Functions.True,
 
-    wantsButton: Functions.True,
-
-    asString: function() { return 'Load visible modules'; },
-
-    trigger: function() {
-        var srcCtrl = lively.ide.SourceControl;
-        var browser = this.browser;
-        var progressBar = lively.morphic.World.current().addProgressBar();
-        var files = srcCtrl.interestingLKFileNames(browser.getTargetURL());
+    isActive: function(pane) {
+        return pane === 'Pane1';
+    },
+    
+    loadModules: function() {
+        var srcCtrl = lively.ide.SourceControl,
+            browser = this.browser,
+            files = srcCtrl.interestingLKFileNames(browser.getTargetURL()),
+            progressBar = lively.morphic.World.current().addProgressBar();
+        
         files.forEachShowingProgress(
             progressBar,
             function(ea) { srcCtrl.addModule(ea) },
             Functions.K, // label func
             function() { progressBar.remove(); browser.allChanged() });
+    },
+
+    trigger: function() {
+        return [['load visible modules', this.loadModules.bind(this)]];
     },
 });
 
@@ -129,11 +134,11 @@ lively.ide.BrowserCommand.subclass('lively.ide.SortCommand', {
 
 lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
 
-    isActive: Functions.True,
+    wantsMenu: Functions.True,
 
-    wantsButton: Functions.True,
-
-    asString: function() { return 'Create new module'; },
+    isActive: function(pane) {
+        return pane === 'Pane1';
+    },
 
     world: function() { return lively.morphic.World.current() },
 
@@ -174,7 +179,6 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
         browser.inPaneSelectNodeNamed('Pane1', nodeName);
     },
 
-
     moduleTemplateFor: function(url) {
         var filename = url.filename(),
             moduleName = url.asModuleName();
@@ -185,13 +189,19 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
     ometaTemplate: function(filename) {
         return 'ometa TestParser <: Parser {\n\texampleRule = 1\n}';
     },
-
-    trigger: function() {
-        var command = this, browser = this.browser;
+    
+    addNewFile: function() {
+        var command = this,
+            browser = this.browser;
+        
         browser.ensureSourceNotAccidentlyDeleted(function() {
             command.world().prompt('Enter filename (something like foo or foo.js or foo.ometa or foo/)',
                 command.createFileOrDir.bind(command));
         });
+    },
+
+    trigger: function() {
+        return [['add new file', this.addNewFile.bind(this)]]
     }
 
 });
@@ -240,7 +250,8 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
     wantsMenu: Functions.True,
 
     isActive: function(pane) {
-        return this.browser.selectedNode() && this.browser.selectedNode().isClassNode
+        return this.browser.selectedNode() &&
+            this.browser.selectedNode().isClassNode
     },
 
 
@@ -274,7 +285,8 @@ lively.ide.BrowserCommand.subclass('lively.ide.UnloadClassCommand', {
     wantsMenu: Functions.True,
 
     isActive: function(pane) {
-        return this.browser.selectedNode() && this.browser.selectedNode().isClassNode
+        return this.browser.selectedNode() &&
+            this.browser.selectedNode().isClassNode;
     },
 
 
@@ -522,7 +534,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenInFileEditorCommand', {
 
     isActive: function(pane) {
         var node = this.browser.selectedNode();
-        return  node && node.isModuleNode
+        return node && node.isModuleNode;
     },
 
     trigger: function() {
@@ -542,7 +554,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenDiffViewerCommand', {
 
     isActive: function(pane) {
         var node = this.browser.selectedNode();
-        return  node && node.isModuleNode;
+        return node && node.isModuleNode;
     },
 
     trigger: function() {
@@ -572,7 +584,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenVersionsOfFile', {
 
     isActive: function(pane) {
         var node = this.browser.selectedNode();
-        return  node && node.isModuleNode;
+        return node && node.isModuleNode;
     },
     trigger: function() {
         return [['show versions', this.showVersions.bind(this)]]

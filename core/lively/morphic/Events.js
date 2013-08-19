@@ -1615,6 +1615,8 @@ lively.morphic.World.addMethods(
     },
     onMouseUp: function (evt) {
         var evtTarget = evt.getTargetMorph();
+        while ((evtTarget && evtTarget.eventsAreIgnored)) evtTarget = evtTarget.owner;
+
         if (evt.isAltDown() && this.clickedOnMorph && !this.draggedMorph) {
             if (!Global.thats) Global.thats = [];
             // thats: select multiple morphs
@@ -1632,9 +1634,10 @@ lively.morphic.World.addMethods(
         }
 
         if (!evt.isRightMouseButtonDown()) evt.hand.removeOpenMenu(evt);
-        if (!evt.isCommandKey() && (!evtTarget || !evtTarget.isHalo)
-                                && !this.ignoreHalos) {
-            this.removeHalosOfCurrentHaloTarget(); }
+
+        if (!evt.isCommandKey() && (!evtTarget || !evtTarget.isHalo) && !this.ignoreHalos) {
+            this.removeHalosOfCurrentHaloTarget();
+        }
 
         var activeWindow = this.getActiveWindow();
         if (activeWindow && (!evtTarget || evtTarget.getWindow() !== activeWindow)) {

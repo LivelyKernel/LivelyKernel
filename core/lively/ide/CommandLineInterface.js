@@ -894,8 +894,14 @@ lively.ide.CommandLineInterface.GitSupport = {
         });
     },
 
-    removeGitAskPassScript: function(sessionId, thenDo) {
-        var baseName = this.getScriptBaseName(sessionId || 'noSessionId'),
+    removeGitAskPassScript: function(thenDo) {
+        var session = lively.net.SessionTracker.getSession(),
+            sessionId = session && session.sessionId;
+        if (!sessionId) {
+            console.warn('Could not remove git ask-pass script: no session or no sessionId!');
+            return;
+        }
+        var baseName = this.getScriptBaseName(sessionId),
             scriptFile = baseName + '.js',
             cmdFile = scriptFile + '.cmd';
         [scriptFile, cmdFile].doAndContinue(function(next, fn) {

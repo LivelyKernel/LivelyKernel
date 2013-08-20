@@ -1719,10 +1719,12 @@ openReferencingMethodFinder: function () {
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],
                 ['System Code Browser', this.openSystemBrowser.bind(this)],
+                ['Browse Implementors', this.openMethodFinder.bind(this)],
+                ['Browse Senders', this.openExactReferencesMethodFinder.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
                 ['BuildSpec Editor', this.openBuildSpecEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
-                ['Method Finder', this.openMethodFinder.bind(this)],
+                ['Method Finder', this.openReferencingMethodFinder.bind(this)],
                 ['Text Editor', function() { require('lively.ide').toRun(function() { lively.ide.openFile(URL.source.toString()); }); }],
                 ['System Console', this.openSystemConsole.bind(this)],
                 ['OMeta Workspace', this.openOMetaWorkspace.bind(this)],
@@ -1766,7 +1768,14 @@ openReferencingMethodFinder: function () {
             ['Save world', this.saveWorld.bind(this), 'synchron']
         ];
         return items;
-    }
+    },
+    openExactReferencesMethodFinder: function() {
+        this.prompt("find Senders: ", function(s) {
+            if (!s) { alertOK('nothing to search...'); return; }
+            this.openMethodFinderFor(s, '__sender');
+        }.bind(this));
+    },
+
 },
 'positioning', {
     positionForNewMorph: function (newMorph, relatedMorph) {

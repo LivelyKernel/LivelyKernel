@@ -309,22 +309,22 @@ Object.extend(Function, {
 ///////////////////////////////////////////////////////////////////////////////
 
 Global.Functions = {
-    Empty: function() {},
+    get Empty() { return function() {}; },
 
-    K: function(arg) {
-        return arg;
+    get K() {
+        return function(arg) { return arg; }
     },
 
-    Null: function() {
-        return null;
+    get Null() {
+        return function() { return null; };
     },
 
-    False: function() {
-        return false;
+    get False() {
+        return function() { return false; }
     },
 
-    True: function() {
-        return true;
+    get True(){
+        return function() { return true; }
     },
 
     all: function(object) {

@@ -2129,7 +2129,6 @@ lively.morphic.CodeEditor.addMethods(
     emphasize: Functions.Null,
     emphasizeAll: Functions.Null,
     unEmphasizeAll: Functions.Null,
-    emphasizeRegex: Functions.Null,
     emphasizeRange: Functions.Null,
     highlightJavaScriptSyntax: Functions.Null
 });

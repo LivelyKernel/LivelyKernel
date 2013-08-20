@@ -128,7 +128,14 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     setupLocationInput: function() {
         var locInput = this.locationInput();
         if (!locInput) return;
-        locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, scaleProportional: true, padding: Rectangle.inset(1)});
+        
+        locInput.beInputLine({
+            fixedWidth: true,
+            fixedHeight: true,
+            fontSize: 10,
+            scaleProportional: true,
+            padding: Rectangle.inset(1)
+        });
         locInput.evalEnabled = false;
         
         this.panel.locationPaneMenuButton.applyStyle({scaleProportional: true});

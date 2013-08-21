@@ -493,10 +493,10 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     isEarlierThanIn: function(other, evaluator) {
         var otherTime = other.lastTime;
         if (evaluator.continuity[this.id] === false) {
-            return otherTime > this.lastCheckTime &&
+            return otherTime > this.lastTime &&
                 !(this.isNew &&  evaluator.currentTime !== other.realLastTime)
         } else {
-            return otherTime > this.lastCheckTime ||
+            return otherTime > this.lastTime ||
                 this.isNew
         }
     },

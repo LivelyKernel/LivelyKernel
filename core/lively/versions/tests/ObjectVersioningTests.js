@@ -272,6 +272,15 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(instance.getProp(), 12);
     },
     
+    test25NameCanBeRetrievedFromProxiedNamedFunction: function() {
+        // function names are non-configurable, non-writable properties, therefore, 
+        // the proxy spec requires the name of the proxy's actual target and the return value 
+        // of the get-trap to match...
+        var namedFunc = this.proxyFor(function funcName() {});
+        
+        this.assertEquals(namedFunc.name, 'funcName');
+    },
+    
     // === PENDING ===
     // 
     // TODO: __proto__ slot is not working with proxies correctly

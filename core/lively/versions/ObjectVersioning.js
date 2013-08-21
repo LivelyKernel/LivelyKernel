@@ -173,10 +173,17 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
         
         lively.CurrentObjectTable.push(target);
-        
+
         // only proxies for functions do trap function application
-        virtualTarget = Object.isFunction(target) ? function() {} : {};
-        
+        if (Object.isFunction(target)) {
+            // function names are non-configurable, non-writable properties, and the proxy spec
+            // requires such the return value of the get-trap and the actual proxy target to match
+            // for such properties
+            virtualTarget = eval('virtualTarget = function ' + target.name + '() {}');
+        } else {
+            virtualTarget = {};
+        }
+
         proxy = Proxy(virtualTarget, this.versioningProxyHandler());
         id = lively.CurrentObjectTable.length - 1;
         proxy.__objectID = id;

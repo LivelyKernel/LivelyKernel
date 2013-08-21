@@ -70,10 +70,10 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         }
         this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n, Date.now())");
         if (this.type === "publish") {
-            /* register this to owner's frpPublishes collection. */
+            this.owner.frpPublish(this.localVar.ref);
         }
         if (this.type === "receive") {
-            /* call frpSubscription() to do something. */
+            this.owner.frpSubscribe(this.remoteVar);
         }
         object.__evaluator.installStream(this);
         return this;
@@ -81,6 +81,12 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
 
     uninstall: function() {
         if (this.owner) {
+            if (this.type === "publish") {
+                this.owner.frpUnpublish(this.localVar.ref);
+            }
+            if (this.type === "receive") {
+                this.owner.frpUnsubscribe(this.remoteVar);
+            }
             if (this.owner.__evaluator) {
                 this.owner.__evaluator.uninstallStream(this);
             }
@@ -261,21 +267,16 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.setUp("publish", [this.localVar],
             function(space, evaluator) {
                 var val = space.lookup(this.localVar);
-                /* send val to the server under the name this.remoteVar */
                 return val; 
             });
+        return this;
     },
     receive: function(remoteVar) {
         this.remoteVar = remoteVar;
         this.setUp("receive", [],
-            function(space, evaluator) {
-                var val = 42; /* use the hidden var by using this.remoteVar*/
-                return val; 
-            },
-            function(space, time, evaluator) {
-                /* return to see if the hidden var for this.remoteVar has been updated by the server since last check. */
-                return false
-            });
+            null,
+            null);
+        return this;
     },
 
     userEvent: function() {

@@ -93,7 +93,7 @@ lively.morphic.Morph.addMethods({
             var newValue = msg.data.value;
             console.log("I have received an update: channel '" + channel + "' <- " + newValue);
             //this.channels[channel] = newValue;
-            $world.get(morphName)[channel].frpSet(newValue);
+            $world.get(morphName)[channel].frpSet(newValue, Date.now());
         }
         });
     }

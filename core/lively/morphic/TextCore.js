@@ -171,6 +171,9 @@ Trait('TextChunkOwner',
         var selRange = this.hasSelection() && this.getSelectionRange(),
             chunks = this.garbageCollectChunks(),
             domChanged = false;
+        if (chunks.length === 0) {
+            return;
+        }
         domChanged = this.fixTextBeforeAndAfterChunks(chunks);
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
         chunks.last().ensureEndsWithBr();

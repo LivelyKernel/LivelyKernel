@@ -48,10 +48,10 @@
 // }
 
 var inheritsFrom = function (sub, shuper) {
-    function Inheriter() { }
-    Inheriter.prototype = shuper.prototype;
-    sub.prototype = new Inheriter();
-    sub.superConstructor = shuper;
+  function Inheriter() { }
+  Inheriter.prototype = shuper.prototype;
+  sub.prototype = new Inheriter();
+  sub.superConstructor = shuper;
 }
 
 function OrderedCollection() {

@@ -5,11 +5,11 @@ TestCase.subclass('lively.versions.tests.TestCase',
     proxyFor: function(target) {
         return lively.versions.ObjectVersioning.proxy(target);
     },
+    objectFor: function(proxy) {
+        return lively.versions.ObjectVersioning.getObjectForProxy(proxy);
+    },
     isProxy: function(obj) {
         return lively.versions.ObjectVersioning.isProxy(obj);
-    },
-    objectForProxy: function(proxy) {
-        return lively.versions.ObjectVersioning.getObjectForProxy(proxy);
     },
     commitVersion: function() {
         return lively.versions.ObjectVersioning.commitVersion();
@@ -49,7 +49,7 @@ lively.versions.tests.TestCase.subclass(
         var object = {},
             proxy = this.proxyFor(object);
         
-        this.assertEquals(this.objectForProxy(proxy), object);
+        this.assertEquals(this.objectFor(proxy), object);
     },
     test02ProxyRetrievesPrimitiveProperty: function() {
         var obj = {},
@@ -78,7 +78,7 @@ lively.versions.tests.TestCase.subclass(
         personProxy.address = addressProxy;
         
         this.assert(this.isProxy(personProxy.address));
-        this.assertEquals(this.objectForProxy(personProxy.address), address);
+        this.assertEquals(this.objectFor(personProxy.address), address);
     },
     test05ProxiesGetPassedByReference: function() {
         var person = this.proxyFor({}),

@@ -75,13 +75,14 @@ Object.extend(lively.versions.ObjectVersioning, {
                 var OriginalConstructor = this.targetObject(),
                     newInstance;
                     
-                // the following workaround is necessary as it's not possible
-                // to supply a variable number of arguments to a constructor
-                function ConstructorWrapper() {
-                    return OriginalConstructor.apply(this, args);
-                }
-                ConstructorWrapper.prototype = OriginalConstructor.prototype;
-                newInstance = new ConstructorWrapper();
+                // the following workaround is necessary as it's not possible to supply
+                // a variable number of arguments to a constructor. using eval to create
+                // a constructor with a useful name for debugging
+                eval('var wrapper = function ' + OriginalConstructor.name + '() {\n' +
+                '    return OriginalConstructor.apply(this, args);\n' + 
+                '}');
+                wrapper.prototype = OriginalConstructor.prototype;
+                newInstance = new wrapper();
                 
                 return lively.versions.ObjectVersioning.proxy(newInstance);
             },

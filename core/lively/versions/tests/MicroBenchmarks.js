@@ -1,6 +1,4 @@
-module('lively.versions.tests.MicroBenchmarks').
-requires('lively.TestFramework', 'lively.versions.ObjectVersioning').
-toRun(function() {
+module('lively.versions.tests.MicroBenchmarks').requires('lively.TestFramework', 'lively.versions.ObjectVersioning').toRun(function() {
     
 // run micro benchmarks locally: 
 // lk test -m 'lively.versions.tests.MicroBenchmarks' -f 'MicroBenchmarks|.*|.*'

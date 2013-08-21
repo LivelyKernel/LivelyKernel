@@ -1,6 +1,4 @@
-module('lively.versions.tests.Benchmarks').
-requires('lively.TestFramework', 'lively.versions.ObjectVersioning').
-toRun(function() {
+module('lively.versions.tests.Benchmarks').requires('lively.TestFramework', 'lively.versions.ObjectVersioning').toRun(function() {
     
 TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
 'initializing',{

@@ -1,6 +1,4 @@
-module('lively.versions.tests.IntegrationTests').
-requires('lively.TestFramework', 'lively.versions.ObjectVersioning', 'lively.versions.tests.ObjectVersioningTests').
-toRun(function() {
+module('lively.versions.tests.IntegrationTests').requires('lively.TestFramework', 'lively.versions.ObjectVersioning', 'lively.versions.tests.ObjectVersioningTests').toRun(function() {
     
 lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.IntegrationTests.ActivationTests',

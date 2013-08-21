@@ -1,5 +1,5 @@
 ometa FRPTranslator {
-    combinator  = #durationE | #collectE | #mergeE | #delayE | #timerE | #mapE | #sendE | #anyE,
+    combinator  = #durationE | #collectE | #mergeE | #delayE | #timerE | #mapE | #sendE | #anyE | #publish | #receive,
     oTrans      = :tree -> BSOMetaJSTranslator.match(tree, "trans"),
     start       =
         (empty -> (function() {

@@ -69,6 +69,12 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
             this.setLastTime(object.__evaluator.currentTime);
         }
         this.owner["_" + name] = Function("n", "this." + name + ".frpSet(n, Date.now())");
+        if (this.type === "publish") {
+            /* register this to owner's frpPublishes collection. */
+        }
+        if (this.type === "receive") {
+            /* call frpSubscription() to do something. */
+        }
         object.__evaluator.installStream(this);
         return this;
     },
@@ -249,6 +255,29 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         );
         return this;
     },
+    publish: function(localVar, remoteVar) {
+        this.localVar = this.ref(localVar);
+        this.remoteVar = remoteVar || this.localVar;
+        this.setUp("publish", [this.localVar],
+            function(space, evaluator) {
+                var val = space.lookup(this.localVar);
+                /* send val to the server under the name this.remoteVar */
+                return val; 
+            });
+    },
+    receive: function(remoteVar) {
+        this.remoteVar = remoteVar;
+        this.setUp("receive", [],
+            function(space, evaluator) {
+                var val = 42; /* use the hidden var by using this.remoteVar*/
+                return val; 
+            },
+            function(space, time, evaluator) {
+                /* return to see if the hidden var for this.remoteVar has been updated by the server since last check. */
+                return false
+            });
+    },
+
     userEvent: function() {
         this.setUp("userEvent", [], null, null, false);
         this.dormant = false;
@@ -494,8 +523,13 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                     connections[i].update(this.currentValue, this.owner, maybeTime);
                 }
             }
+            // if publishing the stream send it to server...
+            if (this.owner.frpPublishes && this.owner.frpPublishes[this.streamName]) {
+                var publish = this.owner.frpPublishes[this.streamName];
+                publish.update(this.currentValue, this.owner, maybeTime);
+            }
         }
-		this.lastValue = this.currentValue;
+	this.lastValue = this.currentValue;
         this.isNew = false;
         for (var i = 0; i < this.subExpressiones; i++) {
             var s = this[this.subExpressions[i]];

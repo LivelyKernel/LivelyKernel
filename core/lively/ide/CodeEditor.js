@@ -1112,7 +1112,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var editor = this, items = [], self = this, world = this.world(),
             range = this.getSelectionRangeAce();
         // eval marker
-        var evalMarkerItems = ['Eval marker', []];
+        var evalMarkerItems = ['eval marker', []];
         items.push(evalMarkerItems);
         if (!range.isEmpty()) {
             var selectedText = this.getSelectionOrLineString();
@@ -1190,20 +1190,39 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         items.push(["modes", modeItems]);
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        [{name: "ShowGutter", menuString: "show line numbers"},
-         {name: "ShowInvisibles", menuString: "show whitespace"},
-         {name: "ShowPrintMargin", menuString: "show print margin"},
-         {name: "ShowActiveLine", menuString: "show active line"},
-         {name: "ShowIndents", menuString: "show indents"},
-         {name: "SoftTabs", menuString: "use soft tabs"},
-         {name: "LineWrapping", menuString: "line wrapping"},
-         {name: "ShowWarnings", menuString: "show warnings"},
-         {name: "ShowErrors", menuString: "show Errors"}].forEach(function(itemSpec) {
-            var enabled = editor["get"+itemSpec.name]();
-            items.push([Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
-                editor['set'+itemSpec.name](!enabled); }]);
-        });
+        items.push(['settings',
+            [{name: "ShowGutter", menuString: "show line numbers"},
+             {name: "ShowInvisibles", menuString: "show whitespace"},
+             {name: "ShowPrintMargin", menuString: "show print margin"},
+             {name: "ShowActiveLine", menuString: "show active line"},
+             {name: "ShowIndents", menuString: "show indents"},
+             {name: "SoftTabs", menuString: "use soft tabs"},
+             {name: "LineWrapping", menuString: "line wrapping"},
+             {name: "ShowWarnings", menuString: "show warnings"},
+             {name: "ShowErrors", menuString: "show Errors"}].map(function(itemSpec) {
+                var enabled = editor["get"+itemSpec.name]();
+                return [Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
+                    editor['set'+itemSpec.name](!enabled); }]
+            })]);
 
+        var mac = UserAgent.isMacOS;
+        function cmdBinding(options) {
+            // options = {name, [cmdName,] [shortcut=STRING||{mac:STRING,win:STRING},] [focusAfter]}
+            var shortcut = '';
+            if (options.shortcut) {
+                shortcut += ' (' + (Object.isObject(options.shortcut) ?
+                    options.shortcut[mac ? 'mac' : 'win'] : options.shortcut) + ')';
+            }
+            var menuName = options.name + shortcut;
+            items.push([menuName, function() {
+                editor.aceEditor.execCommand(options.cmdName || options.name);
+                if (options.focusAfter) editor.focus();
+            }]);
+        }
+        cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
+        cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
+        cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
+        cmdBinding({name: 'doit', shortcut: {win: 'CTRL-d', mac: 'CMD-d'}});
         return items;
     },
     morphMenuItems: function($super) {

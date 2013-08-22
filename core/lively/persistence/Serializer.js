@@ -986,13 +986,6 @@ obj.openInWorld()
     },
 });
 
-ObjectLinearizerPlugin.subclass('AttributeConnectionPlugin',
-'plugin interface', {
-    deserializeObj: function(persistentCopy) {
-        var className = persistentCopy[ClassPlugin.prototype.classNameProperty];
-        if (!className || className != 'AttributeConnection') return;
-    },
-});
 
 ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
 'initializing', {
@@ -1455,8 +1448,7 @@ Object.extend(lively.persistence, {
     ClosurePlugin: ClosurePlugin,
     IgnoreFunctionsPlugin: IgnoreFunctionsPlugin,
     GenericFilter: GenericFilter,
-    ConversionPlugin: ConversionPlugin,
-    AttributeConnectionPlugin: AttributeConnectionPlugin
+    ConversionPlugin: ConversionPlugin
 });
 
 }) // end of module

@@ -38,7 +38,7 @@ lively.morphic.Morph.subclass('Counter',
 });
 
 // FIXME: not adequate for 'no proxy reference benchmarks...'
-Counter = lively.versions.ObjectVersioning.proxy(Counter);
+Counter = lively.versions.ObjectVersioning.proxyFor(Counter);
 
 Counter.subclass('DoubleCounter',
 'changing', {
@@ -57,7 +57,7 @@ Counter.subclass('DoubleCounter',
 });
 
 // FIXME: not adequate for 'no proxy reference benchmarks...'
-DoubleCounter = lively.versions.ObjectVersioning.proxy(DoubleCounter);
+DoubleCounter = lively.versions.ObjectVersioning.proxyFor(DoubleCounter);
 
 for (var i = 0; i < 100; i++) {
     var c = new Counter();

@@ -169,6 +169,7 @@ Object.subclass('lively.bindings.FRP.FRPPublish',
     publish: function(fromProp) {
         this.fromProp = fromProp;
         this.getServerSession();
+        //FIXME: this is buggy: serverSessionId may not be set at this point yet!
         return this;
     },
     getServerSession: function() {

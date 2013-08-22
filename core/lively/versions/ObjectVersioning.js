@@ -303,4 +303,9 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 lively.versions.ObjectVersioning.init();
 
+// lively OV shortcuts
+lively.proxyFor = lively.versions.ObjectVersioning.proxyFor.bind(lively.versions.ObjectVersioning);
+lively.objectFor = lively.versions.ObjectVersioning.getObjectForProxy.bind(lively.versions.ObjectVersioning);
+lively.isProxy = lively.versions.ObjectVersioning.isProxy.bind(lively.versions.ObjectVersioning);
+
 });

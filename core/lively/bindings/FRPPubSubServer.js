@@ -53,4 +53,5 @@ module('lively.bindings.FRPPubSubServer').requires('lively.bindings.FRP', 'livel
             console.log(msg);
         }.bind(session)
     });
+    console.log("Server started at: " + session.sessionId)
 }) // end of module

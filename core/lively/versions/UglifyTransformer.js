@@ -31,7 +31,7 @@ Object.extend(lively.versions.UglifyTransformer, {
                         }),
                         property: 'ObjectVersioning'
                     }),
-                    property: 'proxy'
+                    property: 'proxyFor'
                 }),
                 args: [node],
                 start: node.start,

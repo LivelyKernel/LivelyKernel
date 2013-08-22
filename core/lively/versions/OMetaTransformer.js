@@ -11,7 +11,7 @@ Object.extend(lively.versions.OMetaTransformer, {
                         node.isFunction;
             },
             function(node) {
-                var fn = new lively.ast.Variable(node.pos, "lively.versions.ObjectVersioning.proxy");
+                var fn = new lively.ast.Variable(node.pos, "lively.versions.ObjectVersioning.proxyFor");
                 return new lively.ast.Call(node.pos, fn, [node]);
             }
         );

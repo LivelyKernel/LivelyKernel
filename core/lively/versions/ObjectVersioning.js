@@ -18,7 +18,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 if (!lively.versions.ObjectVersioning.isProxy(obj)) {
                     if (!lively.versions.ObjectVersioning.isPrimitiveObject(obj)) {
-                        result = lively.versions.ObjectVersioning.proxy(obj);
+                        result = lively.versions.ObjectVersioning.proxyFor(obj);
                     }
                 }
                 
@@ -84,7 +84,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 wrapper.prototype = OriginalConstructor.prototype;
                 newInstance = new wrapper();
                 
-                return lively.versions.ObjectVersioning.proxy(newInstance);
+                return lively.versions.ObjectVersioning.proxyFor(newInstance);
             },
             has: function(virtualTarget, name) {
                 // proxy meta-information
@@ -160,7 +160,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         lively.Versions.push(lively.CurrentObjectTable);
     },
-    proxy: function(target) {        
+    proxyFor: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 
         // but refer to it by __objectID
         var id, proxy, virtualTarget;
@@ -290,8 +290,8 @@ Object.extend(lively.versions.ObjectVersioning, {
         //     Global[ea] = this.proxy(Global[ea]);
         // }).bind(this));
 
-        Object.create = this.proxy(Object.create);
-        JSON.parse = this.proxy(JSON.parse);
+        Object.create = this.proxyFor(Object.create);
+        JSON.parse = this.proxyFor(JSON.parse);
     },
 });
 

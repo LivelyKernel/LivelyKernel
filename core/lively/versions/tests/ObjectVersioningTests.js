@@ -3,7 +3,7 @@ module('lively.versions.tests.ObjectVersioningTests').requires('lively.TestFrame
 TestCase.subclass('lively.versions.tests.TestCase', 
 'versioning shortcuts', {
     proxyFor: function(target) {
-        return lively.versions.ObjectVersioning.proxy(target);
+        return lively.versions.ObjectVersioning.proxyFor(target);
     },
     objectFor: function(proxy) {
         return lively.versions.ObjectVersioning.getObjectForProxy(proxy);
@@ -466,13 +466,13 @@ lively.versions.tests.TestCase.subclass(
 'testing',{
     test01ObjectLiterals: function() {
         var input = 'var obj = {};',
-            expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxy({});';
+            expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxyFor({});';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
     test02ArrayLiterals: function() {
        var input = 'var arr = [];',
-            expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxy([]);';
+            expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxyFor([]);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
@@ -482,7 +482,7 @@ lively.versions.tests.TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcVariable = lively.versions.ObjectVersioning.proxy(function() {\n' +
+            'var funcVariable = lively.versions.ObjectVersioning.proxyFor(function() {\n' +
             '    return 12;\n' +
             '});';
         
@@ -494,7 +494,7 @@ lively.versions.tests.TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcVariable = lively.versions.ObjectVersioning.proxy(function funcName() {\n' +
+            'var funcVariable = lively.versions.ObjectVersioning.proxyFor(function funcName() {\n' +
             '    return 12;\n' +
             '});';
         
@@ -513,7 +513,7 @@ lively.versions.tests.TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcName = lively.versions.ObjectVersioning.proxy(function funcName() {\n' +
+            'var funcName = lively.versions.ObjectVersioning.proxyFor(function funcName() {\n' +
             '    return 12;\n' +
             '});\n\n';
         
@@ -544,18 +544,18 @@ lively.versions.tests.TestCase.subclass(
             "    }\n" +
             "}";
     var expectedOutput = 
-        'var joe = lively.versions.ObjectVersioning.proxy({\n' +
+        'var joe = lively.versions.ObjectVersioning.proxyFor({\n' +
         '    name: "Joe",\n' +
         '    age: 25,\n' +
-        '    address: lively.versions.ObjectVersioning.proxy({\n' +
+        '    address: lively.versions.ObjectVersioning.proxyFor({\n' +
         '        street: "Mainstr. 20",\n' +
         '        zipCode: "12125"\n' +
         '    }),\n' +
-        '    friends: lively.versions.ObjectVersioning.proxy([]),\n' +
-        '    becomeFriendsWith: lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n' +
+        '    friends: lively.versions.ObjectVersioning.proxyFor([]),\n' +
+        '    becomeFriendsWith: lively.versions.ObjectVersioning.proxyFor(function(otherPerson) {\n' +
         '        this.friends.push(otherPerson.name);\n' +
         '    }),\n' +
-        '    isFriendOf: lively.versions.ObjectVersioning.proxy(function(otherPerson) {\n' +
+        '    isFriendOf: lively.versions.ObjectVersioning.proxyFor(function(otherPerson) {\n' +
         '        return this.friends.include(otherPerson.name);\n' +
         '    })\n' +
         '});';
@@ -564,7 +564,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test08GenerateSourceWithMapping: function() {
         var input = 'var obj = {};',
-            expectedOutput = 'var obj=lively.versions.ObjectVersioning.proxy({});\n' +
+            expectedOutput = 'var obj=lively.versions.ObjectVersioning.proxyFor({});\n' +
                 '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
                 'eyJ2ZXJzaW9uIjozLCJmaWxlIjpudWxsLCJzb3VyY2VzIjpbImV2YWwgYXQgcnVud' +
                 'GltZSJdLCJuYW1lcyI6WyJvYmoiXSwibWFwcGluZ3MiOiJBQUFBLEdBQUlBIiwic2' +

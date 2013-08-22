@@ -1219,6 +1219,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 if (options.focusAfter) editor.focus();
             }]);
         }
+        cmdBinding({name: 'save', cmdName: 'doSave', shortcut: {win: 'CTRL-s', mac: 'CMD-s'}});
         cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
         cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
         cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
@@ -2148,6 +2149,7 @@ lively.morphic.CodeEditor.addMethods(
     emphasize: Functions.Null,
     emphasizeAll: Functions.Null,
     unEmphasizeAll: Functions.Null,
+    emphasizeRegex: Functions.Null,
     emphasizeRange: Functions.Null,
     highlightJavaScriptSyntax: Functions.Null
 });

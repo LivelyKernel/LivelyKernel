@@ -562,6 +562,21 @@ main.logCompletion("main").delay(Config.mainDelay);\n\
         this.assertEquals(result[0].stopIndex, src.length-1);
     },
 
+    testParseModuleDefWithLineBreaks: function() {
+        var src = "module('lively.BetterScripting').\n" +
+                  "requires('lively.TileScripting')\n" +
+                  ".toRun(\n" +
+                  "function(lively.ide.tests.FileParserTests) {\n\nMorph.addMethods({})\n});";
+
+        var result = this.sut.parseSource(src);
+
+        this.assertEquals(result.length, 1);
+        this.assertEquals(result[0].type, 'moduleDef');
+        this.assertEquals(result[0].name, 'lively.BetterScripting');
+        this.assertEquals(result[0].startIndex, 0);
+        this.assertEquals(result[0].stopIndex, src.length-1);
+    },
+
       testParseModuleAndClass: function() {
         var src = 'module(\'lively.xyz\').requires(\'abc.js\').toRun(function(lively.ide.tests.FileParserTests) {\n\Object.subclass(\'Abcdef\', {\n}); // this is a comment\n});';
         var result = this.sut.parseSource(src);

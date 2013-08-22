@@ -726,8 +726,8 @@ CodeParser.subclass('JsParser', {
     },
 
     parseModuleBegin: function() {
-        var moduleBeginRegex = /^\s*module\([\'\"](.*)[\'\"]\)\.requires\(.*toRun\(.*$/,
-            match = this.currentLine.match(moduleBeginRegex);
+        var moduleBeginRegex = /^\s*module\([\'\"](.*)[\'\"]\)\s*\.\s*requires\(\s*.*\s*\.\s*toRun\(\s*.*/,
+            match = this.src.slice(this.ptr).match(moduleBeginRegex);
         if (!match) return null;
         if (this.debugMode) {
             console.log('Found module start in line ' +  this.currentLineNo());

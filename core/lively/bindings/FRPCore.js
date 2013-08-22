@@ -759,7 +759,6 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         var sent = this.frpSent;
         this.frpSent = false;
         this.currentTime = time;
-        debugger;
         var i;
         try {
             for (i = 0; i < this.results.length; i++) {

@@ -35,8 +35,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                     this[name] = value;
                     return true;
                 }
-                                
-                targetObject = lively.versions.ObjectVersioning.getObjectForProxy(receiver);
+                
+                targetObject = lively.versions.ObjectVersioning.getObjectByID(this.__objectID);
                 
                 // copy-on-first-write objects commited in previous versions
                 if (Object.isFrozen(targetObject)) {
@@ -58,7 +58,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return this.__objectID;
                 }
                 
-                targetObject = lively.versions.ObjectVersioning.getObjectForProxy(receiver);                
+                targetObject = lively.versions.ObjectVersioning.getObjectByID(this.__objectID);                
                 result = targetObject[name];
                 return this.proxyNonPrimitiveObjects(result); 
             },
@@ -100,7 +100,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return true;
                 }
                 
-                return this.targetObject().hasOwnProperty(name);
+                return ({}).hasOwnProperty.call(this.targetObject(), name);
             },
             getOwnPropertyNames: function(virtualTarget) {
                 return Object.getOwnPropertyNames(this.targetObject());
@@ -192,9 +192,12 @@ Object.extend(lively.versions.ObjectVersioning, {
         return proxy;
     },
     getObjectForProxy: function(proxy, optObjectTable) {
+        return this.getObjectByID(proxy.__objectID, optObjectTable);
+    },
+    getObjectByID: function(id, optObjectTable) {
         var objectTable = optObjectTable || lively.CurrentObjectTable;
         
-        return objectTable[proxy.__objectID];
+        return objectTable[id];
     },
     setObjectForProxy: function(target, proxy, optObjectTable) {
         var objectTable = optObjectTable || lively.CurrentObjectTable;
@@ -202,6 +205,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     isProxy: function(obj) {
         if (!obj) {
+            // primitive falsy values can't be proxied
             return false;
         }
         

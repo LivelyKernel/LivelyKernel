@@ -498,7 +498,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
                 !(this.isNew &&  evaluator.currentTime !== other.realLastTime)
         } else {
             return otherTime > this.lastTime ||
-                this.isNew
+                this.isNew || other.isNew
         }
     },
     lookup: function(ref) {

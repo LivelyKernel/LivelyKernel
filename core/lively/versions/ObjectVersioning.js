@@ -55,7 +55,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 // proxy meta-information
                 if (name === '__objectID') {
-                    return this.__objectID;
+                    if (lively.versions.ObjectVersioning.isProxy(receiver)) {
+                        return this.__objectID;
+                    } else {
+                        return undefined;
+                    }
                 }
                 
                 targetObject = lively.versions.ObjectVersioning.getObjectByID(this.__objectID);                

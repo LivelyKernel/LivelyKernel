@@ -141,21 +141,22 @@ lively.versions.tests.TestCase.subclass(
         this.assert(this.isProxy(proxy.method))
     },
     test13ProxiedConstructorReturnsProxiedInstance: function() {
-        var PersonType = function (name, age) {
+        var ProxiedConstructor = this.proxyFor(function (name, age) {
                 this.name = name;
                 this.age = age;
-            },
-            ProxiedConstructor = this.proxyFor(PersonType),
+                this.isPerson = true;
+            }),
             aPerson = new ProxiedConstructor('Joe', '19');
-                
+        
         this.assert(this.isProxy(aPerson));
+        this.assert(aPerson.isPerson)
         this.assertEquals(aPerson.name, 'Joe');
         this.assertEquals(aPerson.age, 19);
     },
     test14PrototypeCanBeAProxy: function() {
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(Object.create(proto));
-            
+        
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
         this.assertEquals(descendant.__proto__, proto);
         this.assert(this.isProxy(Object.getPrototypeOf(descendant)));
@@ -175,7 +176,7 @@ lively.versions.tests.TestCase.subclass(
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(Object.create(proto));
         proto.prop = 15;
-        
+                
         this.assertEquals(descendant.prop, 15);
     },
     test17MethodFromPrototypeIsAppliedCorrectly: function() {
@@ -186,7 +187,6 @@ lively.versions.tests.TestCase.subclass(
         proto.method = this.proxyFor(function(a) {
             return this.prop;
         });
-        
         this.assert(descendant.method(), 1);
         
         descendant.prop = 2;
@@ -210,19 +210,20 @@ lively.versions.tests.TestCase.subclass(
         NewType.prototype.getProp = this.proxyFor(function() {
             return this.prop;
         });
-        
         instance = new NewType();
         
+        this.assertEquals(instance.prop, 12);
         this.assert(this.isProxy(instance.getProp));
         this.assertEquals(instance.getProp(), 12);
     },
     test20ProxyHasCorrectProperties: function() {
-        var obj = this.proxyFor({protoProp: 1});
-        obj.ownProp = 2;
+        var proto = this.proxyFor({protoProp: 1}),
+            descendant = this.proxyFor(Object.create(proto));
+        descendant.ownProp = 2;
         
-        this.assert('protoProp' in obj)
-        this.assert('ownProp' in obj);
-        this.assert(!('neverDefinedProperty' in obj));
+        this.assert('protoProp' in descendant);
+        this.assert('ownProp' in descendant);
+        this.assert(!('neverDefinedProperty' in descendant));
     },
     test21ProxyHasCorrectOwnProperties: function() {
         var proto = this.proxyFor({}),
@@ -248,23 +249,29 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(Object.getOwnPropertyNames(student).include('age'), false);
     },
     test23PropertyEnumerationWorks: function() {
-        var obj = this.proxyFor({a:1, b:2, c:3}),
+        var proto = {a:1, b:2, c:3},
+            obj = this.proxyFor(Object.create(proto)),
             enumeratedProps = [];
         
         obj.d = 4;
-            
+        obj.e = 5;
+        obj.f = 6;
+        
         for (var prop in obj) {
             enumeratedProps.push(prop);
         }
 
-        this.assertEquals(['a', 'b', 'c', 'd'], enumeratedProps);
+        this.assert(['a','b','c','d', 'e', 'f'].intersect(enumeratedProps).length === 6);
     },
     test24CorrectObjectKeys: function() {
-        var obj = this.proxyFor({a:1, b:2, c:3});
+        var proto = {a:1, b:2, c:3},
+            obj = this.proxyFor(Object.create(proto));
         
         obj.d = 4;
-            
-        this.assertEquals(['a', 'b', 'c', 'd'], Object.keys(obj));
+        obj.e = 5;
+        obj.f = 6;
+        
+        this.assert(['d', 'e', 'f'].intersect(Object.keys(obj)).length === 3);
     },
     test25ProxiedObjectsCanBeFrozen: function() {
         var obj = {},
@@ -298,7 +305,7 @@ lively.versions.tests.TestCase.subclass(
         
         this.assertEquals(Object.isExtensible(proxy), false);
         this.assertEquals(Object.isExtensible(obj), false);
-    }, 
+    },
 });
     
 lively.versions.tests.TestCase.subclass(

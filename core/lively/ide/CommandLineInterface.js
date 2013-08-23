@@ -399,6 +399,11 @@ Object.extend(lively.ide.CommandLineInterface, {
         });
     },
 
+    getServerPlatform: function() {
+        if (this._serverPlatform) return this._serverPlatform;
+        var serverEval= URL.create(Config.nodeJSURL+'/NodeJSEvalServer/').asWebResource();
+        return this._serverPlatform = serverEval.beSync().post('process.platform').content;
+    }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

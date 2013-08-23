@@ -416,7 +416,7 @@ Object.extend(Event, {
         options = options || {};
         var keyParts = [];
         // modifiers
-        if (evt.isCommandKey()) keyParts.push('Command');
+        if (evt.metaKey || evt.keyIdentifier === 'Meta') keyParts.push('Command');
         if (evt.isCtrlDown()) keyParts.push('Control');
         if (evt.isAltDown()) keyParts.push('Alt');
         if (evt.isShiftDown()) keyParts.push('Shift');

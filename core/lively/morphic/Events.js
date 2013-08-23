@@ -2389,6 +2389,8 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
     },
 
     addKeyCombo: function(combo, cmdName) {
+        if (!combo.length) return;
+
         var bindings = this.bindings;
 
         // 1. normalize the whole combo

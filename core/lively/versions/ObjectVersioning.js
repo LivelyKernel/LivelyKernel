@@ -196,7 +196,13 @@ Object.extend(lively.versions.ObjectVersioning, {
         return proxy;
     },
     getObjectForProxy: function(proxy, optObjectTable) {
-        return this.getObjectByID(proxy.__objectID, optObjectTable);
+        var id = proxy.__objectID;
+        
+        if (id === undefined) {
+            return undefined;
+        }
+        
+        return this.getObjectByID(id, optObjectTable);
     },
     getObjectByID: function(id, optObjectTable) {
         var objectTable = optObjectTable || lively.CurrentObjectTable;

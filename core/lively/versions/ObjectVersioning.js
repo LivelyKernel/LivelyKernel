@@ -1,13 +1,13 @@
 module('lively.versions.ObjectVersioning').requires('lively.versions.UglifyTransformer').toRun(function() {
     
 Object.extend(lively.versions.ObjectVersioning, {
-    versioningProxyHandler: function() {
+    versioningProxyHandler: function(objectID) {
         return {
             // these proxies are fully virtual, so the first parameter to all 
             // traps is an empty object and shouldn't be touched
             
             // __objectID can be resolved via global object table
-            __objectID: null,
+            __objectID: objectID,
             
             // === helpers ===
             targetObject: function() {
@@ -182,16 +182,15 @@ Object.extend(lively.versions.ObjectVersioning, {
         // only proxies for functions do trap function application
         if (Object.isFunction(target)) {
             // function names are non-configurable, non-writable properties, and the proxy spec
-            // requires such the return value of the get-trap and the actual proxy target to match
-            // for such properties
+            // requires such the values to be returned consistently from the get-trap, that is,
+            // matching the actual proxy target
             virtualTarget = eval('virtualTarget = function ' + target.name + '() {}');
         } else {
             virtualTarget = {};
         }
 
-        proxy = Proxy(virtualTarget, this.versioningProxyHandler());
         id = lively.CurrentObjectTable.length - 1;
-        proxy.__objectID = id;
+        proxy = Proxy(virtualTarget, this.versioningProxyHandler(id));
         
         return proxy;
     },

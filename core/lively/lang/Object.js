@@ -333,6 +333,15 @@ Global.Properties = {
         return a;
     },
 
+    allOwnPropertiesOrFunctions: function(obj, predicate) {
+        var result = [];
+        Object.getOwnPropertyNames(obj).forEach(function(name){
+            if(predicate(obj, name)) 
+                result.push(name);
+        });
+        return result;
+    },
+    
     own: function(object) {
         var a = [];
         for (var name in object) {

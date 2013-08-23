@@ -224,10 +224,10 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             name: "ObjectInspectorTree"
         },
         updateFilter: "standard",
-        createItem: function createItem(obj, property, isRoot) {
+        createItem: function createItem(obj, property, parent) {
         var value = obj[property];
         var item = {data: value, inspector: this, parent: obj};
-        if (!isRoot) item.name = property;
+        if (parent) item.name = property;
         item.description = this.describe(value);
         Object.addScript(item, function onSelect(tree) { this.inspector.select(this, tree); });
         if (!this.isPrimitive(value)) {
@@ -240,9 +240,9 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         });
         return item;
     },
-        createPrototypeItem: function createPrototypeItem(proto) {
+        createPrototypeItem: function createPrototypeItem(proto, parent) {
         var that = this;
-        var item = {data: proto, inspector: this, doNotSerialize: ["data"]};
+        var item = {data: proto, inspector: this, doNotSerialize: ["data"], parentItem: parent};
         item.name = " ";
         item.description = "inherited from " + this.typename(proto);
         item.children = [];
@@ -256,36 +256,71 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         describe: function describe(obj) {
         var str;
         if (obj && obj.name) {
-            str = Object.isFunction(obj.name) ? obj.name() : obj.name;
+            str = obj.name;
         }
         if (!str) str = Objects.shortPrintStringOf(obj);
-        if (str.length > 32) str = str.substring(0, 36) + '...';
+        if (str.length > 32) str = str.substring(0, 32) + '...';
         return str;
     },
         expand: function expand(item) {
-        var props = Properties.allProperties(item.data, this.getFilter());
-        if (!Object.isArray(item.data)) props = props.sort();
+        var alreadyThere = [];
+        var i = item.parentItem;
+        while(i) {
+            i.children.each(function(it) {
+                if(i !== it) {
+                    alreadyThere.push(it.name);
+                }
+            });
+            i = i.parentItem;
+        }
+        var value = item.data;
+        var currentFilter = this.getFilter();
+        var filter = currentFilter;
+        if(alreadyThere.length > 0) {
+            filter = function(obj, prop) {
+                return currentFilter(obj, prop) && !alreadyThere.include(prop);
+            }
+        }
+        var props = Properties.allOwnPropertiesOrFunctions(value, filter);
+        var visitedProps = [];
+        var valueProto = !this.isPrimitive(value) &&
+                    Object.getPrototypeOf(value);
+        var proto = valueProto;
+        while(proto) {
+            var inherited = Properties.allOwnPropertiesOrFunctions(proto, filter);
+            inherited.each(function(prop) {
+                if(!visitedProps.include(prop)) {
+                    visitedProps.push(prop);
+                    if(!props.include(prop) && value[prop] !== proto[prop]) {
+                        props.push(prop);
+                    }
+                }
+            });
+            proto = Object.getPrototypeOf(proto);
+        }
+        if (!Object.isArray(value) && props.length > 1) props = props.sort();
         var newChildren = [];
-        var lookup = {};
-        item.children.each(function(i) { lookup[i.name] = i; });
+        var lookupKeys = [], lookupValues = [];
+        item.children.each(function(i) { 
+            lookupKeys.push(i.name);
+            lookupValues.push(i);
+        });
         props.each(function(prop) {
-            var existing = lookup[prop];
-            if (existing) {
-                existing.data = item.data[prop];
+            var existingIndex = lookupKeys.indexOf(prop);
+            if (existingIndex > -1) {
+                var existing = lookupValues.at(existingIndex);
+                existing.data = value[prop];
                 newChildren.push(existing);
             } else {
-                newChildren.push(this.createItem(item.data, prop));
+                newChildren.push(this.createItem(value, prop, item));
             }
         }, this);
-        var proto = !Object.isFunction(item.data) &&
-                    !this.isPrimitive(item.data) &&
-                    Object.getPrototypeOf(item.data);
-        if (proto) {
-            var existing = item.children.detect(function(i) { return i.data === proto; });
+        if (valueProto) {
+            var existing = item.children.detect(function(i) { return i.data === valueProto && i.parentItem; });
             if (existing) {
                 newChildren.push(existing);
             } else {
-                newChildren.push(this.createPrototypeItem(proto));
+                newChildren.push(this.createPrototypeItem(valueProto, item));
             }
         }
         item.children = newChildren;
@@ -303,7 +338,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         this.get("ObjectInspectorText").doitContext = obj;
         if (!this.filter) this.get("ObjectInspectorFilterList").selectAt(0);
         this.tree = this.get("ObjectInspectorTree");
-        this.tree.setItem(this.createItem({"": obj}, "", true));
+        this.tree.setItem(this.createItem({"": obj}, "", null));
         this.startStepping(500, 'update');
     },
         isPrimitive: function isPrimitive(value) {
@@ -362,21 +397,18 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         var startsAlphaNum = /^[a-zA-Z0-9]/;
         var fn = {
             standard: function(obj, prop) {
-                return obj.hasOwnProperty(prop) &&
-                    startsAlphaNum.test(prop) &&
+                return startsAlphaNum.test(prop) &&
                     !Object.isFunction(obj[prop]);
             },
             properties: function(obj, prop) {
-                return obj.hasOwnProperty(prop) &&
-                    !Object.isFunction(obj[prop]);
+                return !Object.isFunction(obj[prop]) || prop == "constructor";
             },
             functions: function(obj, prop) {
-                return obj.hasOwnProperty(prop) &&
-                    Object.isFunction(obj[prop]);
+                return Object.isFunction(obj[prop]) && prop != "constructor";
             },
             submorphs: function(obj, prop) {
-                return obj.hasOwnProperty(prop) &&
-                    (prop == 'submorphs' || obj[prop] instanceof lively.morphic.Morph);
+                return prop == 'submorphs' || 
+                    obj[prop] instanceof lively.morphic.Morph;
             },
         };
         this.filter = fn[str];

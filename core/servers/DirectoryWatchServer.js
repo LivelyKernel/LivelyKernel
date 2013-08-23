@@ -14,7 +14,19 @@ var watch;
 try {
     watch = require('watch');
 } catch (e) {
-    console.warn('DirectoryWatcher could not load watch module!');
+    console.warn('DirectoryWatcher could not load watch module, trying to install...!');
+    var runShellCommand = require("./CommandLineServer").runShellCommand,
+        path = require('path'),
+        fs = require('fs'),
+        node_modules = path.join(process.env.WORKSPACE_LK, 'node_modules');
+    if (!fs.existsSync(node_modules)) fs.mkdirSync(node_modules);
+    runShellCommand({isExec: true, command: "npm install watch", callback: function(code, out, err) {
+        try {
+            watch = require('watch');
+        } catch (e) {
+            console.warn('DirectoryWatcher could still not be loaded, giving, up...');
+        }
+    }});
 }
 
 var path = require("path");

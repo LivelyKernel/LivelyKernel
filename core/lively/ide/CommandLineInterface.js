@@ -827,6 +827,7 @@ lively.ide.CommandLineInterface.GitSupport = {
                  + " * script will then connect to a Lively session via websocket/lively-json\n"
                  + " * protocol and prompt the query. The prompt input will be written to stdout.\n"
                  + " */\n"
+                 + "// control stdout/err output:"
                  + "var stdoutWrite = process.stdout.write;\n"
                  + "var stderrWrite = process.stderr.write;\n"
                  + "process.stderr.write = function() {};\n"

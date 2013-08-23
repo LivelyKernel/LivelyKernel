@@ -47,6 +47,7 @@ function ignore(ignoredItems, f) {
     for (var i = 0; i < ignoredItems.length; i++) {
         var ign = ignoredItems[i];
         if (typeof ign === 'string' && f.indexOf(ign) >= 0) return true;
+        if (typeof ign === 'function' && ign(f)) return true;
         if (util.isRegExp(ign) && f.match(ign)) return true;
     }
     return false;
@@ -63,7 +64,11 @@ function addChange(changeRecord, type, fileName, stat) {
 }
 
 function startWatching(dir, thenDo) {
-    var ignoredItems = ['node_modules'],
+    var ignoredItems = [
+            function(fn) {
+                return fn.indexOf(dir) === 0
+                    && fn.slice(dir.length).indexOf("node_modules") > -1; }
+        ],
         options = {ignoreDotFiles: true, filter: ignore.bind(null, ignoredItems)},
         changes = watchState[dir] = {
             monitor: null,

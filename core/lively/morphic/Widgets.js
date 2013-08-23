@@ -3786,11 +3786,11 @@ Trait('SelectionMorphTrait',
 module('lively.ide'); // so that the namespace is defined even if ide is not loaded
 
 Object.extend(lively.ide, {
-    openFile: function(url) {
+    openFile: function (url) {
         require('lively.ide.tools.TextEditor').toRun(function() {
             var editor = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph();
             if (url) {
-                if (String(url).startsWith('/')) { // absolute local path
+                if (String(url).match(/^(\/|.:\\)/)) { // absolute local path
                 } else if (!String(url).startsWith('http')) {
                     url = URL.root.withFilename(url).withRelativePartsResolved();
                 }

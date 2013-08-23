@@ -317,7 +317,7 @@ Object.extend(lively.ide.commands.byName, {
         exec: function() {
             function makeCandidates(dir, files) {
                 return Object.keys(files).map(function(fullPath) {
-                    var relativePath = fullPath.slice(dir.length+1);
+                    var relativePath = fullPath.slice(dir.length+1).replace(/\\/g, '/');
                     if (relativePath.length === 0) return null;
                     return {
                         string: relativePath,

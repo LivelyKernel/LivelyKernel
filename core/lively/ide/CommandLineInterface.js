@@ -433,10 +433,15 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (path.length && !path.endsWith('/')) path += '/';
         var rootDirectory = lively.ide.CommandLineInterface.rootDirectory,
             fullPath = rootDirectory ? rootDirectory + path : path;
-        if (!fullPath.length) fullPath = './';
+        if (!fullPath.length) fullPath = '.';
+        if (fullPath.endsWith('/')) fullPath = fullPath.slice(0,-1);
         var excludes = '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
-            baseCmd = "find %s \\( %s \\) -prune -o -iname '*js' -exec grep -inH %s '{}' \\; ",
-            cmd = Strings.format(baseCmd, fullPath, excludes, string);
+            baseCmd = 'find %s ( %s ) -prune -o -iname "*js" -exec grep -inH %s "{}" ; ',
+            platform = lively.ide.CommandLineInterface.getServerPlatform();
+        if (platform !== 'win32') {
+            baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
+        }
+        var cmd = Strings.format(baseCmd, fullPath, excludes, string);
         lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
             if (r.wasKilled()) return;
             lively.ide.CommandLineSearch.lastGrep = null;
@@ -465,6 +470,7 @@ Object.extend(lively.ide.CommandLineSearch, {
     extractBrowseRefFromGrepLine: function(line, baseDir) {
         // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
         // = {fileName: "lively/morphic/HTML.js", line: 235}
+        line = line.replace(/\\/g, '/').replace(/^\.?\//, '');
         if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
         if (line.startsWith('core/')) line = line.slice('core/'.length); // FIXME!!!
         var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);

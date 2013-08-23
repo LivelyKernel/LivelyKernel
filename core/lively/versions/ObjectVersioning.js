@@ -30,12 +30,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                 var targetObject,
                     newObject;
                 
-                // proxy meta-information
-                if (name === '__objectID') {
-                    this[name] = value;
-                    return true;
-                }
-                
                 targetObject = lively.versions.ObjectVersioning.getObjectByID(this.__objectID);
                 
                 // copy-on-first-write objects commited in previous versions
@@ -54,12 +48,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                     result;
                 
                 // proxy meta-information
+                if (name === '__isProxy') {
+                    return true;
+                }
                 if (name === '__objectID') {
-                    if (lively.versions.ObjectVersioning.isProxy(receiver)) {
-                        return this.__objectID;
-                    } else {
-                        return undefined;
-                    }
+                    return this.__objectID;
                 }
                 
                 targetObject = lively.versions.ObjectVersioning.getObjectByID(this.__objectID);                
@@ -160,26 +153,31 @@ Object.extend(lively.versions.ObjectVersioning, {
 Object.extend(lively.versions.ObjectVersioning, {
     init: function() {
         lively.CurrentObjectTable = [];
-        lively.Versions = []; // a linear history (for now)
+        lively.ProxyTable = [];
         
+        lively.Versions = []; // a linear history (for now)
         lively.Versions.push(lively.CurrentObjectTable);
     },
     proxyFor: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 
         // but refer to it by their __objectID through lively.CurrentObjectTable
-        var virtualTarget, id, proxy;
+        var virtualTarget, proxy;
         
         if (this.isProxy(target)) 
             throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
             
         if (target !== Object(target)) 
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
+            
+        if (target.__objectID)
+            return lively.ProxyTable[target.__objectID];
         
+        target.__objectID = lively.CurrentObjectTable.length;
         lively.CurrentObjectTable.push(target);
         
         virtualTarget = this.virtualTargetFor(target);
-        id = lively.CurrentObjectTable.length - 1;
-        proxy = Proxy(virtualTarget, this.versioningProxyHandler(id));
+        proxy = Proxy(virtualTarget, this.versioningProxyHandler(target.__objectID));
+        lively.ProxyTable[target.__objectID] = proxy;
         
         return proxy;
     },
@@ -220,7 +218,8 @@ Object.extend(lively.versions.ObjectVersioning, {
             return false;
         }
         
-        return ({}).hasOwnProperty.call(obj, '__objectID');
+        // coerce to boolean
+        return !!obj.__isProxy; 
     },
     isPrimitiveObject: function(obj) {
         return obj !== Object(obj);

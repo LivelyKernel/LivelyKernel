@@ -166,33 +166,35 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     proxyFor: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 
-        // but refer to it by __objectID
-        var id, proxy, virtualTarget;
+        // but refer to it by their __objectID through lively.CurrentObjectTable
+        var virtualTarget, id, proxy;
         
-        if (this.isProxy(target)) {
+        if (this.isProxy(target)) 
             throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
-        }
-        
-        if (target !== Object(target)) {
+            
+        if (target !== Object(target)) 
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
-        }
         
         lively.CurrentObjectTable.push(target);
-
-        // only proxies for functions do trap function application
-        if (Object.isFunction(target)) {
-            // function names are non-configurable, non-writable properties, and the proxy spec
-            // requires such the values to be returned consistently from the get-trap, that is,
-            // matching the actual proxy target
-            virtualTarget = eval('virtualTarget = function ' + target.name + '() {}');
-        } else {
-            virtualTarget = {};
-        }
-
+        
+        virtualTarget = this.virtualTargetFor(target);
         id = lively.CurrentObjectTable.length - 1;
         proxy = Proxy(virtualTarget, this.versioningProxyHandler(id));
         
         return proxy;
+    },
+    virtualTargetFor: function(actualTarget) {
+        var virtualTarget;
+        // only proxies for functions do trap function application
+        if (Object.isFunction(actualTarget)) {
+            // function names are non-configurable, non-writable properties, and the proxy spec
+            // requires such the values to be returned consistently from the get-trap, that is,
+            // matching the actual proxy target
+            virtualTarget = eval('virtualTarget = function ' + actualTarget.name + '() {}');
+        } else {
+            virtualTarget = {};
+        }
+        return virtualTarget;
     },
     getObjectForProxy: function(proxy, optObjectTable) {
         var id = proxy.__objectID;

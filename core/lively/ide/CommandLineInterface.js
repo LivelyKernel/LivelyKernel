@@ -889,7 +889,7 @@ lively.ide.CommandLineInterface.GitSupport = {
             if (isWindows) {
                 cmdSource = Strings.format("@setlocal enableextensions enabledelayedexpansion\n"
                                          + "@echo off\n"
-                                         + "node.exe %s %*\n", scriptFile);
+                                         + "node.exe %s %*\n", '%WORKSPACE_LK%\\'+scriptFile);
             } else {
                 cmdSource = '#!/usr/bin/env bash\n\nnode $WORKSPACE_LK/' + scriptFile + ' $1';
             }

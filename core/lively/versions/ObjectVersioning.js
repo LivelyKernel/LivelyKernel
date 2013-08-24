@@ -12,6 +12,10 @@ Object.extend(lively.versions.ObjectVersioning, {
             // === helpers ===
             targetObject: function() {
                 return lively.CurrentObjectTable[this.__objectID];
+                return this.getObjectByID(this.__objectID);
+            },
+            getObjectByID: function(id) {
+                return lively.versions.ObjectVersioning.getObjectByID(id);
             },
             proxyNonPrimitiveObjects: function(obj) {
                 var result = obj;
@@ -30,7 +34,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 var targetObject,
                     newObject;
                 
-                targetObject = lively.versions.ObjectVersioning.getObjectByID(this.__objectID);
+                targetObject = this.targetObject();
                 
                 // copy-on-first-write objects commited in previous versions
                 if (Object.isFrozen(targetObject)) {
@@ -55,7 +59,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return this.__objectID;
                 }
                 
-                targetObject = lively.versions.ObjectVersioning.getObjectByID(this.__objectID);                
+                targetObject = this.targetObject();
                 result = targetObject[name];
                 return this.proxyNonPrimitiveObjects(result); 
             },

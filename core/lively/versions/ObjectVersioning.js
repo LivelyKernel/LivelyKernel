@@ -11,7 +11,6 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // === helpers ===
             targetObject: function() {
-                return lively.CurrentObjectTable[this.__objectID];
                 return this.getObjectByID(this.__objectID);
             },
             getObjectByID: function(id) {
@@ -36,6 +35,15 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 targetObject = this.targetObject();
                 
+                if (name === '__proto__') {
+                    if (value && value.__objectID) {
+                        targetObject.__protoID = value.__objectID;
+                    } else {
+                        targetObject.__protoID = null;
+                        targetObject.__proto__ = value;
+                    }
+                }
+                
                 // copy-on-first-write objects commited in previous versions
                 if (Object.isFrozen(targetObject)) {
                     newObject = Object.clone(targetObject);
@@ -48,8 +56,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return true;
             },
             get: function(virtualTarget, name, receiver) {
-                var targetObject,
-                    result;
+                var targetObject, result, nextAncestor;
                 
                 // proxy meta-information
                 if (name === '__isProxy') {
@@ -60,16 +67,43 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 targetObject = this.targetObject();
+                if (name === '__proto__') {
+                    if (targetObject.__protoID) {
+                        return lively.ProxyTable[targetObject.__protoID];
+                    } else {
+                        return targetObject.__proto__;
+                    }
+                }
+                
+                // TODO: retrieving the prototype of a constructor needs to go
+                // through the global object table as well, which then needs to
+                // be reflected in the the construct-trap
+                if (name === 'prototype' && Object.isFunction(targetObject)) {
+                    return targetObject.prototype;
+                }
+                
                 result = targetObject[name];
+                
+                if (result === undefined) {
+                    nextAncestor = this.getObjectByID(targetObject.__protoID);
+                    while (result === undefined && nextAncestor) {
+                        result = nextAncestor[name];
+                        nextAncestor = nextAncestor.__protoID ? 
+                            this.getObjectByID(nextAncestor.__protoID) : 
+                            null;
+                    }
+                }
+                
                 return this.proxyNonPrimitiveObjects(result); 
             },
             apply: function(virtualTarget, thisArg, args) {
                 var result,
                     OV = lively.versions.ObjectVersioning,
                     method = this.targetObject(),
-                    targetObject = OV.isProxy(thisArg) ? OV.getObjectForProxy(thisArg) : thisArg;
+                    targetObject = thisArg;
                 
                 result = method.apply(targetObject, args);
+                
                 return this.proxyNonPrimitiveObjects(result);
             },
             construct: function(virtualTarget, args) {
@@ -87,13 +121,40 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return lively.versions.ObjectVersioning.proxyFor(newInstance);
             },
+            getPrototypeOf: function(virtualTarget) {
+                var protoID = this.targetObject().__protoID;
+                if (protoID) {
+                    return lively.ProxyTable[protoID];
+                } else {
+                    return Object.getPrototypeOf(this.targetObject());
+                }
+            },
             has: function(virtualTarget, name) {
+                var result, targetObject, protoID, nextAncestor;
+                
+                // FIXME: does this happen at all?
                 // proxy meta-information
                 if (name === '__objectID') {
                     return true;
                 }
                 
-                return name in this.targetObject();
+                targetObject = this.targetObject();
+                
+                result = (name in targetObject);
+                
+                // FIXME: pretty similar in how proto-lookup is done in the get-trap
+                if (!result) {
+                    protoID = targetObject.__protoID
+                    nextAncestor = protoID ? this.getObjectByID(protoID) : null;
+                    while (!result && nextAncestor) {
+                        result = (name in nextAncestor);
+                        nextAncestor = nextAncestor.__protoID ? 
+                            this.getObjectByID(nextAncestor.__protoID) : 
+                            null;
+                    }
+                }
+                
+                return result;
             },
             hasOwn: function(virtualTarget, name) {
                 // proxy meta-information
@@ -105,6 +166,39 @@ Object.extend(lively.versions.ObjectVersioning, {
             },
             getOwnPropertyNames: function(virtualTarget) {
                 return Object.getOwnPropertyNames(this.targetObject());
+            },
+            enumerate: function(virtualTarget) {
+                var targetObject = this.targetObject(),
+                    enumerableProps = [],
+                    nextAncestor,
+                    protoID;
+                    
+                for (var prop in targetObject) {
+                    enumerableProps.push(prop);
+                }
+                
+                protoID = targetObject.__protoID;
+                nextAncestor = protoID ? this.getObjectByID(protoID) : null;
+                while (nextAncestor) {
+                    for (var prop in nextAncestor) {
+                        enumerableProps.push(prop);
+                    }
+                    nextAncestor = nextAncestor.__protoID ? 
+                        this.getObjectByID(nextAncestor.__protoID) : 
+                        null;
+                }
+                
+                enumerableProps = enumerableProps.filter(function(ea) {
+                    return !(['__objectID', '__protoID'].include(ea));
+                });
+                return enumerableProps;
+            },
+            keys: function(virtualTarget) {
+                var keys = Object.keys(this.targetObject());
+                keys = keys.filter(function(ea) {
+                    return !(['__objectID', '__protoID'].include(ea));
+                });
+                return keys;
             },
             freeze: function(virtualTarget) {
                 // freeze the virtual target as well, as required by the spec
@@ -134,22 +228,6 @@ Object.extend(lively.versions.ObjectVersioning, {
             isExtensible: function(virtualTarget) {
                 return Object.isExtensible(this.targetObject());
             },
-            getPrototypeOf: function(virtualTarget) {
-                return Object.getPrototypeOf(this.targetObject());
-            },
-            enumerate: function(virtualTarget) {
-                var targetObject = this.targetObject(),
-                    enumerableProps = [];
-                    
-                for (var prop in targetObject) {
-                    enumerableProps.push(prop);
-                }
-                
-                return enumerableProps;
-            },
-            keys: function(virtualTarget) {
-                return Object.keys(this.targetObject());
-            }
         };
     }
 });
@@ -161,11 +239,30 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         lively.Versions = []; // a linear history (for now)
         lively.Versions.push(lively.CurrentObjectTable);
+        
+        this.wrapObjectCreate();
+    },
+    wrapObjectCreate: function() {
+        lively.origObjectCreate = Object.create
+        
+        var wrappedCreate = function(proto) {
+            // when proxied are used as prototypes, the prototypes can't be changed.
+            // seems related to: http://github.com/tvcutsem/harmony-reflect/issues/18
+            if (lively.isProxy(proto)) {
+                return lively.origObjectCreate({
+                    __realPrototypeObjectID: proto.__objectID
+                });
+            } else {
+                return lively.origObjectCreate.apply(null, arguments);
+            }
+        }
+        // Object.create = wrappedCreate;
+        lively.create = wrappedCreate;
     },
     proxyFor: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 
         // but refer to it by their __objectID through lively.CurrentObjectTable
-        var virtualTarget, proxy;
+        var proto, protoID, virtualTarget, proxy;
         
         if (this.isProxy(target)) 
             throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
@@ -175,8 +272,30 @@ Object.extend(lively.versions.ObjectVersioning, {
             
         if (target.__objectID)
             return lively.ProxyTable[target.__objectID];
+            
+        // TODO: what about the prototype property of functions?
+                
+        proto = Object.getPrototypeOf(target);
+        if (proto && !([Object.prototype, Function.prototype, Array.prototype].include(proto))) {
+            if (this.isProxy(proto)) {
+                // this shouldn't happen, see wrapObjectCreate
+                protoID = proto.__objectID;
+            } else if (proto.__realPrototypeObjectID) {
+                protoID = proto.__realPrototypeObjectID;
+            } else {
+                protoID = this.proxyFor(proto).__objectID;
+            }
+            target.__proto__ = Object.prototype;
+        } else {
+            // proto is a root prototype
+            protoID = null;
+        }
         
+        // TODO: make __objectID not non-writable, non-configurable, and not enumerable 
+        // using a property descriptor. then remove the filtering from the enumerate- and
+        // the has-trap
         target.__objectID = lively.CurrentObjectTable.length;
+        target.__protoID = protoID;
         lively.CurrentObjectTable.push(target);
         
         virtualTarget = this.virtualTargetFor(target);
@@ -197,6 +316,12 @@ Object.extend(lively.versions.ObjectVersioning, {
             virtualTarget = {};
         }
         return virtualTarget;
+    },
+    proxyForRootPrototype: function() {
+        if (!lively.versions.ObjectVersioning.ProxyForObjectPrototype) {
+            lively.versions.ObjectVersioning.ProxyForObjectPrototype = lively.proxyFor(Object.prototype);
+        }
+        return lively.versions.ObjectVersioning.ProxyForObjectPrototype;
     },
     getObjectForProxy: function(proxy, optObjectTable) {
         var id = proxy.__objectID;
@@ -223,7 +348,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
         
         // coerce to boolean
-        return !!obj.__isProxy; 
+        return !!obj.__isProxy;
     },
     isPrimitiveObject: function(obj) {
         return obj !== Object(obj);
@@ -319,11 +444,12 @@ Object.extend(lively.versions.ObjectVersioning, {
     }
 });
 
-lively.versions.ObjectVersioning.init();
-
 // lively OV shortcuts
 lively.proxyFor = lively.versions.ObjectVersioning.proxyFor.bind(lively.versions.ObjectVersioning);
 lively.objectFor = lively.versions.ObjectVersioning.getObjectForProxy.bind(lively.versions.ObjectVersioning);
 lively.isProxy = lively.versions.ObjectVersioning.isProxy.bind(lively.versions.ObjectVersioning);
+
+// start
+lively.versions.ObjectVersioning.init();
 
 });

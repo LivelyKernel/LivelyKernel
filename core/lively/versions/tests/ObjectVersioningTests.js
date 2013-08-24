@@ -155,7 +155,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test14PrototypeCanBeAProxy: function() {
         var proto = this.proxyFor({}),
-            descendant = this.proxyFor(Object.create(proto));
+            descendant = this.proxyFor(lively.create(proto));
         
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
         this.assertEquals(descendant.__proto__, proto);
@@ -164,7 +164,7 @@ lively.versions.tests.TestCase.subclass(
     test15PrototypeOfProxyCanBeChanged: function() {
         var originalPrototype = this.proxyFor({v: 1}),
             otherPrototype = this.proxyFor({v: 2}),
-            descendant = this.proxyFor(Object.create(originalPrototype));
+            descendant = this.proxyFor(lively.create(originalPrototype));
         
         descendant.__proto__ = otherPrototype;
         
@@ -174,14 +174,14 @@ lively.versions.tests.TestCase.subclass(
     },
     test16ProtoLookupWorksOnProxies: function() {
         var proto = this.proxyFor({}),
-            descendant = this.proxyFor(Object.create(proto));
+            descendant = this.proxyFor(lively.create(proto));
         proto.prop = 15;
                 
         this.assertEquals(descendant.prop, 15);
     },
     test17MethodFromPrototypeIsAppliedCorrectly: function() {
         var proto = this.proxyFor({}),
-            descendant = this.proxyFor(Object.create(proto));
+            descendant = this.proxyFor(lively.create(proto));
         
         proto.prop = 1;
         proto.method = this.proxyFor(function(a) {
@@ -194,7 +194,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test18ObjCanOverwriteInheritedProperty: function() {
         var obj = this.proxyFor({a: 2}),
-            subObj = this.proxyFor(Object.create(obj));
+            subObj = this.proxyFor(lively.create(obj));
         
         subObj.a = 5;
         
@@ -218,7 +218,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test20ProxyHasCorrectProperties: function() {
         var proto = this.proxyFor({protoProp: 1}),
-            descendant = this.proxyFor(Object.create(proto));
+            descendant = this.proxyFor(lively.create(proto));
         descendant.ownProp = 2;
         
         this.assert('protoProp' in descendant);
@@ -227,7 +227,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test21ProxyHasCorrectOwnProperties: function() {
         var proto = this.proxyFor({}),
-            descendant = this.proxyFor(Object.create(proto));
+            descendant = this.proxyFor(lively.create(proto));
             
         proto.protoProp = 12;
         descendant.ownProp = 24;
@@ -237,7 +237,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test22GetOwnPropertyNames: function() {
         var person = this.proxyFor({}),
-            student = this.proxyFor(Object.create(person));
+            student = this.proxyFor(lively.create(person));
             
         person.age = 21;
         student.averageGrade = 2;
@@ -250,7 +250,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test23PropertyEnumerationWorks: function() {
         var proto = {a:1, b:2, c:3},
-            obj = this.proxyFor(Object.create(proto)),
+            obj = this.proxyFor(lively.create(proto)),
             enumeratedProps = [];
         
         obj.d = 4;
@@ -265,7 +265,7 @@ lively.versions.tests.TestCase.subclass(
     },
     test24CorrectObjectKeys: function() {
         var proto = {a:1, b:2, c:3},
-            obj = this.proxyFor(Object.create(proto));
+            obj = this.proxyFor(lively.create(proto));
         
         obj.d = 4;
         obj.e = 5;
@@ -420,7 +420,7 @@ lively.versions.tests.TestCase.subclass(
     // test07ChangingPrototypeUndone: function() {
     //     var originalPrototype = this.proxyFor({}),
     //         otherPrototype = this.proxyFor({}),
-    //         descendant = this.proxyFor(Object.create(originalPrototype));
+    //         descendant = this.proxyFor(lively.create(originalPrototype));
     //     
     //     this.commitVersion();
     //     
@@ -433,7 +433,7 @@ lively.versions.tests.TestCase.subclass(
     // test08UndoingPrototypeChangeIsEffective: function() {
     //     var originalPrototype = this.proxyFor({}),
     //         otherPrototype = this.proxyFor({}),
-    //         descendant = this.proxyFor(Object.create(originalPrototype));
+    //         descendant = this.proxyFor(lively.create(originalPrototype));
     //     
     //     originalPrototype.method = this.proxyFor(function() {return 1});
     //     otherPrototype.method = this.proxyFor(function() {return 2});

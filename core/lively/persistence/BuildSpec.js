@@ -181,7 +181,12 @@ Object.subclass('lively.persistence.SpecObject',
                     instance[key] = lively.PropertyPath(val.path).get(instance); });
                 return;
             }
-            if (!key.startsWith('_')) { instance[key] = val; return; }
+            if (!key.startsWith('_')) {
+                // This is a bit of test balloon I'm sending up to see if something breaks.
+                // This does fix the issue with multiple inspectors's divider affecting each other.
+                instance[key] = (val && Array.isArray(val)) ? val.clone() : val
+                return;
+            }
             // normal attributes
             var setter = instance['set' + key.replace(/^_/, '').capitalize()];
             // _Attributes

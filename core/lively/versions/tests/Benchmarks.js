@@ -54,24 +54,23 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
     }
 });
 
-// // currently not working, infinite recursion...
-// lively.versions.tests.Benchmarks.TestCase.subclass(
-// 'lively.versions.tests.Benchmarks.v8DeltaBlue', {
-//     initialize: function($super, testResult, optTestSelector) {
-//         this.benchmarkFileName = 'deltablue.js'
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8DeltaBlue', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'deltablue.js'
         
-//         $super(testResult, optTestSelector);
-//     },
-//     test01SourceToSourceTransformation: function() {
-//         lively.versions.ObjectVersioning.transformSource(this.sources);
-//     },
-//     test02aNoProxyReferenceExecution: function() {
-//         eval(this.sources);
-//     },
-//     test02bBenchmarkExecution: function() {
-//         eval(this.transformedSources);
-//     }
-// });
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
 
 
 // Benchmarks from "The Computer Language Benchmarks Game"-benchmark suite

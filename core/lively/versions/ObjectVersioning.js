@@ -47,7 +47,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // copy-on-first-write objects commited in previous versions
                 if (Object.isFrozen(targetObject)) {
                     newObject = Object.clone(targetObject);
-                    lively.versions.ObjectVersioning.setObjectForProxy(newObject, receiver);
+                    lively.CurrentObjectTable[this.__objectID] = newObject;
                     targetObject = newObject;
                 }
                        
@@ -216,9 +216,6 @@ Object.extend(lively.versions.ObjectVersioning, {
         lively.CurrentObjectTable = [];
         lively.ProxyTable = [];
         
-        lively.Versions = []; // a linear history (for now)
-        lively.Versions.push(lively.CurrentObjectTable);
-        
         this.wrapObjectCreate();
     },
     wrapObjectCreate: function() {
@@ -349,22 +346,20 @@ Object.extend(lively.versions.ObjectVersioning, {
         return obj !== Object(obj);
     },
     commitVersion: function() {
-        var previousVersion,
-            nextVersion;
+        var previousVersion;
         
         previousVersion = lively.CurrentObjectTable;
-        nextVersion = Object.clone(lively.CurrentObjectTable);
-        lively.Versions.push(nextVersion);
+        lively.CurrentObjectTable = Object.clone(lively.CurrentObjectTable);
+        lively.CurrentObjectTable.previousVersion = previousVersion;
+        previousVersion.nextVersion = lively.CurrentObjectTable;
         
         // freeze all objects as previous versions shouldn't change,
         // so objects need to be copied on write in following versions
         // however: using Object.freeze() for this has the drawback that
         // objects frozen elsewhere can be written again in following versions
-        nextVersion.forEach(function (ea) {
+        lively.CurrentObjectTable.forEach(function (ea) {
             Object.freeze(ea);
         })
-                
-        lively.CurrentObjectTable = nextVersion;
         
         return previousVersion; 
     },
@@ -383,18 +378,10 @@ Object.extend(lively.versions.ObjectVersioning, {
         lively.CurrentObjectTable = this.followingVersion();
     },
     previousVersion: function() {
-        var index = lively.Versions.indexOf(lively.CurrentObjectTable) - 1;
-        if (index < 0) {
-            return undefined;
-        }
-        return lively.Versions[index];
+        return lively.CurrentObjectTable.previousVersion;
     },
     followingVersion: function() {
-        var index = lively.Versions.indexOf(lively.CurrentObjectTable) + 1;
-        if (index >= lively.Versions.size()) {
-            return undefined;
-        }
-        return lively.Versions[index];
+       return lively.CurrentObjectTable.nextVersion;
     },
     start: function() {
         this.init();

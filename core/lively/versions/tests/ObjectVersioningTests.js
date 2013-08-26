@@ -311,10 +311,6 @@ lively.versions.tests.TestCase.subclass(
 lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.VersionsTests',
 'testing', {
-    setUp: function() {
-        // global reset on each test (for now)
-        lively.versions.ObjectVersioning.init();
-    },
     test01CommitedVersion: function() {
         var person, versionBefore;
         

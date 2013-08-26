@@ -75,13 +75,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                 }
                 
-                // TODO: retrieving the prototype of a constructor needs to go
-                // through the global object table as well, which then needs to
-                // be reflected in the the construct-trap
-                if (name === 'prototype' && Object.isFunction(targetObject)) {
-                    return targetObject.prototype;
-                }
-                
                 result = targetObject[name];
                 
                 if (result === undefined) {
@@ -109,17 +102,14 @@ Object.extend(lively.versions.ObjectVersioning, {
             construct: function(virtualTarget, args) {
                 var OriginalConstructor = this.targetObject(),
                     newInstance;
-                    
-                // the following workaround is necessary as it's not possible to supply
-                // a variable number of arguments to a constructor. using eval to create
-                // a constructor with a useful name for debugging
-                eval('var wrapper = function ' + OriginalConstructor.name + '() {\n' +
-                '    return OriginalConstructor.apply(this, args);\n' + 
-                '}');
-                wrapper.prototype = OriginalConstructor.prototype;
-                newInstance = new wrapper();
                 
-                return lively.versions.ObjectVersioning.proxyFor(newInstance);
+                newInstance = lively.proxyFor({
+                    __protoID: OriginalConstructor.prototype.__objectID
+                });
+                
+                OriginalConstructor.apply(newInstance, args);
+                
+                return newInstance;
             },
             getPrototypeOf: function(virtualTarget) {
                 var protoID = this.targetObject().__protoID;
@@ -253,38 +243,50 @@ Object.extend(lively.versions.ObjectVersioning, {
         // but refer to it by their __objectID through lively.CurrentObjectTable
         var proto, protoID, virtualTarget, proxy;
         
+        if (target === Function.prototype) {throw new Error('root prototypes should not be inserted!!');}
+        
         if (this.isProxy(target)) 
             throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
             
         if (target !== Object(target)) 
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
-            
-        if (target.__objectID)
-            return lively.ProxyTable[target.__objectID];
-            
-        // TODO: what about the prototype property of functions?
-                
-        proto = Object.getPrototypeOf(target);
-        if (proto && !([Object.prototype, Function.prototype, Array.prototype].include(proto))) {
-            if (this.isProxy(proto)) {
-                // this shouldn't happen, see wrapObjectCreate
-                protoID = proto.__objectID;
-            } else if (proto.__realPrototypeObjectID) {
-                protoID = proto.__realPrototypeObjectID;
-            } else {
-                protoID = this.proxyFor(proto).__objectID;
-            }
-            target.__proto__ = Object.prototype;
-        } else {
-            // proto is a root prototype
-            protoID = null;
+        
+        if (target.__objectID !== undefined)
+            return this.getProxyByID(target.__objectID);
+        
+        if (target.prototype) {
+            // some function's have prototypes, which get used when calling
+            // constructors and in the construct-trap,
+            // note that some built-in functions don't have prototypes
+            target.prototype = this.proxyFor(target.prototype);
         }
         
-        // TODO: make __objectID not non-writable, non-configurable, and not enumerable 
-        // using a property descriptor. then remove the filtering from the enumerate- and
-        // the has-trap
+        if (target.__protoID === undefined) {
+            proto = Object.getPrototypeOf(target);
+            if (proto && !([Object.prototype, Function.prototype, Array.prototype].include(proto))) {
+                if (this.isProxy(proto)) {
+                    // this should currently not happen, because when proxies
+                    // are used as prototypes, the prototype can't be changed
+                    // later on. so we actively need to prevent proxies from
+                    // being used as prototypes, see this>>wrapObjectCreate
+                    protoID = proto.__objectID;
+                } else if (proto.__realPrototypeObjectID !== undefined) {
+                    protoID = proto.__realPrototypeObjectID;
+                } else {
+                    protoID = this.proxyFor(proto).__objectID;
+                }
+                target.__proto__ = Object.prototype;
+            } else {
+                // proto is a root prototype
+                protoID = null;
+            }
+            target.__protoID = protoID;
+        }
+        
+        // TODO: make __objectID and __protoID non-writable, non-configurable,
+        // and not enumerable through a property descriptor. then remove the
+        // filtering from the enumerate- and the has-trap
         target.__objectID = lively.CurrentObjectTable.length;
-        target.__protoID = protoID;
         lively.CurrentObjectTable.push(target);
         
         virtualTarget = this.virtualTargetFor(target);

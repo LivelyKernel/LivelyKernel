@@ -3,7 +3,7 @@ module('lively.versions.ObjectVersioning').requires('lively.versions.UglifyTrans
 Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function(objectID) {
         return {
-            // these proxies are fully virtual, so the first parameter to all 
+            // our proxies are fully virtual, so the first parameter to all
             // traps is an empty object and shouldn't be touched
             
             // __objectID can be resolved via global object table
@@ -132,12 +132,6 @@ Object.extend(lively.versions.ObjectVersioning, {
             has: function(virtualTarget, name) {
                 var result, targetObject, protoID, nextAncestor;
                 
-                // FIXME: does this happen at all?
-                // proxy meta-information
-                if (name === '__objectID') {
-                    return true;
-                }
-                
                 targetObject = this.targetObject();
                 
                 result = (name in targetObject);
@@ -157,11 +151,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return result;
             },
             hasOwn: function(virtualTarget, name) {
-                // proxy meta-information
-                if (name === '__objectID') {
-                    return true;
-                }
-                
                 return ({}).hasOwnProperty.call(this.targetObject(), name);
             },
             getOwnPropertyNames: function(virtualTarget) {
@@ -308,9 +297,10 @@ Object.extend(lively.versions.ObjectVersioning, {
         var virtualTarget;
         // only proxies for functions do trap function application
         if (Object.isFunction(actualTarget)) {
-            // function names are non-configurable, non-writable properties, and the proxy spec
-            // requires such the values to be returned consistently from the get-trap, that is,
-            // matching the actual proxy target
+            // function names are non-configurable, non-writable properties,
+            // and the proxy spec requires such the values to be returned
+            // consistently from the get-trap, that is, matching the actual
+            // proxy target
             virtualTarget = eval('virtualTarget = function ' + actualTarget.name + '() {}');
         } else {
             virtualTarget = {};
@@ -336,6 +326,9 @@ Object.extend(lively.versions.ObjectVersioning, {
         var objectTable = optObjectTable || lively.CurrentObjectTable;
         
         return objectTable[id];
+    },
+    getProxyByID: function(id) {
+        return lively.ProxyTable[id];
     },
     setObjectForProxy: function(target, proxy, optObjectTable) {
         var objectTable = optObjectTable || lively.CurrentObjectTable;
@@ -423,16 +416,6 @@ Object.extend(lively.versions.ObjectVersioning, {
         // Date constructor and parse() and UTC()
         // and other global objects in Global / window
 
-        // just proxying every global object doesn't work (reloads, bookmarks..)
-        
-        // Properties.all(Global).forEach((function(ea) {
-        //     if (this.isProxy(Global[ea]) ||
-        //         this.isPrimitiveObject(Global[ea])) 
-        //             return;
-        //
-        //     Global[ea] = this.proxy(Global[ea]);
-        // }).bind(this));
-
         Object.create = this.proxyFor(Object.create);
         JSON.parse = this.proxyFor(JSON.parse);
     },
@@ -445,9 +428,10 @@ Object.extend(lively.versions.ObjectVersioning, {
 });
 
 // lively OV shortcuts
-lively.proxyFor = lively.versions.ObjectVersioning.proxyFor.bind(lively.versions.ObjectVersioning);
-lively.objectFor = lively.versions.ObjectVersioning.getObjectForProxy.bind(lively.versions.ObjectVersioning);
-lively.isProxy = lively.versions.ObjectVersioning.isProxy.bind(lively.versions.ObjectVersioning);
+var livelyOV = lively.versions.ObjectVersioning;
+lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
+lively.objectFor = livelyOV.getObjectForProxy.bind(livelyOV);
+lively.isProxy = livelyOV.isProxy.bind(livelyOV);
 
 // start
 lively.versions.ObjectVersioning.init();

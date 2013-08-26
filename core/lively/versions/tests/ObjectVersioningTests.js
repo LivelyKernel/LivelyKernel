@@ -1,5 +1,5 @@
 module('lively.versions.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.versions.ObjectVersioning').toRun(function() {
-    
+
 TestCase.subclass('lively.versions.tests.TestCase', 
 'versioning shortcuts', {
     proxyFor: function(target) {
@@ -210,13 +210,30 @@ lively.versions.tests.TestCase.subclass(
         NewType.prototype.getProp = this.proxyFor(function() {
             return this.prop;
         });
+        
         instance = new NewType();
         
+        this.assertEquals(instance.__proto__, NewType.prototype);
         this.assertEquals(instance.prop, 12);
         this.assert(this.isProxy(instance.getProp));
         this.assertEquals(instance.getProp(), 12);
     },
-    test20ProxyHasCorrectProperties: function() {
+    test20ConstructorWithProxiedPrototypeProperty: function() {
+        var prototype = this.proxyFor({protoProp: 'p'}),
+            Constructor = this.proxyFor(function C(parameter){
+                this.constructorProp = 'c';
+                this.argument = parameter;
+            }),
+            instance;
+        
+        Constructor.prototype = prototype;
+        instance = new Constructor('a');
+        
+        this.assertEquals(instance.protoProp, 'p');
+        this.assertEquals(instance.constructorProp, 'c');
+        this.assertEquals(instance.argument, 'a');
+    },
+    test21ProxyHasCorrectProperties: function() {
         var proto = this.proxyFor({protoProp: 1}),
             descendant = this.proxyFor(lively.create(proto));
         descendant.ownProp = 2;
@@ -225,7 +242,7 @@ lively.versions.tests.TestCase.subclass(
         this.assert('ownProp' in descendant);
         this.assert(!('neverDefinedProperty' in descendant));
     },
-    test21ProxyHasCorrectOwnProperties: function() {
+    test22ProxyHasCorrectOwnProperties: function() {
         var proto = this.proxyFor({}),
             descendant = this.proxyFor(lively.create(proto));
             
@@ -235,7 +252,7 @@ lively.versions.tests.TestCase.subclass(
         this.assert(descendant.hasOwnProperty('ownProp'));
         this.assert(!descendant.hasOwnProperty('protoProp'));
     },
-    test22GetOwnPropertyNames: function() {
+    test23GetOwnPropertyNames: function() {
         var person = this.proxyFor({}),
             student = this.proxyFor(lively.create(person));
             
@@ -248,7 +265,7 @@ lively.versions.tests.TestCase.subclass(
         this.assert(Object.getOwnPropertyNames(student).include('currentSemester'));
         this.assertEquals(Object.getOwnPropertyNames(student).include('age'), false);
     },
-    test23PropertyEnumerationWorks: function() {
+    test24PropertyEnumerationWorks: function() {
         var proto = {a:1, b:2, c:3},
             obj = this.proxyFor(lively.create(proto)),
             enumeratedProps = [];
@@ -263,7 +280,7 @@ lively.versions.tests.TestCase.subclass(
 
         this.assert(['a','b','c','d', 'e', 'f'].intersect(enumeratedProps).length === 6);
     },
-    test24CorrectObjectKeys: function() {
+    test25CorrectObjectKeys: function() {
         var proto = {a:1, b:2, c:3},
             obj = this.proxyFor(lively.create(proto));
         
@@ -273,7 +290,7 @@ lively.versions.tests.TestCase.subclass(
         
         this.assert(['d', 'e', 'f'].intersect(Object.keys(obj)).length === 3);
     },
-    test25ProxiedObjectsCanBeFrozen: function() {
+    test26ProxiedObjectsCanBeFrozen: function() {
         var obj = {},
             proxy = this.proxyFor(obj);
             
@@ -284,7 +301,7 @@ lively.versions.tests.TestCase.subclass(
         this.assert(Object.isFrozen(proxy));
         this.assert(Object.isFrozen(obj));
     },
-    test26ProxiedObjectsCanBeSealed: function() {
+    test27ProxiedObjectsCanBeSealed: function() {
         var obj = {},
             proxy = this.proxyFor(obj);
             
@@ -295,7 +312,7 @@ lively.versions.tests.TestCase.subclass(
         this.assert(Object.isSealed(proxy));
         this.assert(Object.isSealed(obj));
     },
-    test27ExtensionsToProxiedObjectsCanBePrevented: function() {
+    test28ExtensionsToProxiedObjectsCanBePrevented: function() {
         var obj = {},
             proxy = this.proxyFor(obj);
             

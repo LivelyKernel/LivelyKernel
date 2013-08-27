@@ -425,40 +425,24 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(address.street, 'Meanstreet');
         this.assert(address.city === undefined);
     },
-    
-    // === PENDING ===
-    // 
-    // TODO: first fix the pending __proto__ test cases of ProxyTests
-    //
-    // test07ChangingPrototypeUndone: function() {
-    //     var originalPrototype = this.proxyFor({}),
-    //         otherPrototype = this.proxyFor({}),
-    //         descendant = this.proxyFor(lively.create(originalPrototype));
-    //     
-    //     this.commitVersion();
-    //     
-    //     descendant.__proto__ = otherPrototype;
-    //     
-    //     this.undo();
-    //     
-    //     this.assertEquals(Object.getPrototypeOf(descendant), originalPrototype);
-    // },
-    // test08UndoingPrototypeChangeIsEffective: function() {
-    //     var originalPrototype = this.proxyFor({}),
-    //         otherPrototype = this.proxyFor({}),
-    //         descendant = this.proxyFor(lively.create(originalPrototype));
-    //     
-    //     originalPrototype.method = this.proxyFor(function() {return 1});
-    //     otherPrototype.method = this.proxyFor(function() {return 2});
-    //     
-    //     this.commitVersion();
-    //     
-    //     descendant.__proto__ = otherPrototype;
-    //             
-    //     this.undo();
-    //     
-    //     this.assertEquals(descendant.method(), 1);
-    // },
+    test08UndoingAChangeOfProto: function() {
+        var originalPrototype = this.proxyFor({
+                method: this.proxyFor(function() {return 1}),
+            }),
+            otherPrototype = this.proxyFor({
+                method: this.proxyFor(function() {return 2}),
+            }),
+            descendant = this.proxyFor(lively.create(originalPrototype));
+        
+        this.commitVersion();
+        
+        descendant.__proto__ = otherPrototype;
+        
+        this.undo();
+        
+        this.assertEquals(Object.getPrototypeOf(descendant), originalPrototype);
+        this.assertEquals(descendant.method(), 1);
+    },
 });
 
 lively.versions.tests.TestCase.subclass(

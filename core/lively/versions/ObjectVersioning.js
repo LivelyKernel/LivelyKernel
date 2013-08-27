@@ -253,7 +253,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         if (target.__objectID !== undefined)
             return this.getProxyByID(target.__objectID);
         
-        if (target.prototype) {
+        if (target.prototype && !this.isProxy(target.prototype)) {
             // some function's have prototypes, which get used when calling
             // constructors and in the construct-trap,
             // note that some built-in functions don't have prototypes

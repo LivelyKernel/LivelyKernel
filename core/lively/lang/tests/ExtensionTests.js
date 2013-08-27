@@ -659,6 +659,23 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
             this.assert(!Functions._queues.hasOwnProperty('testQueue-queue'), 'queue store not cleaned up');
             this.done();
         });
+    },
+    testThrottleCommand: function() {
+        var called = 0, result = [];
+        Array.range(1,4).forEach(function(i) {
+            Functions.throttleNamed('testThrottleCommand', 20, function(i) { result.push(i); called++; })(i);
+        });
+        this.delay(function() {
+            Functions.throttleNamed('testThrottleCommand', 20, function(i) { result.push(i); called++; })(5);
+        }, 80);
+        this.delay(function() {
+            // call 1 immediatelly in the loop,
+            // call 2 after waiting for timeout with arg from last (fourth) invocation
+            // call 3 invocation after first throttle
+            this.assertEquals(3, called, 'throttle call count');
+            this.assertEquals([1,4,5], result, 'throttle result');
+            this.done();
+        }, 120);
     }
 });
 

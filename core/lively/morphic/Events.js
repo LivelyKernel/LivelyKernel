@@ -1783,6 +1783,7 @@ lively.morphic.World.addMethods(
             var messageMorph = this.get('zoomStatus');
             if (!messageMorph) {
                 messageMorph = lively.newMorph({klass: lively.morphic.Text});
+                messageMorph.isEpiMorph = true
                 messageMorph.name = 'zoomStatus';
                 messageMorph.applyStyle({extent: pt(160, 80), clipMode: "hidden", fontSize: 42, fill: Color.rgba(255,255,255,0.6), borderWidth: 0, borderRadius: 20});
                 messageMorph.removeLater = Functions.debounce(1*1000, function() { this.remove(); });

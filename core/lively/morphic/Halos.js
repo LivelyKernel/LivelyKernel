@@ -7,7 +7,7 @@ lively.morphic.Morph.addMethods(
     disableHalos: function() { this.halosEnabled = false },
     showHalos: function() {
         if (!this.world() || !this.halosEnabled) return;
-        if (this.showsHalos) { this.halos.invoke('alignAtTarget'); return; }
+        if (this.showsHalos && this.halos) { this.halos.invoke('alignAtTarget'); return; }
         this.showsHalos = true;
         this.halos = this.getHalos();
         this.world().showHalosFor(this, this.halos);

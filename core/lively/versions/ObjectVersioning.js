@@ -210,10 +210,15 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 Object.extend(lively.versions.ObjectVersioning, {
     init: function() {
-        lively.CurrentObjectTable = [];
-        lively.ProxyTable = [];
-        
-        this.wrapObjectCreate();
+        if (!lively.CurrentObjectTable) {
+            lively.CurrentObjectTable = [];
+        }
+        if (!lively.ProxyTable) {
+            lively.ProxyTable = [];
+        }
+        if (!lively.create) {
+            this.wrapObjectCreate();
+        }
     },
     wrapObjectCreate: function() {
         lively.origObjectCreate = Object.create

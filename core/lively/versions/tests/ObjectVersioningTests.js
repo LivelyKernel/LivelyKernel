@@ -432,7 +432,11 @@ lively.versions.tests.TestCase.subclass(
             otherPrototype = this.proxyFor({
                 method: this.proxyFor(function() {return 2}),
             }),
-            descendant = this.proxyFor(lively.create(originalPrototype));
+            descendant = this.proxyFor({});
+        
+        this.commitVersion();
+        
+        descendant.__proto__ = originalPrototype;
         
         this.commitVersion();
         
@@ -442,6 +446,11 @@ lively.versions.tests.TestCase.subclass(
         
         this.assertEquals(Object.getPrototypeOf(descendant), originalPrototype);
         this.assertEquals(descendant.method(), 1);
+        
+        this.undo();
+        
+        this.assertEquals(Object.getPrototypeOf(descendant), Object.prototype);
+        this.assert(!descendant.method);
     },
 });
 

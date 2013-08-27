@@ -36,6 +36,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 targetObject = this.targetObject();
                 
+                // copy-on-first-write objects commited in previous versions
+                if (Object.isFrozen(targetObject)) {
+                    newObject = Object.clone(targetObject);
+                    lively.CurrentObjectTable[this.__objectID] = newObject;
+                    targetObject = newObject;
+                }
+                
                 if (name === '__proto__') {
                     if (value && value.__objectID) {
                         targetObject.__protoID = value.__objectID;
@@ -43,13 +50,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                         targetObject.__protoID = null;
                         targetObject.__proto__ = value;
                     }
-                }
-                
-                // copy-on-first-write objects commited in previous versions
-                if (Object.isFrozen(targetObject)) {
-                    newObject = Object.clone(targetObject);
-                    lively.CurrentObjectTable[this.__objectID] = newObject;
-                    targetObject = newObject;
+                    return true;
                 }
                        
                 targetObject[name] = value;

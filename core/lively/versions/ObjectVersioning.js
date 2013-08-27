@@ -17,7 +17,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             getObjectByID: function(id) {
                 return lively.versions.ObjectVersioning.getObjectByID(id);
             },
-            proxyNonPrimitiveObjects: function(obj) {
+            ensureNonPrimitiveObjectIsProxied: function(obj) {
                 var result = obj;
                 
                 if (!lively.versions.ObjectVersioning.isProxy(obj)) {
@@ -88,7 +88,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                 }
                 
-                return this.proxyNonPrimitiveObjects(result); 
+                return this.ensureNonPrimitiveObjectIsProxied(result);
             },
             apply: function(virtualTarget, thisArg, args) {
                 var result,
@@ -98,7 +98,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 result = method.apply(targetObject, args);
                 
-                return this.proxyNonPrimitiveObjects(result);
+                return this.ensureNonPrimitiveObjectIsProxied(result);
             },
             construct: function(virtualTarget, args) {
                 var OriginalConstructor = this.targetObject(),

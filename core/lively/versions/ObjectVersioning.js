@@ -3,8 +3,9 @@ module('lively.versions.ObjectVersioning').requires('lively.versions.UglifyTrans
 Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function(objectID) {
         return {
-            // our proxies are fully virtual, so the first parameter to all
-            // traps is an empty object and shouldn't be touched
+            // our proxies are fully virtual. so the first parameter to all
+            // traps, the actual proxy target, should be an empty object
+            // that shouldn't be touched
             
             // __objectID can be resolved via global object table
             __objectID: objectID,
@@ -168,17 +169,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                         null;
                 }
                 
-                enumerableProps = enumerableProps.filter(function(ea) {
-                    return !(['__objectID', '__protoID'].include(ea));
-                });
                 return enumerableProps;
             },
             keys: function(virtualTarget) {
-                var keys = Object.keys(this.targetObject());
-                keys = keys.filter(function(ea) {
-                    return !(['__objectID', '__protoID'].include(ea));
-                });
-                return keys;
+                return Object.keys(this.targetObject());
             },
             freeze: function(virtualTarget) {
                 // freeze the virtual target as well, as required by the spec
@@ -278,13 +272,19 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // proto is a root prototype
                 protoID = null;
             }
-            target.__protoID = protoID;
+            
+            // set __protoID as not enumerable and not configurable
+            Object.defineProperty(target, '__protoID', {
+                writable: true,
+                value: protoID
+            });
         }
         
-        // TODO: make __objectID and __protoID non-writable, non-configurable,
-        // and not enumerable through a property descriptor. then remove the
-        // filtering from the enumerate- and the has-trap
-        target.__objectID = lively.CurrentObjectTable.length;
+        // set __objectID as not enumerable, not configurable, and not writable
+        Object.defineProperty(target, '__objectID', {
+            value: lively.CurrentObjectTable.length
+        });
+        
         lively.CurrentObjectTable.push(target);
         
         virtualTarget = this.virtualTargetFor(target);

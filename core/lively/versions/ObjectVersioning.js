@@ -106,6 +106,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 newInstance = lively.proxyFor({
                     __protoID: OriginalConstructor.prototype.__objectID
                 });
+                newInstance.constructor = OriginalConstructor;
                 
                 OriginalConstructor.apply(newInstance, args);
                 

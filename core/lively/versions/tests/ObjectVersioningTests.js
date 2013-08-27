@@ -213,6 +213,7 @@ lively.versions.tests.TestCase.subclass(
         
         instance = new NewType();
         
+        this.assertEquals(instance.constructor, NewType);
         this.assertEquals(instance.__proto__, NewType.prototype);
         this.assertEquals(instance.prop, 12);
         this.assert(this.isProxy(instance.getProp));

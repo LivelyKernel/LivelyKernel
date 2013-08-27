@@ -162,7 +162,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 nextAncestor = protoID ? this.getObjectByID(protoID) : null;
                 while (nextAncestor) {
                     for (var prop in nextAncestor) {
-                        enumerableProps.push(prop);
+                        if (!enumerableProps.include(prop))
+                            enumerableProps.push(prop);
                     }
                     nextAncestor = nextAncestor.__protoID ? 
                         this.getObjectByID(nextAncestor.__protoID) : 

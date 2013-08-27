@@ -254,6 +254,8 @@ Object.extend(lively.versions.ObjectVersioning, {
             target.prototype = this.proxyFor(target.prototype);
         }
         
+        virtualTarget = this.virtualTargetFor(target);
+        
         if (target.__protoID === undefined) {
             proto = Object.getPrototypeOf(target);
             if (proto && !([Object.prototype, Function.prototype, Array.prototype].include(proto))) {
@@ -282,13 +284,16 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
         
         // set __objectID as not enumerable, not configurable, and not writable
+        // for both the target and the virtualTarget (spec consistency check)
         Object.defineProperty(target, '__objectID', {
+            value: lively.CurrentObjectTable.length
+        });
+        Object.defineProperty(virtualTarget, '__objectID', {
             value: lively.CurrentObjectTable.length
         });
         
         lively.CurrentObjectTable.push(target);
         
-        virtualTarget = this.virtualTargetFor(target);
         proxy = Proxy(virtualTarget, this.versioningProxyHandler(target.__objectID));
         lively.ProxyTable[target.__objectID] = proxy;
         
@@ -296,6 +301,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     virtualTargetFor: function(actualTarget) {
         var virtualTarget;
+        
         // only proxies for functions do trap function application
         if (Object.isFunction(actualTarget)) {
             // function names are non-configurable, non-writable properties,
@@ -306,6 +312,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         } else {
             virtualTarget = {};
         }
+        
         return virtualTarget;
     },
     proxyForRootPrototype: function() {

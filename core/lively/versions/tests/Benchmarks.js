@@ -166,14 +166,14 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
     }
 });
 
-// Own benchmarks: Simple examples using Lively's class
-// system and morphs
-
+// // Own benchmarks: Simple examples using Lively's class
+// // system and morphs
+// 
 // lively.versions.tests.Benchmarks.TestCase.subclass(
 // 'lively.versions.tests.Benchmarks.livelyClasses', {
 //     initialize: function($super, testResult, optTestSelector) {
 //         this.benchmarkFileName = 'livelyClasses.js'
-        
+//         
 //         $super(testResult, optTestSelector);
 //     },
 //     test01SourceToSourceTransformation: function() {
@@ -183,7 +183,9 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
 //         eval(this.sources);
 //     },
 //     test02bBenchmarkExecution: function() {
+//         lively.versions.tests.Benchmarks.isExecutingProxyBenchmark = true;
 //         eval(this.transformedSources);
+//         delete lively.versions.tests.Benchmarks.isExecutingProxyBenchmark;
 //     }
 // });
 

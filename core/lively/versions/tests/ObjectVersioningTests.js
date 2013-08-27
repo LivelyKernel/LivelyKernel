@@ -255,16 +255,15 @@ lively.versions.tests.TestCase.subclass(
     },
     test23GetOwnPropertyNames: function() {
         var person = this.proxyFor({}),
-            student = this.proxyFor(lively.create(person));
+            student = this.proxyFor(lively.create(person)),
+            ownProps;
             
         person.age = 21;
-        student.averageGrade = 2;
-        student.currentSemester = 3;
+        student.avgGrade = 2;
+        student.semester = 3;
         
-        // FIXME: compare arrays instead!
-        this.assert(Object.getOwnPropertyNames(student).include('averageGrade'));
-        this.assert(Object.getOwnPropertyNames(student).include('currentSemester'));
-        this.assertEquals(Object.getOwnPropertyNames(student).include('age'), false);
+        ownProps = Object.getOwnPropertyNames(student);
+        this.assertEquals(['avgGrade', 'semester'].intersect(ownProps).length, 2);
     },
     test24PropertyEnumerationWorks: function() {
         var proto = {a:1, b:2, c:3},

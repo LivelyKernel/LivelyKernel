@@ -545,6 +545,42 @@ Object.extend(lively.PropertyPath.prototype, {
         });
         var msg = Strings.format('Watcher for %s.%s installed', parent, propName);
         show(msg);
+    },
+
+    debugFunctionWrapper: function(options) {
+        // options = {target, [haltWhenChanged, showStack, verbose, uninstall]}
+        var target = options.target,
+            parent = this.get(target, -1),
+            funcName = this.parts().last(),
+            uninstall = options.uninstall,
+            haltWhenChanged = options.haltWhenChanged === undefined ? true : options.haltWhenChanged,
+            showStack = options.showStack,
+            func = parent && funcName && parent[funcName],
+            debuggerInstalled = func && func.isDebugFunctionWrapper;
+        if (!target || !funcName || !func || !parent) return;
+        if (uninstall) {
+            if (!debuggerInstalled) return;
+            parent[funcName] = parent[funcName].debugTargetFunction;
+            var msg = Strings.format('Uninstalled debugFunctionWrapper for %s.%s', parent, funcName);
+            show(msg);
+            return;
+        }
+        if (debuggerInstalled) {
+            var msg = Strings.format('debugFunctionWrapper for %s.%s already installed.', parent, funcName);
+            show(msg);
+            return;
+        }
+        var debugFunc = parent[funcName] = func.wrap(function(proceed) {
+            var args = Array.from(arguments);
+            if (haltWhenChanged) debugger;
+            if (showStack) show(lively.printStack());
+            if (options.verbose) show(funcName + ' called');
+            return args.shift().apply(parent, args);
+        });
+        debugFunc.isDebugFunctionWrapper = true;
+        debugFunc.debugTargetFunction = func;
+        var msg = Strings.format('debugFunctionWrapper for %s.%s installed', parent, funcName);
+        show(msg);
     }
 
 });

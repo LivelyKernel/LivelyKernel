@@ -444,7 +444,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.moveToMatching(false, shouldSelect, moveAnyway);
     },
 
-    clearSelection: function() { this.withAceDo(function(ed) { ed.clearSelection(); }) },
+    clearSelection: function() {
+        this.withAceDo(function(ed) {
+            if (ed.inMultiSelectMode) ed.exitMultiSelectMode();
+            else ed.clearSelection();
+        });
+    },
 
     setTheme: function(themeName) {
         this.withAceDo(function(ed) {

@@ -102,10 +102,11 @@ Object.extend(lively.ide.commands.byName, {
                     keepInputOnReactivate: true,
                     preselect: preselectIndex,
                     actions: [
-                        {name: 'show halos', exec: function(morph) { morph.showHalos(); }},
+                        {name: 'show halos', exec: function(morph) { morph.focus.bind(morph).delay(0.1); morph.showHalos(); }},
                         {name: 'inspect', exec: function(morph) { lively.morphic.inspect(morph); }},
                         {name: 'open ObjectEditor', exec: function(morph) { lively.morphic.edit(morph); }},
                         {name: 'open StyleEditor', exec: function(morph) { $world.openStyleEditorFor(morph); }},
+                        {name: 'copy', exec: function(morph) { var copy = morph.copy(); morph.owner.addMorph(copy, morph); morph.showHalos(); morph.focus(); }},
                         {name: 'remove', exec: function(morph) { morph.remove(); }}]
                 }
             });
@@ -558,7 +559,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Window.rename': {mac: 'cmd-s-l r e n', win: 'ctrl-s-l r e n'},
     'lively.morphic.Window.toggleCollapse': {mac: 'cmd-s-l c o l', win: 'ctrl-s-l c o l'},
     'lively.morphic.Morph.copy': {mac: 'cmd-s-l c o p y', win: 'ctrl-s-l c o p y'},
-    'lively.morphic.Morph.showSceneGraph': {mac: "cmd-m", win: 'ctrl-m'},
+    'lively.morphic.Morph.showSceneGraph': 'm-m',
     'lively.morphic.Morph.openObjectEditor': {mac: 'cmd-s-l o e', win: 'ctrl-s-l o e'},
     'lively.ide.evalJavaScript': 'm-s-:',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-à"},

@@ -1498,6 +1498,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             self.setupInputLineBindings(kbd);
             self.setupSnippetBindings(kbd);
             self.setupASTNavigation(kbd);
+            self.setupKeyboardMacroBindings(kbd);
             self.setupUsefulHelperBindings(kbd);
             self.setupUserKeyBindings(kbd, codeEditor);
             kbd.hasLivelyKeys = true;
@@ -2073,6 +2074,56 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         // kbd.bindKeys({"C-M-h": {command: 'markDefun'}});
         // kbd.bindKeys({"S-CMD-space": {command: 'expandRegion'}});
         // kbd.bindKeys({"C-CMD-space": {command: 'contractRegion'}});
+    },
+
+    setupKeyboardMacroBindings: function(kbd) {
+        function macroString(macro) {
+            var table = macro.map(function(recordStep) {
+                // 2-elem-list: 0: command invoked, 1: key press
+                return [
+                    recordStep[1] ? Strings.print(recordStep[1]) : '""',
+                    recordStep[0] ? recordStep[0].name : 'unknown'];
+            });
+            return Strings.printTable(table);
+        }
+        kbd.addCommands([{
+            name: "viewrecording",
+            exec: function(ed) {
+                if (!ed.commands.macro) { show('no recording'); return; }
+                show(macroString(ed.commands.macro));
+            },
+            readOnly: true
+        }, {
+            name: "togglerecording",
+            bindKey: {win: "Ctrl-Alt-E", mac: "Command-Option-E"},
+            exec: function(ed) {
+                var cmds = ed.commands;
+                cmds.toggleRecording(ed);
+                var recording = !!cmds.recording;
+                ed.$morph.setStatusMessage((recording ? 'Start' : 'Stop') + ' recording keys');
+                if (recording) {
+                    if (!cmds.$showAddCommandToMacro) {
+                        cmds.$showAddCommandToMacro = function(e) {
+                            var name = e.command ? e.command.name : '', out = name;
+                            if (name === 'insertstring') out = e.args || '';
+                            ed.$morph.setStatusMessage(out);
+                        }
+                    }
+                    cmds.on("exec", cmds.$showAddCommandToMacro);
+                } else {
+                    cmds.removeEventListener("exec", cmds.$showAddCommandToMacro);
+                }
+            },
+            readOnly: true
+        }, {
+            name: "replaymacro",
+            bindKey: {win: "Ctrl-Shift-E", mac: "Command-Shift-E"},
+            exec: function(ed) {
+                ed.$morph.setStatusMessage('Replay recording');
+                ed.commands.replay(ed);
+            },
+            readOnly: true
+        }]);
     },
 
     setupUsefulHelperBindings: function(kbd) {

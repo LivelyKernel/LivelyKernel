@@ -390,6 +390,11 @@ Global.Functions = {
     throttle: function(func, wait) {
         // exec func at most once every wait ms even when called more often
         // useful to calm down eagerly running updaters and such
+        /* Example:
+            var i = 0;
+            x = Functions.throttle(function() { show(++i + '-' + Date.now()) }, 500);
+            Array.range(0,100).forEach(function(n) { x() });
+        */
         var context, args, timeout, throttling, more, result,
             whenDone = Functions.debounce(wait, function() { more = throttling = false; });
         return function() {
@@ -412,7 +417,7 @@ Global.Functions = {
     },
 
     debounce: function(wait, func, immediate) {
-        // Execute func after wait milliseconds elapsed since invocation. 
+        // Execute func after wait milliseconds elapsed since invocation.
         // E.g. to exec something after receiving an input stream
         // with immediate truthy exec immediately but when called before
         // wait ms are done nothing happens. E.g. to not exec a user invoked
@@ -428,6 +433,18 @@ Global.Functions = {
             Global.clearTimeout(timeout);
             timeout = Global.setTimeout(later, wait);
         };
+    },
+
+    throttleNamed: function(name, wait, func) {
+        // see comment in debounceNamed
+        var store = Functions._throttledByName || (Functions._throttledByName = {});
+        if (store[name]) return store[name];
+        function throttleNamedWrapper() {
+            // cleaning up
+            Functions.debounceNamed(name, wait, function() { delete store[name]; })();
+            func.apply(this, arguments);
+        }
+        return store[name] = Functions.throttle(throttleNamedWrapper, wait);
     },
 
     debounceNamed: function(name, wait, func, immediate) {

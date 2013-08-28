@@ -266,7 +266,7 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
         this.remoteVar = remoteVar || this.localVar;
         this.setUp("publish", [this.localVar],
             function(space, evaluator) {
-                var val = space.lookup(this.localVar);
+                var val = space.frpGet(this.localVar);
                 return val; 
             });
         return this;

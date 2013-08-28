@@ -635,6 +635,372 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     }
 });
 
+lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'),
+'settings', {
+    style: {
+        fill: Color.white,
+        borderColor: Color.gray.lighter(),
+        borderWidth: 1,
+        borderStyle: 'outset',
+        grabbingEnabled: false, draggingEnabled: false
+    },
+    isList: true
+},
+'initializing', {
+    initialize: function($super) {
+        var args = Array.from(arguments);
+        $super = args.shift();
+        var bounds = args[0] && args[0] instanceof lively.Rectangle ?
+            args.shift() : lively.rect(0,0, 100,100);
+        var items = args[0] && Object.isArray(args[0]) ? args.shift() : [];
+        $super(bounds);
+        this.setStyleSheet(".list-item {\n"
+              + "	font-family: Helvetica,Verdana,sans-serif;\n"
+              + "	font-size: 10pt;\n"
+              + "	color: black;\n"
+              + "}\n"
+              + ".list-item.selected {\n"
+              + "	background: blue !important;\n"
+              + "	color: white !important;\n"
+              + "}");
+        this.isMultipleSelectionList = false;
+        this.selectedIndexes = [];
+        this.itemMorphs = [];
+        this.setList(items);
+        this.initializeLayout();
+    },
+
+    initializeLayout: function(layoutStyle) {
+        // // layoutStyle: {
+        // //   type: "tiling"|"horizontal"|"vertical",
+        // //   spacing: NUMBER,
+        // //   border: NUMBER
+        // // }
+        // var defaultLayout = {
+        //     type: 'tiling',
+        //     border: 0, spacing: 20
+        // }
+        // layoutStyle = Object.extend(defaultLayout, layoutStyle || {});
+        // this.applyStyle({
+        //     fill: Color.white, borderWidth: 0,
+        //     borderColor: Color.black, clipMode: 'auto',
+        //     resizeWidth: true, resizeHeight: true
+        // })
+        // var klass;
+        // switch (layoutStyle.type) {
+        //     case 'vertical': klass = lively.morphic.Layout.VerticalLayout; break;
+        //     case 'horizontal': klass = lively.morphic.Layout.HorizontalLayout; break;
+        //     case 'tiling': klass = lively.morphic.Layout.TileLayout; break;
+        //     default: klass = lively.morphic.Layout.TileLayout; break;
+        // }
+        // var layouter = new klass(this);
+        // layouter.setBorderSize(layoutStyle.border);
+        // layouter.setSpacing(layoutStyle.spacing);
+        // this.setLayouter(layouter);
+    },
+
+    initLayout: function(noOfCandidates) {
+        var layout = {
+                listItemHeight: 19,
+                padding: 0/*20*/,
+                // computed below:
+                extent: this.getExtent(),
+                maxListItems: null,
+                noOfCandidatesShown: null
+            };
+        layout.maxExtent = lively.pt(layout.extent.x - 2*layout.padding,layout.extent.y - 2*layout.padding);
+        layout.maxListItems = Math.ceil(layout.maxExtent.y / layout.listItemHeight);
+        layout.noOfCandidatesShown = Math.min(layout.maxListItems, noOfCandidates);
+        return layout;
+    },
+
+    setupScroll: function(noOfItems, layout) {
+        var clip = this, scroll = this.getListItemContainer();
+        clip.setClipMode({x: 'hidden', y: 'scroll'});
+        var scrollbarExtent = clip.getScrollBarExtent();
+        scroll.setPosition(pt(0,0));
+        scroll.setExtent(
+            clip.getExtent()
+                .addXY(-scrollbarExtent.x)
+                .withY(layout.listItemHeight*noOfItems+4))
+    }
+
+},
+'morph menu', {
+    getMenu: function() { /*FIXME actually menu items*/ return [] }
+},
+'list interface', {
+
+    addItem: function(item) {
+        this.updateList(this.itemList.concat([item]));
+    },
+
+    find: function (itemOrValue) {
+        // returns the index in this.itemList
+        for (var i = 0, len = this.itemList.length; i < len; i++) {
+            var val = this.itemList[i];
+            if (val === itemOrValue) return i;
+            if (val && val.isListItem && val.value === itemOrValue) return i;
+            if (val && typeof itemOrValue === 'string' && this.stringifyItem(val) === itemOrValue) return i;
+        }
+        return undefined;
+    },
+
+    setList: function(items) {
+        if (!items) items = [];
+        this.itemList = items;
+        this.layout = this.initLayout(items.length);
+        this.setupScroll(items.length, this.layout);
+        this.updateView();
+    },
+
+    updateList: function(items) { return this.setList(items); },
+
+    getList: function() { return this.itemList; },
+    getValues: function() {
+        return this.getList().collect(function(ea) {
+            return ea.isListItem ? ea. value : ea});
+    },
+
+    getItem: function(value) {
+        return this.itemList[this.find(value)];
+    },
+    removeItemOrValue: function(itemOrValue) {
+        var idx = this.find(itemOrValue), item = this.itemList[idx];
+        this.updateList(this.itemList.without(item));
+        return item;
+    },
+
+    moveUpInList: function(itemOrValue) {
+        // if (!itemOrValue) return;
+        // var idx = this.find(itemOrValue);
+        // if (idx === undefined) return;
+        // this.changeListPosition(idx, idx-1);
+    },
+    moveDownInList: function(itemOrValue) {
+        // if (!itemOrValue) return;
+        // var idx = this.find(itemOrValue);
+        // if (idx === undefined) return;
+        // this.changeListPosition(idx, idx+1);
+    }
+},
+"selection", {
+    selectAt: function(idx) {
+        this.updateSelectionAndLineNo(idx);
+        this.updateView();
+    },
+    
+    saveSelectAt: function(idx) {
+        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
+    },
+
+    updateSelectionAndLineNo: function(selectionIdx) {
+        var item = this.itemList[selectionIdx];
+        if (!this.isMultipleSelectionList) this.selectedIndexes.length = 0;
+        this.selectedIndexes.push(selectionIdx);
+        this.selectedLineNo = selectionIdx;
+        this.selection = item && (item.value !== undefined) ? item.value : item;
+    },
+
+    setSelection: function(sel) { this.selectAt(this.find(sel)); },
+
+    getSelection: function() { return this.selection; },
+
+    getSelectedItem: function() {
+        return this.selection && this.selection.isListItem ?
+            this.selection : this.itemList[this.selectedLineNo];
+    },
+
+    deselectAt: function(idx) {
+        this.selectedIndexes.remove(idx);
+        if (this.selectedLineNo === idx) {
+            this.selectedLineNo = null;
+            this.selection = null;
+        }
+        this.updateView();
+    },
+
+    clearSelections: function() {
+        this.selectedLineNo = null;
+        this.selectedIndexes.length = 0;
+        this.selection = null;
+        this.updateView();
+    },
+
+    selectionChanged: function(idx, isSelected) {
+        if (isSelected) {
+            this.selectAt(idx);
+        } else {
+            this.deselectAt(idx);
+        }
+    }
+
+},
+'multiple selection support', {
+    enableMultipleSelections: function() {
+        this.isMultipleSelectionList = true;
+    },
+    getSelectedItems: function() {
+        // var items = this.itemList;
+        // return this.getSelectedIndexes().collect(function(i) { return items[i] });
+    },
+
+    getSelectedIndexes: function() {
+        //return this.renderContextDispatch('getSelectedIndexes');
+    },
+
+    getSelections: function() {
+        // return this.getSelectedItems().collect(function(ea) { return ea.isListItem ? ea.value : ea; })
+    },
+    setSelections: function(arr) {
+        // var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
+        // this.selectAllAt(indexes);
+    },
+    setSelectionMatching: function(string) {
+        // for (var i = 0; i < this.itemList.length; i++) {
+        //     var itemString = this.itemList[i].string || String(this.itemList[i]);
+        //     if (string == itemString) this.selectAt(i);
+        // }
+    },
+    selectAllAt: function(indexes) {
+        // this.renderContextDispatch('selectAllAt', indexes)
+    }
+
+},
+'event handling', {
+
+    onScroll: function(evt) {
+        Functions.throttleNamed(
+            'onScroll-' + this.id, 60, this.updateView.bind(this))();
+    }
+
+},
+'stuff', {
+    getListItemContainer: function() {
+        // `this` is the outer morph with a fixed bounds and the official list
+        // interface. `this.listItemContainer` is a morph whose size will grow
+        // shrink according to the number of items that need to be displayed.
+        // It's size will define how much scroll space is there which will give
+        // users feedback about how many items are in the list when scrolling
+        return this.listItemContainer
+           || (this.listItemContainer = this.addMorph(lively.newMorph({style: {fill: null}})));
+    },
+
+    getItemMorphs: function(alsoGetInactive) {
+        // for just getting the morphs that are used to render the current list
+        // items simple call getItemMorphs. For internal rendering purposes
+        // itemMorphs might be kept around when the list shortens. Those "inactive"
+        // itemMorphs have an undefined index field but might can be reused when
+        // the list grows. They are included in the return value if this method is
+        // called with true
+        return this.getListItemContainer().submorphs.select(function(ea) {
+            return (alsoGetInactive || ea.index !== undefined) && ea.isListItemMorph; });
+    },
+
+    stringifyItem: function(item) {
+        if (!item) item = {isitem: true, string: 'invalid list item: ' + item};
+        var string = item.string || String(item);
+        return string;
+    
+    },
+
+    renderItems: function(items, from, to, selectedIndexes, renderBounds, layout) {
+        var stringifyItem = this.stringifyItem;
+        this.ensureItemMorphs(to-from+1, layout).forEach(function(itemMorph, i) {
+            var listIndex = from+i,
+                selected = selectedIndexes.include(listIndex);
+            itemMorph.setPosition(pt(0, listIndex*layout.listItemHeight));
+            itemMorph.index = listIndex;
+            itemMorph.name = String(itemMorph.index);
+            itemMorph.textString = stringifyItem(items[listIndex]);
+            if (selected !== itemMorph.selected) {
+                itemMorph.setIsSelected(selected, true/*suppress update*/);
+            }
+        });
+    },
+
+    createListItemMorph: function(string, i, layout) {
+        var height = layout.listItemHeight,
+            width = layout.maxExtent.x,
+            text = lively.morphic.Text.makeLabel(string, {
+                position: pt(0, i*height),
+                extent: pt(width, height),
+                fixedHeight: true, fixedWidth: false,
+                whiteSpaceHandling: 'pre'
+            });
+        text.addScript(function setIsSelected(bool, suppressUpdate) {
+            if (!bool && this.selected) {
+                this.removeStyleClassName('selected');
+            } else if (bool && !this.selected){
+                this.addStyleClassName('selected');
+            }
+            var self = this;
+            function setState() { self.selected = bool; }
+            if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
+        });
+        text.addScript(function onMouseDown(evt) {
+            this.setIsSelected(!this.selected);
+            evt.stop(); return true;
+        });
+        // text.disableEvents();
+        text.unignoreEvents();
+        text.setInputAllowed.bind(text, false).delay(1);
+        text.addStyleClassName('list-item');
+        text.setTextStylingMode(true);
+        text.isListItemMorph = true;
+        text.name = String(i);
+        text.index = i;
+        lively.bindings.connect(text, 'selected', this, 'selectionChanged', {
+            updater: function($upd, selected) { $upd(this.sourceObj.index, selected); },
+        });
+        return text;
+    },
+
+    ensureItemMorphs: function(requiredLength, layout) {
+        var itemMorphs = this.getItemMorphs(true);
+        requiredLength = Math.min(layout.noOfCandidatesShown, requiredLength);
+        if (itemMorphs.length > requiredLength) {
+            itemMorphs.slice(requiredLength).forEach(function(text) {
+                text.index = undefined;
+                text.setTextString('');
+                text.removeStyleClassName("selected");
+                text.setHandStyle("default");
+            });
+            itemMorphs = itemMorphs.slice(0,requiredLength);
+        } else if (itemMorphs.length < requiredLength) {
+            var newItems = Array.range(itemMorphs.length, requiredLength-1).collect(function(i) {
+                return this.getListItemContainer().addMorph(this.createListItemMorph('', i, layout));
+            }, this);
+            itemMorphs = itemMorphs.concat(newItems);
+        }
+        return itemMorphs;
+    },
+
+    visibleIndexes: function(scrollBounds, items, layout) {
+        var scrollTop = scrollBounds.top(),
+            scrollBottom = scrollBounds.bottom() + layout.listItemHeight,
+            sliceStart = Math.floor(scrollTop / layout.listItemHeight),
+            sliceEnd = Math.ceil(scrollBottom / layout.listItemHeight);
+        sliceStart = Math.min(Math.max(sliceStart, 0), items.length-1);
+        sliceEnd = Math.min(Math.max(sliceEnd, 0), items.length-1);
+        return [sliceStart, sliceEnd];
+    },
+
+    updateView: function(items, layout, selectedIdxs) {
+        items = items || this.itemList;
+        layout = layout || this.layout;
+        selectedIdxs = selectedIdxs || this.selectedIndexes;
+        var scrollBounds = this.world() ? this.getScrollBounds() : this.innerBounds(),
+            startEnd = this.visibleIndexes(scrollBounds, items, layout);
+        this.renderItems(items, startEnd[0], startEnd[1], selectedIdxs, scrollBounds, layout);
+    }
+},
+'compatibility', {
+    innerMorph: function() { return this; },
+    addMenuButton: function() { return this },
+    clearFilter: function() {}
+});
+
 Object.extend(Array.prototype, {
     asListItemArray: function() {
         return this.collect(function(ea) {

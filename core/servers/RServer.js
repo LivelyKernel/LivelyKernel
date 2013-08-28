@@ -1,6 +1,11 @@
 var i = require('util').inspect
 var debug = true;
 var spawn = require("child_process").spawn;
+var domain = require('domain').create();
+
+domain.on('error', function(er) {
+    console.error('RServer error %s\n%s©', er, er.stack);
+});
 
 var WebSocketServer = require('./support/websockets').WebSocketServer;
 
@@ -25,6 +30,8 @@ function runR(args) {
     var options = {cwd: dir, stdio: 'pipe'};
     if (debug) console.log('Running command: %s', [cmd].concat(args));
     R.process = spawn(cmd, args, options);
+
+    domain.add(R.process);
 
     R.process.stdout.on('data', function (data) {
         debug && console.log('STDOUT: ' + data);
@@ -150,6 +157,7 @@ var actions = {
 
 function startRWebSocketServer(route, subserver, thenDo) {
      var webSocketRHandler = global.webSocketRHandler = global.webSocketRHandler || new WebSocketServer();
+     domain.add(webSocketRHandler);
      webSocketRHandler.debug = debug;
      webSocketRHandler.listen({
         route: route + 'connect',
@@ -176,7 +184,7 @@ function resetRWebSocketServer(route, subserver, thenDo) {
     }, 300);
 }
 
-module.exports = function(route, app, subserver) {
+module.exports = domain.bind(function(route, app, subserver) {
     startRWebSocketServer(route, subserver, function(err, websocketRHandler) {
         console.log('WebSocket R Handler ready to rumble...');
     });
@@ -219,4 +227,4 @@ module.exports = function(route, app, subserver) {
         // });
         res.json({message: 'R process resetted'}).end();
     });
-}
+});

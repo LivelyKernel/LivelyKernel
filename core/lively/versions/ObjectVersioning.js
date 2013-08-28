@@ -234,8 +234,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return lively.origObjectCreate.apply(null, arguments);
             }
         }
-        // Object.create = wrappedCreate;
         lively.create = wrappedCreate;
+        Object.create = lively.create;
     },
     proxyFor: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 

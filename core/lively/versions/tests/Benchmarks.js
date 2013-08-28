@@ -166,6 +166,13 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
     }
 });
 
+
+// LivelyClasses benchmark currently disabled as it's not working probably
+// as long as the class system isn't loaded with source-transformations as
+// well... however, that wouldn't allow to continue to run core parts and
+// no-proxy-reference benchmarks without any proxies, which we still want for
+// now, during development...
+
 // // Own benchmarks: Simple examples using Lively's class
 // // system and morphs
 // 

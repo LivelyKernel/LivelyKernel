@@ -323,6 +323,18 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(Object.isExtensible(proxy), false);
         this.assertEquals(Object.isExtensible(obj), false);
     },
+    test29FunctionIsPrintedWithFunctionParamtersAndBody: function() {
+        // which is helpful during debugging and necessary for
+        // how lively's $super-calls work
+        var func = this.proxyFor(function addition($super, a, b) {
+                return $super(a, b);
+            }),
+            expectedOutput = 'function addition($super, a, b) {\n' +
+            '                return $super(a, b);\n' +
+            '            }';
+        
+        this.assertEquals(func.toString(), expectedOutput);
+    }
 });
     
 lively.versions.tests.TestCase.subclass(

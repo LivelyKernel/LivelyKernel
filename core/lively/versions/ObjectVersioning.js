@@ -97,6 +97,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                     method = this.targetObject(),
                     targetObject = thisArg;
                 
+                // workaround to have functions print with their function bodies
+                if (Object.isFunction(thisArg) && !thisArg.__protoID) {
+                    // can't test if thisArg.name === 'toString' because the function
+                    // might be wrapped (harmony-reflect shim)
+                    targetObject = lively.objectFor(thisArg);
+                }
+                
                 result = method.apply(targetObject, args);
                 
                 return this.ensureNonPrimitiveObjectIsProxied(result);

@@ -85,6 +85,8 @@ lively.morphic.Morph.addMethods({
         var session = lively.net.SessionTracker.getSession();
         session._frpSubsriberInitDone = true;
         //session.channels = {};
+        /*
+        
         lively.net.SessionTracker.registerActions({
         // server will use this to send new updates from the channel to this subscriber
         FRPChannelGet: function (msg, session) { 
@@ -96,6 +98,14 @@ lively.morphic.Morph.addMethods({
             $world.get(morphName)[channel].frpSet(newValue, Date.now());
         }
         });
+        */
+        /*
+        
+        var url = new URL(Config.nodeJSURL + '/FRPPubSubServer/connect');
+        this.frpPubSubSocket = new lively.net.WebSocket(url, {protocol: 'lively-json'});
+        //this.frpPubSubSocket.onMessage = function(msg) { debugger; console.log(msg); }
+        connect(this.frpPubSubSocket, 'FRPChannelGet', this, 'rrr');
+        */
     }
 });
 
@@ -163,79 +173,81 @@ Object.subclass('lively.bindings.FRP.FRPConnection',
         return v instanceof lively.bindings.FRPCore.EventStream;
     }
 });
+Object.subclass('lively.bindings.FRP.FRPPublishSubscribe',
+'publish-subscribe', {
+    setupServerSocket: function() {
+        var sessionId = lively.net.SessionTracker.getSession().sessionId;
+        var url = new URL(Config.nodeJSURL + '/FRPPubSubServer/connect');
+        var socket = new lively.net.WebSocket(url, {protocol: 'lively-json'});
+        $world.frpPubSub_socket = socket;
+        $world.frpPubSub_sessionId = sessionId;
+        $world.frpPubSub_initDone = true;
+        connect(socket, 'closed', Global, 'show', {converter: function() { return 'websocket closed'; }});
 
-Object.subclass('lively.bindings.FRP.FRPPublish',
-'publishing', {
-    publish: function(fromProp) {
-        this.fromProp = fromProp;
-        this.getServerSession();
-        //FIXME: this is buggy: serverSessionId may not be set at this point yet!
-        return this;
-    },
-    getServerSession: function() {
-        this.session = lively.net.SessionTracker.getSession();
-        this.serverSessionId = undefined;
-        // HACK FIXME: hack to find the session id for the "frpserver.html" tab!
-        this.session.getUserInfo(
-            function (obj) { 
-                var all = obj[$world.getUserName()]; // HACK FIME: need to use $USER intead...??
-                for (var i = 0; i < all.length; i++) {
-                    var curr = all[i];
-                    if (curr.worldURL.toString().indexOf("frpserver") >= 0) {
-                        this.serverSessionId = curr.id;
-                        console.log("got server session: " + curr.id);
-                        break;
-                    }
-                }  
-            }.bind(this)
-        );
-    },
-    update: function (newValue, srcObj, maybeTime) {
-        console.log("frp publish pushing a new update... " + this.fromProp + " <- " + newValue);
-         // tells frp server to push a new value on this channel (fromProp)
-        this.session.sendTo(this.serverSessionId, 'FRPChannelPut', {channel: this.fromProp, recipient: undefined, value: newValue}, inspect);
+        socket.onLivelyJSONMessage = function (msg) { 
+            console.log("FRPPubSub reply: " + Objects.inspect(msg,2)); 
+            if (msg.action === 'FRPChannelSubscribeReply') {
+                console.log("this was a FRPChannelSubscribeReply...");
+            } else if (msg.action === 'FRPChannelPutReply') {
+                console.log("this was a FRPChannelPutReply...");
+            } else if (msg.action === 'FRPChannelGet') {
+                console.log("this was a FRPChannelGet...");
+                var channel = msg.data.channel;
+                var morphName = msg.data.morphName;
+                var newValue = msg.data.value;
+                console.log("I have received an update: channel '" + channel + "' <- " + newValue);
+                //this.channels[channel] = newValue;
+                $world.get(morphName)[channel].frpSet(newValue, Date.now());
+            } else {
+                console.log("this was a what?...");
+            }
+        }
     },
     isEventStream: function(v) {
         return v instanceof lively.bindings.FRPCore.EventStream;
     }
 });
-Object.subclass('lively.bindings.FRP.FRPSubscribe',
-'subscribing', {
+lively.bindings.FRP.FRPPublishSubscribe.subclass('lively.bindings.FRP.FRPPublish',
+'publish-subscribe', {
+    publish: function(fromProp) {
+        this.fromProp = fromProp;
+        if (!$world.frpPubSub_initDone)
+            this.setupServerSocket();
+        this.sendPublish();
+        return this;
+    },
+    sendPublish: function() {
+        console.log("frp publish to... (currently a noop!)" + this.fromProp);
+        // tells the frp server to publish this channel (fromProp)
+        //$world.frpPubSub_socket.send({action: 'FRPChannelPublish', data: {channel: this.fromProp, session: $world.frpPubSub_sessionId}});
+    },
+    update: function (newValue, srcObj, maybeTime) {
+        console.log("frp publish pushing a new update... " + this.fromProp + " <- " + newValue);
+        // tells frp server to push a new value on this channel (fromProp)
+        $world.frpPubSub_socket.send({action: 'FRPChannelPut', data: {channel: this.fromProp, recipient: undefined, value: newValue}});
+
+    }
+});
+lively.bindings.FRP.FRPPublishSubscribe.subclass('lively.bindings.FRP.FRPSubscribe',
+'publish-subscribe', {
     subscribe: function(morphName, fromProp) {
         this.morphName = morphName;
         this.fromProp = fromProp;
-        this.getServerSessionAndSendRequest();
+        if (!$world.frpPubSub_initDone)
+            this.setupServerSocket();
+        this.sendSubscribe();
         return this;
     },
-    getServerSessionAndSendRequest: function() {
-        this.session = lively.net.SessionTracker.getSession();
-        this.serverSessionId = undefined;
-        // HACK FIXME: hack to find the session id for the "frpserver.html" tab!
-        this.session.getUserInfo(
-            function (obj) { 
-                var all = obj[$world.getUserName()]; // HACK FIME: need to use $USER intead...??
-                for (var i = 0; i < all.length; i++) {
-                    var curr = all[i];
-                    if (curr.worldURL.toString().indexOf("frpserver") >= 0) {
-                        this.serverSessionId = curr.id;
-                        console.log("got server session: " + curr.id);
-                        break;
-                    }
-                }
-                console.log("frp subscribe to... " + this.fromProp);
-                // tells the frp server to subscribe this client on this channel (fromProp)
-                this.session.sendTo(this.serverSessionId, 'FRPChannelSubscribe', {channel: this.fromProp, morphName: this.morphName}, inspect);
-            }.bind(this)
-        );
+    sendSubscribe: function() {
+        console.log("frp subscribe to... " + this.fromProp);
+        // tells the frp server to subscribe this client on this channel (fromProp)
+        $world.frpPubSub_socket.send({action: 'FRPChannelSubscribe', data: {channel: this.fromProp, morphName: this.morphName, session: $world.frpPubSub_sessionId}});
     },
     unsubscribe: function(fromProp) {
         console.log("frp unsubscribe from... " + this.fromProp);
         // tells frp server to unsubscribe this client from this channel (fromProp)
-        this.session.sendTo(this.serverSessionId, 'FRPChannelUnsubscribe', {channel: this.fromProp}, inspect);
+         $world.frpPubSub_socket.send({action: 'FRPChannelUnsubscribe', data: {channel: this.fromProp, session: $world.frpPubSub_sessionId}});
         return this;
-    },
-    isEventStream: function(v) {
-        return v instanceof lively.bindings.FRPCore.EventStream;
     }
 });
 

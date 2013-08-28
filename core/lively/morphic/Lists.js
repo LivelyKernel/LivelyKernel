@@ -1,0 +1,646 @@
+module('lively.morphic.Lists').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.TextCore', 'lively.morphic.Styles').toRun(function() {
+
+lively.morphic.List.addMethods(
+Trait('ScrollableTrait'),
+'documentation', {
+    connections: {
+        selection: {},
+        itemList: {},
+        selectedLineNo: {}
+    },
+},
+'settings', {
+    style: {
+        borderColor: Color.black,
+        borderWidth: 0,
+        fill: Color.gray.lighter().lighter(),
+        clipMode: 'auto',
+        fontFamily: 'Helvetica',
+        fontSize: 10,
+        enableGrabbing: false
+    },
+    selectionColor: Color.green.lighter(),
+    isList: true
+},
+'initializing', {
+    initialize: function($super, bounds, optItems) {
+        $super(bounds);
+        this.itemList = [];
+        this.selection = null;
+        this.selectedLineNo = -1;
+        if (optItems) this.updateList(optItems);
+    },
+},
+'accessing', {
+    setExtent: function($super, extent) {
+        $super(extent);
+        this.resizeList();
+    },
+    getListExtent: function() { return this.renderContextDispatch('getListExtent') }
+},
+'list interface', {
+    getMenu: function() { /*FIXME actually menu items*/ return [] },
+    updateList: function(items) {
+        if (!items) items = [];
+        this.itemList = items;
+        var itemStrings = items.collect(function(ea) { return this.renderFunction(ea); }, this);
+        this.renderContextDispatch('updateListContent', itemStrings);
+    },
+    addItem: function(item) {
+        this.updateList(this.itemList.concat([item]));
+    },
+
+    selectAt: function(idx) {
+        if (!this.isMultipleSelectionList) this.clearSelections();
+        this.renderContextDispatch('selectAllAt', [idx]);
+        this.updateSelectionAndLineNoProperties(idx);
+    },
+    saveSelectAt: function(idx) {
+        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
+    },
+
+    deselectAt: function(idx) { this.renderContextDispatch('deselectAt', idx) },
+
+    updateSelectionAndLineNoProperties: function(selectionIdx) {
+        var item = this.itemList[selectionIdx];
+        this.selectedLineNo = selectionIdx;
+        this.selection = item && (item.value !== undefined) ? item.value : item;
+    },
+
+    setList: function(items) { return this.updateList(items) },
+    getList: function() { return this.itemList },
+    getValues: function() {
+        return this.getList().collect(function(ea) { return ea.isListItem ? ea. value : ea})
+    },
+
+    setSelection: function(sel) {
+        this.selectAt(this.find(sel));
+    },
+    getSelection: function() { return this.selection },
+    getItem: function(value) {
+        return this.itemList[this.find(value)];
+    },
+    removeItemOrValue: function(itemOrValue) {
+        var idx = this.find(itemOrValue), item = this.itemList[idx];
+        this.updateList(this.itemList.without(item));
+        return item;
+    },
+
+    getSelectedItem: function() {
+        return this.selection && this.selection.isListItem ?
+            this.selection : this.itemList[this.selectedLineNo];
+    },
+    moveUpInList: function(itemOrValue) {
+        if (!itemOrValue) return;
+        var idx = this.find(itemOrValue);
+        if (idx === undefined) return;
+        this.changeListPosition(idx, idx-1);
+    },
+    moveDownInList: function(itemOrValue) {
+        if (!itemOrValue) return;
+        var idx = this.find(itemOrValue);
+        if (idx === undefined) return;
+        this.changeListPosition(idx, idx+1);
+    },
+    clearSelections: function() { this.renderContextDispatch('clearSelections') }
+
+},
+'private list functions', {
+    changeListPosition: function(oldIdx, newIdx) {
+        var item = this.itemList[oldIdx];
+        this.itemList.removeAt(oldIdx);
+        this.itemList.pushAt(item, newIdx);
+        this.updateList(this.itemList);
+        this.selectAt(newIdx);
+    },
+    resizeList: function(idx) {
+        return this.renderContextDispatch('resizeList');
+    },
+    find: function(itemOrValue) {
+        // returns the index in this.itemList
+        for (var i = 0; i < this.itemList.length; i++) {
+            var val = this.itemList[i];
+            if (val === itemOrValue || (val && val.isListItem && val.value === itemOrValue)) {
+                return i;
+            }
+        }
+        // return -1?
+        return undefined;
+    }
+
+},
+'styling', {
+    applyStyle: function($super, spec) {
+        if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
+        if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
+        return $super(spec);
+    },
+    setFontSize: function(fontSize) { return  this.morphicSetter('FontSize', fontSize) },
+    getFontSize: function() { return  this.morphicGetter('FontSize') || 10 },
+    setFontFamily: function(fontFamily) { return  this.morphicSetter('FontFamily', fontFamily) },
+    getFontFamily: function() { return this.morphicSetter('FontFamily') || 'Helvetica' }
+},
+'multiple selection support', {
+    enableMultipleSelections: function() {
+        this.isMultipleSelectionList = true;
+        this.renderContextDispatch('enableMultipleSelections');
+    },
+    getSelectedItems: function() {
+        var items = this.itemList;
+        return this.getSelectedIndexes().collect(function(i) { return items[i] });
+    },
+
+    getSelectedIndexes: function() { return this.renderContextDispatch('getSelectedIndexes'); },
+
+    getSelections: function() {
+        return this.getSelectedItems().collect(function(ea) { return ea.isListItem ? ea.value : ea; })
+    },
+    setSelections: function(arr) {
+        var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
+        this.selectAllAt(indexes);
+    },
+    setSelectionMatching: function(string) {
+        for (var i = 0; i < this.itemList.length; i++) {
+            var itemString = this.itemList[i].string || String(this.itemList[i]);
+            if (string == itemString) this.selectAt(i);
+        }
+    },
+    selectAllAt: function(indexes) {
+        this.renderContextDispatch('selectAllAt', indexes)
+    },
+
+    renderFunction: function(anObject) {
+        return anObject.string || String(anObject);
+    }
+
+});
+
+lively.morphic.List.addMethods(
+'change event handling', {
+    inputEventTriggeredChange: function() {
+        // this is to ensure that the selection is only set once
+        this.selectionTriggeredInInputEvent = true;
+        var self = this;
+        (function() { delete self.selectionTriggeredInInputEvent }).delay(0);
+    }
+},
+'mouse events', {
+    disableList: function() {
+        this.renderContextDispatch('disableList');
+    },
+    enableList: function() {
+        this.renderContextDispatch('enableList');
+    },
+    onMouseDownEntry: function($super, evt) {
+        if (evt.isCommandKey()) {
+            this.disableList();
+            this.enableList.bind(this).delay(0);
+        }
+        return $super(evt);
+    },
+    onMouseDown: function(evt) {
+        if (evt.isCommandKey()) {
+            evt.preventDefault()
+            return false;
+        }
+
+        if (evt.isRightMouseButtonDown()) {
+            // delayed because when owner is a window and comes forward the window
+            // would be also in front of the new menu
+            var sel = this.selection ? this.selection.string : this.selection;
+            lively.morphic.Menu.openAt.curry(evt.getPosition(), sel, this.getMenu()).delay(0.1);
+            evt.stop();
+            return true;
+        }
+
+        return false;
+    },
+    onMouseUp: function (evt) {
+        if (evt.isLeftMouseButtonDown()) {
+            var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
+            // don't update when selection can't be found
+            // this happens e.g. when clicked on a scrollbar
+            if (idx >= 0) {
+                this.inputEventTriggeredChange();
+                this.updateSelectionAndLineNoProperties(idx);
+            }
+
+            if (idx >= 0 && this.isMultipleSelectionList && evt.isShiftDown()) {
+                if (this.getSelectedIndexes().include(idx))
+                    this.deselectAt(idx)
+                else
+                    this.selectAt(idx);
+            }
+        }
+        return true;
+    },
+    onMouseUpEntry: function ($super, evt) {
+        var completeClick = evt.world && evt.world.clickedOnMorph === this;
+
+        if (completeClick && evt.isRightMouseButtonDown()) {
+            return false;
+        }
+        return $super(evt)
+    },
+    onMouseOver: function(evt) {
+        /*if (this.selectOnMove) {
+            var idx = this.selectItemFromEvt(evt);
+            evt.stopPropagation();
+            return idx > -1;
+        }*/
+        return false;
+    },
+    onMouseMove: function(evt) {
+        evt.stop();
+        return true;
+    },
+
+    selectItemFromEvt: function(evt) {
+        var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
+        this.selectAt(idx);
+        return idx;
+    },
+},
+'keyboard events', {
+    onUpPressed: function($super, evt) {
+        if (evt.isCommandKey()) return $super(evt);
+        evt.stop();
+        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, this.selectedLineNo-1)));
+        return true;
+    },
+    onDownPressed: function($super, evt) {
+        if (evt.isCommandKey()) return $super(evt);
+        evt.stop();
+        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, this.selectedLineNo+1)));
+        return true;
+    },
+
+},
+'scrolling', {
+
+    basicGetScrollableNode: function(evt) {
+        return this.renderContext().listNode;
+    },
+
+    onMouseWheel: function(evt) {
+        this.stopScrollWhenBordersAreReached(evt);
+        return false;
+    },
+
+    correctForDragOffset: function(evt) {
+        return false;
+    },
+    onChange: function(evt) {
+        if (this.selectionTriggeredInInputEvent) {
+            delete this.selectionTriggeredInInputEvent;
+            return false;
+        }
+        var idx = this.renderContextDispatch('getSelectedIndexes').first();
+        this.updateSelectionAndLineNoProperties(idx);
+        this.changeTriggered = true; // see onBlur
+        return false;
+    },
+
+});
+
+lively.morphic.DropDownList.addMethods(
+'properties', {
+    // triggers correct rendering
+    isDropDownList: 'true'
+},
+'initializing', {
+    initialize: function($super, bounds, optItems) {
+        $super(bounds, optItems);
+    },
+},
+'mouse events', {
+    onMouseDown: function(evt) {
+        this.changeTriggered = false; // see onBlur
+        if (evt.isCommandKey()) {
+            evt.preventDefault()
+            return false;
+        }
+        return true;
+     },
+
+    onChange: function (evt) {
+        // FIXME duplication with List
+        var idx = this.renderContextDispatch('getSelectedIndexes').first();
+        this.updateSelectionAndLineNoProperties(idx);
+        this.changeTriggered = true; // see onBlur
+        return false;
+    },
+
+    onBlur: function(evt) {
+        // drop down lists are stupid
+        // onChange is not triggered when the same selection is choosen again
+        // however, we want to now about any selection
+        // kludge for now: set selection anew when element is blurred...
+        if (this.changeTriggered) return;
+        var idx = this.renderContextDispatch('getSelectedIndexes').first();
+        this.updateSelectionAndLineNoProperties(idx);
+    },
+
+    isGrabbable: function(evt) {
+        return false; //!this.changeTriggered;
+    },
+
+    registerForOtherEvents: function($super, handleOnCapture) {
+        $super(handleOnCapture)
+        if (this.onBlur) this.registerForEvent('blur', this, 'onBlur', handleOnCapture);
+    }
+
+});
+
+lively.morphic.Box.subclass('lively.morphic.MorphList',
+// Example:
+// list = new lively.morphic.MorphList([1,2,3]).openInWorldCenter()
+// list.initializeLayout({type: "vertical",spacing: 5, border: 3});
+'settings', {
+    style: {
+        fill: Color.gray.lighter(3),
+        borderColor: Color.gray.lighter(),
+        borderWidth: 1,
+        borderStyle: 'outset',
+        grabbingEnabled: false, draggingEnabled: false
+    },
+    listItemStyle: {
+        fill: null,
+        borderColor: Color.gray,
+        borderWidth: 1,
+        fixedHeight: false,
+        fixedWidth: false,
+        allowInput: false
+    },
+    isList: true
+},
+'initializing', {
+    initialize: function($super) {
+        var args = Array.from(arguments);
+        $super = args.shift();
+        var bounds = args[0] && args[0] instanceof lively.Rectangle ?
+            args.shift() : lively.rect(0,0, 100,100);
+        var items = args[0] && Object.isArray(args[0]) ? args.shift() : [];
+        $super(bounds);
+        this.itemMorphs = [];
+        this.setList(items);
+        this.initializeLayout();
+    },
+    initializeLayout: function(layoutStyle) {
+        // layoutStyle: {
+        //   type: "tiling"|"horizontal"|"vertical",
+        //   spacing: NUMBER,
+        //   border: NUMBER
+        // }
+        var defaultLayout = {
+            type: 'tiling',
+            border: 0, spacing: 20
+        }
+        layoutStyle = Object.extend(defaultLayout, layoutStyle || {});
+        this.applyStyle({
+            fill: Color.white, borderWidth: 0,
+            borderColor: Color.black, clipMode: 'auto',
+            resizeWidth: true, resizeHeight: true
+        })
+        var klass;
+        switch (layoutStyle.type) {
+            case 'vertical': klass = lively.morphic.Layout.VerticalLayout; break;
+            case 'horizontal': klass = lively.morphic.Layout.HorizontalLayout; break;
+            case 'tiling': klass = lively.morphic.Layout.TileLayout; break;
+            default: klass = lively.morphic.Layout.TileLayout; break;
+        }
+        var layouter = new klass(this);
+        layouter.setBorderSize(layoutStyle.border);
+        layouter.setSpacing(layoutStyle.spacing);
+        this.setLayouter(layouter);
+    }
+},
+"styling", {
+    setListItemStyle: function(style) {
+        this.listItemStyle = style;
+        this.itemMorphs.forEach(function(itemMorph) {
+            itemMorph.applyStyle(style);
+        });
+    },
+},
+'morphic', {
+    addMorph: function($super, morph, optMorphBefore) {
+        if (morph.isPlaceholder || morph.isEpiMorph || this.itemMorphs.include(morph)) {
+            return $super(morph, optMorphBefore);
+        }
+        morph.remove();
+        var item = morph.item;
+        if (!item) {
+            var string = morph.isText && morph.textString || morph.toString();
+            item = morph.item = {
+                isListItem: true,
+                string: string,
+                value: morph,
+                morph: morph
+            }
+        } else if (!item.morph) {
+            item.morph = morph;
+        }
+        this.addItem(item);
+        return morph;
+    },
+    removeMorph: function($super, morph) {
+        if (this.itemMorphs.include(morph)) {
+            morph.item && this.removeItemOrValue(morph.item);
+        }
+        return $super(morph);
+    }
+},
+'morph menu', {
+    getMenu: function() { /*FIXME actually menu items*/ return [] }
+},
+'list interface', {
+    renderFunction: function(listItem) {
+        if (!listItem) listItem = {isListItem: true, string: 'invalid list item: ' + listItem};
+        if (listItem.morph) return listItem.morph;
+        var string = listItem.string || String(listItem);
+        var listItemMorph = new lively.morphic.Text(lively.rect(0,0,100,20), string);
+        listItemMorph.item = listItem;
+        listItemMorph.applyStyle(this.listItemStyle);
+        return listItemMorph;
+    },
+    updateList: function(items) {
+        if (!items) items = [];
+        this.itemList = items;
+        var oldItemMorphs = this.itemMorphs;
+        this.itemMorphs = items.collect(function(ea) { return this.renderFunction(ea); }, this);
+        oldItemMorphs.withoutAll(this.itemMorphs).invoke('remove');
+        this.itemMorphs.forEach(function(ea) { this.submorphs.include(ea) || this.addMorph(ea); }, this);
+    },
+
+    getItemMorphs: function() { return this.itemMorphs; },
+
+    addItem: function(item) {
+        this.updateList(this.itemList.concat([item]));
+    },
+
+    find: function (itemOrValue) {
+        // returns the index in this.itemList
+        for (var i = 0, len = this.itemList.length; i < len; i++) {
+            var val = this.itemList[i];
+            if (val === itemOrValue || (val && val.isListItem && val.value === itemOrValue)) {
+                return i;
+            }
+        }
+        return undefined;
+    },
+
+    selectAt: function(idx) {
+        this.selectListItemMorph(this.itemMorphs[idx]);
+        this.updateSelectionAndLineNoProperties(idx);
+    },
+    
+    saveSelectAt: function(idx) {
+        // this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
+    },
+
+    deselectAt: function(idx) {
+        // this.renderContextDispatch('deselectAt', idx)
+    },
+
+    updateSelectionAndLineNoProperties: function(selectionIdx) {
+        var item = this.itemList[selectionIdx];
+        this.selectedLineNo = selectionIdx;
+        this.selection = item && (item.value !== undefined) ? item.value : item;
+    },
+
+    setList: function(items) {
+        return this.updateList(items);
+    },
+    getList: function() {
+        return this.itemList;
+    },
+    getValues: function() {
+        return this.getList().collect(function(ea) { return ea.isListItem ? ea. value : ea});
+    },
+
+    setSelection: function(sel) {
+        // this.selectAt(this.find(sel));
+    },
+    getSelection: function() { return this.selection },
+    getItem: function(value) {
+        // return this.itemList[this.find(value)];
+    },
+    removeItemOrValue: function(itemOrValue) {
+        var idx = this.find(itemOrValue), item = this.itemList[idx];
+        this.updateList(this.itemList.without(item));
+        return item;
+    },
+
+    getSelectedItem: function() {
+        // return this.selection && this.selection.isListItem ?
+        //     this.selection : this.itemList[this.selectedLineNo];
+    },
+    moveUpInList: function(itemOrValue) {
+        // if (!itemOrValue) return;
+        // var idx = this.find(itemOrValue);
+        // if (idx === undefined) return;
+        // this.changeListPosition(idx, idx-1);
+    },
+    moveDownInList: function(itemOrValue) {
+        // if (!itemOrValue) return;
+        // var idx = this.find(itemOrValue);
+        // if (idx === undefined) return;
+        // this.changeListPosition(idx, idx+1);
+    },
+    clearSelections: function() {
+        // this.renderContextDispatch('clearSelections');
+    }
+},
+'multiple selection support', {
+    enableMultipleSelections: function() {
+        // this.isMultipleSelectionList = true;
+        // this.renderContextDispatch('enableMultipleSelections');
+    },
+    getSelectedItems: function() {
+        // var items = this.itemList;
+        // return this.getSelectedIndexes().collect(function(i) { return items[i] });
+    },
+
+    getSelectedIndexes: function() {
+        //return this.renderContextDispatch('getSelectedIndexes');
+    },
+
+    getSelections: function() {
+        // return this.getSelectedItems().collect(function(ea) { return ea.isListItem ? ea.value : ea; })
+    },
+    setSelections: function(arr) {
+        // var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
+        // this.selectAllAt(indexes);
+    },
+    setSelectionMatching: function(string) {
+        // for (var i = 0; i < this.itemList.length; i++) {
+        //     var itemString = this.itemList[i].string || String(this.itemList[i]);
+        //     if (string == itemString) this.selectAt(i);
+        // }
+    },
+    selectAllAt: function(indexes) {
+        // this.renderContextDispatch('selectAllAt', indexes)
+    },
+
+    selectListItemMorph: function(itemMorph, doMultiSelect) {
+        var selectionCSSClass = 'selected';
+        if (!doMultiSelect) {
+            this.itemMorphs.forEach(function(ea) {
+                if (ea === itemMorph) return;
+                ea.removeStyleClassName(selectionCSSClass); }, this);
+        }
+        if (itemMorph.hasStyleClassName(selectionCSSClass)) {
+            itemMorph.removeStyleClassName(selectionCSSClass);
+            this.selection = null;
+        } else {
+            itemMorph.addStyleClassName(selectionCSSClass);
+            this.selection = itemMorph.isListItem ? itemMorph.value : itemMorph;
+        }
+    },
+
+    getSelectedItemMorphs: function() {
+        return this.itemMorphs.select(function(ea) {
+            return ea.hasStyleClassName('selected'); });
+    }
+
+},
+'event handling', {
+    getListItemFromEvent: function(evt) {
+        var morph = evt.getTargetMorph();
+        if (this.itemMorphs.include(morph)) return morph;
+        var owners = morph.ownerChain();
+        if (!owners.include(this)) return null;
+        return owners.detect(function(ea) {
+            return this.itemMorphs.include(ea); }, this);
+    },
+
+    onMouseDown: function onMouseDown(evt) {
+        if (evt.isCommandKey()) return false;
+        var item = this.getListItemFromEvent(evt);
+        if (!item) return false;
+        this._mouseDownOn = item.id;
+        evt.stop(); return true;
+    },
+    onMouseUp: function onMouseUp(evt) {
+        if (evt.isCommandKey()) return false;
+        var item = this.getListItemFromEvent(evt);
+        if (!item) return false;
+        var clickedDownId = this._mouseDownOn;
+        delete this._mouseDownOn;
+        if (clickedDownId === item.id) {
+            this.selectListItemMorph(item, evt.isShiftDown());
+        }
+        evt.stop(); return true;
+    }
+});
+
+Object.extend(Array.prototype, {
+    asListItemArray: function() {
+        return this.collect(function(ea) {
+            return {isListItem: true, string: String(ea), value: ea};
+        });
+    }
+});
+
+}) // end of module

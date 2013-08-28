@@ -69,10 +69,6 @@ lively.morphic.Morph.addMethods({
         if (!hasIt) {
             var c = new lively.bindings.FRP.FRPSubscribe().subscribe(this.getName(), fromProp);
             this.frpSubscriptions[fromProp] = c;
-            var session = lively.net.SessionTracker.getSession();
-            if (!session._frpSubsriberInitDone) {
-                this.frpSubscriberInit();
-            }
         }
     },
     frpUnsubscribe: function(fromProp) {
@@ -84,33 +80,6 @@ lively.morphic.Morph.addMethods({
             hasIt.unsubscribe(fromProp);
             delete this.frpSubscriptions[fromProp];
         }
-    },
-    frpSubscriberInit: function() {
-        // evaluate code below...
-        var session = lively.net.SessionTracker.getSession();
-        session._frpSubsriberInitDone = true;
-        //session.channels = {};
-        /*
-        
-        lively.net.SessionTracker.registerActions({
-        // server will use this to send new updates from the channel to this subscriber
-        FRPChannelGet: function (msg, session) { 
-            var channel = msg.data.channel;
-            var morphName = msg.data.morphName;
-            var newValue = msg.data.value;
-            console.log("I have received an update: channel '" + channel + "' <- " + newValue);
-            //this.channels[channel] = newValue;
-            $world.get(morphName)[channel].frpSet(newValue, Date.now());
-        }
-        });
-        */
-        /*
-        
-        var url = new URL(Config.nodeJSURL + '/FRPPubSubServer/connect');
-        this.frpPubSubSocket = new lively.net.WebSocket(url, {protocol: 'lively-json'});
-        //this.frpPubSubSocket.onMessage = function(msg) { debugger; console.log(msg); }
-        connect(this.frpPubSubSocket, 'FRPChannelGet', this, 'rrr');
-        */
     }
 });
 
@@ -189,7 +158,7 @@ Object.subclass('lively.bindings.FRP.FRPPublishSubscribe',
         $world.frpPubSub_initDone = true;
         connect(socket, 'closed', Global, 'show', {converter: function() { return 'websocket closed'; }});
 
-        socket.onLivelyJSONMessage = function (msg) { 
+        socket.onLivelyJSONMessage = function (msg) {
             console.log("FRPPubSub reply: " + Objects.inspect(msg,2)); 
             if (msg.action === 'FRPChannelSubscribeReply') {
                 console.log("this was a FRPChannelSubscribeReply...");
@@ -201,7 +170,6 @@ Object.subclass('lively.bindings.FRP.FRPPublishSubscribe',
                 var morphName = msg.data.morphName;
                 var newValue = msg.data.value;
                 console.log("I have received an update: channel '" + channel + "' <- " + newValue);
-                //this.channels[channel] = newValue;
                 $world.get(morphName)[channel].frpSet(newValue, Date.now());
             } else {
                 console.log("this was a what?...");
@@ -224,7 +192,9 @@ lively.bindings.FRP.FRPPublishSubscribe.subclass('lively.bindings.FRP.FRPPublish
     sendPublish: function() {
         console.log("frp publish to... (currently a noop!)" + this.fromProp);
         // tells the frp server to publish this channel (fromProp)
-        //$world.frpPubSub_socket.send({action: 'FRPChannelPublish', data: {channel: this.fromProp, session: $world.frpPubSub_sessionId}});
+        // currently we don't send anything... (should probably later)
+        // because at the time of value updating we push the new update so server
+        // knows which channels have been published anyway...
     },
     update: function (newValue, srcObj, maybeTime) {
         console.log("frp publish pushing a new update... " + this.fromProp + " <- " + newValue);

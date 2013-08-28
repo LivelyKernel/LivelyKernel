@@ -6,7 +6,6 @@ var inspect = require("util").inspect;
 var WebSocketServer = require('./support/websockets').WebSocketServer;
 
 var subscriptions = {};
-var channels = {};
 
 var actions = {
     helloWorld: function(c, msg) {
@@ -20,7 +19,6 @@ var actions = {
         var channel = msg.data.channel;
         var newValue = msg.data.value;
         connection.send({action: 'FRPChannelPutReply', data: 'Got put to channel ' + channel + " <- " + newValue}); 
-        channels[channel] = newValue;
         console.log(msg);
         // if this channel has subscribers forward the new value to them
         if (subscriptions[channel]) {

@@ -5,10 +5,10 @@ Global.MOZ_SourceMap = Global.sourceMap;
         
 Object.extend(lively.versions.UglifyTransformer, {
     
-    // FIXME: function declarations get hoisted in JavaScript, so we need to move the func 
-    // decs we transform to variable assignments (of func exprs) to the beginning of each 
-    // scope (function scope), while preserving the lexical order of function declarations 
-    // (that is, the order of parsing, not the order of execution)
+    // TODO: function declarations get hoisted in JavaScript, so we need to
+    // move the func decs we transform to variable assignments of function
+    // expressions to the beginning of each scope (function scope), while
+    // preserving the lexical order of function declarations
     // javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
     
     transformSource: function (originalSource, optCodeGeneratorOptions) {
@@ -60,32 +60,29 @@ Object.extend(lively.versions.UglifyTransformer, {
             if (node instanceof UglifyJS.AST_Object || 
                 node instanceof UglifyJS.AST_Array ||
                 node instanceof UglifyJS.AST_Function) {
-                // AST_Function is a function expression, not a function declaration.
-                // function expressions aren't accessible by name outside of the function body,
-                // so there's no need to expose the function name via a variable
-                                
-                result = exchangeLiteralExpression(node);
-            } else if (node instanceof UglifyJS.AST_Defun) {
-                // AST_Defun is a function declaration, not a function expression, but wrapping the
-                // function literal with the proxy function, meaning supplying the literal as an argument
-                // to the proxy function, makes the original function declaration a function expression,
-                // which isn't automatically accessible by its name in the current scope. therefore, we
-                // need to assign all function declarations to variables matching the function names.
-                // btw. it's syntactically legal to declare variables multiple times, their declaration
-                // gets hoisted anyway (only their declaration, not their assignment(s)...
+                // AST_Function means function expression
                 
-                // FIXME: is this really a problem? can this really happen?
-                if (!node.name.name || !Object.isString(node.name.name)) 
-                    throw new Error('Source Transformations encountered function declaration without name');
+                result = exchangeLiteralExpression(node);
+                
+            } else if (node instanceof UglifyJS.AST_Defun) {
+                // AST_Defun means function declaration, not function
+                // expression, but wrapping the function literal into the proxy
+                // function, makes the declaration an expression, which then
+                // isn't accessible in the current scope by name. therefore, we
+                // need to assign all function declarations to variables
+                // reflecting the function names.
+                // btw. it's syntactically legal to declare variables multiple
+                // times, their declaration gets hoisted anyway...
                 
                 result = exchangeFunctionDeclaration(node);
             } else if (node instanceof UglifyJS.AST_Accessor) {
                 // FIXME: what is an AST_Accessor node?
-                throw new Error('Transformations of AST_Accessor not yet implemented');
+                throw new Error('Transformations of AST_Accessor ' +
+                    'not yet implemented');
             } else {
                 result = node;
             }
-                        
+            
             return result;
         });
         

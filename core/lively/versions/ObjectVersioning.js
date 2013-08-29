@@ -231,15 +231,22 @@ Object.extend(lively.versions.ObjectVersioning, {
         lively.origObjectCreate = Object.create
         
         var wrappedCreate = function(proto) {
-            // when proxied are used as prototypes, the prototypes can't be changed.
-            // seems related to: http://github.com/tvcutsem/harmony-reflect/issues/18
+            // when proxied are used as prototypes, the prototypes can't be
+            // changed. seems related to:
+            // http://github.com/tvcutsem/harmony-reflect/issues/18
+            var instance;
+            
             if (lively.isProxy(proto)) {
-                return lively.origObjectCreate({
-                    __realPrototypeObjectID: proto.__objectID
-                });
+                // can't just un-proxy the proxied prototype and it to the
+                // original Object.create, because the prototype itself might
+                // have a prototype via __protoID (that's thus only correctly
+                // available when the prototype is proxied)
+                instance = {};
+                instance.__protoID = proto.__objectID;
             } else {
-                return lively.origObjectCreate.apply(null, arguments);
+                instance = lively.origObjectCreate.apply(null, arguments);
             }
+            return instance;
         }
         lively.create = wrappedCreate;
         Object.create = lively.create;
@@ -278,8 +285,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                     // later on. so we actively need to prevent proxies from
                     // being used as prototypes, see this>>wrapObjectCreate
                     protoID = proto.__objectID;
-                } else if (proto.__realPrototypeObjectID !== undefined) {
-                    protoID = proto.__realPrototypeObjectID;
                 } else {
                     protoID = this.proxyFor(proto).__objectID;
                 }

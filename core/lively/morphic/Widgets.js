@@ -3885,11 +3885,11 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
             && this.scalingBelow.all(function(m) { return (m.getExtent().y - deltaY) >= this.minHeight }, this);
     },
 
-    addFixed: function(m) { if (!this.fixed.include(m)) this.fixed.push(m) },
+    addFixed: function(m) { if (!this.fixed.include(m)) this.fixed.push(m); },
 
-    addScalingAbove: function(m) { this.scalingAbove.push(m) },
+    addScalingAbove: function(m) { this.scalingAbove.push(m); },
 
-    addScalingBelow: function(m) {  this.scalingBelow.push(m) }
+    addScalingBelow: function(m) { this.scalingBelow.push(m); }
 });
 
 lively.morphic.Box.subclass('lively.morphic.Slider',

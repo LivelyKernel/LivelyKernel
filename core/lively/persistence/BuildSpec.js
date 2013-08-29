@@ -694,4 +694,12 @@ lively.morphic.SliderKnob.addMethods(
     }
 });
 
+lively.morphic.HorizontalDivider.addMethods(
+'buildSpec', {
+    buildSpecProperties: {
+        scalingAbove: {defaultValue: []},
+        scalingBelow: {defaultValue: []}
+    }
+});
+
 }) // end of moduled of module

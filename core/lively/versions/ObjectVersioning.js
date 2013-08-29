@@ -18,14 +18,22 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return lively.versions.ObjectVersioning.getObjectByID(id);
             },
             ensureNonPrimitiveObjectIsProxied: function(obj) {
-                var result = obj;
+                var livelyOV = lively.versions.ObjectVersioning;
                 
-                if (!lively.versions.ObjectVersioning.isProxy(obj)) {
-                    if (!lively.versions.ObjectVersioning.isPrimitiveObject(obj)) {
-                        result = lively.versions.ObjectVersioning.proxyFor(obj);
-                    }
+                if (!livelyOV.isProxy(obj) && !livelyOV.isPrimitiveObject(obj)) {
+                    return lively.versions.ObjectVersioning.proxyFor(obj);
+                } else {
+                    return obj;
                 }
+            },
+            lookupInObjAndProtoWhile: function (obj, lookup, whileCondition) {
+                debugger;
+                var result = lookup(obj),
+                    proto = this.getObjectByID(obj.__protoID);
                 
+                if (whileCondition(result) && proto) {
+                    result = this.lookupInObjAndProtoWhile(proto, lookup, whileCondition);
+                }
                 return result;
             },
             
@@ -77,17 +85,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                 }
                 
-                result = targetObject[name];
-                
-                if (result === undefined) {
-                    nextAncestor = this.getObjectByID(targetObject.__protoID);
-                    while (result === undefined && nextAncestor) {
-                        result = nextAncestor[name];
-                        nextAncestor = nextAncestor.__protoID ? 
-                            this.getObjectByID(nextAncestor.__protoID) : 
-                            null;
-                    }
-                }
+                result = this.lookupInObjAndProtoWhile(
+                    targetObject,
+                    function(obj) { return obj[name] },
+                    function(result) { return result === undefined }
+                );
                 
                 return this.ensureNonPrimitiveObjectIsProxied(result);
             },
@@ -130,25 +132,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
             },
             has: function(virtualTarget, name) {
-                var result, targetObject, protoID, nextAncestor;
-                
-                targetObject = this.targetObject();
-                
-                result = (name in targetObject);
-                
-                // FIXME: pretty similar in how proto-lookup is done in the get-trap
-                if (!result) {
-                    protoID = targetObject.__protoID
-                    nextAncestor = protoID ? this.getObjectByID(protoID) : null;
-                    while (!result && nextAncestor) {
-                        result = (name in nextAncestor);
-                        nextAncestor = nextAncestor.__protoID ? 
-                            this.getObjectByID(nextAncestor.__protoID) : 
-                            null;
-                    }
-                }
-                
-                return result;
+                return this.lookupInObjAndProtoWhile(
+                    this.targetObject(),
+                    function(obj) { return name in obj },
+                    function(result) { return !result }
+                );
             },
             hasOwn: function(virtualTarget, name) {
                 return ({}).hasOwnProperty.call(this.targetObject(), name);

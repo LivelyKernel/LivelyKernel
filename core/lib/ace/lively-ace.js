@@ -24015,7 +24015,9 @@ ace.define('ace/mode/diff_highlight_rules', ['require', 'exports', 'module' , 'a
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var DiffHighlightRules = function() {
+var DiffHighlightRules = function() {
+
+
 
     this.$rules = {
         "start" : [{
@@ -38951,17 +38953,19 @@ ace.define('ace/mode/r', ['require', 'exports', 'module' , 'ace/range', 'ace/lib
    var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
    var RHighlightRules = require("./r_highlight_rules").RHighlightRules;
    var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+   var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
    var unicode = require("../unicode");
-
-   var Mode = function()
-   {
-      this.$tokenizer = new Tokenizer(new RHighlightRules().getRules());
-      this.$outdent = new MatchingBraceOutdent();
-   };
+   
+   var Mode = function() {
+        var highlighter = new RHighlightRules();
+        this.$tokenizer = new Tokenizer(highlighter.getRules());
+        this.$outdent = new MatchingBraceOutdent();
+        this.$behaviour = new CstyleBehaviour();
+        this.$keywordList = highlighter.$keywordList;
+   }
    oop.inherits(Mode, TextMode);
 
-   (function()
-   {
+   (function() {
       this.lineCommentStart = "#";
    }).call(Mode.prototype);
    exports.Mode = Mode;

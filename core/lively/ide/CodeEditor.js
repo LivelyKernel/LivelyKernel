@@ -1204,7 +1204,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
              {name: "SoftTabs", menuString: "use soft tabs"},
              {name: "LineWrapping", menuString: "line wrapping"},
              {name: "ShowWarnings", menuString: "show warnings"},
-             {name: "ShowErrors", menuString: "show Errors"}].map(function(itemSpec) {
+             {name: "ShowErrors", menuString: "show Errors"},
+             {name: "AutocompletionEnabled", menuString: "use Autocompletion"}].map(function(itemSpec) {
                 var enabled = editor["get"+itemSpec.name]();
                 return [Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
                     editor['set'+itemSpec.name](!enabled); }]

@@ -129,7 +129,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
         lively.bindings.connect(this, 'contentLoaded', this, 'gotoLocationLine');
         lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
-            var ext = this.sourceObj.getFileExtension();
+            var ext = this.sourceObj.getFileExtension().toLowerCase();
             switch(ext) {
                 case "r": $upd("r"); return;
                 case "css": $upd("css"); return;

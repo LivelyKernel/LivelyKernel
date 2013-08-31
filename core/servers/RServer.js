@@ -1,12 +1,15 @@
-var i = require('util').inspect
-var debug = true;
+var util = require('util');
+var i = util.inspect
 var spawn = require("child_process").spawn;
-var domain = require('domain').create();
+var fs = require('fs');
+var path = require('path');
 
+var domain = require('domain').create();
 domain.on('error', function(er) {
     console.error('RServer error %s\n%s©', er, er.stack);
 });
 
+var debug = true;
 var WebSocketServer = require('./support/websockets').WebSocketServer;
 
 // call func until it answers true or timeout is reached
@@ -75,7 +78,14 @@ function evalAtStartup(R, thenDo) {
     evalRExpression(
         R,
         ".libPaths(paste(getwd(), '/R-libraries', sep=''))\n"
-      + "options(repos=structure(c(CRAN=\"http://cran.us.r-project.org\")))\n",
+      + "options(repos=structure(c(CRAN=\"http://cran.us.r-project.org\")))\n"
+      + "pkgTest <- function(x) {\n"
+      + "    if (!require(x,character.only = TRUE)) {\n"
+      + "        install.packages(x,dep=TRUE)\n"
+      + "        if (!require(x,character.only = TRUE)) stop(\"Package not found\")\n"
+      + "    }\n"
+      + "}\n"
+      + "pkgTest('LivelyREvaluate')\n",
         function(result) {  thenDo() })
 }
 
@@ -93,6 +103,7 @@ function ensureRIsRunning(thenDo, options) {
 }
 
 function evalRExpression(R, expr, thenDo, options) {
+    if (debug) console.log('R evaluates: %s', expr);
     options = options || {};
     var result = {out: '', err: '', code: ''}, gotResult = false;
     function cleanup() {
@@ -150,8 +161,35 @@ var actions = {
         } catch(e) {
             c.send({action: 'error', data: {message: String(e) + ' \n' + e.stack}, inResponseTo: req.messageId});
         }
+    },
+    doEvalAsync: function(id, expr, thenDo) {
+        ensureRIsRunning(function(R) {
+            var cmd = util.format("LivelyREvaluate::evaluate('%s', '%s')\n", id, expr.trim().replace(/\'/g, '\\\''));
+            evalRExpression(R, cmd, function(evalResult) { thenDo(null); }, {timeout: 100});
+        }, {timeout: 2*1000, timoutCallback: function() {
+            thenDo({error: 'timeout', message: 'R could not be started'});
+        }});
+    },
+    getEvalResult: function(id, thenDo) {
+        ensureRIsRunning(function(R) {
+            var tempFile = path.join(process.env.WORKSPACE_LK, id + ".json"),
+                cmd = util.format("LivelyREvaluate::getEvalResult('%s',format='JSON',file='%s')\n", id, tempFile);
+            evalRExpression(R, cmd, function(evalResult) {
+                if (!fs.existsSync(tempFile)) { thenDo({error: 'R produced no file'}); return; }
+                var result = String(fs.readFileSync(tempFile));
+                try {
+                    fs.unlinkSync(tempFile);
+                    thenDo(null, JSON.parse(result));
+                } catch(err) {
+                    thenDo('parse error:' + String(err));
+                }
+            }, {timeout: 300});
+        }, {timeout: 2*1000, timoutCallback: function() {
+            thenDo({error: 'timeout', message: 'R could not be started'});
+        }});
     }
 }
+
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -191,6 +229,35 @@ module.exports = domain.bind(function(route, app, subserver) {
 
     app.get(route, function(req, res) {
         res.end("RServer is running!");
+    });
+
+    app.post(route + 'asyncEval', function(req,res) {
+        var expr = req.body && req.body.expr,
+            id = req.body && req.body.id;
+        if (!expr || !id) {
+            res.status(400);
+            res.json({
+                error: 'Cannot deal with request',
+                message: 'No expression or id ' + JSON.stringify(req.body)
+            }).end(); return;
+        }
+        actions.doEvalAsync(id, expr, function(err) {
+            res.json(err);
+        });
+    });
+    app.get(route + 'asyncEval', function(req,res) {
+        var id = req.query.id;
+        if (!id) {
+            res.status(400); res.json({error: 'error', message: 'No id'});
+            return;
+        }
+        actions.getEvalResult(id, function(err, result) {
+            if (err) {
+                res.status(400); res.json({error: 'error', message: err});
+            } else {
+                res.json(result);
+            }
+        })
     });
 
     app.post(route + 'eval', function(req,res) {

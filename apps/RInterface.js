@@ -8,27 +8,84 @@ Object.extend(apps.RInterface, {
         return this.webSocket = new lively.net.WebSocket(url, {protocol: 'lively-json'});
     },
 
-    doEvalWebSocket: function(expr, callback) {
-        var ws = this.ensureConnection();
-        var escaped = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-        var exprWithTryCatch = Strings.format(
+    createEvalExpression: function(code) {
+        var escaped = code.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        return Strings.format(
             "tryCatch({expr <- parse(text=\"%s\"); eval(expr)}, error = function(e) print(e))", escaped);
-        this.webSocket.send({action: 'doEval', data: {expr: exprWithTryCatch}}, function(msg) {
-            this.processResult(msg, callback);
-        }.bind(this));
+    },
+
+    doEvalWebSocket: function(expr, callback) {
+        var ws = this.ensureConnection(),
+            sanitizedExpr = this.createEvalExpression(expr),
+            self = this;
+        this.webSocket.send(
+            {action: 'doEval', data: {expr: sanitizedExpr}},
+            function(msg) { self.processResult(msg, callback); });
     },
 
     doEvalHTTP: function(expr, callback) {
-        var escaped = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-        var exprWithTryCatch = Strings.format(
-            "tryCatch({expr <- parse(text=\"%s\"); eval(expr)}, error = function(e) print(e))", escaped);
-        new URL(Config.nodeJSURL+'/').withFilename('RServer/eval').asWebResource().withJSONWhenDone(function(json, status) {
-            this.processResult({data: json}, callback);
-        }.bind(this)).post(JSON.stringify({expr: expr, evalTimeout: 5*1000}), 'application/json');
+        var sanitizedExpr = this.createEvalExpression(expr), self = this;
+        new URL(Config.nodeJSURL+'/').withFilename('RServer/eval')
+            .asWebResource()
+            .withJSONWhenDone(function(json, status) { self.processResult({data: json}, callback); })
+            .post(JSON.stringify({expr: sanitizedExpr, evalTimeout: 5*1000}), 'application/json');
+    },
+
+    doEvalHTTP2: function(id, expr, callback) {
+        function processResult(output) {
+            if (!output) return "No output for evaluation";
+            var jso;
+            try {
+                jso = JSON.parse(output);
+                if (!jso.hasOwnProperty('result'))
+                    throw new Error("Malformed output " + output);
+            } catch(e) {
+                return 'Error: ' + String(e);
+            }
+            // jso is something like: {
+            //     "interrupted": false,
+            //     "result": {
+            //         "source": ["1+2\n","44\n"],
+            //         "value": ["3","44"],
+            //         "text": ["NA","NA"],
+            //         "graphics": ["NA","NA"],
+            //         "message": ["NA","NA"],
+            //         "warning": ["NA","NA"],
+            //         "error": ["NA","NA"]
+            //     }
+            // }
+            // note that source, value, ... can also be just a string when
+            // there was only a single expressions
+            var result = {interrupted: jso.interrupted, output: []},
+                singleExpr = Object.isString(jso.result.source),
+                length = singleExpr ? 1 : jso.result.source.length;
+            if (singleExpr) {
+                result.output[0] = jso.result;
+            } else {
+                for (var i = 0; i < length; i++) {
+                    var exprResult = {}
+                    Properties.forEachOwn(jso.result, function(type, values) {
+                        exprResult[type] = values[i]; })
+                    result.output[i] = exprResult;
+                }
+            }
+            return JSON.stringify(result, null, 2);
+        }
+        var url = new URL(Config.nodeJSURL+'/').withFilename('RServer/asyncEval'),
+            sanitizedExpr = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"'),
+            self = this;
+        // 1) start eval
+        url.asWebResource().post(JSON.stringify({expr: sanitizedExpr, id: id}), 'application/json');
+        // 2) get result
+        (function() {
+            var content = url.withQuery({id: id}).asWebResource().get().content;
+            callback(null, processResult(content));
+        }).delay(1);
     },
 
     doEval: function(expr, callback) {
-        return this.doEvalHTTP(expr, callback);
+        // return this.doEvalWebSocket(expr, callback);
+        return this.doEvalHTTP2(Strings.newUUID(), expr, callback);
     },
 
     processResult: function(msg, callback) {
@@ -52,11 +109,12 @@ Object.extend(apps.RInterface, {
     },
 
     resetRServer: function() {
-        new URL((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/RServer/reset').asWebResource().beAsync().post();
+        new URL((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/RServer/reset')
+            .asWebResource().beAsync().post();
     },
 
     openWorkspace: function() {
-        lively.BiuldSpec('apps.RInterface.Workspace').createMorph().openInWorld();
+        lively.BuildSpec('apps.RInterface.Workspace').createMorph().openInWorld();
     }
 
 });

@@ -1330,7 +1330,7 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
                 if (err && !Object.isString(err)) err = Objects.inspect(err, {maxDepth: 3});
                 if (!insertResult && err) { codeEditor.world().alert(err); return;}
                 if (result && !Object.isString(result)) result = Objects.inspect(result, {maxDepth: 3});
-                codeEditor.printObject(codeEditor.aceEditor, err ? err : result)
+                codeEditor.printObject(codeEditor.aceEditor, err ? err : result);
             });
         }
     });

@@ -1,4 +1,4 @@
-module('apps.RInterface').requires('lively.net.WebSockets').toRun(function() {
+module('apps.RInterface').requires('lively.net.WebSockets', 'lively.Network').toRun(function() {
 
 Object.extend(apps.RInterface, {
 

@@ -1230,13 +1230,22 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
         cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
         cmdBinding({name: 'doit', shortcut: {win: 'CTRL-d', mac: 'CMD-d'}});
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // modes
+        this.withAceDo(function(ed) {
+            var mode = ed.session.getMode();
+            if (Object.isFunction(mode.morphMenuItems)) {
+                items = mode.morphMenuItems(items, this);
+            }
+        });
+
         return items;
     },
     morphMenuItems: function($super) {
         return $super().concat([['CodeEditor...', this.codeEditorMenuItems()]]);
     },
     showMorphMenu: function ($super, evt) {
-        show($world.currentMenu)
         if (!evt || !evt.isRightMouseButtonDown()) return $super(evt);
         lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
         evt && evt.stop();
@@ -1315,23 +1324,58 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
     // R-mode
     lively.ide.ace.require('ace/mode/r').Mode.addMethods({
         morphMenuItems: function(items, editor) {
-            var s = editor.getSession(),
-                state = s.$rModeState || (s.$rModeState = {fancyEvaluate: true});
+            var mode = this,
+                livelyREvaluateEnabled = !mode.livelyEvalMethod || mode.livelyEvalMethod === 'lively-R-evaluate',
+                s = editor.getSession();
             items.push(['R',
-                [Strings.format('[%s] fancy evaluate', state.fancyEvaluate ? 'x' : ' '),
-                 function() { state.fancyEvaluate = !state.fancyEvaluate; }]]);
+                [[Strings.format('[%s] lively-R-evaluate', livelyREvaluateEnabled ? 'x' : ' '),
+                 function() {
+                     mode.livelyEvalMethod = livelyREvaluateEnabled ? 'simple' : 'lively-R-evaluate';
+                 }]]]);
             return items;
         },
 
         doEval: function(codeEditor, insertResult) {
+            // FIXME: Cleanup really needed!
             if (!module('apps.RInterface').isLoaded()) module('apps.RInterface').load(true);
-            apps.RInterface.doEval(codeEditor.getSelectionOrLineString(), function(err, result) {
-                if (!insertResult && !err) return;
+            var sourceString = codeEditor.getSelectionOrLineString();
+            if (!this.livelyEvalMethod || this.livelyEvalMethod == 'lively-R-evaluate') {
+                apps.RInterface.livelyREvalute_startEval(sourceString, function(err, result) {
+                    if (!insertResult && !err) addOverlay(err, result);
+                    else printResult(err, result);
+                });
+            } else {
+                apps.RInterface.evalSync(sourceString, function(err, result) {
+                    if (!insertResult && !err) return;
+                    else printResult(err, result);
+                });
+            }
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            function addOverlay(err, result) {
+                module("lively.ide.CodeEditorTextOverlay").load(true);
+                var range = codeEditor.getSelection().getRange();
+                var lines = codeEditor.getSession().getLines(range.start.row, range.end.row)
+                lines.forEach(function(line, i) {
+                    var out = result.output[i];
+                    if (!out) return;
+                    var pos = {row: range.start.row + i, column: line.length + 1},
+                        text = [out.error, out.waning, out.message, out.value].compact().join(' ');
+                    codeEditor.addTextOverlay({start: pos, text: text});
+                });
+                (function() {
+                    function removeOverlay() {
+                        codeEditor.removeTextOverlay();
+                        codeEditor.aceEditor.removeEventListener('change', removeOverlay);
+                    }
+                    codeEditor.aceEditor.addEventListener('change', removeOverlay);
+                }).delay(0.8);
+            }
+            function printResult(err, result) {
                 if (err && !Object.isString(err)) err = Objects.inspect(err, {maxDepth: 3});
                 if (!insertResult && err) { codeEditor.world().alert(err); return;}
                 if (result && !Object.isString(result)) result = Objects.inspect(result, {maxDepth: 3});
                 codeEditor.printObject(codeEditor.aceEditor, err ? err : result);
-            });
+            }
         }
     });
 

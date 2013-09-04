@@ -153,9 +153,9 @@ Object.extend(Object, {
         return protoObj;
     },
 
-    addScript: function (object, funcOrString, optName) {
+    addScript: function (object, funcOrString, optName, optMapping) {
         var func = Function.fromString(funcOrString);
-        return func.asScriptOf(object, optName);
+        return func.asScriptOf(object, optName, optMapping);
     },
 
     deepCopy: function (obj) {
@@ -206,7 +206,6 @@ Global.Objects = {
         switch (obj.constructor) {
             case String:
             case Boolean:
-            case Boolean:
             case RegExp:
             case Number: return Strings.print(obj);
         };
@@ -254,6 +253,19 @@ Global.Objects = {
             endBreak = useNewLines ? '\n' + indent : '';
         if (useNewLines) printedPropsJoined = printedProps.join(',' + startBreak);
         return openBr + startBreak + printedPropsJoined + endBreak + closeBr;
+    },
+
+    asObject: function(obj) {
+        switch(typeof obj) {
+            case 'string':
+                return new String(obj);
+            case 'boolean':
+                return new Boolean(obj);
+            case 'number':
+                return new Number(obj);
+            default:
+                return obj;
+        }
     },
 
     typeStringOf: function(obj) {

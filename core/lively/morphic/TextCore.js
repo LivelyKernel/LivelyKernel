@@ -827,8 +827,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return true;
     },
     doInspect: function() {
-        var obj = this.evalSelection();
-        if (obj) this.world().openInspectorFor(obj);
+        this.world().openInspectorFor(this.evalSelection());
     },
     doEdit: function() {
         var obj = this.evalSelection();

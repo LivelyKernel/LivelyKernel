@@ -26,6 +26,16 @@ Object.extend(String.prototype, {
     startsWith: function(pattern) {
         return this.indexOf(pattern) === 0;
     },
+    startsWithVowel: function() {
+        var char = this[0];
+        for (var i = 0; i < 5; i++) {
+         if ('aeiou'[i] === char) {
+          return true;
+         }
+        }
+        return false;
+    },
+
 
     endsWith: function(pattern) {
         var d = this.length - pattern.length;

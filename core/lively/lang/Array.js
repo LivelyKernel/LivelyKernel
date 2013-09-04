@@ -122,7 +122,7 @@ Object.extend(Array.prototype, {
         iterator = iterator || Functions.K;
         var trues = [], falses = [];
         this.forEach(function(value, index) {
-            (iterator.call(contextvalue, index) ? trues : falses).push(value);
+            (iterator.call(context, index) ? trues : falses).push(value);
         });
         return [trues, falses];
     },

@@ -702,8 +702,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     doInspect: function() {
-        var obj = this.evalSelection();
-        if (obj) lively.morphic.inspect(obj);
+        lively.morphic.inspect(this.evalSelection());
     },
 
     printInspectMaxDepth: 1,

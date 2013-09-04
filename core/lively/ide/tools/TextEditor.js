@@ -128,6 +128,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(editor, 'savedTextString', this, 'saveFile');
         lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
         lively.bindings.connect(this, 'contentLoaded', this, 'gotoLocationLine');
+        lively.bindings.connect(this, 'contentLoaded', this, 'updateWindowTitle');
         lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
             var ext = this.sourceObj.getFileExtension().toLowerCase();
             switch(ext) {
@@ -176,9 +177,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         return loc.isURL && loc.asWebResource();
     },
     loadFile: function loadFile() {
-        var location = this.getLocation();
-        this.setTitle(String(location));
-        if (location.isURL) {
+        if (this.getLocation().isURL) {
             this.loadFileNetwork();
         } else {
             this.loadFileFileSystem();
@@ -218,6 +217,10 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         var webR = this.getWebResource();
         webR.statusMessage(webR.getURL() + ' saved', webR.getURL() + ' could not be saved!');
         webR.beAsync().put(this.get('editor').textString);
+    },
+    updateWindowTitle: function() {
+        var location = this.getLocation();
+        this.setTitle(String(location));
     },
     removeFile: function removeFile() {
         var webR = this.getWebResource();

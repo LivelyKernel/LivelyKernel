@@ -582,8 +582,8 @@ lively.morphic.Halo.subclass('lively.morphic.CloseHalo',
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
-        if (this.targetMorph.onShutdown) this.targetMorph.onShutdown();
-        this.targetMorph.remove();
+        if (this.targetMorph.isWindow) this.targetMorph.initiateShutdown();
+        else this.targetMorph.remove();
     },
 });
 lively.morphic.Halo.subclass('lively.morphic.MenuHalo',

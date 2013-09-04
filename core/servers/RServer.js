@@ -195,7 +195,6 @@ module.exports = domain.bind(function(route, app, subserver) {
     });
 
     app.del(route + 'evalAsync', function(req,res) {
-        console.log(req.query);
         var id = req.query.id, timeout = req.query.timeout;
         if (!id) {
             res.status(400); res.json({error: 'error', message: 'No id'}); return;

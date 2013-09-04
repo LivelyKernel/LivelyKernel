@@ -5,11 +5,9 @@ Object.extend(apps.RInterface, {
     evalProcesses: [],
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    // defaul RInterface methods
-    doEval: function(expr, callback) {
-        // return this.evalSync(expr, callback);
+    // default RInterface methods
+    doEval: function(method, expr, callback) {
         return this.livelyREvalute_startEval(expr, callback);
-        // return this.doEvalHTTP2(Strings.newUUID(), expr, callback);
     },
 
     resetRServer: function() {
@@ -34,7 +32,7 @@ Object.extend(apps.RInterface, {
             url.asWebResource()
             .withJSONWhenDone(function(json, status) {
                 var err = status.isSuccess() ? null : json.error || json.message || json.result || 'unknown error';
-                callback(err, String(json.rvesult).trim()); })
+                callback(err, String(json.result).trim()); })
             .post(JSON.stringify({expr: sanitizedExpr, timeout: 1000}), 'application/json');
     },
 
@@ -121,6 +119,7 @@ Object.extend(apps.RInterface, {
             .whenDone(function(content, status) {
                 var result = self.livelyREvaluate_extractResult(status,content);
                 if (result) done(null, result); else self.livelyREvalute_getResult(id, done); });
+        return id;
     },
 
     livelyREvalute_getResult: function(id, thenDo) {
@@ -138,7 +137,13 @@ Object.extend(apps.RInterface, {
     },
 
     livelyREval_stopEval: function(id, thenDo) {
-        
+        this.livelyREvalute_URL.withQuery({id: id}).asWebResource().beAsync()
+            .del()
+            .withJSONWhenDone(function(json, status) {
+                var isError = !status.isSuccess() || (json && !!json.error),
+                    msg = isError ? json.message || json.err : json
+                status.isSuccess() ? null : String(status)
+                thenDo(isError && msg, msg); });
     }
 
 });

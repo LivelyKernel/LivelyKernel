@@ -39,13 +39,15 @@ AsyncTestCase.subclass("RInterfaceTest",
           "state": "INTERRUPTED",
           "output": [{"source": "Sys.sleep(3)\n","value": null,"text": null,"graphics": null,"message": null,"warning": null,"error": null}]
         }
-        apps.RInterface.livelyREvalute_startEval('Sys.sleep(3)', function(err, result) {
-            test.assertMatches({error: "timeout"}, result);
-            apps.RInterface.killEvalProcess(result.id, function(err, result) {
-                test.assertEqualState(expected, result);
-                test.done();
+        var id = apps.RInterface.livelyREvalute_startEval('Sys.sleep(3)', function(err, result) {});
+        this.delay(function() {
+            apps.RInterface.livelyREval_stopEval(id, function(err, result) {
+                apps.RInterface.livelyREvalute_getResult(id, function(err, result) {
+                    test.assertEqualState(expected, result);
+                    test.done();
+                });
             });
-        })
+        }, 300);
     }
 });
 

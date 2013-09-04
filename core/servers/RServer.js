@@ -3,7 +3,6 @@ var i = util.inspect
 var spawn = require("child_process").spawn;
 var fs = require('fs');
 var path = require('path');
-var async = require('async');
 
 var domain = require('domain').create();
 domain.on('error', function(er) {

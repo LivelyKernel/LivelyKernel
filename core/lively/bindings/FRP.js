@@ -37,10 +37,15 @@ lively.morphic.Morph.addMethods({
             connections.remove(hasIt);
         }
     },
-    frpConnectVariable: function(propName) {
-        var strm = new lively.bindings.FRPCore.EventStream().value(this[propName]);
-        strm.installTo(this, "frp_" + propName);
-        connect(this, propName, this, "_frp_" + propName);
+    frpConnectVariable: function(propName, frpName) {
+        if (frpName) {
+            var strm = lively.bindings.FRPCore.EventStream.fromString("mapE(X, function(x) {return this.Y = x})".replace(/X/, frpName).replace(/Y/, propName));
+            strm.installTo(this, "update_" + propName);
+        } else {
+            var strm = new lively.bindings.FRPCore.EventStream().value(this[propName]);
+            strm.installTo(this, "frp_" + propName);
+            connect(this, propName, this, "_frp_" + propName);
+        }
     },
     frpPublish: function(fromProp) {
         if (!this.frpPublishes) {

@@ -106,36 +106,19 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             display: function display(jsCode) {
             this.lastSaveSource = jsCode;
             this.setTextString(jsCode);
-            this.enableSyntaxHighlighting();
-            this.highlightJavaScriptSyntax();
-            this.applyStyle({align: 'left'});
         },
-            displayStatus: function displayStatus(msg, color, delay) {
-                    if (!this.statusMorph) {
-                        this.statusMorph = new lively.morphic.Text(pt(100,25).extentAsRectangle());
-                        this.statusMorph.applyStyle({borderWidth: 1, strokeOpacity: 0, borderColor: Color.gray});
-                        this.statusMorph.setFill(this.owner.getFill());
-                        this.statusMorph.setFontSize(11);
-                        this.statusMorph.setAlign('center');
-                        this.statusMorph.setVerticalAlign('center');
-                    }
-                    this.statusMorph.setTextString(msg);
-                    this.statusMorph.centerAt(this.innerBounds().center());
-                    this.statusMorph.setTextColor(color || Color.black);
-                    this.addMorph(this.statusMorph);
-                    (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
-                },
             doSave: function doSave() {
             $super();
             var saved = this.boundEval(this.getTextString());
+
             if (saved) {
                 this.lastSaveSource = this.textString;
                 this.owner.changeIndicator.indicateUnsavedChanges();
                 this.owner.updateLists();
                 this.owner.selectChangedContent(this.getTextString());
-                this.displayStatus("saved source", Color.green);
+                this.setStatusMessage("saved source", Color.green);
             } else {
-                this.displayStatus("not saved", Color.red);
+                this.setStatusMessage("not saved", Color.red);
             }
         },
             hasChanged: function hasChanged() {
@@ -532,31 +515,22 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             lively.bindings.connect(this, "fire", this, "disconnectSelectedConnection", {});
         },
             disconnectSelectedConnection: function disconnectSelectedConnection() {
-        
-            var editor = this.objectEditorPane;
-            var selection = editor.connectionList.selection;
-        
-            if (!editor.target || editor.connectionList.getList().size() < 2) 
-                return;
-        
-            var disconnectConnection = function (confirmed) {
-                if (!confirmed) return;
-        
-                var listIndex = editor.target.attributeConnections.indexOf(selection[1]);
-                if (selection && (typeof selection !== "string") && listIndex > -1) {
-                    var c = selection[1];
-                    disconnect(c.sourceObj, c.sourceAttrName, c.targetObj, c.targetMethodName);
-                    editor.updateLists();
-                    editor.displayInitialScript();
-                } 
-            }
-        
-            var message = 'Disconnect "' + selection[0] +'" connection?';
-            var callback = disconnectConnection;
-        
-            var dialog = new lively.morphic.ConfirmDialog(message, callback);
-        
-            return this.world().openDialog(dialog);
+            var editor = this.objectEditorPane,
+                selection = editor.connectionList.selection;
+            if (!editor.target || editor.connectionList.getList().size() < 2) return;
+            return this.world().confirm(
+                'Disconnect "' + selection[0] +'" connection?',
+                function (confirmed) {
+                    if (!confirmed) return;
+                    var listIndex = editor.target.attributeConnections.indexOf(selection[1]);
+                    if (selection && (typeof selection !== "string") && listIndex > -1) {
+                        var c = selection[1];
+                        lively.bindings.disconnect(
+                            c.sourceObj, c.sourceAttrName, c.targetObj, c.targetMethodName);
+                        editor.updateLists();
+                        editor.displayInitialScript();
+                    } 
+                });
         }
         },{
             _BorderColor: Color.rgb(214,214,214),
@@ -637,31 +611,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             lively.bindings.connect(this, "fire", this, "deleteSelectedScript", {});
         },
             deleteSelectedScript: function deleteSelectedScript() {
-        
-            var editor = this.objectEditorPane;
-            var selection = editor.scriptList.selection;
-        
-            if (!editor.target || editor.scriptList.getList().size() < 2) 
-                return;    
-        
-            var deleteScript = function (confirmed) {
-                if (!confirmed) return;
-                
-                if (selection && editor.target) {
-                    if (!editor.target.hasOwnProperty(selection)) 
-                        return;
-                    delete editor.target[selection];
-                    editor.updateLists();
-                    editor.displayInitialScript();
-                }
-            }
-        
-            var message = 'Delete "' + selection + '" script?';
-            var callback = deleteScript;
-        
-            var dialog = new lively.morphic.ConfirmDialog(message, callback);
-        
-            return this.world().openDialog(dialog);
+            var editor = this.objectEditorPane,
+                selection = editor.scriptList.selection;
+            if (!editor.target || editor.scriptList.getList().size() < 2) return;    
+            return this.world().confirm('Delete "' + selection + '" script?', function (confirmed) {
+                if (!confirmed || !selection || !editor.target
+                 || !editor.target.hasOwnProperty(selection)) return;
+                delete editor.target[selection];
+                editor.updateLists();
+                editor.displayInitialScript();
+            });
         }
         },{
             _BorderWidth: 1,
@@ -942,14 +901,11 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.setLabel(this.owner.target);
         },
             updateTargetFromSelection: function updateTargetFromSelection(selection) { 
-            var that = this;
-            var update = function(confirmed) {
-                if (confirmed) {
-                    that.owner.setTarget(selection);
-                    that.setLabel(selection.getName() || selection.toString());
-                }
+            function update(confirmed) {
+                if (!confirmed) return;
+                this.owner.setTarget(selection);
+                this.setLabel(selection.getName() || selection.toString());
             }
-            
             this.removeTargetChooser();
             if (this.owner.hasUnsavedChanges && this.owner.hasUnsavedChanges()) {
                 this.owner.confirmUnsavedChanges(update);
@@ -1546,10 +1502,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
         target: null,
         confirmUnsavedChanges: function confirmUnsavedChanges(callback) {
-        var message = "Discard unsaved changes?";
-        var dialog = new lively.morphic.ConfirmDialog(message, callback);
-    
-        return this.world().openDialog(dialog);
+        return this.world().confirm("Discard unsaved changes?", callback.bind(this));
     },
         copyToPartsBinWithUserRequest: function copyToPartsBinWithUserRequest() {
         this.owner.copyToPartsBinWithUserRequest();
@@ -1565,11 +1518,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     },
         displayJavaScriptSource: function displayJavaScriptSource(jsCode) {
         if (this.scriptPane.hasChanged()) {
-            var that = this;
-            var callback = function(confirmed) {
-                if (confirmed) that.scriptPane.display(jsCode)
-            };
-            this.confirmUnsavedChanges(callback);
+            this.confirmUnsavedChanges(function(confirmed) {
+                if (confirmed) this.scriptPane.display(jsCode);
+            });
         } else {
             this.scriptPane.display(jsCode);
         }
@@ -1708,20 +1659,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.displayJavaScriptSource(code);
         }
     },
-        onShutdown: function onShutdown() {
-        if (this.scriptPane.hasChanged()) {
-            var that = this;
-            // callback is executed asynchronously since waits on user input.
-            // however, the editor should not be closed before input
-            // therefore, we patch the remove method until the user reacted
-            this.owner.remove = function() {};
-            var callback = function(confirmed) {
-                if (that.owner.state === "shutdown") delete that.owner.state;
-                that.owner.remove = that.owner.__proto__.remove;
-                if (confirmed) that.owner.remove();
-            };
-            this.confirmUnsavedChanges(callback);
-        } 
+        confirmShutdown: function confirmShutdown(thenDo) {
+        if (!this.scriptPane.hasChanged()) return thenDo(true);
+        this.confirmUnsavedChanges(thenDo);
     },
         onWindowGetsFocus: function onWindowGetsFocus() {
                 this.get('ObjectEditorScriptPane').focus();
@@ -1880,7 +1820,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     }
     }],
     titleBar: "ObjectEditor",
-    withoutLayers: "[[GrabbingLayer]]",
     onKeyDown: function onKeyDown(evt) {
     var sig = evt.getKeyString(),
         scriptList = this.get('ObjectEditorScriptList'),
@@ -1889,6 +1828,15 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         case 'F1': scriptList.focus(); evt.stop(); return true;
         case 'F2': sourcePane.focus(); evt.stop(); return true;
         default: $super(evt);        
+    }
+},
+    initiateShutdown: function initiateShutdown(force) {
+    if (force || !this.targetMorph.scriptPane.hasChanged()) {
+        $super();
+    } else {
+        this.targetMorph.confirmShutdown(function(answer) {
+            answer && this.initiateShutdown(true);
+        }.bind(this));
     }
 },
     reset: function reset() {

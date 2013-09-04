@@ -2,36 +2,57 @@ module('apps.RInterface').requires('lively.net.WebSockets').toRun(function() {
 
 Object.extend(apps.RInterface, {
 
-    ensureConnection: function() {
-        if (this.webSocket) return this.webSocket;
-        var url = new URL((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/RServer/connect');            
-        return this.webSocket = new lively.net.WebSocket(url, {protocol: 'lively-json'});
+    evalProcesses: [],
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // defaul RInterface methods
+    doEval: function(expr, callback) {
+        // return this.evalSync(expr, callback);
+        return this.livelyREvalute_startEval(expr, callback);
+        // return this.doEvalHTTP2(Strings.newUUID(), expr, callback);
     },
 
+    resetRServer: function() {
+        new URL((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/RServer/reset')
+            .asWebResource().beAsync().post();
+    },
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // simple eval
     createEvalExpression: function(code) {
         var escaped = code.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
         return Strings.format(
             "tryCatch({expr <- parse(text=\"%s\"); eval(expr)}, error = function(e) print(e))", escaped);
     },
 
-    doEvalWebSocket: function(expr, callback) {
-        var ws = this.ensureConnection(),
+    evalSync: function(expr, callback) {
+        // simple R eval, using R's default eval method. Happens synchronous in
+        // R (but of course asynchronous for usi n the browser session)
+        var url = new URL(Config.nodeJSURL+'/').withFilename('RServer2/eval'),
             sanitizedExpr = this.createEvalExpression(expr),
             self = this;
-        this.webSocket.send(
-            {action: 'doEval', data: {expr: sanitizedExpr}},
-            function(msg) { self.processResult(msg, callback); });
+            url.asWebResource()
+            .withJSONWhenDone(function(json, status) {
+                var err = status.isSuccess() ? null : json.error || json.message || json.result || 'unknown error';
+                callback(err, String(json.rvesult).trim()); })
+            .post(JSON.stringify({expr: sanitizedExpr, timeout: 1000}), 'application/json');
     },
 
-    doEvalHTTP: function(expr, callback) {
-        var sanitizedExpr = this.createEvalExpression(expr), self = this;
-        new URL(Config.nodeJSURL+'/').withFilename('RServer/eval')
-            .asWebResource()
-            .withJSONWhenDone(function(json, status) { self.processResult({data: json}, callback); })
-            .post(JSON.stringify({expr: sanitizedExpr, evalTimeout: 5*1000}), 'application/json');
-    },
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // eval via lively-R-evaluate
+    livelyREvalute_URL: new URL(Config.nodeJSURL+'/').withFilename('RServer2/evalAsync'),
 
-    doEvalHTTP2: function(id, expr, callback) {
+    livelyREvaluate_extractResult: function(reqStatus, contentString) {
+        return tryProcessResult(reqStatus, contentString);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function tryProcessResult(reqStatus, evalResultString) {
+            var result;
+            return reqStatus.isSuccess()
+                && evalResultString
+                && (result = processResult(evalResultString))
+                && ['DONE', 'INTERRUPTED'].include(result.state)
+                && result;
+        }
         function processResult(output) {
             if (!output) return "No output for evaluation";
             var jso;
@@ -43,7 +64,7 @@ Object.extend(apps.RInterface, {
                 return 'Error: ' + String(e);
             }
             // jso is something like: {
-            //     "interrupted": false,
+            //     "processState": "DONE",
             //     "result": {
             //         "source": ["1+2\n","44\n"],
             //         "value": ["3","44"],
@@ -56,65 +77,68 @@ Object.extend(apps.RInterface, {
             // }
             // note that source, value, ... can also be just a string when
             // there was only a single expressions
-            var result = {interrupted: jso.interrupted, output: []},
-                singleExpr = Object.isString(jso.result.source),
-                length = singleExpr ? 1 : jso.result.source.length;
+            var result = {state: jso.processState, output: []};
+            if (!['DONE', 'INTERRUPTED'].include(result.state)) { return result; }
+            function cleanValue(val) { return val === "NA" ? null : val; }
+            var singleExpr = jso.result && Object.isString(jso.result.source),
+                length = singleExpr ? 1 : (jso.result && jso.result.source.length) || 0;
             if (singleExpr) {
-                result.output[0] = jso.result;
-            } else {
-                for (var i = 0; i < length; i++) {
-                    var exprResult = {}
-                    Properties.forEachOwn(jso.result, function(type, values) {
-                        exprResult[type] = values[i]; })
-                    result.output[i] = exprResult;
-                }
+                Properties.forEachOwn(jso.result, function(type, value) { jso.result[type] = [value]; });
             }
-            return JSON.stringify(result, null, 2);
+            for (var i = 0; i < length; i++) {
+                var exprResult = {}
+                Properties.forEachOwn(jso.result, function(type, values) {
+                    exprResult[type] = cleanValue(values[i]); })
+                result.output[i] = exprResult;
+            }
+            return result;
         }
-        var url = new URL(Config.nodeJSURL+'/').withFilename('RServer/asyncEval'),
-            sanitizedExpr = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"'),
+    },
+
+    livelyREvalute_startEval: function(expr, callback) {
+        // init evaluation using the lively-R-evaluate package on the R side.
+        // This will start a new R process that runs the evaluation (asynchronously)
+        // apps.RInterface.evalProcesses
+        var id = Strings.newUUID();
+        var evalProc = {id: id, state: null, output: null};
+        this.evalProcesses.push(evalProc);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var sanitizedExpr = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"'),
             self = this;
-        // 1) start eval
-        url.asWebResource().post(JSON.stringify({expr: sanitizedExpr, id: id}), 'application/json');
         // 2) get result
-        (function() {
-            var content = url.withQuery({id: id}).asWebResource().get().content;
-            callback(null, processResult(content));
-        }).delay(1);
-    },
-
-    doEval: function(expr, callback) {
-        // return this.doEvalWebSocket(expr, callback);
-        return this.doEvalHTTP2(Strings.newUUID(), expr, callback);
-    },
-
-    processResult: function(msg, callback) {
-        if (msg.action === "error") {
-            show('R handler got error: %o', msg.data.message || msg);
-            callback && callback(msg.data.message || msg, null);
-            return;
-        }
-        var err = null, result = msg.data.result.trim();
-        if (false && msg.data.type === 'stdout') {
-            // by default stdout of R includes line number indicators
-            // we remove those here. Also, all statements are usually
-            // included, we just diplay the result of the last statement
-            var re = /^\[[0-9]+\]\s+/;
-            if (result.match(re)) {
-                var lines = result.split('\n');
-                result = lines.last().replace(re, '');
+        var startTime = Date.now(), timeout = 3*1000;
+        function done(err, result) {
+            if (result) {
+                evalProc.state = result.state;
+                evalProc.output = result.output;
             }
+            apps.RInterface.evalProcesses.remove(evalProc);
+            callback(err, result);
         }
-        callback && callback(err, result);
+        // 1) start eval
+        this.livelyREvalute_URL.asWebResource().beAsync()
+            .post(JSON.stringify({expr: sanitizedExpr, id: id}), 'application/json')
+            .whenDone(function(content, status) {
+                var result = self.livelyREvaluate_extractResult(status,content);
+                if (result) done(null, result); else self.livelyREvalute_getResult(id, done); });
     },
 
-    resetRServer: function() {
-        new URL((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/RServer/reset')
-            .asWebResource().beAsync().post();
+    livelyREvalute_getResult: function(id, thenDo) {
+        var startTime = Date.now(), timeout = 3*1000, self = this;
+        (function fetchResult() {
+            self.livelyREvalute_URL.withQuery({id: id}).asWebResource()
+                .beAsync().get().whenDone(function(content, status) {
+                    var result = self.livelyREvaluate_extractResult(status,content);
+                    if (result) { thenDo(null, result); return; }
+                    if (Date.now()-startTime < timeout) { fetchResult.delay(0.1); return; }
+                    var err = {error: 'timeout', id: id};
+                    thenDo(err, err);
+                });
+        })();
     },
 
-    openWorkspace: function() {
-        lively.BuildSpec('apps.RInterface.Workspace').createMorph().openInWorld();
+    livelyREval_stopEval: function(id, thenDo) {
+        
     }
 
 });

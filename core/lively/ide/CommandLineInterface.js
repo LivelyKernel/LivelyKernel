@@ -410,6 +410,80 @@ Object.extend(lively.ide.CommandLineInterface, {
 // file search related
 module("lively.ide.CommandLineSearch");
 
+Object.subclass("lively.ide.CommandLineSearch.FileInfo",
+// see lively.ide.CommandLineSearch.parseDirectoryList
+"properties", {
+    path: '', fileName: '',
+    isDirectory: false,
+    lastModified: null, mode: '',
+    isLink: false, linkCount: 0,
+    user: '', group: '', size: 0,
+    rootDirectory: null
+},
+"initializing", {
+    initialize: function(rootDirectory) {
+        this.rootDirectory = rootDirectory;
+    }
+},
+'parsing from directory list', {
+    reader: [ // the order is important!
+        function mode(lineString, fileInfo) {
+            var idx = lineString.indexOf(' ');
+            fileInfo.mode = lineString.slice(0, idx);
+            fileInfo.isDirectory = fileInfo.mode[0] === 'd';
+            return lineString.slice(idx+1).trim();
+        },
+        function linkCount(lineString, fileInfo) {
+            var idx = lineString.indexOf(' ');
+            fileInfo.linkCount = Number(lineString.slice(0, idx));
+            return lineString.slice(idx+1).trim();
+        },
+        function user(lineString, fileInfo) {
+            var idx = lineString.indexOf(' ');
+            fileInfo.user = lineString.slice(0, idx);
+            return lineString.slice(idx+1).trim();
+        },
+        function group(lineString, fileInfo) {
+            var idx = Strings.peekRight(lineString, 0, /[0-9]/);
+            fileInfo.group = lineString.slice(0, idx-1).trim();
+            return lineString.slice(idx).trim();
+        },
+        function size(lineString, fileInfo) {
+            var idx = lineString.indexOf(' ');
+            fileInfo.size = Number(lineString.slice(0, idx));
+            return lineString.slice(idx+1).trim();
+        },
+        function lastModified(lineString, fileInfo) {
+            var matches = Strings.reMatches(lineString, /[^s]+\s+[0-9:\s]+/);
+            if (!matches || !matches[0]) return lineString;
+            fileInfo.lastModified = new Date(matches[0].match + ' GMT');
+            return lineString.slice(matches[0].end).trim();
+        },
+        function fileName(lineString, fileInfo) {
+            var string = lineString.replace(/^\.?\/+/g, ''),
+                nameAndLink = string && string.split(' -> '),
+                isLink = string && nameAndLink.length === 2,
+                path = isLink ? nameAndLink[0] : string,
+                fileName = path && path.indexOf(fileInfo.rootDirectory) === 0 ? path.slice(fileInfo.rootDirectory.length) : path;
+            fileInfo.fileName = fileName;
+            fileInfo.path = path;
+            fileInfo.isLink = isLink;
+            return fileName;
+        }],
+
+    readFromDirectoryListLine: function(line) {
+        if (!line.trim().length) return false;
+        var lineRest = line;
+        this.reader.forEach(function(reader) {
+            lineRest = reader(lineRest, this)
+        }, this);
+        return true;
+    }
+},
+'printing', {
+    toString: function() { return this.path; }
+});
+
 Object.extend(lively.ide.CommandLineSearch, {
     doGrepFromWorkspace: function(string, path, thenDo) {
         // will automaticelly insert grep results into currently focused workspace
@@ -534,47 +608,28 @@ Object.extend(lively.ide.CommandLineSearch, {
         //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
         options = options || {};
         var commandString = this.findFilesCommandString(pattern, options),
-            rootDirectory = options.rootDirectory;
-        function parseFindLsResult(string) {
-            var lines = Strings.lines(string);
-            return lines.map(function(line) {
-                // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
-                //    file mode   no of links  user     group       size   date: month,day,   time,       year      file
-                var match = line.match(/^\s*(d|.)([^\s]+)\s+([0-9]+)\s+([^\s]+)\s+([^\s]+)\s+([0-9]+)\s+([^\s]+\s+[0-9]+\s+[0-9:]+\s+[0-9]+)\s+(.*)$/);
-                if (!match) return null;
-                var name = match[8].replace(/\/\//g, '/'),
-                    nameAndLink = name && name.split(' -> '),
-                    isLink = name && nameAndLink.length === 2,
-                    path = isLink ? nameAndLink[0] : name,
-                    fileName = path && path.indexOf(rootDirectory) === 0 ? path.slice(rootDirectory.length) : path,
-                    isDirectory = match[1] === 'd';
-                if (isDirectory) fileName += '/';
-                return {
-                    mode: match[2],
-                    // linkCount: Number(match[3]),
-                    isLink: isLink,
-                    linkTarget: nameAndLink[1],
-                    user: match[4],
-                    group: match[5],
-                    size: Number(match[6]),
-                    lastModified: new Date(match[7] + ' GMT'),
-                    path: path,
-                    fileName: fileName,
-                    isDirectory: isDirectory,
-                    toString: function() { return this.path; }
-                };
-            }).compact();
-        }
-        var lastFind = lively.ide.CommandLineSearch.lastFind;
+            rootDirectory = options.rootDirectory,
+            parseDirectoryList = this.parseDirectoryList,
+            lastFind = lively.ide.CommandLineSearch.lastFind;
         if (lastFind) lastFind.kill();
         var result = [],
             cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
                 if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
-                result = parseFindLsResult(cmd.getStdout());
+                result = parseDirectoryList(cmd.getStdout(), rootDirectory);
                 callback && callback(result);
             });
         lively.ide.CommandLineSearch.lastFind = cmd;
         return options.sync ? result : cmd;
+    },
+
+    parseDirectoryList: function(string, rootDirectory) {
+        // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
+        var lines = Strings.lines(string);
+        return lines.map(function(line) {
+            if (!line.trim().length) return null;
+            var fileInfo = new lively.ide.CommandLineSearch.FileInfo(rootDirectory);
+            return fileInfo.readFromDirectoryListLine(line) ? fileInfo : null;
+        }).compact();
     },
 
     interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {

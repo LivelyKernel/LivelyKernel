@@ -229,6 +229,7 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
     }
 
 });
+
 TestCase.subclass('lively.ide.tests.CommandLineInterface.AnsiColorParser',
 'testing', {
 
@@ -305,6 +306,53 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
         var result = lively.ide.CommandLineInterface.exec('echo $FOO', {sync:true, env: {FOO: 'bar'}}).resultString();
         this.assertEquals('bar', result);
         this.done();
+    }
+});
+
+TestCase.subclass("lively.ide.tests.CommandLineInterface.CommandLineSearch",
+"running", {
+    setUp: function()  {},
+    tearDown: function()  {}
+},
+'testing', {
+    testParseDirectoryListOutput: function() {
+        var sut = lively.ide.CommandLineSearch;
+        var tests = [{
+            rootDirectory: null,
+            string: "-rw-r-r-       1 robert   SAP_ALL\\Domain User       5298 Dec 17 14:04:02 2012 test.html",
+            expected: [{
+                mode: "-rw-r-r-",
+                linkCount: 1,
+                isLink: false,
+                user: "robert",
+                group: "SAP_ALL\\Domain User",
+                size: 5298,
+                lastModified: new Date('Dec 17 14:04:02 2012 GMT'),
+                path: "test.html",
+                fileName: "test.html",
+                isDirectory: false
+            }]
+        }, {
+            rootDirectory: null,
+            string: "drwxrwxr-x  2 lively lively       4096 Aug 29 03:39 bin\n",
+            expected: [{
+                mode: "drwxrwxr-x",
+                linkCount: 2,
+                isLink: false,
+                // linkTarget: undefined,
+                user: "lively",
+                group: "lively",
+                size: 4096,
+                lastModified: new Date('Aug 29 03:39 GMT'),
+                path: "bin",
+                fileName: "bin",
+                isDirectory: true
+            }]
+        }];
+        tests.forEach(function(spec) {
+            var result = sut.parseDirectoryList(spec.string, spec.rootDirectory);
+            this.assertEqualState(spec.expected, result);
+        }, this);
     }
 });
 

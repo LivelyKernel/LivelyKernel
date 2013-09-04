@@ -28,7 +28,7 @@ Object.extend(apps.RInterface, {
     evalSync: function(expr, callback) {
         // simple R eval, using R's default eval method. Happens synchronous in
         // R (but of course asynchronous for usi n the browser session)
-        var url = new URL(Config.nodeJSURL+'/').withFilename('RServer2/eval'),
+        var url = new URL(Config.nodeJSURL+'/').withFilename('RServer/eval'),
             sanitizedExpr = this.createEvalExpression(expr),
             self = this;
             url.asWebResource()
@@ -40,7 +40,7 @@ Object.extend(apps.RInterface, {
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // eval via lively-R-evaluate
-    livelyREvalute_URL: new URL(Config.nodeJSURL+'/').withFilename('RServer2/evalAsync'),
+    livelyREvalute_URL: new URL(Config.nodeJSURL+'/').withFilename('RServer/evalAsync'),
 
     livelyREvaluate_extractResult: function(reqStatus, contentString) {
         return tryProcessResult(reqStatus, contentString);

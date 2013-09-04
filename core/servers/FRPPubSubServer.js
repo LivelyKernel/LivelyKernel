@@ -19,13 +19,13 @@ var actions = {
         var channel = msg.data.channel;
         var newValue = msg.data.value;
         connection.send({action: 'FRPChannelPutReply', data: 'Got put to channel ' + channel + " <- " + newValue}); 
-        console.log(msg);
+        //console.log(msg);
         // if this channel has subscribers forward the new value to them
         if (subscriptions[channel]) {
             var all = subscriptions[channel];
             Object.keys(all).forEach(function (morphName) {
                 var rcvr = all[morphName];
-                console.log('will forward update to ' + inspect(rcvr, 2) + " : " + morphName + '' + rcvr);
+                //console.log('will forward update to ' + inspect(rcvr, 2) + " : " + morphName + '' + rcvr);
                 rcvr.send({action: 'FRPChannelGet', data: {channel: channel, morphName: morphName, value: newValue}});
             });
         }
@@ -37,14 +37,13 @@ var actions = {
         var morphName = msg.data.morphName;
         var rcvr = connection;
         connection.send({action: 'FRPChannelSubscribeReply', data: 'Got subscribe by ' + morphName + ' to ' + channel + ' by ' + rcvr});
-        console.log('got subscribe from ' + inspect(rcvr, 2));
-        
+        //console.log('got subscribe from ' + inspect(rcvr, 2));
         if (!subscriptions[channel]) {
             subscriptions[channel] = {};
         }
         var morphsSubscriptions = subscriptions[channel];
         morphsSubscriptions[morphName] = rcvr;
-        console.log(msg);
+        //console.log(msg);
     },
     
     // a client can unsubscribe from a channel
@@ -59,7 +58,7 @@ var actions = {
                 subscriptions[channel].remove(hasIt);
             }
         }
-        console.log(msg);
+        //console.log(msg);
     }
 };
 
@@ -77,7 +76,7 @@ function startFRPPubSubSocketServer(route, subserver, thenDo) {
             return;
         }
         try {
-            console.log('FRPPubSub running act ' + msg.action);
+            //console.log('FRPPubSub running act ' + msg.action);
             actions[msg.action](connection, msg);
         } catch(e) {
             console.error('FRPPubSub subserver error when handlinglin', msg, e);

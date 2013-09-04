@@ -149,7 +149,7 @@ Object.subclass('lively.bindings.FRP.FRPConnection',
 });
 Object.subclass('lively.bindings.FRP.FRPPublishSubscribe',
 'publish-subscribe', {
-    setupServerSocket: function() {
+    setupServerSocket: function() { 
         var sessionId = lively.net.SessionTracker.getSession().sessionId;
         var url = new URL(Config.nodeJSURL + '/FRPPubSubServer/connect');
         var socket = new lively.net.WebSocket(url, {protocol: 'lively-json'});
@@ -159,20 +159,20 @@ Object.subclass('lively.bindings.FRP.FRPPublishSubscribe',
         connect(socket, 'closed', Global, 'show', {converter: function() { return 'websocket closed'; }});
 
         socket.onLivelyJSONMessage = function (msg) {
-            console.log("FRPPubSub reply: " + Objects.inspect(msg,2)); 
+            //console.log("FRPPubSub reply: " + Objects.inspect(msg,2)); 
             if (msg.action === 'FRPChannelSubscribeReply') {
-                console.log("this was a FRPChannelSubscribeReply...");
+                //console.log("this was a FRPChannelSubscribeReply...");
             } else if (msg.action === 'FRPChannelPutReply') {
-                console.log("this was a FRPChannelPutReply...");
+                //console.log("this was a FRPChannelPutReply...");
             } else if (msg.action === 'FRPChannelGet') {
-                console.log("this was a FRPChannelGet...");
+                //console.log("this was a FRPChannelGet...");
                 var channel = msg.data.channel;
                 var morphName = msg.data.morphName;
                 var newValue = msg.data.value;
-                console.log("I have received an update: channel '" + channel + "' <- " + newValue);
+                //console.log("I have received an update: channel '" + channel + "' <- " + newValue);
                 $world.get(morphName)[channel].frpSet(newValue, Date.now());
             } else {
-                console.log("this was a what?...");
+                //console.log("this was a what?...");
             }
         }
     },
@@ -190,14 +190,14 @@ lively.bindings.FRP.FRPPublishSubscribe.subclass('lively.bindings.FRP.FRPPublish
         return this;
     },
     sendPublish: function() {
-        console.log("frp publish to... (currently a noop!)" + this.fromProp);
+        //console.log("frp publish to... (currently a noop!)" + this.fromProp);
         // tells the frp server to publish this channel (fromProp)
         // currently we don't send anything... (should probably later)
         // because at the time of value updating we push the new update so server
         // knows which channels have been published anyway...
     },
     update: function (newValue, srcObj, maybeTime) {
-        console.log("frp publish pushing a new update... " + this.fromProp + " <- " + newValue);
+        //console.log("frp publish pushing a new update... " + this.fromProp + " <- " + newValue);
         // tells frp server to push a new value on this channel (fromProp)
         $world.frpPubSub_socket.send({action: 'FRPChannelPut', data: {channel: this.fromProp, recipient: undefined, value: newValue}});
 
@@ -209,19 +209,19 @@ lively.bindings.FRP.FRPPublishSubscribe.subclass('lively.bindings.FRP.FRPSubscri
         this.morphName = morphName;
         this.fromProp = fromProp;
         if (!$world.frpPubSub_initDone)
-            this.setupServerSocket();
+            this.setupServerSocket(); 
         this.sendSubscribe();
         return this;
     },
     sendSubscribe: function() {
-        console.log("frp subscribe to... " + this.fromProp);
+        //console.log("frp subscribe to... " + this.fromProp);
         // tells the frp server to subscribe this client on this channel (fromProp)
         $world.frpPubSub_socket.send({action: 'FRPChannelSubscribe', data: {channel: this.fromProp, morphName: this.morphName, session: $world.frpPubSub_sessionId}});
     },
     unsubscribe: function(fromProp) {
-        console.log("frp unsubscribe from... " + this.fromProp);
+        //console.log("frp unsubscribe from... " + this.fromProp);
         // tells frp server to unsubscribe this client from this channel (fromProp)
-         $world.frpPubSub_socket.send({action: 'FRPChannelUnsubscribe', data: {channel: this.fromProp, session: $world.frpPubSub_sessionId}});
+        $world.frpPubSub_socket.send({action: 'FRPChannelUnsubscribe', data: {channel: this.fromProp, session: $world.frpPubSub_sessionId}});
         return this;
     }
 });

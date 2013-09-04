@@ -1312,10 +1312,40 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
 })();
 
 (function setupModes() {
-    // R
-    Object.extend(
-        lively.ide.ace.require('ace/mode/r').Mode.prototype,
-        lively.ide.ace.require('ace/mode/javascript').Mode.prototype);
+    // R-mode
+    lively.ide.ace.require('ace/mode/r').Mode.addMethods({
+        morphMenuItems: function(items, editor) {
+            var s = editor.getSession(),
+                state = s.$rModeState || (s.$rModeState = {fancyEvaluate: true});
+            items.push(['R',
+                [Strings.format('[%s] fancy evaluate', state.fancyEvaluate ? 'x' : ' '),
+                 function() { state.fancyEvaluate = !state.fancyEvaluate; }]]);
+            return items;
+        },
+
+        doEval: function(codeEditor, insertResult) {
+            if (!module('apps.RInterface').isLoaded()) module('apps.RInterface').load(true);
+            apps.RInterface.doEval(codeEditor.getSelectionOrLineString(), function(err, result) {
+                if (!insertResult && !err) return;
+                if (err && !Object.isString(err)) err = Objects.inspect(err, {maxDepth: 3});
+                if (!insertResult && err) { codeEditor.world().alert(err); return;}
+                if (result && !Object.isString(result)) result = Objects.inspect(result, {maxDepth: 3});
+                codeEditor.printObject(codeEditor.aceEditor, err ? err : result)
+            });
+        }
+    });
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // Shell-mode
+    lively.ide.ace.require('ace/mode/sh').Mode.addMethods({
+        doEval: function(codeEditor, insertResult) {
+            lively.ide.commands.exec('lively.ide.execShellCommand', codeEditor, {
+                insert: insertResult,
+                count: 4,
+                shellCommand: insertResult.getSelectionOrLineString()
+            });
+        }
+    })
 })();
 
 (function setupCompletions() {
@@ -1552,30 +1582,9 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 'shortcuts', {
     setupEvalBindings: function(kbd) {
         function doEval(ed, insertResult) {
-            // FIXME this should go into the modes or use at least
-            // double dispatch...
-            switch (ed.$morph.getTextMode()) {
-                case 'sh':
-                    lively.ide.commands.exec('lively.ide.execShellCommand', ed.$morph, {
-                        insert: insertResult,
-                        count: 4,
-                        shellCommand: ed.$morph.getSelectionOrLineString()
-                    });
-                    break;
-                case 'r':
-                    if (!module('apps.RInterface').isLoaded()) module('apps.RInterface').load(true);
-                    if (insertResult) {
-                        apps.RInterface.doEval(ed.$morph.getSelectionOrLineString(), function(err, result) {
-                            if (insertResult) { ed.$morph.printObject(ed, err ? err : result); }
-                        });
-                    } else {
-                        var sel = ed.$morph.getSelection();
-                        if (sel && sel.isEmpty()) sel.selectLine();
-                    }
-                    return;
-                default:
-                    ed.$morph.doit(insertResult);
-            }
+            var mode = ed.session.getMode();
+            if (!mode.doEval) ed.$morph.doit(insertResult);
+            else mode.doEval(ed.$morph, insertResult)
         }
         this.addCommands(kbd, [{
                 name: 'evalAll',

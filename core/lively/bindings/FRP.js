@@ -37,6 +37,11 @@ lively.morphic.Morph.addMethods({
             connections.remove(hasIt);
         }
     },
+    frpConnectVariable: function(propName) {
+        var strm = new lively.bindings.FRPCore.EventStream().value(this[propName]);
+        strm.installTo(this, "frp_" + propName);
+        connect(this, propName, this, "_frp_" + propName);
+    },
     frpPublish: function(fromProp) {
         if (!this.frpPublishes) {
             this.frpPublishes = {};

@@ -3144,10 +3144,13 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         return this.panel;
     },
 },
+'view', {
+    focus: function() { this.panel.focus(); }
+},
 'callbacks', {
     setCallback: function(func) {
         this.callback = func;
-        connect(this, 'result', this, 'triggerCallback')
+        lively.bindings.connect(this, 'result', this, 'triggerCallback');
     },
     triggerCallback: function(resultBool) {
         this.removeTopLevel();

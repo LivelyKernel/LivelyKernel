@@ -1342,7 +1342,7 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
             lively.ide.commands.exec('lively.ide.execShellCommand', codeEditor, {
                 insert: insertResult,
                 count: 4,
-                shellCommand: insertResult.getSelectionOrLineString()
+                shellCommand: codeEditor.getSelectionOrLineString()
             });
         }
     })

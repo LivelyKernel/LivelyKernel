@@ -814,7 +814,11 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
         }
         console.log('unregister browser: ' + browser);
         browser.stop();
+    },
+    ifOkToShutdownDo: function(callback) {
+        this.ownerWidget.ensureSourceNotAccidentlyDeleted(callback);
     }
+
 },
 'events', {
 

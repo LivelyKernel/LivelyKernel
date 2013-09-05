@@ -2703,17 +2703,13 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 'window behavior', {
 
     initiateShutdown: function() {
-        if (this.isShutdown()) return null;
         var owner = this.owner;
         if (this.onShutdown) this.onShutdown();
         if (this.targetMorph && this.targetMorph.onShutdown) this.targetMorph.onShutdown();
         this.remove();
         if (owner.activateTopMostWindow) owner.activateTopMostWindow();
-        this.state = 'shutdown'; // no one will ever know...
         return true;
     },
-
-    isShutdown: function() { return this.state === 'shutdown' }
 
 },
 'accessing', {

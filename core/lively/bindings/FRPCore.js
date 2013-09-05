@@ -515,6 +515,20 @@ Object.subclass('lively.bindings.FRPCore.EventStream',
     ceilTime: function(time, interval) {
         return Math.floor(time / interval) * interval;
     },
+    timers: function() {
+        var result = []
+        if (this.type === "timerE" || this.type === "durationE") {
+            result.push(this);
+        }
+        for (var i = 0; i < this.subExpressions.length; i++) {
+            var sub = this.subExpressions[i];
+            var s = this.lookup(sub)
+            if (s.type === "timerE" || s.type === "durationE") {
+                result.push(s);
+            }
+        };
+        return result;
+    },
     sync: function(maybeTime) {
     // refresh the last value cache at the end of evaluation cycle.
         if (this.lastValue !== this.currentValue && this.currentValue !== undefined) {
@@ -643,7 +657,7 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
         for (var i = 0; i < elem.dependencies.length; i++) {
             var depRef = elem.dependencies[i];
             var dep = top.lookup(depRef);
-            if (this.isEventStream(dep) && !depRef.isSubExpression) {
+            if (this.isEventStream(dep) && (!depRef.isSubExpression || dep.timers().length > 0)) {
                 deps.push(dep);
                 this.endNodes[dep.id] = this.deletedNode;
             }
@@ -810,8 +824,10 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
     installStream: function(strm) {
     // For a timer, it starts the timer.
     // The evaluator is reset as the network may change.
-        if (strm.type === "timerE" || strm.type === "durationE") {
-            this.addTimer(strm);
+        var timers = strm.timers();
+        for (var i = 0; i < timers.length; i++) {
+            var timer = timers[i];
+            this.addTimer(timer);
         }
         if (strm.type === "delayE") {
             this.addDelay(strm);
@@ -823,10 +839,12 @@ Object.subclass('lively.bindings.FRPCore.Evaluator',
     },
 
     uninstallStream: function(strm) {
-        if (strm.type === "timerE" || strm.type === "durationE") {
-            this.removeTimer(strm);
+        var timers = strm.timers();
+        for (var i = 0; i < timers.length; i++) {
+            var timer = timers[i];
+            this.removeTimer(timer);
         }
-        this.reset();
+       this.reset();
    },
 },
 'timers', {

@@ -115,7 +115,7 @@ ometa FRPTranslator {
                     return {refString:
                         Strings.format('%s(%s)',
                             f, args.map(function(arg) {return arg.refString}).join(', ')),
-                        dependencies: deps,
+                        dependencies: [],
                         isStream: false}
                 }
                     }.bind(this))()),
@@ -135,7 +135,7 @@ ometa FRPTranslator {
                     return {refString:
                         Strings.format('%s.%s(%s)',
                             rec.refString, m, args.map(function(arg) {return arg.refString}).join(', ')),
-                        dependencies: deps,
+                        dependencies: [],
                         isStream: false}
                 }
                     }.bind(this))()),

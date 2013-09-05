@@ -2704,12 +2704,16 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 
     initiateShutdown: function() {
         var owner = this.owner;
-        if (this.onShutdown) this.onShutdown();
-        if (this.targetMorph && this.targetMorph.onShutdown) this.targetMorph.onShutdown();
+        this.signalShutdown;
         this.remove();
         if (owner.activateTopMostWindow) owner.activateTopMostWindow();
         return true;
     },
+    signalShutdown: function() {
+        if (this.onShutdown) this.onShutdown();
+        if (this.targetMorph && this.targetMorph.onShutdown) this.targetMorph.onShutdown();
+    }
+
 
 },
 'accessing', {

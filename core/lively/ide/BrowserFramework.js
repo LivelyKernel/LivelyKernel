@@ -110,8 +110,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.setSourceString('-----');
     },
 
-    buildView: function (extent) {
-        extent = extent || this.initialViewExtent;
+    buildView: function (optExtent) {
+        var extent = optExtent || this.initialViewExtent;
         var panel = new lively.ide.BrowserPanel(extent);
         lively.morphic.Panel.makePanedPanel(extent, this.panelSpec, panel);
         panel.applyStyle({fill: Color.lightGray});
@@ -119,7 +119,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.setupListPanes();
         this.setupSourceInput();
         this.setupLocationInput();
-        this.setupResizers(panel);
+        this.setupResizers();
         panel.ownerWidget = this;
         this.start();
         return panel;

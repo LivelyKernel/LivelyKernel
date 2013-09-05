@@ -143,20 +143,19 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
     setupResizers: function() {
         var panel = this.panel;
+        var midResizer = panel.midResizer;
 
-        // for compatibility to old pages -- FIXME remove
-        if (!panel.midResizer) return
         // resizer in the middle resiszes top panes, buttons and source pane
-        this.allPaneNames.collect(function(name) {
-            panel.midResizer.addScalingAbove(panel[name]);
+        this.allPaneNames.forEach(function(name) {
+            midResizer.addScalingAbove(panel[name]);
         });
-        panel.midResizer.addScalingBelow(panel.sourcePane);
+        midResizer.addScalingBelow(panel.sourcePane);
 
         (function() {
-            panel.midResizer.divideRelativeToParent(1-Config.get("defaultSCBSourcePaneToListPaneRatio"));
+            midResizer.divideRelativeToParent(1-Config.get("defaultSCBSourcePaneToListPaneRatio"));
         }).delay(0);
 
-        panel.midResizer.linkToStyles(["Browser_resizer"]);
+        midResizer.linkToStyles(["Browser_resizer"]);
     },
     start: function() {
         this.setPane1Content(this.childsFilteredAndAsListItems(this.rootNode(), this.getRootFilters()));

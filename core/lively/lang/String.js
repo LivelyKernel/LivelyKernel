@@ -29,7 +29,7 @@ Object.extend(String.prototype, {
     startsWithVowel: function() {
         var char = this[0];
         for (var i = 0; i < 5; i++) {
-         if ('aeiou'[i] === char) {
+         if ('AEIOU'[i] === char) {
           return true;
          }
         }

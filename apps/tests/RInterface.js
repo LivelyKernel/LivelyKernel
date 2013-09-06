@@ -24,9 +24,9 @@ AsyncTestCase.subclass("RInterfaceTest",
           "state": "DONE",
           "output": [{"source": "x\n","value": "3","text": null,"graphics": null,"message": null,"warning": null,"error": null}]
         }
-        apps.RInterface.livelyREvalute_startEval('x=1+2', function(err, result) {
+        apps.RInterface.livelyREvaluate_startEval('x=1+2', function(err, result) {
             test.assertEqualState(expected1, result);
-            apps.RInterface.livelyREvalute_startEval('x', function(err, result) {
+            apps.RInterface.livelyREvaluate_startEval('x', function(err, result) {
                 test.assertEqualState(expected2, result);
                 test.done();
             });
@@ -39,10 +39,10 @@ AsyncTestCase.subclass("RInterfaceTest",
           "state": "INTERRUPTED",
           "output": [{"source": "Sys.sleep(3)\n","value": null,"text": null,"graphics": null,"message": null,"warning": null,"error": null}]
         }
-        var id = apps.RInterface.livelyREvalute_startEval('Sys.sleep(3)', function(err, result) {});
+        var id = apps.RInterface.livelyREvaluate_startEval('Sys.sleep(3)', function(err, result) {});
         this.delay(function() {
             apps.RInterface.livelyREval_stopEval(id, function(err, result) {
-                apps.RInterface.livelyREvalute_getResult(id, function(err, result) {
+                apps.RInterface.livelyREvaluate_getResult(id, function(err, result) {
                     test.assertEqualState(expected, result);
                     test.done();
                 });

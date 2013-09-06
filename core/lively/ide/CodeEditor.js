@@ -1397,7 +1397,7 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
             if (!module('apps.RInterface').isLoaded()) module('apps.RInterface').load(true);
             var sourceString = codeEditor.getSelectionOrLineString();
             if (!this.livelyEvalMethod || this.livelyEvalMethod == 'lively-R-evaluate') {
-                apps.RInterface.livelyREvalute_startEval(sourceString, function(err, result) {
+                apps.RInterface.livelyREvaluate_startEval(sourceString, function(err, result) {
                     if (!insertResult && !err) addOverlay(err, result);
                     else printResult(err, result);
                 });

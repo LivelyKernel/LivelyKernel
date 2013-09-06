@@ -6,8 +6,8 @@ Object.extend(apps.RInterface, {
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // default RInterface methods
-    doEval: function(method, expr, callback) {
-        return this.livelyREvalute_startEval(expr, callback);
+    doEval: function(expr, callback) {
+        return this.livelyREvaluate_startEval(expr, callback);
     },
 
     resetRServer: function() {
@@ -38,7 +38,7 @@ Object.extend(apps.RInterface, {
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // eval via lively-R-evaluate
-    livelyREvalute_URL: new URL(Config.nodeJSURL+'/').withFilename('RServer/evalAsync'),
+    livelyREvaluate_URL: new URL(Config.nodeJSURL+'/').withFilename('RServer/evalAsync'),
 
     livelyREvaluate_extractResult: function(reqStatus, contentString) {
         return tryProcessResult(reqStatus, contentString);
@@ -93,7 +93,7 @@ Object.extend(apps.RInterface, {
         }
     },
 
-    livelyREvalute_startEval: function(expr, callback) {
+    livelyREvaluate_startEval: function(expr, callback) {
         // init evaluation using the lively-R-evaluate package on the R side.
         // This will start a new R process that runs the evaluation (asynchronously)
         // apps.RInterface.evalProcesses
@@ -114,18 +114,18 @@ Object.extend(apps.RInterface, {
             callback(err, result);
         }
         // 1) start eval
-        this.livelyREvalute_URL.asWebResource().beAsync()
+        this.livelyREvaluate_URL.asWebResource().beAsync()
             .post(JSON.stringify({expr: sanitizedExpr, id: id}), 'application/json')
             .whenDone(function(content, status) {
                 var result = self.livelyREvaluate_extractResult(status,content);
-                if (result) done(null, result); else self.livelyREvalute_getResult(id, done); });
+                if (result) done(null, result); else self.livelyREvaluate_getResult(id, done); });
         return id;
     },
 
-    livelyREvalute_getResult: function(id, thenDo) {
+    livelyREvaluate_getResult: function(id, thenDo) {
         var startTime = Date.now(), timeout = 3*1000, self = this;
         (function fetchResult() {
-            self.livelyREvalute_URL.withQuery({id: id}).asWebResource()
+            self.livelyREvaluate_URL.withQuery({id: id}).asWebResource()
                 .beAsync().get().whenDone(function(content, status) {
                     var result = self.livelyREvaluate_extractResult(status,content);
                     if (result) { thenDo(null, result); return; }
@@ -137,7 +137,7 @@ Object.extend(apps.RInterface, {
     },
 
     livelyREval_stopEval: function(id, thenDo) {
-        this.livelyREvalute_URL.withQuery({id: id}).asWebResource().beAsync()
+        this.livelyREvaluate_URL.withQuery({id: id}).asWebResource().beAsync()
             .del()
             .withJSONWhenDone(function(json, status) {
                 var isError = !status.isSuccess() || (json && !!json.error),

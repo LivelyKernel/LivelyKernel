@@ -1747,7 +1747,19 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                     try {
                         var programNode = lively.ast.acorn.parse(str);
                     } catch (e) {
-                        //let eval throw the exception
+                        //Just in case the input is an object literal
+                        //It must be a more than one property object,
+                        //since the other ones are succesfully parsed (not as we intend).
+                        //For the case of these more complex object literals,
+                        //we only fix the top-level ones.
+                        str = '"use strict";(\n' + __evalStatement + ')';
+                        try {
+                            lively.ast.acorn.parse(str);
+                        } catch (e) {
+                            //let eval throw the (original) exception
+                            return eval('"use strict";\n' + __evalStatement);
+                        }
+                        //now the parse succeeded
                         return eval(str);
                     }
                     var ambiguousLiterals = [];

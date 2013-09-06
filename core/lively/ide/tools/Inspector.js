@@ -237,21 +237,31 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             alert("Strings are immutable");
                             return;
                         }
-                        var text;
+                        var __evalStatement = str;
                         var str = '"use strict";\n' + str;
                         try {
                             var programNode = lively.ast.acorn.parse(str);
                         } catch (e) {
-                            if(e instanceof Error) {
-                                text = e.name + ": " + e.message;
+                            //Just in case the input is an object literal
+                            //It must be a more than one property object,
+                            //since the other ones are succesfully parsed (not as we intend).
+                            //For the case of these more complex object literals,
+                            //we only fix the top-level ones.
+                            str = '"use strict";(\n' + __evalStatement + ')';
+                            try {
+                                lively.ast.acorn.parse(str);
+                            } catch (e1) {
+                                //report the original exception
+                                if(e instanceof Error) {
+                                    this.textString = e.name + ": " + e.message;
+                                }
+                                else {
+                                    this.textString = 'Unhandled: ' + e;
+                                }
+                                return;
                             }
-                            else {
-                                text = 'Unhandled: ' + e;
-                            }
-                        }
-                        if (text) {
-                            this.textString = text;
-                            return;
+                            //now the parse succeeded, but programNode is not initialized
+                            //so we'll skip the other fix-ups
                         }
                         var ambiguousLiterals = [];
                         var iter1 = function(seq) {
@@ -297,7 +307,9 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                 iter2(lastChild);
                             }
                         }
-                        iter1(programNode);
+                        if (programNode) {
+                            iter1(programNode);
+                        }
                         while (ambiguousLiterals.length > 0) {
                             var node = ambiguousLiterals.pop();
                             str = str.substring(0, node.start) + '(' +
@@ -341,12 +353,11 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                 parent[name] = interactiveEval.call(ctx);
                             } catch(e) {
                                 if(e instanceof Error) {
-                                    text = e.name + ": " + e.message;
+                                    this.textString = e.name + ": " + e.message;
                                 }
                                 else {
-                                    text = 'Unhandled: ' + e;
+                                    this.textString = 'Unhandled: ' + e;
                                 }
-                                this.textString = text;
                                 return;
                             }
                             var that = item.inspector;

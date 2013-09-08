@@ -687,6 +687,21 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
             this.assertEquals([1,4,5], result, 'throttle result');
             this.done();
         }, 120);
+    },
+    testCompose: function() {
+        function mult(a,b) { return a * b; }
+        function add1(a) { return a + 1; }
+        var composed = Functions.compose(mult, add1, String),
+            result = composed(11, 2);
+        this.assert("23" === result, 'compose not OK: ' + Strings.print(result));
+        this.done();
+    },
+    testFlip: function() {
+        function foo(a,b) { return '' + a + b; }
+        this.assertEquals('213', Functions.flip(foo)(1,2,3));
+        this.done();
+    }
+});
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.NumbersTest',
 'testing', {

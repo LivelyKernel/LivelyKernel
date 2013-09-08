@@ -503,5 +503,24 @@ Global.Functions = {
             }
         });
         return queue;
-    }
+    },
+
+    compose: function(/*functions*/) {
+        // composes functions: Functions(f,g,h)(arg1, arg2) = h(g(f(arg1, arg2)))
+        // Example:
+        // Functions.compose(function(a,b) {return a+b}, function(x) {return x*4})(3,2)
+        var functions = Array.from(arguments);
+        return functions.reverse().inject(Functions.K, function(prevFunc, func) {
+            return function() { return prevFunc(func.apply(Global, arguments)); }
+        });
+    },
+
+    flip: function(f) {
+        // swaps the first two args
+        // Functions.flip(function(a, b, c) { return a + b + c; })(' World', 'Hello', '!')
+        return function flipped(/*args*/) {
+            var args = Array.from(arguments).swap(0,1);
+            return f.apply(null, args);
+        }
+    },
 };

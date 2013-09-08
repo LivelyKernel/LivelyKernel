@@ -202,8 +202,9 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
     },
 
     testEvalGlobalVarAssignment: function() {
-        var e = this.editor, varName = '__' + this.selector;
-        e.textString = Strings.format("%s = 42;");
+        var e = this.editor, varName = '__' + this.currentSelector;
+        this.onTearDown((function cleanup() { delete Global[varName]; return cleanup; })());
+        e.textString = Strings.format("%s = 42;", varName);
         e.aceEditor.execCommand('doit');
         this.assertEquals(42, Global[varName], 'eval not successful');
         this.done();

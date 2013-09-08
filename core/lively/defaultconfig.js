@@ -459,7 +459,8 @@ Config.addOptions(
     ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
-    ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."]
+    ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."],
+    ['improvedJavaScriptEval', false, "Eval that changes semantics of how object literals and if statements are evaluated."],
 ],
 
 'lively.morphic.StyleSheets', [

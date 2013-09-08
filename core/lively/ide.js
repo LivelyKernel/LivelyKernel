@@ -12,4 +12,8 @@ if (Config.get("useAceEditor")) {
     module("lively.ide.CodeEditor").load();
 }
 
+if (Config.get('improvedJavaScriptEval')) {
+    module("lively.ide.JSEvaluation").load();
+}
+
 }); // end of module

@@ -244,16 +244,13 @@ Object.extend(Array.prototype, {
     },
 
     equals: function(otherArray) {
-        if (!otherArray || this.length !== otherArray.length) return false;
-        for (var i = 0; i < otherArray.length; i++) {
-            if (this[i].equals && otherArray[i].equals) {
-                if (!this[i].equals(otherArray[i])) {
-                    return false;
-                } else {
-                    continue;
-                }
-            }
-            if (this[i] != otherArray[i]) return false;
+        var len = this.length;
+        if (!otherArray || len !== otherArray.length) return false;
+        for (var i = 0; i < len; i++) {
+            if (this[i] && otherArray[i] // equals() test
+             && this[i].equals && otherArray[i].equals
+             && !this[i].equals(otherArray[i])) return false;
+            else if (this[i] != otherArray[i]) return false; // normal comparison
         }
         return true;
     },

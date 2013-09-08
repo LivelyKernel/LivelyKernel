@@ -80,6 +80,37 @@ Global.Numbers = {
         if (a < b) { min = a, max = b }
         else { max = a, min = b }
         return (max - x + eps >= 0) && (min - x - eps <= 0);
-    }
+    },
+
+    parseLength: function(string, toUnit) {
+        // Numbers.parseLength('3cm')
+        // This converts the length value to pixels or the specified toUnit.
+        // Supported units are: mm, cm, in, px, pt, pc
+        toUnit = toUnit || 'px'
+        var match = string.match(/([0-9\.]+)\s*(.*)/);
+        if (!match || !match[1]) return undefined;
+        var length = Global.parseFloat(match[1]),
+            fromUnit = match[2];
+        return Numbers.convertLength(length, fromUnit, toUnit);
+    },
+
+    convertLength: (function() {
+        // Numbers.convertLength(20, 'px', 'pt').roundTo(0.01)
+        function toCm(n, unit) {
+            // as defined in http://www.w3.org/TR/css3-values/#absolute-lengths
+            if (unit === 'cm') return n;
+            else if (unit === 'mm') return n*0.1;
+            else if (unit === 'in') return n*2.54;
+            else if (unit === 'px') return n*toCm(1/96, 'in');
+            else if (unit === 'pt') return n*toCm(1/72, 'in');
+            else if (unit === 'pc') return n*toCm(12, 'pt');
+        }
+        return function to(length, fromUnit, toUnit) {
+            if (fromUnit === toUnit) return length;
+            else if (toUnit === "cm") return toCm(length, fromUnit);
+            else if (fromUnit === "cm") return length / toCm(1, toUnit);
+            else return to(to(length, fromUnit, 'cm'), 'cm', toUnit);
+        }
+    })()
 
 }

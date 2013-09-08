@@ -687,6 +687,15 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
             this.assertEquals([1,4,5], result, 'throttle result');
             this.done();
         }, 120);
+
+TestCase.subclass('lively.lang.tests.ExtensionTests.NumbersTest',
+'testing', {
+    testLengthConversion: function() {
+        this.epsilon = 0.01;
+        this.assertEqualsEpsilon(75.59, Numbers.convertLength(2, 'cm', 'px'));
+        this.assertEqualsEpsilon(2, Numbers.convertLength(75.59, 'px', 'cm'));
+        this.assertEqualsEpsilon(75.59, Numbers.parseLength('2cm'));
+        this.assertEqualsEpsilon(15, Numbers.parseLength('20px', 'pt'));
     }
 });
 

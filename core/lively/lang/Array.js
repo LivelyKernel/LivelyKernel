@@ -63,6 +63,16 @@ Object.extend(Array.prototype, {
         return results;
     },
 
+    reMatches: function(re, stringifier) {
+        // convert each element in this into a string and apply re to match it.
+        // result might include null items if re did not match (usful for masking)
+        // Example:
+        //   var morphs = $world.withAllSubmorphsDo(Functions.K);
+        //   morphs.mask(morphs.reMatches(/code/i))
+        stringifier = stringifier || String
+        return this.map(function(ea) { return stringifier(ea).match(re); });
+    },
+
     include: (function () {
         return Array.prototype.indexOf ?
             function(object) { return this.indexOf(object) !== -1 } :
@@ -254,6 +264,15 @@ Object.extend(Array.prototype, {
         });
     },
 
+    union: function(array) {
+        var result = this.clone();
+        for (var i = 0; i < array.length; i++) {
+            var item = array[i];
+            if (result.indexOf(item) === -1) result.push(item);
+        }
+        return result;
+    },
+
     clone: function() { return [].concat(this); },
 
     size: function() { return this.length; },
@@ -371,6 +390,12 @@ Object.extend(Array.prototype, {
 
     groupByKey: function(key) {
         return this.groupBy(function(ea) { return ea[key]; });
+    },
+
+    mask: function(arr) {
+        // select every element in this for which arr's element is truthy
+        // Example: [1,2,3].mask([false, true, false]) => [2]
+        return this.select(function(_, i) { return !!arr[i]; });
     }
 });
 

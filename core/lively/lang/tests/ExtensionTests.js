@@ -489,6 +489,17 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
             result = arr.uniqBy(function(a,b) { return a.x === b.x; }).pluck('x'),
             expected = [33, 1,2,3,99];
         this.assertEquals(expected, result);
+    },
+    testMask: function() {
+        var arr = Array.range(1,4),
+            mask = [false, true, false, true];
+        this.assertEquals([2,4], arr.mask(mask), 'mask');
+    },
+
+    testReMatches: function() {
+        var arr = ['foo', 'bar', 'zork'],
+            result = arr.reMatches(/.r.?/i);
+        this.assertEquals([undefined, 'ar', 'ork'], result);
     }
 
 });

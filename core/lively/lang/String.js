@@ -28,12 +28,8 @@ Object.extend(String.prototype, {
     },
     startsWithVowel: function() {
         var char = this[0];
-        for (var i = 0; i < 5; i++) {
-         if ('AEIOU'[i] === char) {
-          return true;
-         }
-        }
-        return false;
+        return char === 'A' || char === 'E' || char === 'I' || char === 'O' || char === 'U' ||
+            char === 'a' || char === 'e' || char === 'i' || char === 'o' || char === 'u' || false
     },
 
 

@@ -131,15 +131,16 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
     },
 
     testTearDown: function() {
-        var counter = 0;
+        var counter = 0, tearDownCallbackResults = [];
         // Use a existing DummyClass...!
         TestCase.subclass('DummyTearDownTestCase', {
             test1: function() {},
-            test2: function() {},
+            test2: function() { this.onTearDown(function() { tearDownCallbackResults.push(this.currentSelector); }); },
             tearDown: function() {counter += 1},
         });
         new DummyTearDownTestCase().runAll();
-        this.assertEquals(counter, 2);
+        this.assertEquals(counter, 2, 'tear down count');
+        this.assertEqualState(['test2'], tearDownCallbackResults, 'onTearDown not OK');
     },
 
     testDonCatchErrors: function() {
@@ -677,6 +678,7 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
         Global.test2AsyncCalled = false;
         Global.test3Called = false;
         Global.tearDownCalled = 0;
+        Global.onTearDownCalled = 0
         $super(statusUpdateFunc, whenDoneFunc);
     },
 
@@ -687,6 +689,7 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
     test1: function() {
         Global.test1Called = true;
         this.assert(!Global.test2AsyncCalled, 'test2Async already called');
+        this.onTearDown(function() { Global.onTearDownCalled++; });
         this.done();
     },
 
@@ -696,6 +699,7 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
             this.assert(Global.test1Called, 'test1 was not called');
             this.assert(!Global.test3Called, 'test3 was already called');
             this.assertEquals(1, Global.tearDownCalled, 'tearDown not once called');
+            this.assertEquals(1, Global.onTearDownCalled, 'onTearDown not once called');
             this.done();
         }, 800);
     },

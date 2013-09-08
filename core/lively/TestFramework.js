@@ -101,6 +101,16 @@ Object.subclass('TestCase',
     },
     setUp: function() {},
     tearDown: function() {},
+    onTearDown: function(func) {
+        (this._onTearDownCallbacks || (this._onTearDownCallbacks = [])).push(func);
+    },
+    runOnTearDownCallbacks: function() {
+        if (!this._onTearDownCallbacks) return [];
+        var errors = [], cb;
+        while ((cb = this._onTearDownCallbacks.shift()))
+            try { cb.call(this); } catch(e) { errors.push(e); }
+        return errors;
+    },
     runTest: function(aSelector) {
         if (!this.shouldRun) return null;
         this.currentSelector = aSelector || this.currentSelector;
@@ -113,11 +123,12 @@ Object.subclass('TestCase',
         } catch (e) {
             this.addAndSignalFailure(e);
          } finally {
-            try {
-                this.uninstallMocks();
-                this.tearDown();
-            } catch(e) {
-                this.log('Couldn\'t run tearDown for ' + this.id() + ' ' + e);
+            var tearDownErrors = [];
+            try { this.uninstallMocks(); } catch (e) { tearDownErrors.push(e); }
+            try { this.tearDown(); } catch (e) { tearDownErrors.push(e); }
+            tearDownErrors.pushAll(this.runOnTearDownCallbacks());
+            if (tearDownErrors.length) {
+                this.log('Errors in tearDown of ' + this.id() + ':\n' + tearDownErrors.join('\n'));
             }
         }
         return this.result;
@@ -566,10 +577,11 @@ TestCase.subclass('AsyncTestCase',
                 doWhenDone.curry(timeWaited + waitMs).delay(waitMs / 1000);
                 return;
             }
-            try {
-                self.uninstallMocks();
-                self.tearDown();
-            } catch(e) { if (!self._errorOccured) self.addAndSignalFailure(e) }
+            var tearDownErrors = [];
+            try { self.uninstallMocks(); } catch (e) { tearDownErrors.push(e); }
+            try { self.tearDown(); } catch (e) { tearDownErrors.push(e); }
+            tearDownErrors.pushAll(self.runOnTearDownCallbacks());
+            tearDownErrors.forEach(function(err) { self.addAndSignalFailure(err); })
             if (!self._errorOccured) self.addAndSignalSuccess();
             whenDoneFunc && whenDoneFunc();
         })(0);

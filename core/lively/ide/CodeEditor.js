@@ -1701,13 +1701,17 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         }
         this.addCommands(kbd, [{
                 name: 'evalAll',
-                exec: function(ed) {
+                exec: function(ed, args) {
+                    if (args && args.confirm) {
+                        $world.alertOK('Evaluating complete text...');
+                    }
                     ed.$morph.saveExcursion(function(whenDone) {
                         ed.$morph.selectAll();
                         doEval(ed, false);
                         whenDone();
                     });
                 },
+                handlesCount: true,
                 readOnly: true
             }, {
                 name: 'doit',
@@ -1756,7 +1760,6 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 handlesCount: true
             }, {
                 name: 'runShellCommandOnRegion',
-                bindKeys: "Alt-Shift-\\",
                 exec: function(ed, args) {
                     var input = ed.$morph.getSelectionOrLineString();
                     if (!input || input.length === 0) {
@@ -1770,7 +1773,9 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 },
                 multiSelectAction: 'forEach',
                 handlesCount: true
-            }])
+            }]);
+            // FIXME for some reason this does not work with bindKeys?!
+            kbd.bindKey("»", 'runShellCommandOnRegion');
     },
 
     setupTextManipulationBindings: function(kbd) {

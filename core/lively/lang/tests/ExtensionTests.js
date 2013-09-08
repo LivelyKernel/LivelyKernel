@@ -697,7 +697,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         this.done();
     },
     testFlip: function() {
-        function foo(a,b) { return '' + a + b; }
+        function foo(a,b,c) { return '' + a + b + c; }
         this.assertEquals('213', Functions.flip(foo)(1,2,3));
         this.done();
     }

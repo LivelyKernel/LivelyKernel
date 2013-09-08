@@ -1079,9 +1079,14 @@ lively.morphic.Shapes.External.addMethods(
 },
 'accessing', {
     getExtentHTML: function(ctx) {
-        if (!ctx.shapeNode.style) return pt(0,0);
-        var $node = $(ctx.shapeNode);
-        return pt($node.outerWidth() || 0, $node.outerHeight() || 0);
+        if (ctx.shapeNode.clientWidth || ctx.shapeNode.clientHeight) {
+            return pt(ctx.shapeNode.clientWidth, ctx.shapeNode.clientHeight);
+        } else if (!ctx.shapeNode.style) {
+            return pt(0,0);
+        } else {
+            var $node = lively.$(ctx.shapeNode);
+            return pt($node.outerWidth() || 0, $node.outerHeight() || 0);
+        }
     },
     setOpacityHTML: function(ctx, value) {
         if (ctx.shapeNode.style) ctx.shapeNode.style.opacity = value;

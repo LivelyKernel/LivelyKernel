@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.HTML', 'lively.morphic.SVG', 'lively.morphic.Canvas', 'lively.Traits', 'lively.ide.commands.default').toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.HTML', 'lively.morphic.Clipboard', 'lively.morphic.SVG', 'lively.morphic.Canvas', 'lively.Traits', 'lively.ide.commands.default').toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -984,36 +984,33 @@ handleOnCapture);
     },
 
     doKeyCopy: function() {
+        var copyTarget = this;
         this.withClipboardEventDo(function(evt, data) {
-            var copyString = this.copy(true),
-                header = 'LIVELYKERNELCLIPBOARDDATA|' + copyString.length + '|';
-            data.setData("Text", header + copyString);
-            alertOK('Copied ' + this);
+            var copyString = copyTarget.copy(true);
+            lively.morphic.Clipboard.handleKeyCopy(copyString, evt, data, function(err) {
+                if (err) copyTarget.world().logError(err);
+                else { alertOK('Copied ' + copyTarget); show(copyTarget); }
+            });
         });
     },
 
     doKeyPaste: function() {
+        var pasteTarget = this, world = this.world();
         this.withClipboardEventDo(function(evt, data) {
-            if (data.types.any(function(type) { return type.toLowerCase() === 'files'})) {
-                evt.getPosition = function() { return $world.firstHand().getPosition(); };
-                var items = Array.from(data.items);
-                new lively.FileUploader().handleDroppedFiles(items.invoke('getAsFile'), evt);
-                return false;
-            }
-            var text = data.getData('Text');
-            if (!text) return false;
-            var match = text.match(/LIVELYKERNELCLIPBOARDDATA\|([0-9]+)\|(.+)/i);
-            if (!match || !match[2]) return false;
-            var obj = lively.persistence.Serializer.deserialize(match[2]);
-            if (!obj || !obj.isMorph) return false;
-            var pos = this.world().firstHand().getPosition();
-            obj.setPosition(this.localize(pos));
-            this.addMorph(obj);
-            alertOK('Pasted ' + this);
-            if (obj.isMorphClipboardCarrier) {
-                obj.submorphs.forEach(function(ea) { this.addMorph(ea); }, this);
-                obj.remove();
-            }
+            lively.morphic.Clipboard.handleKeyPaste(evt, data, function(err, extractedMorphs) {
+                if (err) { world.logError(err); return; }
+                if (!extractedMorphs || !extractedMorphs.length) return;
+                extractedMorphs.forEach(function(pastedMorph) {
+                    var pos = world.firstHand().getPosition();
+                    pasteTarget.addMorph(pastedMorph);
+                    pastedMorph.setPosition(pasteTarget.localize(pos));
+                    alertOK('Pasted ' + pasteTarget);
+                    if (pastedMorph.isMorphClipboardCarrier) {
+                        pastedMorph.submorphs.forEach(function(ea) { pasteTarget.addMorph(ea); });
+                        pastedMorph.remove();
+                    }
+                });
+            });
         });
     },
 
@@ -1796,51 +1793,13 @@ lively.morphic.World.addMethods(
         }
     },
 
-    onHTML5DragEnter: function(evt) {
-        evt.stop();
-        return true;
-    },
+    onHTML5DragEnter: function(evt) { evt.stop(); return true; },
 
-    onHTML5DragOver: function(evt) {
-        evt.stop();
-        return true;
-    },
+    onHTML5DragOver: function(evt) { evt.stop(); return true; },
 
     onHTML5Drop: function(evt) {
-        // see https://developer.mozilla.org/en/Using_files_from_web_applications
-        evt.stop();
-        var files = evt.dataTransfer.files;
-        if (files && files.length > 0) {
-            new lively.FileUploader().handleDroppedFiles(files, evt);
-            return;
-        }
-        var items = evt.dataTransfer.items;
-        if (items && items.length) {
-            var content = evt.dataTransfer.getData('text/html');
-            if (content) {
-                lively.morphic.HtmlWrapperMorph.renderHTML(content);
-                return;
-            }
-            content = evt.dataTransfer.getData('text/plain');
-            if (content) {
-                this.addCodeEditor({content: content, gutter: false, textMode: 'text'});
-                return;
-            }
-        } else if (false) { // currently disabled because self-drops are annoying
-            // this needs to be extracted!
-            var types = Array.from(evt.dataTransfer.types),
-                supportedTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],
-                type = supportedTypes.detect(function(type) { return types.include(type); });
-            if (type) {
-                var data = evt.dataTransfer.getData(type);
-                this.addTextWindow({
-                    content: data,
-                    title: 'Dropped',
-                    position: this.visibleBounds().center()
-                });
-            }
-        }
-        return true;
+        lively.morphic.Clipboard.handleItemOrFileImport(evt);
+        evt.stop(); return true;
     }
 },
 'window related', {
@@ -1890,277 +1849,6 @@ lively.morphic.World.addMethods(
 
     getScrollOffset: function () {
         return this.visibleBounds().topLeft();
-    }
-});
-
-Object.subclass('lively.FileUploader',
-'file reader', {
-    getFileReader: function(spec) {
-        var self = this;
-        return Object.extend(new FileReader(), {
-            options: spec,
-            onload: function(evt) { spec.onLoad && self[spec.onLoad](evt, spec) },
-            onerror: function(evt) { spec.onError && self[spec.onError](evt, spec) },
-            onloadstart: function(evt) { spec.onLoadStart && self[spec.onLoadStart](evt, spec) },
-            onloadend: function(evt) { spec.onLoadEnd && self[spec.onLoadEnd](evt, spec) },
-            onprogress: function(evt) { spec.onProgress && self[spec.onProgress](evt, spec) }
-        });
-    },
-
-    uploadBinary: function(url, mime, binaryData, onloadCallback) {
-        alert('Uploading to ' + url);
-        var webR = new WebResource(url)
-
-        webR.enableShowingProgress();
-        connect(webR, 'progress', {onProgress: function(evt) {
-            if (!evt.lengthComputable) return;
-            var percentage = Math.round((evt.loaded * 100) / evt.total);
-            alertOK('Uploading ' + percentage + "%");
-        }}, 'onProgress');
-
-        if (onloadCallback)
-            connect(webR, 'status', {onLoad: onloadCallback}, 'onLoad');
-
-        webR.beBinary().beAsync().put(binaryData)
-        return webR;
-    }
-},
-'file reader events', {
-    onError: function(evt, spec) { alert('Error occured while loading file ' + spec.file.name) },
-    onLoadStart: function(evt, spec) { alertOK('Loading ' + spec.file.name) },
-    onLoadEnd: function(evt, spec) { alertOK('Finished ' + spec.file.name) },
-    onProgress: function(evt, spec) {
-        if (!evt.lengthComputable) return;
-        var percentage = Math.round((evt.loaded * 100) / evt.total);
-        alertOK('Loading ' + spec.file.name + ': ' + percentage + "%");
-    },
-    onLoad: function(evt) {
-        alert('Loaded file ' + spec.file.name + ' but don\'t know what to do now...!')
-    }
-},
-'image loading', {
-    onLoadImage: function(evt, spec) {
-        var img = new lively.morphic.Image(spec.pos.extent(pt(200,200)), evt.target.result, true).openInWorld();
-        img.name = spec.file.name;
-    },
-    onLoadImageBinary: function(evt, spec) {
-        this.uploadAndOpenImageTo(
-            URL.source.withFilename(spec.file.name),
-            spec.file.type, evt.target.result, spec.pos);
-    },
-
-    uploadAndOpenImageTo: function(url, mime, binaryData, pos) {
-        var onloadDo = function(status) {
-            if (!status.isDone()) return;
-            if (status.isSuccess()) this.openImage(url, mime, pos);
-            else alert('Failure uploading ' + url + ': ' + status);
-        }.bind(this)
-        var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
-    },
-
-    openImage: function(url, mime, pos) {
-        var name = new URL(url).filename(),
-            img = new lively.morphic.Image(pos.extent(pt(200,200)), url, true).openInWorld();
-        img.name = name;
-    }
-},
-'video loading', {
-    onLoadVideo: function(evt, spec) {
-        this.uploadAndOpenVideoTo(
-            URL.source.withFilename(spec.file.name),
-            spec.file.type, evt.target.result, spec.pos);
-    },
-
-    openVideo: function(url, mime, pos) {
-        // new lively.FileUploader().openVideo('http://lively-kernel.org/repository/webwerkstatt/documentation/videoTutorials/110419_ManipulateMorphs.mov', 'video/mp4')
-        module('lively.morphic.video.Video').load();
-        mime = mime || '';
-        var videoNode;
-        if (/*mime.include('webm')*/true) {
-            videoNode = XHTMLNS.create('video');
-            videoNode.width = 400;
-            videoNode.height = 300;
-            videoNode.controls = true;
-            videoNode.preload = true;
-            var sourceNode = XHTMLNS.create('source');
-            sourceNode.src = url;
-            videoNode.appendChild(sourceNode);
-
-            // if (mime.include('quicktime')) mime = mime.replace('quicktime', 'mp4');
-
-            // if (mime.include('mp4')) {
-            //     sourceNode.type = mime + '; codecs="avc1.42E01E, mp4a.40.2"'
-            // } else if (mime.include('webm')) {
-            //     sourceNode.type = mime //+ '; codecs="vp8, vorbis"'
-            // } else {
-            //     sourceNode.type = mime;
-            //     alert('video with type ' + mime + ' currently not supported');
-            // }
-        } else {
-            var embedNode = XHTMLNS.create('object');
-            embedNode.type = mime;
-            embedNode.data = url;
-            embedNode.play="false"
-            // embedNode.scale="tofit"
-            embedNode.width="400"
-            embedNode.height="400"
-            videoNode = embedNode
-            // XHTMLNS.create('object');
-            // videoNode.appendChild(embedNode)
-        }
-
-        // FIXME implement video morph?
-        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(videoNode));
-        morph.applyStyle({borderWidth: 1, borderColor: Color.black})
-        morph.openInWorld(pos);
-    },
-    uploadAndOpenVideoTo: function(url, mime, binaryData, pos) {
-        var onloadDo = function(status) {
-            if (!status.isDone()) return;
-            if (status.isSuccess()) this.openVideo(url, mime, pos)
-            else alert('Failure uploading ' + url + ': ' + status);
-        }.bind(this)
-        var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
-    },
-},
-'audio loading', {
-    onLoadAudio: function(evt, spec) {
-        if (spec.doUpload)
-            this.uploadAndOpenAudioTo(
-                URL.source.withFilename(spec.file.name),
-                spec.file.type, evt.target.result, spec.pos);
-        else
-            this.openAudio(spec.file.name, spec.file.type, evt.target.result, spec.pos);
-    },
-    openAudio: function(url, mime, data, pos) {
-        switch (mime) {
-            case 'audio/midi':
-                this.openMidi(url, data, pos);
-                break;
-            default:
-                alert("unknown type " + mime);
-        }
-    },
-
-    uploadAndOpenAudioTo: function(url, mime, binaryData, pos) {
-        var onloadDo = function(status) {
-            if (!status.isDone()) return;
-            if (status.isSuccess()) this.openAudio(url, mime, binaryData, pos)
-            else alert('Failure uploading ' + url + ': ' + status);
-        }.bind(this)
-        var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
-    },
-
-    openMidi: function(url, data, pos) {
-        var player = $morph('PianoKeyboard');
-        if (!player) {
-            player = $world.openPartItem('PianoKeyboard', 'PartsBin/Fun');
-            if (pos) player.setPosition(pos);
-        }
-        player.loadMidi(data);
-    }
-
-},
-'text loading', {
-    onLoadText: function(evt, spec) {
-        lively.morphic.World.current().addTextWindow({title: spec.file.name, content: evt.target.result});
-    },
-},
-'pdf loading', {
-    onLoadPDF: function(evt, spec) {
-        this.uploadAndOpenPDFTo(
-            URL.source.withFilename(spec.file.name),
-            spec.file.type, evt.target.result, spec.pos);
-    },
-    uploadAndOpenPDFTo: function(url, mime, binaryData, pos) {
-        var onloadDo = function(status) {
-            if (!status.isDone()) return;
-            if (status.isSuccess()) this.openPDF(url, mime, pos)
-            else alert('Failure uploading ' + url + ': ' + status);
-        }.bind(this)
-        var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
-    },
-
-    openPDF: function(url, mime, pos) {
-        if (false) {
-            var embedNode = XHTMLNS.create('embed');
-            embedNode.type = mime;
-            embedNode.src = url;
-            embedNode.width="400"
-            embedNode.height="400"
-            var pdfNode = embedNode
-        } else {
-            var objectNode = XHTMLNS.create('object');
-            objectNode.type = mime;
-            objectNode.data = url;
-            objectNode.width="400"
-            objectNode.height="400"
-            var linkNode = XHTMLNS.create('a');
-            linkNode.setAttribute('href', url);
-            linkNode.textContent = url
-            objectNode.appendChild(linkNode);
-            var pdfNode = objectNode;
-        }
-        // FIXME implement video morph?
-        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(pdfNode));
-        morph.addScript(function getURL() { return this.renderContext().shapeNode.childNodes[0].href })
-        morph.addScript(function setURL(url) {
-            this.renderContext().shapeNode.data = String(url);
-            this.renderContext().shapeNode.childNodes[0].href = String(url)
-            var owner = this.owner;
-            if (!owner) return;
-            this.remove();
-            owner.addMorph(this)
-        })
-
-        morph.applyStyle({borderWidth: 1, borderColor: Color.black})
-        morph.openInWorld(pos);
-    }
-
-},
-'drop handling', {
-    handleDroppedFiles: function(files, evt) {
-        // Seperate file types
-        var images = [], videos = [], audios = [], pdfs = [], texts = [];
-        for (var i = 0; i < files.length; i++) {
-            var file = files[i],
-                imageType = /image.*/,
-                videoType = /video.*/,
-                audioType = /audio.*/,
-                pdfType = /application\/pdf/,
-                textType = /text.*/;
-
-            if (file.type.match(imageType)) images.push(file);
-            else if (file.type.match(videoType)) videos.push(file);
-            else if (file.type.match(audioType)) audios.push(file);
-            else if (file.type.match(pdfType)) pdfs.push(file);
-            else texts.push(file);
-        }
-        var opt = evt.isAltDown();
-        this.loadAndOpenDroppedFiles(evt, images, {onLoad:  'onLoadImage' + (opt ? 'Binary' : ''), asBinary: opt});
-        this.loadAndOpenDroppedFiles(evt, videos, {onLoad: 'onLoadVideo', asBinary: true});
-        this.loadAndOpenDroppedFiles(evt, audios, {onLoad: 'onLoadAudio', asBinary: true, doUpload: opt});
-        this.loadAndOpenDroppedFiles(evt, pdfs, {onLoad: 'onLoadPDF', asBinary: true});
-        this.loadAndOpenDroppedFiles(evt, texts, {onLoad: 'onLoadText', asText: true});
-    },
-
-    loadAndOpenDroppedFiles: function(evt, files, options) {
-        var pos = evt.getPosition();
-        files.forEach(function(file, i) {
-            var fileReaderOptions = {
-                onLoad: options.onLoad || 'onLoad',
-                onError: options.onError || 'onError',
-                onLoadStart: options.onLoadStart || 'onLoadStart',
-                onLoadEnd: options.onLoadEnd || 'onLoadEnd',
-                onProgress: options.onProgress || 'onProgress',
-                file: file,
-                doUpload: options.doUpload,
-                pos: pos.addXY(15*i,15*i)
-            }, reader = this.getFileReader(fileReaderOptions);
-            if (options.asBinary) reader.readAsBinaryString(file);
-            else if (options.asText) reader.readAsText(file);
-            else reader.readAsDataURL(file);
-        }, this);
     }
 });
 

@@ -672,7 +672,10 @@ Object.extend(Rectangle, {
 
     fromElement: function(element) {
         // FIXME
-        if (element.namespaceURI == Namespace.XHTML) {
+        if (Object.isFunction(element.getBoundingClientRect)) {
+            var b = element.getBoundingClientRect();
+            return lively.rect(b.left, b.top, b.width, b.height);
+        } else if (element.namespaceURI == Namespace.XHTML) {
             var x = lively.data.Length.parse(element.style.left || 0),
                 y = lively.data.Length.parse(element.style.top || 0),
                 width = lively.data.Length.parse(element.style.width || 0),

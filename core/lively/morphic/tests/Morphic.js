@@ -142,7 +142,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
                 style: {'background': "-webkit-gradient(linear,0%0%,0%100%,from(rgb(204,0,0)),color-stop(0.8,rgb(0,204,0)))"}
             }]
         }
-        if (jQuery.browser.mozilla) {
+        if (UserAgent.fireFoxVersion) {
             expected = {
             tagName: 'div',
             childNodes: [{
@@ -166,7 +166,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
                 style: {'background': "-webkit-gradient(radial,50%30%,0,50%50%,25,from(rgb(204,0,0)),color-stop(0.8,rgb(0,204,0)))"}
             }]
         }
-        if (jQuery.browser.mozilla) {
+        if (UserAgent.fireFoxVersion) {
             expected = {
             tagName: 'div',
             childNodes: [{
@@ -210,7 +210,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
                 style: {'border-top-left-radius': /3.5px/}
             }]
         }
-        if (jQuery.browser.mozilla) {
+        // 2013-09-07 Uh! What's this for a hack?
+        if (UserAgent.fireFoxVersion) {
             expected = {
                 tagName: 'div',
                 childNodes: [{tagName: 'div',

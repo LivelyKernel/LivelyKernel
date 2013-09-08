@@ -4432,7 +4432,23 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 return all.concat(visitItem(ea, depth + 1)); });
         }
         return this.item && visitItem(this.item, 0);
-    }
+    },
+    withAllTreesDetect: function(iter, context, depth) {
+        // only iterates through expanded childNodes, not necessarily through
+        // all item children! See #withAllItemsDo
+        if (!depth) depth = 0;
+        if (iter.call(context || Global, this, depth))
+            return this;
+        var children = this.childNodes;
+        if (!children) return undefined;
+        for (var i = 0, len = children.length; i < len; i++) {
+            var detectedChild = children[i].withAllTreesDetect(iter, context, depth + 1);
+            if(detectedChild)
+                return detectedChild;
+        }
+        return undefined;
+    },
+
 });
 
 }) // end of module

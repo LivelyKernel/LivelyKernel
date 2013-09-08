@@ -212,13 +212,8 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         }
                         var tree = this.get("ObjectInspectorTree");
                         if(this.get("BindThisToSelection").checked) {
-                            try {
-                                tree.withAllTreesDo(function(t) {
-                                    if (t.item.isSelected) {
-                                        throw t;
-                                    }
-                                });
-                            } catch(selectedTree) {
+                            var selectedTree = tree.withAllTreesDetect(function(t) {return t.item.isSelected});
+                            if (selectedTree) {
                                 tree = selectedTree;
                             }
                         }
@@ -265,7 +260,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         }
                         var ambiguousLiterals = [];
                         var iter1 = function(seq) {
-                            while (seq.body.length > 0 && seq.body.last().type == 'BlockStatement') {
+                            if (seq.body.length > 0 && seq.body.last().type == 'BlockStatement') {
                                 seq = seq.body.last();
                             }
                             var lastChild = seq.body.last();
@@ -610,7 +605,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         if(i + 1 === (0 | ((o.length + 98) / 100))) {
                             end = (o.length - 1) % 100;
                         }
-                        var name = '' + i * 100 + '..' + (i * 100 + end + 1);
+                        var name = '' + i * 100 + '..' + (i * 100 + end);
                         var existingIndex = lookupKeys.indexOf(name);
                         if (existingIndex > -1) {
                             var existing = lookupValues.at(existingIndex);
@@ -643,7 +638,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     var end = item.end;
                     if(item.children.length - 1 == end - start) {
                         for(var i = start; i <= end; i++) {
-                            var existing = item.children[i + start];
+                            var existing = item.children[i - start];
                             existing.data = o[i];
                             this.decorate(existing);
                         }
@@ -710,14 +705,9 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 },
         setDoItContext: function setDoItContext(bindThisToSelection) {
                     if(bindThisToSelection) {
-                        try {
-                            this.tree.withAllTreesDo(function(t) {
-                                if (t.item.isSelected) {
-                                    throw t.item;
-                                }
-                            });
-                        } catch(selectedItem) {
-                            this.get("ObjectInspectorText").doitContext = selectedItem.data;
+                        var selectedTree = this.tree.withAllTreesDetect(function(t) {return t.item.isSelected});
+                        if (selectedTree) {
+                            this.get("ObjectInspectorText").doitContext = selectedTree.item.data;
                         }
                     } else {
                         this.get("ObjectInspectorText").doitContext = this.tree.getRootTree().item.data;

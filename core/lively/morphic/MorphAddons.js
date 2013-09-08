@@ -78,7 +78,7 @@ Object.extend(lively.morphic, {
         }
 
         function newShowElement(el) {
-            $(el).bounds({withMargin: true, withPadding: true}).show(2000);
+            lively.$(el).bounds({withMargin: true, withPadding: true}).show(2000);
         }
 
         function newShowThenHide (morphOrMorphs, duration) {
@@ -92,15 +92,17 @@ Object.extend(lively.morphic, {
             }
         }
 
-        if (!obj) return null;
-        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); lively.morphic.alert(msg); return msg; }
-        else if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
-        else if (obj instanceof lively.Point) return newShowPt(obj);
-        else if (obj instanceof lively.Line) return newShowLine(obj);
-        else if (obj instanceof Rectangle) return newShowRect(obj);
-        else if (obj.isMorph) return newShowMorph(obj);
-        else if (obj instanceof HTMLElement) return newShowElement(obj);
-        else { var msg = Strings.format("%o", obj); lively.morphic.alert(msg); return msg; }
+        if (!obj) { lively.morphic.show(String(obj)); }
+        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); lively.morphic.alert(msg); }
+        else if (Object.isArray(obj)) obj.forEach(function(ea) { lively.morphic.show(ea) });
+        else if (obj instanceof lively.Point) newShowPt(obj);
+        else if (obj instanceof lively.Line) newShowLine(obj);
+        else if (obj instanceof lively.Rectangle) newShowRect(obj);
+        else if (obj.isMorph) newShowMorph(obj);
+        else if (obj instanceof Global.HTMLElement) newShowElement(obj);
+        else if (obj instanceof Global.Element && obj.getBoundingClientRect) { var b = obj.getBoundingClientRect(); newShowRect(lively.rect(b.left,b.top,b.width,b.height)); }
+        else { var msg = Strings.format("%o", obj); lively.morphic.alert(msg); }
+        return obj;
     },
 
     alertDbg: function(msg) {

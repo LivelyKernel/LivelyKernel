@@ -2078,6 +2078,24 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             return combo.startsWith(prefix) ? combo : null; }).compact();
     },
 
+    addTempKeyCombo: function(combo, cmdName, tempGroup) {
+        if (!tempGroup) throw new Error('addTempKeyCombo needs a tempGroup name');
+        var existingCommand = this.lookupAll(combo.split(' '));
+        if (existingCommand) {
+            if (!this.bindings.$overwrites) this.bindings.$overwrites = {};
+            if (!this.bindings.$overwrites[combo]) this.bindings.$overwrites[combo] = existingCommand;
+        }
+        return this.addKeyCombo(combo, cmdName);
+    },
+    removeTempKeyCombo: function(combo) {
+        if (this.bindings.$overwrites && this.bindings.$overwrites[combo]) {
+            this.addKeyCombo(combo, this.bindings.$overwrites[combo]);
+            delete this.bindings.$overwrites[combo];
+        } else {
+            delete this.bindings[combo];
+        }
+    },
+
     addKeyCombo: function(combo, cmdName) {
         if (!combo.length) return;
 
@@ -2249,7 +2267,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
 
 Object.extend(lively.morphic.KeyboardDispatcher, {
     global: function() {
-        var global = this._global || (this._global = new this(lively.ide.commands.defaultBindings));
+        var global = this._global || (this._global = new this(lively.ide.commands.getKeyboardBindings()));
         if (!global.keyInputState) global.keyInputState = {prevKeys: [], commandName: null};
         return global
     },

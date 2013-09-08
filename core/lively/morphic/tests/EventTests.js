@@ -284,6 +284,38 @@ TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
         keyInputState = this.sut.updateInputStateFromEvent(evt2, keyInputState);
         this.assertEquals('test', keyInputState.commandName, 3);
         this.assertEquals(0, keyInputState.prevKeys.length, 4);
+    },
+
+    testAddTempBindings: function() {
+        function evt(key) { return {getKeyString: function() { return key; }}}
+        var keyInputState = {prevKeys: []}, cmd;
+
+        this.sut.addTempKeyCombo("y", 'test', 'testGroup');
+        cmd = this.sut.updateInputStateFromEvent(evt('y'), keyInputState).commandName;
+        this.assertEquals('test', keyInputState.commandName, '1');
+
+        this.sut.removeTempKeyCombo("y");
+        cmd = this.sut.updateInputStateFromEvent(evt('y'), keyInputState).commandName;
+        this.assert(!cmd, '2 ' + cmd);
+    },
+
+    testAddTempBindingsWithOverwrite: function() {
+        function evt(key) { return {getKeyString: function() { return key; }}}
+        var keyInputState = {prevKeys: []}, cmd;
+
+        this.sut.addKeyCombo("x", 'test');
+        cmd = this.sut.updateInputStateFromEvent(evt('x'), keyInputState).commandName;
+        this.assertEquals('test', keyInputState.commandName, '1');
+
+        this.sut.addTempKeyCombo("x", 'test2', 'testGroup');
+        // add it multiple times, just for fun
+        this.sut.addTempKeyCombo("x", 'test2', 'testGroup');
+        cmd = this.sut.updateInputStateFromEvent(evt('x'), keyInputState).commandName;
+        this.assertEquals('test2', keyInputState.commandName, '2');
+
+        this.sut.removeTempKeyCombo("x");
+        cmd = this.sut.updateInputStateFromEvent(evt('x'), keyInputState).commandName;
+        this.assertEquals('test', keyInputState.commandName, '3');
     }
 
 });

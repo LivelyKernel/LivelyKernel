@@ -15,7 +15,8 @@ Object.extend(lively.ide.commands, {
     addCommand: function(name, command) {
         if (!command) delete lively.ide.commands.byName[name];
         else lively.ide.commands.byName[name] = command;
-    }
+    },
+    getKeyboardBindings: function() { return this.defaultBindings; }
 });
 
 Object.extend(lively.ide.commands.byName, {

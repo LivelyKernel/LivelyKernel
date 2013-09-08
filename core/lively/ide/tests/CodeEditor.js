@@ -199,6 +199,14 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
                 next();
             });
         }, function() { test.done(); });
+    },
+
+    testEvalGlobalVarAssignment: function() {
+        var e = this.editor, varName = '__' + this.selector;
+        e.textString = Strings.format("%s = 42;");
+        e.aceEditor.execCommand('doit');
+        this.assertEquals(42, Global[varName], 'eval not successful');
+        this.done();
     }
 
 });

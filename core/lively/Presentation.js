@@ -192,33 +192,55 @@ Object.extend(lively.Presentation.PageMorph, {
     },
 });
 
-cop.create("PresentationShortcutLayer")
-.beGlobal()
-.refineClass(lively.morphic.World, {
-    onKeyDown: function(evt) {
-        if (!this.currentScene) return cop.proceed(evt);
-        if (cop.proceed(evt)) return true;
-        if (!Config.pageNavigationWithKeys) return false;
-        var c = evt.getKeyCode();
-        if (c == Event.KEY_LEFT) {
-            lively.Presentation.prevSlide();
-            evt.stop();
-            return true;
+Object.extend(lively.Presentation, {
+    presentationKeyCommands: (function() {
+        function inPresentationContextDo(func) {
+            if (!$world.currentScene || event.isCommandKey() || !Config.pageNavigationWithKeys) return false;
+            var controller = $world.currentPresentationController;
+            controller && func.call(null, controller);
+            return !!controller;
         }
-        if (c == Event.KEY_RIGHT) {
-            lively.Presentation.nextSlide();
-            evt.stop();
-            return  true;
+        return {
+            "lively.Presentation.prevSlide": {
+                description: 'prev slide',
+                exec: inPresentationContextDo.curry(function(controller) { controller.prevSlide(); })
+            },
+            "lively.Presentation.nextSlide": {
+                description: 'next slide',
+                exec: inPresentationContextDo.curry(function(controller) { controller.nextSlide(); })
+            },
+            "lively.Presentation.end": {
+                description: 'exit presentation',
+                exec: inPresentationContextDo.curry(function(controller) {
+                    alertOK('presentation stopped'); controller.endPresentation(); })
+            }
         }
-        if (c == Event.KEY_ESC) {
-            var btn = $morph('exitBtn');
-            btn && btn.doAction()
-            evt.stop();
-            return  true;
-        }
-        return false;
+    })(),
+    presentationKeyBindings: {
+        "lively.Presentation.prevSlide": "left",
+        "lively.Presentation.nextSlide": "right",
+        "lively.Presentation.end": "esc"
     },
+    enablePresentationKeyBindings: function() {
+        var keyDispatcher = lively.morphic.KeyboardDispatcher.global();
+        Properties.forEachOwn(this.presentationKeyBindings, function(cmd, key) {
+            keyDispatcher.addTempKeyCombo(key, cmd, 'lively.Presentation'); });
+    },
+    disablePresentationKeyBindings: function() {
+        var keyDispatcher = lively.morphic.KeyboardDispatcher.global();
+        Properties.forEachOwn(this.presentationKeyBindings, function(cmd, key) {
+            keyDispatcher.removeTempKeyCombo(key); });
+    },
+    registerKeyCommands: function() {
+        Object.extend(lively.ide.commands.byName, this.presentationKeyCommands);
+    }
 });
+
+(function setupKeyboardCommands() {
+    require("lively.ide.commands.default").toRun(function() {
+        lively.Presentation.registerKeyCommands();
+    });
+})();
 
 // Show shortcuts
 cop.create('ShowShortcutsLayer').refineClass(lively.morphic.Text, {
@@ -258,35 +280,6 @@ cop.create('NewMorphicPresentationCompatLayer')
 })
 .refineClass(lively.morphic.Morph, {
     get droppingEnabled() { return !this.isSlideOverlay && cop.proceed() },
-});
-
-cop.create("NewMorphicPresentationShortcutLayer")
-.refineClass(lively.morphic.World, {
-    onKeyDown: function(evt) {
-        if (!this.currentScene) return cop.proceed(evt);
-        if (!this.isFocused()) return cop.proceed(evt);
-        if (evt.isCommandKey() || !Config.pageNavigationWithKeys) return cop.proceed(evt);
-        var controller = this.currentPresentationController;
-        if (!controller) return cop.proceed(evt);
-        var c = evt.getKeyCode();
-        if (c == Event.KEY_LEFT && !this.currentHaloTarget) {
-            controller.prevSlide();
-            evt.stop();
-            return true;
-        }
-        if (c == Event.KEY_RIGHT && !this.currentHaloTarget) {
-            controller.nextSlide();
-            evt.stop();
-            return  true;
-        }
-        if (c == Event.KEY_ESC) {
-            controller.endPresentation();
-            alert('presentation stopped')
-            evt.stop();
-            return  true;
-        }
-        return cop.proceed(evt);
-    },
 });
 
 lively.morphic.WindowedApp.addMethods(

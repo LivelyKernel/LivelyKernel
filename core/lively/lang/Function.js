@@ -352,16 +352,16 @@ Global.Functions = {
     },
 
     timeToRun: function(func) {
-        var startTime = (new Date()).getTime();
+        var startTime = Date.now();
         func();
-        return new Date().getTime() - startTime;
+        return Date.now() - startTime;
     },
 
-    timeToRunN: function(func, n) {
-        var time = 0;
+    timeToRunN: function(func, n, arg0, arg1, arg2) {
+        var startTime = Date.now();
         for (var i = 0; i < n; i++)
-        time += Functions.timeToRun(func);
-        return time / n;
+            func(arg0, arg1, arg2);
+        return (Date.now() - startTime) / n;
     },
 
     notYetImplemented: function() {

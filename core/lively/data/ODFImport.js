@@ -1,6 +1,6 @@
 module('lively.data.ODFImport').requires('lively.data.FileUpload').toRun(function() {
 
-lively.FileUploader.subclass('lively.Clipboard.ODFUploader', {
+lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
 
     handles: function(file) {
         return file.type.match(/application\/.*opendocument.*/);

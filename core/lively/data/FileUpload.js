@@ -115,4 +115,15 @@ Object.extend(lively.data.FileUpload, {
     }
 });
 
+(function loadFileUploadHandlers() {
+    var handlerModules = ["lively.data.ODFImport",
+                          "lively.data.FileUpload",
+                          "lively.data.PDFUpload",
+                          "lively.data.ImageUpload",
+                          "lively.data.VideoUpload",
+                          "lively.data.AudioUpload",
+                          "lively.data.TextUpload"];
+    handlerModules.map(module).invoke('load');
+})();
+
 }) // end of module

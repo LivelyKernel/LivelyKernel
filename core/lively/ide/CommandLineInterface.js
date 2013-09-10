@@ -984,4 +984,21 @@ lively.ide.CommandLineInterface.GitSupport = {
     }
 };
 
+lively.ide.CommandLineInterface.SpellChecker = {
+    spellCheckWord: function(word, thenDo) {
+        // for input "hrlp" aspell returns the output:
+        // @(#) International Ispell Version 3.1.20 (but really Aspell 0.60.6.1)
+        // & hrlp 5 0: help, harelip, helper, Harold, herald
+        lively.ide.CommandLineInterface.run('aspell -a', {stdin: word}, function(cmd) {
+            var out = cmd.resultString();
+            if (cmd.getCode()) { thenDo(out, []); return }
+            var result = Strings.lines(out)[1];
+            // if there are suggestions they come after a ":"
+            if (!result || !result.length || !result.include(':')) { thenDo(null, []); return; }
+            var suggestions = result.split(':').last().trim().split(/,\s?/);
+            thenDo(null, suggestions);
+        });
+    }
+}
+
 }) // end of module

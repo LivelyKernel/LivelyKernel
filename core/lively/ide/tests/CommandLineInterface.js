@@ -356,4 +356,24 @@ TestCase.subclass("lively.ide.tests.CommandLineInterface.CommandLineSearch",
     }
 });
 
+AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.SpellChecker',
+'testing', {
+    testCheckWord: function() {
+        var suggestions;
+        lively.ide.CommandLineInterface.SpellChecker.spellCheckWord('hrlp', function(err, result) {
+            suggestions = result;
+        });
+        this.waitFor(function() { return !!suggestions; }, 10, function() {
+            this.assert(suggestions.include('help'), 'suggestions ' + suggestions);
+            this.done();
+        });
+    },
+    testCheckCorrectWord: function() {
+        lively.ide.CommandLineInterface.SpellChecker.spellCheckWord('checker', function(err, suggestions) {
+            this.assertEquals(0, suggestions.length, 'suggestions ' + suggestions);
+            this.done();
+        }.bind(this));
+    }
+});
+
 }) // end of module

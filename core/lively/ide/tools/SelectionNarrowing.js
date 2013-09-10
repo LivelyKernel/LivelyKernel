@@ -278,7 +278,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         //         ?test: function(filter, candidate) {/**/},
         //         ?sort
         //     }
-        var narrower = this;
+        var narrower = this, focusedMorph = lively.morphic.Morph.focusedMorph();
         function run() {
             var candidates = (Object.isArray(spec.candidates) ?
                     spec.candidates : spec.candidates()) || [], history;
@@ -304,13 +304,16 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 candidatesUpdaterMinLength: spec.candidatesUpdaterMinLength,
                 keepInputOnReactivate: spec.keepInputOnReactivate,
                 completeInputOnRightArrow: spec.completeInputOnRightArrow,
-                filters: []
+                filters: [],
+                focusedMorph: focusedMorph,
+                refocusOnClose: spec.refocusOnClose || false
             });
         }
         if (spec.init) spec.init(this, run); else run();
         return this;
     },
     activate: function activate() {
+        this.state.focusedMorph = lively.morphic.Morph.focusedMorph();
         this.renderContainer(this.state.layout);
         var inputLine = this.get('inputLine')
         if (!this.state.keepInputOnReactivate) inputLine.clear();
@@ -319,6 +322,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     deactivate: function activate() {
         lively.ide.tools.SelectionNarrowing.lastActive = this;
         $world.activateTopMostWindow();
+        if (this.state.refocusOnClose && this.state.focusedMorph) this.state.focusedMorph.focus();
         this.setVisible(false);
     },
     renderContainer: function renderContainer(layout) {

@@ -40,7 +40,8 @@ function runR(rState, args, thenDo) {
 
     debug && rState.process.stdout.on('data', function (data) {
         console.log('STDOUT: ' + data); });
-    debug && rState.process.stderr.on('data', function (data) {
+    // debug && 
+    rState.process.stderr.on('data', function (data) {
         console.log('STDERR: ' + data); });
 
     rState.process.on('close', function (code) {
@@ -99,21 +100,20 @@ function evalRExpression(rState, options, expr, thenDo) {
 }
 
 function withLivelyREvaluateDo(rState, options, expr, thenDo) {
-    var template = "if (\"package:LivelyREvaluate\" %in% search()) {\n"
-                 + "    %s\n"
-                 + "} else {\n"
-                 + "    warning(\"package LivelyREvaluate not installed\")\n"
-                 + "}\n",
-        code = util.format(template, expr);
-    evalRExpression(rState, options, code, thenDo);
+    // var template = "if (\"package:LivelyREvaluate\" %in% search()) {\n"
+    //             + "    %s\n"
+    //             + "} else {\n"
+    //             + "    warning(\"package LivelyREvaluate not installed\")\n"
+    //             + "}\n",
+    //    code = util.format(template, expr);
+    evalRExpression(rState, options, expr, thenDo);
 }
 
 function startEvalInSubprocess(rState, options, id, expr, thenDo) {
-    var code = util.format("LivelyREvaluate::evaluate('%s', '%s')",
+    var code = util.format("LivelyREvaluate::evaluate('%s', '%s', exit=FALSE)",
         id, expr.trim().replace(/\'/g, '\\\''));
-    withLivelyREvaluateDo(rState, options, code, function(err) {
-        getSubprocessResult(rState, options, id, thenDo);
-    });
+    withLivelyREvaluateDo(rState, options, code, thenDo);
+    //getSubprocessResult(rState, options, id, thenDo);         ael - wait for client to send explicitly
 }
 
 function getSubprocessResult(rState, options, id, thenDo) {
@@ -147,6 +147,7 @@ function cleanup(subserver) {
     console.log('RServer is shutting down...');
     if (state.process) state.process.kill();
     subserver && subserver.removeAllListeners();
+    state = {};
 }
 
 module.exports = domain.bind(function(route, app, subserver) {
@@ -207,7 +208,7 @@ module.exports = domain.bind(function(route, app, subserver) {
     app.post(route + 'reset', function(req, res) {
         console.log('Resetting R process');
         cleanup();
-        res.json({message: 'R process resetted'}).end();
+        res.json({message: 'R process reset'}).end();
     });
 
     app.post(route + 'setDebug', function(req, res) {

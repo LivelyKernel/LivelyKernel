@@ -549,6 +549,51 @@ Object.extend(lively.ide.commands.byName, {
                 JSLoader.loadJs(url);
             }, 'http://lively-web.org/say-hello.js');
         }
+    },
+    "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": {
+        description: 'spell check word',
+        exec: function(word, callback) {
+            var withResultDo;
+            if (word && callback) {
+                withResultDo = callback
+            } else {
+                var focused = lively.morphic.Morph.focusedMorph();
+                if (focused && focused.isCodeEditor) {
+                    if (focused.owner && focused.owner.isNarrowingList)
+                        focused = focused.owner.state.focusedMorph;
+                }
+                if (focused && focused.isCodeEditor) {
+                    var wordRange = focused.wordRangeAtPoint();
+                    word = focused.getTextRange(wordRange);
+                    withResultDo = function(candidate) {
+                        if (!candidate || !Object.isString(candidate)) return;
+                        focused.replace(wordRange, candidate);
+                    }
+                } else {
+                    // TODO: ask for word
+                    show('no word for spellcheck!'); return;
+                }
+            }
+            function openNarrowerForSuggestions(suggestions) {
+                lively.ide.tools.SelectionNarrowing.getNarrower({
+                    name: "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord",
+                    input: '',
+                    spec: {
+                        prompt: 'pick corrected word: ',
+                        candidates: suggestions,
+                        actions: [
+                            {name: 'with corrected word action', exec: withResultDo
+                        }]
+                    }
+                });
+            }
+            lively.ide.CommandLineInterface.SpellChecker.spellCheckWord(word, function(err, suggestions) {
+                if (err) { show(err); return; }
+                if (!suggestions.length) { alertOK(word + ' is OK!'); return; }
+                openNarrowerForSuggestions(suggestions);
+            });
+            return true;
+        }
     }
 });
 
@@ -572,6 +617,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.List.selectItem': "m-space",
     'lively.ide.CommandLineInterface.doGrepSearch': {mac: "cmd-s-g", win: 'ctrl-s-g'},
     'lively.ide.execShellCommand': "m-s-!",
+    "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
     'lively.ide.commands.execute': "m-x"
 });
 

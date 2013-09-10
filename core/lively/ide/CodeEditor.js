@@ -487,6 +487,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 
 },
+'thing at point', {
+    wordAtPoint: function() {
+        var range = this.wordRangeAtPoint();
+        return range ? this.getTextRange(range) : '';
+    },
+    wordRangeAtPoint: function() {
+        return this.withAceDo(function(ed) {
+            var p = ed.getCursorPosition();
+            return ed.session.getWordRange(p.row, p.column);
+        });
+    },
+},
 'snippets', {
     getSnippets: function() {
         return this.constructor.snippets || new lively.morphic.CodeEditorSnippets();
@@ -735,6 +747,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'text morph selection interface', {
 
     saveExcursion: function(doFunc) {
+        // will remember the current selection. doFunc can change the
+        // selection, cursor position etc and then invoke the passed in callback
+        // `reset` to undo those changes
         var currentRange = this.getSelectionRangeAce(), self = this;
         function reset() { self.setSelectionRangeAce(currentRange); }
         return doFunc.call(this, reset);
@@ -786,6 +801,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             range =  editor.getSelectionRange();
         }
         return editor.session.getTextRange(range);
+    },
+
+    getSelectionOrWordString: function() {
+        var sel = this.getSelection();
+        if (!sel) return "";
+        if (sel.isEmpty()) return this.wordAtPoint();
+        return this.getTextRange();
     },
 
     getSelectionMaybeInComment: function() {
@@ -970,8 +992,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             ed.session.insert(pos, string);
         });
     },
+
     insertAtCursor: function(string, selectIt, overwriteSelection) {
         this.withAceDo(function(ed) { ed.onPaste(string) });
+    },
+
+    replace: function(range, text) {
+        return this.withAceDo(function(ed) {
+            return ed.session.replace(range, text);
+        });
     },
 
     doSave: function() {

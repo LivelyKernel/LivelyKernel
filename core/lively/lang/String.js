@@ -127,7 +127,7 @@ Global.Strings = {
     // adapted from firebug lite
     formatFromArray: function Strings$formatFromArray(objects) {
         var self = objects.shift();
-        if(!self) {console.log("Error in Strings>>formatFromArray, self is undefined")};
+        if(self==undefined) {console.log("Error in Strings>>formatFromArray, self is undefined")};
 
         function appendText(object, string) {
             return "" + object;

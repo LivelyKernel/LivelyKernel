@@ -92,7 +92,7 @@ Object.extend(lively.morphic, {
             }
         }
 
-        if (!obj) { lively.morphic.show(String(obj)); }
+        if (!obj && !Object.isString(obj)) { lively.morphic.show(String(obj)); }
         else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); lively.morphic.alert(msg); }
         else if (Object.isArray(obj)) obj.forEach(function(ea) { lively.morphic.show(ea) });
         else if (obj instanceof lively.Point) newShowPt(obj);

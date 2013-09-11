@@ -2228,6 +2228,9 @@ lively.morphic.DropDownList.addMethods(
     },
 });
 lively.morphic.Box.subclass('lively.morphic.MorphList',
+// Example:
+// list = new lively.morphic.MorphList([1,2,3]).openInWorldCenter()
+// list.initializeLayout({type: "vertical",spacing: 5, border: 3});
 'settings', {
     style: {
         fill: Color.gray.lighter(3),
@@ -2241,7 +2244,8 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         borderColor: Color.gray,
         borderWidth: 1,
         fixedHeight: false,
-        fixedWidth: true
+        fixedWidth: false,
+        allowInput: false
     },
     isList: true
 },

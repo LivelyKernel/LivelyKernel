@@ -176,17 +176,17 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         }
         return false;
     },
-    onKeyDown: function(evt) {
+    onKeyDown: function($super, evt) {
         if (this.isValidEvent(evt) && this.isActive) {
-            this.activate();
+            this.activate(); evt.stop(); return true;
         }
-        return false;
+        return $super(evt);
     },
-    onKeyUp: function(evt) {
+    onKeyUp: function($super, evt) {
         if (this.isValidEvent(evt) && this.isPressed) {
-            this.deactivate();
+            this.deactivate(); evt.stop(); return true;
         }
-        return false;
+        return $super(evt);
     },
     simulateButtonClick: function() {
         var world = this.world() || lively.morphic.World.current(),

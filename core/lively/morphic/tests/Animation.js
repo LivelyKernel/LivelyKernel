@@ -4,8 +4,7 @@ module('lively.morphic.tests.Animation').requires('lively.morphic.tests.Helper',
 AsyncTestCase.subclass('lively.morphic.tests.Animation.BasicBehavior',// lively.morphic.tests.MorphTests.prototype,
 'testing', {
     testAnimationInstructionAppearAndDisapear: function() {
-        var morph = {visible:false}
-        this.spy(morph, 'setVisible', function(arg) { this.visible = arg; })
+        var morph = {visible:false, setVisible: function(arg) { this.visible = arg; }};
         new lively.morphic.Animation.Appear('withPrevious', morph).run();
         this.assertEquals(true, morph.visible, 'appear');
         new lively.morphic.Animation.Disappear('withPrevious', morph).run();
@@ -16,16 +15,13 @@ AsyncTestCase.subclass('lively.morphic.tests.Animation.BasicBehavior',// lively.
     testAnimationSequence: function() {
         var test = this,
             morphs = Array.range(1,2).map(function(i) {
-                var m = {visible: false};
-                test.spy(m, 'setVisible', function(arg) { this.visible = arg; });
-                return m; })
-        var animSeq = new lively.morphic.Animation.Sequence('withPrevious', [
-            new lively.morphic.Animation.Appear('withPrevious', morphs[0]),
-            new lively.morphic.Animation.Appear('withPrevious', morphs[1])]);
-        var nextStep = animSeq.run();
+                return {visible: false, setVisible: function(arg) { this.visible = arg; }}; }),
+            animSeq = new lively.morphic.Animation.Sequence('withPrevious', [
+                new lively.morphic.Animation.Appear('withPrevious', morphs[0]),
+                new lively.morphic.Animation.Appear('withPrevious', morphs[1])]),
+            nextStep = animSeq.run();
         this.assertEquals(true, morphs[0].visible, 'morph 1');
         this.assertEquals(true, morphs[1].visible, 'morph 2');
-        // show(nextStep)
         this.assertEqualState({steps: [], when: ''}, nextStep, 'nextStep');
         this.done();
     },
@@ -33,15 +29,13 @@ AsyncTestCase.subclass('lively.morphic.tests.Animation.BasicBehavior',// lively.
     testAnimationSequenceWithStop: function() {
         var test = this,
             morphs = Array.range(1,3).map(function(i) {
-                var m = {visible: false};
-                test.spy(m, 'setVisible', function(arg) { this.visible = arg; });
-                return m; })
-        var animStep = new lively.morphic.Animation.Sequence('withPrevious', [
-            new lively.morphic.Animation.Appear('withPrevious', morphs[0]),
-            new lively.morphic.Animation.Appear('withPrevious', morphs[1]),
-            new lively.morphic.Animation.Appear('onClick', morphs[2])]);
+                return {visible: false, setVisible: function(arg) { this.visible = arg; }}; }),
+            animStep = new lively.morphic.Animation.Sequence('withPrevious', [
+                new lively.morphic.Animation.Appear('withPrevious', morphs[0]),
+                new lively.morphic.Animation.Appear('withPrevious', morphs[1]),
+                new lively.morphic.Animation.Appear('onClick', morphs[2])]),
+            nextStep = animStep.run();
 
-        var nextStep = animStep.run();
         this.assertEquals(true, morphs[0].visible, 'morph 1');
         this.assertEquals(true, morphs[1].visible, 'morph 2');
         this.assertEquals(false, morphs[2].visible, 'morph 3');

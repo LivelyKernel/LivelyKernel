@@ -1849,6 +1849,21 @@ lively.morphic.World.addMethods(
 
     getScrollOffset: function () {
         return this.visibleBounds().topLeft();
+    },
+
+    scrollTo: function(x, y) {
+        Global.scrollTo(x, y);
+    },
+
+    scrollToAnimated: function(x, y, time, thenDo) {
+        if (UserAgent.isChrome) {
+             $('body').animate({scrollLeft: x, scrollTop: y}, time, 'swing', thenDo);
+             return;
+        }
+        var el = UserAgent.fireFoxVersion ? 'html' : 'body';
+        $(el).animate({scrollLeft: x}, time/2, 'swing', function() {
+            $(el).animate({scrollTop: y}, time/2, 'swing', thenDo);
+        });
     }
 });
 
@@ -2236,7 +2251,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             var kbd = ed.keyBinding.$handlers.first(); //ed.getKeyboardHandler();
             var bindings = kbd.commmandKeyBinding;
             if (false && kbd.isEmacs) {
-                return Object.keys(bindings).map(function(keys) { 
+                return Object.keys(bindings).map(function(keys) {
                     if (!bindings[keys]
                      || bindings[keys] === 'null'
                      || bindings[keys] === 'prefix') return null;

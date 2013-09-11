@@ -2236,6 +2236,13 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         borderStyle: 'outset',
         grabbingEnabled: false, draggingEnabled: false
     },
+    listItemStyle: {
+        fill: null,
+        borderColor: Color.gray,
+        borderWidth: 1,
+        fixedHeight: false,
+        fixedWidth: true
+    },
     isList: true
 },
 'initializing', {
@@ -2279,6 +2286,14 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         this.setLayouter(layouter);
     }
 },
+"styling", {
+    setListItemStyle: function(style) {
+        this.listItemStyle = style;
+        this.itemMorphs.forEach(function(itemMorph) {
+            itemMorph.applyStyle(style);
+        });
+    },
+},
 'morphic', {
     addMorph: function($super, morph, optMorphBefore) {
         if (morph.isPlaceholder || morph.isEpiMorph || this.itemMorphs.include(morph)) {
@@ -2317,6 +2332,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         var string = listItem.string || String(listItem);
         var listItemMorph = new lively.morphic.Text(lively.rect(0,0,100,20), string);
         listItemMorph.item = listItem;
+        listItemMorph.applyStyle(this.listItemStyle);
         return listItemMorph;
     },
     updateList: function(items) {

@@ -475,11 +475,20 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
 
     getItemMorphs: function() { return this.itemMorphs; },
 
+    getItemMorphForListItem: function(listItem) {
+        return listItem ?
+            this.itemMorphs.detect(function(itemMorph) { return itemMorph.item === listItem; }) :
+            null;
+    },
+
     addItem: function(item) {
         this.updateList(this.itemList.concat([item]));
     },
 
     find: function (itemOrValue) {
+        if (!itemOrValue) return undefined;
+        // if we hand in a itemListMorph:
+        if (itemOrValue.isMorph && itemOrValue.item) itemOrValue = itemOrValue.item;
         // returns the index in this.itemList
         for (var i = 0, len = this.itemList.length; i < len; i++) {
             var val = this.itemList[i];
@@ -496,7 +505,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     },
     
     saveSelectAt: function(idx) {
-        // this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
+        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
     },
 
     deselectAt: function(idx) {
@@ -509,23 +518,15 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },
 
-    setList: function(items) {
-        return this.updateList(items);
-    },
-    getList: function() {
-        return this.itemList;
-    },
+    setList: function(items) { return this.updateList(items); },
+    getList: function() { return this.itemList; },
     getValues: function() {
         return this.getList().collect(function(ea) { return ea.isListItem ? ea. value : ea});
     },
 
-    setSelection: function(sel) {
-        // this.selectAt(this.find(sel));
-    },
+    setSelection: function(sel) { return this.selectAt(this.find(sel)); },
     getSelection: function() { return this.selection },
-    getItem: function(value) {
-        // return this.itemList[this.find(value)];
-    },
+    getItem: function(value) { return this.itemList[this.find(value)]; },
     removeItemOrValue: function(itemOrValue) {
         var idx = this.find(itemOrValue), item = this.itemList[idx];
         this.updateList(this.itemList.without(item));
@@ -533,20 +534,42 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     },
 
     getSelectedItem: function() {
-        // return this.selection && this.selection.isListItem ?
-        //     this.selection : this.itemList[this.selectedLineNo];
+        var idx = this.find(this.selection);
+        if (idx === undefined) return undefined;
+        return this.itemList[idx];
+    },
+
+    moveItemToIndex: function(itemOrValue, toIndex) {
+        if (toIndex < 0 || toIndex >= this.itemList.length) return;
+        // update listItems, submorphs and listMorphs order, morph positions
+        var fromIndex = this.find(itemOrValue),
+            fromItem = this.itemList[fromIndex],
+            toItem = this.itemList[toIndex],
+            fromMorph = this.getItemMorphForListItem(fromItem),
+            toMorph = this.getItemMorphForListItem(toItem),
+            fromPos = fromMorph.getPosition(),
+            toPos = toMorph.getPosition(),
+            fromMorphicIndex = this.submorphs.indexOf(fromMorph),
+            toMorphicIndex = this.submorphs.indexOf(toMorph);
+        fromMorph.setPosition(toPos);
+        toMorph.setPosition(fromPos);
+        this.submorphs.swap(fromMorphicIndex, toMorphicIndex);
+        this.itemMorphs.swap(fromIndex, toIndex);
+        this.itemList.swap(fromIndex, toIndex);
+        this.applyLayout();
+    },
+    moveItemBy: function(itemOrValue, delta) {
+        if (!itemOrValue) return;
+        var idx = this.find(itemOrValue),
+            item = this.itemList[idx];
+        if (idx === undefined) return;
+        this.moveItemToIndex(item, idx+delta);
     },
     moveUpInList: function(itemOrValue) {
-        // if (!itemOrValue) return;
-        // var idx = this.find(itemOrValue);
-        // if (idx === undefined) return;
-        // this.changeListPosition(idx, idx-1);
+        this.moveItemBy(itemOrValue, +1);
     },
     moveDownInList: function(itemOrValue) {
-        // if (!itemOrValue) return;
-        // var idx = this.find(itemOrValue);
-        // if (idx === undefined) return;
-        // this.changeListPosition(idx, idx+1);
+        this.moveItemBy(itemOrValue, -1);
     },
     clearSelections: function() {
         // this.renderContextDispatch('clearSelections');

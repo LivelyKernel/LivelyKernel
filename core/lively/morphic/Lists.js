@@ -631,6 +631,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
 'event handling', {
     getListItemFromEvent: function(evt) {
         var morph = evt.getTargetMorph();
+        if (morph.hasOwnListItemBehavior) return null;
         if (this.itemMorphs.include(morph)) return morph;
         var owners = morph.ownerChain();
         if (!owners.include(this)) return null;

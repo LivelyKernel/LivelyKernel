@@ -2087,10 +2087,18 @@ lively.morphic.List.addMethods(
 'list interface', {
     getMenu: function() { /*FIXME actually menu items*/ return [] },
     updateList: function(items) {
-        if (!items) items = [];
-        this.itemList = items;
+        this.clearSelections();
+        var newIndexForOldSelection = -1;
+        if (!items) {
+            this.itemList = [];
+        } else {
+            this.itemList = items;
+            if(this.selection)
+                newIndexForOldSelection = this.find(this.selection);
+        }
         var itemStrings = items.collect(function(ea) { return this.renderFunction(ea); }, this);
         this.renderContextDispatch('updateListContent', itemStrings);
+        this.selectAt(newIndexForOldSelection);
     },
     addItem: function(item) {
         this.updateList(this.itemList.concat([item]));

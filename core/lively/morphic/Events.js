@@ -1864,7 +1864,13 @@ lively.morphic.World.addMethods(
         $(el).animate({scrollLeft: x}, time/2, 'swing', function() {
             $(el).animate({scrollTop: y}, time/2, 'swing', thenDo);
         });
+    },
+
+    scrollByAnimated: function(x, y, time, thenDo) {
+        var scroll = this.getScroll();
+        this.scrollToAnimated(scroll[0]+x,scroll[1]+y, time, thenDo);
     }
+
 });
 
 lively.morphic.HTML.RenderContext.addMethods(

@@ -2093,8 +2093,11 @@ lively.morphic.List.addMethods(
             this.itemList = [];
         } else {
             this.itemList = items;
-            if(this.selection)
+            if(this.selection) {
                 newIndexForOldSelection = this.find(this.selection);
+                if(newIndexForOldSelection === undefined)
+                    newIndexForOldSelection = -1;
+            }
         }
         var itemStrings = items.collect(function(ea) { return this.renderFunction(ea); }, this);
         this.renderContextDispatch('updateListContent', itemStrings);

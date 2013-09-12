@@ -168,7 +168,7 @@ Object.subclass('lively.Module',
             function(ea) { return ea && ea !== this.constructor && lively.Class.isClass(ea) },
             recursive);
         return this === Global ?
-            [Array, Number, String, Function].concat(normalClasses) : normalClasses;
+            [Array, Boolean, Date, RegExp, Number, String, Function].concat(normalClasses) : normalClasses;
     },
 
     functions: function(recursive) {

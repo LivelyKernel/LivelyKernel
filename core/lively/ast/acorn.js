@@ -348,8 +348,11 @@ Object.subclass('lively.ide.CodeEditor.JS.ScopeAnalyzer',
 'AST analyzing', {
 
     knownGlobals: ["true", "false", "null", "undefined", "arguments",
-                   "Object", "Function", "String", "Array", "Date", "Math", "Error",
-                   "parseFloat", "isNaN", "eval", "alert",
+                   "Object", "Function", "String", "Array", "Date", "Boolean", "Number", "RegExp", 
+                   "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError",
+                   "Math", "NaN", "Infinity", "Intl", "JSON",
+                   "parseFloat", "parseInt", "isNaN", "isFinite", "eval", "alert",
+                   "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", 
                    "window", "document", "console",
                    "Node", "HTMLCanvasElement", "Image", "Class",
                    "Global", "Functions", "Objects", "Strings",

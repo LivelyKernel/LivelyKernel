@@ -297,6 +297,9 @@ lively.Class = {
           || object === Array
           || object === Function
           || object === String
+          || object === Boolean
+          || object === Date
+          || object === RegExp
           || object === Number) {
             return true;
         }
@@ -308,6 +311,9 @@ lively.Class = {
         if (cl === Array) return "Array"
         if (cl === Function) return "Function"
         if (cl === String) return "String"
+        if (cl === Boolean) return "Boolean"
+        if (cl === Date) return "Date"
+        if (cl === RegExp) return "RegExp"
         if (cl === Number) return "Number"
         return cl.type;
     },

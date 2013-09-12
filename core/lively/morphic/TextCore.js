@@ -292,10 +292,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 'styling', {
     applyStyle: function($super, spec) {
         if (!spec) return this;
+        if (spec.allowInput !== undefined) this.setInputAllowed(spec.allowInput); // also sets handstyle that might be overriden
         $super(spec);
         if (spec.fixedWidth !== undefined) this.setFixedWidth(spec.fixedWidth);
         if (spec.fixedHeight !== undefined) this.setFixedHeight(spec.fixedHeight);
-        if (spec.allowInput !== undefined) this.setInputAllowed(spec.allowInput);
         if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
         if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
         if (spec.textColor !== undefined) this.setTextColor(spec.textColor);

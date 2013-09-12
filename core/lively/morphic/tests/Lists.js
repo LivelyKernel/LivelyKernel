@@ -1,5 +1,5 @@
 module('lively.morphic.tests.Lists').requires('lively.morphic.tests.Helper', 'lively.morphic.Layout').toRun(function() {
-    
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
 'testing', {
     test01SetAndRetrieveStringItems: function() {
@@ -185,6 +185,29 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList', lively.morphic.
             {isListItem: true, string: 'bar', value: 24}])
         morph.selectAt(1);
         this.assertEquals(24, morph.selection);
+        this.done();
+    },
+
+    testMoveItemToIndex: function() {
+        var morph = this.world.addMorph(new lively.morphic.MorphList(lively.rect(0, 0, 100, 100), [
+            {isListItem: true, string: 'foo', value: 23},
+            {isListItem: true, string: 'baz', value: 24},
+            {isListItem: true, string: 'bar', value: 25}]));
+        morph.moveItemToIndex(24, 2);
+
+        this.assertEquals(3, morph.itemList.length, 'list length')
+
+        this.assertEquals([23, 25, 24], morph.itemList.pluck('value'), 'order of list values')
+
+        this.assertEquals(['foo', 'bar', 'baz'], morph.submorphs.pluck('textString'),
+            'order of rendered item strings (submorphs)')
+
+        this.assertEquals(['foo', 'bar', 'baz'], morph.itemMorphs.pluck('textString'),
+            'order of rendered item strings (itemMorphs)')
+
+        var yPositions = morph.itemMorphs.invoke('getPosition').pluck('y');
+        this.assert(yPositions[0] < yPositions[1], 'pos 0 and 1');
+        this.assert(yPositions[1] < yPositions[2], 'pos 1 and 2');
         this.done();
     },
 

@@ -78,6 +78,77 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
 'accessing', {
     vertices: function() { return this.shape.vertices() }
 },
+'deletion', {
+    split: function(index) {
+    //Splits the path into two Paths at the specified index
+    
+    //Avoids curve setVertices problems
+    if (this.controlPoints[0].isCurve()) {
+        this.curvy = true;
+        this.convertToLine();
+    }
+    
+        var vertices = this.vertices();
+        if (vertices.length <= 2) {
+            this.remove();
+            return false;
+        }
+        if (index > 0 && index < vertices.length-1) {
+            var copy = this.copy(),
+                leftverts = vertices.slice(0,index+1),
+                rightverts = vertices.slice(index+1,vertices.length);
+            this.setVertices(leftverts);
+            copy.setVertices(rightverts);
+            $world.addMorph(copy);
+            
+            if (this.curvy) { 
+                delete this.curvy();
+                this.convertToCurve(); 
+                copy.convertToCurve();
+            }
+            return copy;
+        } else if (index > 0) {
+            var leftverts = vertices.slice(0,index+1);
+            this.setVertices(leftverts);
+            if (this.curvy) { delete this.curvy(); this.convertToCurve(); }
+            return false;
+        } else { //if (index < vertices.length-1)
+            var rightverts = vertices.slice(index+1,vertices.length);
+            this.setVertices(rightverts);
+            if (this.curvy) { delete this.curvy(); this.convertToCurve(); }
+            return false;
+        }
+    },
+    erase: function(pt) {
+    //Erases all line segments near the given point
+        var splitting = this;
+        var j = 0;
+        for (var i = 0; i < splitting.vertices().length-1; i++) {
+            if (splitting.shouldSplit(i,pt)) {
+                var next = splitting.split(i);
+                if (next) {
+                    splitting = next;
+                    i = 0;
+                }
+            }
+            
+            if (j++ > 100) { alert("problems"); return;}
+        }
+    },
+    shouldSplit: function(index,pt,threshold) {
+        threshold = threshold || 2;
+        return this.orthDistSquared(index,index+1,pt) < threshold * threshold
+               && this.dotProduct(index,index+1,pt) < 0
+               && this.dotProduct(index+1,index,pt) < 0;
+    },
+    dotProduct: function(i1,i2,pt) {
+        //MAKE IT GLOBAL
+        var verts = this.vertices(),
+            v1 = verts[i1],
+            v2 = verts[i2];
+        return (v2.x-v1.x)*(pt.x-v2.x) + (v2.y-v1.y)*(pt.y-v2.y);
+    }
+},
 'vertex and control point computations', {
     pathBetweenRects: function(rect1, rect2) {
         // copied and adpated from graffle Raphael 1.2.1 - JavaScript Vector Library
@@ -178,7 +249,6 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
             .without(lively.morphic.ResizeHalo)
             .concat([lively.morphic.RescaleHalo])
     },
-
     getControlPointHalos: function() { return this.getControlPoints().invoke('asHalo') },
     getInsertPointHalo: function(idx) {
         return new lively.morphic.PathInsertPointHalo(this.getControlPoint(idx));
@@ -191,25 +261,177 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
 },
 'conversion', {
     convertToCurve: function() {
+        this.interpolate();
         var ctrlPoints = this.getControlPoints();
         for (var i = 1; i < ctrlPoints.length; i++) {
-            var ctrlPt = ctrlPoints[i], prev = ctrlPoints[i-1];
+            var next = ctrlPoints[i], ctrlPt = ctrlPoints[i-1];
             if (ctrlPt.isCurve()) continue;
-            var prevPos = prev.getPos(),
-                currentPos = ctrlPt.getPos(),
-                ptArr = this.pathBetweenRects(
-                    new Rectangle(prevPos.x,prevPos.y,0,0),
-                    new Rectangle(currentPos.x,currentPos.y,0,0)),
-                c1 = ptArr[1],
-                c2 = ptArr[2],
-                p = ptArr[3];
+            var p = this.bezControlPts[3*i],
+                c1 = this.bezControlPts[3*i-2],
+                c2 = this.bezControlPts[3*i-1];
             ctrlPt.toCurve(p, c1, c2);
         }
         this.cachedBounds = null;
     },
     convertToLine: function() {
+        delete this.bezControlPts;
         this.getControlPoints().forEach(function(ea) { return ea.toLine(ea.getPos()) });
         this.cachedBounds = null;
+    },
+    simplify: function(threshold) {
+        //Reduces the number of vertices in the path while preserving
+        //its overall shape, following the Douglas-Peucker Algorithm
+        //See http://www.phpriot.com/articles/reducing-map-path-douglas-peucker-algorithm
+        
+        threshold = threshold || 1.5;
+        var vertices = this.vertices();
+        
+        //Keep track of which to keep
+        this.keepSet = [];
+        this.keepSet.push(true);
+        for (var i = 1; i < vertices.length-1; i++) {
+            this.keepSet[i] = false;
+        }
+        this.keepSet.push(true);
+        
+        //Find vertices far enough away from one another
+        this.recursiveSimplify(threshold,0,vertices.length-1);
+        
+        //Re-add far away vertices
+        var newVertices = [];
+        for (var i = 0; i < this.keepSet.length; i++) {
+            if (this.keepSet[i]) newVertices.push(vertices[i]);
+        }
+        this.oldVertices = vertices;
+        this.setVertices(newVertices);
+        
+        delete this.keepSet;
+    },
+    unsimplify: function() {
+        //Reverts to the version of the path before it was simplified
+        if (this.oldVertices) this.setVertices(this.oldVertices);
+        else alert("Nothing to revert to");
+    },
+    recursiveSimplify: function(threshold, startIndex, endIndex) {
+        //Reduces the number of vertices in the path while preserving
+        //its overall shape, following the Douglas-Peucker Algorithm
+        //See http://www.phpriot.com/articles/reducing-map-path-douglas-peucker-algorithm
+        
+        //Base case
+        if (endIndex - startIndex <= 1) return;
+        
+        //Find maximum orthogonal distance
+        var maxDistanceIndex = startIndex + 1,
+            maxDistance = 0;
+        for (var i = startIndex + 1; i < endIndex; i++) {
+            var pt = this.vertices()[i];
+            if (this.orthDistSquared(startIndex,endIndex,pt) > maxDistance) {
+                maxDistanceIndex = i;
+                maxDistance = this.orthDistSquared(startIndex,endIndex,pt);
+            }
+        }
+        
+        if (maxDistance > threshold*threshold) {
+            this.keepSet[maxDistanceIndex] = true;
+            this.recursiveSimplify(threshold,startIndex,maxDistanceIndex);
+            this.recursiveSimplify(threshold,maxDistanceIndex,endIndex);
+        }
+    },
+    orthDistSquared: function(startIndex, endIndex, p){
+        //Returns the sqaure of the distance from point p
+        //to the line between startIndex and endIndex
+        //For more, see http://en.wikipedia.org/wiki/Perpendicular_distance
+        
+        var vertices = this.vertices(),
+            p1 = vertices[startIndex].x,
+            q1 = vertices[startIndex].y,
+            p2 = vertices[endIndex].x,
+            q2 = vertices[endIndex].y,
+            x1 = p.x,
+            y1 = p.y,
+            dp = p1 - p2,
+            dq = q1 - q2;
+            
+        return (dq*x1 - dp*y1 + p1*q2 - p2*q1)*(dq*x1 - dp*y1 + p1*q2 - p2*q1)
+                /(dp*dp+dq*dq);
+    },
+    interpolate: function() {
+        //Adapted from Lubos Brieda, Particle In Cell Consulting LLC, 2012
+        //http://www.particleincell.com/2012/bezier-splines/ 
+        this.bezControlPts = [];
+    
+	    var vertices = this.vertices(),
+    	p1=new Array(),
+    	p2=new Array(),
+    	n = vertices.length-1;
+    	
+    	/*rhs vector*/
+    	var a=new Array(),
+    	b=new Array(),
+    	c=new Array(),
+	    r=new Array();
+	    
+    	/*left most segment*/
+	    a[0]=0;
+	    b[0]=2;
+    	c[0]=1;
+	    r[0] = pt(0,0);
+	    r[0].x += vertices[0].x + 2*vertices[1].x;
+	    r[0].y += vertices[0].y + 2*vertices[1].y;
+	
+	    /*internal segments*/
+	    for (var i = 1; i < n-1; i++)
+	    {
+	    	a[i]=1;
+		    b[i]=4;
+    		c[i]=1;
+	    	r[i] = pt(0,0);
+		    r[i].x += 4*vertices[i].x + 2*vertices[i+1].x;
+    		r[i].y += 4*vertices[i].y + 2*vertices[i+1].y;
+	    }
+			
+    	/*right segment*/
+	    a[n-1]=2;
+    	b[n-1]=7;
+	    c[n-1]=0;
+	    r[n-1] = pt(0,0);
+	    r[n-1].x += 8*vertices[n-1].x + vertices[n].x;
+    	r[n-1].y += 8*vertices[n-1].y + vertices[n].y;
+	
+    	/*solves Ax=b with the Thomas algorithm (from Wikipedia)*/
+    	for (i = 1; i < n; i++)
+    	{
+    		var m = a[i]/b[i-1];
+    		b[i] = b[i] - m * c[i - 1];
+    		r[i].x = r[i].x - m*r[i-1].x;
+    		r[i].y = r[i].y - m*r[i-1].y;
+    		
+    	}
+    	
+    	p1[n-1] = pt(0,0);
+    	p1[n-1].x = r[n-1].x/b[n-1];
+    	p1[n-1].y = r[n-1].y/b[n-1];
+    	for (i = n - 2; i >= 0; --i) {
+    		p1[i] = pt(0,0);
+    		p1[i].x = (r[i].x - c[i] * p1[i+1].x) / b[i];
+    		p1[i].y = (r[i].y - c[i] * p1[i+1].y) / b[i];
+    	}
+    		
+    	/*we have p1, now compute p2*/
+    	for (i = 0; i < n-1; i++) {
+    		p2[i] = pt(0,0);
+    		p2[i].x = 2*vertices[i+1].x - p1[i+1].x;
+    		p2[i].y = 2*vertices[i+1].y - p1[i+1].y;
+    	}
+    	
+    	p2[n-1] = pt(0,0);
+    	p2[n-1].x = 0.5*(vertices[n].x + p1[n-1].x);
+    	p2[n-1].y = 0.5*(vertices[n].y + p1[n-1].y);
+    	
+    	for (i = 0; i < p1.length; i++) {
+    	    this.bezControlPts.push(vertices[i],p1[i],p2[i]);
+    	}
+    	this.bezControlPts.push(vertices[n]);
     }
 },
 'menu', {
@@ -261,7 +483,7 @@ Object.subclass('lively.morphic.ControlPoint',
     isLast: function() { return this.morph.controlPoints.length === this.index+1 },
     isCurve: function() {
         var e = this.getElement();
-        return e.charCode == 'Q' || e.charCode == 'C' || e.charCode == 'S';
+        return e.charCode == 'Q' || e.charCode == 'C' || e.charCode == 'S' || e.charCode == "T";
     }
 },
 'accessing', {
@@ -361,8 +583,8 @@ Object.subclass('lively.morphic.ControlPoint',
     asHalo: function() { return new lively.morphic.PathVertexControlPointHalo(this) },
     toCurve: function(p, c1, c2) {
         if (this.isFirst()) return;
-        this.setElement(new lively.morphic.Shapes.CurveTo(true, this.getPos().x, this.getPos().y));
-        // this.setElement(new lively.morphic.Shapes.BezierCurve2CtlTo(true, p.x, p.y, c1.x, c1.y, c2.x, c2.y));
+        //this.setElement(new lively.morphic.Shapes.CurveTo(true, this.getPos().x, this.getPos().y));
+        this.setElement(new lively.morphic.Shapes.BezierCurve2CtlTo(true, p.x, p.y, c1.x, c1.y, c2.x, c2.y));
     },
     toLine: function(p) {
         if (this.isFirst()) return;

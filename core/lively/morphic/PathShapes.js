@@ -24,6 +24,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
     getPathElements: function() { return this.shapeGetter('PathElements') || [] },
     setVertices: function(vertlist) {
         if (this.dontChangeShape) return;
+        /*
+        //Don't let it crash and burn when it's a curve
+        if (this.isCurve()) {
+            this.curvy = true;
+            this.convertToLine();
+        }*/
         var elements = this.getPathElements();
         for (var i = 0; i < vertlist.length; i++) {
             var elem = elements[i], p = vertlist[i];
@@ -41,6 +47,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
         elements = elements.slice(0, i);
 
         this.setPathElements(elements);
+        /*
+        //Turn it back to a curve
+        if (this.curvy) {
+            this.convertToCurve();
+            delete this.curvy;
+        }*/
     },
     vertices: function() {
         // [DI] Note this is a test only -- not all path elements will work with this
@@ -55,8 +67,17 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
         return cachedVertices;
         //return this.cachedVertices;
     },
+    isCurve: function() {
+        if (!this.controlPoints) return false;
+        return this.controlPoints[0].isCurve();
+    },
     getBounds: function() {
-        return this.renderContextDispatch('getPathBounds');
+        var rect = this.renderContextDispatch('getPathBounds');
+        rect.x -= 5;
+        rect.y -= 5;
+        rect.width += 10;
+        rect.height += 10;
+        return rect;
     },
     getExtent: function() {
         return this.getBounds().extent()

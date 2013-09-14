@@ -688,6 +688,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
               + "	color: white !important;\n"
               + "}");
         this.isMultipleSelectionList = false;
+        this.allowDeselectClick = false;
         this.selectedIndexes = [];
         this.itemMorphs = [];
         this.setList(items);
@@ -973,7 +974,11 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
             if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
         });
         text.addScript(function onMouseDown(evt) {
-            this.setIsSelected(!this.selected);
+            if (this.owner.allowDeselectClick) {
+                this.setIsSelected(!this.selected);
+            } else if (!this.isSelected) {
+                this.setIsSelected(true);
+            }
             evt.stop(); return true;
         });
         // text.disableEvents();

@@ -896,6 +896,16 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
     onScroll: function(evt) {
         Functions.throttleNamed(
             'onScroll-' + this.id, 60, this.updateView.bind(this))();
+    },
+
+    onMouseDown: function(evt) {
+        if (!evt.isRightMouseButtonDown()) return false;
+        // delayed because when owner is a window and comes forward the window
+        // would be also in front of the new menu
+        var sel = this.selection ? this.selection.string : this.selection;
+        lively.morphic.Menu.openAt.curry(evt.getPosition(), sel, this.getMenu()).delay(0.1);
+        evt.stop(); return true;
+    },
     }
 
 },

@@ -819,6 +819,14 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
         this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
     },
 
+    selectNext: function() {
+        this.saveSelectAt(Object.isNumber(this.selectedLineNo) ? this.selectedLineNo+1 : 0);
+    },
+
+    selectPrev: function() {
+        this.saveSelectAt(Object.isNumber(this.selectedLineNo) ? this.selectedLineNo-1 : 0);
+    },
+
     updateSelectionAndLineNo: function(selectionIdx) {
         var item = this.itemList[selectionIdx];
         if (!this.isMultipleSelectionList) this.selectedIndexes.length = 0;
@@ -907,6 +915,19 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
         lively.morphic.Menu.openAt.curry(evt.getPosition(), sel, this.getMenu()).delay(0.1);
         evt.stop(); return true;
     },
+
+    onUpPressed: function($super, evt) {
+        if (evt.isCommandKey()) return $super(evt);
+        evt.stop();
+        this.selectPrev();
+        return true;
+    },
+
+    onDownPressed: function($super, evt) {
+        if (evt.isCommandKey()) return $super(evt);
+        evt.stop();
+        this.selectNext();
+        return true;
     }
 
 },

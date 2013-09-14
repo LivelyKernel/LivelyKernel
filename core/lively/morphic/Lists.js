@@ -776,7 +776,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
         this.itemList = items;
         this.layout = this.initLayout(items.length);
         this.setupScroll(items.length, this.layout);
-        this.updateView();
+        this.updateView(items, this.layout, Object.isNumber(this.selectedLineNo) ? [this.selectedLineNo]: []);
     },
 
     updateList: function(items) { return this.setList(items); },
@@ -999,13 +999,16 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
         var itemMorphs = this.getItemMorphs(true);
         requiredLength = Math.min(layout.noOfCandidatesShown, requiredLength);
         if (itemMorphs.length > requiredLength) {
-            itemMorphs.slice(requiredLength).forEach(function(text) {
-                text.index = undefined;
-                text.setTextString('');
-                text.removeStyleClassName("selected");
-                text.setHandStyle("default");
+            lively.bindings.noUpdate(function() {
+                itemMorphs.slice(requiredLength).forEach(function(text) {
+                    text.index = undefined;
+                    text.setTextString('');
+                    text.removeStyleClassName("selected");
+                    text.selected = false;
+                    text.setHandStyle("default");
+                });
+                itemMorphs = itemMorphs.slice(0,requiredLength);
             });
-            itemMorphs = itemMorphs.slice(0,requiredLength);
         } else if (itemMorphs.length < requiredLength) {
             var newItems = Array.range(itemMorphs.length, requiredLength-1).collect(function(i) {
                 return this.getListItemContainer().addMorph(this.createListItemMorph('', i, layout));

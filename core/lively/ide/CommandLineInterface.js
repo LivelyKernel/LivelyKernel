@@ -751,13 +751,13 @@ Object.subclass("lively.ide.FilePatch",
              + this.hunks.invoke('createPatchString').join('\n');
     },
 
-    createPatchStringFromRows: function(startRow, endRow) {
+    createPatchStringFromRows: function(startRow, endRow, forReverseApply) {
         var nHeaderLines = [this.command, this.pathOriginal, this.pathChanged].compact().length,
             hunkPatches = [];
         startRow = Math.max(startRow, nHeaderLines)-nHeaderLines;
         endRow -= nHeaderLines;
         var hunkPatches = this.hunks.map(function(hunk) {
-            var patch = hunk.createPatchStringFromRows(startRow, endRow);
+            var patch = hunk.createPatchStringFromRows(startRow, endRow, forReverseApply);
             startRow -= hunk.length;
             endRow -= hunk.length;
             return patch;
@@ -796,41 +796,33 @@ Object.subclass("lively.ide.FilePatchHunk",
     createPatchString: function() {
         return [this.header].concat(this.lines).join('\n');
     },
-    createPatchStringFromRows2: function(startRow, endRow) {
-        // row 0 is the header
-        var origLine = this.originalLine,
-            changedLine = this.changedLine,
-            origLength = this.originalLength,
-            changedLength = this.changedLength,
-            lines = [], header;
-        this.lines.forEach(function(line, i) {
-            i++; // compensate for header
-            if (i < startRow) {
-                switch (line[0]) {
-                    case ' ': changedLine++; origLine++; changedLength--; origLength--; return;
-                    case '-': changedLine++; origLine++; origLength--; return;
-                    case '+': changedLength--; return;
-                    default: return;
-                }
-            }
-            if (i > endRow) {
-                switch (line[0]) {
-                    case ' ': changedLength--; origLength--; return;
-                    case '-': origLength--; return;
-                    case '+': changedLength--; return;
-                    default: return;
-                }
-            }
-            lines.push(line);
+    createPatchStringFromRows: function(startRow, endRow, forReverseApply) {
+        // this methods takes the diff hunk represented by "this" and produces
+        // a new hunk (as a string) that will change only the lines from startRow
+        // to endRow. For that it is important to consider whether this patch
+        // should be applied to add the patch to a piece if code (forReverseApply
+        // = false) or if the code already has the change described by the patch
+        // and the change should be removed from the code (forReverseApply = true)
+        // Example with forReverseApply = false, startRow: 4, endRow: 5 (-c1, +b2)
+        // @@ -1,2 +1,2 @@ -> @@ -1,2 +1,2 @@
+        // +a              ->  b1
+        // -b1             -> -c1
+        // -c1             -> +b2
+        // +b2             ->
+        // (the existing code does not have line a and we don't want it so
+        // simply remove, it has b1 but we don't select so don't remove it, we
+        // choose the last two lines, just apply them normally)
+        // Example with forReverseApply = true, startRow: 4, endRow: 5 (-c1, +b2)
+        // @@ -1,2 +1,2 @@ -> @@ -1,2 +1,2 @@
+        // +a              ->  a
+        // -b1             -> -c1
+        // -c1             -> +b2
+        // +b2             ->
+        // (the existing code does have a already and we don't want to reverse
+        // the add so keep it, the patch removed b1 and we don't want to add it so
+        // leave it out, use the rest normally (not inverted!) because patch
+        // programs can calculate the revers themselves)
 
-        });
-        if (lines.length === 0) return null;
-        header = Strings.format('@@ -%s,%s +%s,%s @@',
-            origLine, origLength, changedLine, changedLength);
-        return [header].concat(lines).join('\n');
-    },
-
-    createPatchStringFromRows: function(startRow, endRow) {
         if (endRow < 1 || startRow >= this.lines.length) return null;
 
         // row 0 is the header
@@ -838,15 +830,16 @@ Object.subclass("lively.ide.FilePatchHunk",
             changedLine = this.changedLine,
             origLength = 0,
             changedLength = 0,
-            lines = [], header;
+            lines = [], header,
+            copyOp = forReverseApply ? "+" : "-";
 
         this.lines.clone().forEach(function(line, i) {
             i++; // compensate for header
             if (i < startRow || i > endRow) {
                 switch (line[0]) {
-                    case '-': line = ' ' + line.slice(1);
-                    case ' ': changedLength++; origLength++; break;
-                    case '+': return;
+                    case copyOp: line = ' ' + line.slice(1);
+                    case    ' ': changedLength++; origLength++; break;
+                    default    : return;
                 }
             } else {
                 switch (line[0]) {

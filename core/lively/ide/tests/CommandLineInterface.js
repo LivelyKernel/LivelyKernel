@@ -200,6 +200,99 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
                  + "+123\n"
                  + " can be followed by the heading of the section or function that the hunk is\n";
         this.assertEquals(expected, result, "first two hunks overlapping");
+    },
+
+    testPatchStringFromRowsForReverse: function() {
+        var patch, result, expected, patchString;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        patchString = "diff --git a/test.txt b/test.txt\n"
+            + "index bb53c45..3b6c223 100644\n"
+            + "--- a/test.txt\n"
+            + "+++ b/test.txt\n"
+            + "@@ -2,5 +2,2 @@\n"
+            + " a\n"
+            + "-b\n"
+            + "-c\n"
+            + "-d\n"
+            + " e\n";
+        patch = lively.ide.FilePatch.read(patchString);
+        result = patch.createPatchStringFromRows(6,8, true/*reverse*/); // -c,-d
+        expected = "diff --git a/test.txt b/test.txt\n"
+                 + "--- a/test.txt\n"
+                 + "+++ b/test.txt\n"
+                 + "@@ -2,4 +2,2 @@\n"
+                 + " a\n"
+                 + "-c\n"
+                 + "-d\n"
+                 + " e\n"
+        this.assertEquals(expected, result, "1");
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        patchString = "diff --git a/test.txt b/test.txt\n"
+            + "index bb53c45..3b6c223 100644\n"
+            + "--- a/test.txt\n"
+            + "+++ b/test.txt\n"
+            + "@@ -2,2 +2,5 @@\n"
+            + " a\n"
+            + "+b\n"
+            + "+c\n"
+            + "+d\n"
+            + " e\n";
+        patch = lively.ide.FilePatch.read(patchString);
+        result = patch.createPatchStringFromRows(6,6, true/*reverse*/); // +c
+        expected = "diff --git a/test.txt b/test.txt\n"
+                 + "--- a/test.txt\n"
+                 + "+++ b/test.txt\n"
+                 + "@@ -2,4 +2,5 @@\n"
+                 + " a\n"
+                 + " b\n"
+                 + "+c\n"
+                 + " d\n"
+                 + " e\n"
+        this.assertEquals(expected, result, "2");
+
+        patchString = "diff --git a/test.txt b/test.txt\n"
+            + "index bb53c45..3b6c223 100644\n"
+            + "--- a/test.txt\n"
+            + "+++ b/test.txt\n"
+            + "@@ -2,2 +2,3 @@\n"
+            + " a\n"
+            + "-b1\n"
+            + "+b2\n"
+            + "+c\n";
+        patch = lively.ide.FilePatch.read(patchString);
+        result = patch.createPatchStringFromRows(6,6, true/*reverse*/); // +b2
+        expected = "diff --git a/test.txt b/test.txt\n"
+                 + "--- a/test.txt\n"
+                 + "+++ b/test.txt\n"
+                 + "@@ -2,2 +2,3 @@\n"
+                 + " a\n"
+                 + "+b2\n"
+                 + " c\n";
+        this.assertEquals(expected, result, "3");
+
+        patchString = "diff --git a/test.txt b/test.txt\n"
+            + "index bb53c45..3b6c223 100644\n"
+            + "--- a/test.txt\n"
+            + "+++ b/test.txt\n"
+            + "@@ -2,3 +2,3 @@\n"
+            + " a\n"
+            + "-b1\n"
+            + "-c1\n"
+            + "+b2\n"
+            + "+c2\n";
+        patch = lively.ide.FilePatch.read(patchString);
+        result = patch.createPatchStringFromRows(6,7, true/*reverse*/); // -c1, +b2
+        expected = "diff --git a/test.txt b/test.txt\n"
+                 + "--- a/test.txt\n"
+                 + "+++ b/test.txt\n"
+                 + "@@ -2,3 +2,3 @@\n"
+                 + " a\n"
+                 + "-c1\n"
+                 + "+b2\n"
+                 + " c2\n";
+        this.assertEquals(expected, result, "4");
     }
 
 });

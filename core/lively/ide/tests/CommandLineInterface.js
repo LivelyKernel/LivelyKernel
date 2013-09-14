@@ -163,10 +163,6 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         // just the hunk header
         result = patch.createPatchStringFromRows(3,3);
         expected = null;
-        // expected = "diff --git a/test.txt b/test.txt\n"
-        //          + "--- a/test.txt\n"
-        //          + "+++ b/test.txt\n"
-        //          + "@@ -2,0 +2,0 @@\n";
         this.assertEquals(expected, result, "just the hunk header");
 
         result = patch.createPatchStringFromRows(3,4);
@@ -176,12 +172,7 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
                  + "@@ -2,3 +2,3 @@\n"
                  + " of the world's largest, open, production economies. Even with a market\n"
                  + " capitalization of $2.5 billion, the bitcoin economy is dwarfed by $15 trillion\n"
-                 + " economies such as the U.S. Therefore, sudden and large increases in the user";
-        // expected = "diff --git a/test.txt b/test.txt\n"
-        //     + "--- a/test.txt\n"
-        //     + "+++ b/test.txt\n"
-        //     + "@@ -2,1 +2,1 @@\n"
-        //     + " of the world's largest, open, production economies. Even with a market";
+                 + " economies such as the U.S. Therefore, sudden and large increases in the user\n";
         this.assertEquals(expected, result, "just the hunk header and one context line");
 
         result = patch.createPatchStringFromRows(3,7);
@@ -192,15 +183,7 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
                  + " of the world's largest, open, production economies. Even with a market\n"
                  + "-capitalization of $2.5 billion, the bitcoin economy is dwarfed by $15 trillion\n"
                  + "+capitalization of $2.5 billion, the bitcoin economy is dwarfed hey by $15 trillion\n"
-                 + " economies such as the U.S. Therefore, sudden and large increases in the user";
-        // expected = "diff --git a/test.txt b/test.txt\n"
-        //     + "--- a/test.txt\n"
-        //     + "+++ b/test.txt\n"
-        //     + "@@ -2,3 +2,3 @@\n"
-        //     + " of the world's largest, open, production economies. Even with a market\n"
-        //     + "-capitalization of $2.5 billion, the bitcoin economy is dwarfed by $15 trillion\n"
-        //     + "+capitalization of $2.5 billion, the bitcoin economy is dwarfed hey by $15 trillion\n"
-        //     + " economies such as the U.S. Therefore, sudden and large increases in the user"
+                 + " economies such as the U.S. Therefore, sudden and large increases in the user\n";
         this.assertEquals(expected, result, "first hunk");
 
         result = patch.createPatchStringFromRows(6, 10);
@@ -215,16 +198,7 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
                  + "@@ -20,2 +20,3 @@\n"
                  + " diff could be considered invalid and be rejected. Optionally, the hunk range\n"
                  + "+123\n"
-                 + " can be followed by the heading of the section or function that the hunk is";
-        // expected = "diff --git a/test.txt b/test.txt\n"
-        //     + "--- a/test.txt\n"
-        //     + "+++ b/test.txt\n"
-        //     + "@@ -4,1 +4,2 @@\n"
-        //     + "+capitalization of $2.5 billion, the bitcoin economy is dwarfed hey by $15 trillion\n"
-        //     + " economies such as the U.S. Therefore, sudden and large increases in the user\n"
-        //     + "@@ -20,1 +20,2 @@\n"
-        //     + " diff could be considered invalid and be rejected. Optionally, the hunk range\n"
-        //     + "+123"
+                 + " can be followed by the heading of the section or function that the hunk is\n";
         this.assertEquals(expected, result, "first two hunks overlapping");
     }
 

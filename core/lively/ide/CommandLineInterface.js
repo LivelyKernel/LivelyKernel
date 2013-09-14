@@ -176,7 +176,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     parseCommandIntoCommandAndArgs: function(cmd) {
         // lively.ide.CommandLineInterface.parseCommandIntoCommandAndArgs('grep o -')
         var result = [], word = '', state = 'normal';
-        function add() { 
+        function add() {
             if (word.length > 0) result.push(word); word = '';
         }
         for (var i = 0, c; c = cmd[i]; i++) {
@@ -280,7 +280,7 @@ Object.extend(lively.ide.CommandLineInterface, {
             return JSON.parse(webR.get().content).cwd;
         } catch(e) { return ''; }
     },
-    
+
     setWorkingDirectory: function(dir) { return this.rootDirectory = dir; },
 
     readFile: function(path, options, thenDo) {
@@ -565,7 +565,7 @@ Object.extend(lively.ide.CommandLineSearch, {
     },
 
     doBrowseAtPointOrRegion: function(codeEditor) {
-        try { 
+        try {
             var str = codeEditor.getSelectionOrLineString();
             str = str.replace(/\/\//g, '/');
             var spec = this.extractBrowseRefFromGrepLine(str) || this.extractModuleNameFromLine(str);
@@ -696,7 +696,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                 completeInputOnRightArrow: true,
                 actions: actions || [show]
             }
-        });    
+        });
     }
 });
 

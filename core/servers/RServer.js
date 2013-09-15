@@ -40,8 +40,7 @@ function runR(rState, args, thenDo) {
 
     debug && rState.process.stdout.on('data', function (data) {
         console.log('STDOUT: ' + data); });
-    // debug && 
-    rState.process.stderr.on('data', function (data) {
+    debug && rState.process.stderr.on('data', function (data) {
         console.log('STDERR: ' + data); });
 
     rState.process.on('close', function (code) {
@@ -91,7 +90,7 @@ function evalRExpression(rState, options, expr, thenDo) {
         var endMarkerPos = output.indexOf(endMarker);
         if (endMarkerPos === -1) return;
         output = output.slice(0, endMarkerPos);
-        done = true;
+        //done = true;  duplication
         detach(null);
     }, 40);
     expr = util.format('%s\nwrite("%s", stderr())\n', expr.trim(), endMarker);
@@ -110,18 +109,25 @@ function withLivelyREvaluateDo(rState, options, expr, thenDo) {
 }
 
 function startEvalInSubprocess(rState, options, id, expr, thenDo) {
-    var code = util.format("LivelyREvaluate::evaluate('%s', '%s', exit=FALSE)",
-        id, expr.trim().replace(/\'/g, '\\\''));
+    var code = util.format("LivelyREvaluate::evaluate('%s', '%s', exit=%s, debug=%s)",
+        id, expr.trim().replace(/\'/g, '\\\''), (options.exit ? 'TRUE' : 'FALSE'), (options.debug ? 'TRUE' : 'FALSE'));
     withLivelyREvaluateDo(rState, options, code, thenDo);
     //getSubprocessResult(rState, options, id, thenDo);         ael - wait for client to send explicitly
 }
 
 function getSubprocessResult(rState, options, id, thenDo) {
     var tempFile = path.join(process.env.WORKSPACE_LK, id + ".json"),
-        code = util.format("LivelyREvaluate::getEvalResult('%s',format='JSON',file='%s')", id, tempFile);
-    withLivelyREvaluateDo(rState, options, code, function(err) {
+        code = util.format("LivelyREvaluate::getEvalResult('%s',mergeEnvs=%s, format='JSON',file='%s')", id, ((options.merge===false) ? 'FALSE' : 'TRUE'), tempFile);
+    withLivelyREvaluateDo(rState, options, code, function(errOrNull) {
+        // on normal completion errOrNull will be null; it can also be 'timeout'
+        // if (errOrNull) console.log("**** Error from withLivelyREvaluate: ", errOrNull)
         fs.exists(tempFile, function(exists) {
-            if (!exists) { thenDo('R produced no file'); return; }
+            if (!exists) {
+                if (errOrNull == 'timeout')
+                    thenDo(null, {processState: 'PENDING', result: null}); // assume R's just busy
+                else thenDo('R produced no file');      // something actually went wrong
+                return;
+            }
             fs.readFile(tempFile, function(err, content) {
                 if (err) { thenDo(err); return; }
                 try {
@@ -171,24 +177,26 @@ module.exports = domain.bind(function(route, app, subserver) {
     app.post(route+'evalAsync', function(req, res) {
         var expr = req.body && req.body.expr,
             id = req.body && req.body.id,
-            timeout = req.body && req.body.timeout;
+            timeout = req.body && req.body.timeout,
+            exit = req.body && req.body.exit,
+            debug = req.body && req.body.debug;
         if (!expr || !id) {
             var msg = {error: 'Cannot deal with request', message: 'No expression or id'};
             res.status(400).json(msg).end();
             return;
         }
-        startEvalInSubprocess(state, {timeout: timeout}, id, expr, function(err, result) {
+        startEvalInSubprocess(state, {timeout: timeout, exit: exit, debug: debug}, id, expr, function(err, result) {
             if (err) { res.status(500).json({error: String(err)}).end(); return; }
             res.json(result).end();
         });
     });
 
     app.get(route + 'evalAsync', function(req,res) {
-        var id = req.query.id, timeout = req.query.timeout;
+        var id = req.query.id, timeout = req.query.timeout, merge = req.query.merge==='true';
         if (!id) {
             res.status(400); res.json({error: 'error', message: 'No id'}); return;
         }
-        getSubprocessResult(state, {timeout: timeout}, id, function(err, result) {
+        getSubprocessResult(state, {timeout: timeout, merge: merge}, id, function(err, result) {
             if (err) { res.status(500).json({error: String(err)}).end(); return; }
             res.json(result).end();
         });

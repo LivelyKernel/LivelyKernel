@@ -19,9 +19,12 @@ Object.extend(apps.RInterface, {
         var self = this;
         var startTime = Date.now();
         var results = [];
+        var indefinite = timeout==null;
+        var exitOnCompletion = !indefinite;     // if indefinite, tell R not to add a marker signalling end of eval 
+        var mergeVars = !indefinite;            // if indefinite, tell R not to merge vars into globalenv
         var pollForResult = function() {
             if (statusOk) {
-                self.livelyREvaluate_URL.withQuery({id: id}).asWebResource()
+                self.livelyREvaluate_URL.withQuery({id: id, merge: mergeVars}).asWebResource()
                     .beAsync().get().whenDone(function(content, status) {
                         if (!status.isSuccess()) {
                             callback(status, null)     // a communication error
@@ -30,13 +33,14 @@ Object.extend(apps.RInterface, {
                             if (result.state == 'UNKNOWN') return;      // nothing more to do
                             var out = result.output
                             if (out && out.length>0) {
-                                out.forEach(function(oneResult) {
-                                    if (oneResult.value || oneResult.message || oneResult.error)
-                                        results.push(oneResult)
+                                out.forEach(function(res) {
+                                    if (res.value || res.message || res.warning || res.error)
+                                        results.push(res)
                                 })
                             }
                             // console.log(result.state);
                             if (result.state == 'ERROR') {
+                                console.log(results.last().error);
                                 callback(results.last().error, results);
                                 return;
                             }
@@ -52,17 +56,17 @@ Object.extend(apps.RInterface, {
                                 return;
                             }
                             // if this is an indefinite evaluation, deliver results as they arrive.
-                            if ((timeout == null) && results.length) {
+                            if (indefinite && results.length) {
                                 callback(null, results);
                                 results = [];
                             }
                             // if we found any results this time, don't wait long before asking again.
-                            pollForResult.delay(out ? 0.1 : 0.2);
+                            pollForResult.delay(out ? 0.1 : 0.3);
                         }
                     });
                 }
         };
-        id = this.livelyREvaluate_startEval(expr, function(content, status) {
+        id = this.livelyREvaluate_startEval(expr, exitOnCompletion, function(content, status) {
             // check only the status
             if (!status.isSuccess()) {
                 self.statusOk = false;      // abandon result polling
@@ -73,7 +77,7 @@ Object.extend(apps.RInterface, {
         //var evalProc = {id: id, state: null, output: null};
         //apps.RInterface.evalProcesses.push(evalProc);
 
-        pollForResult.delay(0.5);         // give R a little time
+        setTimeout(pollForResult, 500);         // give R a little time
         return id;
     },
 
@@ -165,10 +169,10 @@ Object.extend(apps.RInterface, {
         }
     },
 
-    livelyREvaluate_startEval: function(expr, callback) {
+    livelyREvaluate_startEval: function(expr, exitOnCompletion, callback) {
         // init evaluation using the lively-R-evaluate package on the R side, and return its id.
         // This will start a new R process that runs the evaluation (asynchronously).
-        // Invokes  callback(content, status) as received from the network request
+        // Invokes  callback(content, status) as received from the network request.
         var id = Strings.newUUID();
         var sanitizedExpr = expr.replace(/\\/g, '\\\\').replace(/"/g, '\\"'),
             self = this;
@@ -185,7 +189,7 @@ Object.extend(apps.RInterface, {
             if (err) { show(err) }
             else {
                 self.livelyREvaluate_URL.asWebResource().beAsync() 
-                    .post(JSON.stringify({expr: sanitizedExpr, id: id}), 'application/json')
+                    .post(JSON.stringify({expr: sanitizedExpr, id: id, exit: exitOnCompletion, debug: false}), 'application/json')
                     .whenDone(callback);
             }
         });
@@ -221,7 +225,7 @@ Object.extend(apps.RInterface, {
     },
 
 
-    livelyREvaluate_getResults: function(id, firstOnly, timeout, callback) {
+    livelyREvaluate_getResults: function(id, timeout, callback) {
         // Ask for results from the specified asynchronous evaluation.
         // If none is forthcoming keep asking every 100ms for up to 3s, then generate a timeout error.
         // Invokes  callback(errorOrNull, resultsOrNull)

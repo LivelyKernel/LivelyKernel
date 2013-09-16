@@ -477,7 +477,13 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         describe: function describe(obj) {
                     var str;
                     if (obj && obj.name) {
-                        str = obj.name;
+                        if(typeof obj.name.valueOf() == 'string')
+                            str = obj.name;
+                        else if(typeof obj.name.valueOf() == 'function' && obj.name.length == 0) {
+                            try {    
+                                str = obj.name();
+                            } catch(e) {}
+                        }
                     }
                     if (!str) str = Objects.shortPrintStringOf(obj);
                     if (str.length > 32) str = str.substring(0, 32) + '...';

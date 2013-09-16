@@ -1077,8 +1077,8 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
                     spec[2] :
                     new lively.Rectangle(spec[2][0], spec[2][1], spec[2][2], spec[2][3]);
             
-            var paneRect = self.bounds().scaleByRect(relativeRect);
-                // fix for mixed class vs. function initialization bug
+            var paneRect = self.innerBounds().scaleByRect(relativeRect);
+            // fix for mixed class vs. function initialization bug
             var pane = lively.Class.isClass(paneConstructor) ?
                     new paneConstructor() :
                     pane = paneConstructor(paneRect);

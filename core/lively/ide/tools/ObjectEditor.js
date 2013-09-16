@@ -910,7 +910,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             if (this.owner.hasUnsavedChanges && this.owner.hasUnsavedChanges()) {
                 this.owner.confirmUnsavedChanges(update);
             } else {
-                update(true);
+                update.call(this, true);
             }
         }
         },{

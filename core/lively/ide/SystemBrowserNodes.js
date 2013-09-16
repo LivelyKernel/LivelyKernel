@@ -15,13 +15,20 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
     removeFile: function(file) { this.allFiles = this.allFiles.without(file) },
 
     locationChanged: function() {
+        var url = this.browser.getTargetURL(),
+            subElements,
+            fileURLs,
+            dirs;
+        
         this.browser.selectNothing();
-        var url = this.browser.getTargetURL();
+        
         try {
-            this.allFiles = this.target.interestingLKFileNames(url);
+            subElements = new WebResource(url).beSync().getSubElements();
+            fileURLs = subElements.subDocuments.collect(function(ea) { return ea.getURL(); });
+            this.allFiles = this.target.selectUniqueLKFileNamesFrom(fileURLs);
         } catch(e) {
-            // can happen when browser in a serialized world that
-            // is moved tries to relativize a URL
+            // can happen when a restored browser from a world that has been moved
+            // uses a now incorrect relative URL
             this.statusMessage('Cannot get files for code browser with url '
                 + url + ' error ' + e, Color.red, 6);
             this.allFiles = [];
@@ -30,15 +37,11 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
         var isUrlRootOfRepository = this.browser.codeBaseUrlString() == String(url);
         this.parentNamespacePath = isUrlRootOfRepository ? null : url.withFilename('../');
         
-        this.subNamespacePaths = this.pathsToSubNamespaces(url);
+        dirs = subElements.subCollections || [];
+        this.subNamespacePaths = dirs.collect(function(ea) { return ea.getURL(); });
     },
 
-    pathsToSubNamespaces: function(url) {
-        var webR = webR = new WebResource(url).beSync(),
-            dirs = webR.getSubElements().subCollections || [],
-            paths = dirs.collect(function(ea) { return ea.getURL(); });
-        return paths;
-    },
+
 
     childNodes: function() {
         // js files + OMeta files (.txt)

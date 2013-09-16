@@ -446,17 +446,23 @@ Object.subclass('AnotherSourceDatabase', {
     interestingLKFileNames: function(url) {
         try {
             var webR = new WebResource(url).beSync(),
-                fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL(); }),
-                fileNames = this.mapURLsToRelativeModulePaths(fileURLs),
-                acceptedFileNames = /.*\.(st|js|ometa|css|snippets?|tmsnippets?)$/;
-            return fileNames
-                    .select(function(ea) { return acceptedFileNames.test(ea); })
-                    .uniq();
+                fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL(); });
+            
+            return this.selectUniqueLKFileNamesFrom(fileURLs);
         } catch(e) {
             console.error('interestingLKFileNames: ' + e);
             return [];
         }
     },
+    selectUniqueLKFileNamesFrom: function(fileURLs) {
+        var fileNames = this.mapURLsToRelativeModulePaths(fileURLs),
+            acceptedFileNames = /.*\.(st|js|ometa|css|snippets?|tmsnippets?)$/;
+    
+        return fileNames
+            .select(function(ea) { return acceptedFileNames.test(ea); })
+            .uniq();
+    },
+    
     mapURLsToRelativeModulePaths: function(urls) {
         return urls.collect(function(ea) {
             var path = ea.withRelativePartsResolved().relativePathFrom(URL.root);

@@ -1334,7 +1334,9 @@ lively.morphic.World.addMethods(
     loadPartItem: function(partName, optPartspaceName) {
         var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
             part = lively.PartsBin.getPart(partName, optPartspaceName);
-        if (!part) return;
+        if (!part) {debugger;
+            return;
+        }
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
     },
@@ -2119,7 +2121,7 @@ lively.morphic.List.addMethods(
     deselectAt: function(idx) { this.renderContextDispatch('deselectAt', idx) },
 
     updateSelectionAndLineNoProperties: function(selectionIdx) {
-        var item = this.itemList[selectionIdx];
+        var item = this.itemList[selectionIdx] || null;
         this.selectedLineNo = selectionIdx;
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },

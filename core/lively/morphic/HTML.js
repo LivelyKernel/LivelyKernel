@@ -638,8 +638,10 @@ lively.morphic.List.addMethods(
             ctx.listNode = this.createListNodeHTML();
         ctx.subNodes = [];
         $super(ctx);
-        if (this.shape) // FIXME should also be done when no shape exists...?
-            this.updateList(this.itemList || [])
+        if (this.shape) { // FIXME should also be done when no shape exists...?
+            var self = this;
+            lively.bindings.noUpdate(function() { self.updateList(self.itemList || []); });
+        }
         if (this.isDropDownList) this.renderAsDropDownListHTML(ctx);
         if (this.isMultipleSelectionList) this.enableMultipleSelectionsHTML(ctx);
         this.setFontSizeHTML(ctx, this.getFontSize())

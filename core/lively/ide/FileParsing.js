@@ -347,19 +347,27 @@ Object.subclass('lively.ide.FileFragment',
 },
 'browser support', {
 
-    browseIt: function(options) {
-        options = options || {};
-        var browser = options.browser || (options.browser = new lively.ide.SystemBrowser());
-        if (!browser.panel || !browser.panel.world()) browser.openIn(lively.morphic.World.current());
-
-        // set the correct path
-        var m = this.fileName.match(/(.*\/)(.+)/);
-        var pathName = m[1];
-        browser.setTargetURL(URL.codeBase.withFilename(pathName));
-
+    browseIt: function(optOptions) {
+         var options = optOptions || {},
+            world = lively.morphic.World.current(),
+            browser = options.browser || new lively.ide.SystemBrowser(),
+            pathName = this.fileName.match(/(.*\/)(.+)/)[1],
+            url = URL.codeBase.withFilename(pathName),
+            win;
+            
+        
+        if (!browser.panel || !browser.panel.world()) {
+            browser.openIn(world, null, null, url);
+        }
+        
+        options.browser = browser;
         this.basicBrowseIt(options);
-        var win = browser.panel.getWindow()
-        if (!win.isActive()) win.comeForward();
+        
+        win = browser.panel.getWindow()
+        if (!win.isActive()) {
+            win.comeForward();
+        }
+        
         return browser;
     },
 

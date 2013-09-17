@@ -913,6 +913,10 @@ Object.subclass('lively.ide.BrowserNode',
 },
 'accessing', {
     siblingNodes: function() { return this.browser.nodesInSamePaneAs(this).without(this) },
+    getSiblingWithTarget: function(target) {
+        return this.siblingNodes().detect(function(ea) {
+            return ea.target === target; });
+    },
     nextNode: function() {
         var nodes = this.browser.nodesInSamePaneAs(this);
         return nodes[nodes.indexOf(this) + 1];

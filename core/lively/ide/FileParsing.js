@@ -120,6 +120,14 @@ Object.subclass('lively.ide.FileFragment',
         var idx = siblingsAndMe.indexOf(this);
         return siblingsAndMe[idx - 1];
     },
+
+    nextElement: function() {
+        var siblingsAndMe = this.withSiblings();
+        if (!siblingsAndMe) return null;
+        var idx = siblingsAndMe.indexOf(this);
+        return siblingsAndMe[idx + 1];
+    },
+
     withSiblings: function() {
         var owner = this.findOwnerFragment();
         if (!owner) return null;

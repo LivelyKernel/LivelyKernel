@@ -1087,8 +1087,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     fragmentNamed: function(name, optFilter) {
         return this.root.flattened().detect(function(ea) {
             var select = ea.name == name;
-            if (optFilter)
-            select = select && optFilter(ea)
+            if (optFilter) select = select && optFilter(ea);
             return select;
         });
     },
@@ -1402,6 +1401,13 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
                           'setup failed, new code not ok');
         this.assertEquals('var x = {\nx: 4,\n\n\n}', objectDef.getSourceCode(),
                           'object def wrong');
+    },
+
+    testFindSibling: function() {
+        var fragment1 = this.fragmentNamed('m2'),
+            fragment2 = this.fragmentNamed('m3', function(el) { return el.startIndex > fragment1.startIndex; }),
+            result = fragment1.nextElement();
+        this.assertIdentity(fragment2, result, ' findNextSibling did not return #m3');
     }
 
 });

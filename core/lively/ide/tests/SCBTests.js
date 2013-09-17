@@ -364,8 +364,7 @@ TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',
         this.sut = cmd;
 
         // nodes
-        var prevNode = {target: {}},
-            newNode = {};
+        var prevNode = {target: {}}, newNode = {};
         this.mock(prevNode.target, 'addSibling', function(src) { return newNode });
         this.mock(prevNode.target, 'getSourceCode', function() { return '' });
         this.mock(prevNode.target, 'putSourceCode', function(str) { });
@@ -391,8 +390,7 @@ TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',
     },
 
     testAddNoCommaIfCommaAlreadyExisting: function() {
-        var prevSource = "foo: 3,",
-            called;
+        var prevSource = "foo: 3,", called;
         this.mock(this.prevNode.target, 'getSourceCode', function() { return prevSource });
         this.mock(this.prevNode.target, 'putSourceCode', function(str) { called = true });
         this.sut.interactiveAddTo(this.prevNode);

@@ -442,11 +442,12 @@ lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddMethodToFileFragment
     nodeType: 'isMemberNode'
 },
 'command actions', {
-    interactiveAddTo: function(siblingNode) {
-        var b = this.browser,
-            methodName = "newMethod";
+     interactiveAddTo: function(siblingNode) {
         this.ensureSourceHasComma(siblingNode);
-        var needsComma = !!siblingNode.nextNode();
+        var methodName = "newMethod",
+            ff = siblingNode.target,
+            nextFF = ff.nextElement(),
+            needsComma = nextFF && siblingNode.getSiblingWithTarget(nextFF);
         this.createAndAddSource(siblingNode, methodName, needsComma);
         this.selectStringInSourcePane(methodName);
     },

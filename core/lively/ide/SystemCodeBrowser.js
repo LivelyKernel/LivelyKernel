@@ -124,15 +124,10 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         this.setTargetURL(new URL(targetUrlString))
     },
     openIn: function($super, world, position, extent, optTargetURL) {
-        var lastOpened = lively.ide.SourceControl.registeredBrowsers.last();
-        
+        var lastOpened = lively.ide.sourceDB().registeredBrowsers.last();
         $super(world, position, extent);
-        
-        if (optTargetURL) {
-            this.setTargetURL(optTargetURL);
-        } else if (lastOpened) {
-            this.setTargetURL(lastOpened.targetURL);
-        }
+        var url = optTargetURL || (lastOpened && lastOpened.getTargetURL());
+        url && this.setTargetURL(url);
     },
     codeBaseUrlString: function() {
         return String(this.sourceDatabase().codeBaseURL).replace('core/', '');

@@ -368,7 +368,9 @@ TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',
         this.mock(prevNode.target, 'addSibling', function(src) { return newNode });
         this.mock(prevNode.target, 'getSourceCode', function() { return '' });
         this.mock(prevNode.target, 'putSourceCode', function(str) { });
-        this.mock(prevNode, 'nextNode', function() { return this._nextNode });
+        this.mock(prevNode, 'nextNode', function() { return prevNode._nextNode });
+        this.mock(prevNode.target, 'nextElement', function() { return prevNode._nextNode && prevNode._nextNode.target });
+        this.mock(prevNode, 'getSiblingWithTarget', function(target) { return prevNode._nextNode && prevNode._nextNode.target === target && prevNode._nextNode });
         this.prevNode = prevNode;
         this.newNode = newNode;
 
@@ -399,7 +401,7 @@ TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',
 
     testAddCommaToNewSourceWhenNextNodeExists: function() {
         var newSrc;
-        this.prevNode._nextNode = {};
+        this.prevNode._nextNode = {target: {}};
         this.mock(this.prevNode.target, 'addSibling', function(src) { newSrc = src; });
         this.sut.interactiveAddTo(this.prevNode);
         this.assert(newSrc.endsWith(','), 'no , added to new source ' + newSrc);

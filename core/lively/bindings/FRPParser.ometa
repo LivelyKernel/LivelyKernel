@@ -21,6 +21,7 @@ ometa FRPParser <: BSOMetaJSParser {
                                                                         name.join('.')].concat(as)
                 | "[" listOf(#expr, ','):es "]"                     -> [#arr].concat(es)
                 | json
-                | re
+                | re,
+    strmDefStr  = "name":n spaces ``<-'' <orExpr>:str                        -> [#strmDef, n, str],
+    strmDefs    = strmDefStr*
 };
-

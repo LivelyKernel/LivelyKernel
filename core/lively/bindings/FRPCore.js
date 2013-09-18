@@ -572,8 +572,20 @@ Object.extend(lively.bindings.FRPCore.EventStream, {
         if (!this.isEventStream(strm)) {
             strm = new lively.bindings.FRPCore.EventStream().value(strm);
         }
-        strm.setCode(aString);
+        strm.setCode(aString.strip());
         return strm;
+    },
+    updateStreamsIn: function(anObject, aString) {
+        var list = OMetaSupport.matchAllWithGrammar(FRPParser, "strmDefs", aString);
+        for (var i = 0; i < list.length; i++) {
+            var pair = list[i];
+            var field = pair[1];
+            var newCode = pair[2].strip();
+            if (!this.isEventStream(anObject[field]) || anObject[field].code.strip() !== newCode) {
+                var strm = this.fromString(newCode);
+                strm.installTo(anObject, field);
+            }
+        }
     },
     isEventStream: function (v) {
         return v instanceof lively.bindings.FRPCore.EventStream;

@@ -1550,6 +1550,7 @@ openReferencingMethodFinder: function () {
         require('lively.ide.tools.FileTree').toRun(function() {
             var fTree = lively.BuildSpec('lively.ide.tools.FileTree').createMorph().openInWorldCenter();
             fTree.targetMorph.update();
+            fTree.comeForward();
         });
     }
 
@@ -1739,6 +1740,7 @@ openReferencingMethodFinder: function () {
                 ['Subserver Viewer', this.openSubserverViewer.bind(this)],
                 ['Server Workspace', this.openServerWorkspace.bind(this)],
                 ['Terminal', this.openTerminal.bind(this)],
+                ['File tree', this.openFileTree.bind(this)],
                 ['Git Control', this.openGitControl.bind(this)]
             ]],
             ['Stepping', [

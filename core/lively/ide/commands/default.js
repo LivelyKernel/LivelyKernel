@@ -536,6 +536,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openGitControl': {description: 'open GitControl', exec: function() { $world.openGitControl(); }},
     'lively.ide.openServerLog': {description: 'open ServerLog', exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); }},
     'lively.ide.openDiffer': {description: 'open text differ', exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); }},
+    'lively.ide.openFileTree': {description: 'open file tree', exec: function() { $world.openFileTree(); }},
     'lively.PartsBin.open': {description: 'open PartsBin', exec: function() { $world.openPartsBin(); }},
     'lively.Config.openPreferences': {description: 'customize user preferences and config options', exec: function() { $world.openPreferences(); }},
     // network helper

@@ -1546,6 +1546,12 @@ openReferencingMethodFinder: function () {
         return this.openPartItem('GitControl', 'core/lively/ide/tools/');
     },
 
+    openFileTree: function() {
+        require('lively.ide.tools.FileTree').toRun(function() {
+            var fTree = lively.BuildSpec('lively.ide.tools.FileTree').createMorph().openInWorldCenter();
+            fTree.targetMorph.update();
+        });
+    }
 
 },
 'menu', {

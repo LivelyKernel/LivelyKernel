@@ -45,9 +45,15 @@ Object.extend(lively.ide.DirectoryWatcher, {
             var cb;
             while ((cb = watchState.callbacks.shift())) cb(watchState.files);
         }
+        function fixDates(statObj) { // convert date string into a date object
+            ['atime', 'mtime', 'ctime'].forEach(function(field) {
+                statObj[field] = new Date(statObj[field]); });
+            return statObj;
+        }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         if (!watchState.files) { // first time called
             this.getFiles(dir, function(err, result) {
+                result.files && Properties.forEachOwn(result.files, function(path, stat) { fixDates(stat); })
                 Object.extend(watchState, {
                     files: result.files,
                     lastUpdated: result.startTime,
@@ -68,7 +74,7 @@ Object.extend(lively.ide.DirectoryWatcher, {
             result.changes.forEach(function(change) {
                 switch (change.type) {
                     case 'removal': delete watchState.files[change.path]; break;
-                    case 'creation': case 'change': watchState.files[change.path] = change.stat; break;
+                    case 'creation': case 'change': watchState.files[change.path] = fixDates(change.stat); break;
                 }
             });
             whenDone();

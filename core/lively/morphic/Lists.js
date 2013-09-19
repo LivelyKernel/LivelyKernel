@@ -907,6 +907,11 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
             'onScroll-' + this.id, 60, this.updateView.bind(this))();
     },
 
+    onMouseWheel: function(evt) {
+        this.stopScrollWhenBordersAreReached(evt);
+        return false;
+    },
+
     onMouseDown: function(evt) {
         if (!evt.isRightMouseButtonDown()) return false;
         // delayed because when owner is a window and comes forward the window
@@ -918,16 +923,14 @@ lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'
 
     onUpPressed: function($super, evt) {
         if (evt.isCommandKey()) return $super(evt);
-        evt.stop();
         this.selectPrev();
-        return true;
+        evt.stop(); return true;
     },
 
     onDownPressed: function($super, evt) {
         if (evt.isCommandKey()) return $super(evt);
-        evt.stop();
         this.selectNext();
-        return true;
+        evt.stop(); return true;
     }
 
 },

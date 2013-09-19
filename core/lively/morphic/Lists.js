@@ -41,10 +41,13 @@ Trait('ScrollableTrait'),
 'list interface', {
     getMenu: function() { /*FIXME actually menu items*/ return [] },
     updateList: function(items) {
-        if (!items) items = [];
-        this.itemList = items;
-        var itemStrings = items.collect(function(ea) { return this.renderFunction(ea); }, this);
+        this.clearSelections();
+        this.itemList = items || [];
+        var newIndexForOldSelection = (this.selection && this.find(this.selection)) || -1,
+            itemStrings = items.collect(function(ea) {
+                return this.renderFunction(ea); }, this);
         this.renderContextDispatch('updateListContent', itemStrings);
+        this.selectAt(newIndexForOldSelection);
     },
     addItem: function(item) {
         this.updateList(this.itemList.concat([item]));
@@ -55,6 +58,7 @@ Trait('ScrollableTrait'),
         this.renderContextDispatch('selectAllAt', [idx]);
         this.updateSelectionAndLineNoProperties(idx);
     },
+
     saveSelectAt: function(idx) {
         this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
     },
@@ -118,11 +122,11 @@ Trait('ScrollableTrait'),
     },
     find: function(itemOrValue) {
         // returns the index in this.itemList
-        for (var i = 0; i < this.itemList.length; i++) {
+        for (var i = 0, len = this.itemList.length; i < len; i++) {
             var val = this.itemList[i];
-            if (val === itemOrValue || (val && val.isListItem && val.value === itemOrValue)) {
-                return i;
-            }
+            if (val === itemOrValue
+             || (val && val.isListItem
+              && val.value === itemOrValue)) return i;
         }
         // return -1?
         return undefined;

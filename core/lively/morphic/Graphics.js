@@ -345,6 +345,19 @@ Object.subclass('Rectangle',
         var w = this.width / cols, h = this.height / rows;
         return Grid.mapCreate(rows, cols, function(i, j) {
             return new Rectangle(w*j, h*i, w, h); });
+    },
+
+    divide: function(relativeRects) {
+        // takes an array of rectangles specifying the relative parts to divide
+        // this by. Example:
+        // lively.rect(0,0,100,50).divide([lively.rect(0.2,0,0.3,0.5)])
+        //   === [lively.rect(20,0,30,25)]
+        var orig = this;
+        return relativeRects.map(function(relRect) {
+            return lively.rect(orig.x + orig.width*relRect.x,
+                               orig.y + orig.height*relRect.y,
+                               orig.width*relRect.width,
+                               orig.height*relRect.height); });
     }
 },
 'converting', {

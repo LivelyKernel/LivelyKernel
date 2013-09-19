@@ -40,6 +40,16 @@ TestCase.subclass('lively.morphic.tests.RectangleTests',
         var result = rect(10,10,10,10).withTopRight(pt(5,5));
         this.assertEquals(pt(5,5), result.topRight());
         this.assertEquals(rect(-5,5,10,10), result);
+    },
+
+    testDivideRelatively: function() {
+        var result = rect(20,10,100,200).divide([rect(0.0, 0.0, 0.5, 0.8),
+                                                 rect(0.5, 0.0, 0.5, 0.2),
+                                                 rect(0.5, 0.8, 0.5, 0.2)]),
+            expected = [rect(20,    10,     50, 160),
+                        rect(20+50, 10,     50, 40),
+                        rect(20+50, 10+160, 50, 40)]
+        this.assertEquals(expected, result);
     }
 
 });

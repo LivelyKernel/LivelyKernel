@@ -1110,7 +1110,7 @@ Object.extend(lively.morphic.Panel, {
     },
 
     newDragnDropListPane: function(initialBounds, suppressSelectionOnUpdate) {
-        return new lively.morphic.List(initialBounds, ['-----']);
+        return new lively.morphic.MorphList2(initialBounds, ['-----']);
     }
 
 });

@@ -530,17 +530,16 @@ Trait('ScrollableTrait',
     stopScrollWhenBordersAreReached: function(evt) {
         if (!this.isScrollable() || this.isInInactiveWindow()) return false;
         // FIXME HTML specfic! Move to HTML module
-        var div = this.getScrollableNode(evt);
+        var div = this.getScrollableNode(evt),
+            maxScroll = this.getMaxScrollExtent();
         if (evt.wheelDeltaX) {
-            var maxHorizontalScroll = div.scrollWidth - div.clientWidth,
-                currentHorizontalScroll = div.scrollLeft;
-            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxHorizontalScroll) { evt.stop(); }
+            var currentHorizontalScroll = div.scrollLeft;
+            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxScroll.x) { evt.stop(); }
             if (evt.wheelDeltaX > 0 && currentHorizontalScroll <= 0) { evt.stop(); }
         }
         if (evt.wheelDeltaY) {
-            var maxVerticalScroll = div.scrollHeight - div.clientHeight,
-                currentVerticalScroll = div.scrollTop;
-            if (evt.wheelDeltaY < 0 && currentVerticalScroll >= maxVerticalScroll) { evt.stop(); }
+            var currentVerticalScroll = div.scrollTop;
+            if (evt.wheelDeltaY < 0 && currentVerticalScroll >= maxScroll.y) { evt.stop(); }
             if (evt.wheelDeltaY > 0 && currentVerticalScroll <= 0) { evt.stop(); }
         }
         return true;
@@ -552,8 +551,9 @@ Trait('ScrollableTrait',
 
     getMaxScrollExtent: function() {
         var div = this.getScrollableNode(),
-            maxHorizontalScroll = div.scrollWidth - div.clientWidth,
-            maxVerticalScroll = div.scrollHeight - div.clientHeight;
+            border = Math.ceil(this.getBorderWidth()),
+            maxHorizontalScroll = div.scrollWidth - div.clientWidth - border,
+            maxVerticalScroll = div.scrollHeight - div.clientHeight - border;
         return pt(maxHorizontalScroll, maxVerticalScroll);
     },
     scrollToBottom: function() {
@@ -1319,179 +1319,6 @@ lively.morphic.Text.addMethods(
     doKeyPaste: Functions.Null
 });
 
-lively.morphic.List.addMethods(
-'change event handling', {
-    inputEventTriggeredChange: function() {
-        // this is to ensure that the selection is only set once
-        this.selectionTriggeredInInputEvent = true;
-        var self = this;
-        (function() { delete self.selectionTriggeredInInputEvent }).delay(0);
-    }
-},
-'mouse events', {
-    disableList: function() {
-        this.renderContextDispatch('disableList');
-    },
-    enableList: function() {
-        this.renderContextDispatch('enableList');
-    },
-    onMouseDownEntry: function($super, evt) {
-        if (evt.isCommandKey()) {
-            this.disableList();
-            this.enableList.bind(this).delay(0);
-        }
-        return $super(evt);
-    },
-    onMouseDown: function(evt) {
-        if (evt.isCommandKey()) {
-            evt.preventDefault()
-            return false;
-        }
-
-        if (evt.isRightMouseButtonDown()) {
-            // delayed because when owner is a window and comes forward the window
-            // would be also in front of the new menu
-            var sel = this.selection ? this.selection.string : this.selection;
-            lively.morphic.Menu.openAt.curry(evt.getPosition(), sel, this.getMenu()).delay(0.1);
-            evt.stop();
-            return true;
-        }
-
-        return false;
-    },
-    onMouseUp: function (evt) {
-        if (evt.isLeftMouseButtonDown()) {
-            var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
-            // don't update when selection can't be found
-            // this happens e.g. when clicked on a scrollbar
-            if (idx >= 0) {
-                this.inputEventTriggeredChange();
-                this.updateSelectionAndLineNoProperties(idx);
-            }
-
-            if (idx >= 0 && this.isMultipleSelectionList && evt.isShiftDown()) {
-                if (this.getSelectedIndexes().include(idx))
-                    this.deselectAt(idx)
-                else
-                    this.selectAt(idx);
-            }
-        }
-        return true;
-    },
-    onMouseUpEntry: function ($super, evt) {
-        var completeClick = evt.world && evt.world.clickedOnMorph === this;
-
-        if (completeClick && evt.isRightMouseButtonDown()) {
-            return false;
-        }
-        return $super(evt)
-    },
-    onMouseOver: function(evt) {
-        /*if (this.selectOnMove) {
-            var idx = this.selectItemFromEvt(evt);
-            evt.stopPropagation();
-            return idx > -1;
-        }*/
-        return false;
-    },
-    onMouseMove: function(evt) {
-        evt.stop();
-        return true;
-    },
-
-    selectItemFromEvt: function(evt) {
-        var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
-        this.selectAt(idx);
-        return idx;
-    },
-},
-'keyboard events', {
-    onUpPressed: function($super, evt) {
-        if (evt.isCommandKey()) return $super(evt);
-        evt.stop();
-        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, this.selectedLineNo-1)));
-        return true;
-    },
-    onDownPressed: function($super, evt) {
-        if (evt.isCommandKey()) return $super(evt);
-        evt.stop();
-        this.selectAt(Math.max(0, Math.min(this.itemList.length-1, this.selectedLineNo+1)));
-        return true;
-    },
-
-},
-'scrolling', {
-
-    basicGetScrollableNode: function(evt) {
-        return this.renderContext().listNode;
-    },
-
-    onMouseWheel: function(evt) {
-        this.stopScrollWhenBordersAreReached(evt);
-        return false;
-    },
-
-
-    correctForDragOffset: function(evt) {
-        return false;
-    },
-    onChange: function(evt) {
-        if (this.selectionTriggeredInInputEvent) {
-            delete this.selectionTriggeredInInputEvent;
-            return false;
-        }
-        var idx = this.renderContextDispatch('getSelectedIndexes').first();
-        this.updateSelectionAndLineNoProperties(idx);
-        this.changeTriggered = true; // see onBlur
-        return false;
-    },
-
-});
-
-lively.morphic.DropDownList.addMethods(
-'properties', {
-    // triggers correct rendering
-    isDropDownList: 'true'
-},
-'mouse events', {
-    onMouseDown: function(evt) {
-        this.changeTriggered = false; // see onBlur
-        if (evt.isCommandKey()) {
-            evt.preventDefault()
-            return false;
-        }
-        return true;
-     },
-
-    onChange: function (evt) {
-        // FIXME duplication with List
-        var idx = this.renderContextDispatch('getSelectedIndexes').first();
-        this.updateSelectionAndLineNoProperties(idx);
-        this.changeTriggered = true; // see onBlur
-        return false;
-    },
-
-    onBlur: function(evt) {
-        // drop down lists are stupid
-        // onChange is not triggered when the same selection is choosen again
-        // however, we want to now about any selection
-        // kludge for now: set selection anew when element is blurred...
-        if (this.changeTriggered) return;
-        var idx = this.renderContextDispatch('getSelectedIndexes').first();
-        this.updateSelectionAndLineNoProperties(idx);
-    },
-
-    isGrabbable: function(evt) {
-        return false; //!this.changeTriggered;
-    },
-
-    registerForOtherEvents: function($super, handleOnCapture) {
-        $super(handleOnCapture)
-        if (this.onBlur) this.registerForEvent('blur', this, 'onBlur', handleOnCapture);
-    }
-
-});
-
 lively.morphic.Clip.addMethods(
 'scrolling', {
     basicGetScrollableNode: function() {
@@ -2048,6 +1875,7 @@ Object.extend(lively.morphic.Events, {
         }
     }
 });
+
 Object.subclass('lively.morphic.KeyboardDispatcher',
 "settings", {
     // C = Control, M = Alt|Option|Meta, S = Shift, cmd = Command

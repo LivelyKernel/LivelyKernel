@@ -31,11 +31,29 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
             loadTest: function() { return typeof odf !== "undefined"; }})
         .toRun(function() {
             // 1) load ODF using WebODF into a wrapper morph
+            [createStatusMessage,
+             openHTMLWrapperAndStartLoadingODF,
+             stautsMessageLoadingODF,
+             startToWaitForODFLoadEnd,
+            //  -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+             statusMessageStartExtractingMorphs,
+             extractMorphsFromODF,
+             statusMessageResizeWorld,
+             resizeWorld,
+             statusMessageRecenterSlide,
+             recenterSlides,
+             statusMessageSetupPresentationController,
+             setupPresentationController,
+             statusMessageDone,
+             removeStatusMessage
+            ].doAndContinue();
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             var msgMorph, wrapper, domChangesStartTime, visibleBounds = $world.visibleBounds();
-            [function(next) {
+            function createStatusMessage(next) {
                 msgMorph = $world.createStatusMessage("Loading ODF document\nplease wait...", {openAt: 'center'});
                 next.delay(0);
-            }, function(next) {
+            }
+            function openHTMLWrapperAndStartLoadingODF(next) {
                 var id = 'odf-' + Strings.newUUID();
                 wrapper = lively.morphic.HtmlWrapperMorph.renderHTML('<div id="' + id + '" />');
                 var win = wrapper.getWindow(); win && win.remove();
@@ -46,10 +64,12 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
                 var odfcanvas = new odf.OdfCanvas(odfelement);
                 odfcanvas.load(url);
                 next.delay(0);
-            }, function(next) {
+            }
+            function stautsMessageLoadingODF(next) {
                 msgMorph.setMessage('ODF container created\nLoading content...');
                 next.delay(0);
-            }, function(next) {
+            }
+            function startToWaitForODFLoadEnd(next) {
                 whenNoDOMChangesFor(800, wrapper.renderContext().shapeNode, next, function() {
                     var msg;
                     if (!domChangesStartTime) domChangesStartTime = Date.now();
@@ -62,12 +82,15 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
                     }
                     msgMorph.setMessage(msg);
                 });
-            },
-            function(next) { msgMorph.setMessage('ODF import finished\nExtracting morphs...'); next.delay(); },
-            function(next) {
+            }
+            function statusMessageStartExtractingMorphs(next) {
+                msgMorph.setMessage('ODF import finished\nExtracting morphs...');
+                next.delay();
+            }
+            function extractMorphsFromODF(next) {
                 try {
                     Global.pageMorphs = odfToMorphic(wrapper)
-                    // (function() { 
+                    // (function() {
                     //     show('doing morph conversions...');
                     //     pageMorphs.doAndContinue(function(next, pageMorph, i) {
                     //         show(i);
@@ -82,23 +105,26 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
                     show(e.stack || e);
                     next();
                 }
-                
-            },
-            function(next) { msgMorph.setMessage("Resizing world!"); next.delay(0); },
-            function(next) {
+
+            }
+            function statusMessageResizeWorld(next) { msgMorph.setMessage("Resizing world!"); next.delay(0); }
+            function resizeWorld(next) {
                 var bottom = pageMorphs.last().bounds().bottom();
                 $world.setExtent($world.getExtent().withY(bottom + 200));
                 next();
-            },
-            function(next) { msgMorph.setMessage("Recentering pages!"); next.delay(0); },
-            function(next) {
+            }
+            function statusMessageRecenterSlide(next) { msgMorph.setMessage("Recentering pages!"); next.delay(0); }
+            function recenterSlides(next) {
                 $world.setScroll(visibleBounds.topLeft().x, visibleBounds.topLeft().y);
                 var delta = visibleBounds.center().subPt(pageMorphs[0].bounds().center());
                 pageMorphs.invoke('moveBy', delta);
                 next();
-            },
-            function(next) { msgMorph.setMessage("Generating slide sequence."); next.delay(0); },
-            function(next) {
+            }
+            function statusMessageSetupPresentationController(next) {
+                msgMorph.setMessage("Generating slide sequence.");
+                next.delay(0);
+            }
+            function setupPresentationController(next) {
                 var presController = $world.withAllSubmorphsDetect(function(m) {
                     return m.name && m.name.match(/^PresentationController.*/); })
                 if (presController) {
@@ -107,10 +133,13 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
                     presController.align(presController.bounds().leftCenter(), pageMorphs[0].bounds().rightCenter().addXY(20, 0))
                 }
                 next();
-            },
-            function(next) { msgMorph.setMessage("All done!", Color.green); next.delay(2); },
-            function(next) { msgMorph.remove(); next(); }
-            ].doAndContinue();
+            }
+            function statusMessageDone(next) {
+                msgMorph.setMessage("All done!", Color.green);
+                next.delay(2);
+            }
+            function removeStatusMessage(next) { msgMorph.remove(); next(); }
+
         });
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // the WebODF library does not provide an interface to find out when
@@ -278,7 +307,8 @@ Global.renderStateForOdfPage = function renderStateForOdfPage(pageEl) {
                 state = {
                     node: node.cloneNode(true),
                     position: bounds.topLeft(),
-                    extent: bounds.extent()};
+                    extent: bounds.extent(),
+                    id: node.getAttribute('id')};
             return renderStates.concat([state]);
         })
     }
@@ -288,6 +318,7 @@ Global.morphWrapperForOdfPageElement = function morphWrapperForOdfPageElement(re
     // this creates a morph for an element that appears on a rendered
     // odf page, like a text or a drawing
     var wrapper = new lively.morphic.HtmlWrapperMorph(pt(0,0));
+    wrapper.odfId = renderState.id;
     wrapper.applyStyle({fill: Color.white, position: renderState.position});
     wrapper.shape.odfRenderState = renderState;
     (function getExtentHTML(ctx) { return this.odfRenderState.extent; }).asScriptOf(wrapper.shape);
@@ -301,6 +332,7 @@ Global.morphWrapperForOdfPageElement = function morphWrapperForOdfPageElement(re
 Global.morphForOdfRendering = function morphForOdfRendering(odfRenderState) {
     // This creates a morph container for an odf page
     var pageMorph = new lively.Presentation.PageMorph(lively.Rectangle.fromElement(odfRenderState.node));
+    pageMorph.buildSteps = odfRenderState.buildSteps;
     odfRenderState.elements
         .map(morphWrapperForOdfPageElement)
         .forEach(function(morph) { pageMorph.addMorph(morph); })
@@ -330,7 +362,10 @@ Global.odfToMorphic = function odfToMorphic(htmlMorph, from, to) {
     if (from || to) pages = pages.slice(from, to);
     var pageMorphs = pages.map(function(pageEl,i) {
         return movePageToOriginWhileGenerating(htmlMorph, pageEl, function(pagePos) {
-            var morph = morphForOdfRendering(renderStateForOdfPage(pageEl));
+            var odfPageData = Object.merge([
+                    renderStateForOdfPage(pageEl),
+                    buildStepsFromPage(pageEl)]),
+                morph = morphForOdfRendering(odfPageData);
             morph.name = String(i);
             morph.openInWorld();
             convertODFTextsToMorphs(morph);
@@ -355,6 +390,38 @@ Global.odfToMorphic = function odfToMorphic(htmlMorph, from, to) {
 // pageMorphs.forEach(function(ea) { $world.addMorph(ea); });
 // Global.pageMorphs.invoke('remove')
 // $world.beClip(false)
+})();
+
+
+(function odfAnimFunctions() {
+
+Global.buildStepsFromPage = function buildStepsFromPage(page) {
+    // an instruction node (anim:par node) looks like this:
+    // <anim:par begin="0s" fill="hold" node-type="on-click"
+    // preset-class="entrance" preset-id="ooo-entrance-appear">
+    //   <anim:set begin="0s" dur="0.001s" fill="hold"
+    //   targetElement="id5" attributeName="visibility"
+    //   to="visible"></anim:set>
+    // </anim:par>
+    // for the full spec see http://www.w3.org/TR/SMIL3/smil-timing.html
+    var stepNodes = Array.from(page.querySelectorAll('par[*|node-type][*|begin]'))
+    return {
+        buildSteps: stepNodes.map(function(node) {
+            var setNode = node.querySelector('set');
+            if (!setNode) return null;
+            setNode.getAttribute('smil:targetElement')
+            setNode.getAttribute('smil:attributeName')
+            setNode.getAttribute('smil:to')
+            return {
+                when: node.getAttribute('presentation:node-type'),
+                target: setNode.getAttribute('smil:targetElement'),
+                attributeName: setNode.getAttribute('smil:attributeName'),
+                attributeValue: setNode.getAttribute('smil:to')
+            }
+        }).compact()
+    }
+}
+
 })();
 
 

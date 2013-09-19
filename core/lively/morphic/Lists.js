@@ -1,7 +1,8 @@
 module('lively.morphic.Lists').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.TextCore', 'lively.morphic.Styles').toRun(function() {
 
+lively.morphic.List.addMethods(Trait('ScrollableTrait'));
+
 lively.morphic.List.addMethods(
-Trait('ScrollableTrait'),
 'documentation', {
     connections: {
         selection: {},
@@ -67,7 +68,7 @@ Trait('ScrollableTrait'),
 
     updateSelectionAndLineNoProperties: function(selectionIdx) {
         var item = this.itemList[selectionIdx];
-        this.selectedLineNo = selectionIdx || null;
+        this.selectedLineNo = Object.isNumber(selectionIdx) && selectionIdx >= 0 ? selectionIdx : null;
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },
 
@@ -176,10 +177,7 @@ Trait('ScrollableTrait'),
     renderFunction: function(anObject) {
         return anObject.string || String(anObject);
     }
-
-});
-
-lively.morphic.List.addMethods(
+},
 'change event handling', {
     inputEventTriggeredChange: function() {
         // this is to ensure that the selection is only set once
@@ -518,7 +516,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
 
     updateSelectionAndLineNoProperties: function(selectionIdx) {
         var item = this.itemList[selectionIdx];
-        this.selectedLineNo = selectionIdx || null;
+        this.selectedLineNo = Object.isNumber(selectionIdx) && selectionIdx >= 0 ? selectionIdx : null;
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },
 

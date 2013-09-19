@@ -103,10 +103,7 @@ lively.morphic.Morph.addMethods(
     },
     applyLayout: function() {
         var layouter = this.getLayouter();
-        if (!layouter) {
-            return;
-        }
-        layouter.layout(this, this.getLayoutableSubmorphs());
+        layouter && layouter.layout(this, this.getLayoutableSubmorphs());
     },
 
     setPositionTopLeft: function(pos) {
@@ -209,12 +206,11 @@ lively.morphic.Morph.addMethods(
 Object.subclass('lively.morphic.Layout.Layout',
 'default category', {
     layout: function(container, submorphs) {
-        if (container.isInLayoutCycle) {
-            return;
-        }
+        if (container.isInLayoutCycle) return;
         container.isInLayoutCycle = true;
-        this.basicLayout(container, this.orderedSubmorphs(submorphs));
-        container.isInLayoutCycle = false;
+        try {
+            this.basicLayout(container, this.orderedSubmorphs(submorphs));
+        } finally { container.isInLayoutCycle = false; }
     },
 
     basicLayout: function(container, submorphs) {
@@ -267,55 +263,40 @@ Object.subclass('lively.morphic.Layout.Layout',
     },
 
     getSpacing: function() {
-        if (!this.spacing && this.spacing != 0) {
-            this.spacing = 15;
-        }
+        if (!this.spacing && this.spacing != 0) this.spacing = 15;
         return this.spacing;
     },
 
-    handlesSubmorphResized: function() {
-        if (this.resizeWithSubmorphs) {
-            return true
-        } else {
-            return false;
-        }
-    },
-    setHandlesSubmorphResized: function(bool) {
-        this.resizeWithSubmorphs = bool
-    },
+    handlesSubmorphResized: function() { return !!this.resizeWithSubmorphs; },
 
-    onSubmorphAdded: function(aMorph, aSubmorph, allSubmorphs) {
-        aMorph.applyLayout();
-    },
+    setHandlesSubmorphResized: function(bool) { this.resizeWithSubmorphs = bool },
+
+    onSubmorphAdded: function(aMorph, aSubmorph, allSubmorphs) { aMorph.applyLayout(); },
 
     onSubmorphResized: function(aMorph, aSubmorph, allSubmorphs) {
-        if (this.handlesSubmorphResized()) {
-            this.adjustExtent(aMorph, allSubmorphs);
-        }
+        if (this.handlesSubmorphResized()) this.adjustExtent(aMorph, allSubmorphs);
     },
     adjustExtent: function(container, submorphs) {
         var clipmode = container.getClipMode(),
             height = lively.morphic.Layout.heightClipHidden(container) ?
-                container.getExtent().y
-                :Math.max(this.getMinHeight(container, submorphs), container.getExtent().y),
+                container.getExtent().y :
+                Math.max(this.getMinHeight(container, submorphs), container.getExtent().y),
             width = lively.morphic.Layout.widthClipHidden(container) ?
-                container.getExtent().x
-                :Math.max(this.getMinWidth(container, submorphs), container.getExtent().x);
-        container.setExtent(pt(width, height))
+                container.getExtent().x :
+                Math.max(this.getMinWidth(container, submorphs), container.getExtent().x);
+        container.setExtent(pt(width, height));
     },
     getEffectiveExtent: function() {
         alert('calling abstract method lively.morphic.Layout.layout()');
     },
 
 
-    onSubmorphRemoved: function(aMorph, aSubmorph, allSubmorphs) {
-        aMorph.applyLayout();
-    },
+    onSubmorphRemoved: function(aMorph, aSubmorph, allSubmorphs) { aMorph.applyLayout(); },
 
     getMinHeight: function(container, submorphs) {
-            alert('getMinHeight on abstract Layout');
-            return 0;
-        },
+        alert('getMinHeight on abstract Layout');
+        return 0;
+    },
 
     isJournalLayout: function() {
         return false;
@@ -323,10 +304,9 @@ Object.subclass('lively.morphic.Layout.Layout',
 
     setBorderSize: function(value) {
         this.borderSize = value;
-        if (this.getContainer()) {
-            this.getContainer().applyLayout();
-        }
+        if (this.getContainer()) this.getContainer().applyLayout();
     },
+
     setContainer: function(aMorph) {
         // allows me to navigate to the container I belong to
         // todo: refactor layout, basicLayout, ...
@@ -340,19 +320,16 @@ Object.subclass('lively.morphic.Layout.Layout',
     },
 
     initialize: function(container) {
-        this.defaultBorderSize = 10;
-        this.defaultSpacing = 15;
-        this.borderSize = 10;
-        this.spacing = 15;
-        if (container) {
-            this.setContainer(container);
-        }
+        this.defaultBorderSize = this.borderSize = 10;
+        this.defaultSpacing = this.spacing = 15;
+        container && this.setContainer(container);
     },
     orderedSubmorphs: function(submorphs) {
-        return submorphs.reject(function(ea) {
-            return ea.isEpiMorph
-        }).sortBy(this.layoutOrder);
+        return submorphs
+            .reject(function(ea) { return ea.isEpiMorph; })
+            .sortBy(this.layoutOrder, this);
     },
+
     layoutOrder: function(aMorph) {
         // helps orderdSubmorphs order my morphs
         alert('warning: layoutOrder on abstract Layout');
@@ -361,9 +338,7 @@ Object.subclass('lively.morphic.Layout.Layout',
 
     setSpacing: function(value) {
         this.spacing = value;
-        if (this.getContainer()) {
-            this.getContainer().applyLayout();
-        }
+        if (this.getContainer()) this.getContainer().applyLayout();
     }
 
 },
@@ -385,11 +360,9 @@ Object.subclass('lively.morphic.Layout.Layout',
         this.container.applyLayout();
     },
     removeAllPlaceholders: function() {
-        if (!this.container) { return; }
-        this.container.submorphs.select(function(ea) { return ea.isPlaceholder; }).
-            forEach(function(ea) { ea.remove(); });
-    },
-
+        this.container && this.container.submorphs
+            .filterByKey('isPlaceholder').invoke("remove");
+    }
 });
 Object.extend(lively.morphic.Layout, {
     translateClipMode: function(clipMode) {
@@ -552,19 +525,16 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
             }
             morph.setPositionTopLeft(pt(leftMargin, y));
             var newExtent = lively.pt(newWidth, newHeight);
-            if (!morph.getExtent().equals(newExtent)) {
-                morph.setExtent(newExtent);
-            }
+            if (!morph.getExtent().equals(newExtent)) morph.setExtent(newExtent);
             return y + morph.getExtent().y + spacing;
         }, this.getBorderSize("top"));
     },
+
     getFlexibleChildren: function(submorphs) {
-        return submorphs.select(function(e) {
-            return e.doesResize('height') });
+        return submorphs.select(function(e) { return e.doesResize('height') });
     },
-    getMinSpaceFor: function(morph) {
-        return morph.getMinHeight();
-    },
+
+    getMinSpaceFor: function(morph) { return morph.getMinHeight(); },
 
     calcFlexChildrenSpace: function(submorphs, flexChildrenCount, containerExtent) {
         var spaceForSpacing = (submorphs.size() - 1) * this.getSpacing(),
@@ -573,32 +543,27 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
                 return e.doesResize('height') ? s : s + e.getExtent().y }, 0);
         return containerExtent.y - fixedChildrenHeight - spaceForSpacing - spaceForBorder;
     },
+
     getMinHeight: function(container, submorphs) {
         var borderSpace = this.verticalBorderSpace(),
             spacingSpace = (submorphs.size()-1) * this.getSpacing(),
             submorphSpace = submorphs.reduce(function (s, e) {
-                if (e.doesResize('height')) {
-                    return s + e.getMinHeight();
-                } else {
-                    return s + e.getExtent().y;
-                }}, 0);
+                return e.doesResize('height') ? s + e.getMinHeight() : s + e.getExtent().y; }, 0);
         return borderSpace + spacingSpace + submorphSpace;
+    },
 
-        },
     getMinWidth: function(container, submorphs) {
         return this.horizontalBorderSpace() +
             submorphs.reduce(function(w, morph) {
-                if (morph.getMinWidth() > w) {
-                    return morph.getMinWidth();
-                } else {
-                    return w;
-                }}, 0);
+                return morph.getMinWidth() > w ? morph.getMinWidth() : w; }, 0);
     },
-
 
     layoutOrder: function(aMorph) {
-        return aMorph.getPosition().y;
-    },
+        return aMorph.getPosition().y
+             + this.verticalBorderSpace()
+             + aMorph.owner ? aMorph.owner.submorphs.indexOf(aMorph) : 0;
+     },
+
     getEffectiveExtent: function(submorphs) {
         var h_submorphSpace = Math.max.apply(this,submorphs.collect(function (ea) {
                 return !ea.doesResize('width') ? ea.getExtent().x : 0})),
@@ -610,11 +575,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
         return pt(h_submorphSpace + h_borderSpace, v_borderSpace + v_spacingSpace + v_submorphSpace)
     },
 
-    displaysPlaceholders: function() {
-        return true;
-    },
-
-
+    displaysPlaceholders: function() { return true; }
 });
 
 lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.VerticalScrollerLayout',
@@ -645,23 +606,21 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
         });
     },
 
+    isJournalLayout: function () { return true; },
+    handlesSubmorphResized: function() { return true; },
 
-    isJournalLayout: function () {
-        return true;
-    },
-    handlesSubmorphResized: function() {
-        return true;
-    },
-
+    layoutOrder: function(aMorph) { return aMorph.getPosition().y; },
 
     displaysPlaceholders: Functions.True,
+
     adjustExtent: function(aMorph, allSubmorphs) {
         // if I resize with my submorphs, this will have an effect on my width only
         var minHeight = this.getMinHeight(aMorph, allSubmorphs);
         if (aMorph.getExtent().y != minHeight) {
             aMorph.setExtent(pt(aMorph.getExtent().x, minHeight));
         }
-    },});
+    }
+});
 
 
 lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',

@@ -165,4 +165,27 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Layout.GridTest',
     }
 });
 
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Layout.Vertical',
+'testing', {
+    testNewMorphsAreAddedAtTheBottom: function() {
+        var container = new lively.morphic.Morph();
+        container.applyStyle({fill: Color.red, extent: pt(200,200)});
+        container.setLayouter(new lively.morphic.Layout.VerticalLayout());
+        container.layout.layouter.setBorderSize(5);
+        container.layout.layouter.setSpacing(5);
+
+        var child1 = new lively.morphic.Morph();
+        child1.applyStyle({fill: Color.green, extent: pt(200, 10), resizeWidth: true})
+        var child2 = new lively.morphic.Morph();
+        child2.applyStyle({fill: Color.yellow, extent: pt(200, 10), resizeWidth: true})
+
+        container.addMorph(child1);
+        container.addMorph(child2);
+
+        this.assert(child1.getPosition().y < child2.getPosition().y, 'child1 not above child2');
+        this.assertEquals(lively.rect(5,5,200-5-5,10), child1.bounds(), 'bounds child 1');
+        this.assertEquals(lively.rect(5,10+5+5,200-5-5,10), child2.bounds(), 'bounds child 2');
+    }
+});
+
 });

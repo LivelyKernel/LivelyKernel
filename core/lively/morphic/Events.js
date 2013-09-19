@@ -530,17 +530,16 @@ Trait('ScrollableTrait',
     stopScrollWhenBordersAreReached: function(evt) {
         if (!this.isScrollable() || this.isInInactiveWindow()) return false;
         // FIXME HTML specfic! Move to HTML module
-        var div = this.getScrollableNode(evt);
+        var div = this.getScrollableNode(evt),
+            maxScroll = this.getMaxScrollExtent();
         if (evt.wheelDeltaX) {
-            var maxHorizontalScroll = div.scrollWidth - div.clientWidth,
-                currentHorizontalScroll = div.scrollLeft;
-            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxHorizontalScroll) { evt.stop(); }
+            var currentHorizontalScroll = div.scrollLeft;
+            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxScroll.x) { evt.stop(); }
             if (evt.wheelDeltaX > 0 && currentHorizontalScroll <= 0) { evt.stop(); }
         }
         if (evt.wheelDeltaY) {
-            var maxVerticalScroll = div.scrollHeight - div.clientHeight,
-                currentVerticalScroll = div.scrollTop;
-            if (evt.wheelDeltaY < 0 && currentVerticalScroll >= maxVerticalScroll) { evt.stop(); }
+            var currentVerticalScroll = div.scrollTop;
+            if (evt.wheelDeltaY < 0 && currentVerticalScroll >= maxScroll.y) { evt.stop(); }
             if (evt.wheelDeltaY > 0 && currentVerticalScroll <= 0) { evt.stop(); }
         }
         return true;
@@ -552,8 +551,9 @@ Trait('ScrollableTrait',
 
     getMaxScrollExtent: function() {
         var div = this.getScrollableNode(),
-            maxHorizontalScroll = div.scrollWidth - div.clientWidth,
-            maxVerticalScroll = div.scrollHeight - div.clientHeight;
+            border = Math.ceil(this.getBorderWidth()),
+            maxHorizontalScroll = div.scrollWidth - div.clientWidth - border,
+            maxVerticalScroll = div.scrollHeight - div.clientHeight - border;
         return pt(maxHorizontalScroll, maxVerticalScroll);
     },
     scrollToBottom: function() {

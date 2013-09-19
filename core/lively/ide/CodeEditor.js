@@ -592,18 +592,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // because of how ace scrolls internally these works a bit different to
         // the morphic #stopScrollWhenBordersAreReached
         if (!this.isScrollable() || this.isInInactiveWindow()) return false;
-        var ed = this.aceEditor,
-            renderer = ed.renderer;
+        var ed = this.aceEditor, renderer = ed.renderer;
         if (evt.wheelDeltaX) {/*...*/}
         if (evt.wheelDeltaY) {
             if (evt.wheelDeltaY > 0 && renderer.getFirstFullyVisibleRow() === 0) {
-                evt.stop();
-                return true;
+                evt.stop(); return true;
             }
             var lineCount = ed.session.getScreenLength();
             if (evt.wheelDeltaY < 0 && renderer.getLastFullyVisibleRow() >= (lineCount-1)) {
-                evt.stop();
-                return true;
+                evt.stop(); return true;
             }
         }
         return true;

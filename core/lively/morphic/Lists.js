@@ -44,12 +44,14 @@ lively.morphic.List.addMethods(
     updateList: function(items) {
         this.clearSelections();
         this.itemList = items || [];
-        var newIndexForOldSelection = (this.selection && this.find(this.selection)) || -1,
-            itemStrings = items.collect(function(ea) {
+        var itemStrings = items.collect(function(ea) {
                 return this.renderFunction(ea); }, this);
         this.renderContextDispatch('updateListContent', itemStrings);
-        if(this.selectedLineNo !== newIndexForOldSelection)
-            this.selectAt(newIndexForOldSelection);
+        if(this.selection) {
+            var newIndexForOldSelection = this.find(this.selection) || -1;
+            if(this.selectedLineNo !== newIndexForOldSelection)
+                this.selectAt(newIndexForOldSelection);
+        }
     },
     addItem: function(item) {
         this.updateList(this.itemList.concat([item]));
@@ -73,7 +75,7 @@ lively.morphic.List.addMethods(
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },
 
-    setList: function(items) { return this.updateList(items) },
+    setList: function(items) { debugger; return this.updateList(items) },
     getList: function() { return this.itemList },
     getValues: function() {
         return this.getList().collect(function(ea) { return ea.isListItem ? ea. value : ea})

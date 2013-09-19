@@ -415,9 +415,10 @@ Global.Properties = {
 };
 
 Object.extend(lively, {
-    PropertyPath: function(path) {
+    PropertyPath: function(path, splitter) {
         if (path instanceof Global.lively.PropertyPath) return path;
-        if (!(this instanceof Global.lively.PropertyPath)) return new Global.lively.PropertyPath(path);
+        if (!(this instanceof Global.lively.PropertyPath)) return new Global.lively.PropertyPath(path, splitter);
+        if (splitter) this.setSplitter(splitter);
         return this.fromPath(path);
     }
 });
@@ -429,18 +430,24 @@ Object.extend(lively.PropertyPath, {
 Object.extend(lively.PropertyPath.prototype, {
 
     isPathAccessor: true,
+    splitter: '.',
 
     fromPath: function(path) {
-        if (Object.isString(path) && path !== '' && path !== '.') {
-            this._parts = path.split('.');
+        if (Object.isString(path) && path !== '' && path !== this.splitter) {
+            this._parts = path.split(this.splitter);
             this._path = path;
         } else if (Object.isArray(path)) {
             this._parts = [].concat(path);
-            this._path = path.join('.');
+            this._path = path.join(this.splitter);
         } else {
             this._parts = [];
             this._path = '';
         }
+        return this;
+    },
+
+    setSplitter: function(splitter) {
+        if (splitter) this.splitter = splitter;
         return this;
     },
 

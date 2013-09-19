@@ -176,6 +176,11 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
         var obj = {}, p = lively.PropertyPath('foo.bar.baz');
         p.set(obj, 3, true);
         this.assertEquals(3, obj.foo.bar.baz);
+    },
+    testSplitter: function() {
+        var obj = {}, p = lively.PropertyPath('foo/bar/baz', '/');
+        p.set(obj, 3, true);
+        this.assertEquals(3, obj.foo.bar.baz);
     }
 });
 

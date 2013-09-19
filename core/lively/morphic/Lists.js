@@ -63,7 +63,7 @@ Trait('ScrollableTrait'),
 
     updateSelectionAndLineNoProperties: function(selectionIdx) {
         var item = this.itemList[selectionIdx];
-        this.selectedLineNo = selectionIdx;
+        this.selectedLineNo = selectionIdx || null;
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },
 
@@ -514,7 +514,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
 
     updateSelectionAndLineNoProperties: function(selectionIdx) {
         var item = this.itemList[selectionIdx];
-        this.selectedLineNo = selectionIdx;
+        this.selectedLineNo = selectionIdx || null;
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },
 

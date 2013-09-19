@@ -48,7 +48,8 @@ lively.morphic.List.addMethods(
             itemStrings = items.collect(function(ea) {
                 return this.renderFunction(ea); }, this);
         this.renderContextDispatch('updateListContent', itemStrings);
-        this.selectAt(newIndexForOldSelection);
+        if(this.selectedLineNo !== newIndexForOldSelection)
+            this.selectAt(newIndexForOldSelection);
     },
     addItem: function(item) {
         this.updateList(this.itemList.concat([item]));

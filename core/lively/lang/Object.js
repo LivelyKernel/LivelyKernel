@@ -16,7 +16,10 @@
 // possible problems with Traits / Mixin Usage
 Object.extend = function(destination, source) {
     for (var property in source) {
-        if (destination === Global && Global.hasOwnProperty(property)) continue;
+        if (destination === Global && Global.hasOwnProperty(property)) {
+            console.warn('Global already has a property "' + property + '". If needed, it should be set directly and explicitly, not through the use of extend()');
+            continue;
+        }
         var getter = source.__lookupGetter__(property),
             setter = source.__lookupSetter__(property);
         if (getter) destination.__defineGetter__(property, getter);

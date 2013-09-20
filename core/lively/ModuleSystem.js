@@ -577,12 +577,12 @@ Object.extend(lively.Module, {
 });
 
 (function createLivelyNamespace(Global) {
-    // let Glabal act like a namespace itself
-    Object.extend(Global, Global.lively.Module.prototype);
     Object.extend(Global, {
         namespaceIdentifier: 'Global',
         isLoaded: Functions.True
     });
+    // let Glabal act like a namespace itself
+    Object.extend(Global, Global.lively.Module.prototype);
     // make "lively" a proper lively.Module
     var helper = Global.lively,
         lively = new Global.lively.Module(Global, 'lively');

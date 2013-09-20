@@ -26,22 +26,21 @@ lively.BuildSpec('lively.ide.tools.FileTree', {
         name: "fileTree",
         sourceModule: "lively.morphic.Core",
         submorphs: [{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 5,
-            _BorderWidth: 1,
-            _Extent: lively.pt(375.0,20.0),
+            _Position: lively.pt(0,0),
+            _Extent: lively.pt(20.0,20.0),
             className: "lively.morphic.Button",
-            isPressed: false,
-            label: "Update",
-            layout: {
-                resizeHeight: false,
-                resizeWidth: true
-            },
+            label: "⟳",
+            layout: {resizeHeight: false, resizeWidth: true},
             name: "UpdateButton",
-            sourceModule: "lively.morphic.Widgets",
-            connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this.get("fileTree"), "update", {});
-        }
+            connectionRebuilder: function connectionRebuilder() { lively.bindings.connect(this, "fire", this.get("fileTree"), "update", {}); }
+        }, {
+            _Position: lively.pt(20, 0),
+            _Extent: lively.pt(50.0,20.0),
+            className: "lively.morphic.Button",
+            label: "Open",
+            layout: {resizeHeight: false, resizeWidth: true},
+            name: "OpenButton",
+            connectionRebuilder: function connectionRebuilder() { lively.bindings.connect(this, "fire", this.get("fileTree"), "openFile", {}); }
         },{
             _Extent: lively.pt(400.0,120.0),
             _Fill: Color.rgb(255,255,255),
@@ -49,6 +48,7 @@ lively.BuildSpec('lively.ide.tools.FileTree', {
             childrenPerPage: 9999,
             className: "lively.morphic.Tree",
             name: "tree",
+            depth: 0,
             sourceModule: "lively.morphic.Widgets"
         }],
         reset: function reset() {
@@ -58,6 +58,7 @@ lively.BuildSpec('lively.ide.tools.FileTree', {
         tree.childrenPerPage = 9999;
         tree.setItem({name: 'empty'});
         lively.bindings.connect(this.get('UpdateButton'), 'fire', this, 'update');
+        this.get("fileTree").get('tree').selection = null;
     },
         update: function update() {
         // this.update();
@@ -79,9 +80,11 @@ lively.BuildSpec('lively.ide.tools.FileTree', {
          createTreeItems
         ].doAndContinue(null, function() { func(null, state.rootItem); });
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        var state = Global.state ={
+        var tree = this.get('tree');
+        var state = Global.state = {
             lkDir: null,
             fileInfos: null,
+            tree: tree,
             root: {}, rootItem: {}
         }
         function requireDirectoryWatcher(next) {
@@ -119,7 +122,10 @@ lively.BuildSpec('lively.ide.tools.FileTree', {
                 return !treeNode.hasOwnProperty('isDirectory') || !!treeNode.isDirectory;
             }
             function createItem(name, treeNode) {
-                var item = {name: name};
+                var item = {
+                    name: name,
+                    onSelect: function(tree) { state.tree.selection = tree; }
+                };
                 if (!isDir(treeNode)) return item;
                 item.children = Properties.forEachOwn(treeNode, function(subName, subFileInfo) {
                     return createItem(subName, subFileInfo); }).sort(function(a, b) {
@@ -134,6 +140,12 @@ lively.BuildSpec('lively.ide.tools.FileTree', {
             state.rootItem = createItem('.', state.root);
             next();
         }
+    },
+        openFile: function openFile(func) {
+        var tree = this.get('tree');
+        if (!tree.selection) { show('Nothing selected!'); return; }
+x=tree
+y=tree.selection
     }
     }],
     titleBar: "Files"

@@ -3792,7 +3792,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
         var pageSize = this.childrenPerPage ? this.childrenPerPage : 100;
         var currentInterval = Math.ceil(this.childNodes.length / pageSize) * pageSize;
-        currentInterval = Math.max(currentInterval , 100);
+        currentInterval = Math.max(currentInterval , pageSize);
         var numChildren = this.item.children ? this.item.children.length : 0;
         var childrenToShow = Math.min(numChildren, currentInterval);
         for (var j = 0; j < childrenToShow; j++) {
@@ -3881,14 +3881,13 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 this.childNodes.length + (this.childrenPerPage ? this.childrenPerPage : 100));
             if (this.showMoreNode) this.showMoreNode.remove();
             this.showMoreNode = null;
-            var start = this.childNodes.length === 0 ? this : this.childNodes.last();
             childrenToShow.each(function(currentItem) {
                 var node = this.createNodeBefore(currentItem);
                 this.childNodes.push(node);
             }, this);
             if (this.childNodes.length < this.item.children.length) {
-                var more = {name: "", description: "[show more]",
-                            onSelect: this.showMoreChildren.bind(this)};
+                var more = {name: "[...show more]", 
+                            onSelect: this.showMoreChildren.bind(this)}; 
                 this.showMoreNode = this.createNodeBefore(more);
             }
         });

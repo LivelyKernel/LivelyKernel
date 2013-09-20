@@ -11,10 +11,12 @@
 // Extensions to the Object object
 ///////////////////////////////////////////////////////////////////////////////
 
+// FM: patch do not replace existing globals
 // JL: patch add displayName to functions
 // possible problems with Traits / Mixin Usage
 Object.extend = function(destination, source) {
     for (var property in source) {
+        if (destination === Global && Global.hasOwnProperty(property)) continue;
         var getter = source.__lookupGetter__(property),
             setter = source.__lookupSetter__(property);
         if (getter) destination.__defineGetter__(property, getter);

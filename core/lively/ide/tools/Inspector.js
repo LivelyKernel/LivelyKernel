@@ -750,7 +750,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         },
                     };
                     this.filter = fn[str];
-                    if(this.tree.item && !this.tree.item.children) {
+                    if(this.tree.item && !this.tree.item.children && this.tree.item.data != undefined && this.tree.item.data != null) {
                         this.addChildrenTo(this.tree.item);
                     }
                     var that = this;

@@ -479,7 +479,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     if (obj && obj.name) {
                         if(typeof obj.name.valueOf() == 'string')
                             str = obj.name;
-                        else if(typeof obj.name.valueOf() == 'function' && obj.name.length == 0) {
+                        else if(typeof obj.name == 'function' && obj.name.length == 0) {
                             try {    
                                 str = obj.name();
                             } catch(e) {}

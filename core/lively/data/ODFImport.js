@@ -1,5 +1,36 @@
 module('lively.data.ODFImport').requires('lively.data.FileUpload').toRun(function() {
 
+Object.extend(lively.data.ODFImport, {
+    builds: {
+        stepsFromPage: function(page) {
+            // an instruction node (anim:par node) looks like this:
+            // <anim:par begin="0s" fill="hold" node-type="on-click"
+            // preset-class="entrance" preset-id="ooo-entrance-appear">
+            //   <anim:set begin="0s" dur="0.001s" fill="hold"
+            //   targetElement="id5" attributeName="visibility"
+            //   to="visible"></anim:set>
+            // </anim:par>
+            // for the full spec see http://www.w3.org/TR/SMIL3/smil-timing.html
+            var stepNodes = Array.from(page.querySelectorAll('par[*|node-type][*|begin]'))
+            return {
+                buildSteps: stepNodes.map(function(node) {
+                    var setNode = node.querySelector('set');
+                    if (!setNode) return null;
+                    setNode.getAttribute('smil:targetElement')
+                    setNode.getAttribute('smil:attributeName')
+                    setNode.getAttribute('smil:to')
+                    return {
+                        when: node.getAttribute('presentation:node-type'),
+                        target: setNode.getAttribute('smil:targetElement'),
+                        attributeName: setNode.getAttribute('smil:attributeName'),
+                        attributeValue: setNode.getAttribute('smil:to')
+                    }
+                }).compact()
+            }
+        }
+    }
+});
+
 lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
 
     handles: function(file) {
@@ -364,7 +395,7 @@ Global.odfToMorphic = function odfToMorphic(htmlMorph, from, to) {
         return movePageToOriginWhileGenerating(htmlMorph, pageEl, function(pagePos) {
             var odfPageData = Object.merge([
                     renderStateForOdfPage(pageEl),
-                    buildStepsFromPage(pageEl)]),
+                    lively.data.ODFImport.builds.stepsFromPage(pageEl)]),
                 morph = morphForOdfRendering(odfPageData);
             morph.name = String(i);
             morph.openInWorld();
@@ -391,38 +422,5 @@ Global.odfToMorphic = function odfToMorphic(htmlMorph, from, to) {
 // Global.pageMorphs.invoke('remove')
 // $world.beClip(false)
 })();
-
-
-(function odfAnimFunctions() {
-
-Global.buildStepsFromPage = function buildStepsFromPage(page) {
-    // an instruction node (anim:par node) looks like this:
-    // <anim:par begin="0s" fill="hold" node-type="on-click"
-    // preset-class="entrance" preset-id="ooo-entrance-appear">
-    //   <anim:set begin="0s" dur="0.001s" fill="hold"
-    //   targetElement="id5" attributeName="visibility"
-    //   to="visible"></anim:set>
-    // </anim:par>
-    // for the full spec see http://www.w3.org/TR/SMIL3/smil-timing.html
-    var stepNodes = Array.from(page.querySelectorAll('par[*|node-type][*|begin]'))
-    return {
-        buildSteps: stepNodes.map(function(node) {
-            var setNode = node.querySelector('set');
-            if (!setNode) return null;
-            setNode.getAttribute('smil:targetElement')
-            setNode.getAttribute('smil:attributeName')
-            setNode.getAttribute('smil:to')
-            return {
-                when: node.getAttribute('presentation:node-type'),
-                target: setNode.getAttribute('smil:targetElement'),
-                attributeName: setNode.getAttribute('smil:attributeName'),
-                attributeValue: setNode.getAttribute('smil:to')
-            }
-        }).compact()
-    }
-}
-
-})();
-
 
 }) // end of module

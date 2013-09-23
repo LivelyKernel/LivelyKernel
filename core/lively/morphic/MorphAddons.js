@@ -1102,7 +1102,6 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
             this.paneNames.each(function(e){delete self[e]})
     }
 });
-removing
 
 Object.extend(lively.morphic.Panel, {
     makePanedPanel: function(extent, paneSpecs, optPanel) {

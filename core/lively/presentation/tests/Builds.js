@@ -17,9 +17,9 @@ TestCase.subclass('lively.presentation.tests.Builds.Steps',
             {attributeName: "visibility",attributeValue: "hidden",target: "id2",when: "with-previous"},
             {attributeName: "visibility", attributeValue: "visible",target: "id3",when: "on-click"}];
         var expectedInitSteps = [
-                {attributeName: 'visibility', attributeValue: 'hidden', target: 'id1', when: 'initial'},
-                {attributeName: 'visibility', attributeValue: 'visible', target: 'id2', when: 'initial'},
-                {attributeName: 'visibility', attributeValue: 'hidden', target: 'id3', when: 'initial'}];
+            {attributeName: 'visibility', attributeValue: 'hidden', target: 'id1', when: 'initial'},
+            {attributeName: 'visibility', attributeValue: 'visible', target: 'id2', when: 'initial'},
+            {attributeName: 'visibility', attributeValue: 'hidden', target: 'id3', when: 'initial'}];
         this.sut.setBuildSteps(steps);
         this.sut.buildStepForward();
         this.assertEqualState([{steps: expectedInitSteps, reverted: false}], this.sut.applied, 'build step init');

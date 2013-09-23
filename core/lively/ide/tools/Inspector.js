@@ -549,10 +549,14 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     Properties.allOwnPropertiesOrFunctions(value, filter).each(function(prop) {
                         if(!visitedProps.include(prop)) {
                             visitedProps.push(prop);
-                            try {
-                                value[prop];
+                            var descr = Object.getOwnPropertyDescriptor(value, prop);
+                            if(descr && descr.get) {
+                                try {
+                                    value[prop];
+                                    props.push(prop);
+                                } catch(e) {}
+                            } else
                                 props.push(prop);
-                            } catch(e) {}
                         }
                     });
                     var valueProto = Object.getPrototypeOf(value);

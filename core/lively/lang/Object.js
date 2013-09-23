@@ -353,7 +353,8 @@ Global.Properties = {
     allOwnPropertiesOrFunctions: function(obj, predicate) {
         var result = [];
         Object.getOwnPropertyNames(obj).forEach(function(name){
-            if(predicate(obj, name)) 
+            var descr = Object.getOwnPropertyDescriptor(obj, name);
+            if((!descr || !descr.get || descr.get.name != "ThrowTypeError") && predicate(obj, name)) 
                 result.push(name);
         });
         return result;

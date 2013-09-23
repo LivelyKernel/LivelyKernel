@@ -545,18 +545,31 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             return currentFilter(obj, prop) && !alreadyThere.include(prop);
                         }
                     }
-                    var props = Properties.allOwnPropertiesOrFunctions(value, filter);
-                    var visitedProps = [];
+                    var props = [], visitedProps = [];
+                    Properties.allOwnPropertiesOrFunctions(value, filter).each(function(prop) {
+                        if(!visitedProps.include(prop)) {
+                            visitedProps.push(prop);
+                            try {
+                                value[prop];
+                                props.push(prop);
+                            } catch(e) {}
+                        }
+                    });
                     var valueProto = Object.getPrototypeOf(value);
                     var proto = valueProto;
                     while(proto) {
-                        var inherited = Properties.allOwnPropertiesOrFunctions(proto, filter);
-                        inherited.each(function(prop) {
+                        Properties.allOwnPropertiesOrFunctions(proto, filter).each(function(prop) {
                             if(!visitedProps.include(prop)) {
                                 visitedProps.push(prop);
-                                if(!props.include(prop) && value[prop] !== proto[prop]) {
-                                    props.push(prop);
-                                }
+                                try {
+                                    var propValue = value[prop];
+                                    try {
+                                        var protoPropValue = proto[prop];
+                                    } catch(e) {}
+                                    if(propValue !== protoPropValue) {
+                                        props.push(prop);
+                                    }
+                                } catch(e) {}
                             }
                         });
                         proto = Object.getPrototypeOf(proto);

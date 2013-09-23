@@ -1051,6 +1051,7 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         var panel = optPanel || new this(extent);
         //panel.linkToStyles(['panel']);
 
+        panel.paneNames = [];
         paneSpecs.forEach(function(spec) {
             var paneName = spec[0],
                 paneConstructor = spec[1],
@@ -1063,13 +1064,15 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
                     new paneConstructor() :
                     pane = paneConstructor(paneRect);
             pane.setBounds(paneRect);
-            panel[paneName] = panel.addMorph(pane)
+            panel[paneName] = panel.addMorph(pane);
+            panel.paneNames.push(paneName);
         });
 
         return panel;
     },
     createAndArrangePanesFrom: function(paneSpecs) {
         var self = this;
+        this.paneNames = [];
         paneSpecs.each(function(spec) {
             var paneName = spec[0],
                 paneConstructor = spec[1],
@@ -1084,12 +1087,23 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
                     new paneConstructor() :
                     pane = paneConstructor(paneRect, optionalExtraArg);
             pane.setBounds(paneRect);
-            self[paneName] = self.addMorph(pane)
+            self[paneName] = self.addMorph(pane);
+            self.paneNames.push(paneName);
         });
     }
 
 
+},
+'removing', {
+    removeAllMorphs: function($super) {
+        $super.removeAllMorphs();
+        var self = this;
+        this.paneNames.each(function(e){
+            delete self[e];
+        })
+    }
 });
+removing
 
 Object.extend(lively.morphic.Panel, {
     makePanedPanel: function(extent, paneSpecs, optPanel) {

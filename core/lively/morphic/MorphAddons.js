@@ -1098,9 +1098,8 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
     removeAllMorphs: function($super) {
         $super.removeAllMorphs();
         var self = this;
-        this.paneNames.each(function(e){
-            delete self[e];
-        })
+        if(this.paneNames) 
+            this.paneNames.each(function(e){delete self[e]})
     }
 });
 removing

@@ -32,7 +32,7 @@ module('lively.presentation.Builds').requires().toRun(function() {
 
 Trait('lively.presentation.Builds.BuildStepTrait', {
 
-    initState: function(buildSteps) {
+    computeInitBuildSteps: function(buildSteps) {
         // before the first build step, morphs need to be in a certain
         // state (visible or not). Given the buildSteps for a page this
         // computes the initial state.
@@ -52,6 +52,11 @@ Trait('lively.presentation.Builds.BuildStepTrait', {
         return initSteps;
     },
 
+    initBuildSteps: function() {
+        if (!this.buildStepState) this.resetBuildSteps();
+        if (this.buildStepState.index === undefined) this.buildStepForward(); // hides build step morphs that later appear
+    },
+
     applyBuildSteps: function(steps, revert) {
         steps.forEach(function(step) {
             var target = this.submorphs.detect(function(m) { return m.name === step.target; });
@@ -63,11 +68,24 @@ Trait('lively.presentation.Builds.BuildStepTrait', {
             }
         }, this);
     },
-    
+
+    moreBuildStepsForward: function() {
+        return this.buildStepState
+            && this.buildStepState.steps.length
+            && (this.buildStepState.index === undefined 
+             || this.buildStepState.index < this.buildStepState.steps.length);
+    },
+
+    moreBuildStepsBackward: function() {
+        return this.buildStepState
+            && this.buildStepState.steps.length
+            && this.buildStepState.index;
+    },
+
     buildStepForward: function() {
         var stepsToRun = [];
         if (this.buildStepState.index === undefined) {
-            stepsToRun = this.initState(this.buildStepState.steps);
+            stepsToRun = this.computeInitBuildSteps(this.buildStepState.steps);
             this.buildStepState.index = 0;
         } else {
             // find the next "on-click" build step

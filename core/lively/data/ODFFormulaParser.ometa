@@ -1,0 +1,53 @@
+// # 'From Squeak4.2 of 2 February 2012 [latest update: #990] on 23 September 2013 at 2:43:02 pm'!
+
+ometa ODFFormulaParser <: Parser {
+
+additiveExpression =
+	  additiveExpression:x ``+'' spaces multiplicativeExpression:y -> ['+', x, y]
+	| additiveExpression:x ``-'' spaces multiplicativeExpression:y -> ['-', x, y]
+	| multiplicativeExpression,
+
+basicExpression =
+	  number
+	| identifier
+	| functionReference
+	| modifierReference
+	| unaryFunction:f   open additiveExpression:x close -> [f, x]
+	| binaryFunction:f  open additiveExpression:x comma additiveExpression:y close -> [f, x, y]
+	| ternaryFunction:f open additiveExpression:x comma additiveExpression:y comma additiveExpression:z close -> [f, x, y, z]
+	| open additiveExpression:x close -> x,
+
+multiplicativeExpression =
+	  multiplicativeExpression:x ``*'' spaces unaryExpression:y -> ['*', x, y]
+	| multiplicativeExpression:x ``/'' spaces unaryExpression:y -> ['/', x, y]
+	| unaryExpression,
+
+number =	<digit digit*>:n spaces -> Number(n),
+
+unaryExpression =
+	  '-' spaces basicExpression:x -> ['negated', x]
+	| basicExpression,
+
+
+binaryFunction = (``min'' | ``max'' | ``atan2''):s spaces -> s,
+
+close = ')' spaces,
+
+comma = ',' spaces,
+
+functionReference = '?' <( char:c ?(c.length > 0 && c !== ' ') )+>:s spaces -> ["function", s],
+
+identifier = (``pi'' | ``left'' | ``top'' | ``right'' | ``bottom'' | ``xstretch'' | ``ystretch'' | ``hasstroke'' | ``hasfill'' | ``width'' | ``height'' | ``logwidth'' | ``logheight''):s spaces -> s,
+
+modifierReference = '$' number:n spaces -> ["modifier", n],
+
+open = '(' spaces,
+
+ternaryFunction = ``if'':s spaces -> s,
+
+unaryFunction = (``abs'' | ``sqrt'' | ``sin'' | ``cos'' | ``tan'' | ``atan''):s spaces -> s,
+
+path = (functionReference | modifierReference | anything)*,
+
+start = additiveExpression
+}

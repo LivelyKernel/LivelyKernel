@@ -1,4 +1,4 @@
-module('lively.presentation.Controller').requires().toRun(function() {
+module('lively.presentation.Controller').requires("lively.persistence.BuildSpec").toRun(function() {
 
 Object.extend(lively.presentation.Controller, {
     open: function() {
@@ -22,7 +22,7 @@ lively.BuildSpec('lively.presentation.Controller', {
         migrationLevel: 2,
         partName: "PresentationController",
         partsSpaceName: "PartsBin/Presenting/",
-        requiredModules: ["lively.Presentation"]
+        requiredModules: ["lively.presentation.Slides"]
     },
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
@@ -369,14 +369,14 @@ lively.BuildSpec('lively.presentation.Controller', {
     	return list.getValues()[this.slideIndex];
     },
         endPresentation: function endPresentation() {
-    	lively.Presentation.disablePresentationKeyBindings();
+    	lively.presentation.Slides.disablePresentationKeyBindings();
     	this.world().currentPresentationController = null;
     	this.getSlideOverlay().remove();
     	this.currentSlide().deactivate();
     },
         gatherSlides: function gatherSlides() {
         return this.world().submorphs.select(function(ea) {
-            return ea instanceof lively.Presentation.PageMorph
+            return ea instanceof lively.presentation.Slides.PageMorph
         }).sort(function(a, b) { 
             if (Math.abs(a.getPosition().y - b.getPosition().y) < 20) {
                 return a.getPosition().x - b.getPosition().x 
@@ -421,7 +421,7 @@ lively.BuildSpec('lively.presentation.Controller', {
     	return this.get('slideList').getValues().length;
     },
         onLoad: function onLoad() {
-        module('lively.Presentation').load();
+        module('lively.presentation.Slides').load();
     },
         prevSlide: function prevSlide() {
             this.gotoSlide(Math.max(0, this.slideIndex-1))
@@ -492,7 +492,7 @@ lively.BuildSpec('lively.presentation.Controller', {
     	this.slideOverlay = null;
     	this.removeAll();
         this.get('slideOverlayChooser').selection = null
-        this.getPartsBinMetaInfo().addRequiredModule('lively.Presentation');
+        this.getPartsBinMetaInfo().addRequiredModule('lively.presentation.Slides');
     },
         setSlideOverlay: function setSlideOverlay(overlay) {
         // this.setSlideOverlay(null)
@@ -529,7 +529,7 @@ lively.BuildSpec('lively.presentation.Controller', {
     	overlay.align(overlay.bounds().topLeft(), this.shape.bounds().bottomLeft());
     },
         startPresentation: function startPresentation() {
-    	lively.Presentation.enablePresentationKeyBindings();
+    	lively.presentation.Slides.enablePresentationKeyBindings();
     	this.world().currentPresentationController = this;
     	this.world().addMorph(this.getSlideOverlay());
     	// this.getSlideOverlay().ignoreEvents();

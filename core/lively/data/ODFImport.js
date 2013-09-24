@@ -131,6 +131,7 @@ Object.subclass("lively.data.ODFImport.ODFReader",
                     var slide = slideAndSteps[0], steps = slideAndSteps[1];
                     Trait('lively.presentation.Builds.BuildStepTrait').applyTo(slide);
                     slide.setBuildSteps(steps);
+                    slide.initBuildSteps();
                     thenDo(null);
                 });
             } catch (e) { thenDo(e) }
@@ -196,7 +197,7 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
 
     openODF: function(url, mime, pos) {
         var odfReader = lively.data.ODFImport.ODFReader.create();
-        require('lively.Presentation')
+        require('lively.presentation.Slides')
         .requiresLib({
             url: "http://webodf.org/demo/demobrowser/webodf.js",
             loadTest: function() { return typeof odf !== "undefined"; }})
@@ -526,7 +527,7 @@ Global.morphWrapperForOdfPageElement = function morphWrapperForOdfPageElement(re
 
 Global.morphForOdfRendering = function morphForOdfRendering(odfRenderState) {
     // This creates a morph container for an odf page
-    var pageMorph = new lively.Presentation.PageMorph(lively.Rectangle.fromElement(odfRenderState.node));
+    var pageMorph = new lively.presentation.Slides.PageMorph(lively.Rectangle.fromElement(odfRenderState.node));
     odfRenderState.elements
         .map(morphWrapperForOdfPageElement)
         .forEach(function(morph) { pageMorph.addMorph(morph); })

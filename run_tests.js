@@ -91,6 +91,9 @@ var browserTests = [
     // presentation
     "lively.presentation.tests.Builds",
 
+    // data import/export
+    'lively.data.tests.ODFImport',
+
     //bindings
     "lively.bindings.tests.FRPCoreTests",
     "lively.bindings.tests.FRPSerialization",

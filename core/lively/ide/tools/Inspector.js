@@ -358,10 +358,8 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             var that = item.inspector;
                             var value = parent[name];
                             actualItem.data = value;
-                            if(!actualItem.children && value !== null && value !== undefined && 
-                              (typeof value.valueOf() != 'string' || value.length != 1)) {
+                            if(!actualItem.children)
                                 that.addChildrenTo(actualItem);
-                            }
                             that.decorate(actualItem);
                             that.tree.layoutAfter(function() { that.update(); });
                         }
@@ -442,18 +440,28 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         },
         updateFilter: "standard",
         addChildrenTo: function addChildrenTo(item) {
+                    var value = item.data;
+                    if(value === null || value === undefined || 
+                      (typeof value.valueOf() == 'string' && value.length == 1 && 
+                      item.name != 'this' && item.parent && typeof item.parent.valueOf() == 'string')) 
+                        return;
                     item.children = [];
                     Object.addScript(item, function onExpand() { this.inspector.expand(this); });
                     Object.addScript(item, function onUpdateChildren() { this.inspector.expand(this); });
                 },
         createItem: function createItem(obj, property) {
                     var value = obj[property];
-                    var item = {data: value, inspector: this, parent: obj};
-                    if(value !== null && value !== undefined && 
-                      (typeof value.valueOf() != 'string' || value.length != 1 || property == 'this' || typeof obj.valueOf() != 'string')) {
-                        this.addChildrenTo(item);
-                    }
-                    item.name = property;
+                    var item = {data: value, inspector: this, name: property, parent: obj};
+                    this.addChildrenTo(item);
+                    this.decorate(item);
+                    Object.addScript(item, function onSelect(tree) { this.inspector.select(this, tree); });
+                    Object.addScript(item, function onUpdate() {
+                        this.inspector.decorate(this);''
+                    });
+                    return item;
+                },
+        createAccessorItem: function createAccessorItem(obj, property) {
+                    var item = {data: obj, inspector: this, name: property};
                     this.decorate(item);
                     Object.addScript(item, function onSelect(tree) { this.inspector.select(this, tree); });
                     Object.addScript(item, function onUpdate() {
@@ -462,8 +470,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     return item;
                 },
         createPrototypeItem: function createPrototypeItem(proto, parentItem) {
-                    var item = {data: proto, inspector: this, doNotSerialize: ["data"], parentItem: parentItem};
-                    item.name = " ";
+                    var item = {data: proto, inspector: this, name: " ", doNotSerialize: ["data"], parentItem: parentItem};
                     item.description = "inherited from " + this.prototypename(proto);
                     this.addChildrenTo(item);
                     Object.addScript(item, function onUpdate() {
@@ -545,16 +552,21 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             return currentFilter(obj, prop) && !alreadyThere.include(prop);
                         }
                     }
-                    var props = [], visitedProps = [];
+                    var props = [], visitedProps = [], accessors = {};debugger;
                     Properties.allOwnPropertiesOrFunctions(value, filter).each(function(prop) {
                         if(!visitedProps.include(prop)) {
                             visitedProps.push(prop);
                             var descr = Object.getOwnPropertyDescriptor(value, prop);
-                            if(descr && descr.get) {
-                                try {
-                                    value[prop];
+                            if(descr) { 
+                                if(descr.get) {
+                                    accessors["get " + prop] = descr.get;
+                                    props.push("get " + prop);
+                                } else
                                     props.push(prop);
-                                } catch(e) {}
+                                if(descr.set) {
+                                    accessors["set " + prop] = descr.set;
+                                    props.push("set " + prop);
+                                }
                             } else
                                 props.push(prop);
                         }
@@ -565,15 +577,14 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         Properties.allOwnPropertiesOrFunctions(proto, filter).each(function(prop) {
                             if(!visitedProps.include(prop)) {
                                 visitedProps.push(prop);
-                                try {
-                                    var propValue = value[prop];
-                                    try {
-                                        var protoPropValue = proto[prop];
-                                    } catch(e) {}
-                                    if(propValue !== protoPropValue) {
-                                        props.push(prop);
+                                var descr = Object.getOwnPropertyDescriptor(proto, prop);
+                                if((!descr || !descr.get) && value[prop] !== proto[prop]) {
+                                    props.push(prop);
+                                    if(descr.set) {
+                                        accessors["set " + prop] = descr.set;
+                                        props.push("set " + prop);
                                     }
-                                } catch(e) {}
+                                }
                             }
                         });
                         proto = Object.getPrototypeOf(proto);
@@ -590,16 +601,17 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     });
                     props.each(function(prop) {
                         var existingIndex = lookupKeys.indexOf(prop);
+                        var accessor = (prop.startsWith("get ") || prop.startsWith("set ")) && accessors[prop];
                         if (existingIndex > -1) {
                             var existing = lookupValues.at(existingIndex);
-                            existing.data = value[prop];
+                            existing.data = accessor ? accessor : value[prop];
                             this.decorate(existing);
                             newChildren.push(existing);
                         } else {
-                            newChildren.push(this.createItem(value, prop));
+                            newChildren.push(accessor ? this.createAccessorItem(accessor, prop) : this.createItem(value, prop));
                         }
                     }, this);
-                    if (valueProto && visitedProps.intersect(props).length > 0) {
+                    if (valueProto) {
                         var existing = item.children.detect(function(i) { return i.data === valueProto && i.parentItem; });
                         if (existing) {
                             newChildren.push(existing);
@@ -687,7 +699,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     if (!this.filter) this.get("ObjectInspectorFilterList").selectAt(0);
                     this.tree = this.get("ObjectInspectorTree");
                     this.tree.setItem(this.createItem({"this": obj}, "this"));
-                    this.startStepping(500, 'update');
+//                    this.startStepping(500, 'update');
                 },
         onWindowGetsFocus: function onWindowGetsFocus() {
                     this.get('ObjectInspectorText').focus();
@@ -767,7 +779,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         },
                     };
                     this.filter = fn[str];
-                    if(this.tree.item && !this.tree.item.children && this.tree.item.data != undefined && this.tree.item.data != null) {
+                    if(this.tree.item) {
                         this.addChildrenTo(this.tree.item);
                     }
                     var that = this;

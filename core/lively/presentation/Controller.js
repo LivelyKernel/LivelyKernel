@@ -410,6 +410,10 @@ lively.BuildSpec('lively.presentation.Controller', {
         nextSlide: function nextSlide() {
             this.gotoSlide(Math.min(this.numberOfSlides()-1, this.slideIndex+1))
     },
+        nextStepOrSlide: function nextStepOrSlide() {
+            if (this.currentSlide().moreBuildStepsForward && this.currentSlide().moreBuildStepsForward()) this.currentSlide().buildStepForward();
+            else this.nextSlide();
+    },
         notYetImplemented: function notYetImplemented(msg) {
     	alert('Not yet implemented');
     },
@@ -421,6 +425,10 @@ lively.BuildSpec('lively.presentation.Controller', {
     },
         prevSlide: function prevSlide() {
             this.gotoSlide(Math.max(0, this.slideIndex-1))
+    },
+        prevStepOrSlide: function prevStepOrSlide() {
+            if (this.currentSlide().moreBuildStepsBackward && this.currentSlide().moreBuildStepsBackward()) this.currentSlide().buildStepBackward();
+            else this.prevSlide();
     },
         printSlides: function printSlides() {
         var slides = this.get('slideList').getList().pluck('value')

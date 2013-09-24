@@ -203,11 +203,11 @@ Object.extend(lively.presentation.Slides, {
         return {
             "lively.presentation.Slides.prevSlide": {
                 description: 'prev slide',
-                exec: inPresentationContextDo.curry(function(controller) { controller.prevSlide(); })
+                exec: inPresentationContextDo.curry(function(controller) { controller.prevStepOrSlide(); })
             },
             "lively.presentation.Slides.nextSlide": {
                 description: 'next slide',
-                exec: inPresentationContextDo.curry(function(controller) { controller.nextSlide(); })
+                exec: inPresentationContextDo.curry(function(controller) { controller.nextStepOrSlide(); })
             },
             "lively.presentation.Slides.end": {
                 description: 'exit presentation',

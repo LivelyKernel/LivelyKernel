@@ -5,6 +5,12 @@ module('lively.morphic.PathShapes').requires('lively.morphic.Shapes').toRun(func
 // --------------------
 // see http://www.w3.org/TR/SVG/paths.html
 
+Object.extend(lively.morphic.PathShapes, {
+    createSVGPathNodeFromD: function(d) {
+        var elements = lively.morphic.Shapes.PathElement.parse(d);
+    }
+});
+
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
 'documentation', {
     documentation: "Generic Path with arbitrary Bezier curves",
@@ -81,6 +87,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
         return attr
     },
 });
+
 lively.morphic.Shapes.Path.addMethods(
 'settings', {
     hasElbowProtrusions: true,
@@ -448,7 +455,6 @@ Object.extend(lively.morphic.Shapes.HorizontalTo, {
     },
 });
 
-
 lively.morphic.Shapes.PathElement.subclass('lively.morphic.Shapes.VerticalTo', {
     charCode: 'V',
     initialize: function($super, isAbsolute, y) {
@@ -648,7 +654,6 @@ Object.extend(lively.morphic.Shapes.BezierCurve1CtlTo, {
     },
 });
 
-
 lively.morphic.Shapes.PathElement.subclass('lively.morphic.Shapes.ArcTo', {
 
     charCode: 'A',
@@ -676,7 +681,7 @@ lively.morphic.Shapes.PathElement.subclass('lively.morphic.Shapes.ArcTo', {
         if (!this.isAbsolute && !force) return;
         this.x += x;
         this.y += y;
-    },
+    }
 
 });
 
@@ -691,20 +696,11 @@ Object.extend(lively.morphic.Shapes.ArcTo, {
     },
 });
 
-
 lively.morphic.Shapes.PathElement.subclass('lively.morphic.Shapes.ClosePath', {
-
     charCode: 'Z',
-
-    controlPoints: function() {
-        return [];
-    },
-    
-    attributeFormat: function() {
-        return this.realCharCode();
-    },
-    
-    translate:function(x, y, force) {},
+    controlPoints: function() { return []; },
+    attributeFormat: function() { return this.realCharCode(); },
+    translate:function(x, y, force) {}
 });
 
 Object.extend(lively.morphic.Shapes.ClosePath, {
@@ -712,9 +708,7 @@ Object.extend(lively.morphic.Shapes.ClosePath, {
         return new lively.morphic.Shapes.ClosePath(literal.isAbsolute); // necessary?
     },
     dataLength: 0,
-    create: function(isAbsolute, arr) {
-        return new this(isAbsolute)
-    },
+    create: function(isAbsolute, arr) { return new this(isAbsolute); }
 });
 
 }) // end of module

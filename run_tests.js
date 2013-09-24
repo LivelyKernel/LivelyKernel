@@ -88,6 +88,12 @@ var browserTests = [
     // persistence
     "lively.persistence.tests.MassMorphCreation",
 
+    // presentation
+    "lively.presentation.tests.Builds",
+
+    // data import/export
+    'lively.data.tests.ODFImport',
+
     //bindings
     "lively.bindings.tests.FRPCoreTests",
     "lively.bindings.tests.FRPSerialization",

@@ -1,11 +1,11 @@
-module('lively.Presentation').requires('cop.Layers', 'lively.morphic').toRun(function() {
+module('lively.presentation.Slides').requires('cop.Layers', 'lively.morphic').toRun(function() {
 
-Object.extend(lively.Presentation, {
+Object.extend(lively.presentation.Slides, {
     currentSlideNo: function() {
         return this.currentSlide() ?
-            lively.Presentation.PageMorph.allSceneNames().indexOf(this.currentSlide().name) : 0;
+            lively.presentation.Slides.PageMorph.allSceneNames().indexOf(this.currentSlide().name) : 0;
     },
-    maxSlideNo: function() { return lively.Presentation.PageMorph.allSceneNames().length - 1 },
+    maxSlideNo: function() { return lively.presentation.Slides.PageMorph.allSceneNames().length - 1 },
     currentSlide: function() { return lively.morphic.World.current().currentScene },
     gotoSlide: function(slideNo) {
         slideNo = Math.max(0, Math.min(this.maxSlideNo(), slideNo));
@@ -30,7 +30,7 @@ Object.extend(lively.Presentation, {
             function(input) { input && this.gotoSlide(Number(input)) }.bind(this));
     },
     addSlide: function() {
-        var m =  new lively.Presentation.PageMorph(new Rectangle(0,0,1024,768)),
+        var m =  new lively.presentation.Slides.PageMorph(new Rectangle(0,0,1024,768)),
             label = new lively.morphic.Text(new Rectangle(0,-20,200,20), "label").beLabel()
         label.applyStyle({textColor: CrayonColors.tangerine})
         connect(m, 'name', label, 'setTextString')
@@ -51,14 +51,14 @@ Object.extend(lively.Presentation, {
         world.focus();
     },
     activateSlideWithNo: function(no) {
-        var name = lively.Presentation.PageMorph.allSceneNames()[no];
+        var name = lively.presentation.Slides.PageMorph.allSceneNames()[no];
         name && this.activateSlideNamed(name);
     },
 
 
 });
 
-lively.morphic.Morph.subclass("lively.Presentation.PageMorph",
+lively.morphic.Morph.subclass("lively.presentation.Slides.PageMorph",
 'properties', {
     isSlideMorph: true,
     showsMorphMenu: true, // FIXME
@@ -183,7 +183,7 @@ lively.morphic.Morph.subclass("lively.Presentation.PageMorph",
 
 });
 
-Object.extend(lively.Presentation.PageMorph, {
+Object.extend(lively.presentation.Slides.PageMorph, {
     allSceneNames: function() {
         return lively.morphic.World.current().submorphs
             .pluck('name')
@@ -192,7 +192,7 @@ Object.extend(lively.Presentation.PageMorph, {
     },
 });
 
-Object.extend(lively.Presentation, {
+Object.extend(lively.presentation.Slides, {
     presentationKeyCommands: (function() {
         function inPresentationContextDo(func) {
             if (!$world.currentScene || event.isCommandKey() || !Config.pageNavigationWithKeys) return false;
@@ -201,15 +201,15 @@ Object.extend(lively.Presentation, {
             return !!controller;
         }
         return {
-            "lively.Presentation.prevSlide": {
+            "lively.presentation.Slides.prevSlide": {
                 description: 'prev slide',
-                exec: inPresentationContextDo.curry(function(controller) { controller.prevSlide(); })
+                exec: inPresentationContextDo.curry(function(controller) { controller.prevStepOrSlide(); })
             },
-            "lively.Presentation.nextSlide": {
+            "lively.presentation.Slides.nextSlide": {
                 description: 'next slide',
-                exec: inPresentationContextDo.curry(function(controller) { controller.nextSlide(); })
+                exec: inPresentationContextDo.curry(function(controller) { controller.nextStepOrSlide(); })
             },
-            "lively.Presentation.end": {
+            "lively.presentation.Slides.end": {
                 description: 'exit presentation',
                 exec: inPresentationContextDo.curry(function(controller) {
                     alertOK('presentation stopped'); controller.endPresentation(); })
@@ -217,14 +217,14 @@ Object.extend(lively.Presentation, {
         }
     })(),
     presentationKeyBindings: {
-        "lively.Presentation.prevSlide": "left",
-        "lively.Presentation.nextSlide": "right",
-        "lively.Presentation.end": "esc"
+        "lively.presentation.Slides.prevSlide": "left",
+        "lively.presentation.Slides.nextSlide": "right",
+        "lively.presentation.Slides.end": "esc"
     },
     enablePresentationKeyBindings: function() {
         var keyDispatcher = lively.morphic.KeyboardDispatcher.global();
         Properties.forEachOwn(this.presentationKeyBindings, function(cmd, key) {
-            keyDispatcher.addTempKeyCombo(key, cmd, 'lively.Presentation'); });
+            keyDispatcher.addTempKeyCombo(key, cmd, 'lively.presentation.Slides'); });
     },
     disablePresentationKeyBindings: function() {
         var keyDispatcher = lively.morphic.KeyboardDispatcher.global();
@@ -238,7 +238,7 @@ Object.extend(lively.Presentation, {
 
 (function setupKeyboardCommands() {
     require("lively.ide.commands.default").toRun(function() {
-        lively.Presentation.registerKeyCommands();
+        lively.presentation.Slides.registerKeyCommands();
     });
 })();
 
@@ -259,7 +259,7 @@ cop.create('ShowShortcutsLayer').refineClass(lively.morphic.Text, {
 })
 
 cop.create('NewMorphicPresentationCompatLayer')
-.refineClass(lively.Presentation.PageMorph, {
+.refineClass(lively.presentation.Slides.PageMorph, {
     get style() { return {fill: Color.white, borderWidth: 1, borderColor: Color.gray, enableDragging: true} },
     initialize: function(bounds) {
         var shape = new lively.morphic.Shapes.Rectangle(bounds.extent().extentAsRectangle());
@@ -291,6 +291,6 @@ lively.morphic.WindowedApp.addMethods(
 });
 
 NewMorphicPresentationCompatLayer.beGlobal();
-Trait('SelectionMorphTrait').applyTo(lively.Presentation.PageMorph, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
+Trait('SelectionMorphTrait').applyTo(lively.presentation.Slides.PageMorph, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
 
 });

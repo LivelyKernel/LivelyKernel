@@ -1,34 +1,174 @@
-module('lively.data.ODFImport').requires('lively.data.FileUpload').toRun(function() {
+module('lively.data.ODFImport').requires('lively.data.FileUpload', 'lively.data.ODFFormulaParser').toRun(function() {
 
-Object.extend(lively.data.ODFImport, {
-    builds: {
-        stepsFromPage: function(page) {
-            // an instruction node (anim:par node) looks like this:
-            // <anim:par begin="0s" fill="hold" node-type="on-click"
-            // preset-class="entrance" preset-id="ooo-entrance-appear">
-            //   <anim:set begin="0s" dur="0.001s" fill="hold"
-            //   targetElement="id5" attributeName="visibility"
-            //   to="visible"></anim:set>
-            // </anim:par>
-            // for the full spec see http://www.w3.org/TR/SMIL3/smil-timing.html
-            var stepNodes = Array.from(page.querySelectorAll('par[*|node-type][*|begin]'))
-            return {
-                buildSteps: stepNodes.map(function(node) {
-                    var setNode = node.querySelector('set');
-                    if (!setNode) return null;
-                    setNode.getAttribute('smil:targetElement')
-                    setNode.getAttribute('smil:attributeName')
-                    setNode.getAttribute('smil:to')
-                    return {
-                        when: node.getAttribute('presentation:node-type'),
-                        target: setNode.getAttribute('smil:targetElement'),
-                        attributeName: setNode.getAttribute('smil:attributeName'),
-                        attributeValue: setNode.getAttribute('smil:to')
-                    }
-                }).compact()
-            }
-        }
+Object.extend(lively.data.ODFFormulaParser, {
+    parse: function(expr) {
+        return OMetaSupport.matchAllWithGrammar(ODFFormulaParser, 'start', expr);
+    },
+    parsePath: function(expr) {
+        return OMetaSupport.matchAllWithGrammar(ODFFormulaParser, 'path', expr);
     }
+});
+
+Object.subclass("lively.data.ODFImport.FormulaInterpreter",
+// 'From Squeak4.2 of 2 February 2012 [latest update: #990] on 23 September 2013 at 3:25:41 pm'!
+// Object subclass: #ODFFormulaInterpreter
+// 	instanceVariableNames: 'modifiers functions viewBox stretchpoint style'
+//
+// It evaluates an expression built by ODFFormulaParser
+//
+// Structure:
+//  modifiers	Array -- a list of numbers in draw:modifires
+//  functions	IdentityDictionary -- a list of function expressions
+//  viewBox		Rectangle -- from draw:viewBox
+//  style		ODFStyle -- from draw:style
+//
+// Bug: logwidth and logheight are not defined correctly.!
+'accessing', {
+//     nsResolver: function(prefix) {
+// // i = new lively.data.ODFImport.FormulaInterpreter()
+// //         this.query('draw:enhanced-geometry')
+// // i.query(xml, 'enhanced-geometry')
+// // xml.querySelector('draw:enhanced-geometry', i.nsResolver)
+// // xml.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:drawing:1.0', 'enhanced-geometry')
+// // xml.tagName
+// // Exporter.stringify(xml)
+//         var ns = {
+//             'xhtml' : 'http://www.w3.org/1999/xhtml',
+//             'mathml': 'http://www.w3.org/1998/Math/MathML',
+//             'draw'  : 'urn:oasis:names:tc:opendocument:xmlns:drawing:1.0',
+//             'svg'   : 'urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0'
+//         }
+//         return ns[prefix] || null;
+//     },
+    // query: function(xml, sel) { return xml.querySelector(sel, this.nsResolver); },
+    getViewBox: function(state) {
+        var coords = state.enhancedGeometryXML.getAttribute('svg:viewBox').split(' ').map(Number);
+        return lively.rect.apply(null, coords);
+    },
+    bottom: function(state) { return this.getViewBox(state).bottom(); },
+    
+    hasFill: function(state) {
+    	var attr = style.getAttribute("draw:fill");
+    	return attr && attr != 'none' ? 1 : 0;
+    },
+    
+    hasstroke: function(state) {
+    	var attr = style.getAttribute("draw:stroke");
+    	return attr && attr != 'none' ? 1 : 0;
+    },
+    
+    height: function(state) { return this.getViewBox(state).height; },
+    
+    left: function(state) { return this.getViewBox(state).left(); },
+    
+    logheight: function(state) { return this.getViewBox(state).height * 100; },
+    
+    logwidth: function(state) { return this.getViewBox(state).width * 100; },
+    
+    pi: function(state) { return Math.PI },
+    
+    right: function(state) { return this.getViewBox(state).right(); },
+    
+    top: function(state) { return this.getViewBox(state).top(); },
+    
+    width: function(state) { return this.getViewBox(state).width; },
+    
+    xstretch: function(state) { return stretchpoint.x; },
+    
+    ystretch: function(state) { return stretchpoint.y; }
+
+},
+'evaluation', {
+    eval: function(interpreterState, expr) {
+        if (Object.isNumber(expr)) return expr;
+        if (Object.isString(expr) && Object.isFunction(this[expr])) return this[expr](interpreterState);
+        var xml = interpreterState.enhancedGeometryXML;
+        if (expr[0] === 'function') {
+            var fName = expr[1],
+                equation = xml.querySelector(Strings.format('*|equation[*|name="%s"]', fName)),
+                formula = equation.getAttribute('draw:formula');
+            return this.eval(interpreterState, lively.data.ODFFormulaParser.parse(formula));
+        }
+        if (expr[0] === 'modifier') {
+            var modifiers = xml.getAttribute('draw:modifiers').split(' '),
+                idx = Number(expr[1]);
+            return Number(modifiers[idx]);
+        }
+        var args = expr.slice(1).map(this.eval.bind(this, interpreterState));
+    	switch (expr[0]) {
+            case 'negated': return -1 * args[0];
+            case '+': return args[0] + args[1];
+            case '-': return args[0] - args[1];
+            case '*': return args[0] * args[1];
+            case '/': return (args[0] / args[1]);
+            case 'abs': return Math.abs(args[0])
+            case 'sqrt': return Math.sqrt(args[0]);
+            case 'sin': return Math.sin(args[0]);
+            case 'cos': return Math.cos(args[0]);
+            case 'tan': return Math.tan(args[0]);
+            case 'atan': return Math.aTan(args[0]);
+            case 'atan2': return Math.atan2(args[0], args[1]);
+            case 'min': return Math.min(args[0],args[1]);
+            case 'max': return Math.max(args[0],args[1]);
+            case 'if': return args[0] > 0 ? args[1] : args[2];
+    	    default: throw new Error(expr[0] + ' not supported by ' + this);
+    	}
+    },
+    evalPath: function(interpreterState, pathString) {
+        var elements = lively.data.ODFFormulaParser.parsePath(pathString);
+        return elements.map(function(el) {
+            return Object.isString(el) ? el : this.eval(interpreterState, el) + ' ';
+        }, this).join('');
+    }
+});
+
+Object.subclass("lively.data.ODFImport.ODFReader",
+"builds", {
+    assignStepsToSlides: function(buildSteps, slides, thenDo) {
+        require('lively.presentation.Builds').toRun(function() {
+            try {
+                slides.zip(buildSteps).forEach(function(slideAndSteps) {
+                    var slide = slideAndSteps[0], steps = slideAndSteps[1];
+                    Trait('lively.presentation.Builds.BuildStepTrait').applyTo(slide);
+                    slide.setBuildSteps(steps);
+                    slide.initBuildSteps();
+                    thenDo(null);
+                });
+            } catch (e) { thenDo(e) }
+        });
+    },
+    stepsFromWrapper: function(wrapper) {
+        var pages = wrapper.jQuery().find('presentation page').toArray();
+        return pages.map(this.stepsFromPage.bind(this));
+    },
+    stepsFromPage: function(page) {
+        // an instruction node (anim:par node) looks like this:
+        // <anim:par begin="0s" fill="hold" node-type="on-click"
+        // preset-class="entrance" preset-id="ooo-entrance-appear">
+        //   <anim:set begin="0s" dur="0.001s" fill="hold"
+        //   targetElement="id5" attributeName="visibility"
+        //   to="visible"></anim:set>
+        // </anim:par>
+        // for the full spec see http://www.w3.org/TR/SMIL3/smil-timing.html
+        var stepNodes = Array.from(page.querySelectorAll('par[*|node-type][*|begin]'));
+        return stepNodes.map(function(node) {
+            var setNode = node.querySelector('set');
+            if (!setNode) return null;
+            setNode.getAttribute('smil:targetElement')
+            setNode.getAttribute('smil:attributeName')
+            setNode.getAttribute('smil:to')
+            return {
+                when: node.getAttribute('presentation:node-type'),
+                target: setNode.getAttribute('smil:targetElement'),
+                attributeName: setNode.getAttribute('smil:attributeName'),
+                attributeValue: setNode.getAttribute('smil:to')
+            }
+        }).compact();
+    }
+});
+
+Object.extend(lively.data.ODFImport.ODFReader, {
+    create: function() { return new this(); }
 });
 
 lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
@@ -56,7 +196,8 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
     },
 
     openODF: function(url, mime, pos) {
-        require('lively.Presentation')
+        var odfReader = lively.data.ODFImport.ODFReader.create();
+        require('lively.presentation.Slides')
         .requiresLib({
             url: "http://webodf.org/demo/demobrowser/webodf.js",
             loadTest: function() { return typeof odf !== "undefined"; }})
@@ -73,6 +214,10 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
              resizeWorld,
              statusMessageRecenterSlide,
              recenterSlides,
+             statusMessageSetupBuilds,
+             setupBuilds,
+             statusMessageRemoveODFWrapper,
+             removeODFWrapper,
              statusMessageSetupPresentationController,
              setupPresentationController,
              statusMessageDone,
@@ -129,7 +274,6 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
                     //         next.delay(0.1);
                     //     }, function() { alertOK('done'); });
                     // }).delay(0.8);
-                    wrapper.remove();
                     next();
                 } catch(e) {
                     inspect(wrapper)
@@ -151,6 +295,25 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
                 pageMorphs.invoke('moveBy', delta);
                 next();
             }
+            function statusMessageSetupBuilds(next) {
+                msgMorph.setMessage("Build setup.");
+                next.delay(0);
+            }
+            function setupBuilds(next) {
+                var buildSteps = odfReader.stepsFromWrapper(wrapper);
+                odfReader.assignStepsToSlides(buildSteps, pageMorphs, function(err) {
+                    err && show('Error assigning buildSteps to slides: ' + err);
+                    next();
+                });
+            }
+            function statusMessageRemoveODFWrapper(next) {
+                msgMorph.setMessage("Removing WebODF document wrapper.");
+                next.delay(0);
+            }
+            function removeODFWrapper(next) {
+                wrapper.align(wrapper.bounds().topLeft(), pageMorphs[0].bounds().topRight());
+                // wrapper.remove();
+                next(); }
             function statusMessageSetupPresentationController(next) {
                 msgMorph.setMessage("Generating slide sequence.");
                 next.delay(0);
@@ -311,13 +474,15 @@ convertODFTextsToMorphs = function convertODFTextsToMorphs(pageMorph) {
         morphs = pageMorph.submorphs.mask(textMask),
         $frames = morphs.invoke("jQuery").invoke("find", 'frame');
 
-    return pageMorph.texts = $frames.map(function($frame) {
+    return pageMorph.texts = $frames.map(function($frame, i) {
         if (!$frame[0]) return null;
         var text = textMorphWithStyles(
             morphStyleFromFrame($frame),
             textSpecFromFrame($frame));
         // for debugging it is sometimes useful to leave the original elements around
-        if (text) $frame.remove();
+        if (!text) return;
+        morphs[i].remove();
+        text.name = morphs[i].name;
         return pageMorph.addMorph(text);
     }).compact();
 }
@@ -339,7 +504,7 @@ Global.renderStateForOdfPage = function renderStateForOdfPage(pageEl) {
                     node: node.cloneNode(true),
                     position: bounds.topLeft(),
                     extent: bounds.extent(),
-                    id: node.getAttribute('id')};
+                    id: node.attributes && node.attributes['xml:id'] && node.attributes['xml:id'].value};
             return renderStates.concat([state]);
         })
     }
@@ -349,7 +514,7 @@ Global.morphWrapperForOdfPageElement = function morphWrapperForOdfPageElement(re
     // this creates a morph for an element that appears on a rendered
     // odf page, like a text or a drawing
     var wrapper = new lively.morphic.HtmlWrapperMorph(pt(0,0));
-    wrapper.odfId = renderState.id;
+    wrapper.name = wrapper.odfId = renderState.id;
     wrapper.applyStyle({fill: Color.white, position: renderState.position});
     wrapper.shape.odfRenderState = renderState;
     (function getExtentHTML(ctx) { return this.odfRenderState.extent; }).asScriptOf(wrapper.shape);
@@ -362,8 +527,7 @@ Global.morphWrapperForOdfPageElement = function morphWrapperForOdfPageElement(re
 
 Global.morphForOdfRendering = function morphForOdfRendering(odfRenderState) {
     // This creates a morph container for an odf page
-    var pageMorph = new lively.Presentation.PageMorph(lively.Rectangle.fromElement(odfRenderState.node));
-    pageMorph.buildSteps = odfRenderState.buildSteps;
+    var pageMorph = new lively.presentation.Slides.PageMorph(lively.Rectangle.fromElement(odfRenderState.node));
     odfRenderState.elements
         .map(morphWrapperForOdfPageElement)
         .forEach(function(morph) { pageMorph.addMorph(morph); })
@@ -393,9 +557,7 @@ Global.odfToMorphic = function odfToMorphic(htmlMorph, from, to) {
     if (from || to) pages = pages.slice(from, to);
     var pageMorphs = pages.map(function(pageEl,i) {
         return movePageToOriginWhileGenerating(htmlMorph, pageEl, function(pagePos) {
-            var odfPageData = Object.merge([
-                    renderStateForOdfPage(pageEl),
-                    lively.data.ODFImport.builds.stepsFromPage(pageEl)]),
+            var odfPageData = renderStateForOdfPage(pageEl),
                 morph = morphForOdfRendering(odfPageData);
             morph.name = String(i);
             morph.openInWorld();

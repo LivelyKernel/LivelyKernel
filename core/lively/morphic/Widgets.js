@@ -1552,6 +1552,12 @@ openReferencingMethodFinder: function () {
             fTree.targetMorph.update();
             fTree.comeForward();
         });
+    },
+
+    openPresentationController: function() {
+        require('lively.presentation.Controller').toRun(function() {
+            lively.presentation.Controller.open()
+        });
     }
 
 },

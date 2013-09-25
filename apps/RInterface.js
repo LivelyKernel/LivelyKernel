@@ -104,7 +104,7 @@ Object.extend(apps.RInterface, {
             .withJSONWhenDone(function(json, status) {
                 var err = status.isSuccess() ? null : json.error || json.message || json.result || 'unknown error';
                 callback(err, String(json.result).trim()); })
-            .post(JSON.stringify({expr: sanitizedExpr, timeout: 1000}), 'application/json');
+            .post(JSON.stringify({expr: sanitizedExpr, timeout: 3000}), 'application/json');
     },
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

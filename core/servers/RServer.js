@@ -11,7 +11,7 @@ domain.on('error', function(er) {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var state = {};
-var debug = true;
+var debug = false;
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 function evalAtStartup(rState, thenDo) {

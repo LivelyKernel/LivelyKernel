@@ -243,7 +243,9 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
             }
             function stautsMessageLoadingODF(next) {
                 msgMorph.setMessage('ODF container created\nLoading content...');
-                next.delay(0);
+                var importStarted = !wrapper.jQuery().text().startsWith('loading');
+                if (importStarted) next.delay(0);
+                else stautsMessageLoadingODF.curry(next).delay(1);
             }
             function startToWaitForODFLoadEnd(next) {
                 whenNoDOMChangesFor(800, wrapper.renderContext().shapeNode, next, function() {
@@ -311,8 +313,8 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
                 next.delay(0);
             }
             function removeODFWrapper(next) {
-                wrapper.align(wrapper.bounds().topLeft(), pageMorphs[0].bounds().topRight());
-                // wrapper.remove();
+                // wrapper.align(wrapper.bounds().topLeft(), pageMorphs[0].bounds().topRight());
+                wrapper.remove();
                 next(); }
             function statusMessageSetupPresentationController(next) {
                 msgMorph.setMessage("Generating slide sequence.");
@@ -321,15 +323,21 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
             function setupPresentationController(next) {
                 var presController = $world.withAllSubmorphsDetect(function(m) {
                     return m.name && m.name.match(/^PresentationController.*/); })
-                if (presController) {
-                    presController.targetMorph.removeAll();
-                    presController.targetMorph.collectSlides();
-                    presController.align(presController.bounds().leftCenter(), pageMorphs[0].bounds().rightCenter().addXY(20, 0))
+                if (!presController) {
+                    $world.openPresentationController();
+                    setupPresentationController.curry(next).delay(0.3);
+                    return;
                 }
+                presController.targetMorph.removeAll();
+                presController.targetMorph.collectSlides();
+                presController.align(presController.bounds().leftCenter(), pageMorphs[0].bounds().rightCenter().addXY(20, 0))
                 next();
             }
             function statusMessageDone(next) {
-                msgMorph.setMessage("All done!", Color.green);
+                // WebODF needs sometimes a bit longer, the next tick for
+                // removing the messagemorph will usually first be run when
+                // everything is done.
+                msgMorph.setMessage("Finishing import...", Color.green);
                 next.delay(2);
             }
             function removeStatusMessage(next) { msgMorph.remove(); next(); }

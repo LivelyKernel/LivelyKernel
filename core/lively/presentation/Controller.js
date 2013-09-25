@@ -387,7 +387,7 @@ lively.BuildSpec('lively.presentation.Controller', {
         getSlideNo: function getSlideNo() { return this.slideIndex },
         getSlideOverlay: function getSlideOverlay() {
     	if (!this.slideOverlay)
-                this.setSlideOverlay(lively.PartsBin.getPart('SlideOverlay', 'PartsBin/Presenting'));
+            this.setSlideOverlay(lively.PartsBin.getPart('EmptySlideOverlay', 'PartsBin/Presenting'));
     
     	// FIXME this should be done automgically
     	var o = this.slideOverlay;
@@ -519,7 +519,7 @@ lively.BuildSpec('lively.presentation.Controller', {
     },
         showOrHideSlideOverlay: function showOrHideSlideOverlay() {
     	var overlay = this.getSlideOverlay();
-    	if (overlay.owner) {overlay.remove(); return };
+    	if (overlay.owner) { overlay.remove(); return };
     	overlay.enableEvents();
     	this.addMorph(overlay);
     	overlay.align(overlay.bounds().topLeft(), this.shape.bounds().bottomLeft());

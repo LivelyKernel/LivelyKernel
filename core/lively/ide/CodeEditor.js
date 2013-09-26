@@ -2242,6 +2242,22 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             },
             multiSelectAction: 'forEach',
             handlesCount: true
+        }, {
+            name: 'prettyPrintHTMLAndXML',
+            exec: function(ed, args) {
+                function tidy(xmlString, thenDo) {
+                    return lively.shell.run(
+                        'tidy -i -xml -q -',
+                        {stdin: xmlString, sync: true},
+                        function(cmd) { thenDo && thenDo(cmd.getCode(), cmd.resultString()); }).resultString();
+                }
+                var source = ed.$morph.getSelectionOrLineString(),
+                    range = ed.$morph.getSelectionRangeAce();
+                tidy(source, function(err, resultString) {
+                    ed.$morph.replace(range, resultString); })
+            },
+            multiSelectAction: 'forEach',
+            handlesCount: true
         }]);
     },
 

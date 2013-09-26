@@ -1096,7 +1096,7 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
 },
 'removing', {
     removeAllMorphs: function($super) {
-        $super.removeAllMorphs();
+        $super();
         var self = this;
         if(this.paneNames) 
             this.paneNames.each(function(e){delete self[e]})

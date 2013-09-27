@@ -126,6 +126,7 @@ lively.morphic.Morph.addMethods(
         onRenderFinished: 'onRenderFinishedHTML',
         triggerEvent: 'triggerEventHTML',
         setTransform: 'setTransformHTML',
+        setFixedPosition: 'setFixedPositionHTML',
         setPosition: 'setPositionHTML',
         setRotation: 'setRotationHTML',
         setExtent: 'setExtentHTML',
@@ -153,6 +154,10 @@ lively.morphic.Morph.addMethods(
     setPositionHTML: function(ctx, value) {
         if (ctx.morphNode)
             ctx.domInterface.setPosition(ctx.morphNode, value);
+    },
+    setFixedPositionHTML: function(ctx, bool) {
+        if (ctx.morphNode)
+            ctx.morphNode.style['position'] = bool ? 'fixed': 'absolute';
     },
     setRotationHTML: function(ctx, rad) {
         if (ctx.morphNode)
@@ -256,6 +261,7 @@ lively.morphic.Morph.addMethods(
         this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
         ctx.domInterface.setHTMLTransform(node, this.getRotation(), this.getScale(), this.getPivotPoint());
+        this.setFixedPositionHTML(ctx, this.getFixedPosition());
         this.setPositionHTML(ctx, this.getPosition());
         this.setClipModeHTML(ctx, this.getClipMode());
         this.setHandStyleHTML(ctx, this.getHandStyle());

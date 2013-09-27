@@ -182,7 +182,7 @@ lively.morphic.Shapes.Shape.addMethods(
 'SVG updating', {
     setPositionSVG: function(ctx, value) {
         if (ctx.shapeNode)
-            ctx.domInterface.setPosition(ctx.shapeNode, value);
+            ctx.domInterface.setPosition(ctx.shapeNode, value, 'absolute');
     },
     setExtentSVG: function(ctx, value) {
         if (ctx.shapeNode)

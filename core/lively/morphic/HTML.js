@@ -838,7 +838,7 @@ lively.morphic.Shapes.Shape.addMethods(
 'updating', {
     setPositionHTML: function(ctx, value) {
         if (!ctx.shapeNode) return;
-        ctx.domInterface.setPosition(ctx.shapeNode, value);
+        ctx.domInterface.setPosition(ctx.shapeNode, value, 'absolute');
         if (ctx.originNode) {
             this.compensateShapeNode(ctx);
         }

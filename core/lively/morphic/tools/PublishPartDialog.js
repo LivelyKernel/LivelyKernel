@@ -319,14 +319,12 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
             _FontSize: 10,
             _Position: lively.pt(71.0,16),
             className: "lively.morphic.DropDownList",
-            itemList: [URL.root.withFilename('PartsBin/'),URL.create("http://lively-web.org/PartsBin/")],
             name: "PartsBinURLChooser",
             selectOnMove: false,
-            selectedLineNo: 0,
-            selection: URL.root.withFilename('PartsBin/'),
             sourceModule: "lively.morphic.Core",
             onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-            this.selection = this.itemList[0];
+                this.setList(lively.PartsBin.getPartsBinURLs());
+                this.selectAt(0);
         },
             reset: function reset() {
                     this.name = "PartsBinURLChooser";

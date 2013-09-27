@@ -513,23 +513,7 @@ lively.morphic.Morph.addMethods(
 },
 'fixing', {
     setFixed: function(optFixed) {
-        // Fixes the morph at the current position and zoom when called with true or no parameter, and unfixes it when called with false.
-        var world = lively.morphic.World.current();
-        var fixed = optFixed || (optFixed === false? false : true);
-        if(fixed && this.owner !== world) {
-            return;
-        }
-        this.isFixed = fixed;
-        if(fixed) {
-            this.fixedScale = this.getScale() * world.getZoomLevel();
-            this.fixedPosition = this.getPosition().subPt(world.visibleBounds().topLeft()).scaleBy(world.getZoomLevel());
-
-            this.startStepping(100, "updateZoomScale");
-            this.startStepping(100, "updateScrollPosition");
-        } else {
-            this.stopSteppingScriptNamed("updateZoomScale");
-            this.stopSteppingScriptNamed("updateScrollPosition");
-        }
+        return this.setFixedPosition(optFixed);
     },
     setFixedInSize: function(optFixed) {
         // Fixes the morph in the current zoom when called with true or no parameter, and unfixes it when called with false.

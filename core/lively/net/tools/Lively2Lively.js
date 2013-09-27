@@ -61,13 +61,11 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         textString: "Connected"
     }],
     alignInWorld: function alignInWorld() {
-    this.setFixed(false);
     var worldB = this.world().visibleBounds();
     var x = worldB.width / 100 * 98; // 98% to the right
     this.align(
         this.worldPoint(this.innerBounds().topRight()),
-        worldB.topLeft().addXY(x, -10));
-    this.setFixed(true);
+        pt(x, -10));
     this.statusText.align(this.statusText.bounds().center(), this.innerBounds().bottomCenter().addXY(0,-8));
     this.menu && this.menu.align(
         this.menu.bounds().bottomCenter(),
@@ -132,6 +130,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     onLoad: function onLoad() {
     this.startStepping(5*1000, 'update');
     this.openInWorld();
+    this.setFixed(true);
     this.alignInWorld();
     this.onConnecting();
     this.update();

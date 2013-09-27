@@ -133,6 +133,17 @@ Object.subclass('lively.Main.Loader',
                 + "  -webkit-user-select: auto;\n"
                 + "  -ms-user-select: auto;\n"
                 + "  user-select: auto;\n"
+                + "}\n"
+                + ".morphNode {\n"
+                + "	-webkit-transform-origin: 0 0;\n"
+                + "}\n"
+                + ".Morph {\n"
+                + "/* to fix z-index / z-transform bug: https://code.google.com/p/chromium/issues/detail?id=205744 */\n"
+                + "	-webkit-transform: translate(0,0);\n"
+                + "}\n"
+                + ".World {\n"
+                + "/* World does not set transform to allow fixed positioning */\n"
+                + "    -webkit-transform: none;\n"
                 + "}\n";
         // 2. selection style of morphs/texts/lists etc.
         // suppress focus highlight for most elements

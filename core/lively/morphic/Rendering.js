@@ -198,7 +198,6 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
 
     setPosition: function(node, pos) {
         if (this.isHTML(node)) {
-            node.style['position'] = 'absolute';
             node.style['left'] = pos.x + 'px';
             node.style['top'] = pos.y + 'px';
         } else if (this.isSVG(node)) {

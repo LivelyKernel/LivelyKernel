@@ -124,6 +124,7 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.ClipModeAsyncRenderingTest',
     }
 
 });
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Fill',
 'testing', {
     test01SetCSSFill: function() {
@@ -141,6 +142,35 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Fill',
             tagName: 'div',
             childNodes: [{tagName: 'div', style: {backgroundColor: 'red', background: 'red'}}]
         }, this.morph);
+    }
+});
+
+AsyncTestCase.subclass('lively.morphic.tests.HTML.Positioning',
+// lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Positioning',
+'testing', {
+    testFixedPositing: function() {
+        var m = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,30)),
+            world = lively.morphic.World.current(),
+            worldExtent = world.getExtent(),
+            winBounds = world.windowBounds(),
+            scroll = world.getScrollOffset();
+        this.onTearDown(function() {
+            m.remove();
+            world.setExtent(worldExtent);
+            Global.scrollTo(scroll.x, scroll.y); });
+        Global.scrollTo(pt(0,0));
+        world.setExtent(winBounds.extent().addXY(100,100));
+        m.openInWorld(pt(5, 10));
+        m.setFixedPosition(true);
+        // delays are needed so that the set scroll can take effect
+        this.delay(function() {
+            this.assertEquals(lively.rect(5,10,20,30), m.bounds());
+            Global.scrollTo(100,100);
+                this.delay(function() {
+                    this.assertEquals(lively.rect(105,110,20,30), m.bounds());
+                    this.done();
+                }, 0);
+        }, 0);
     }
 });
 

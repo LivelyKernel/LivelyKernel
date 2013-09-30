@@ -485,37 +485,31 @@ lively.morphic.Morph.addMethods(
         doStep(steps);
     }
 },
-'fixing', {
+'fixed positioning', {
+    enableFixedPositioning: function() {
+        if (!this.owner || !this.owner.isWorld) {
+            console.warn('Setting fixed positioning for morph %s but owner is not world!', this);
+        }
+        var world = this.world() || lively.morphic.World.current();
+        var trait = Trait('lively.morphic.FixedPositioning.MorphTrait');
+        trait.applyTo(this, {override: Functions.own(trait.def)});
+        world.addMorphWithFixedPosition(this);
+        this.addEventHandlerForFixedPositioning();
+        return this;
+    },
+    disableFixedPositioning: function() {
+        /*not enabled, see Trait('lively.morphic.FixedPositioning.MorphTrait') */
+        return this;
+    },
+    setFixedPosition: function(bool) {
+        this.cachedBounds = null;
+        return this.morphicSetter('FixedPosition', bool);
+    },
+    hasFixedPosition: function(bool) {
+        return this.morphicGetter('FixedPosition') || false;
+    },
     setFixed: function(optFixed) {
-        return this.setFixedPosition(optFixed);
-    },
-    setFixedInSize: function(optFixed) {
-        // Fixes the morph in the current zoom when called with true or no parameter, and unfixes it when called with false.
-        var fixed = optFixed || (optFixed === false? false : true);
-        if(fixed && this.owner !== lively.morphic.World.current()) {
-            return;
-        }
-        this.isFixed = fixed;
-        if(fixed) {
-            this.fixedScale = this.getScale() * lively.morphic.World.current().getZoomLevel();
-            this.startStepping(100, "updateZoomScale");
-        }
-        else {
-            this.stopSteppingScriptNamed("updateZoomLevel");
-        }
-    },
-
-    updateZoomScale: function(newZoom) {
-        if(this.fixedScale) {
-            var newZoom = newZoom || lively.morphic.World.current().updateZoomLevel();
-            this.setScale(this.fixedScale/newZoom);
-        }
-    },
-
-    updateScrollPosition: function(newPosition) {
-        var world = lively.morphic.World.current(),
-            newPosition = newPosition || world.getScrollOffset();
-        this.setPosition(this.fixedPosition.scaleBy(1/world.zoomLevel).addPt(newPosition));
+        return optFixed ? this.enableFixedPositioning() : this.disableFixedPositioning();
     }
 },
 'fullscreen', {
@@ -1290,8 +1284,6 @@ lively.morphic.Morph.addMethods({
 
 });
 
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 Trait('lively.morphic.FixedPositioning.WorldTrait', {
     addMorphWithFixedPosition: function(morph) {
         // fixed positioning equivalent to addMorph.
@@ -1329,7 +1321,7 @@ Trait('lively.morphic.FixedPositioning.WorldTrait', {
         // }
         return new lively.morphic.Similitude(pos, this.getRotation(), scale);
     }
-});
+}).applyTo(lively.morphic.World, {override: ['getTransform']});
 
 Trait('lively.morphic.FixedPositioning.MorphTrait', {
     addEventHandlerForFixedPositioning: function() {
@@ -1425,25 +1417,6 @@ Trait('lively.morphic.FixedPositioning.MorphTrait', {
         var bnds = this.constructor.prototype.innerBounds.call(this);
         return this.getFixedPositionTransform().transformRectToRect(bnds);
     }
-});
-
-lively.morphic.Morph.addMethods({
-    enableFixedPositioning: function() {
-        var trait = Trait('lively.morphic.FixedPositioning.MorphTrait');
-        trait.applyTo(this, {override: Functions.own(trait.def)});
-        this.world().addMorphWithFixedPosition(this);
-        this.addEventHandlerForFixedPositioning();
-        return this;
-    },
-    disableFixedPositioning: function() {
-        /*not enabled*/
-        return this;
-    },
-    // setFixedPosition: function(bool) { }
-});
-
-lively.whenLoaded(function(world) {
-    Trait('lively.morphic.FixedPositioning.WorldTrait').applyTo(world, {override: ['getTransform']});
 });
 
 }) // end of module

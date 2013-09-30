@@ -261,7 +261,7 @@ lively.morphic.Morph.addMethods(
         this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
         ctx.domInterface.setHTMLTransform(node, this.getRotation(), this.getScale(), this.getPivotPoint());
-        this.setFixedPositionHTML(ctx, this.getFixedPosition());
+        this.setFixedPositionHTML(ctx, this.hasFixedPosition());
         this.setPositionHTML(ctx, this.getPosition());
         this.setClipModeHTML(ctx, this.getClipMode());
         this.setHandStyleHTML(ctx, this.getHandStyle());

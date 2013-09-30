@@ -46,19 +46,9 @@ Object.subclass('lively.morphic.Morph',
     },
     getPosition: function () {
         var pos = this.morphicGetter('Position') || pt(0,0);
-        if (!this.getFixedPosition()) return pos;
+        if (!this.hasFixedPosition()) return pos;
         var world = this.world();
         return world ? world.getScrollOffset().addPt(pos) : pos;
-    },
-    setFixedPosition: function(bool) {
-        this.cachedBounds = null;
-        if (bool && this.owner && !this.owner.isWorld) {
-            console.warn('Setting fixed positioning for morph %s but owner is not world!', this);
-        }
-        return this.morphicSetter('FixedPosition', bool);
-    },
-    getFixedPosition: function(bool) {
-        return this.morphicGetter('FixedPosition') || false;
     },
     setRotation: function(value) {
         this.cachedBounds = null;
@@ -76,7 +66,7 @@ Object.subclass('lively.morphic.Morph',
         return bounds;
     },
     getBounds: function() {
-        if (this.cachedBounds && !this.getFixedPosition()) return this.cachedBounds;
+        if (this.cachedBounds && !this.hasFixedPosition()) return this.cachedBounds;
 
         var tfm = this.getTransform(),
             bounds = this.innerBounds();

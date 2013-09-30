@@ -44,7 +44,12 @@ Object.subclass('lively.morphic.Morph',
         this.cachedBounds = null;
         return this.morphicSetter('Position', value);
     },
-    getPosition: function() { return this.morphicGetter('Position') || pt(0,0) },
+    getPosition: function () {
+        var pos = this.morphicGetter('Position') || pt(0,0);
+        if (!this.hasFixedPosition()) return pos;
+        var world = this.world();
+        return world ? world.getScrollOffset().addPt(pos) : pos;
+    },
     setRotation: function(value) {
         this.cachedBounds = null;
         return this.morphicSetter('Rotation', value);
@@ -61,7 +66,7 @@ Object.subclass('lively.morphic.Morph',
         return bounds;
     },
     getBounds: function() {
-        if (this.cachedBounds) return this.cachedBounds;
+        if (this.cachedBounds && !this.hasFixedPosition()) return this.cachedBounds;
 
         var tfm = this.getTransform(),
             bounds = this.innerBounds();

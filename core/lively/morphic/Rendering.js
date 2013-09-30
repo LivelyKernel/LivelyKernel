@@ -196,9 +196,9 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
     },
 
 
-    setPosition: function(node, pos) {
+    setPosition: function(node, pos, mode) {
         if (this.isHTML(node)) {
-            node.style['position'] = 'absolute';
+            if (mode) node.style['position'] = mode;
             node.style['left'] = pos.x + 'px';
             node.style['top'] = pos.y + 'px';
         } else if (this.isSVG(node)) {
@@ -224,6 +224,10 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         }
         // treat 'null' rotation as 0
         var degrees = typeof rotationInRad == 'number' ? rotationInRad.toDegrees() : 0;
+        if (degrees === 0 && scaleX === 1 && scaleY === 1) {
+            node.style[this.html5TransformProperty] = '';
+            return;
+        }
         var transformString = 'rotate(' + degrees + 'deg) ';
         transformString += 'scale(' + scaleX + ',' + scaleY + ')';
         if (this.html5CssPrefix === '-moz-') {
@@ -233,6 +237,10 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         }
     },
     setHTMLTransformOrigin: function(node, origin) {
+        if (origin.x === 0 && origin.y === 0) {
+            node.style[this.html5TransformOriginProperty] = '';
+            return;
+        }
         var originString = origin.x + 'px ' + origin.y + 'px';
         if (this.html5CssPrefix === '-moz-') {
             node.setAttribute('style', node.style.cssText + '-moz-transform-origin: ' + originString);

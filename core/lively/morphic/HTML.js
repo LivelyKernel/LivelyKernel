@@ -126,6 +126,7 @@ lively.morphic.Morph.addMethods(
         onRenderFinished: 'onRenderFinishedHTML',
         triggerEvent: 'triggerEventHTML',
         setTransform: 'setTransformHTML',
+        setFixedPosition: 'setFixedPositionHTML',
         setPosition: 'setPositionHTML',
         setRotation: 'setRotationHTML',
         setExtent: 'setExtentHTML',
@@ -153,6 +154,10 @@ lively.morphic.Morph.addMethods(
     setPositionHTML: function(ctx, value) {
         if (ctx.morphNode)
             ctx.domInterface.setPosition(ctx.morphNode, value);
+    },
+    setFixedPositionHTML: function(ctx, bool) {
+        if (ctx.morphNode)
+            ctx.morphNode.style['position'] = bool ? 'fixed': 'absolute';
     },
     setRotationHTML: function(ctx, rad) {
         if (ctx.morphNode)
@@ -251,24 +256,22 @@ lively.morphic.Morph.addMethods(
         this.replaceRenderContextCompletely(new lively.morphic.HTML.RenderContext());
     },
     initHTML: function(ctx) {
-        if (!ctx.morphNode) ctx.morphNode = ctx.domInterface.htmlRect();
+        var node = ctx.morphNode || (ctx.morphNode = ctx.domInterface.htmlRect());
+        node.className = 'morphNode';
         this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
-        this.setPivotPointHTML(ctx, this.getPivotPoint())
-        ctx.domInterface.setHTMLTransformOrigin(ctx.morphNode, pt(0,0));
+        ctx.domInterface.setHTMLTransform(node, this.getRotation(), this.getScale(), this.getPivotPoint());
+        this.setFixedPositionHTML(ctx, this.hasFixedPosition());
         this.setPositionHTML(ctx, this.getPosition());
-        this.setRotationHTML(ctx, this.getRotation());
-        this.setScaleHTML(ctx, this.getScale());
         this.setClipModeHTML(ctx, this.getClipMode());
         this.setHandStyleHTML(ctx, this.getHandStyle());
         this.setPointerEventsHTML(ctx, this.getPointerEvents());
-        if (this.morphicGetter('Visible') === false)
-            this.setVisibleHTML(ctx, false);
-        var zIndex = this.getZIndex(); zIndex && this.setZIndexHTML(ctx, zIndex);
+        if (this.morphicGetter('Visible') === false) this.setVisibleHTML(ctx, false);
+        var zIndex = this.getZIndex();
+        zIndex && this.setZIndexHTML(ctx, zIndex);
         var tooltip = this.morphicGetter('ToolTip');
         tooltip && this.setToolTipHTML(ctx, tooltip);
-        if (UserAgent.fireFoxVersion)
-            ctx.morphNode['-moz-user-modify'] = 'read-only'
+        if (UserAgent.fireFoxVersion) node['-moz-user-modify'] = 'read-only';
     },
 
     setMorphDataHTML: function(ctx) {
@@ -307,10 +310,10 @@ lively.morphic.Morph.addMethods(
         this.getShape().renderUsing(ctx);
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {
-        if (!optAfterNode || !$A(parentNode.childNodes).include(optAfterNode)) {
+        if (!optAfterNode || !Array.from(parentNode.childNodes).include(optAfterNode)) {
             if (morphNode.parentNode === parentNode) return;
             ctx.domInterface.append(parentNode, morphNode);
-            return
+            return;
         }
         if (morphNode.nextSibling === optAfterNode) return;
         parentNode.insertBefore(morphNode, optAfterNode);
@@ -634,8 +637,7 @@ lively.morphic.List.addMethods(
 },
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.listNode)
-            ctx.listNode = this.createListNodeHTML();
+        if (!ctx.listNode) ctx.listNode = this.createListNodeHTML();
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) { // FIXME should also be done when no shape exists...?
@@ -836,7 +838,7 @@ lively.morphic.Shapes.Shape.addMethods(
 'updating', {
     setPositionHTML: function(ctx, value) {
         if (!ctx.shapeNode) return;
-        ctx.domInterface.setPosition(ctx.shapeNode, value);
+        ctx.domInterface.setPosition(ctx.shapeNode, value, 'absolute');
         if (ctx.originNode) {
             this.compensateShapeNode(ctx);
         }

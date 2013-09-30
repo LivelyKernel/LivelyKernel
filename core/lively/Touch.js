@@ -2380,8 +2380,7 @@ lively.morphic.Box.subclass('lively.morphic.SelectionMorph',
         renameHalo.labelMorph.disableSelection();
         renameHalo.setScale(2 / world.getZoomLevel() / this.getGlobalTransform().getScale());
         renameHalo.fit.bind(renameHalo).delay(0);
-        renameHalo.setFixedInSize(true)
-        return renameHalo
+        return renameHalo;
     },
 
     createHandle: function(name) {
@@ -2399,7 +2398,6 @@ lively.morphic.Box.subclass('lively.morphic.SelectionMorph',
         grabArea.disableDropping();
         grabArea.cornerName = name;
         grabArea.setDraggableWithoutHalo(true);
-        grabArea.setFixedInSize(true);
         return grabArea;
     },
     createVisibleHandleKnob: function() {

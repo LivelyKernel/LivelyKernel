@@ -298,6 +298,10 @@ lively.morphic.Morph.addMethods(
 'opening', {
     openInWorld: function(pos, name) {
         var world = lively.morphic.World.current();
+        if (!world) {
+            lively.whenLoaded(this.openInWorld.bind(this,pos,name));
+            return;
+        }
         if (world.currentScene) world = world.currentScene;
         world.addMorph(this);
         pos && this.setPosition(pos);

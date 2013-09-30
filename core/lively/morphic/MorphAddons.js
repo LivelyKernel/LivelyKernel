@@ -180,35 +180,25 @@ Object.extend(Global, {
 
 lively.morphic.Morph.addMethods(
 'geometry', {
-    moveBy: function(point) { this.setPosition(this.getPosition().addPt(point)) },
-    translateBy: function(p) {
-        this.setPosition(this.getPosition().addPt(p));
-        return this;
-    },
-    align: function (p1, p2) { return this.translateBy(p2.subPt(p1)) },
-     centerAt: function (p) { return this.align(this.bounds().center(), p) },
-    rotateBy: function(delta) { this.setRotation(this.getRotation() + delta);
-        return this },
-    scaleBy: function(factor) { this.setScale(this.getScale()*factor) },
-    centerAt: function(p) {
-        return this.align(this.bounds().center(), p);
-    },
-    resizeBy: function(point) {
-        this.setExtent(this.getExtent().addPt(point));
-    },
+    moveBy: function(point) { this.setPosition(this.getPosition().addPt(point)); },
+    translateBy: function(p) { this.setPosition(this.getPosition().addPt(p)); return this; },
+    align: function (p1, p2) { return this.translateBy(p2.subPt(p1)); },
+    centerAt: function (p) { return this.align(this.bounds().center(), p); },
+    rotateBy: function(delta) { this.setRotation(this.getRotation() + delta); return this; },
+    scaleBy: function(factor) { this.setScale(this.getScale()*factor); },
+    centerAt: function(p) { return this.align(this.bounds().center(), p); },
+    resizeBy: function(point) { this.setExtent(this.getExtent().addPt(point)); }
 },
 'morphic relationship', {
     addMorphBack: function(other) {
         var next = other === this.submorphs[0] ? this.submorphs[1] : this.submorphs[0];
         return this.addMorph(other, next);
     },
-    addMorphFront: function(other) { return this.addMorph(other) },
+    addMorphFront: function(other) { return this.addMorph(other); },
     bringToFront: function() {
         // Hack: remove and re-add morph
         var owner = this.owner;
-        if (!owner) {
-            return;
-        }
+        if (!owner) return;
         this.remove();
         owner.addMorphFront(this);
     },
@@ -216,9 +206,7 @@ lively.morphic.Morph.addMethods(
     sendToBack: function() {
         // Hack: remove and re-add morph
         var owner = this.owner;
-        if (!owner) {
-            return;
-        }
+        if (!owner) return;
         this.remove();
         owner.addMorphBack(this);
     },
@@ -236,31 +224,21 @@ lively.morphic.Morph.addMethods(
     treeItemsOfMorphNames: function (options) {
         var scripts = options["scripts"] || [],
             properties = options["properties"] || {},
-            showUnnamed = options["showUnnamed"]
-
-        if (this.name || showUnnamed) {
-            var item = {name: this.name || "a " + lively.Class.getConstructor(this).displayName, value: this},
-                children = this.submorphs.invoke('treeItemsOfMorphNames', options).compact()
-            if (children.length > 0) {
-                item.children = children
-            }
-            Properties.own(properties).each(function (v) {
-                item[v] = properties[v]
-            })
-            scripts.each(function (script) {
-                Object.addScript(item, script)
-            })
-            return item
-        } else {
-            return null
-        }
+            showUnnamed = options["showUnnamed"];
+        if (!this.name && !showUnnamed) return null;
+        var item = {name: this.name || "a " + lively.Class.getConstructor(this).displayName, value: this},
+            children = this.submorphs.invoke('treeItemsOfMorphNames', options).compact();
+        if (children.length > 0) item.children = children;
+        Properties.own(properties).each(function (v) { item[v] = properties[v]; });
+        scripts.each(function (script) { Object.addScript(item, script); });
+        return item;
     },
 
     isSubmorphOf: function(otherMorph) {
-        var self = this, found = false;
-        otherMorph.withAllSubmorphsDo(function(morph) { found = found || morph === self });
-        return found;
+        return otherMorph.withAllSubmorphsDetect(function(morph) {
+            return morph === this }, this);
     },
+
     topSubmorph: function() {
         // the morph on top is the last one in the list
         return this.submorphs.last();
@@ -275,9 +253,9 @@ lively.morphic.Morph.addMethods(
     },
 },
 'convenience accessing', {
-    bounds: function() { return this.getBounds() },
-    innerBounds: function() { return this.getShape().getBounds() },
-    getCenter:  function () { return this.bounds().center() }
+    bounds: function() { return this.getBounds(); },
+    innerBounds: function() { return this.getShape().getBounds(); },
+    getCenter:  function () { return this.bounds().center(); }
 },
 'convenience scripting', {
     stepAndBounce: function () {  // convenience for scripting
@@ -340,9 +318,9 @@ lively.morphic.Morph.addMethods(
     openInWorldCenter: function() {
         // redundant functionality as in openPartItem
         this.openInWorld();
-        this.align(this.bounds().center(), $world.visibleBounds().center());
+        this.align(this.bounds().center(), lively.morphic.World.current().visibleBounds().center());
         return this;
-    },
+    }
 },
 'removing', {
     removeAllMorphs: function() {
@@ -366,14 +344,14 @@ lively.morphic.Morph.addMethods(
     }
 },
 'events', {
-    takesKeyboardFocus: function() {},
+    takesKeyboardFocus: function() {/*deprecated, remove!*/},
     isGrabbable: function(evt) {
         // return false to inhibit grabbing by the hand
         return this.grabbingEnabled || this.grabbingEnabled === undefined;
     }
 },
 'copying', {
-    duplicate: function() { return this.copy() },
+    duplicate: function() { return this.copy() }
 },
 'styling', {
 
@@ -445,16 +423,14 @@ lively.morphic.Morph.addMethods(
     },
 
     getGridPoint: function() {
-        if (this.owner && this.owner.layout && this.owner.layout.grid) {
-            return this.owner.layout.grid;
-        }
-        return pt(10,10)
+        return this.owner && this.owner.layout && this.owner.layout.grid ?
+            this.owner.layout.grid : pt(10,10);
     }
 
 },
 'update & change', {
     layoutChanged: function() {},
-    changed: function() {},
+    changed: function() {}
 },
 'lively bindings', {
     plugTo: function(obj, connectSpec) {
@@ -463,12 +439,10 @@ lively.morphic.Morph.addMethods(
         // while using the "direct connect" form of change notification
         // {dir: String, name: String, options: Object}
         var view = this;
-
         function parseStringSpec(stringSpec) {
             var parsed = stringSpec.match(/(<?->?)(.*)/);
             return {dir: parsed[1], name: parsed[2]};
         };
-
         Properties.forEachOwn(connectSpec, function (viewProp, spec) {
             if (Object.isString(spec)) spec = parseStringSpec(spec);
             var dir = spec.dir || '->', options = spec.options || {};
@@ -478,7 +452,7 @@ lively.morphic.Morph.addMethods(
                 lively.bindings.connect(obj, spec.name, view, viewProp, options)
         });
         return this;
-    },
+    }
 },
 'animations', {
     dissolve: function(ms) {
@@ -509,7 +483,7 @@ lively.morphic.Morph.addMethods(
             doStep.curry(step-1).delay(stepTime/1000);
         }
         doStep(steps);
-    },
+    }
 },
 'fixing', {
     setFixed: function(optFixed) {
@@ -537,11 +511,12 @@ lively.morphic.Morph.addMethods(
             this.setScale(this.fixedScale/newZoom);
         }
     },
+
     updateScrollPosition: function(newPosition) {
         var world = lively.morphic.World.current(),
             newPosition = newPosition || world.getScrollOffset();
         this.setPosition(this.fixedPosition.scaleBy(1/world.zoomLevel).addPt(newPosition));
-    },
+    }
 },
 'fullscreen', {
     enterFullScreen: function(beTopLeft) {
@@ -587,7 +562,7 @@ lively.morphic.Morph.addMethods(
         delete this.oldWorldScale;
         delete this.oldPosition;
     },
-    isInFullScreen: function() { return this._isInFullScreen },
+    isInFullScreen: function() { return !!this._isInFullScreen; },
 
     clipWorld: function() {
         this.world().applyStyle({clipMode: 'hidden'});
@@ -600,9 +575,7 @@ lively.morphic.Morph.addMethods(
         // returns a list of all submorphs (recursively) that satisfy aBooleanFunction
         var res = [];
         this.submorphs.forEach(function(ea) {
-            if (aBooleanFunction(ea)) {
-                res.push(ea);
-            }
+            if (aBooleanFunction(ea)) res.push(ea);
             res.pushAll(ea.selectAllSubmorphs(aBooleanFunction));
         });
         return res;

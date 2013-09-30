@@ -74,7 +74,7 @@ Object.extend(lively.morphic, {
         }
 
         function newShowMorph (morph) {
-            newShowRect(morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
+            newShowRect(morph.getGlobalTransform().transformRectToRect(morph.innerBounds()))
         }
 
         function newShowElement(el) {
@@ -1315,6 +1315,162 @@ lively.morphic.Morph.addMethods({
         }
     }
 
+});
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Trait('lively.morphic.FixedPositioning.WorldTrait', {
+    addMorphWithFixedPosition: function(morph) {
+        // fixed positioning equivalent to addMorph.
+        // currently we do not reference the fixed morphs...
+        // should they got into submorphs? fixedSubmorphs?
+        if (!this.isRendered()) {
+            lively.bindings.connect(
+                this, '_isRendered',
+                this.addMorphWithFixedPosition.bind(this, morph), 'call', {
+                    removeAfterUpdate: true});
+            return this;
+        }
+        if (morph.owner) morph.remove();
+        morph.owner = this;
+        // place morphNode (node of fixed positining morph) outside of the
+        // world's children nodes (as a child node of the worlds parentNode,
+        // usually the document.body node)
+        var parentNode = this.renderContext().morphNode.parentNode,
+            morphNode = morph.renderContext().morphNode;
+        parentNode.appendChild(morphNode);
+        morph.setFixedPosition(true);
+    },
+    getTransform: function () {
+        // we need to overwrite getTransform bc the clip behavior (offsetting
+        // the position by the amount the morph is scrolled does no work for
+        // worlds)
+        var scale = this.getScale(),
+            pos = this.getPosition();
+        if (Object.isNumber(scale)) {
+            scale = pt(scale,scale);
+        }
+        // if (this.isClip()) {
+        //     var scroll = this.getScroll();
+        //     pos = pos.subXY(scroll[0], scroll[1]);
+        // }
+        return new lively.morphic.Similitude(pos, this.getRotation(), scale);
+    }
+});
+
+Trait('lively.morphic.FixedPositioning.MorphTrait', {
+    addEventHandlerForFixedPositioning: function() {
+        // FIXME! this method patches the eventhandler logic so that for each
+        // event the fixed morph is interested in the event handler for the world
+        // is run as well. So a mousedown event will invoke:
+        // World>>onMouseDownEntry
+        //   World>>onMouseDown
+        // Morph>>onMouseDownEntry
+        //   Morph>>onMouseDown
+        // This is necessary bc when the morph is rendered in HTML it is placed
+        // outside the child tree of the world's DOM node and will thus not be
+        // part of the normal event dispatch
+        this.removeEventHandler();
+        this.addEventHandler();
+        this.eventHandler.handleEvent = function (evt) {
+            // eventSpec maps morphs and morphic event handlers to events
+            var eventSpec = this.dispatchTable[evt.type];
+            if (!eventSpec) return false;
+            var target = eventSpec.target; // the morph
+            if (target.eventsAreDisabled) return false;
+            if (Global.LastEventWasHandled && evt === Global.LastEvent) return false;
+            // add convenience methods to the event
+            this.patchEvent(evt);
+            Global.LastEvent = evt;
+            Global.LastEventWasHandled = false;
+            // invoke event handler methods
+            var wasHandled;
+            try {
+                wasHandled = evt.world[eventSpec.targetMethodName] && evt.world[eventSpec.targetMethodName](evt);
+                wasHandled = wasHandled || target[eventSpec.targetMethodName](evt);
+            } catch(e) {
+                this.handleError(e, target, eventSpec);
+            }
+            // when an event handler returns true it means that the event was
+            // handled and no other morphs should deal with it anymore
+            // note: this is not the same as evt.stop() !!!
+            Global.LastEventWasHandled = Global.LastEventWasHandled || wasHandled;
+            return true;
+        }
+        this.registerForEvents(true);
+    },
+    enableFixedPositioning: function() {
+        /*already enabled*/
+        return this;
+    },
+    disableFixedPositioning: function() {
+        this.remove();
+        this.setFixedPosition(false);
+        Trait('lively.morphic.FixedPositioning.MorphTrait').removeFrom(this);
+        this.removeEventHandler(); // the fixed pos event handler must go
+        this.openInWorld();
+        return this;
+    },
+    setFixedPosition: function(bool) {
+        this.cachedBounds = null;
+        // if (bool && this.owner && !this.owner.isWorld) {
+        //     console.warn('Setting fixed positioning for morph %s but owner is not world!', this);
+        // }
+        return this.morphicSetter('FixedPosition', bool);
+    },
+    setFixedPositionHTML: function(ctx, bool) {
+        if (ctx.morphNode)
+            ctx.morphNode.style['position'] = bool ? 'fixed': 'absolute';
+    },
+    // we need to specially deal with transforming positions from the fixed
+    // morph to the world and it's "normal" coordiante system / transforms bc
+    // a) the fixed morph does not move relative to the screen. but this means
+    //    that when scrolling the position of the morph changes relative to the
+    //    world!
+    // b) the fixed morph does not inherit the world transforms
+    getFixedPositionTransform: function(withScroll) {
+        var w = this.world();
+        if (!w) return new lively.morphic.Similitude();
+        var s = w.getScale(), 
+            p = withScroll ? w.getScrollOffset():pt(0,0),
+            r = w.getRotation();
+        return new lively.morphic.Similitude(p, r, pt(1/s,1/s));
+    },
+    getPosition: function () {
+        var pos = this._Position || pt(0,0);
+        return this.getFixedPositionTransform(true).transformPoint(pos);
+    },
+    setPosition: function (pos) {
+        pos = this.getFixedPositionTransform(true).inverse().transformPoint(pos);
+        return this.constructor.prototype.setPosition.call(this, pos);
+    },
+    getExtent: function() {
+        var ext = this.constructor.prototype.getExtent.call(this);
+        return this.getFixedPositionTransform().transformPoint(ext);
+    },
+    innerBounds: function() {
+        var bnds = this.constructor.prototype.innerBounds.call(this);
+        return this.getFixedPositionTransform().transformRectToRect(bnds);
+    }
+});
+
+lively.morphic.Morph.addMethods({
+    enableFixedPositioning: function() {
+        var trait = Trait('lively.morphic.FixedPositioning.MorphTrait');
+        trait.applyTo(this, {override: Functions.own(trait.def)});
+        this.world().addMorphWithFixedPosition(this);
+        this.addEventHandlerForFixedPositioning();
+        return this;
+    },
+    disableFixedPositioning: function() {
+        /*not enabled*/
+        return this;
+    },
+    // setFixedPosition: function(bool) { }
+});
+
+lively.whenLoaded(function(world) {
+    Trait('lively.morphic.FixedPositioning.WorldTrait').applyTo(world, {override: ['getTransform']});
 });
 
 }) // end of module

@@ -780,13 +780,6 @@ lively.morphic.Morph.subclass('lively.morphic.Box',
     }
 });
 
-lively.morphic.Box.subclass('lively.morphic.List',
-'properties', {
-    isList: true
-});
-
-lively.morphic.List.subclass('lively.morphic.DropDownList'); // FIXME does not belong here
-
 lively.morphic.Box.subclass('lively.morphic.Clip',
 'initializing', {
     initialize: function($super, initialBounds) {

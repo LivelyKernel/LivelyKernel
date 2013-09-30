@@ -3508,7 +3508,8 @@ lively.morphic.List.addMethods({
                 ctx.subNodes.push(option);
             }
         }
-    },})
+    }
+})
 
 lively.morphic.Box.subclass('ToolContainer',
 'initializing', {

@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.HTML', 'lively.morphic.Clipboard', 'lively.morphic.SVG', 'lively.morphic.Canvas', 'lively.Traits', 'lively.ide.commands.default').toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -562,8 +562,6 @@ Trait('ScrollableTrait',
 })
 .applyTo(lively.morphic.Morph)
 .applyTo(lively.morphic.Text, {override: ['onMouseWheel']})
-.applyTo(lively.morphic.List, {override: ['onMouseWheel']});
-
 
 Trait('lively.morphic.DragMoveTrait',
 'event handling', {
@@ -1702,19 +1700,6 @@ lively.morphic.World.addMethods(
 
 });
 
-lively.morphic.HTML.RenderContext.addMethods(
-'event handler management', {
-    registerHandlerForEvent: function(handler, eventSpec) { handler.registerHTMLAndSVG(eventSpec) }
-});
-lively.morphic.SVG.RenderContext.addMethods(
-'event handler management', {
-    registerHandlerForEvent: function(handler, eventSpec) { handler.registerHTMLAndSVG(eventSpec) }
-});
-lively.morphic.Canvas.RenderContext.addMethods(
-'event handler management', {
-    registerHandlerForEvent: function(handler, eventSpec) { handler.registerCANVAS(eventSpec) }
-});
-
 lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 'settings', {
     style: {enableDropping: false, enableHalos: false}
@@ -2165,6 +2150,27 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
             keysNoModifier && keysNoModifier.length > 0 && lively.log(keysNoModifier);
         }
         return undefined;
+    });
+})();
+
+(function eventHandlerRenderSystemSetup() {
+    require('lively.morphic.HTML').toRun(function() {
+        lively.morphic.HTML.RenderContext.addMethods(
+        'event handler management', {
+            registerHandlerForEvent: function(handler, eventSpec) { handler.registerHTMLAndSVG(eventSpec) }
+        });
+    });
+    require('lively.morphic.SVG').toRun(function() {
+        lively.morphic.SVG.RenderContext.addMethods(
+        'event handler management', {
+            registerHandlerForEvent: function(handler, eventSpec) { handler.registerHTMLAndSVG(eventSpec) }
+        });
+    });
+    require('lively.morphic.Canvas').toRun(function() {
+        lively.morphic.Canvas.RenderContext.addMethods(
+        'event handler management', {
+            registerHandlerForEvent: function(handler, eventSpec) { handler.registerCANVAS(eventSpec) }
+        });
     });
 })();
 

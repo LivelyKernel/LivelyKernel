@@ -1,8 +1,6 @@
 module('lively.morphic.Lists').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.TextCore', 'lively.morphic.Styles').toRun(function() {
 
-lively.morphic.List.addMethods(Trait('ScrollableTrait'));
-
-lively.morphic.List.addMethods(
+lively.morphic.Box.subclass('lively.morphic.OldList', Trait('ScrollableTrait'),
 'documentation', {
     connections: {
         selection: {},
@@ -310,7 +308,7 @@ lively.morphic.List.addMethods(
 
 });
 
-lively.morphic.DropDownList.addMethods(
+lively.morphic.OldList.subclass('lively.morphic.DropDownList',
 'properties', {
     // triggers correct rendering
     isDropDownList: 'true'
@@ -318,7 +316,7 @@ lively.morphic.DropDownList.addMethods(
 'initializing', {
     initialize: function($super, bounds, optItems) {
         $super(bounds, optItems);
-    },
+    }
 },
 'mouse events', {
     onMouseDown: function(evt) {
@@ -666,7 +664,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     }
 });
 
-lively.morphic.Box.subclass('lively.morphic.MorphList2', Trait('ScrollableTrait'),
+lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 'settings', {
     style: {
         fill: Color.white,

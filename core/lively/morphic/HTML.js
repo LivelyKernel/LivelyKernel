@@ -1,4 +1,4 @@
-module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits').toRun(function() {
+module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'lively.morphic.Lists').toRun(function() {
 
 Color.addMethods(
 'HTML rendering', {
@@ -615,7 +615,7 @@ lively.morphic.Text.addMethods(
     }
 });
 
-lively.morphic.List.addMethods(
+lively.morphic.OldList.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
         updateListContent: 'updateListContentHTML',

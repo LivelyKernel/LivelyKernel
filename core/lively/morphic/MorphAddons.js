@@ -1103,15 +1103,6 @@ lively.morphic.Button.addMethods(
     getIsActive: function() { return true }
 });
 
-lively.morphic.List.addMethods(
-'deprecated interface', {
-    innerMorph: function() { return this },
-    addMenuButton: function() { return this }
-},
-'filter interface', {
-    clearFilter: function() {}
-});
-
 lively.morphic.Morph.addMethods(
 "CSSTransitions", {
 

@@ -1,120 +1,5 @@
 module('lively.morphic.tests.Lists').requires('lively.morphic.tests.Helper', 'lively.morphic.Layout').toRun(function() {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
-'testing', {
-    test01SetAndRetrieveStringItems: function() {
-        var list = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
-        this.assertEqualState(['1', '2', '3'], list.itemList);
-        list.updateList(['foo']);
-        this.assertEqualState(['foo'], list.itemList);
-    },
-
-    test02SelectAt: function() {
-        var morph = new lively.morphic.List(new Rectangle (0, 0, 100, 100), ['first']);
-        this.world.addMorph(morph);
-        morph.selectAt(0);
-
-        this.assertEquals('first', morph.selection);
-        // var morphNode = morph.renderContext().getMorphNode();
-        // this.doMouseEvent({type: 'mousedown', pos: pt(10,8), target: morphNode, button: 0});
-    },
-
-    test03SelectListItem: function() {
-        var morph = new lively.morphic.List(new Rectangle (0, 0, 100, 100));
-        this.world.addMorph(morph);
-        morph.updateList([
-            {isListItem: true, string: 'foo', value: 23},
-            {isListItem: true, string: 'bar', value: 24}])
-        morph.selectAt(1);
-        this.assertEquals(24, morph.selection);
-    },
-
-    test04ListMorphBoundsOnCreationInHTML: function() {
-        var owner = lively.morphic.Morph.makeRectangle(0,0,10,10),
-            list = new lively.morphic.List(new Rectangle (0, 0, 100, 100), ['1', '2', '3']);
-
-        owner.addMorph(list)
-        this.world.addMorph(owner);
-
-        // FIXME depends on HTML
-        this.assert(list.renderContext().listNode.clientHeight > 0, 'list node height is wrong')
-    },
-
-    test05ListMorphKeepsSelectionHighlightOnUpdateList: function() {
-        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100));
-        this.world.addMorph(list);
-
-        list.updateList([1,2,3]);
-        list.setSelection(2);
-        list.updateList([1,2,3]);
-
-        var expected = {
-            tagName: 'option',
-            // attributes: {selected: true} // for some reason this does not work..
-        };
-        this.assertNodeMatches(expected, list.renderContext().subNodes[1]);
-        this.assert(list.renderContext().subNodes[1].selected, 'not selected');
-    },
-
-    test06SetSelectionWithListItems: function() {
-        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
-            items = [{isListItem: true, string: 'foo', value: 23}];
-        this.world.addMorph(list);
-
-        list.updateList(items);
-        list.setSelection(23);
-
-        this.assertEquals(0, list.selectedLineNo);
-    },
-
-    testAddMorphDuplicatesListsBug: function() {
-        var list = new lively.morphic.List(new Rectangle(0,0,100,100), [1,2,3]),
-            rect = lively.morphic.Morph.makeRectangle(0,0,100,100);
-
-        this.world.addMorph(list);
-        this.world.addMorph(rect);
-        rect.addMorph(list);
-
-        this.assert(!this.world.submorphs.include(list), 'list in world submorphs')
-        this.assert(rect.submorphs.include(list), 'list not in rect submorphs')
-    },
-
-    testUpdateListOnSelectionHighlightsSelectionCorrectly: function() {
-        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
-            items = [1, 2, 3];
-        this.world.addMorph(list);
-
-        list.updateList(items);
-        list.setSelection(2);
-        this.assertEquals(1, list.selectedLineNo);
-
-        connect(list, 'selection', list, 'onSelect')
-        list.addScript(function onSelect(sel) { this.updateList(this.getList()) });
-
-        list.setSelection(3);
-        this.assertEquals(2, list.selectedLineNo);
-        // FIXME implementation & HTML specific
-        var isSelected = list.renderContext().subNodes[2].selected;
-        this.assert(isSelected !== '', 'highlight wrong')
-    },
-
-    testNoDoubleSelectionWhenClickedInList: function() {
-        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
-            counter = {count: 0, selected: function() { this.count++ }},
-            items = [1, 2, 3];
-        this.world.addMorph(list);
-        list.updateList(items);
-        list.setSelection(2);
-
-        lively.bindings.connect(list, 'selection', counter, 'selected')
-        list.onMouseUp({isLeftMouseButtonDown: Functions.True,
-                        target: list.renderContext().subNodes[2]})
-        list.onChange({});
-        this.assertEquals(1, counter.count, 'selection triggered too often');
-    }
-
-});
-
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MultipleSelectionListTests',
 'testing', {
     test01GetSelections: function() {
@@ -316,7 +201,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList', lively.morphic.
     }
 });
 
-AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList2', lively.morphic.tests.MorphTests.prototype,
+AsyncTestCase.subclass('lively.morphic.tests.Lists.List', lively.morphic.tests.MorphTests.prototype,
 'running', {
     setUp: function($super) {
         $super();
@@ -326,7 +211,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList2', lively.morphic
 'testing', {
     // lively.morphic.tests.Lists.MorphicList.remove()
     test01SetAndRetrieveStringItems: function() {
-        var list = new lively.morphic.MorphList2(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
+        var list = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
         this.assertEquals(['1', '2', '3'], list.itemList);
         this.assertEquals(['1', '2', '3'], list.getItemMorphs().pluck('textString'), 'rendered list 1');
         list.updateList(['foo']);
@@ -336,7 +221,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList2', lively.morphic
     },
 
     test02SelectAtSingleSelection: function() {
-        var morph = new lively.morphic.MorphList2(['first', 'second']);
+        var morph = new lively.morphic.List(['first', 'second']);
         morph.selectAt(1);
         this.assertEquals('second', morph.selection, 'selection');
         var itemMorphs = morph.getItemMorphs();
@@ -350,7 +235,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList2', lively.morphic
     },
 
     test03SelectListItem: function() {
-        var morph = new lively.morphic.MorphList2(new Rectangle (0, 0, 100, 100));
+        var morph = new lively.morphic.List(new Rectangle (0, 0, 100, 100));
         morph.updateList([
             {isListItem: true, string: 'foo', value: 23},
             {isListItem: true, string: 'bar', value: 24}])
@@ -360,8 +245,21 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList2', lively.morphic
         this.done();
     },
 
+    test05ListMorphKeepsSelectionHighlightOnUpdateList: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100));
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
+
+        list.updateList([1,2,3]);
+        list.setSelection(2);
+        list.updateList([1,2,3]);
+
+        this.assert(list.getItemMorphs()[1].hasStyleClassName('selected'), 'selection not rendered');
+        this.done();
+    },
+
     test06SetSelectionWithListItems: function() {
-        var list = new lively.morphic.MorphList2(new Rectangle (0, 0, 100, 100)),
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
             items = [{isListItem: true, string: 'foo', value: 23}];
         list.updateList(items);
         list.setSelection(23);
@@ -370,7 +268,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList2', lively.morphic
     },
 
     testUnselectAll: function() {
-        var list = new lively.morphic.MorphList2(lively.rect(0, 0, 100, 100), [1,2,3,4]);
+        var list = new lively.morphic.List(lively.rect(0, 0, 100, 100), [1,2,3,4]);
         list.setSelection(3);
         this.assertEquals([2], list.selectedIndexes, "selectedIndexes");
         this.assertEquals(2, list.selectedLineNo, "selectedLineNo");
@@ -384,36 +282,25 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList2', lively.morphic
         this.assertEquals(0, selected.length, 'selection still rendered');
         this.done();
     },
-    // testAddMorphDuplicatesListsBug: function() {
-    //     var list = new lively.morphic.List(new Rectangle(0,0,100,100), [1,2,3]),
-    //         rect = lively.morphic.Morph.makeRectangle(0,0,100,100);
 
-    //     this.world.addMorph(list);
-    //     this.world.addMorph(rect);
-    //     rect.addMorph(list);
+    testUpdateListOnSelectionHighlightsSelectionCorrectly: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
+            items = [1, 2, 3];
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
 
-    //     this.assert(!this.world.submorphs.include(list), 'list in world submorphs')
-    //     this.assert(rect.submorphs.include(list), 'list not in rect submorphs')
-    // },
+        list.updateList(items);
+        list.setSelection(2);
+        this.assertEquals(1, list.selectedLineNo);
 
-    // testUpdateListOnSelectionHighlightsSelectionCorrectly: function() {
-    //     var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
-    //         items = [1, 2, 3];
-    //     this.world.addMorph(list);
+        lively.bindings.connect(list, 'selection', list, 'onSelect');
+        list.addScript(function onSelect(sel) { this.updateList(this.getList()) });
 
-    //     list.updateList(items);
-    //     list.setSelection(2);
-    //     this.assertEquals(1, list.selectedLineNo);
-
-    //     connect(list, 'selection', list, 'onSelect')
-    //     list.addScript(function onSelect(sel) { this.updateList(this.getList()) });
-
-    //     list.setSelection(3);
-    //     this.assertEquals(2, list.selectedLineNo);
-    //     // FIXME implementation & HTML specific
-    //     var isSelected = list.renderContext().subNodes[2].selected;
-    //     this.assert(isSelected !== '', 'highlight wrong')
-    // },
+        list.setSelection(3);
+        this.assertEquals(2, list.selectedLineNo);
+        this.assert(list.getItemMorphs()[2].hasStyleClassName('selected'), 'selection not rendered');
+        this.done();
+    }
 
     // testNoDoubleSelectionWhenClickedInList: function() {
     //     var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),

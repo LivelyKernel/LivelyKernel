@@ -807,6 +807,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 },
 "selection", {
     selectAt: function(idx) {
+        if (!Object.isNumber(idx)) return;
         this.updateSelectionAndLineNo(idx);
         this.updateView();
     },
@@ -826,7 +827,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     updateSelectionAndLineNo: function(selectionIdx) {
         var item = this.itemList[selectionIdx];
         if (!this.isMultipleSelectionList) this.selectedIndexes.length = 0;
-        this.selectedIndexes.push(selectionIdx);
+        this.selectedIndexes.pushIfNotIncluded(selectionIdx);
         this.selectedLineNo = selectionIdx;
         this.selection = item && (item.value !== undefined) ? item.value : item;
     },
@@ -866,24 +867,20 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 
 },
 'multiple selection support', {
-    enableMultipleSelections: function() {
-        this.isMultipleSelectionList = true;
-    },
+    enableMultipleSelections: function() { this.isMultipleSelectionList = true; },
     getSelectedItems: function() {
-        // var items = this.itemList;
-        // return this.getSelectedIndexes().collect(function(i) { return items[i] });
+        var items = this.itemList;
+        return this.getSelectedIndexes().collect(function(i) { return items[i]; });
     },
 
-    getSelectedIndexes: function() {
-        //return this.renderContextDispatch('getSelectedIndexes');
-    },
+    getSelectedIndexes: function() { return this.selectedIndexes; },
 
     getSelections: function() {
-        // return this.getSelectedItems().collect(function(ea) { return ea.isListItem ? ea.value : ea; })
+        return this.getSelectedItems().collect(function(ea) { return ea && ea.isListItem ? ea.value : ea; })
     },
     setSelections: function(arr) {
-        // var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
-        // this.selectAllAt(indexes);
+        var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
+        this.selectAllAt(indexes);
     },
     setSelectionMatching: function(string) {
         // for (var i = 0; i < this.itemList.length; i++) {
@@ -892,7 +889,8 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         // }
     },
     selectAllAt: function(indexes) {
-        // this.renderContextDispatch('selectAllAt', indexes)
+        indexes.forEach(function(idx) { Object.isNumber(idx) && this.updateSelectionAndLineNo(idx); }, this);
+        this.updateView();
     }
 
 },

@@ -432,18 +432,15 @@ lively.morphic.Morph.addMethods(
 lively.morphic.List.addMethods(
 'UI builder', {
     buildSpecProperties: {
-        itemList: {},
-        _FontSize: {},
-        changeTriggered: {exclude: true}
+        itemList: {defaultValue: []},
+        selectedIndexes: {defaultValue: []}
+    },
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.setList(this.itemList || []);
     }
 });
 
-lively.morphic.MorphList.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        itemList: {}
-    }
-});
 
 lively.morphic.Text.addMethods(
 'UI builder', {
@@ -568,17 +565,14 @@ lively.morphic.Window.addMethods(
 
 });
 
-lively.morphic.List.addMethods(
-'buildspec', {
-    onFromBuildSpecCreated: function() {
-        this.setList(this.itemList || []);
-    }
-});
 
 lively.morphic.MorphList.addMethods(
 'buildspec', {
     onFromBuildSpecCreated: function() {
         this.setList(this.itemList || []);
+    },
+    buildSpecProperties: {
+        itemList: {}
     }
 });
 

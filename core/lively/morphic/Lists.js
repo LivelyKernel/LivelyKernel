@@ -6,7 +6,7 @@ lively.morphic.Box.subclass('lively.morphic.OldList', Trait('ScrollableTrait'),
         selection: {},
         itemList: {},
         selectedLineNo: {}
-    },
+    }
 },
 'settings', {
     style: {
@@ -680,18 +680,9 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         var args = Array.from(arguments);
         $super = args.shift();
         var bounds = args[0] && args[0] instanceof lively.Rectangle ?
-            args.shift() : lively.rect(0,0, 100,100);
-        var items = args[0] && Object.isArray(args[0]) ? args.shift() : [];
+            args.shift() : lively.rect(0,0, 100,100),
+            items = args[0] && Object.isArray(args[0]) ? args.shift() : [];
         $super(bounds);
-        this.setStyleSheet(".list-item {\n"
-              + "	font-family: Helvetica,Verdana,sans-serif;\n"
-              + "	font-size: 10pt;\n"
-              + "	color: black;\n"
-              + "}\n"
-              + ".list-item.selected {\n"
-              + "	background: blue !important;\n"
-              + "	color: white !important;\n"
-              + "}");
         this.isMultipleSelectionList = false;
         this.allowDeselectClick = false;
         this.selectedIndexes = [];

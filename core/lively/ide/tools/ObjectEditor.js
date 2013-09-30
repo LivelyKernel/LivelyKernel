@@ -1017,7 +1017,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         
             var listMorph = new lively.morphic.List(extent);
             listMorph.setList(items);
-            listMorph.setFontSize(10);
         
             listMorph.disableGrabbing();
             listMorph.disableDragging();

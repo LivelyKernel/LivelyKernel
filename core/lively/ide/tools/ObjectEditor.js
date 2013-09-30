@@ -1054,7 +1054,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             onMouseUp: function onMouseUp(evt) {
             if (evt.isCommandKey() || evt.isRightMouseButtonDown()) return $super(evt);
             if (this.listMorph) {
-                this.removeList();
+                this.removeList.bind(this).delay(0);
                 return true;
             } 
             if (this.getList().size() < 2) return;

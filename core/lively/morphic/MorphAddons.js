@@ -494,8 +494,8 @@ lively.morphic.Morph.addMethods(
         if (!this.owner || !this.owner.isWorld) {
             console.warn('Setting fixed positioning for morph %s but owner is not world!', this);
         }
-        var world = this.world() || lively.morphic.World.current();
-        var trait = Trait('lively.morphic.FixedPositioning.MorphTrait');
+        var world = this.world() || lively.morphic.World.current(),
+            trait = Trait('lively.morphic.FixedPositioning.MorphTrait');
         trait.applyTo(this, {override: Functions.own(trait.def)});
         world.addMorphWithFixedPosition(this);
         this.addEventHandlerForFixedPositioning();
@@ -1289,26 +1289,52 @@ lively.morphic.Morph.addMethods({
 });
 
 Trait('lively.morphic.FixedPositioning.WorldTrait', {
+    restoreFixedMorphs: function() {
+        this.submorphs
+            .filter(function(m) { return m.hasFixedPosition(); })
+            .forEach(function(m) { m.disableFixedPositioning(); m.enableFixedPositioning(); });
+    },
     addMorphWithFixedPosition: function(morph) {
         // fixed positioning equivalent to addMorph.
         // currently we do not reference the fixed morphs...
         // should they got into submorphs? fixedSubmorphs?
         if (!this.isRendered()) {
             lively.bindings.connect(
-                this, '_isRendered',
-                this.addMorphWithFixedPosition.bind(this, morph), 'call', {
-                    removeAfterUpdate: true});
+                this, '_isRendered', this, 'addMorphWithFixedPosition', {
+                    updater: function($upd) { $upd(morph); },
+                    removeAfterUpdate: true, varMapping: {morph: morph}});
             return this;
         }
-        if (morph.owner) morph.remove();
-        morph.owner = this;
+
+        var newOwner = this;
+        if (morph.owner) morph.constructor.prototype.remove.call(morph); // FIXME
+        morph.owner = newOwner;
+        newOwner.submorphs.push(morph);
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+newOwner.cachedBounds = null;
+var parentRenderCtxt = newOwner.renderContext(),
+    subRenderCtxt = morph.renderContext(),
+    ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
+        parentRenderCtxt.newForChild() : subRenderCtxt;
+morph.renderAfterUsing(ctx);
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // place morphNode (node of fixed positining morph) outside of the
         // world's children nodes (as a child node of the worlds parentNode,
         // usually the document.body node)
-        var parentNode = this.renderContext().morphNode.parentNode,
+        var parentNode = newOwner.renderContext().morphNode.parentNode,
             morphNode = morph.renderContext().morphNode;
         parentNode.appendChild(morphNode);
         morph.setFixedPosition(true);
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+morph.resumeSteppingAll();
+var isInWorld = !!newOwner.world();
+morph.withAllSubmorphsDo(function(ea) {
+    if (isInWorld) ea.registerForEvents(Config.handleOnCapture);
+    ea.onOwnerChanged(newOwner);
+});
+
+return morph;
+
     },
     getTransform: function () {
         // we need to overwrite getTransform bc the clip behavior (offsetting
@@ -1325,7 +1351,8 @@ Trait('lively.morphic.FixedPositioning.WorldTrait', {
         // }
         return new lively.morphic.Similitude(pos, this.getRotation(), scale);
     }
-}).applyTo(lively.morphic.World, {override: ['getTransform']});
+})
+.applyTo(lively.morphic.World, {override: ['getTransform']});
 
 Trait('lively.morphic.FixedPositioning.MorphTrait', {
     addEventHandlerForFixedPositioning: function() {
@@ -1373,11 +1400,12 @@ Trait('lively.morphic.FixedPositioning.MorphTrait', {
         return this;
     },
     disableFixedPositioning: function() {
-        this.remove();
+        var owner = this.owner;
+        this.constructor.prototype.remove.call(this);
         this.setFixedPosition(false);
         Trait('lively.morphic.FixedPositioning.MorphTrait').removeFrom(this);
         this.removeEventHandler(); // the fixed pos event handler must go
-        this.openInWorld();
+        owner && this.openInWorld();
         return this;
     },
     setFixedPosition: function(bool) {
@@ -1420,6 +1448,10 @@ Trait('lively.morphic.FixedPositioning.MorphTrait', {
     innerBounds: function() {
         var bnds = this.constructor.prototype.innerBounds.call(this);
         return this.getFixedPositionTransform().transformRectToRect(bnds);
+    },
+    remove: function() {
+        if (this.hasFixedPosition()) this.disableFixedPositioning();
+        return this.constructor.prototype.remove.call(this);
     }
 });
 

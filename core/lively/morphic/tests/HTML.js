@@ -171,7 +171,7 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.Positioning',
         Global.scrollTo(pt(0,0));
         world.setExtent(winBounds.extent().addXY(100,100));
         m.openInWorld(pt(5, 10));
-        m.enableFixedPositioning();
+        m.setFixed(true);
         // delays are needed so that the set scroll can take effect
         this.delay(function() {
             var expectedBounds = lively.rect(5,10,20,30);
@@ -192,13 +192,26 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.Positioning',
         world.setExtent(winBounds.extent().addXY(100,100));
         world.setScale(1.2);
         m.openInWorld(pt(5, 10));
-        m.enableFixedPositioning();
+        m.setFixed(true);
         // delays are needed so that the set scroll can take effect
         this.delay(function() {
             var expectedBounds = pt(5,10).scaleBy(1/1.2).extent(pt(20,30).scaleBy(1/1.2));
             this.assertEquals(expectedBounds, m.bounds());
             this.done();
         }, 0);
+    },
+    testFixedPositingRemove: function() {
+        var m = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,30)),
+            world = lively.morphic.World.current(),
+            winBounds = world.windowBounds();
+        this.onTearDown(function() { m.remove(); });
+        m.openInWorld(pt(5, 10));
+        m.setFixed(true);
+        this.assert(m.isSubmorphOf(world), 'fixed morph not submorph of world');
+        m.remove();
+        m.openInWorld();
+        this.assert(!m.hasFixedPosition(), 'remove does not reset fixed positioning');
+        this.done();
     }
 
 });

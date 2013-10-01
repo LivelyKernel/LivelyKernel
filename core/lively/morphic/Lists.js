@@ -616,6 +616,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
                 if (ea === itemMorph) return;
                 ea.removeStyleClassName(selectionCSSClass); }, this);
         }
+        if (!itemMorph) { this.selection = null; return; }
         if (itemMorph.hasStyleClassName(selectionCSSClass)) {
             itemMorph.removeStyleClassName(selectionCSSClass);
             this.selection = null;

@@ -182,7 +182,11 @@ Object.extend(lively.ast.acorn, {
         ast.body.push(newLast);
         ast.end += 'return '.length
         return lively.ast.acorn.nodeSource(newSource, ast);
+    },
+    simpleWalk: function(aNode, arg) {
+        acorn.walk.simple(aNode, arg);
     }
+
 
 });
 

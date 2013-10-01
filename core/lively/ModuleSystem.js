@@ -613,5 +613,8 @@ Object.extend(lively.Module, {
 })(lively);
 
 (function testModuleLoad() {
+    if (Config.changesetsExperiment)
+        require('lively.ChangeSets').toRun(function(){
+            ChangeSet.loadAndcheckVsSystem()}) ;
     lively.Module.checkModuleLoadStates();
 }).delay(10);

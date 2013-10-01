@@ -639,10 +639,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // Evaluate the string argument in a context in which "this" is
         // determined by the reuslt of #getDoitContext
         var ctx = this.getDoitContext() || this,
+            str,
             interactiveEval = function() {
-                try { return eval("("+__evalStatement+")")} catch (e) { return eval(__evalStatement) }
+                try { return eval(str = "("+__evalStatement+")")} catch (e) { return eval(str = __evalStatement) }
                 };
-        return interactiveEval.call(ctx);
+        try {
+            var result = interactiveEval.call(ctx);
+            if (Config.changesetsExperiment) {
+                var contextPath = ChangeSet.fullPathToFunctionsHolder(ctx);
+                if(contextPath)
+                    ChangeSet.logDoit(str, contextPath);
+            }
+            return result;
+        } catch(e) {throw e}
     },
 
     evalSelection: function(printIt) {
@@ -1278,7 +1287,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'messaging', {
-    setStatusMessage: function (msg, color, delay) {
+    setStatusMessage: function (msg, color, delay) {debugger;
         console.log("%s status: %s", this, msg)
         var world = this.world();
         if (!world) return;

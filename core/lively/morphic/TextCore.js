@@ -1743,7 +1743,15 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // determined by the reuslt of #getDoitContext
         var ctx = this.getDoitContext() || this,
             interactiveEval = function() { return eval(__evalStatement) };
-        return interactiveEval.call(ctx);
+        try {
+            var result = interactiveEval.call(ctx);
+            if (Config.changesetsExperiment) {
+                var contextPath = ChangeSet.fullPathToFunctionsHolder(ctx);
+                if(contextPath)
+                    ChangeSet.logDoit(__evalStatement, contextPath);
+            }
+            return result;
+        } catch(e) {throw e}
     },
     tryBoundEval: function(str) {
         try { return this.boundEval(str) } catch(e) { this.showError(e); return null }

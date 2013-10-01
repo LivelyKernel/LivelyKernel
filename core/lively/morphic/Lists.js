@@ -1058,7 +1058,8 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 'compatibility', {
     innerMorph: function() { return this; },
     addMenuButton: function() { return this },
-    clearFilter: function() {}
+    clearFilter: function() {},
+    renderFunction: function(item) { return this.stringifyItem(item); },
 });
 
 Object.extend(Array.prototype, {

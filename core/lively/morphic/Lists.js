@@ -43,15 +43,14 @@ lively.morphic.Box.subclass('lively.morphic.OldList', Trait('ScrollableTrait'),
         this.clearSelections();
         this.itemList = items || [];
         var itemStrings = items.collect(function(ea) {
-                return this.renderFunction(ea); }, this);
+            return this.renderFunction(ea); }, this);
         this.renderContextDispatch('updateListContent', itemStrings);
-        if(this.selection) {
-            var newIndexForOldSelection = this.find(this.selection);
-            if(!Object.isNumber(newIndexForOldSelection))
-                newIndexForOldSelection = -1;
-            if(this.selectedLineNo !== newIndexForOldSelection)
-                this.selectAt(newIndexForOldSelection);
-        }
+        if (!this.selection)  return
+        var newIndexForOldSelection = this.find(this.selection);
+        if (!Object.isNumber(newIndexForOldSelection))
+            newIndexForOldSelection = -1;
+        if (this.selectedLineNo !== newIndexForOldSelection)
+            lively.bindings.noUpdate(this.selectAt.bind(this,newIndexForOldSelection));
     },
     addItem: function(item) {
         this.updateList(this.itemList.concat([item]));
@@ -295,6 +294,7 @@ lively.morphic.Box.subclass('lively.morphic.OldList', Trait('ScrollableTrait'),
     correctForDragOffset: function(evt) {
         return false;
     },
+
     onChange: function(evt) {
         if (this.selectionTriggeredInInputEvent) {
             delete this.selectionTriggeredInInputEvent;
@@ -304,7 +304,7 @@ lively.morphic.Box.subclass('lively.morphic.OldList', Trait('ScrollableTrait'),
         this.updateSelectionAndLineNoProperties(idx);
         this.changeTriggered = true; // see onBlur
         return false;
-    },
+    }
 
 });
 
@@ -321,11 +321,9 @@ lively.morphic.OldList.subclass('lively.morphic.DropDownList',
 'mouse events', {
     onMouseDown: function(evt) {
         this.changeTriggered = false; // see onBlur
-        if (evt.isCommandKey()) {
-            evt.preventDefault()
-            return false;
-        }
-        return true;
+        if (!evt.isCommandKey()) return true;
+        evt.preventDefault()
+        return false;
      },
 
     onChange: function (evt) {

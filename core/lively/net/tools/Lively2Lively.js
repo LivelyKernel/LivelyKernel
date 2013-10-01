@@ -65,7 +65,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     var x = worldB.width / 100 * 98; // 98% to the right
     this.align(
         this.worldPoint(this.innerBounds().topRight()),
-        pt(x, -10));
+        pt(x, worldB.top()-10));
     this.statusText.align(this.statusText.bounds().center(), this.innerBounds().bottomCenter().addXY(0,-8));
     this.menu && this.menu.align(
         this.menu.bounds().bottomCenter(),

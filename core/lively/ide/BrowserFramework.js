@@ -47,9 +47,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         function setupListPane(paneName) {
             var pane = browser.panel[paneName],
                 list = pane.innerMorph();
-            pane.applyStyle({
-                scaleProportional: true
-                });
+            pane.applyStyle({scaleProportional: true});
             lively.bindings.connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
                 updater: function($upd, v) {
                     var browser = this.targetObj, list = this.sourceObj;
@@ -60,10 +58,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
                 getList: '->get' + paneName + 'Content',
                 getMenu: '->get' + paneName + 'Menu',
                 updateList: '<-set' + paneName + 'Content'
-            })
-            pane.plugTo(browser, {
-                getMenu: '->get' + paneName + 'Menu'
-            })
+            });
+            pane.plugTo(browser, {getMenu: '->get' + paneName + 'Menu'});
             pane.addMenuButton();
             // overwriting event handlers so that list items can be selected using keys
             // and focus is still on the list and not the source pane
@@ -71,14 +67,14 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
                 $super(evt);
                 this.focus.bind(this).delay(0);
                 return true;
-            })
+            });
             list.addScript(function onUpPressed(evt) {
                 $super(evt);
                 this.focus.bind(this).delay(0);
                 return true;
-            })
+            });
         }
-        this.allPaneNames.forEach(function(ea) { setupListPane(ea) });
+        this.allPaneNames.forEach(setupListPane);
     },
     setupSourceInput: function() {
         var codeEditor = this.panel.sourcePane;

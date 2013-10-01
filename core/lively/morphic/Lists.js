@@ -719,8 +719,8 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         // this.setLayouter(layouter);
     },
 
-    initLayout: function(noOfCandidates) {
-        var layout = {
+    initLayout: function(noOfCandidates, existingLayout) {
+        var layout = existingLayout || {
                 listItemHeight: 19,
                 padding: 0/*20*/,
                 // computed below:
@@ -769,7 +769,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     setList: function(items) {
         if (!items) items = [];
         this.itemList = items;
-        this.layout = this.initLayout(items.length);
+        this.layout = this.initLayout(items.length, this.layout);
         this.setupScroll(items.length, this.layout);
         this.updateView(items, this.layout, Object.isNumber(this.selectedLineNo) ? [this.selectedLineNo]: []);
     },

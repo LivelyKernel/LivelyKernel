@@ -589,7 +589,15 @@ Object.extend(lively.PartsBin, {
     getPartsBinURLs: function() {
         // source URLs of all known PartsBins... a hack for now...
         var localURL = this.getLocalPartsBinURL(),
-            additionalURLs = [new URL('http://lively-web.org/PartsBin/')].reject(function(ea) { return ea.eq(localURL); })
+            additionalURLs = [new URL('http://lively-web.org/PartsBin/')].reject(function(ea) { return ea.eq(localURL); }),
+            world = lively.morphic.World.currentWorld;
+
+        if (world && world.getUserName(true)) {
+            var userUrl = new URL(world.getUserDir() + "/PartsBin");
+            if (userUrl.asWebResource().exists()) {
+                additionalURLs.push(userUrl);
+            }
+        }
         return [localURL].concat(additionalURLs);
     }
 });

@@ -768,6 +768,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         this.layout = this.initLayout(items.length, this.layout);
         this.setupScroll(items.length, this.layout);
         this.updateView(items, this.layout, Object.isNumber(this.selectedLineNo) ? [this.selectedLineNo]: []);
+        this.setScroll(0,0);
     },
 
     updateList: function(items) { return this.setList(items); },
@@ -825,6 +826,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         this.selectedIndexes.pushIfNotIncluded(selectionIdx);
         this.selectedLineNo = selectionIdx;
         this.selection = item && (item.value !== undefined) ? item.value : item;
+        this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
     },
 
     setSelection: function(sel) { this.selectAt(this.find(sel)); },
@@ -922,6 +924,19 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         evt.stop(); return true;
     }
 
+},
+'scrolling', {
+    scrollIndexIntoView: function(idx) {
+        var scroll = this.getScroll(),
+            bnds = this.innerBounds().translatedBy(pt(scroll[0], scroll[1])),
+            itemTop = this.layout.listItemHeight * idx,
+            itemBottom = this.layout.listItemHeight * (idx+1);
+        if (bnds.bottom() < itemBottom) {
+            this.setScroll(scroll[0], itemBottom-bnds.height);
+        } else if (bnds.top() > itemTop) {
+            this.setScroll(scroll[0], itemTop);
+        }
+    }
 },
 'stuff', {
     getListItemContainer: function() {

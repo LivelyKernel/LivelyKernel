@@ -300,6 +300,30 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List', lively.morphic.tests.M
         this.assertEquals(2, list.selectedLineNo);
         this.assert(list.getItemMorphs()[2].hasStyleClassName('selected'), 'selection not rendered');
         this.done();
+    },
+
+    testListScrollIndexIntoView: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 50), [1, 2, 3, 4, 5]);
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
+
+        var scroll = list.getScroll(),
+            expectedScroll = [0,0];
+        this.assertEquals(expectedScroll, scroll, 'scroll 1');
+        list.scrollIndexIntoView(4);
+
+        scroll = list.getScroll(),
+        expectedScroll = [0,(list.layout.listItemHeight * 5/*bottom*/)-list.getExtent().y];
+        this.assertEquals(expectedScroll, scroll, 'scroll 2');
+
+        // this gets delayed
+        list.setSelection(2);
+        this.delay(function() {
+            scroll = list.getScroll();
+            expectedScroll = [0,list.layout.listItemHeight * 1];
+            this.assertEquals(expectedScroll, scroll, 'scroll 3');
+            this.done();
+        }, 0);
     }
 
     // testNoDoubleSelectionWhenClickedInList: function() {

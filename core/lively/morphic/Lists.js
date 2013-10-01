@@ -720,14 +720,10 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     initLayout: function(noOfCandidates, existingLayout) {
-        var layout = existingLayout || {
-                listItemHeight: 19,
-                padding: 0/*20*/,
-                // computed below:
-                extent: this.getExtent(),
-                maxListItems: null,
-                noOfCandidatesShown: null
-            };
+        var layout = existingLayout || {};
+        layout.listItemHeight = layout.listItemHeight || 19;
+        layout.padding = layout.padding || 0/*20*/;
+        layout.extent = this.getExtent();
         layout.maxExtent = lively.pt(layout.extent.x - 2*layout.padding,layout.extent.y - 2*layout.padding);
         layout.maxListItems = Math.ceil(layout.maxExtent.y / layout.listItemHeight);
         layout.noOfCandidatesShown = Math.min(layout.maxListItems, noOfCandidates);

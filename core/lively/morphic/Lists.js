@@ -991,6 +991,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
         });
         text.addScript(function onMouseDown(evt) {
+            if (this.index === undefined) return false;
             if (this.owner.allowDeselectClick) {
                 this.setIsSelected(!this.selected);
             } else if (!this.isSelected) {

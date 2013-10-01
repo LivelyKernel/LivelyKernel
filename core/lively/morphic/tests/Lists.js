@@ -324,6 +324,16 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List', lively.morphic.tests.M
             this.assertEquals(expectedScroll, scroll, 'scroll 3');
             this.done();
         }, 0);
+    },
+
+    testListResizesItsGuts: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 50), [1, 2, 3, 4, 5]);
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
+        list.setExtent(pt(80,100));
+        this.assertEquals(pt(80,list.layout.listItemHeight*5+4/*magic!*/), list.getListItemContainer().getExtent());
+        this.assertEquals(pt(80,list.layout.listItemHeight), list.getListItemContainer().submorphs[1].getExtent());
+        this.done();
     }
 
     // testNoDoubleSelectionWhenClickedInList: function() {

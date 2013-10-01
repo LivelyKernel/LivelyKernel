@@ -668,6 +668,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     style: {
         fill: Color.white,
         borderColor: Color.gray.lighter(),
+        adjustForNewBounds: true,
         borderWidth: 1,
         borderStyle: 'outset',
         grabbingEnabled: false, draggingEnabled: false
@@ -727,6 +728,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         layout.maxExtent = lively.pt(layout.extent.x - 2*layout.padding,layout.extent.y - 2*layout.padding);
         layout.maxListItems = Math.ceil(layout.maxExtent.y / layout.listItemHeight);
         layout.noOfCandidatesShown = Math.min(layout.maxListItems, noOfCandidates);
+        layout.adjustForNewBounds = true;
         return layout;
     },
 
@@ -734,11 +736,9 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         var clip = this, scroll = this.getListItemContainer();
         clip.setClipMode({x: 'hidden', y: 'scroll'});
         var scrollbarExtent = clip.getScrollBarExtent();
-        scroll.setPosition(pt(0,0));
-        scroll.setExtent(
-            clip.getExtent()
-                .addXY(-scrollbarExtent.x)
-                .withY(layout.listItemHeight*noOfItems+4))
+        scroll.setBounds(lively.rect(0,0,
+            this.getExtent().x-scrollbarExtent.x,
+            layout.listItemHeight*noOfItems+4));
     }
 
 },
@@ -945,8 +945,9 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         // shrink according to the number of items that need to be displayed.
         // It's size will define how much scroll space is there which will give
         // users feedback about how many items are in the list when scrolling
-        return this.listItemContainer
-           || (this.listItemContainer = this.addMorph(lively.newMorph({style: {fill: null}})));
+        if (this.listItemContainer) return this.listItemContainer;
+        return this.listItemContainer = this.addMorph(lively.newMorph({
+            style: {fill: null, adjustForNewBounds: true, resizeWidth: true}}));
     },
 
     getItemMorphs: function(alsoGetInactive) {
@@ -989,6 +990,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
                 position: pt(0, i*height),
                 extent: pt(width, height),
                 fixedHeight: true, fixedWidth: false,
+                resizeWidth: true,
                 whiteSpaceHandling: 'pre'
             });
         text.addScript(function setIsSelected(bool, suppressUpdate) {

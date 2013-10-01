@@ -12,7 +12,12 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'lively.mor
 
 (function loadBaseThemeOnWorldLoad() {
     lively.whenLoaded(function(world) {
-        world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
+        var el = document.createElement('link');
+        el.setAttribute('rel', "stylesheet")
+        el.setAttribute('type', "text/css")
+        el.setAttribute('href', Config.baseThemeStyleSheetURL)
+        document.getElementsByTagName('head')[0].appendChild(el);
+        // world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
     });
     if (!UserAgent.isTouch) return;
     lively.whenLoaded(function(world) {

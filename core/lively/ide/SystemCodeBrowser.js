@@ -26,9 +26,11 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         var position = this.panel.getPosition(),
             extent = this.panel.getExtent(),
             newBrowser = new this.constructor();
-        
-        if (this.targetURL) {
-            newBrowser.targetURL = this.targetURL;
+
+        var targetURL = this.targetURL;
+        if (targetURL) {
+            if (!URL.root.eqDomain(targetURL)) targetURL = URL.codeBase;
+            newBrowser.targetURL = targetURL;
         }
         
         if (this.isNavigationCollapsed) {

@@ -441,6 +441,17 @@ lively.morphic.List.addMethods(
     }
 });
 
+lively.morphic.OldList.addMethods(
+'UI builder', {
+    buildSpecProperties: {
+        itemList: {defaultValue: []}
+    },
+    onFromBuildSpecCreated: function($super) {
+        $super();
+        this.setList(this.itemList || []);
+    }
+});
+
 
 lively.morphic.Text.addMethods(
 'UI builder', {

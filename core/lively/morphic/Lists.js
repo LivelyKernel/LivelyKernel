@@ -976,6 +976,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         this.ensureItemMorphs(to-from+1, layout).forEach(function(itemMorph, i) {
             var listIndex = from+i,
                 selected = selectedIndexes.include(listIndex);
+            itemMorph.setPointerEvents('auto');
             itemMorph.setPosition(pt(0, listIndex*layout.listItemHeight));
             itemMorph.index = listIndex;
             itemMorph.name = String(itemMorph.index);
@@ -1007,7 +1008,6 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
         });
         text.addScript(function onMouseDown(evt) {
-            if (this.index === undefined) return false;
             if (this.owner.allowDeselectClick) {
                 this.setIsSelected(!this.selected);
             } else if (!this.isSelected) {
@@ -1035,6 +1035,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         if (itemMorphs.length > requiredLength) {
             lively.bindings.noUpdate(function() {
                 itemMorphs.slice(requiredLength).forEach(function(text) {
+                    text.setPointerEvents('none');
                     text.index = undefined;
                     text.setTextString('');
                     text.removeStyleClassName("selected");

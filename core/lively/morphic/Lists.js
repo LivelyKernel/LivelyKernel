@@ -691,6 +691,11 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         this.initializeLayout();
     },
 
+    onrestore: function($super) {
+        if (!this.selectedIndexes) this.selectedIndexes = [];
+        $super();
+    },
+
     initializeLayout: function(layoutStyle) {
         // // layoutStyle: {
         // //   type: "tiling"|"horizontal"|"vertical",
@@ -741,6 +746,24 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             layout.listItemHeight*noOfItems+4));
     }
 
+},
+'accessing', {
+    get selectedLineNo() {
+        return this.selectedIndexes.last();
+    },
+    set selectedLineNo(idx) {
+        return this.addSelectedIndex(idx);
+    },
+    get selection() {
+        var idx = this.selectedLineNo;
+        if (typeof idx !== 'number') return undefined;
+        var item = this.itemList[idx];
+        return item && (item.value !== undefined) ? item.value : item;
+    },
+    set selection(val) {
+        this.setSelection(val);
+    }
+    
 },
 'morph menu', {
     getMenu: function() { /*FIXME actually menu items*/ return [] }
@@ -822,10 +845,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 
     updateSelectionAndLineNo: function(selectionIdx) {
         var item = this.itemList[selectionIdx];
-        if (!this.isMultipleSelectionList) this.selectedIndexes.length = 0;
-        this.selectedIndexes.pushIfNotIncluded(selectionIdx);
-        this.selectedLineNo = selectionIdx;
-        this.selection = item && (item.value !== undefined) ? item.value : item;
+        this.addSelectedIndex(selectionIdx);
         this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
     },
 
@@ -834,23 +854,17 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     getSelection: function() { return this.selection; },
 
     getSelectedItem: function() {
-        return this.selection && this.selection.isListItem ?
-            this.selection : this.itemList[this.selectedLineNo];
+        var idx = this.selectedIndexes.last();
+        return typeof idx === 'number' ? this.itemList[idx] : undefined;
     },
 
     deselectAt: function(idx) {
         this.selectedIndexes.remove(idx);
-        if (this.selectedLineNo === idx) {
-            this.selectedLineNo = null;
-            this.selection = null;
-        }
         this.updateView();
     },
 
     clearSelections: function() {
-        this.selectedLineNo = null;
         this.selectedIndexes.length = 0;
-        this.selection = null;
         this.updateView();
     },
 
@@ -865,6 +879,17 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 },
 'multiple selection support', {
     enableMultipleSelections: function() { this.isMultipleSelectionList = true; },
+    addSelectedIndex: function(idx) {
+        if (!this.selectedIndexes) this.selectedIndexes = [];
+        if (typeof idx !== 'number') return null;
+        if (!this.isMultipleSelectionList) this.selectedIndexes.length = 0;
+        var found = this.selectedIndexes.indexOf(idx);
+        if (found > -1) this.selectedIndexes.splice(found, 1);
+        this.selectedIndexes.push(idx);
+        lively.bindings.signal(this, 'selection', this.selection);
+        lively.bindings.signal(this, 'selectedLineNo', this.selectedLineNo);
+        return idx;
+    },
     getSelectedItems: function() {
         var items = this.itemList;
         return this.getSelectedIndexes().collect(function(i) { return items[i]; });
@@ -886,7 +911,8 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         // }
     },
     selectAllAt: function(indexes) {
-        indexes.forEach(function(idx) { Object.isNumber(idx) && this.updateSelectionAndLineNo(idx); }, this);
+        indexes.forEach(function(idx) {
+            Object.isNumber(idx) && this.updateSelectionAndLineNo(idx); }, this);
         this.updateView();
     }
 
@@ -942,7 +968,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         }
     }
 },
-'stuff', {
+'rendering', {
     getListItemContainer: function() {
         // `this` is the outer morph with a fixed bounds and the official list
         // interface. `this.listItemContainer` is a morph whose size will grow

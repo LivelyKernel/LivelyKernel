@@ -1,14 +1,15 @@
 module('lively.versions.UglifyTransformer').requires().toRun(function() {
     
-// UglifyJS expects Mozilla's source-map library to be globally available as MOZ_SourceMap
+// UglifyJS expects Mozilla's source-map library to be globally available as
+// MOZ_SourceMap
 Global.MOZ_SourceMap = Global.sourceMap;
         
 Object.extend(lively.versions.UglifyTransformer, {
     
     // TODO: function declarations get hoisted in JavaScript, so we need to
     // move the func decs we transform to variable assignments of function
-    // expressions to the beginning of each scope (function scope), while
-    // preserving the lexical order of function declarations
+    // expressions to the beginning of each function scope, while preserving
+    // the lexical order of function declarations, see
     // javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
     
     transformSource: function (originalSource, optCodeGeneratorOptions) {
@@ -41,7 +42,8 @@ Object.extend(lively.versions.UglifyTransformer, {
         
         var exchangeFunctionDeclaration = function(functionDeclaration) {
             // takes function declaration: function fName() {...}
-            // returns AST for: var fName = lively.versions.ObjectVersioning.proxy(function fName() {...})
+            // returns AST for: var fName =
+            // lively.versions.ObjectVersioning.proxy(function fName() {...})
             return new UglifyJS.AST_Var({
                 definitions: [new UglifyJS.AST_VarDef({
                     name: new UglifyJS.AST_SymbolVar({
@@ -60,20 +62,19 @@ Object.extend(lively.versions.UglifyTransformer, {
             if (node instanceof UglifyJS.AST_Object || 
                 node instanceof UglifyJS.AST_Array ||
                 node instanceof UglifyJS.AST_Function) {
-                // AST_Function means function expression
+                // an AST_Function is a function expression
                 
                 result = exchangeLiteralExpression(node);
                 
             } else if (node instanceof UglifyJS.AST_Defun) {
-                // AST_Defun means function declaration, not function
-                // expression, but wrapping the function literal into the proxy
-                // function, makes the declaration an expression, which then
-                // isn't accessible in the current scope by name. therefore, we
-                // need to assign all function declarations to variables
-                // reflecting the function names.
-                // btw. it's syntactically legal to declare variables multiple
-                // times, their declaration gets hoisted anyway...
-                
+                // an AST_Defun is a function declaration, not function
+                // expression, but wrapping the function literal into a
+                // function (in this case the proxy function), makes the
+                // declaration an expression, which then isn't accessible in
+                // the current scope by name.therefore, we need to assign all
+                // function declarations to variables reflecting the function
+                // names. and it's syntactically legal to declare variables
+                // multiple times (var declaration gets hoisted)
                 result = exchangeFunctionDeclaration(node);
             } else if (node instanceof UglifyJS.AST_Accessor) {
                 // FIXME: what is an AST_Accessor node?

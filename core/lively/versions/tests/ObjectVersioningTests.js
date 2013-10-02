@@ -39,8 +39,8 @@ TestCase.subclass('lively.versions.tests.TestCase',
 
 lively.versions.tests.TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.ProxyObjectTests',
-// this test class more or less resembles a spec for the proxies:
-// proxies should be transparent in that they should behave just like regular objects
+// these test cases more or less resemble a spec for the proxies:
+// proxies should be transparent, they should behave just like regular objects
 'testing', {
     test01ProxyCreation: function() {
         var proxy = this.proxyFor({});

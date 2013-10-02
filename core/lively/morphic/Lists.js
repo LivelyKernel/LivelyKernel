@@ -727,7 +727,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         layout.extent = this.getExtent();
         layout.maxExtent = lively.pt(layout.extent.x - 2*layout.padding,layout.extent.y - 2*layout.padding);
         layout.maxListItems = Math.ceil(layout.maxExtent.y / layout.listItemHeight);
-        layout.noOfCandidatesShown = Math.min(layout.maxListItems, noOfCandidates);
+        layout.noOfCandidatesShown = Math.min(layout.maxListItems, noOfCandidates)+1;
         layout.adjustForNewBounds = true;
         return layout;
     },
@@ -757,7 +757,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             var val = this.itemList[i];
             if (val === itemOrValue) return i;
             if (val && val.isListItem && val.value === itemOrValue) return i;
-            if (val && typeof itemOrValue === 'string' && this.stringifyItem(val) === itemOrValue) return i;
+            if (val && typeof itemOrValue === 'string' && this.renderFunction(val) === itemOrValue) return i;
         }
         return undefined;
     },
@@ -907,8 +907,12 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         if (!evt.isRightMouseButtonDown()) return false;
         // delayed because when owner is a window and comes forward the window
         // would be also in front of the new menu
-        var sel = this.selection ? this.selection.string : this.selection;
-        lively.morphic.Menu.openAt.curry(evt.getPosition(), sel, this.getMenu()).delay(0.1);
+        var sel = this.selection && this.selection.isListItem ? this.selection.string : this.selection;
+        if (sel) {
+            var items = this.getMenu();
+            if (items.length > 0) lively.morphic.Menu.openAt.curry(
+                evt.getPosition(), sel, items).delay(0.1);
+        }
         evt.stop(); return true;
     },
 
@@ -961,7 +965,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             return (alsoGetInactive || ea.index !== undefined) && ea.isListItemMorph; });
     },
 
-    stringifyItem: function(item) {
+    renderFunction: function(item) {
         if (!item) item = {isitem: true, string: 'invalid list item: ' + item};
         var string = item.string || String(item);
         return string;
@@ -969,18 +973,17 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     renderItems: function(items, from, to, selectedIndexes, renderBounds, layout) {
-        var stringifyItem = this.stringifyItem;
         this.ensureItemMorphs(to-from+1, layout).forEach(function(itemMorph, i) {
             var listIndex = from+i,
                 selected = selectedIndexes.include(listIndex);
             itemMorph.setPosition(pt(0, listIndex*layout.listItemHeight));
             itemMorph.index = listIndex;
             itemMorph.name = String(itemMorph.index);
-            itemMorph.textString = stringifyItem(items[listIndex]);
+            itemMorph.textString = this.renderFunction(items[listIndex]);
             if (selected !== itemMorph.selected) {
                 itemMorph.setIsSelected(selected, true/*suppress update*/);
             }
-        });
+        }, this);
     },
 
     createListItemMorph: function(string, i, layout) {
@@ -1071,8 +1074,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 'compatibility', {
     innerMorph: function() { return this; },
     addMenuButton: function() { return this },
-    clearFilter: function() {},
-    renderFunction: function(item) { return this.stringifyItem(item); },
+    clearFilter: function() {}
 });
 
 Object.extend(Array.prototype, {

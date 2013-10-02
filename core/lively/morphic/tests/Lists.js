@@ -201,15 +201,8 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList', lively.morphic.
     }
 });
 
-AsyncTestCase.subclass('lively.morphic.tests.Lists.List', lively.morphic.tests.MorphTests.prototype,
-'running', {
-    setUp: function($super) {
-        $super();
-        // this.createWorld();
-    }
-},
+AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
 'testing', {
-    // lively.morphic.tests.Lists.MorphicList.remove()
     test01SetAndRetrieveStringItems: function() {
         var list = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
         this.assertEquals(['1', '2', '3'], list.itemList);
@@ -331,8 +324,15 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List', lively.morphic.tests.M
         this.onTearDown(function() { list.remove(); });
         lively.morphic.World.current().addMorph(list);
         list.setExtent(pt(80,100));
-        this.assertEquals(pt(80,list.layout.listItemHeight*5+4/*magic!*/), list.getListItemContainer().getExtent());
-        this.assertEquals(pt(80,list.layout.listItemHeight), list.getListItemContainer().submorphs[1].getExtent());
+        var expectedWidth = 80 - list.getScrollBarExtent().x;
+        this.assertEquals(
+            pt(expectedWidth,list.layout.listItemHeight*5+4/*magic!*/),
+            list.getListItemContainer().getExtent(),
+            'list item container');
+        this.assertEquals(
+            pt(80,list.layout.listItemHeight),
+            list.getListItemContainer().submorphs[1].getExtent(),
+            'list item');
         this.done();
     }
 

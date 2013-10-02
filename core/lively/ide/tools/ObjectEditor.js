@@ -155,24 +155,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Position: lively.pt(10.0,63.0),
             className: "lively.morphic.List",
             currentCategory: null,
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            doitContext: {
-                isMorphRef: true,
-                name: "ObjectEditor"
-            },
+            doitContext: {isMorphRef: true,name: "ObjectEditor"},
             droppingEnabled: true,
             grabbingEnabled: false,
-            isCopyMorphRef: true,
             itemList: [],
-            layout: {
-                resizeHeight: true
-            },
-            morphRefId: 17,
+            layout: {resizeHeight: true},
             name: "ObjectEditorScriptList",
-            selection: null,
             sourceModule: "lively.morphic.Core",
-            submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {converter: 
         function (value) {
@@ -227,21 +216,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _FontSize: 10,
             _Position: lively.pt(10.0,346.7),
             className: "lively.morphic.List",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             droppingEnabled: true,
             grabbingEnabled: false,
-            isCopyMorphRef: true,
             itemList: [],
-            layout: {
-                moveVertical: true,
-                resizeHeight: false
-            },
-            morphRefId: 19,
+            layout: {moveVertical: true,resizeHeight: false},
             name: "ObjectEditorConnectionList",
-            selection: null,
             sourceModule: "lively.morphic.Core",
-            submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForConnection", {converter: 
         function (value) {

@@ -327,11 +327,11 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
         var expectedWidth = 80 - list.getScrollBarExtent().x;
         this.assertEquals(
             pt(expectedWidth,list.layout.listItemHeight*5+4/*magic!*/),
-            list.getListItemContainer().getExtent(),
+            list.listItemContainer.getExtent(),
             'list item container');
         this.assertEquals(
             pt(80,list.layout.listItemHeight),
-            list.getListItemContainer().submorphs[1].getExtent(),
+            list.listItemContainer.submorphs[1].getExtent(),
             'list item');
         this.done();
     }

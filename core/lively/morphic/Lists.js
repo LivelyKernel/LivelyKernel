@@ -738,7 +738,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     setupScroll: function(noOfItems, layout) {
-        var clip = this, scroll = this.getListItemContainer();
+        var clip = this, scroll = this.listItemContainer;
         clip.setClipMode({x: 'hidden', y: 'scroll'});
         var scrollbarExtent = clip.getScrollBarExtent();
         scroll.setBounds(lively.rect(0,0,
@@ -969,15 +969,20 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     }
 },
 'rendering', {
-    getListItemContainer: function() {
+    get listItemContainer() {
         // `this` is the outer morph with a fixed bounds and the official list
         // interface. `this.listItemContainer` is a morph whose size will grow
         // shrink according to the number of items that need to be displayed.
         // It's size will define how much scroll space is there which will give
         // users feedback about how many items are in the list when scrolling
-        if (this.listItemContainer) return this.listItemContainer;
-        return this.listItemContainer = this.addMorph(lively.newMorph({
+        var m = this.submorphs[0];
+        if (m) return m;
+        return this.addMorph(lively.newMorph({
             style: {fill: null, adjustForNewBounds: true, resizeWidth: true}}));
+    },
+    set listItemContainer(morph) {
+        if (this.submorphs[0] && this.submorphs[0] !== morph) this.submorphs[0].remove();
+        if (morph.owner !== this) this.addMorph(morph);
     },
 
     getItemMorphs: function(alsoGetInactive) {
@@ -987,7 +992,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         // itemMorphs have an undefined index field but might can be reused when
         // the list grows. They are included in the return value if this method is
         // called with true
-        return this.getListItemContainer().submorphs.select(function(ea) {
+        return this.listItemContainer.submorphs.select(function(ea) {
             return (alsoGetInactive || ea.index !== undefined) && ea.isListItemMorph; });
     },
 
@@ -1071,9 +1076,9 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
                 itemMorphs = itemMorphs.slice(0,requiredLength);
             });
         } else if (itemMorphs.length < requiredLength) {
-            var newItems = Array.range(itemMorphs.length, requiredLength-1).collect(function(i) {
-                return this.getListItemContainer().addMorph(this.createListItemMorph('', i, layout));
-            }, this);
+            var c = this.listItemContainer,
+                newItems = Array.range(itemMorphs.length, requiredLength-1).collect(function(i) {
+                    return c.addMorph(this.createListItemMorph('', i, layout)); }, this);
             itemMorphs = itemMorphs.concat(newItems);
         }
         return itemMorphs;

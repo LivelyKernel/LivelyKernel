@@ -403,71 +403,29 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             _TextColor: Color.rgb(64,64,64),
             allowInput: true,
             className: "lively.morphic.Text",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            emphasis: [[0,0,{
-                fontWeight: "normal",
-                italics: "normal"
-            }]],
+            emphasis: [[0,17,{italics: "italic"}]],
             fixedHeight: true,
             fixedWidth: true,
             isInputLine: true,
-            layout: {
-                resizeWidth: true
-            },
+            layout: {resizeWidth: true},
             name: "searchText",
+            textString: 'enter search term',
             sourceModule: "lively.morphic.TextCore",
-            submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "savedTextString", this.get("PartsBinBrowser"), "search", {});
         }
-        },{
-            _Extent: lively.pt(168.0,15.0),
-            _FontFamily: "Arial, sans-serif",
-            _FontSize: 9,
-            _HandStyle: null,
-            _InputAllowed: true,
-            _MaxTextWidth: 168,
-            _MinTextWidth: 168,
-            _Position: lively.pt(154.8,0.1),
-            _TextColor: Color.rgb(64,64,64),
-            allowInput: true,
-            className: "lively.morphic.Text",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            emphasis: [[0,6,{
-                fontWeight: "normal",
-                italics: "italic"
-            }]],
-            fixedWidth: true,
-            name: "Text4",
-            sourceModule: "lively.morphic.TextCore",
-            submorphs: [],
-            textString: "search"
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(45.8,20.0),
-
             _Position: lively.pt(718.4,14.0),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            isPressed: false,
             label: "more",
-            layout: {
-                moveHorizontal: true
-            },
-
+            layout: {moveHorizontal: true},
             name: "moreButton",
-
             padding: lively.rect(5,0,0,0),
             showsMorphMenu: true,
-            sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("PartsBinBrowser"), "toggleMorePane", {});
         }

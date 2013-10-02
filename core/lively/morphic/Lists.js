@@ -48,8 +48,8 @@ lively.morphic.Box.subclass('lively.morphic.OldList', Trait('ScrollableTrait'),
         if (!this.selection)  return
         var newIndexForOldSelection = this.find(this.selection);
         if (!Object.isNumber(newIndexForOldSelection))
-            newIndexForOldSelection = -1;
-        if (this.selectedLineNo !== newIndexForOldSelection)
+            this.selectAt(-1);
+        else if (this.selectedLineNo !== newIndexForOldSelection)
             lively.bindings.noUpdate(this.selectAt.bind(this,newIndexForOldSelection));
     },
     addItem: function(item) {
@@ -786,18 +786,33 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             var val = this.itemList[i];
             if (val === itemOrValue) return i;
             if (val && val.isListItem && val.value === itemOrValue) return i;
-            if (val && typeof itemOrValue === 'string' && this.renderFunction(val) === itemOrValue) return i;
         }
         return undefined;
     },
 
     setList: function(items) {
+        var oldSelection = this.selection;
         if (!items) items = [];
         this.itemList = items;
         this.layout = this.initLayout(items.length, this.layout);
         this.setupScroll(items.length, this.layout);
-        this.updateView(items, this.layout, Object.isNumber(this.selectedLineNo) ? [this.selectedLineNo]: []);
-        this.setScroll(0,0);
+
+        var newIndexForOldSelection;
+        if (this.isMultipleSelectionList || oldSelection === undefined ||
+            (newIndexForOldSelection = this.find(oldSelection)) === undefined) {
+                this.selectedIndexes.length = 0;
+                if(oldSelection !== undefined) {
+                    lively.bindings.signal(this, 'selection', this.selection);
+                    lively.bindings.signal(this, 'selectedLineNo', this.selectedLineNo);
+                }
+                this.updateView();
+                this.setScroll(0,0);
+                return;
+        }
+        if (this.selectedLineNo !== newIndexForOldSelection) {
+            lively.bindings.noUpdate(this.updateSelectionAndLineNo.bind(this,newIndexForOldSelection));
+        }
+        this.updateView();
     },
 
     updateList: function(items) { return this.setList(items); },
@@ -850,7 +865,6 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     updateSelectionAndLineNo: function(selectionIdx) {
-        var item = this.itemList[selectionIdx];
         this.addSelectedIndex(selectionIdx);
         this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
     },

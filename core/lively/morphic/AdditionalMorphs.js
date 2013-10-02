@@ -1415,12 +1415,10 @@ lively.morphic.Box.subclass('lively.morphic.LoadingMorph',
 'initialization', {
     initialize: function($super, bounds) {
         var returnValue = $super(bounds);
-        this.applyStyle({
-            adjustForNewBounds: true
-        })
+        this.applyStyle({adjustForNewBounds: true});
         this.initilaizeProgressIndicator();
         this.initializePreviewText();
-        this.setExtent(this.getExtent())
+        this.setExtent(this.getExtent());
     },
     initilaizeProgressIndicator: function() {
         this.progressIndicator = new lively.morphic.Image(
@@ -1457,29 +1455,23 @@ lively.morphic.Box.subclass('lively.morphic.LoadingMorph',
     loadFinished: function (part) {
         var world = lively.morphic.World.current(),
             hand = world.firstHand();
-        if(this.owner === hand) {
+        if (this.owner === hand) {
             hand.removeAllMorphs();
         } else {
             this.owner.addMorph(part);
             part.align(part.bounds().center(), this.bounds().center());
             this.remove();
         }
-        disconnect(this.partItem, 'part', this, "loadFinished");
-        if(this.callback) {
-            this.callback(part);
-        }
+        lively.bindings.disconnect(this.partItem, 'part', this, "loadFinished");
+        this.callback && this.callback(part);
     },
     loadPart: function (partItem, isAsync) {
         this.partItem = partItem;
         this.openInWorld();
-        if (partItem.part) {
-            this.setExtent(partItem.part.getExtent());
-        }
-        this.align(this.bounds().center(), $world.visibleBounds().center());
-        if (typeof isAsync === "function") {
-            this.callback = isAsync;
-        }
-        connect(partItem, 'part', this, "loadFinished");
+        if (partItem.part) this.setExtent(partItem.part.getExtent());
+        this.align(this.bounds().center(), this.world().visibleBounds().center());
+        if (typeof isAsync === "function") this.callback = isAsync;
+        lively.bindings.connect(partItem, 'part', this, "loadFinished");
         partItem.loadPart(isAsync);
         return partItem.part;
     },

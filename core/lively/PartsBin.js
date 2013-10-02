@@ -115,7 +115,7 @@ Object.subclass('lively.PartsBin.PartItem',
                 Array.range(objLevel + 1, docLevel).forEach(function(i) {
                     var layer = Global['DocumentMigrationLevel' + i + 'Layer'];
                     layer && layer.beGlobal();
-                })
+                });
             }
         }
         modulesForDeserialization.forEach(function(ea) {
@@ -199,10 +199,7 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     loadPart: function(isAsync, optCached, rev) {
-        if (optCached) {
-            this.setPartFromJSON(this.json);
-            return this;
-        }
+        if (optCached) { this.setPartFromJSON(this.json); return this; }
 
         // a revisionOnLoad should always be set! If no PartsBinMetaInfo can
         // be found, the revisionOnLoad is computed via the webresource
@@ -237,12 +234,10 @@ Object.subclass('lively.PartsBin.PartItem',
                 }
             }
         }
-        connect(this, 'json', loadTrigger, 'jsonLoaded', {removeAfterUpdate: true});
-        connect(this, 'loadedMetaInfo', loadTrigger, 'metaInfoLoaded', {removeAfterUpdate: true});
-
+        lively.bindings.connect(this, 'json', loadTrigger, 'jsonLoaded', {removeAfterUpdate: true});
+        lively.bindings.connect(this, 'loadedMetaInfo', loadTrigger, 'metaInfoLoaded', {removeAfterUpdate: true});
         this.load(isAsync, rev);
         this.loadPartMetaInfo(isAsync, rev);
-
         return this;
     },
 

@@ -693,6 +693,12 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 
     onrestore: function($super) {
         if (!this.selectedIndexes) this.selectedIndexes = [];
+        this.applyStyle({adjustForNewBounds: true});
+        var listItemContainer = this.submorphs[0];
+        if (listItemContainer) {
+            listItemContainer.applyStyle({adjustForNewBounds: true, resizeWidth: true});
+            listItemContainer.submorphs.forEach(function(ea) { ea.applyStyle({resizeWidth: true})})
+        }
         $super();
     },
 
@@ -1098,6 +1104,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         items = items || this.itemList;
         layout = layout || this.layout;
         selectedIdxs = selectedIdxs || this.selectedIndexes;
+        if (!layout) return;
         var scrollBounds = this.world() ? this.getScrollBounds() : this.innerBounds(),
             startEnd = this.visibleIndexes(scrollBounds, items, layout);
         this.renderItems(items, startEnd[0], startEnd[1], selectedIdxs, scrollBounds, layout);

@@ -328,7 +328,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             if (typeof cmd.bindKey === 'object' && !commands.platform) return;
             var keySpec = typeof cmd.bindKey === 'object' ? cmd.bindKey[commands.platform] : cmd.bindKey;
             keySpec.split('|').forEach(function(keys) {
-                debugger;
                 var parsed = commands.parseKeys(keys),
                     cmdForKey = ckb[parsed.hashId] && ckb[parsed.hashId][parsed.key];
                 if (cmdForKey) ckb[parsed.hashId][parsed.key] = cmd;
@@ -1287,7 +1286,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'messaging', {
-    setStatusMessage: function (msg, color, delay) {debugger;
+    setStatusMessage: function (msg, color, delay) {
         console.log("%s status: %s", this, msg)
         var world = this.world();
         if (!world) return;

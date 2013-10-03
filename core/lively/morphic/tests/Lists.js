@@ -350,7 +350,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
         this.onTearDown(function() { list.remove(); });
         lively.morphic.World.current().addMorph(list);
         var changeCalled = 0;
-        var testObj = {onSelectionChanged: function() { debugger; changeCalled++ }};
+        var testObj = {onSelectionChanged: function() { changeCalled++ }};
         lively.bindings.connect(list, 'selection', testObj, 'onSelectionChanged');
 
         list.updateList(['a', 'b', 'c']);

@@ -679,10 +679,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         this.addMorph(this.tabBar);
     },
     getTabBarStrategy: function() {
-        if (!this.tabBarStrategy) {
-            alert('TabContainer does not have a tab bar strategy');
-            debugger
-        }
+        if (!this.tabBarStrategy) alert('TabContainer does not have a tab bar strategy');
         return this.tabBarStrategy;
     },
     setTabBarStrategy: function(aStrategy) {

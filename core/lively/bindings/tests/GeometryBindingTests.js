@@ -54,7 +54,6 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         this.assert(parent.attributeConnections.length > 0, "no new connections?");
         morph.remove();
         this.assert(!parent.attributeConnections, "garbage connections still in owner");
-        debugger;
         c.disconnect();
         this.assert(!morph.attributeConnections,
                     "connections still in morph: " + morph.attributeConnections);

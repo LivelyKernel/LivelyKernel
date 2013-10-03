@@ -373,7 +373,6 @@ lively.morphic.Morph.addMethods(
             if (world) world.addMorphFront(this);
 
             if (!startMagnet || !endMagnet) {
-                debugger;
                 alert("Connection Problem: no magnet found");
                 this.hide();
                 return;

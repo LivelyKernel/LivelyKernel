@@ -172,7 +172,6 @@ lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests
 		var node = this.copNode;
 		var klass = Object.subclass('CopBrowserNodeDummy');
 		var src = 'cop.create("testLayer").refineClass(CopBrowserNodeDummy, { m: function() { return 23 } });'
-        debugger
 		node.newSource(src);
 		withLayers([testLayer], function() {
 			this.assertEquals(23, new klass().m());

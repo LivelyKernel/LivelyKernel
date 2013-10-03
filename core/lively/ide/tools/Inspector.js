@@ -525,7 +525,6 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                 return (n.startsWithVowel() ? 'an ' : 'a ') + n;
                             }
                             else {
-                                debugger;
                                 return 'an Object';
                             }    
                             break;
@@ -812,8 +811,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                 else if(c.name && typeof c.name.valueOf() == 'string') {
                                     return c.name + (c.prototype === o ? ' prototype' : '');
                                 }
-                            }
-                            else {
+                            } else {
                                 debugger;
                             }    
                         default:

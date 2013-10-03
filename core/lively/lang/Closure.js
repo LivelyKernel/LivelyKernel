@@ -129,10 +129,7 @@ Object.subclass('lively.Closure',
         var msg = 'Could not recreate closure from source: \n' + src;
         console.error(msg);
         alert(msg);
-        debugger;
-        return function() {
-            alert(msg)
-        };
+        return function() { alert(msg) };
     }
 },
 'conversion', {

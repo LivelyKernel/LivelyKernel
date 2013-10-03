@@ -27,7 +27,6 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
             obj3 = {xchangedAgain: function(newVal) { obj3.value = newVal }};
         lively.bindings.connect(obj1, 'x', obj2, 'xchanged');
         lively.bindings.connect(obj1, 'x', obj3, 'xchangedAgain');
-        debugger;
         lively.bindings.disconnect(obj1, 'x', obj2, 'xchanged');
         obj1.x = 2;
         this.assertEquals(obj2.value, null, 'obj2 not disconnected');

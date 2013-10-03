@@ -1975,7 +1975,6 @@ lively.Sound.AbstractSound.subclass("lively.Sound.ScorePlayer", {
                 secsPerTick;
             this.duration = 0,
             this.score.tempos.forEach(function(event){
-                debugger;
                 // accumulate time up to this tempo change event
     			secsPerTick = 60 / (currentBPM * this.rate * this.score.ticksPerBeat);
     			this.duration += secsPerTick * (event.time - lastTempoChangeTick);

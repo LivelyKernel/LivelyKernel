@@ -362,6 +362,22 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
             2/*twice: 1) selectAt, 2)setList*/,
             changeCalled, 'list had selection but no change triggered');
         this.done();
+    },
+    testListWithNoItemsRendersNothing: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100), [1, 2, 3]);
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
+        var renderedItems = 0;
+        list.renderFunction = list.renderFunction.wrap(function(proceed, item) {
+            renderedItems++; return proceed(item); })
+        list.setList([]);
+        this.assertEquals(0, renderedItems, 'no items should be rendered');
+        var itemMorphsWithText = list
+            .withAllSubmorphsDo(Functions.K)
+            .filterByKey('isText')
+            .select(function(ea) { return ea.textString.length; });
+        this.assertEquals(0, itemMorphsWithText.length, 'no item morphs should have text');
+        this.done();
     }
 
     // testNoDoubleSelectionWhenClickedInList: function() {

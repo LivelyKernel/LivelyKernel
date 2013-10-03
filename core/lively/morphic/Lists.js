@@ -1031,7 +1031,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     renderItems: function(items, from, to, selectedIndexes, renderBounds, layout) {
-        this.ensureItemMorphs(to-from+1, layout).forEach(function(itemMorph, i) {
+        this.ensureItemMorphs(to-from, layout).forEach(function(itemMorph, i) {
             var listIndex = from+i,
                 selected = selectedIndexes.include(listIndex);
             itemMorph.setPointerEvents('auto');
@@ -1112,12 +1112,13 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     visibleIndexes: function(scrollBounds, items, layout) {
+        if (!items.length) return [0,0];
         var scrollTop = scrollBounds.top(),
             scrollBottom = scrollBounds.bottom() + layout.listItemHeight,
             sliceStart = Math.floor(scrollTop / layout.listItemHeight),
             sliceEnd = Math.ceil(scrollBottom / layout.listItemHeight);
-        sliceStart = Math.min(Math.max(sliceStart, 0), items.length-1);
-        sliceEnd = Math.min(Math.max(sliceEnd, 0), items.length-1);
+        sliceStart = Math.min(Math.max(sliceStart, 0), items.length);
+        sliceEnd = Math.min(Math.max(sliceEnd, 0), items.length);
         return [sliceStart, sliceEnd];
     },
 

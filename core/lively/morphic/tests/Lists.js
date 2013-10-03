@@ -335,6 +335,16 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
             'list item');
         this.done();
     },
+    testListResizeUpdatesRenderedItems: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 20), [1, 2, 3, 4, 5]);
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
+        list.setExtent(pt(80, (list.itemList.length+1)*list.layout.listItemHeight));
+        this.delay(function() {
+            this.assertEquals(5,list.getItemMorphs().length,'# rendered list items');
+            this.done();
+        }, 100);
+    },
     testSetListSignalsSelectionChangeIfItemIsNotInNewList: function() {
         var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100), [1, 2, 3]);
         this.onTearDown(function() { list.remove(); });

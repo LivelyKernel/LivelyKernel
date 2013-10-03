@@ -1129,6 +1129,18 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         var scrollBounds = this.world() ? this.getScrollBounds() : this.innerBounds(),
             startEnd = this.visibleIndexes(scrollBounds, items, layout);
         this.renderItems(items, startEnd[0], startEnd[1], selectedIdxs, scrollBounds, layout);
+    },
+
+    rerender: function() {
+        var items = this.itemList;
+        this.layout = this.initLayout(items.length, this.layout);
+        this.setupScroll(items.length, this.layout);
+        this.updateView(items, this.layout, this.selectedIndexes);
+    },
+
+    setExtent: function($super, extent) {
+        Functions.debounceNamed(this.id + ':setExtent',20, this.rerender.bind(this))();
+        return $super(extent);
     }
 },
 'compatibility', {

@@ -1115,7 +1115,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         items = items || this.itemList;
         layout = layout || this.layout;
         selectedIdxs = selectedIdxs || this.selectedIndexes;
-        if (!layout) return;
+        if (!layout || items.length == 0) return;
         var scrollBounds = this.world() ? this.getScrollBounds() : this.innerBounds(),
             startEnd = this.visibleIndexes(scrollBounds, items, layout);
         this.renderItems(items, startEnd[0], startEnd[1], selectedIdxs, scrollBounds, layout);

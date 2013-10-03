@@ -57,7 +57,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
                 getSelection: '->get' + paneName + 'Selection',
                 getList: '->get' + paneName + 'Content',
                 getMenu: '->get' + paneName + 'Menu',
-                updateList: '<-set' + paneName + 'Content'
+                updateList: '<-set' + paneName + 'Content',
+                selection: '<-set' + paneName + 'Selection',
             });
             pane.plugTo(browser, {getMenu: '->get' + paneName + 'Menu'});
             pane.addMenuButton();
@@ -605,54 +606,43 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
     allChanged: function(keepUnsavedChanges, changedNode) {
         // optimization: if no node looks like the changed node in my browser do nothing
-        if (changedNode && this.allNodes().every(function(ea) {return !changedNode.hasSimilarTarget(ea)}))
+        if (changedNode && this.allNodes().every(function(ea) { return !changedNode.hasSimilarTarget(ea); }))
             return;
 
         // FIXME remove duplication
-        var oldN1 = this.getPane1Selection();
-        var oldN2 = this.getPane2Selection();
-        var oldN3 = this.getPane3Selection();
-        var oldN4 = this.getPane4Selection();
-
-        var sourcePos = this.panel.sourcePane.getVerticalScrollPosition();
-
-        var src = keepUnsavedChanges &&
+        var browser = this,
+            oldN1 = this.getPane1Selection(),
+            oldN2 = this.getPane2Selection(),
+            oldN3 = this.getPane3Selection(),
+            oldN4 = this.getPane4Selection(),
+            sourcePos = this.panel.sourcePane.getVerticalScrollPosition(),
+            src = keepUnsavedChanges &&
                     this.hasUnsavedChanges() &&
                     this.panel.sourcePane.innerMorph().textString;
 
-        if (this.hasUnsavedChanges())
-            this.setSourceString(this.emptyText);
+        if (this.hasUnsavedChanges()) this.setSourceString(this.emptyText);
 
-        var revertStateOfPane = function(paneName, oldNode) {
+        function revertStateOfPane(paneName, oldNode) {
             if (!oldNode) return;
-            var nodes = this.nodesInPane(paneName);
-            var newNode = nodes.detect(function(ea) {
-                return ea && ea.target &&
-                    (ea.target == oldNode.target || (ea.target.eq && ea.target.eq(oldNode.target)))
-            });
-            if (!newNode)
-                newNode = nodes.detect(function(ea) {return ea && ea.asString() === oldNode.asString()});
-               this['set' + paneName + 'Selection'](newNode, true);
-        }.bind(this);
+            var nodes = browser.nodesInPane(paneName),
+                newNode = nodes.detect(function(ea) {
+                    return ea && ea.target && (ea.target == oldNode.target
+                                            || (ea.target.eq && ea.target.eq(oldNode.target))); });
+            newNode = newNode || nodes.detect(function(ea) {return ea && ea.asString() === oldNode.asString(); });
+            browser['set' + paneName + 'Selection'](newNode, true);
+        };
 
-        this.start(); // select rootNode and generate new subnodes
-
+        browser.start(); // select rootNode and generate new subnodes
         revertStateOfPane('Pane1', oldN1);
         revertStateOfPane('Pane2', oldN2);
         revertStateOfPane('Pane3', oldN3);
         revertStateOfPane('Pane4', oldN4);
 
-        if (!src) {
+        if (src) {
+            this.panel.sourcePane.setTextString(src.toString());
             this.panel.sourcePane.setVerticalScrollPosition(sourcePos);
-            return;
         }
-
-        //this.setSourceString(src);
-        var text = this.panel.sourcePane.innerMorph();
-        text.setTextString(src.toString());
         this.panel.sourcePane.setVerticalScrollPosition(sourcePos);
-        // text.changed()
-        text.showChangeClue(); // FIXME
     },
 
     nodeChanged: function(node) {

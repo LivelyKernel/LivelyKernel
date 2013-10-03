@@ -90,7 +90,19 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                             if (!wasSelected) {
                                                 this.get("ObjectInspectorText").doitContext = this.item.data;
                                             }
-                                        }
+                                        },
+                onKeyDown: function onKeyDown(evt) {
+                    var keys = evt.getKeyString().toLowerCase(),
+                        inspectKeys = UserAgent.isMacOS ?
+                            ['command-i', 'command-shift-i'] :
+                            ['control-i', 'control-shift-i'];
+                    if (inspectKeys.include(keys)) {
+                        var selected = this.withAllTreesDetect(function(tree) { return tree.item.isSelected; })
+                        selected && selected.item && lively.morphic.inspect(selected.item.data);
+                        evt.stop(); return true;
+                    }
+                    return $super(evt);
+                }
             }]
         },{
             _BorderColor: Color.rgb(204,0,0),

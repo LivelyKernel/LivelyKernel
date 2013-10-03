@@ -1028,7 +1028,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             itemMorph.setPosition(pt(0, listIndex*layout.listItemHeight));
             itemMorph.index = listIndex;
             itemMorph.name = String(itemMorph.index);
-            itemMorph.textString = this.renderFunction(items[listIndex]);
+            itemMorph.textString = items.length == 0 ? '' : this.renderFunction(items[listIndex]);
             if (selected !== itemMorph.selected) {
                 itemMorph.setIsSelected(selected, true/*suppress update*/);
             }

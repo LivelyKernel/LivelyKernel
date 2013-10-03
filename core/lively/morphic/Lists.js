@@ -1024,7 +1024,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     renderFunction: function(item) {
-        if (!item) item = {isitem: true, string: 'invalid list item: ' + item};
+        if (item !== 0 && !item) item = {isitem: true, string: 'invalid list item: ' + item};
         var string = item.string || String(item);
         return string;
     

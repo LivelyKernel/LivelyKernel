@@ -563,7 +563,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             return currentFilter(obj, prop) && !alreadyThere.include(prop);
                         }
                     }
-                    var props = [], visitedProps = [], accessors = {};debugger;
+                    var props = [], visitedProps = [], accessors = {};
                     Properties.allOwnPropertiesOrFunctions(value, filter).each(function(prop) {
                         if(!visitedProps.include(prop)) {
                             visitedProps.push(prop);

@@ -869,7 +869,10 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
     },
 
-    setSelection: function(sel) { this.selectAt(this.find(sel)); },
+    setSelection: function(sel) {
+        var idx = this.find(sel);
+        if (this.selectedLineNo !== idx) this.selectAt(idx);
+    },
 
     getSelection: function() { return this.selection; },
 

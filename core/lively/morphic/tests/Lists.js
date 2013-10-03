@@ -334,6 +334,24 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
             list.listItemContainer.submorphs[1].getExtent(),
             'list item');
         this.done();
+    },
+    testSetListSignalsSelectionChangeIfItemIsNotInNewList: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100), [1, 2, 3]);
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
+        var changeCalled = 0;
+        var testObj = {onSelectionChanged: function() { debugger; changeCalled++ }};
+        lively.bindings.connect(list, 'selection', testObj, 'onSelectionChanged');
+
+        list.updateList(['a', 'b', 'c']);
+        this.assertEquals(0, changeCalled, 'list had no selection but change triggered');
+
+        list.selectAt(1);
+        list.updateList([1,2,3]);
+        this.assertEquals(
+            2/*twice: 1) selectAt, 2)setList*/,
+            changeCalled, 'list had selection but no change triggered');
+        this.done();
     }
 
     // testNoDoubleSelectionWhenClickedInList: function() {

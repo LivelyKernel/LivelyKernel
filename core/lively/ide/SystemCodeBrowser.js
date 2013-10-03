@@ -5,18 +5,15 @@ module('lively.ide.SystemCodeBrowser').requires('lively.ide.BrowserFramework', '
 // ===========================================================================
 lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
 'settings', {
-
     documentation: 'Browser for source code parsed from js files',
     viewTitle: "SystemBrowser",
-    isSystemBrowser: true,
+    isSystemBrowser: true
 },
 'initializing', {
-
     initialize: function($super) {
         $super();
         this.evaluate = true;
         this.targetURL = null;
-
         this.installDefaultFilters();
     },
     onrestore: function() {
@@ -32,7 +29,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
             if (!URL.root.eqDomain(targetURL)) targetURL = URL.codeBase;
             newBrowser.targetURL = targetURL;
         }
-        
+
         if (this.isNavigationCollapsed) {
             var fullExtent;
             if (!this.view.isCollapsed()) {
@@ -42,23 +39,23 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
             } else {
                 fullExtent = this.view.expandedExtent.addPt(lively.pt(0, this.navigationHeight()));
                 this.view.expandedExtent = fullExtent;
-            }   
+            }
         }
-        
+
         newBrowser.buildView(extent);
         newBrowser.view = this.view;
-        
+
         this.view.targetMorph = newBrowser.panel;
-        
+
         if (!this.view.isCollapsed()) {
             this.view.addMorph(newBrowser.panel);
         }
         newBrowser.panel.setPosition(position);
         this.panel.remove();
-            
+
         // FIXME: selectNode doesn't work
         newBrowser.selectNode(this.selectedNode());
-        
+
         if (this.isNavigationCollapsed && !this.view.isCollapsed()) {
             newBrowser.toggleCollapseNavigation();
         }
@@ -67,11 +64,11 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         $super();
         var locInput = this.locationInput();
         if (!locInput) return;
-        
+
         connect(this, 'targetURL', this, 'setLocationInputFromURL');
         connect(this.locationInput(), 'savedTextString', this, 'setTargetUrlFromString');
         this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
-        
+
         var button = this.panel.locationPaneMenuButton;
         button.setLabel('...');
         button.label.setPosition(button.label.getPosition().subPt(pt(0, 2)));
@@ -82,26 +79,26 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         var self = this;
         var items = [
             ['Your directory', function() {self.switchToLocalCodebase()}],
-            ['Lively code base', function() {self.switchToLivelyCodebase()}]]; 
+            ['Lively code base', function() {self.switchToLivelyCodebase()}]];
         var menu = new lively.morphic.Menu('Location ...', items);
         var menuBtnTopLeft = button.bounds().topLeft();
         var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
-        
+
         menu.openIn(
-            lively.morphic.World.current(), 
-            button.getGlobalTransform().transformPoint(pt(0-menu.bounds().width, 0)), 
+            lively.morphic.World.current(),
+            button.getGlobalTransform().transformPoint(pt(0-menu.bounds().width, 0)),
             false);
     },
 
     switchToLocalCodebase: function() {
         this.setTargetURL(
-            $world.getUserName() ? 
-                $world.getUserDir() : 
+            $world.getUserName() ?
+                $world.getUserDir() :
                 URL.source.getDirectory());
     },
 
     switchToLivelyCodebase: function() {
-        this.setTargetURL(URL.codeBase.withFilename('lively/'));        
+        this.setTargetURL(URL.codeBase.withFilename('lively/'));
     },
 
     setLocationInputFromURL: function(targetUrl) {
@@ -115,7 +112,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         if (isCompleteUrlString) {
             return this.setTargetURL(new URL(aString));
         }
-        
+
         var isModuleSyntax = aString.indexOf('.') > -1; // e.g. 'lively.ide.SystemCodeBrowser.js'
         if (isModuleSyntax) {
             var module = lively.module(aString);
@@ -176,7 +173,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
                 this.rootNode().locationChanged();
                 this.allChanged();
             } catch(e) {
-                show.log('couldn\'t set new URL ' + url + ' because ' + e);
+                show('couldn\'t set new URL ' + url + ' because ' + e);
                 this.targetURL = prevURL;
                 this.locationInput().setTextString(prevURL.toString());
                 return
@@ -220,10 +217,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
             lively.ide.OpenModulePartCommand]
     },
 
-
-    sourceDatabase: function() {
-        return this.rootNode().target;
-    }
+    sourceDatabase: function() { return this.rootNode().target; }
 },
 'browser actions', {
     getSelectedModule: function() {
@@ -256,7 +250,8 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         fileName && this.inPaneSelectNodeNamed('Pane1', fileName);
         klassName && this.inPaneSelectNodeNamed('Pane2', klassName);
         methodName && this.inPaneSelectNodeNamed('Pane4', methodName);
-    },});
+    },
+});
 
 Object.extend(lively.ide.SystemBrowser, {
     // lively.ide.SystemBrowser.browse('lively.Examples')

@@ -140,6 +140,8 @@ lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests
         var completeFFNode = new lively.ide.CompleteFileFragmentNode(
               this.fileFragment, this.browser, null, this.fileFragment.name)
         var root = this.createMockNode(this.browser, [completeFFNode]);
+        root.locationChanged = function() {};
+        root.target = this.db;
         this.browser.rootNode =  function() { return root };
     },
 
@@ -351,8 +353,26 @@ lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests
         var node = this.browser.selectedNode();
         this.assertIdentity(this.m3, node.nextNode().target);
         this.done();
-    }
+    },
 
+    testMethodChangeKeepsSelection: function() {
+        this.buildTestSource();
+        var browser = this.browser;
+        browser.buildView();
+        var inited = false;
+        browser.panel.sourcePane.withAceDo(function() { inited = true; });
+        this.waitFor(function() { return !!inited }, 10, function() {
+            browser.inPaneSelectNodeNamed('Pane1', 'dummySource.js');
+            browser.inPaneSelectNodeNamed('Pane2', 'Foo');
+            browser.inPaneSelectNodeNamed('Pane4', 'm1');
+            browser.allChanged();
+            // make sure list has
+            this.assertEquals('m1',
+                browser.panel.Pane4.selection.target.name,
+                'Pane4 list does not have the right selection');
+            this.done();
+        });
+    }
 });
 
 TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',

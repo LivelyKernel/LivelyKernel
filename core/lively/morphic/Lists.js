@@ -870,8 +870,15 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     setSelection: function(sel) {
+        if (!this.selectedIndexes) {
+            lively.bindings.connect(this, 'selectedIndexes', this, 'setSelection', {
+                varMapping: {sel: sel}, removeAfterUpdate: true,
+                converter: function() { return sel; }});
+            return sel;
+        }
         var idx = this.find(sel);
         if (this.selectedLineNo !== idx) this.selectAt(idx);
+        return sel;
     },
 
     getSelection: function() { return this.selection; },

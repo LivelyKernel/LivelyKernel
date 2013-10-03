@@ -953,12 +953,9 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         if (!evt.isRightMouseButtonDown()) return false;
         // delayed because when owner is a window and comes forward the window
         // would be also in front of the new menu
-        var sel = this.selection && this.selection.isListItem ? this.selection.string : this.selection;
-        if (sel) {
-            var items = this.getMenu();
-            if (items.length > 0) lively.morphic.Menu.openAt.curry(
-                evt.getPosition(), sel, items).delay(0.1);
-        }
+        var items = this.getMenu();
+        if (items.length > 0) lively.morphic.Menu.openAt.curry(
+            evt.getPosition(), null, items).delay(0.1);
         evt.stop(); return true;
     },
 

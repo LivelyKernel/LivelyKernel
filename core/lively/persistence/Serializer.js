@@ -402,6 +402,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
         // store class into persistentCopy if original is an instance
         if (!original || !original.constructor) return;
         var className = original.constructor.type;
+        if (!className) return;
         persistentCopy[this.classNameProperty] = className;
         var srcModule = original.constructor.sourceModule
         if (srcModule)

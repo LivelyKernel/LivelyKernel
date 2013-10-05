@@ -577,22 +577,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.nodeChanged(this.selectedNode());
     },
 
-    onPane1ContentUpdate: function() {
-    },
-
-    onPane2ContentUpdate: function() {
-    },
-
-    onPane3ContentUpdate: function(items, source) {
-        if (source !== this.panel.Pane3.innerMorph())
-            return;
-        // handle drag and drop of items
-        console.log('Got ' + items);
-    },
-
-    onPane4ContentUpdate: function(items, source) {
-    },
-
+    onPane1ContentUpdate: Functions.Null,
+    onPane2ContentUpdate: Functions.Null,
+    onPane3ContentUpdate: Functions.Null,
+    onPane4ContentUpdate: Functions.Null,
     onPane1MenuUpdate: Functions.Null,
     onPane2MenuUpdate: Functions.Null,
     onPane3MenuUpdate: Functions.Null,
@@ -610,39 +598,50 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             return;
 
         // FIXME remove duplication
-        var browser = this,
-            oldN1 = this.getPane1Selection(),
-            oldN2 = this.getPane2Selection(),
-            oldN3 = this.getPane3Selection(),
-            oldN4 = this.getPane4Selection(),
-            sourcePos = this.panel.sourcePane.getVerticalScrollPosition(),
-            src = keepUnsavedChanges &&
-                    this.hasUnsavedChanges() &&
-                    this.panel.sourcePane.innerMorph().textString;
+        var browser = this,/*browser=b*/
+            oldN1 = browser.getPane1Selection(),
+            oldN2 = browser.getPane2Selection(),
+            oldN3 = browser.getPane3Selection(),
+            oldN4 = browser.getPane4Selection(),
+            sourcePos = browser.panel.sourcePane.getVerticalScrollPosition(),
+            src = keepUnsavedChanges
+               && browser.hasUnsavedChanges()
+               && browser.panel.sourcePane.innerMorph().textString;
 
-        if (this.hasUnsavedChanges()) this.setSourceString(this.emptyText);
+        // new list contents
+        var nodes1 = browser.childsFilteredAndAsListItems(browser.rootNode(), browser.getRootFilters()),
+            selection1 = oldN1 ? nodes1.detect(function(ea) { return ea.value.target === oldN1.target; }) : null,
+            nodes2 = selection1 ? browser.childsFilteredAndAsListItems(selection1.value, browser.getPane1Filters()) : [],
+            selection2 = oldN2 ? nodes2.detect(function(ea) { return ea.value.target === oldN2.target; }) : null,
+            nodes3 = selection2 ? browser.childsFilteredAndAsListItems(selection2.value, browser.getPane2Filters()) : [],
+            selection3 = oldN3 ? nodes3.detect(function(ea) { return ea.value.target === oldN3.target; }) : null,
+            nodes4 = selection3 ? browser.childsFilteredAndAsListItems(selection3.value, browser.getPane3Filters()) : [],
+            selection4 = oldN4 ? nodes4.detect(function(ea) { return ea.value.target === oldN4.target; }) : null;
 
-        function revertStateOfPane(paneName, oldNode) {
-            if (!oldNode) return;
-            var nodes = browser.nodesInPane(paneName),
-                newNode = nodes.detect(function(ea) {
-                    return ea && ea.target && (ea.target == oldNode.target
-                                            || (ea.target.eq && ea.target.eq(oldNode.target))); });
-            newNode = newNode || nodes.detect(function(ea) {return ea && ea.asString() === oldNode.asString(); });
-            browser['set' + paneName + 'Selection'](newNode, true);
-        };
-
-        browser.start(); // select rootNode and generate new subnodes
-        revertStateOfPane('Pane1', oldN1);
-        revertStateOfPane('Pane2', oldN2);
-        revertStateOfPane('Pane3', oldN3);
-        revertStateOfPane('Pane4', oldN4);
+        lively.bindings.noUpdate(function() {
+            browser.panel.Pane1.setList(nodes1);
+            browser.panel.Pane1.setSelection(selection1);
+            browser.Pane1Content = nodes1;
+            browser.Pane1Selection = selection1;
+            browser.panel.Pane2.setList(nodes2);
+            browser.panel.Pane2.setSelection(selection2);
+            browser.Pane2Content = nodes2;
+            browser.Pane2Selection = selection2;
+            browser.panel.Pane3.setList(nodes3);
+            browser.panel.Pane3.setSelection(selection3);
+            browser.Pane3Content = nodes3;
+            browser.Pane3Selection = selection3;
+            browser.panel.Pane4.setList(nodes4);
+            browser.panel.Pane4.setSelection(selection4);
+            browser.Pane4Content = nodes4;
+            browser.Pane4Selection = selection4;
+        });
 
         if (src) {
-            this.panel.sourcePane.setTextString(src.toString());
-            this.panel.sourcePane.setVerticalScrollPosition(sourcePos);
+            browser.panel.sourcePane.setTextString(src.toString());
+            browser.panel.sourcePane.setVerticalScrollPosition(sourcePos);
         }
-        this.panel.sourcePane.setVerticalScrollPosition(sourcePos);
+        browser.panel.sourcePane.setVerticalScrollPosition(sourcePos);
     },
 
     nodeChanged: function(node) {

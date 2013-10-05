@@ -125,7 +125,9 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
             }]
         }],
         addDir: function addDir(dir) {
-        this.get('DirList').addItem({isListItem: true, string: String(dir), value: dir});
+        var list = this.get('DirList');
+        var idx = list.addItem({isListItem: true, string: String(dir), value: dir});
+        list.selectAt(idx);
     },
         addDirInteractively: function addDirInteractively() {
         lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(

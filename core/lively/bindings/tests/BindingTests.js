@@ -492,7 +492,13 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         var obj = {}, updateRun = false;
         connect(obj, 'x', obj, 'y');
         connect(obj, 'x', obj, 'z');
-        lively.bindings.noUpdate(function() { updateRun = true; obj.x = 6; });
+        lively.bindings.noUpdate(function() {
+            lively.bindings.noUpdate(function() {
+                updateRun = true;
+                obj.x = 5;
+            });
+            obj.x = 6;
+        });
         this.assert(updateRun, 'update not run');
         this.assertEquals(undefined, obj.y, 'y should not be updated');
         this.assertEquals(undefined, obj.z, 'updated z but should not');

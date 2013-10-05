@@ -607,11 +607,14 @@ Object.extend(lively.bindings, {
         if (!func && Object.isFunction(noUpdateSpec)) {
             func = noUpdateSpec; globalNoUpdate = true; }
         if (globalNoUpdate) { // rather a hack for now
-            lively.bindings.AttributeConnection.prototype.isActive = true;
+            var proto = lively.bindings.AttributeConnection.prototype;
+            if (!proto.isActive) proto.isActive = 0;
+            proto.isActive++;
             try {
                 result = func();
             } finally {
-                delete lively.bindings.AttributeConnection.prototype.isActive;
+                proto.isActive--;
+                if (proto.isActive <= 0) proto.isActive;
             }
         } else {
             var obj = noUpdateSpec.sourceObj,

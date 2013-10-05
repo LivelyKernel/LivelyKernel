@@ -487,19 +487,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             itemList: [],
             layout: {resizeHeight: false,resizeWidth: true},
             name: "SessionList",
-            addMorph: function addMorph(m) {
-                    $world.addMorph(m);
-                    m.setPositionAnimated.bind(m, $world.eventStartPos, 300).delay();
-                    var evt = Global.event;
-                    var n = this.getItemIndexFromEventHTML(this.renderContext(), evt);
-                    if (n !== -1) {
-                        var sess = this.itemList[n].value, worldName = sess.worldURL;
-                        this.get('Lively2LivelyInspector').sendMorph(sess.id, m);
-                    } else {
-                        alert('No session selected');
-                    }
-                    return m;
-                },
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "selection", this.get("RemoteWorkspace"), "selectedSession", {});
             lively.bindings.connect(this, "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});

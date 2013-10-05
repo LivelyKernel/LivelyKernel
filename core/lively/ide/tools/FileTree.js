@@ -142,11 +142,19 @@ lively.BuildSpec('lively.ide.tools.FileTree', {
         }
     },
         openFile: function openFile(func) {
-        var tree = this.get('tree');
-        if (!tree.selection) { show('Nothing selected!'); return; }
-x=tree
-y=tree.selection
+    var tree = this.get('tree'),
+        sel = tree.getSelectedTree();
+    if (!sel) { show('Nothing selected!'); return; }
+    var path = this.filePathOfTreeNode(sel)
+    lively.ide.openFile(URL.root.withFilename(path));
+},
+        filePathOfTreeNode: function filePathOfTreeNode(treeNode) {
+    function pathInTree(treeNode) {
+        return treeNode && treeNode.isTree ?
+            pathInTree(treeNode.owner).concat([treeNode.item.name]) : [];
     }
+    return pathInTree(treeNode).join('/');
+}
     }],
     titleBar: "Files"
 });

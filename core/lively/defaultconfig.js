@@ -326,6 +326,10 @@ Config.addOptions(
     }
 ],
 
+'privacy', [
+    ['isPublicServer', false, "Is the lively server this world is started from considered public?"]
+],
+
 'lively.Network', [
     ["proxyURL", protocol + '//' + host + '/proxy', "URL that acts as a proxy for network operations"]
 ],

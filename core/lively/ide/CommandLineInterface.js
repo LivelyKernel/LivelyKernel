@@ -460,7 +460,7 @@ Object.subclass("lively.ide.CommandLineSearch.FileInfo",
             return lineString.slice(matches[0].end).trim();
         },
         function fileName(lineString, fileInfo) {
-            var string = lineString.replace(/^\.?\/+/g, ''),
+            var string = lineString.replace(/^\.\/+/g, '').replace(/\/\//g, '/'),
                 nameAndLink = string && string.split(' -> '),
                 isLink = string && nameAndLink.length === 2,
                 path = isLink ? nameAndLink[0] : string,
@@ -544,7 +544,7 @@ Object.extend(lively.ide.CommandLineSearch, {
     extractBrowseRefFromGrepLine: function(line, baseDir) {
         // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
         // = {fileName: "lively/morphic/HTML.js", line: 235}
-        line = line.replace(/\\/g, '/').replace(/^\.?\//, '');
+        line = line.replace(/\\/g, '/').replace(/^\.\//, '');
         if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
         if (line.startsWith('core/')) line = line.slice('core/'.length); // FIXME!!!
         var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
@@ -663,14 +663,16 @@ Object.extend(lively.ide.CommandLineSearch, {
             result.pattern = pattern += '*';
             return result;
         }
+        var lastSearch;
         function doSearch(fileListSoFar, pattern, dir, filterFunc, thenDo) {
+            if (lastSearch) { lastSearch.kill(); lastSearch = null; }
             var continued = false, timeoutDelay = 5/*secs*/;
             // in case findFiles crashes
             (function() {
                 if (continued) return;
                 continued = true; thenDo(filesToListItems(fileListSoFar));
             }).delay(timeoutDelay);
-            lively.ide.CommandLineSearch.findFiles(pattern, {rootDirectory: dir, depth: 1}, function(files) {
+            lastSearch = lively.ide.CommandLineSearch.findFiles(pattern, {rootDirectory: dir, depth: 1}, function(files) {
                 if (continued) return; continued = true;
                 filterFunc = filterFunc || Functions.K;
                 fileListSoFar = fileListSoFar.concat(filterFunc(files).pluck('path')).uniq();

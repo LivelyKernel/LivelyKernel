@@ -622,19 +622,19 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             browser.panel.Pane1.setList(nodes1);
             browser.panel.Pane1.setSelection(selection1);
             browser.Pane1Content = nodes1;
-            browser.Pane1Selection = selection1;
+            browser.Pane1Selection = selection1 ? selection1.value: null;
             browser.panel.Pane2.setList(nodes2);
             browser.panel.Pane2.setSelection(selection2);
-            browser.Pane2Content = nodes2;
-            browser.Pane2Selection = selection2;
+            browser.Pane2Content = nodes2;;
+            browser.Pane2Selection = selection2 ? selection2.value: null;
             browser.panel.Pane3.setList(nodes3);
             browser.panel.Pane3.setSelection(selection3);
-            browser.Pane3Content = nodes3;
-            browser.Pane3Selection = selection3;
+            browser.Pane3Content = nodes3;;
+            browser.Pane3Selection = selection3 ? selection3.value: null;
             browser.panel.Pane4.setList(nodes4);
             browser.panel.Pane4.setSelection(selection4);
-            browser.Pane4Content = nodes4;
-            browser.Pane4Selection = selection4;
+            browser.Pane4Content = nodes4;;
+            browser.Pane4Selection = selection4 ? selection4.value: null;
         });
 
         if (src) {

@@ -184,9 +184,8 @@ Global.Config = {
         }
         var userName = optUsername || lively.LocalStorage.get('UserName');
         if (!userName || userName === "undefined") return;
-        var fileName = LivelyLoader.codeBase + '../users/' + userName + "/config.js",
-            config = this;
-        JSLoader.loadJs(fileName, function() { config.urlQueryOverride(); });
+        var userConfigModule = Strings.format('users.%s.config', userName);
+        lively.require(userConfigModule).toRun(this.urlQueryOverride.bind(this));
     },
 
     set: function(name, value) {

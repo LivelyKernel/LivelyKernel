@@ -3656,6 +3656,9 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
 });
 
 lively.morphic.Box.subclass('lively.morphic.Tree',
+'properties', {
+    isTree: true
+},
 'documentation', {
     example: function() {
         var tree = new lively.morphic.Tree();
@@ -3727,6 +3730,14 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 this.initializeNode();
             }
         });
+    },
+    getSelection: function() {
+        var sel = this.getSelectedTree();
+        return sel && sel.item;
+    },
+    getSelectedTree: function() {
+        return this.withAllTreesDetect(function(tree) {
+            return tree.item.isSelected; });
     }
 },
 'updating', {

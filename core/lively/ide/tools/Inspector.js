@@ -97,8 +97,8 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             ['command-i', 'command-shift-i'] :
                             ['control-i', 'control-shift-i'];
                     if (inspectKeys.include(keys)) {
-                        var selected = this.withAllTreesDetect(function(tree) { return tree.item.isSelected; })
-                        selected && selected.item && lively.morphic.inspect(selected.item.data);
+                        var selected = this.getSelection();
+                        selected  && lively.morphic.inspect(selected.data);
                         evt.stop(); return true;
                     }
                     return $super(evt);

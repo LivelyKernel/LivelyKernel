@@ -778,6 +778,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 
     addItem: function(item) {
         this.updateList(this.itemList.concat([item]));
+        return this.itemList.length - 1; // return index of added item
     },
 
     find: function (itemOrValue) {

@@ -825,8 +825,9 @@ lively.morphic.World.addMethods(
             ea.isText && ea.setTextStylingMode(true)
         });
 
-        closeBtn.addScript(function onMouseDown() {
+        closeBtn.addScript(function onMouseUp(evt) {
             this.owner.remove();
+            evt.stop(); return true;
         });
 
         msgMorph.addScript(function setMessage(msg, color) {

@@ -489,6 +489,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.execShellCommand': {
         description: 'execute shell command',
         exec: function(codeEditor, args) {
+            Global.event.stop();
             var insertResult = !args || typeof args.insert === 'undefined' || !!args.insert,
                 openInWindow = !codeEditor || (args && args.count !== 4)/*universal argument*/;
             function ensureCodeEditor(title) {

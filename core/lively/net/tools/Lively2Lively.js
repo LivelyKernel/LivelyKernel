@@ -171,7 +171,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     update: function update() {
     var s = this.session();
     switch (s && s.status()) {
-        case null:
+        case null: case undefined:
         case 'disconnected': this.onDisconnect(); break;
         case 'connected': this.onConnect(); break;
         case 'connecting': this.onConnecting(); break;

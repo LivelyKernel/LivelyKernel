@@ -1564,9 +1564,15 @@ lively.morphic.World.addMethods(
         return evt.hand.dropContentsOn(dropTarget, evt);
     },
     onMouseWheel: function($super, evt) {
-        if (!evt.isCommandKey()) return $super(evt);
-        this.doZoomBy(evt.wheelDelta, evt.getPosition(), true);
-        evt.preventDefault(); return true;
+        if (evt.isCommandKey()) {
+            this.doZoomBy(evt.wheelDelta, evt.getPosition(), true);
+            evt.preventDefault(); return true;
+        } else if (evt.isShiftDown()) {
+            Global.scrollBy(-evt.wheelDeltaX, -evt.wheelDeltaY)
+            this.onMouseMoveEntry(evt);
+            evt.stop(); return true;
+        }
+        return $super(evt);
     },
     doZoomBy: function(wheelDelta, zoomPoint, showZoom) {
         // wheelDelta from mouse event, zoomPoint is the global position to

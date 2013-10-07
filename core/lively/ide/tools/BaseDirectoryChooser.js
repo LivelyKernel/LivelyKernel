@@ -37,6 +37,7 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
             doNotCopyProperties: [],
             doNotSerialize: [],
             droppingEnabled: true,
+            layout: {resizeWidth: true, resizeHeight: true},
             itemList: [{
                 isListItem: true,
                 string: "default Lively directory",
@@ -59,9 +60,8 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
             droppingEnabled: true,
             layout: {
                 borderSize: 0,
-                extentWithoutPlaceholder: lively.pt(100.0,100.0),
-                resizeHeight: true,
                 resizeWidth: true,
+                moveVertical: true,
                 spacing: 2.385,
                 type: "lively.morphic.Layout.TileLayout"
             },
@@ -73,30 +73,13 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
                 _BorderWidth: 1,
                 _Extent: lively.pt(20.0,20.0),
                 _Position: lively.pt(2.4,2.4),
-                _StyleClassNames: ["Morph","Button"],
                 className: "lively.morphic.Button",
-                doNotCopyProperties: [],
-                doNotSerialize: [],
-                isPressed: false,
                 label: "+",
+                layout: {moveVertical: true},
                 name: "DirAdd",
-                pinSpecs: [{
-                    accessor: "fire",
-                    location: 1.5,
-                    modality: "output",
-                    pinName: "fire",
-                    type: "Boolean"
-                }],
                 sourceModule: "lively.morphic.Widgets",
-                submorphs: [],
-                toggle: false,
-                value: false,
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "fire", this, "doAction", {});
                 lively.bindings.connect(this, "fire", this.get("BaseDirectoryChooser"), "addDirInteractively", {});
-            },
-                doAction: function doAction() {
-                
             }
             },{
                 _BorderColor: Color.rgb(189,190,192),
@@ -104,20 +87,10 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
                 _BorderWidth: 1,
                 _Extent: lively.pt(20.0,20.0),
                 _Position: lively.pt(24.8,2.4),
-                _StyleClassNames: ["Morph","Button"],
                 className: "lively.morphic.Button",
-                doNotCopyProperties: [],
-                doNotSerialize: [],
-                isPressed: false,
                 label: "-",
+                layout: {moveVertical: true},
                 name: "DirRm",
-                pinSpecs: [{
-                    accessor: "fire",
-                    location: 1.5,
-                    modality: "output",
-                    pinName: "fire",
-                    type: "Boolean"
-                }],
                 sourceModule: "lively.morphic.Widgets",
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("BaseDirectoryChooser"), "removeDir", {});

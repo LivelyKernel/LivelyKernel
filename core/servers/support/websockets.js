@@ -323,6 +323,7 @@ util.inherits(WebSocketServer, EventEmitter);
 
     this.accept = function(request) {
         var c = request.accept('lively-json', request.origin), server = this;
+        c.request = request;
 
         c.on('close', function(msg) {
             if (c.id) log(this.debugLevel, 'websocket %s closed', c.id)
@@ -380,7 +381,7 @@ util.inherits(WebSocketServer, EventEmitter);
     this.addConnection = function(c) {
         if (c.id) {
             var existing = this.getConnections(c.id);
-            existing.forEach(function(ea) { this.removeConnection(ea); }, ea);
+            existing.forEach(function(ea) { this.removeConnection(ea); }, this);
         }
         this.connections.push(c);
         return c;

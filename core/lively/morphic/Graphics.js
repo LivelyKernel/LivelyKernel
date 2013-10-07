@@ -662,6 +662,10 @@ Object.extend(Rectangle, {
         return new Rectangle(literal.x, literal.y, literal.width, literal.height);
     },
 
+    fromTuple: function(tuple) {
+        return new Rectangle(tuple[0], tuple[1], tuple[2], tuple[3]);
+    },
+
     unionPts: function(points) {
         var min = points[0],
             max = points[0];

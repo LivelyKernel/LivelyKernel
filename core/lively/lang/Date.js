@@ -154,25 +154,32 @@ Object.extend(Date.prototype, {
         var minuteString = 'min',
             secondString = 'sec',
             hourString = 'hour',
+            dayString = 'day',
             diff = otherDate - this,
-            secs = Math.round(diff/1000),
-            minSecs = secs % 60,
-            mins = Math.floor(secs/60)%60,
-            hours = Math.floor(secs/60/60),
+            totalSecs = Math.round(diff/1000),
+            secs = totalSecs % 60,
+            mins = Math.floor(totalSecs/60)%60,
+            hours = Math.floor(totalSecs/60/60)%24,
+            days = Math.floor(totalSecs/60/60/24),
             parts = [];
-        if (hours > 0) {
+        if (days > 0) {
+            parts.push(days);
+            if (days > 1) dayString += 's';
+            parts.push(dayString);
+        }
+        if (hours > 0 && days < 2) {
             parts.push(hours);
             if (hours > 1) hourString += 's';
             parts.push(hourString);
         }
-        if (mins > 0 && hours < 3) {
+        if (mins > 0 && hours < 3 && days === 0) {
             parts.push(mins);
             if (mins > 1) minuteString += 's';
             parts.push(minuteString);
         }
-        if (minSecs > 0 && mins < 3 && hours === 0) {
-            parts.push(minSecs);
-            if (minSecs > 1) secondString += 's';
+        if (secs > 0 && mins < 3 && hours === 0 && days === 0) {
+            parts.push(secs);
+            if (secs > 1) secondString += 's';
             parts.push(secondString);
         }
         return parts.join(' ');

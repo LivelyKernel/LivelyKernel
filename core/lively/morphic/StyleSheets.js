@@ -12,12 +12,20 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'lively.mor
 
 (function loadBaseThemeOnWorldLoad() {
     lively.whenLoaded(function(world) {
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // FIXME: insertign the stylesheet into the DOM should not be necessary
+        // b/c applying ot to the world morph should be enough. However, for fixed
+        // positioning morphs this currently does not work. Applying the ssheet to
+        // the world only affects its DOM subnodes, fixed positioning morphs
+        // (their dom nodes) are placed outside of the world morph's tree, however.
+        // see https://github.com/LivelyKernel/LivelyKernel/issues/176
         var el = document.createElement('link');
         el.setAttribute('rel', "stylesheet")
         el.setAttribute('type', "text/css")
         el.setAttribute('href', Config.baseThemeStyleSheetURL)
         document.getElementsByTagName('head')[0].appendChild(el);
-        // world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
     });
     if (!UserAgent.isTouch) return;
     lively.whenLoaded(function(world) {

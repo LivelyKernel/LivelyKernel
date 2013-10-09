@@ -433,7 +433,8 @@ Config.addOptions(
     ["showLivelyConsole", false, "Open up our console"],
     ["debugExtras", false, "Enable advanced debugging options"],
     ["advancedSyntaxHighlighting", true, "Enable ast-based source code highlighting and error checking"],
-    ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"]
+    ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
+    ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html", "Where to report bugs"]
 ],
 
 'lively.morphic.Text', [

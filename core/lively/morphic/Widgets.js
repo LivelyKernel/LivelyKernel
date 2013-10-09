@@ -1558,6 +1558,10 @@ openReferencingMethodFinder: function () {
         require('lively.presentation.Controller').toRun(function() {
             lively.presentation.Controller.open()
         });
+    },
+
+    bugReport: function() {
+        window.open(lively.Config.get('bugReportWorld'));
     }
 
 },
@@ -1780,6 +1784,7 @@ openReferencingMethodFinder: function () {
                 ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
+            ['Report a bug', this.bugReport.bind(this)],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
             ['Save world', this.saveWorld.bind(this), 'synchron']
         ];

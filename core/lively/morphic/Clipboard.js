@@ -38,6 +38,7 @@ Object.extend(lively.morphic.Clipboard, {
         if (files && files.length > 0) {
             lively.data.FileUpload.handleDroppedFiles(files, evt);
         }
+        if(evt.srcElement.ownerDocument.URL == evt.toElement.ownerDocument.URL) return;
         var items = evt.dataTransfer.items;
         if (items && items.length) {
             var content = evt.dataTransfer.getData('text/html');

@@ -393,6 +393,36 @@ Object.extend(Array.prototype, {
         return this.groupBy(function(ea) { return ea[key]; });
     },
 
+    batchify: function(constrainedFunc, context) {
+        // takes elements and fits them into subarrays (=batches) so that for
+        // each batch constrainedFunc returns true. Note that contrained func
+        // should at least produce 1-length batches, otherwise an error is raised
+        // see [$world.browseCode("lively.lang.tests.ExtensionTests.ArrayTest", "testBatchify", "lively.lang.tests.ExtensionTests")]
+        // for an example
+        function extractBatch(batch, sizes) {
+            // Array -> Array -> Array[Array,Array]
+            // case 1: no sizes to distribute, we are done
+            if (!sizes.length) return [batch, []];
+            var first = sizes[0], rest = sizes.slice(1);
+            // if batch is empty we have to take at least one
+            // if batch and first still fits, add first
+            var candidate = batch.concat([first]);
+            if (constrainedFunc.call(context, candidate)) return extractBatch(candidate, rest);
+            // otherwise leave first out for now
+            var batchAndSizes = extractBatch(batch, rest);
+            return [batchAndSizes[0], [first].concat(batchAndSizes[1])];
+        }
+        function findBatches(batches, sizes) {
+            if (!sizes.length) return batches;
+            var extracted = extractBatch([], sizes);
+            if (!extracted[0].length)
+                throw new Error('Batchify constrained does not ensure consumption '
+                              + 'of at least one item per batch!');
+            return findBatches(batches.concat([extracted[0]]), extracted[1]);
+        }
+        return findBatches([], this);
+    },
+
     mask: function(arr) {
         // select every element in this for which arr's element is truthy
         // Example: [1,2,3].mask([false, true, false]) => [2]

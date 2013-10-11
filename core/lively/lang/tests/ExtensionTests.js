@@ -505,6 +505,34 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         var arr = ['foo', 'bar', 'zork'],
             result = arr.reMatches(/.r.?/i);
         this.assertEquals([undefined, 'ar', 'ork'], result);
+    },
+
+    testBatchify: function() {
+        function batchConstrained(batch) { return batch.length == 1 || batch.sum() < batchMaxSize; }
+        var batchMaxSize = Math.pow(2, 28)/*256MB*/,
+            sizes = [
+                Math.pow(2, 15), // 32KB
+                Math.pow(2, 29), // 512MB
+                Math.pow(2, 29), // 512MB
+                Math.pow(2, 27), // 128MB
+                Math.pow(2, 26), // 64MB
+                Math.pow(2, 26), // 64MB
+                Math.pow(2, 24), // 16MB
+                Math.pow(2, 26)],// 64MB
+            batches = sizes.batchify(batchConstrained);
+        this.assertEquals(batches.flatten().length, sizes.length,
+            'not all batches included?');
+        // the sum of each batch should be < 256MB or batch shoudl just have single item
+        this.assert(batches.every(batchConstrained),
+            'batches don\'t fullfill constraint');
+    },
+
+    testBatchifyNeedstoConsume: function() {
+        function batchConstrained(batch) { return batch.sum() < batchMaxSize; }
+        var batchMaxSize = 3,
+            sizes = [1,4,2,3];
+        this.assertRaises(function() { sizes.batchify(batchConstrained); },
+            'batchify endless recursion?');
     }
 
 });

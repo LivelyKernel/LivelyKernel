@@ -5,6 +5,21 @@ var d = require('domain').create();
 d.on('error', function(err) {
     console.log('NodeJSEvalServer error: ', err.stack || err);
 });
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// provide a global lively object that provides accessors to useful stuff
+// delete global.lively
+if (typeof lively === "undefined") global.lively = {}
+global.lv = lively;
+util._extend(lively, {
+    i: function(obj, depth, showAll) { return util.inspect(obj, showAll, typeof depth === 'number' ? depth : 0); },
+    show: function(obj, depth, showAll) { console.log(lv.i(obj,depth,showAll)); },
+    path: path,
+    util: util,
+    dir: process.env.WORKSPACE_LK,
+    values: function(obj) { return Object.keys(obj).map(function(key) { return obj[key]; }); }
+});
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // completion code
 

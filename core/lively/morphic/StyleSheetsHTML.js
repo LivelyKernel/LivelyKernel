@@ -322,7 +322,7 @@ lively.morphic.Morph.addMethods(
             node.setAttribute("id", styleTagId);
         }
         if (!node.parentNode) this.appendStyleNodeHTML(ctx, node);
-        node.textContent = compiledCss;
+        if (node.textContent !== compiledCss) node.textContent = compiledCss;
         return node;
     },
 

@@ -606,7 +606,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Window.close': {mac: "cmd-esc", win: "ctrl-esc"},
     'lively.morphic.Window.gather':{mac: 'cmd-s-l s t a c k w', win: 'ctrl-s-l s t a c k w'},
     'lively.morphic.Window.rename': {mac: 'cmd-s-l r e n', win: 'ctrl-s-l r e n'},
-    'lively.morphic.Window.toggleCollapse': {mac: 'cmd-s-l c o l', win: 'ctrl-s-l c o l'},
+    'lively.morphic.Window.toggleCollapse': 'm-s-c',
     'lively.morphic.Morph.copy': {mac: 'cmd-s-l c o p y', win: 'ctrl-s-l c o p y'},
     'lively.morphic.Morph.showSceneGraph': 'm-m',
     'lively.morphic.Morph.openObjectEditor': {mac: 'cmd-s-l o e', win: 'ctrl-s-l o e'},

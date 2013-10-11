@@ -3,7 +3,7 @@ var spawn = require('child_process').spawn,
     util = require('util'),
     i = util.inspect,
     dir = process.env.WORKSPACE_LK,
-    debug = true;
+    debug = false;
 
 // [{process: null, stdout: '', stderr: '', lastExitCode: null}]
 var shellCommands = global.shellCommands = [];
@@ -37,7 +37,7 @@ function startSpawn(cmdInstructions) {
     if (debug) console.log('Running command: %s', [command].concat(args));
     var proc = spawn(command, args, options);
     if (stdin) {
-        console.log('setting stdin to: %s', stdin);
+        debug && console.log('setting stdin to: %s', stdin);
         proc.stdin.end(stdin);
     }
     return proc;
@@ -113,7 +113,10 @@ module.exports = function(route, app) {
             console.log('Killing CommandLineServer command process with pid ' + pid);
             cmd.process && cmd.process.kill();
         });
-        res.end(JSON.stringify({message: 'processes with pids ' + pids + ' killed'}));
+        res.end(JSON.stringify({
+            message: !pids || !pids.length ?
+                'no process were running' :
+                'processes with pids ' + pids + ' killed'}));
     });
 
     app.post(route, function(req, res) {

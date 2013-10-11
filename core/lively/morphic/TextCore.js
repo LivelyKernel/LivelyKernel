@@ -2338,26 +2338,165 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
     }
 },
 'interface', {
-    evalSelectionAndOpenListForProtocol: function() {
-        var obj = this.evalCurrentSelection(this.textMorph);
-        if (!obj) return;
+    getCompletions: function(code, evalFunc) {
+        var err, completions
+        getCompletions(evalFunc, code, function(e, c) { err = e, completions = c; })
+        if (err) { alert(err); return []; }
+        else return completions;
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// rk 2013-10-10 I extracted the code below into a nodejs module (since this
+// stuff is also useful on a server and in other contexts). Right now we have no
+// good way to load nodejs modules into Lively and I inline the code here. Please
+// fix soon!
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// helper
+function signatureOf(name, func) {
+    var source = String(func),
+        match = source.match(/function\s*[a-zA-Z0-9_$]*\s*\(([^\)]*)\)/),
+        params = (match && match[1]) || '';
+    return name + '(' + params + ')';
+}
 
-        var items = this.getListForProtocolOf(obj);
-        var menu = lively.morphic.Menu.openAtHand(String(obj), items);
-        lively.morphic.World.current().worldMenuOpened = menu;
+function isClass(obj) {
+    if (obj === obj
+      || obj === Array
+      || obj === Function
+      || obj === String
+      || obj === Boolean
+      || obj === Date
+      || obj === RegExp
+      || obj === Number) return true;
+    return (obj instanceof Function)
+        && ((obj.superclass !== undefined)
+         || (obj._superclass !== undefined));
+}
+
+function pluck(list, prop) { return list.map(function(ea) { return ea[prop]; }); }
+
+function getObjectForCompletion(evalFunc, stringToEval, thenDo) {
+    // thenDo = function(err, obj, startLetters)
+    var idx = stringToEval.lastIndexOf('.'),
+        startLetters = '';
+    if (idx >= 0) {
+        startLetters = stringToEval.substring(idx+1);
+        stringToEval = stringToEval.slice(0,idx);
+    }
+    var completions = [];
+    try {
+        var obj = evalFunc(stringToEval);
+    } catch (e) {
+        thenDo(e, null, null);
+    }
+    thenDo(null, obj, startLetters);
+}
+
+function propertyExtract(excludes, obj, extractor) {
+    // show(''+excludes)
+    return Object.getOwnPropertyNames(obj)
+        .filter(function(key) { return excludes.indexOf(key) === -1; })
+        .map(extractor)
+        .filter(function(ea) { return !!ea; })
+        .sort(function(a,b) {
+            return a.name < b.name ? -1 : (a.name > b.name ? 1 : 0); });
+}
+
+function getMethodsOf(excludes, obj) {
+    return propertyExtract(excludes, obj, function(key) {
+        if (typeof obj[key] !== 'function') return null;
+        return {name: key, completion: signatureOf(key, obj[key])}; })
+}
+
+function getAttributesOf(excludes, obj) {
+    return propertyExtract(excludes, obj, function(key) {
+        if (typeof obj[key] === 'function') return null;
+        return {name: key, completion: key}; })
+}
+
+function getProtoChain(obj) {
+    var protos = [], proto = obj;
+    while (obj) { protos.push(obj); obj = obj.__proto__ }
+    return protos;
+}
+
+function getDescriptorOf(originalObj, proto) {
+    if (originalObj === proto) {
+        var descr = originalObj.toString()
+        if (descr.length > 50) descr = descr.slice(0,50) + '...';
+        return descr;
+    }
+    var klass = proto.hasOwnProperty('constructor') && proto.constructor;
+    if (!klass) return 'prototype';
+    if (typeof klass.type === 'string' && klass.type.length) return klass.type;
+    if (typeof klass.name === 'string' && klass.name.length) return klass.name;
+    return "anonymous class";
+}
+
+function getCompletions(evalFunc, string, thenDo) {
+    // thendo = function(err, completions/*ARRAY*/)
+    // eval string and for the resulting object find attributes and methods,
+    // grouped by its prototype / class chain
+    // if string is something like "foo().bar.baz" then treat "baz" as start
+    // letters = filter for properties of foo().bar
+    // ("foo().bar.baz." for props of the result of the complete string)
+    getObjectForCompletion(evalFunc, string, function(err, obj, startLetters) {
+        if (err) { thenDo(err); return }
+        var excludes = [];
+        var completions = getProtoChain(obj).map(function(proto) {
+            var descr = getDescriptorOf(obj, proto),
+                methodsAndAttributes = getMethodsOf(excludes, proto)
+                    .concat(getAttributesOf(excludes, proto));
+            excludes = excludes.concat(pluck(methodsAndAttributes, 'name'));
+            return [descr, pluck(methodsAndAttributes, 'completion')];
+        });
+        thenDo(err, completions);
+    })
+}
+
+/*
+(function testCompletion() {
+    function assertCompletions(err, completions) {
+        assert(!err, 'getCompletions error: ' + err);
+        assert(completions.length === 3, 'completions does not contain 3 groups ' + completions.length)
+        assert(completions[2][0] === 'Object', 'last completion group is Object')
+        objectCompletions = completions.slice(0,2)
+        expected = [["[object Object]", ["m1(a)","m2(x)","a"]],
+                    ["prototype", ["m3(a,b,c)"]]]
+        assert(Objects.equal(expected, objectCompletions), 'compl not equal');
+        alertOK('all good!')
+        
+    }
+    function evalFunc(string) { return eval(string); }
+    var code = "obj1 = {m2: function() {}, m3:function(a,b,c) {}}\n"
+             + "obj2 = {a: 3, m1: function(a) {}, m2:function(x) {}, __proto__: obj1}\n"
+             + "obj2."
+    getCompletions(evalFunc, code, assertCompletions)
+})();
+*/
+    
     },
     evalSelectionAndOpenNarrower: function() {
-        var obj = this.evalCurrentSelection(this.textMorph);
-        if (!obj) return;
-        var candidates = this.getListForProtocolOf(obj).reduce(function(candidates, protoItem) {
-            var protoName = protoItem[0], protoList = protoItem[1];
-            candidates.pushAll(protoList.map(function(funcNameAndCompleter) {
-                var name = funcNameAndCompleter[0], completer = funcNameAndCompleter[1];
-                return {isListItem: true, string: '[' + protoName + '] ' + name, value: completer}
-            }));
-            return candidates;
-        }, []);
+        var evalIt = this.textMorph.boundEval.bind(this.textMorph),
+            code = this.textMorph.getSelectionOrLineString();
+        this.openNarrower(this.getCompletions(code, evalIt));
+    }
+},
+'accessing', {
+
+    openNarrower: function(completions) {
+        var complete = function(completion) {
+                this.printObject(this.aceEditor, completion, true); }.bind(this.textMorph),
+            candidates = completions.reduce(function(candidates, protoGroup) {
+                var protoName = protoGroup[0], completions = protoGroup[1];
+                return candidates.concat(completions.map(function(completion) {
+                    return {
+                        isListItem: true,
+                        string: '[' + protoName + '] ' + completion,
+                        value: complete.curry(completion)
+                    }
+                }));
+            }, []);
         lively.ide.tools.SelectionNarrowing.getNarrower({
+            name: 'lively.morphic.Text.ProtocolLister.CompletionNarrower',
             setup: function(narrower) {
                 lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'remove');
                 lively.bindings.connect(narrower, 'escapePressed', narrower, 'remove');
@@ -2368,78 +2507,20 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
                 actions: [{name: 'insert completion', exec: function(candidate) { candidate(); }}]
             }
         });
-    }
-
-
-},
-'accessing', {
-
-    getPrototypeChainOf: function(obj) {
-        var result = [obj], proto = lively.Class.getPrototype(obj);
-        while(proto) { result.push(proto); proto = lively.Class.getSuperPrototype(proto) }
-        return result;
     },
 
-    funcSignaturesOf: function(obj) {
-        var funcs = obj && obj.nodeType ? Functions.all(obj) : Functions.own(obj)
-        funcs = funcs.select(function(name) { return !lively.Class.isClass(obj[name]) });
-        return funcs.collect(function(name) {
-            var source = obj[name].toString(),
-                match = source.match(/function\s*[a-zA-Z0-9_$]*\s*\(([^\)]*)\)/),
-                params = (match && match[1]) || '';
-            return name + '(' + params + ')';
-        }).sort()
-    },
-
-    getListForProtocolOf: function(obj) {
-        var items = this.getPrototypeChainOf(obj).collect(function(proto) {
-            return this.menuItemForProto(obj, proto, this.startLetters || '');
-        }, this).compact();
-        delete this.startLetters;
-        return items;
-    },
-
-    menuItemForProto: function(originalObject, proto, startLetters) {
-        var subItems = this.funcSignaturesOf(proto).collect(function(signa) {
-            return signa.toString().startsWith(startLetters) && this.createSubMenuItemFromSignature(signa, startLetters);
-        }, this).compact();
-        if (subItems.length == 0) return null;
-        var name = (originalObject === proto) ? originalObject.toString().truncate(60) :
-            proto.constructor.type || proto.constructor.name || 'prototype';
-        return [name, subItems];
-    },
-
-    createSubMenuItemFromSignature: function(signature, optStartLetters) {
-        var textMorph = this.textMorph,
-            range = textMorph && textMorph.getSelectionRange();
-        var replacer = signature;
-        if (typeof(optStartLetters) !== 'undefined') {
-            replacer = signature.substring(optStartLetters.size());
+    createSubMenuItemForCompletion: function(completionString, optStartLetters, type) {
+        var itemString = completionString;
+        if (type) itemString += ' ' + type;
+        var textMorph = this.textMorph;
+            if (typeof(optStartLetters) !== 'undefined') {
+            completionString = completionString.substring(optStartLetters.size());
         }
-        if (textMorph.getTextString().indexOf('.') < 0) {
-            replacer = '.' + replacer;
-        }
-        return [signature, function() {
-            // FIXME not sure if this has to be delayed
-            (function() {
-                textMorph.focus();
-                range && textMorph.setSelectionRange(range[0], range[1]);
-                textMorph.insertAtCursor(replacer, true);
-            }).delay(0)
+        return [itemString, function() {
+            textMorph.focus();
+            textMorph.clearSelection();
+            textMorph.insertAtCursor(completionString, true);
         }];
-    },
-
-    evalCurrentSelection: function(textMorph) {
-        var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString()),
-            idx = selection.lastIndexOf('.'),
-            startLetters = '';
-        if (idx >= 0) {
-            startLetters = selection.substring(idx+1);
-            selection = selection.slice(0,idx);
-        }
-        var evaled = textMorph.tryBoundEval(selection);
-        this.startLetters = startLetters;
-        return evaled;
     }
 
 });

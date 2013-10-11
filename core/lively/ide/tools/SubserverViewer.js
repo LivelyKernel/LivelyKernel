@@ -1,4 +1,4 @@
-module('lively.ide.tools.SubserverViewer').requires('lively.persistence.BuildSpec').toRun(function() {
+module('lively.ide.tools.SubserverViewer').requires('lively.persistence.BuildSpec', 'lively.ide.tools.ServerWorkspace').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.SubserverViewer', {
     _BorderColor: Color.rgb(204,0,0),
@@ -65,6 +65,7 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
                 resizeWidth: true
             },
             name: "StatusText",
+            textString: 'no subserver selected',
             sourceModule: "lively.morphic.TextCore",
         },{
             _BorderColor: Color.rgb(189,190,192),
@@ -112,46 +113,6 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             lively.bindings.connect(this, "fire", this.get("SubserverViewer"), "removeSubserver", {});
         },
         },{
-            _BorderColor: Color.rgb(95,94,95),
-            _BorderWidth: 1,
-            _Extent: lively.pt(603.0,331.0),
-            _FontSize: 12,
-            _Position: lively.pt(173.0,5.0),
-            _StyleSheet: "#ace-editor {\n\
-            position: absolute;\n\
-        	top: 0;\n\
-        	bottom: 0;\n\
-        	left: 0;\n\
-        	right: 0;\n\
-        }",
-            accessibleInInactiveWindow: true,
-            allowInput: true,
-            className: "lively.morphic.CodeEditor",
-            doNotSerialize: ["whenOpenedInWorldCallbacks"],
-            layout: {
-                resizeHeight: true,
-                resizeWidth: true
-            },
-            name: "ServerSourceCode",
-            sourceModule: "lively.ide.CodeEditor",
-            storedString: "",
-            storedTextString: "",
-            textMode: "javascript",
-            theme: "twilight",
-            boundEval: function boundEval(string) {
-                        var nodejsServer = URL.create(Config.nodeJSURL).asDirectory().withFilename('NodeJSEvalServer/').asWebResource();
-                        return nodejsServer.post(string).content;
-                    },
-            connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "savedTextString", this.get("SubserverViewer"), "writeServerSource", {});
-        },
-            printInspect: function printInspect() {
-                        var s = this.getSelectionMaybeInComment();
-                        s = 'require("util").inspect(' + s + ', null, 0)';
-                        var result = this.tryBoundEval(s);
-                        this.printObject(null, result);
-                    }
-        },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
             _BorderWidth: 1,
@@ -196,9 +157,11 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
             this.nodejsURL = URL.root.withFilename('nodejs/');
             this.subserverURL = this.nodejsURL.withFilename('subservers/');
             this.listSubservers();
+            this.setupEditor();
         },
         onWindowGetsFocus: function onWindowGetsFocus() {
-            this.get('ServerSourceCode').focus();
+            var ed = this.get('ServerSourceCode')
+            ed && ed.focus();
         },
         reallyAddSubserver: function reallyAddSubserver(serverName) {
             var src = "module.exports = function(route, app) {\n"
@@ -250,6 +213,17 @@ lively.BuildSpec('lively.ide.tools.SubserverViewer', {
         },
         selectServer: function selectServer(serverName) {
             this.get('ServerList').setSelection(serverName);
+        },
+        setupEditor: function setupEditor() {
+            if (this.get('ServerSourceCode')) return; // editor already there
+            var editor = lively.BuildSpec('lively.ide.tools.ServerWorkspace').createMorph().targetMorph;;
+            editor.name = "ServerSourceCode";
+            this.addMorph(editor).applyStyle({
+                position: lively.pt(173.0,5.0),
+                extent: lively.pt(603.0,331.0),
+                theme: "twilight"
+            })
+            lively.bindings.connect(editor, "savedTextString", this, "writeServerSource");
         },
         setStatus: function setStatus(msg) {
             this.get("StatusText").textString = msg;

@@ -29,6 +29,17 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
             var nodejsServer = this.serverURL.asWebResource();
             return nodejsServer.post(string).content;
         },
+        getCompletions: function getCompletions(string) {
+            // this.getCompletions('lively.re')
+            var nodejsServer = this.serverURL.withFilename('completions').asWebResource();
+            var result = nodejsServer.post(JSON.stringify({string: string}), 'application/json').content;
+            return JSON.parse(result);
+        },
+        doListProtocol: function doListProtocol() {
+            var string = this.getSelectionOrLineString(),
+                completions = this.getCompletions(string);
+            new lively.morphic.Text.ProtocolLister(this).openNarrower(completions);
+        },
         printInspect: function printInspect() {
             var s = this.getSelectionMaybeInComment();
             s = 'require("util").inspect(' + s + ', null, 0)';
@@ -37,7 +48,7 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
         },
         setServerURL: function setServerURL(url) {
             this.serverURL = new URL(url);
-            this.owner.setTitle('ServerWorkspace -- ' + this.serverURL);
+            this.owner.setTitle && this.owner.setTitle('ServerWorkspace -- ' + this.serverURL);
         },
         setServerURLInteractively: function setServerURL() {
             this.world().prompt('Change server URL', function(url) {

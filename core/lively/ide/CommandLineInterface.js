@@ -275,6 +275,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     getWorkingDirectory: function() {
+        // the directory the commandline server runs with
         var webR = this.commandLineServerURL.asWebResource().beSync();
         try {
             return JSON.parse(webR.get().content).cwd;
@@ -282,6 +283,18 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     setWorkingDirectory: function(dir) { return this.rootDirectory = dir; },
+
+    cwd: function() { return this.rootDirectory || this.getWorkingDirectory(); },
+
+    makeAbsolute: function(path) {
+        var isAbsolute = !!(path.match(/^\s*[a-zA-Z]:\\/) || path.match(/^\s*\/.*/));
+        if (isAbsolute) return path;
+        var platform = lively.shell.getServerPlatform(),
+            sep = platform.match(/^win/) ? '\\' : '/',
+            baseDir = lively.shell.cwd(),
+            needsSep = baseDir[baseDir.length-1] !== sep && path[0] === sep;
+        return baseDir + (needsSep ? '/' : '') + path;
+    },
 
     readFile: function(path, options, thenDo) {
         options = options || {};

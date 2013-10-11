@@ -182,7 +182,16 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         }
     },
     loadFileFileSystem: function loadFileFileSystem() {
-        var path = this.getLocation(true);
+        var path = this.getLocation(true),
+            cwd = lively.shell.cwd();
+        // if (path.indexOf(cwd) === 0) {
+        //     path = path.slice(cwd.length);
+        //     if (path[0] === '/' || path[0] === '\\') path = path.slice(1);
+        //     var urlText = this.get('urlText');
+        //     lively.bindings.noUpdate(function() {
+        //         urlText.textString = path;
+        //     });
+        // }
         lively.ide.CommandLineInterface.readFile(path, {}, function(cmd) {
             var err = cmd.getCode() && cmd.getStderr();
             if (err) { this.message(Strings.format("Could not read file.\nError: %s", err)); return; }
@@ -203,7 +212,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         }
     },
     saveFileFileSystem: function saveFileFileSystem() {
-        var path = this.getLocation(true), content = this.get('editor').textString;
+        var path = lively.shell.makeAbsolute(this.getLocation(true)),
+            content = this.get('editor').textString;
         lively.ide.CommandLineInterface.writeFile(path, {content: content}, function(cmd) {
             var err = cmd.getCode() && cmd.getStderr();
             if (err) { this.message(Strings.format("Could not write file.\nError: %s", err), Color.red); return; }
@@ -216,7 +226,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         webR.statusMessage(webR.getURL() + ' saved', webR.getURL() + ' could not be saved!');
         webR.beAsync().put(this.get('editor').textString);
     },
-    updateWindowTitle: function() {
+    updateWindowTitle: function updateWindowTitle() {
         var location = this.getLocation();
         this.setTitle(String(location));
     },
@@ -238,7 +248,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             this.get('editor').focus(); evt.stop(); return true;
         } else if (keys === "Command-U") {
             $world.confirm('Revert input / reload file?', function(input) {
-                if (!input) { alertOK('Rever canceled'); return; }
+                if (!input) { alertOK('Revert canceled'); return; }
                 this.loadFile();
             }.bind(this));
             return true;

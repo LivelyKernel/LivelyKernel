@@ -669,7 +669,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
-    printObject: function(editor, obj) {
+    printObject: function(editor, obj, suppressSelection) {
         // inserts a stringified representation of object into editor
         // the current selection is cleared and the stringified representation
         // is inserted at the end (in terms of document position) of the current
@@ -683,7 +683,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             sel.moveCursorToPosition(range.end); sel.clearSelection();
             var string = obj instanceof Error ? printError(obj) : String(obj);
             ed.onPaste(string);
-            sel.setRange(range.constructor.fromPoints(range.end, sel.getCursor()));
+            if (!suppressSelection) {
+                var newRange = range.constructor.fromPoints(range.end, sel.getCursor());
+                sel.setRange(newRange);
+            }
         }
         if (editor) insert(editor); else this.withAceDo(insert);
     },

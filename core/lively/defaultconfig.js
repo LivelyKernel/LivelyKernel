@@ -306,6 +306,24 @@ Global.Config = {
 
 (function addConfigOptions(Config, UserAgent, ExistingConfig) {
 
+// support for loading from blob urls, e.g. in workers
+if (Config.location.protocol.indexOf('blob') > -1) {
+    var isEncoded = !!Config.location.pathname.match(/https?%3A/);
+    var decoded = Config.location.pathname;
+    if (isEncoded) decoded = decodeURIComponent(decoded);
+    var urlMatch = decoded.match(/([^:]+:)\/\/([^\/]+)(.*)/);
+    if (urlMatch) {
+        Config.location = {
+            protocol: urlMatch[1],
+            host: urlMatch[2],
+            pathname: urlMatch[3],
+            toString: function() {
+                return this.protocol + '//' + this.host + this.pathname;
+            }
+        }
+    }
+}
+
 var host = Config.location.host,
     protocol = Config.location.protocol,
     url = Config.location.toString();

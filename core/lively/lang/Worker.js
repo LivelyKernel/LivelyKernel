@@ -36,8 +36,8 @@ lively.Worker = {
         // creation of the worker and sends the setup message to the worker
         // for initializing it.
         function init(worker) {
-            var bootstrapFiles = LivelyLoader.bootstrapFiles.map(function(url) {
-                return '/' + URL.create(url).relativePathFrom(URL.root); });
+            var bootstrapFiles = LivelyLoader.bootstrapFiles/*.map(function(url) {
+                return '/' + URL.create(url).relativePathFrom(URL.root); });*/
             worker.postMessage({
                 command: 'setup',
                 options: {
@@ -101,8 +101,8 @@ lively.Worker = {
                 var loadedURLs = [];
                 Global.JSLoader = {
                     loadJs: function(url, callback) {
-                        var match = url.match(/http:\/\/[^\/]+(\/?.*)/);
-                        if (match && match[1]) url = match[1];
+                        // var match = url.match(/http:\/\/[^\/]+(\/?.*)/);
+                        // if (match && match[1]) url = match[1];
                         loadedURLs.push(url);
                         importScripts(url);
                     },
@@ -161,19 +161,25 @@ lively.Worker = {
             }
         }
 
-        // temporarily create a file with the worker setup code
-        // rk 05/08/13: tried out the blob object in Chrome as described in
-        // http://www.html5rocks.com/en/tutorials/workers/basics/
-        // but with no success
+        function makeDataURI(codeToInclude) {
+            // see http://stackoverflow.com/questions/10343913/how-to-create-a-web-worker-from-a-string
+            var blob;
+            try {
+                blob = new Blob([codeToInclude]);
+            } catch (e) { // Backwards-compatibility
+                window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+                blob = new BlobBuilder();
+                blob.append(codeToInclude);
+                blob = blob.getBlob();
+            }
+            return URL.createObjectURL(blob)
+        }
         var workerCode = Strings.format('(%s)();', String(workerSetupCode));
         if (customInitFunc) {
             var code = Strings.format('(%s)();', customInitFunc);
             workerCode += '\n' + code;
         }
-        var codeFile = URL.root.getDirectory().withFilename('temp-worker-code.js').asWebResource();
-        codeFile.put(workerCode);
-        var worker = new Worker(codeFile.getURL().toString());
-        lively.bindings.connect(worker, 'ready', codeFile, 'del');
+        var worker = new Worker(makeDataURI(workerCode));
         init(worker);
         return worker;
     }

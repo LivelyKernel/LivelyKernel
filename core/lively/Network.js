@@ -37,6 +37,7 @@ module('lively.Network').requires('lively.bindings', 'lively.Data', 'lively.net.
         Global._URL = Global.URL;
     }
 })();
+
 Object.subclass('URL', {
     isURL: true,
     splitter: new RegExp('^(http|https|file)://([^/:]*)(:([0-9]+))?(/.*)?$'),
@@ -317,12 +318,12 @@ Object.subclass('URL', {
 
 // create URLs often needed
 Object.extend(URL, {
-    source: new URL(Global.document.URL),
+    source: new URL(Config.location.toString()),
     codeBase: (function setURLCodeBase() {
         var url;
         try { url = new URL(Config.codeBase) } catch(e) {
             console.warn('Cannot correctly set URL.codeBase because of ' + e);
-            url = new URL(Global.document.URL).getDirectory();
+            url = new URL(Config.location.toString()).getDirectory();
         }
         return url.withRelativePartsResolved();
     })(),
@@ -330,7 +331,7 @@ Object.extend(URL, {
         var url;
         try { url = new URL(Config.rootPath) } catch(e) {
             console.warn('Cannot correctly set URL.rootPath because of ' + e);
-            url = new URL(Global.document.URL).getDirectory();
+            url = new URL(Config.location.toString()).getDirectory();
         }
         return url.withRelativePartsResolved();
     })(),
@@ -356,7 +357,7 @@ Object.extend(URL, {
         wiki:   URL.proxy.withFilename('lively-wiki/'),
         repository: URL.proxy.withFilename('lively-kernel/'),
         project: URL.proxy.withFilename('lively-project/'),  // currently lively-kernel.org
-        domain: new URL(Global.document.location.protocol + '//' + Global.document.location.host)
+        domain: new URL(Config.location.protocol + '//' + Config.location.host)
     },
 });
 
@@ -507,7 +508,7 @@ View.subclass('NetRequest',
     },
 
     requestNetworkAccess: function() {
-        if (Global.netscape && Global.location.protocol == "file:") {
+        if (Global.netscape && Config.location.protocol == "file:") {
             try {
                 netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
                 console.log("requested browser read privilege");

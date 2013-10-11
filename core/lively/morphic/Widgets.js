@@ -2526,7 +2526,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             }, this);
 
             // Bring this window forward if it wasn't already
-            this.owner && this.owner.addMorphFront(this);
+            this.comeForward();
             this.targetMorph.onWindowExpand && this.targetMorph.onWindowExpand();
         }.bind(this);
         if (this.expandedPosition && this.expandedPosition.dist(this.getPosition()) > 100)

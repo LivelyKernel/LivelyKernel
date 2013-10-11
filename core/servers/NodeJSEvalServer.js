@@ -163,5 +163,51 @@ module.exports = d.bind(function(route, app, subserver) {
     });
 
     app.post(route+'async', function(req, res) {
+        // req should contain json {
+        //   code: STRING,
+        //    [timeout: NUMBER,]
+        //    [callback: STRING]}
+        // if callback is null just eval code and return the
+        // stringified result. if callback is defined do not return result
+        // immediatelly. instead the evaluated code is expected to invoke
+        // global[callback](resultString) itself. This way the user can decide
+        // when the evaluation is finished and what to send back. Times out after
+        // timeout milliseconds
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var code = req.body && req.body.code,
+            callbackName = req.body && req.body.callback,
+            timeout = (req.body && req.body.timeout) || 500,
+            resultSend = false, evalError = false, evalResult;
+        d.run(doEval);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function finishEval() {
+            if (evalError || !callbackName) { sendResult(evalResult); return; }
+            setTimeout(function() {
+                if (resultSend) return;
+                var msg = util.format('Async eval of %s timed out', code.slice(0,40));
+                console.log(msg);
+                sendResult(msg);
+            }, timeout);
+        }
+        function sendResult(result) {
+            resultSend = true;
+            if (callbackName) delete global[callbackName];
+            if (evalError) res.status(400);
+            try {
+                res.send(String(result)).end();
+            } catch(e) {
+                res.status(500).end(String(e))
+            }
+        }
+        function doEval() {
+            try {
+                if (callbackName) global[callbackName] = sendResult;
+                evalResult = eval(code);
+            } catch(e) {
+                evalResult = e;
+                evalError = true;
+            }
+            finishEval();
+        }
     });
 })

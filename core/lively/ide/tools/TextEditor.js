@@ -88,10 +88,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             name: 'editor',
             evalEnabled: false,
             grabbingEnabled: false,
-            layout: {
-                resizeHeight: true,
-                resizeWidth: true
-            },
+            theme: Config.get("aceTextEditorTheme"),
+            layout: {resizeHeight: true,resizeWidth: true},
             sourceModule: "lively.ide.CodeEditor",
             textString: ""
         }]

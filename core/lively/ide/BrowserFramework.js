@@ -84,6 +84,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             fixedHeight: true, fixedWidth: true,
             fontFamily: Config.get('defaultCodeFontFamily'),
             fontSize: Config.get('defaultCodeFontSize'),
+            theme: Config.get('aceSystemCodeBrowserTheme'),
             accessibleInInactiveWindow: true,
             // layouting poliy
             padding: Rectangle.inset(5,5,5,5),

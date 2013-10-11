@@ -584,6 +584,14 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.GridTest', {
         this.assertEqualState(
             [{a:1,b:2},{a:3,b:4}],
             Grid.toObjects([['a', 'b'],[1,2],[3,4]]));
+    },
+
+    testTableFromObjects: function() {
+        var objects = [{x:1,y:2},{x:3},{z:4}],
+            expected = [["x","y","z"],[1,2,null],[3,null,null],[null,null,4]];
+        this.assertEqualState(
+            expected,
+            Grid.tableFromObjects(objects));
     }
 });
 

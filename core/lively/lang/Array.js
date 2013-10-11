@@ -550,6 +550,7 @@ Global.Arrays = {
 }
 
 Global.Grid = {
+
     create: function(rows, columns, initialObj) {
         var result = new Array(rows);
         while (rows > 0) result[--rows] = Array.withN(columns, initialObj);
@@ -598,6 +599,30 @@ Global.Grid = {
             for (var j = 0; j < props.length; j++) obj[props[j]] = grid[i][j];
         }
         return objects;
+    },
+
+    tableFromObjects: function(objects, valueForUndefined) {
+        // reverse of Grid.toObjects
+        // useful to convert objectified SQL resultset into table that can be
+        // printed via Strings.printTable. objects are key/values like [{x:1,y:2},{x:3},{z:4}]
+        // interpret the keys as column names and add ea objects values as cell
+        // values of a new row. For the example object this would create the
+        // table: [["x","y","z"],[1,2,null],[3,null,null],[null,null,4]]
+        var table = [[]], columns = table[0],
+            rows = objects.inject([], function(rows, ea) {
+                return rows.concat([Object.keys(ea).inject([], function(row, col) {
+                    var colIdx = columns.indexOf(col);
+                    if (colIdx === -1) { colIdx = columns.length; columns.push(col); }
+                    row[colIdx] = ea[col];
+                    return row;
+                })]);
+            });
+        valueForUndefined = arguments.length === 1 ? null : valueForUndefined;
+        rows.forEach(function(row) {
+            // fill cells with no value with null
+            for (var i = 0; i < columns.length; i++) if (!row[i]) row[i] = valueForUndefined;
+        });
+        return table.concat(rows);
     },
 
     benchmark: function() {

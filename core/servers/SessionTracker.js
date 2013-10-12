@@ -599,9 +599,52 @@ SessionTracker.default = function() {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// user data experiment
+lively.userData = (function setupUserDataExpt() {
+    // first approach to a login/user system. does not really belong here!
+    var cookieField = 'lvUserData_2013-10-12';
+    function getStoredUserData(sess) {
+        if (!sess) return null;
+        return sess[cookieField] || (sess[cookieField] = {});
+    }
+    
+    var userData = {};
+    
+    userData.getUserDataFromRequest = function(request) {
+        return request.session && getStoredUserData(request.session);
+    }
+
+    userData.getUserName = function(request) {
+        var stored = this.getUserDataFromRequest(request);
+        return stored && stored.username;
+    }
+
+    userData.registerHTTPHandlers = function(app, server) {
+        app.post('/login', function(req, res) {
+            var data = req.body,
+                stored = userData.getUserDataFromRequest(req);
+            if (!data) { res.status(400).end('no data'); return; }
+            if (!stored) { res.status(400).end('cannot access stored data'); return; }
+            console.log('user %s logged in', data.username);
+            stored.username = data.username || 'unknown user';
+            stored.email = data.email || null;
+            stored.lastLogin = new Date().toISOString();
+            res.end();
+        });
+        app.get('/login', function(req, res) {
+            var stored = getStoredUserData(req.session);
+            res.json(stored).end();
+        });
+    };
+
+    return userData;
+})();
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // setup HTTP / websocket interface
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 module.exports = function(route, app, subserver) {
+
+    lively.userData.registerHTTPHandlers(app, subserver);
 
     // will register a default session tracker, route is usually
     // Config.nodeJSURL + '/SessionTracker/'

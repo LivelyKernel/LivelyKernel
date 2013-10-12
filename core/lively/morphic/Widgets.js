@@ -1930,18 +1930,6 @@ openReferencingMethodFinder: function () {
     },
 },
 'preferences', {
-    askForUserName: function() {
-        var world = this;
-        this.prompt("Please enter your username", function(name) {
-            if (name && name.length > 0) {
-                world.setCurrentUser(name);
-                alertOK("set username to: " + name);
-            } else {
-                alertOK("removing username")
-                world.setCurrentUser(undefined);
-            }
-        }, world.getUserName(true));
-    },
     askForNewWorldExtent: function() {
         var world = this;
         this.prompt("Please enter new world extent", function(str) {
@@ -1982,10 +1970,25 @@ openReferencingMethodFinder: function () {
             alertOK("Set world background to " +  newColor);
         }, "Color." + oldColor)
     },
+    askForUserName: function() {
+        var world = this;
+        this.prompt("Please enter your username", function(name) {
+            if (name && name.length > 0) {
+                world.setCurrentUser(name);
+                alertOK("set username to: " + name);
+            } else {
+                alertOK("removing username")
+                world.setCurrentUser(undefined);
+            }
+        }, world.getUserName(true));
+    },
     setCurrentUser: function(username) {
         this.currentUser = username;
         if (lively.LocalStorage)
             lively.LocalStorage.set('UserName', username);
+        require('lively.net.SessionTracker').toRun(function() {
+            lively.net.SessionTracker.serverLogin();
+        });
     },
 },
 'morph selection', {

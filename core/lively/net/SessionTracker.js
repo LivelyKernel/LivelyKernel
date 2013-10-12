@@ -450,4 +450,20 @@ Object.extend(lively.net.SessionTracker, {
     });
 })();
 
+Object.extend(lively.net.SessionTracker, {
+    serverLogin: function(thenDo) {
+        var data = {username: $world.getUserName(true), email: null};
+        URL.root.withFilename('login').asWebResource()
+            .beAsync().post(JSON.stringify(data), 'application/json')
+            .whenDone(function(_,status) {
+                thenDo && thenDo(status.isSuccess() ? null : status); });
+    }
+});
+
+(function serverLogin() {
+    lively.whenLoaded(function(world) {
+        lively.net.SessionTracker.serverLogin();
+    });
+})();
+
 }) // end of module

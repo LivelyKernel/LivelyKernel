@@ -56,6 +56,10 @@ Object.extend(lively.ide.commands.byName, {
         description: 'set world extent',
         exec: function() { $world.askForNewWorldExtent(); }
     },
+    'lively.morphic.World.resetScale': {
+        description: 'reset world scale',
+        exec: function() { $world.setScale(1); }
+    },
     // morphic
     'lively.morphic.Halos.show': {
         description: 'show halo',

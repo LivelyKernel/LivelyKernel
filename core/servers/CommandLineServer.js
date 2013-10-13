@@ -3,7 +3,12 @@ var spawn = require('child_process').spawn,
     util = require('util'),
     i = util.inspect,
     dir = process.env.WORKSPACE_LK,
-    debug = false;
+    debug = false,
+    d = require("domain").create();
+
+d.on('error', function(err) {
+    console.error('CommandLinerServer error:', err);
+});
 
 // [{process: null, stdout: '', stderr: '', lastExitCode: null}]
 var shellCommands = global.shellCommands = [];
@@ -36,6 +41,7 @@ function startSpawn(cmdInstructions) {
 
     if (debug) console.log('Running command: %s', [command].concat(args));
     var proc = spawn(command, args, options);
+    d.add(proc);
     if (stdin) {
         debug && console.log('setting stdin to: %s', stdin);
         proc.stdin.end(stdin);
@@ -96,7 +102,7 @@ function formattedResponseText(type, data) {
     return '<SHELLCOMMAND$' + type.toUpperCase() + s.length + '>' + s;
 }
 
-module.exports = function(route, app) {
+module.exports = d.bind(function(route, app) {
 
     app.get(route, function(req, res) {
         res.json({cwd: dir});
@@ -166,7 +172,7 @@ module.exports = function(route, app) {
         });
     });
 
-}
+});
 
 module.exports.shellCommands = shellCommands;
 module.exports.runShellCommand = runShellCommand;

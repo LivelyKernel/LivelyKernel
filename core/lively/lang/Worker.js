@@ -172,7 +172,8 @@ lively.Worker = {
                 blob.append(codeToInclude);
                 blob = blob.getBlob();
             }
-            return URL.createObjectURL(blob)
+            var urlInterface = typeof webkitURL !== 'undefined' ? webkitURL : URL;
+            return urlInterface.createObjectURL(blob);
         }
         var workerCode = Strings.format('(%s)();', String(workerSetupCode));
         if (customInitFunc) {

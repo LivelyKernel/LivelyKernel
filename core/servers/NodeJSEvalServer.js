@@ -76,13 +76,13 @@ function propertyExtract(excludes, obj, extractor) {
 
 function getMethodsOf(excludes, obj) {
     return propertyExtract(excludes, obj, function(key) {
-        if (typeof obj[key] !== 'function') return null;
+        if (obj.__lookupGetter__(key) || typeof obj[key] !== 'function') return null;
         return {name: key, completion: signatureOf(key, obj[key])}; })
 }
 
 function getAttributesOf(excludes, obj) {
     return propertyExtract(excludes, obj, function(key) {
-        if (typeof obj[key] === 'function') return null;
+        if (!obj.__lookupGetter__(key) && typeof obj[key] === 'function') return null;
         return {name: key, completion: key}; })
 }
 

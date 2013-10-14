@@ -1,6 +1,6 @@
 // try to use StringBuffer instead of string concatenation to improve performance
 
-function StringBuffer() {
+StringBuffer = function StringBuffer() {
   this.strings = []
   for (var idx = 0; idx < arguments.length; idx++)
     this.nextPutAll(arguments[idx])
@@ -126,7 +126,7 @@ escapeChar = function(c) {
     return "\\u" + charCode.toString(16).pad("0", 4)
 }
 
-function ometaUnescape(s) {
+ometaUnescape = function ometaUnescape(s) {
   if (s.charAt(0) == '\\')
     switch (s.charAt(1)) {
       case "'":  return "'"

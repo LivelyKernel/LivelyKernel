@@ -628,11 +628,11 @@
                 el.setAttributeNS(null, 'id', url);
                 console.log(exactUrl);
                 return loadSync ?
-                    this.loadSync(exactUrl, onLoadCb, el) :
+                    this.loadSync(exactUrl, onLoadCb) :
                     this.loadAsync(exactUrl, onLoadCb, el);
             },
 
-        loadSync: function(url, onLoadCb, script) {
+        loadSync: function(url, onLoadCb) {
             if (this.isCSS(url)) {
                 console.log('skipping eval for css: ' + url);
                 if (typeof onLoadCb === 'function') onLoadCb();
@@ -655,11 +655,16 @@
                 script.setAttribute("href", url);
                 if (typeof onLoadCb === 'function') onLoadCb(); // huh?
             } else {
-                script.setAttributeNS(null, 'src', url);
+                this.getAsync(url, false, function(response) {
+                    try {
+                        eval(response);
+                    } catch (e) {
+                        console.error('Error when loading %s: %s\n%s', url, e,
+                                e.stack);
+                    }
+                    if (typeof onLoadCb === 'function') onLoadCb();
+                });
             }
-
-            if (onLoadCb) script.onload = onLoadCb;
-            script.setAttributeNS(null, 'async', true);
         },
 
         loadCombinedModules: function(combinedFileUrl, callback, hash) {
@@ -868,12 +873,50 @@
             req.send();
             return req;
         },
-
+        
         getSync: function(url, forceUncached) {
             var req = this.getSyncReq(url, forceUncached);
             return req.status < 400 ? req.responseText : null;
         },
+        
+        getAsync: function(url, forceUncached, callback) {
+            var cb = function(req) {
+                callback(req.status < 400 ? req.responseText : null);
+            }
+            this.getAsyncReq(url, forceUncached, cb);
+        },
 
+
+        getAsync: function(url, forceUncached, callback) {
+            if (typeof WebResource !== "undefined") {
+                var webR = new WebResource(url);
+                
+                if (forceUncached) webR.forceUncached();
+                webR.beAsync();
+                
+                connect(webR, 'content', {cb: function(content){
+                        if (webR.status && webR.status.isDone()) {
+                            callback(webR.status.isSuccess() ? content : null);
+                        }
+                    }
+                }, 'cb');
+                
+                var webRGet = webR.get();
+            } else {
+                var req = new XMLHttpRequest();
+                
+                if (forceUncached) url = this.makeUncached(url);
+                req.open('GET', url, true/*async*/);
+                
+                req.onload = function() {
+                    if (req.readyState = 4) {
+                        callback(req.responseText);
+                    }
+                }
+                req.send();
+            }
+        },
+        
         getSyncStatus: function(url, forceUncached) {
             return this.getSyncReq(url, forceUncached).status;
         },

@@ -580,7 +580,7 @@ Global.Grid = {
 // Intervals are arrays whose first two elements are numbers and the
 // first element should be less or equal the second element, see
 // #isInterval
-var Interval = {
+Interval = {
 
     isInterval: function(object) {
         return Object.isArray(object) && object.length >= 2 && object[0] <= object[1];

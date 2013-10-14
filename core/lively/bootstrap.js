@@ -950,6 +950,8 @@
             'lively/lang/Date.js',
             'lively/lang/Worker.js',
             'lively/defaultconfig.js',
+            'lively/versions/SourceTransformations.js',
+            'lively/versions/ObjectVersioning.js',
             'lively/Base.js',
             'lively/ModuleSystem.js'
         ],

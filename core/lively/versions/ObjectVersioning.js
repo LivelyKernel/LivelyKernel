@@ -1,6 +1,4 @@
-module('lively.versions.ObjectVersioning').requires('lively.versions.SourceTransformations').toRun(function() {
-    
-Object.extend(lively.versions.ObjectVersioning, {
+lively.ObjectVersioning = {
     versioningProxyHandler: function(objectID) {
         return {
             // the versioning proxies are fully virtual. so, the first
@@ -16,13 +14,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return this.getObjectByID(this.__objectID);
             },
             getObjectByID: function(id) {
-                return lively.versions.ObjectVersioning.getObjectByID(id);
+                return lively.ObjectVersioning.getObjectByID(id);
             },
             ensureNonPrimitiveObjectIsProxied: function(obj) {
-                var livelyOV = lively.versions.ObjectVersioning;
+                var livelyOV = lively.ObjectVersioning;
                 
                 if (!livelyOV.isProxy(obj) && !livelyOV.isPrimitiveObject(obj)) {
-                    return lively.versions.ObjectVersioning.proxyFor(obj);
+                    return lively.ObjectVersioning.proxyFor(obj);
                 } else {
                     return obj;
                 }
@@ -100,7 +98,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             },
             apply: function(virtualTarget, thisArg, args) {
                 var result,
-                    OV = lively.versions.ObjectVersioning,
+                    OV = lively.ObjectVersioning,
                     method = this.targetObject(),
                     targetObject = thisArg;
                 
@@ -205,10 +203,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return Object.isExtensible(this.targetObject());
             },
         };
-    }
-});
-
-Object.extend(lively.versions.ObjectVersioning, {
+    },
     init: function() {
         if (!lively.CurrentObjectTable) {
             lively.CurrentObjectTable = [];
@@ -326,10 +321,10 @@ Object.extend(lively.versions.ObjectVersioning, {
         return virtualTarget;
     },
     proxyForRootPrototype: function() {
-        if (!lively.versions.ObjectVersioning.ProxyForObjectPrototype) {
-            lively.versions.ObjectVersioning.ProxyForObjectPrototype = lively.proxyFor(Object.prototype);
+        if (!lively.ObjectVersioning.ProxyForObjectPrototype) {
+            lively.ObjectVersioning.ProxyForObjectPrototype = lively.proxyFor(Object.prototype);
         }
-        return lively.versions.ObjectVersioning.ProxyForObjectPrototype;
+        return lively.ObjectVersioning.ProxyForObjectPrototype;
     },
     getObjectForProxy: function(proxy, optObjectTable) {
         var id = proxy.__objectID;
@@ -405,7 +400,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     wrapEval: function() {
         var originalEval = eval;
         eval = function(code) {
-            var transformedCode = lively.versions.ObjectVersioning.transformSource(code);
+            var transformedCode = lively.ObjectVersioning.transformSource(code);
             return originalEval(transformedCode);
         }
     },
@@ -421,15 +416,12 @@ Object.extend(lively.versions.ObjectVersioning, {
         Object.create = this.proxyFor(Object.create);
         JSON.parse = this.proxyFor(JSON.parse);
     },
-});
-
-Object.extend(lively.versions.ObjectVersioning, {
     transformSource: function(source) {
-        return lively.versions.SourceTransformations.transformSource(source, {beautify: true});
+        return lively.ObjectVersioningSourceTransformations.transformSource(source, {beautify: true});
     }
-});
+};
 
-var livelyOV = lively.versions.ObjectVersioning;
+var livelyOV = lively.ObjectVersioning;
 
 // shortcuts
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
@@ -437,6 +429,4 @@ lively.objectFor = livelyOV.getObjectForProxy.bind(livelyOV);
 lively.isProxy = livelyOV.isProxy.bind(livelyOV);
 
 // start
-lively.versions.ObjectVersioning.init();
-
-});
+lively.ObjectVersioning.init();

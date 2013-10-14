@@ -1,10 +1,8 @@
-module('lively.versions.SourceTransformations').requires().toRun(function() {
-    
 // UglifyJS expects Mozilla's source-map library to be globally available as
 // MOZ_SourceMap
 Global.MOZ_SourceMap = Global.sourceMap;
-        
-Object.extend(lively.versions.SourceTransformations, {
+    
+lively.ObjectVersioningSourceTransformations = {
     
     // TODO: function declarations get hoisted in JavaScript, so we need to
     // move the func decs we transform to variable assignments of function
@@ -20,15 +18,12 @@ Object.extend(lively.versions.SourceTransformations, {
             codeGeneratorOptions = optCodeGeneratorOptions || {};
         
         var exchangeLiteralExpression = function(node) {
-            // returns AST for: lively.versions.ObjectVersioning.proxy(node)
+            // returns AST for: lively.ObjectVersioning.proxy(node)
            return new UglifyJS.AST_Call({
                 expression: new UglifyJS.AST_Dot({
                     expression: new UglifyJS.AST_Dot({
-                        expression: new UglifyJS.AST_Dot({
-                            expression: new UglifyJS.AST_SymbolRef({
-                                name: 'lively'
-                            }),
-                            property: 'versions'
+                        expression: new UglifyJS.AST_SymbolRef({
+                            name: 'lively'
                         }),
                         property: 'ObjectVersioning'
                     }),
@@ -43,7 +38,7 @@ Object.extend(lively.versions.SourceTransformations, {
         var exchangeFunctionDeclaration = function(functionDeclaration) {
             // takes function declaration: function fName() {...}
             // returns AST for: var fName =
-            // lively.versions.ObjectVersioning.proxy(function fName() {...})
+            // lively.ObjectVersioning.proxy(function fName() {...})
             return new UglifyJS.AST_Var({
                 definitions: [new UglifyJS.AST_VarDef({
                     name: new UglifyJS.AST_SymbolVar({
@@ -137,6 +132,4 @@ Object.extend(lively.versions.SourceTransformations, {
     evalCode: function(code, optScriptName) {
         eval(this.generateCodeFromSource(code, optScriptName));
     }
-});
-    
-});
+};

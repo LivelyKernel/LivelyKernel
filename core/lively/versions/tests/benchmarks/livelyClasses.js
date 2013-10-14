@@ -41,7 +41,7 @@ lively.morphic.Morph.subclass('Counter',
 // then are not automatically proxied
 if (lively.versions.tests.Benchmarks.isExecutingProxyBenchmark &&
         !lively.isProxy(Counter)) {
-    Counter = lively.versions.ObjectVersioning.proxyFor(Counter);
+    Counter = lively.ObjectVersioning.proxyFor(Counter);
 }
 
 Counter.subclass('DoubleCounter',
@@ -62,7 +62,7 @@ Counter.subclass('DoubleCounter',
 
 if (lively.versions.tests.Benchmarks.isExecutingProxyBenchmark &&
         !lively.isProxy(DoubleCounter)) {
-    DoubleCounter = lively.versions.ObjectVersioning.proxyFor(DoubleCounter);
+    DoubleCounter = lively.ObjectVersioning.proxyFor(DoubleCounter);
 }
 
 for (var i = 0; i < 100; i++) {

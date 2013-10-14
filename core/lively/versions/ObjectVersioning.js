@@ -242,7 +242,7 @@ ObjectVersioning = {
         // proxies are fully virtual objects: they don't point to their target, 
         // but refer to their target only via their __objectID-property,
         // through lively.CurrentObjectTable
-        var proto, protoID, virtualTarget, proxy;
+        var proto, protoID, virtualTarget, objectID, proxy;
         
         if (target === Function.prototype) {throw new Error('root prototypes should not be inserted!!');}
         
@@ -266,7 +266,8 @@ ObjectVersioning = {
         
         if (target.__protoID === undefined) {
             proto = Object.getPrototypeOf(target);
-            if (proto && !([Object.prototype, Function.prototype, Array.prototype].include(proto))) {
+            if (proto && !([Object.prototype, Function.prototype,
+                    Array.prototype].include(proto))) {
                 if (this.isProxy(proto)) {
                     // this should currently not happen, because when proxies
                     // are used as prototypes, the prototype can't be changed
@@ -291,17 +292,19 @@ ObjectVersioning = {
         
         // set __objectID as not enumerable, not configurable, and not writable
         // for both the target and the virtualTarget (spec consistency check)
-        Object.defineProperty(target, '__objectID', {
-            value: lively.CurrentObjectTable.length
-        });
-        Object.defineProperty(virtualTarget, '__objectID', {
-            value: lively.CurrentObjectTable.length
-        });
+        objectID = lively.CurrentObjectTable.length;
         
         lively.CurrentObjectTable.push(target);
+        Object.defineProperty(target, '__objectID', {
+            value: objectID
+        });
+        Object.defineProperty(virtualTarget, '__objectID', {
+            value: objectID
+        });
         
-        proxy = Proxy(virtualTarget, this.versioningProxyHandler(target.__objectID));
-        lively.ProxyTable[target.__objectID] = proxy;
+        proxy = Proxy(virtualTarget,
+                this.versioningProxyHandler(target.__objectID));
+        lively.ProxyTable[objectID] = proxy;
         
         return proxy;
     },
@@ -328,7 +331,8 @@ ObjectVersioning = {
     },
     proxyForRootPrototype: function() {
         if (!ObjectVersioning.ProxyForObjectPrototype) {
-            ObjectVersioning.ProxyForObjectPrototype = ObjectVersioning.proxyFor(Object.prototype);
+            ObjectVersioning.ProxyForObjectPrototype =
+                ObjectVersioning.proxyFor(Object.prototype);
         }
         return ObjectVersioning.ProxyForObjectPrototype;
     },
@@ -424,7 +428,8 @@ ObjectVersioning = {
         Object.create = this.proxyFor(Object.create);
     },
     transformSource: function(source) {
-        return ObjectVersioningSourceTransformations.transformSource(source, {beautify: true});
+        return ObjectVersioningSourceTransformations.transformSource(source,
+            {beautify: true});
     }
 };
 

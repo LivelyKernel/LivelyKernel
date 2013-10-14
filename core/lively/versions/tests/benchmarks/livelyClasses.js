@@ -40,8 +40,8 @@ lively.morphic.Morph.subclass('Counter',
 // this is necessary when proxying was not used on Base.js, as classes
 // then are not automatically proxied
 if (lively.versions.tests.Benchmarks.isExecutingProxyBenchmark &&
-        !lively.isProxy(Counter)) {
-    Counter = lively.ObjectVersioning.proxyFor(Counter);
+        !ObjectVersioning.isProxy(Counter)) {
+    Counter = ObjectVersioning.proxyFor(Counter);
 }
 
 Counter.subclass('DoubleCounter',
@@ -61,8 +61,8 @@ Counter.subclass('DoubleCounter',
 });
 
 if (lively.versions.tests.Benchmarks.isExecutingProxyBenchmark &&
-        !lively.isProxy(DoubleCounter)) {
-    DoubleCounter = lively.ObjectVersioning.proxyFor(DoubleCounter);
+        !ObjectVersioning.isProxy(DoubleCounter)) {
+    DoubleCounter = ObjectVersioning.proxyFor(DoubleCounter);
 }
 
 for (var i = 0; i < 100; i++) {

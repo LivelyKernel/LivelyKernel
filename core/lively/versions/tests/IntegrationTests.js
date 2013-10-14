@@ -7,7 +7,7 @@ lively.versions.tests.TestCase.subclass(
         var originalEval = eval;
     
         try {
-            lively.ObjectVersioning.wrapEval();
+            ObjectVersioning.wrapEval();
         
             this.assertEquals(eval('15 + 12'), 27);
             this.assert(this.isProxy(eval('a = {}')));

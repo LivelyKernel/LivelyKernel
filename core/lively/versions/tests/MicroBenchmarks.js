@@ -5,7 +5,7 @@ module('lively.versions.tests.MicroBenchmarks').requires('lively.TestFramework')
     
 TestCase.subclass('lively.versions.tests.MicroBenchmarks.ProxiedConstructorApplication', {
     test01CreateLotsOfObjectsFromProxiedConstructor: function() {
-        var NewType = lively.ObjectVersioning.proxyFor(function C() {
+        var NewType = ObjectVersioning.proxyFor(function C() {
         });
         
         for (var i = 0; i < 200000; i++) {

@@ -10,7 +10,7 @@ TestCase.subclass('lively.versions.tests.Benchmarks.TestCase',
             // loading the benchmark file is excluded from measurements
             var url = URL.ensureAbsoluteURL(this.benchmarkLibsDir() + this.benchmarkFileName);
             this.sources = JSLoader.getSync(url);
-            this.transformedSources = lively.ObjectVersioning.transformSource(this.sources);
+            this.transformedSources = ObjectVersioning.transformSource(this.sources);
             
             $super(testResult, optTestSelector);
         }
@@ -44,7 +44,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        lively.ObjectVersioning.transformSource(this.sources);
+        ObjectVersioning.transformSource(this.sources);
     },
     test02aNoProxyReferenceExecution: function() {
         eval(this.sources);
@@ -62,7 +62,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        lively.ObjectVersioning.transformSource(this.sources);
+        ObjectVersioning.transformSource(this.sources);
     },
     test02aNoProxyReferenceExecution: function() {
         eval(this.sources);
@@ -84,7 +84,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        lively.ObjectVersioning.transformSource(this.sources);
+        ObjectVersioning.transformSource(this.sources);
     },
     test02aNoProxyReferenceExecution: function() {
         eval(this.sources);
@@ -102,7 +102,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        lively.ObjectVersioning.transformSource(this.sources);
+        ObjectVersioning.transformSource(this.sources);
     },
     test02aNoProxyReferenceExecution: function() {
         eval(this.sources);
@@ -120,7 +120,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        lively.ObjectVersioning.transformSource(this.sources);
+        ObjectVersioning.transformSource(this.sources);
     },
     test02aNoProxyReferenceExecution: function() {
         eval(this.sources);
@@ -138,7 +138,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        lively.ObjectVersioning.transformSource(this.sources);
+        ObjectVersioning.transformSource(this.sources);
     },
     test02aNoProxyReferenceExecution: function() {
         eval(this.sources);
@@ -156,7 +156,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
         $super(testResult, optTestSelector);
     },
     test01SourceToSourceTransformation: function() {
-        lively.ObjectVersioning.transformSource(this.sources);
+        ObjectVersioning.transformSource(this.sources);
     },
     test02aNoProxyReferenceExecution: function() {
         eval(this.sources);
@@ -184,7 +184,7 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
 //         $super(testResult, optTestSelector);
 //     },
 //     test01SourceToSourceTransformation: function() {
-//         lively.ObjectVersioning.transformSource(this.sources);
+//         ObjectVersioning.transformSource(this.sources);
 //     },
 //     test02aNoProxyReferenceExecution: function() {
 //         eval(this.sources);

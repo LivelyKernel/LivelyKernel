@@ -936,10 +936,13 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         this.selectAllAt(indexes);
     },
     setSelectionMatching: function(string) {
-        // for (var i = 0; i < this.itemList.length; i++) {
-        //     var itemString = this.itemList[i].string || String(this.itemList[i]);
-        //     if (string == itemString) this.selectAt(i);
-        // }
+        for (var i = 0; i < this.itemList.length; i++) {
+            var itemString = this.renderFunction(this.itemList[i]);
+            if (string == itemString) {
+                this.selectAt(i);
+                break;
+            }
+        }
     },
     selectAllAt: function(indexes) {
         indexes.forEach(function(idx) {

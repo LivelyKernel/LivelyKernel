@@ -645,7 +645,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         try {
             var result = interactiveEval.call(ctx);
             if (Config.changesetsExperiment) {
-                var contextPath = ChangeSet.fullPathToFunctionsHolder(ctx);
+                var contextPath = ctx.lvContextPath();
                 if(contextPath)
                     ChangeSet.logDoit(str, contextPath);
             }

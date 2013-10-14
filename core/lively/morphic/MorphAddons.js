@@ -707,6 +707,7 @@ lively.morphic.World.addMethods(
 'debugging', {
     logError: function (er, optName) {
         Global.LastError = er;
+        debugger;
         if (!Config.get('verboseLogging')) return;
         var msg = (optName || 'LOGERROR: ') + String(er) + "\nstack:" + er.stack;
         this.setStatusMessage(msg, Color.red, 10, function() {
@@ -999,6 +1000,64 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
     initialize: function($super, extent) {
         $super(extent.extentAsRectangle());
     },
+
+    newTextPane: function(initialBounds, defaultText, style) {
+        var bounds = initialBounds.extent().extentAsRectangle(),
+            text = new lively.morphic.Text(bounds, defaultText);
+        text.applyStyle({clipMode: 'scroll', fixedWidth: true, fixedHeight: true});
+        if(style)
+            text.applyStyle(style);
+        return text;
+    },
+    newStaticTextPane: function newStaticTextPane(extent, initialText, style) {
+        // This method should be inherited for all apps
+        var text = this.newTextPane(extent, initialText);
+        text.applyStyle({scaleProportional: true, allowInput: false, clipMode: 'visible', align: 'center'});
+        if(style)
+            text.applyStyle(style);
+        return text;
+    },
+
+    newListPane: function newListPane(extent, optItems) {
+        var list = new lively.morphic.List(extent, optItems);
+        list.applyStyle({scaleProportional: true});
+        return list;
+    },
+    openIn: function openIn(world, title, pos) {
+        this.buildView();
+        var window = world.addFramedMorph(this, title);
+        if (pos) window.setPosition(pos);
+        if (world.currentScene) world.currentScene.addMorph(window); // FIXME
+        return window;
+    },
+
+    newCodePane: function newCodePane(extent) {
+        var codePane = this.newTextPane(extent);
+        codePane.enableSyntaxHighlighting();
+        codePane.evalEnabled = true;
+        codePane.doSave = this.codePaneDoSave;
+        codePane.applyStyle({scaleProportional: true});
+        codePane.savedTextString = codePane.textString;
+        return codePane
+    },
+    newReadOnlyCodePane: function newReadOnlyCodePane(extent) {
+        // This method should be inherited for all apps
+        var codePane = this.newTextPane(extent);
+        codePane.enableSyntaxHighlighting();
+        codePane.applyStyle({scaleProportional: true, allowInput: false});
+        return codePane;
+    },
+
+    newDropDownListPane: function newDropDownListPane(extent, optItems) {
+        var list = new lively.morphic.DropDownList(extent, optItems);
+        list.applyStyle({scaleProportional: true});
+        return list;
+    },
+
+    newDragnDropListPane: function(initialBounds, suppressSelectionOnUpdate) {
+        return new lively.morphic.List(initialBounds, ['-----']);
+    },
+
     arrangeElementsAccordingToSpec: function(extent, paneSpecs, optPanel) {
         // Generalized constructor for paned window panels
         // paneSpec is an array of arrays of the form...
@@ -1041,9 +1100,10 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
             // fix for mixed class vs. function initialization bug
             var pane = lively.Class.isClass(paneConstructor) ?
                     new paneConstructor() :
-                    pane = paneConstructor(paneRect, optionalExtraArg);
+                    pane = paneConstructor.call(self, paneRect, optionalExtraArg);
             pane.setBounds(paneRect);
             self[paneName] = self.addMorph(pane);
+            pane.setName(paneName);
             self.paneNames.push(paneName);
         });
     }
@@ -1069,25 +1129,14 @@ Object.extend(lively.morphic.Panel, {
         //panel.linkToStyles(['panel']);
         panel.createAndArrangePanesFrom(paneSpecs);
         return panel;
-    },
-
-    newTextPane: function(initialBounds, defaultText) {
-        var bounds = initialBounds.extent().extentAsRectangle(),
-            text = new lively.morphic.Text(bounds, defaultText);
-        text.applyStyle({clipMode: 'scroll', fixedWidth: true, fixedHeight: true});
-        return text;
-    },
-
-    newDragnDropListPane: function(initialBounds, suppressSelectionOnUpdate) {
-        return new lively.morphic.List(initialBounds, ['-----']);
     }
 
 });
 
 Object.extend(Global, {
     // deprecated interface!
-    newTextPane: lively.morphic.Panel.newTextPane,
-    newDragnDropListPane: lively.morphic.Panel.newDragnDropListPane
+    newTextPane: lively.morphic.Panel.prototype.newTextPane,
+    newDragnDropListPane: lively.morphic.Panel.prototype.newDragnDropListPane
 });
 
 lively.morphic.Text.addMethods(

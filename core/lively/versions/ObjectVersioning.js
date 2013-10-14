@@ -306,14 +306,20 @@ lively.ObjectVersioning = {
         return proxy;
     },
     virtualTargetFor: function(actualTarget) {
-        var virtualTarget;
+        var targetExpression,
+            virtualTarget;
         
         // only proxies for functions trigger a trap on function application
         if (Object.isFunction(actualTarget)) {
             // function names are non-configurable and non-writable properties,
             // which the proxy spec requires to be returned consistently from
             // traps. that is, matching the actual proxy target
-            virtualTarget = eval('virtualTarget = function ' + actualTarget.name + '() {}');
+            
+            targetExpression = 'virtualTarget = function ' + actualTarget.name
+                    + '() {}';
+            virtualTarget = this.originalEval ?
+                this.originalEval(targetExpression) : eval(targetExpression);
+            
         } else {
             virtualTarget = {};
         }
@@ -403,6 +409,7 @@ lively.ObjectVersioning = {
             var transformedCode = lively.ObjectVersioning.transformSource(code);
             return originalEval(transformedCode);
         }
+        this.originalEval = originalEval;
     },
     wrapGlobalObjects: function() {
         // TODO: built-in functions that create new objects

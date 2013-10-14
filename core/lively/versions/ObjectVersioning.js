@@ -1,4 +1,4 @@
-module('lively.versions.ObjectVersioning').requires('lively.versions.UglifyTransformer').toRun(function() {
+module('lively.versions.ObjectVersioning').requires('lively.versions.SourceTransformations').toRun(function() {
     
 Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function(objectID) {
@@ -425,7 +425,7 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 Object.extend(lively.versions.ObjectVersioning, {
     transformSource: function(source) {
-        return lively.versions.UglifyTransformer.transformSource(source, {beautify: true});
+        return lively.versions.SourceTransformations.transformSource(source, {beautify: true});
     }
 });
 

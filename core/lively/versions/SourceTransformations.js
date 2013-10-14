@@ -1,10 +1,10 @@
-module('lively.versions.UglifyTransformer').requires().toRun(function() {
+module('lively.versions.SourceTransformations').requires().toRun(function() {
     
 // UglifyJS expects Mozilla's source-map library to be globally available as
 // MOZ_SourceMap
 Global.MOZ_SourceMap = Global.sourceMap;
         
-Object.extend(lively.versions.UglifyTransformer, {
+Object.extend(lively.versions.SourceTransformations, {
     
     // TODO: function declarations get hoisted in JavaScript, so we need to
     // move the func decs we transform to variable assignments of function

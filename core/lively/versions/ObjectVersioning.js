@@ -27,7 +27,8 @@ ObjectVersioning = {
             lookupInObjAndProtoChainWhile: function (obj, lookup,
                          whileCondition) {
                 var result = lookup(obj),
-                    proto = this.getObjectByID(obj.__protoID);
+                    proto = obj.__protoID ? this.getObjectByID(obj.__protoID) :
+                        obj.__proto__;
                 
                 if (whileCondition(result) && proto) {
                     result = this.lookupInObjAndProtoChainWhile(

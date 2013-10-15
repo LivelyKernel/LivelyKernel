@@ -2394,7 +2394,7 @@ Object.extend(lively.ide, {
                     editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
                     pane = this.internalAddWindow(editor, options.title, options.position);
                 if (Object.isString(options.position)) delete options.position;
-                editor.applyStyle({resizeWidth: true, resizeHeight: true});
+                editor.applyStyle({resizeWidth: true, resizeHeight: true, gutter: false});
                 editor.accessibleInInactiveWindow = true;
                 editor.applyStyle(options);
                 editor.focus();

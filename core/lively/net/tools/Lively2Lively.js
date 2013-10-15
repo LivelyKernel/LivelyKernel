@@ -734,31 +734,29 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             
                 },
         updateSessions: function updateSessions() {
-                // lively.net.SessionTracker.closeSessions()
-                var sessionListMorph = this.get('SessionList');
-                var self = this;
-                var localSession = this.getLocalSession();
-                if (localSession.isConnected()) {
-                    localSession.getSessions(function(remotes) {
-                        var items = Object.keys(remotes).map(function(trackerId) {
-                            return Object.keys(remotes[trackerId]).map(function(sessionId) {
-                                var sess = remotes[trackerId][sessionId];
-                                return {isListItem: true, string: self.getSessionTitle(sess), value: sess};
-                            });
-                        }).flatten();
-                        sessionListMorph.setList(items);
-                        // var remotes = sessions.local;
-                        // var items = localSessions.map(function(sess) {
-                        //     return {isListItem: true, string: self.getSessionTitle(sess), value: sess};
-                        // });
-                        // sessionListMorph.setList(items);
-                    });
-                } else {
-                    sessionListMorph.setList([]);
-                    sessionListMorph.selection = null;
-                    // thi.get('Title').textString = 'not connected';
-                }
+            // lively.net.SessionTracker.closeSessions()
+            var sessionListMorph = this.get('SessionList');
+            var self = this;
+            var localSession = this.getLocalSession();
+            if (localSession.isConnected()) {
+                localSession.getSessions(function(remotes) {
+                    var items = Object.keys(remotes).map(function(trackerId) {
+                        return Object.keys(remotes[trackerId]).map(function(sessionId) {
+                            var sess = remotes[trackerId][sessionId];
+                            return {isListItem: true, string: self.getSessionTitle(sess), value: sess};
+                        });
+                    }).flatten();
+                    var id = sessionListMorph.selection && sessionListMorph.selection.id;
+                    sessionListMorph.setList(items);
+                    var prevSel  = sessionListMorph.itemList.detect(function(item) { return item.value.id === id; })
+                    sessionListMorph.setSelection(prevSel);
+                });
+            } else {
+                sessionListMorph.setList([]);
+                sessionListMorph.selection = null;
+                // thi.get('Title').textString = 'not connected';
             }
+        }
     }],
     titleBar: "Lively2LivelyInspector",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {

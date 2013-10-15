@@ -102,12 +102,14 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.assertIdentity(result.friends[0], result.friends[1].friend);
         this.assertIdentity(result, result.friends[0].friend);
     },
-    testCDATAEndTagIsExcaped: function() {
+    testCDATAEndTagIsNotExcaped: function() {
+        // we don't need this anymore sice we moved away from XML storage
         var str = 'Some funny string with CDATA end tag: ]]> and again ]]>',
             obj = { value: str };
         var json = this.sut.serialize(obj);
-        this.assert(!json.include(']]>'), 'CDATA end tag included')
-        var result = this.sut.deserialize(json)
+        // this.assert(!json.include(']]>'), 'CDATA end tag included')
+        this.assert(json.include(']]>'), 'CDATA end tag not included');
+        var result = this.sut.deserialize(json);
         this.assertEquals(str, result.value);
     },
     test10IdIsStored: function() {

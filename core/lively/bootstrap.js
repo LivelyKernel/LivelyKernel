@@ -280,62 +280,47 @@
     })();
 
     var LoadingScreen = {
-
+        // styling of the loading screen is inline b/c it should be rendered as
+        // soon as possible. If we would use a stylesheet, even one that is
+        // installed by JS the rendering would be noticeably dalayed
         id : 'loadingScreen',
         consoleId : 'loadingConsole',
         logoId: 'loadingLogo',
         brokenWorldMsgId: 'loadingBrokenWorldMsg',
-
-        width: function() {
-            return document.documentElement.clientWidth || 800;
-        },
-        height: function() {
-            return document.documentElement.clientHeight || 800;
-        },
-
+        width: function() { return document.documentElement.clientWidth || 800; },
+        height: function() { return document.documentElement.clientHeight || 800; },
         buildBackground: function() {
             var div1 = document.createElement('div');
             div1.setAttribute('id', this.id);
             div1.setAttribute('style', "position: fixed;"
-                                     + " left: 0px;"
-                                     + " top: 0px;"
-                                     + " background-color: "
-                                     +   "rgba(100,100,100,0.7);"
-                                     + " overflow: auto");
+                                     + "left: 0px; top: 0px;"
+                                     + "background-color: rgba(100,100,100,0.7);"
+                                     + "overflow: auto;");
             div1.style.width = this.width() + 'px';
             div1.style.height = this.height() + 'px';
-
             return div1;
         },
-
         buildLoadingLogo: function() {
-            var logoAndText = document.createElement('div');
+            var logoAndText = document.createElement('div'),
+                logo = document.createElement('img'),
+                text = document.createElement('div');
             logoAndText.setAttribute('id', this.logoId);
             logoAndText.setAttribute('style', "position: fixed;"
-                                            + " margin-left:auto;"
-                                            + " margin-right:auto;"
-                                            + " width: 80px;"
-                                            + " background-color: white;");
-
-            var logo = document.createElement('img');
+                                     + "margin-left:auto; margin-right:auto;"
+                                     + "width: 80px;"
+                                     + "background-color: white;")
             logo.setAttribute('style', "width: 80px; height: 80px;");
-
-            var text = document.createElement('div');
             text.setAttribute('style', "text-align:center;"
-                                     + " font-family: sans-serif;"
-                                     + " font-size: large;"
-                                     + " color: gray");
+                                     + "font-family: sans-serif;"
+                                     + "font-size: large;"
+                                     + "color: gray");
             text.textContent = 'Loading';
-
             logoAndText.style.top = (this.height() / 2 - 100) + 'px';
             logoAndText.style.left = (this.width() / 2 - 40) + 'px';
             logo.src = Global.LivelyLoader.codeBase + 'media/loading.gif';
-
             logoAndText.appendChild(logo);
             logoAndText.appendChild(text);
-
             this.logo = logoAndText;
-
             return logoAndText;
         },
 
@@ -349,34 +334,25 @@
             var el = document.createElement('div'),
                 text1 = document.createTextNode('An error occurred. '
                                                + 'If the world does not load '
-                                               + 'you can visit '),
+                                               + 'check '),
                 text2 = document.createTextNode(' for help.'),
-                link = document.createElement('a'),
-                repairURL = Config.rootPath + 'BrokenWorldRepairSite.xhtml?'
-                          + 'brokenWorldURL=' + document.location.href;
-
+                link = document.createElement('a')
             el.setAttribute('id', this.brokenWorldMsgId);
-            el.setAttribute('style', "position: fixed"
-                                   + "; margin-left:auto"
-                                   + "; margin-right:auto"
-                                   + "; padding: 5px"
-                                   + "; background-color: white"
-                                   + "; font-family: Arial,times"
-                                   + "; color: red"
-                                   + "; font-size: large-x;");
-
+            el.setAttribute('style', "position: fixed;"
+                                   + "margin-left:auto; margin-right:auto;"
+                                   + "padding: 5px;"
+                                   + "background-color: white;"
+                                   + "font-family: Arial,times;"
+                                   + "color: red;"
+                                   + "font-size: large-x;")
             el.style.top = (this.height() / 2 - 70) + 'px';
             el.style.left = (this.width() / 2 - 290) + 'px';
-
             link.style.color = 'red';
-            link.setAttribute('href', repairURL);
-            link.setAttribute('target', '_blank');
-            link.textContent = 'the repair page';
-
+            link.setAttribute('href', 'javascript:window.open(lively.moduleDependencyViz());');
+            link.textContent = 'which modules did not load';
             el.appendChild(text1);
             el.appendChild(link);
             el.appendChild(text2);
-
             return el;
         },
 
@@ -391,19 +367,16 @@
         buildConsole: function() {
             var console = document.createElement('pre'), self = this;
             console.setAttribute('id', this.consoleId);
-            console.setAttribute('style', "position: absolute;"
-                                        + " top: 0px;"
-                                        + " font-family: monospace;"
-                                        + " color: rgb(0,255,64);"
-                                        + " font-size: medium;"
-                                        + " padding-bottom: 20px;");
+            console.setAttribute('style', "position: absolute; top: 0px;"
+                                        + "font-family: monospace;"
+                                        + "color: rgb(0,255,64);"
+                                        + "font-size: medium;"
+                                        + "padding-bottom: 20px;");
             this.console = console;
             if (browserDetector.isFireBug()) return console;
-
             function addLine(str, style) {
                 style = style || '';
                 var line = document.createElement('div');
-
                 // html5 does not support cdata sections in the document. if
                 // the creation fails with a NOT_SUPPORTED_ERR, we simply
                 // create a text node.
@@ -418,14 +391,12 @@
                         throw e;
                     }
                 }
-
                 line.appendChild(textElement);
                 line.setAttribute('style', style);
                 console.appendChild(line);
                 if (console.parentNode && line.scrollIntoViewIfNeeded)
                     line.scrollIntoViewIfNeeded();
             }
-
             this.consoleProxy = {
                 log: function(msg) { addLine(msg) },
                 warn: function(msg) { addLine(msg, 'color: yellow;') },
@@ -435,9 +406,7 @@
                     self.ensureBrokenWorldMessage();
                 }
             };
-
             Global.console.addConsumer(this.consoleProxy);
-
             return console;
         },
 
@@ -456,60 +425,43 @@
             if (this.console.parentNode) {
                 this.removeElement(this.console);
             } else {
-                this.domElement.appendChild(this.console);
+                this.domElement.insertBefore(this.console, this.domElement.childNodes[0]);
             }
         },
 
-        buildConsoleButton: function() {
+        buildButton: function(id, action, label, extraStyle) {
             var a = document.createElement('a');
+            a.setAttribute('id', id);
             a.setAttribute('style', "position: fixed;"
-                                  + " right: 170px;"
-                                  + " top: 20px;"
-                                  + " width: 70px;"
-                                  + " text-align:center;"
-                                  + " font-family: monospace;"
-                                  + " border: 1px solid;"
-                                  + " border-color: rgb(100,100,100);"
-                                  + " color: rgb(100,100,100)");
-            a.setAttribute('href',
-                           'javascript:LoadingScreen.toggleConsole();');
-            a.textContent = 'console';
-            return a;
-        },
-        buildCloseButton: function() {
-            var a = document.createElement('a');
-            a.setAttribute('style', "position: fixed;"
-                                  + " right: 90px;"
-                                  + " top: 20px;"
-                                  + " width: 70px;"
-                                  + " text-align:center;"
-                                  + " font-family: monospace;"
-                                  + " border: 1px solid;"
-                                  + " border-color: rgb(100,100,100);"
-                                  + " color: rgb(100,100,100)");
-            a.setAttribute('href', 'javascript:LoadingScreen.remove();');
-            a.textContent = 'close';
+                                  + "top: 20px;"
+                                  + "width: 70px;"
+                                  + "text-align:center;"
+                                  + "font-family: monospace;"
+                                  + "border: 1px solid;"
+                                  + "border-color: rgb(100,100,100);"
+                                  + "color: rgb(100,100,100);"
+                                  + extraStyle || '');
+            a.setAttribute('href', 'javascript:' + action);
+            a.textContent = label;
             return a;
         },
 
         buildBrowserMessage: function (optMessage) {
             var message = document.createElement('pre'),
-                defaultMessageText,
-                messageText;
+                defaultMessageText, messageText;
+            message.setAttribute('style', "position: fixed;"
+                                        + "left: 90px; top: 20px;"
+                                        + "text-align: left;"
+                                        + "font-family: monospace;"
+                                        + "margin: 0 0 0 0;"
+                                        + "padding: 0px 10px 0px 10px;"
+                                        + "border: 1px solid;"
+                                        + "border-color: rgb(100,100,100);"
+                                        + "color: rgb(100,0,0);");
             if (!browserDetector.isSpecSatisfied()) {
                 defaultMessageText = "HINT !\nLively Kernel works best with:\n"
                                     + browserDetector.printSpec();
                 messageText = optMessage || defaultMessageText;
-                message.setAttribute('style', 'position: fixed;'
-                                            + 'left: 90px; top: 20px;'
-                                            + 'text-align: left;'
-                                            + 'font-family: monospace;'
-                                            + 'margin: 0 0 0 0;'
-                                            + 'padding: 0px 10px 0px 10px;'
-                                            + 'border: 1px solid;'
-                                            + 'border-color: rgb(100,100,100);'
-                                            + 'color: rgb(100,0,0)'
-                );
                 message.textContent = messageText;
             }
             return message;
@@ -518,24 +470,23 @@
         build: function() {
             var background = this.buildBackground(),
                 loadingLogo = this.buildLoadingLogo(),
-                consoleButton = this.buildConsoleButton(),
-                closeButton = this.buildCloseButton(),
+                consoleButton = this.buildButton('console', "LoadingScreen.toggleConsole();", 'console', "right: 170px;"),
+                closeButton = this.buildButton('close', "LoadingScreen.remove();", 'close', "right: 90px;"),
+                moduleDebugButton = this.buildButton('moduleDebug', "window.open(lively.moduleDependencyViz());", 'module dbg', "right: 250px;"),
                 browserMessage = this.buildBrowserMessage(),
                 console = this.buildConsole();
-
             background.appendChild(loadingLogo);
-            background.appendChild(consoleButton);
-            background.appendChild(closeButton);
             background.appendChild(browserMessage);
-
+            background.appendChild(consoleButton);
+            background.appendChild(moduleDebugButton);
+            background.appendChild(closeButton);
             return background;
         },
 
         add: function(optLogoText) {
-            if (!this.domElement) {
-                this.domElement = this.build();
-            }
-            document.body.appendChild(this.domElement);
+            if (!this.domElement) this.domElement = this.build();
+            if (!this.domElement.parentNode)
+                document.getElementsByTagName('body')[0].appendChild(this.domElement);
             if (optLogoText) this.setLogoText(optLogoText);
         },
 

@@ -260,7 +260,7 @@ Object.subclass('ObjectGraphLinearizer',
     stringifyJSO: function(jso) {
         var str = this.prettyPrint ? JSON.prettyPrint(jso) : JSON.stringify(jso),
             regex = new RegExp(this.CDATAEnd, 'g');
-        str = str.replace(regex, this.escapedCDATAEnd);
+        // str = str.replace(regex, this.escapedCDATAEnd);
         return str
     },
     reset: function() {

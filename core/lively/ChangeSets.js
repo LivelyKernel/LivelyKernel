@@ -220,7 +220,7 @@ Object.extend(ChangeSet, {
 
 
     
-	assureChangeSetNamed: function(aName) {debugger;
+	assureChangeSetNamed: function(aName) {
 	    var existing = this.named(aName);
 	    if(existing)
 	        return existing;
@@ -347,7 +347,7 @@ Object.extend(ChangeSet, {
     },
 
     logFirstChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame) {
-debugger; 
+
         return this.current().logFirstChange(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame);
     },
     logFirstRemoval: function(source, contextPath, propertyName, categoryOrNil) {
@@ -364,7 +364,7 @@ debugger;
     
 		var storageRoot = "LivelyChanges:" + $world.savedWorldAsURL + ":author:" + $world.getUserName();
 
-        var changesetNamesString = localStorage.getItem(storageRoot + ":changesetNames"); debugger;
+        var changesetNamesString = localStorage.getItem(storageRoot + ":changesetNames");
         if(changesetNamesString) {
             JSON.parse(changesetNamesString).each(function(n) {
                 localStorage.removeItem(storageRoot + ":changesetTimestamps:" + n);
@@ -393,17 +393,16 @@ debugger;
                 //this is a first change representing an addition, nothing to check
             } else {
                 var firstChangeRecord = this.getChangeRecord(firstChangeStamp);
-debugger;
                 if(!firstChangeRecord.firstChangeStamp) {
-                    //the first change is representing an addition, nothing to check, except...
+    				if(changeRecord.type != "added")
+    				    throw new Error("Should not happen");
                     if(changeRecord.type == "removed")
                         //added then removed
                         return;
-    				changeRecord.type = "added";
                 } else {
                     //sanity check
                     if(firstChangeStamp != firstChangeRecord.firstChangeStamp) {
-                        changeRecord.errors.push("Inconsistent data: first record's firstChangeStamp does not match the current record's firstChangeStamp");
+                        throw new Error("Inconsistent data: first record's firstChangeStamp does not match the current record's firstChangeStamp");
                         return;
                     }
                     if(t != firstChangeStamp) {
@@ -411,6 +410,40 @@ debugger;
                         changeRecord.originalPropertyName = firstChangeRecord.originalPropertyName;
                         changeRecord.originalCategory = firstChangeRecord.originalCategory;
                         changeRecord.originalSource = firstChangeRecord.originalSource;
+                        
+                        changeRecord.secondaryTypes = [];
+
+                        if(changeRecord.originalCategory !== changeRecord.category) {
+                            if(changeRecord.category)
+                                changeRecord.secondaryTypes.push("changed category");
+                            else if(changeRecord.source)
+                                throw new Error("Should not happen - we do not remove from category")
+                        }
+                        if(changeRecord.originalSource !== changeRecord.source) {
+                            if(changeRecord.source) {
+                				if(changeRecord.type && changeRecord.type != "changed source")
+                				    throw new Error("Should not happen");
+                				else
+                                    changeRecord.type = "changed source";
+                            } else {
+                				if(changeRecord.type && changeRecord.type != "removed")
+                				    throw new Error("Should not happen");
+                                else
+                    				changeRecord.type = "removed";
+                            }
+                        }
+                        if(changeRecord.originalContextPath !== changeRecord.contextPath) {
+                            if(changeRecord.contextPath)
+                                changeRecord.secondaryTypes.push("moved");
+                            else if(changeRecord.source)
+                                throw new Error("Should not happen")
+                        }
+                        if(changeRecord.originalPropertyName !== changeRecord.propertyName) {
+                            if(changeRecord.propertyName)
+                                changeRecord.secondaryTypes.push("renamed");
+                            else if(changeRecord.source)
+                                throw new Error("Should not happen")
+                        }
                     }
                 }
             }
@@ -466,7 +499,7 @@ debugger;
                     entry.originalCategory = previous || entry.category;
                     if(entry.originalCategory !== entry.category) {
                         if(entry.category)
-                            entry.type = "changed category";
+                            entry.secondaryTypes = ["changed category"];
                         else if(source)
                             throw new Error("Should not happen - we do not remove from category")
                     } else {
@@ -480,14 +513,14 @@ debugger;
                             entry.originalContextPath = array[7] || entry.contextPath;
                             if(entry.originalContextPath !== entry.contextPath) {
                                 if(entry.contextPath)
-                                    entry.type = "moved";
+                                    entry.secondaryTypes = ["moved"];
                                 else if(source)
                                     throw new Error("Should not happen")
                             } else {
                                 entry.originalPropertyName = array[8] || propertyName;
                                 if(entry.originalPropertyName !== propertyName) {
                                     if(propertyName)
-                                        entry.type = "changed category";
+                                        entry.secondaryTypes = ["renamed"];
                                     else if(source)
                                         throw new Error("Should not happen")
                                 } else
@@ -536,7 +569,7 @@ ChangeSet.addMethods(
             return;
         }
             
-        var self = this;
+        var self = this, i = 0;
         this.changeRecords.each(function(e){
             if(e.originalContextPath) {
                 try {
@@ -545,7 +578,7 @@ ChangeSet.addMethods(
                     e.errors.push("Failed to check changeset "+self.name+". Could not resolve the original context "+e.originalContextPath+"\n"+ex.name+": "+ex.message);
                     return;
                 }
-                if(e.originalPropertyName && !originalContext[e.originalPropertyName]) {debugger;
+                if(e.originalPropertyName && !originalContext[e.originalPropertyName]) {
                     e.errors.push("Failed to load changeset "+self.name+". The original context "+e.originalContextPath+"\n does not have the original property name: "+e.originalPropertyName+" anymore");
                     return;
                 }
@@ -561,8 +594,6 @@ ChangeSet.addMethods(
                 e.errors.push("Failed evaluating context path: " + e.contextPath + "\n"+ ex.name + ": " + ex.message);
                 return;
             }
-            if(!e.type)
-                e.type = "changed";
             switch(e.type.valueOf()) {
                 case "doIt":
                     try {
@@ -596,7 +627,7 @@ ChangeSet.addMethods(
                         e.errors.push("Failed to change property in changeset "+self.name+". The context "+e.contextPath+"\n does not have the property name: "+e.propertyName);
                         return;
                     }
-                    if(e.source != context[e.propertyName].toString()) {debugger;
+                    if(e.source != context[e.propertyName].toString()) {
                         (function() { return eval("this."+e.propertyName+" = "+ e.source) }).call(context);
                         var func = context[e.propertyName];
                         func.timestamp = self.timestamps[i];
@@ -605,8 +636,10 @@ ChangeSet.addMethods(
                     }
                     return;
                 default:
-                    throw new Error("Applying "+e.type+ " not implemented yet")
+                    if(e.type)
+                        throw new Error("Applying "+e.type+ " not implemented")
             }
+            i++;
         })
         
     },
@@ -714,7 +747,7 @@ ChangeSet.addMethods(
         else
             allTimestampsString += "," + timestamp;
         localStorage.setItem(storageRoot + ":timestamps", allTimestampsString);
-debugger;
+
         //Step 3: mark the change in the changeset storage so that we can automatically reload
         this.timestamps.push(timestamp);
         localStorage.setItem(storageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
@@ -809,7 +842,7 @@ lively.morphic.Panel.subclass('ChangesBrowser',
         	    var record = self.changeSet.changeRecords[index];
         	    if(record.type != "doIt")
         	        prop = " '" + record.propertyName + "'";
-        	    return new Date(e).toUTCString() + ' ' + (record.type || "modified") + 
+        	    return new Date(e).toUTCString() + ' ' + (record.type || record.secondaryTypes) + 
         	                    prop +" in " + record.contextPath;
     	    } else 
     	        return new Date(e).toUTCString();
@@ -826,7 +859,6 @@ lively.morphic.Panel.subclass('ChangesBrowser',
     },
     getChangeSetMenu: function() {
         var self = this;
-        debugger;
         var items = [
                 ['remove all changes from persistent storage', function() {self.removeAllChanges()}]
             ];
@@ -843,7 +875,6 @@ lively.morphic.Panel.subclass('ChangesBrowser',
         var title = 'Changeset '+ this.changeSet.name + ' from ' + $world.getUserName();
         var window = browser.openIn($world, title);
         browser.setChangeSetContents(this.changeSet.name);
-        debugger;
         window.name = title;
         window.getPartsBinMetaInfo().addRequiredModule('lively.ChangeSets');
         window.copyToPartsBinWithUserRequest();
@@ -1036,7 +1067,7 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
                 changeRecord.errors.push("Could not resolve the original context "+changeRecord.originalContextPath+"\n"+ex.name+": "+ex.message);
                 return;
             }
-            if(changeRecord.originalPropertyName && !originalContext[changeRecord.originalPropertyName]) {debugger;
+            if(changeRecord.originalPropertyName && !originalContext[changeRecord.originalPropertyName]) {
                 changeRecord.errors.push("Failed to apply change. The original context "+changeRecord.originalContextPath+"\n does not have the original property name: "+changeRecord.originalPropertyName+" anymore");
                 return;
             }
@@ -1052,9 +1083,7 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
             changeRecord.errors.push("Failed evaluating context path: " + changeRecord.contextPath + "\n"+ ex.name + ": " + ex.message);
             return;
         }
-        if(!changeRecord.type)
-            changeRecord.type = "changed";
-        switch(changeRecord.type.valueOf()) {
+        switch((changeRecord.type || changeRecord.secondaryTypes.toString()).valueOf()) {
             case "doIt":
                 try {
                     (function() { return eval(changeRecord.source) }).call(context);
@@ -1094,7 +1123,7 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
                     return;
                 }
                 var oldFunc = context[changeRecord.propertyName];
-                if(changeRecord.source != oldFunc.toString()) {debugger;
+                if(changeRecord.source != oldFunc.toString()) {
                     (function() { return eval("this."+changeRecord.propertyName+" = "+ changeRecord.source) }).call(context);
                     var func = context[changeRecord.propertyName];
                     if(oldFunc.user && oldFunc.timestamp)
@@ -1110,7 +1139,7 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
                 }
                 return;
             default:
-                throw new Error("Applying "+changeRecord.type+ " not implemented yet");
+                throw new Error("Applying "+(changeRecord.type || changeRecord.secondaryTypes)+ " not implemented yet");
         }
     },
     applyAllChanges: function() {
@@ -1189,7 +1218,7 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
     	    var prop = "";
 	        if(e.type != "doIt")
     	        prop = " '" + e.propertyName + "'";
-	        return (e.type || "modified") + prop + " in " + e.contextPath;
+	        return (e.type || e.secondaryTypes.toString()) + prop + " in " + e.contextPath;
     	};
     }
 
@@ -1343,6 +1372,52 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 this.selectedContainerKind.titleRenderFunction(aContainer) : 
                 "Simple Code Browser"
     },
+    browseVersions: function(timestamp) {
+
+        var changeRecord = ChangeSet.getChangeRecord(timestamp);
+        var propertyName = changeRecord.propertyName;
+        if(propertyName) {
+            //not a doIt
+            changeRecord.string = new Date(timestamp).toUTCString() + ' (current)';
+            var versions = [changeRecord];
+            var firstChangeStamp = changeRecord.firstChangeStamp;
+            if(!firstChangeStamp) {
+				if(changeRecord.type != "added")
+				    throw new Error("Should not happen");
+            } else {
+                var firstChangeRecord = ChangeSet.getChangeRecord(firstChangeStamp);
+                if(!firstChangeRecord.firstChangeStamp) {
+                    //the first change is representing an addition
+                } else {
+                    //sanity check
+                    if(firstChangeStamp != firstChangeRecord.firstChangeStamp) {
+                        throw new Error("Inconsistent data: first record's firstChangeStamp does not match the current record's firstChangeStamp");
+                        return;
+                    }
+                    var previouslyInTheSystem = {string: 'previously in the system'};
+                    previouslyInTheSystem.contextPath = firstChangeRecord.originalContextPath;
+                    previouslyInTheSystem.propertyName = firstChangeRecord.originalPropertyName;
+                    previouslyInTheSystem.category = firstChangeRecord.originalCategory;
+                    previouslyInTheSystem.source = firstChangeRecord.originalSource;
+                }
+            }
+            var t = changeRecord.previousChangeStamp;
+            while(t) {
+                changeRecord = ChangeSet.getChangeRecord(t);
+                changeRecord.string = new Date(t).toUTCString();
+                versions.push(changeRecord);
+                t = changeRecord.previousChangeStamp;
+            }
+            if(previouslyInTheSystem)
+                versions.push(previouslyInTheSystem);
+
+            var browser = new VersionsBrowser(pt(1024, 384));
+            var window = browser.openIn($world, propertyName + ' versions ');
+            browser.setContents(versions);
+            browser.codeBrowser = this;
+        }
+    },
+
     reset: function reset() {  // this.reset()
         this.functionContainerKindPane.setList([])
     },
@@ -1384,11 +1459,10 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                     if(func.timestamp) {
                         func.user = $world.getUserName();
                         func.kindOfChange = "changed source";
-                        var ts = new Date(func.timestamp).toUTCString();
-                        text = Strings.format('// '+func.kindOfChange+' at %s by %s  \n', ts, func.user) + text;
                     }
-                    this.textString = text;
-                    this.savedTextString = text;
+                    this.setTextString(this.savedTextString);
+                    panel.functionKindPane.setSelectionMatching(panel.selectedFunctionKind);
+                    panel.functionPane.setSelectionMatching(functionName);
                 }
             } catch(e) {
                 this.showError(e); 
@@ -1549,7 +1623,6 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 var contextPath = panel.codePane.doitContext.lvContextPath();
                 if(!contextPath)
                     throw new Error("Should not happen");
-debugger;
                 container.lvRemoveMethodFromExistingCategory(functionName, category);
                 container.lvAddMethodToExistingCategory(func, functionName, otherCategory);
     
@@ -1615,19 +1688,89 @@ debugger;
             if(index)
                 panel.functionKindPane.selectAt(index);
         });
-    },
-
-
-
-
-
-
-
-
-
-},
-'constructors', {
+    }
 }
 );
+
+lively.morphic.Panel.subclass('VersionsBrowser',
+'default category', {
+    buildView: function buildView() {  // this.buildView()
+        this.withAllSubmorphsDo(function(m) {disconnectAll(m)});
+        this.removeAllMorphs();
+
+    	this.createAndArrangePanesFrom([
+    		['changePane', this.newListPane, new Rectangle(0, 0, 1, 0.35)],
+    		
+    		['timestamp1', this.newStaticTextPane, new Rectangle(0, 0.35, 0.5, 0.05)],
+    		['timestamp2', this.newStaticTextPane, new Rectangle(0.5, 0.35, 0.5, 0.05)],
+
+    		['codePane1', this.newCodePane, new Rectangle(0, 0.4, 0.5, 0.6)],
+    		['codePane2', this.newReadOnlyCodePane, new Rectangle(0.5, 0.4, 0.5, 0.6)],
+    	]);
+    	
+        this.applyStyle({adjustForNewBounds: true, fill: Color.gray});
+    
+        connect(this.changePane, "getMenu", this, "getChangeMenu", {});
+    
+    },
+    getChangeMenu: function() {
+        var self = this;
+        var selected = this.changePane.selection;
+        if(!selected)
+            return [];
+        var items = [
+            ['show selected in left code pane', function() {
+                self.timestamp1.setTextString(selected.string);
+                self.codePane1.setTextString(selected.source)}],
+            ['show selected in right code pane', function() {
+                self.timestamp2.setTextString(selected.string);
+                self.codePane2.setTextString(selected.source)}]
+        ];
+        if(!selected.string.endsWith(' (current)'))
+            items.push(
+                ['revert current source to selected', this.revertCurrentSourceToSelected.bind(this) ]
+            );
+        return items;
+    },
+    revertCurrentSourceToSelected: function() {
+        var changes = this.changePane.getList();
+        var selected = this.changePane.selection;
+        var current = changes[0];
+        if(selected.source == current.source) {
+            alertOK("The current source and the one of the selected version are the same");
+            return;
+        }
+        var oldFunc = lively.lookup(current.contextPath + '.' + current.propertyName);
+        try {
+            eval(current.contextPath + '.' + current.propertyName + ' = ' + selected.source);
+        } catch(e) {
+            $world.logError(e);
+            return;
+        }
+        var func = lively.lookup(current.contextPath + '.' + current.propertyName);
+        func.timestamp = ChangeSet.logChange(selected.source, current.contextPath, current.propertyName, current.category, oldFunc.timestamp);
+        if(func.timestamp) {
+            var newChange = ChangeSet.getChangeRecord(func.timestamp);
+            newChange.string = new Date(func.timestamp).toUTCString() + ' (current)';
+            func.user = $world.getUserName();
+            func.kindOfChange = "changed source";
+            changes.unshift(newChange);
+        }
+        var newCurrentString = current.string.substring(0, current.string.lastIndexOf(' (current)'));
+        if(this.timestamp1.textString == current.string)
+            this.timestamp1.setTextString(newCurrentString);
+        if(this.timestamp2.textString == current.string)
+            this.timestamp2.setTextString(newCurrentString);
+        current.string = newCurrentString;
+
+        this.changePane.setList(changes);
+        this.codeBrowser.functionKindPane.setSelectionMatching(this.codeBrowser.selectedFunctionKind);
+        this.codeBrowser.functionPane.setSelectionMatching(current.propertyName);
+    },
+
+    setContents: function(list) {
+        this.changePane.setList(list);
+    },
+});
 
 }) // end of module

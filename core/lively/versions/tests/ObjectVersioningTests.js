@@ -1,27 +1,27 @@
-module('lively.versions.tests.ObjectVersioningTests').requires('lively.TestFramework').toRun(function() {
+module('lively.versions.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.versions.ObjectVersioning').toRun(function() {
 
 TestCase.subclass('lively.versions.tests.TestCase', 
 'versioning shortcuts', {
     proxyFor: function(target) {
-        return ObjectVersioning.proxyFor(target);
+        return lively.versions.ObjectVersioning.proxyFor(target);
     },
     objectFor: function(proxy) {
-        return ObjectVersioning.objectFor(proxy);
+        return lively.versions.ObjectVersioning.getObjectForProxy(proxy);
     },
     isProxy: function(obj) {
-        return ObjectVersioning.isProxy(obj);
+        return lively.versions.ObjectVersioning.isProxy(obj);
     },
     commitVersion: function() {
-        return ObjectVersioning.commitVersion();
+        return lively.versions.ObjectVersioning.commitVersion();
     },
     undo: function() {
-        ObjectVersioning.undo();
+        lively.versions.ObjectVersioning.undo();
     },
     redo: function() {
-        ObjectVersioning.redo();
+        lively.versions.ObjectVersioning.redo();
     },
     transform: function(source) {
-        return ObjectVersioning.transformSource(source);
+        return lively.versions.ObjectVersioning.transformSource(source);
     },
 }, 
 'testing', {
@@ -499,13 +499,13 @@ lively.versions.tests.TestCase.subclass(
 'testing',{
     test01ObjectLiterals: function() {
         var input = 'var obj = {};',
-            expectedOutput = 'var obj = ObjectVersioning.proxyFor({});';
+            expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxyFor({});';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
     test02ArrayLiterals: function() {
        var input = 'var arr = [];',
-            expectedOutput = 'var arr = ObjectVersioning.proxyFor([]);';
+            expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxyFor([]);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
@@ -515,7 +515,7 @@ lively.versions.tests.TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcVariable = ObjectVersioning.proxyFor(function() {\n' +
+            'var funcVariable = lively.versions.ObjectVersioning.proxyFor(function() {\n' +
             '    return 12;\n' +
             '});';
         
@@ -527,7 +527,7 @@ lively.versions.tests.TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcVariable = ObjectVersioning.proxyFor(function funcName() {\n' +
+            'var funcVariable = lively.versions.ObjectVersioning.proxyFor(function funcName() {\n' +
             '    return 12;\n' +
             '});';
         
@@ -546,7 +546,7 @@ lively.versions.tests.TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcName = ObjectVersioning.proxyFor(function funcName() {\n' +
+            'var funcName = lively.versions.ObjectVersioning.proxyFor(function funcName() {\n' +
             '    return 12;\n' +
             '});\n\n';
         
@@ -577,18 +577,18 @@ lively.versions.tests.TestCase.subclass(
             "    }\n" +
             "}";
     var expectedOutput = 
-        'var joe = ObjectVersioning.proxyFor({\n' +
+        'var joe = lively.versions.ObjectVersioning.proxyFor({\n' +
         '    name: "Joe",\n' +
         '    age: 25,\n' +
-        '    address: ObjectVersioning.proxyFor({\n' +
+        '    address: lively.versions.ObjectVersioning.proxyFor({\n' +
         '        street: "Mainstr. 20",\n' +
         '        zipCode: "12125"\n' +
         '    }),\n' +
-        '    friends: ObjectVersioning.proxyFor([]),\n' +
-        '    becomeFriendsWith: ObjectVersioning.proxyFor(function(otherPerson) {\n' +
+        '    friends: lively.versions.ObjectVersioning.proxyFor([]),\n' +
+        '    becomeFriendsWith: lively.versions.ObjectVersioning.proxyFor(function(otherPerson) {\n' +
         '        this.friends.push(otherPerson.name);\n' +
         '    }),\n' +
-        '    isFriendOf: ObjectVersioning.proxyFor(function(otherPerson) {\n' +
+        '    isFriendOf: lively.versions.ObjectVersioning.proxyFor(function(otherPerson) {\n' +
         '        return this.friends.include(otherPerson.name);\n' +
         '    })\n' +
         '});';
@@ -597,12 +597,12 @@ lively.versions.tests.TestCase.subclass(
     },
     test08GenerateSourceWithMapping: function() {
         var input = 'var obj = {};',
-            expectedOutput = 'var obj=ObjectVersioning.proxyFor({});\n' +
+            expectedOutput = 'var obj=lively.versions.ObjectVersioning.proxyFor({});\n' +
                 '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
                 'eyJ2ZXJzaW9uIjozLCJmaWxlIjpudWxsLCJzb3VyY2VzIjpbImV2YWwgYXQgcnVud' +
                 'GltZSJdLCJuYW1lcyI6WyJvYmoiXSwibWFwcGluZ3MiOiJBQUFBLEdBQUlBIiwic2' +
                 '91cmNlc0NvbnRlbnQiOlsidmFyIG9iaiA9IHt9OyJdfQ==',
-            output = ObjectVersioningSourceTransformations.generateCodeFromSource(input);
+            output = lively.versions.SourceTransformations.generateCodeFromSource(input);
         
         this.assertEquals(output, expectedOutput);
     }

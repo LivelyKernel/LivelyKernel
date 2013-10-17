@@ -1,4 +1,6 @@
-ObjectVersioning = {
+module('lively.versions.ObjectVersioning').requires('lively.versions.SourceTransformations').toRun(function() {
+    
+Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function(objectID) {
         return {
             // the versioning proxies are fully virtual. so, the first
@@ -14,12 +16,13 @@ ObjectVersioning = {
                 return this.getObjectByID(this.__objectID);
             },
             getObjectByID: function(id) {
-                return ObjectVersioning.getObjectByID(id);
+                return lively.versions.ObjectVersioning.getObjectByID(id);
             },
             ensureNonPrimitiveObjectIsProxied: function(obj) {
-                if (!ObjectVersioning.isProxy(obj) &&
-                        !ObjectVersioning.isPrimitiveObject(obj)) {
-                    return ObjectVersioning.proxyFor(obj);
+                var livelyOV = lively.versions.ObjectVersioning;
+                
+                if (!livelyOV.isProxy(obj) && !livelyOV.isPrimitiveObject(obj)) {
+                    return lively.versions.ObjectVersioning.proxyFor(obj);
                 } else {
                     return obj;
                 }
@@ -109,16 +112,17 @@ ObjectVersioning = {
             },
             apply: function(virtualTarget, thisArg, args) {
                 var result,
+                    OV = lively.versions.ObjectVersioning,
                     method = this.targetObject(),
                     targetObject = thisArg;
                 
                 // workaround to have functions print with their function bodies
                 if (Object.isFunction(thisArg) && 
-                        ObjectVersioning.isProxy(thisArg) &&
+                        lively.isProxy(thisArg) &&
                         !thisArg.__protoID ) {
                     // can't test if thisArg.name === 'toString' because the
                     // function might be wrapped (in harmony-reflect shim)
-                    targetObject = ObjectVersioning.objectFor(thisArg);
+                    targetObject = lively.objectFor(thisArg);
                 }
                 
                 // workaround for legacy setters and getters
@@ -128,7 +132,7 @@ ObjectVersioning = {
                     method.name === '__lookupGetter__') {
                     
                     result = method.apply(targetObject, [args[0],
-                            ObjectVersioning.objectFor(args[1])]);
+                            lively.objectFor(args[1])]);
                     return this.ensureNonPrimitiveObjectIsProxied(result);
                 }
                 
@@ -140,7 +144,7 @@ ObjectVersioning = {
                 var OriginalConstructor = this.targetObject(),
                     newInstance;
                 
-                newInstance = ObjectVersioning.proxyFor({
+                newInstance = lively.proxyFor({
                     __protoID: OriginalConstructor.prototype.__objectID
                 });
                 newInstance.constructor = OriginalConstructor;
@@ -226,7 +230,10 @@ ObjectVersioning = {
                 return Object.isExtensible(this.targetObject());
             },
         };
-    },
+    }
+});
+
+Object.extend(lively.versions.ObjectVersioning, {
     init: function() {
         if (!lively.CurrentObjectTable) {
             lively.CurrentObjectTable = [];
@@ -247,7 +254,7 @@ ObjectVersioning = {
             // http://github.com/tvcutsem/harmony-reflect/issues/18
             var instance;
             
-            if (ObjectVersioning.isProxy(proto)) {
+            if (lively.isProxy(proto)) {
                 // can't just un-proxy the proxied prototype and pass it to the
                 // original Object.create, because the prototype itself might
                 // have a prototype only available via __protoID (and that's
@@ -353,13 +360,12 @@ ObjectVersioning = {
         return virtualTarget;
     },
     proxyForRootPrototype: function() {
-        if (!ObjectVersioning.ProxyForObjectPrototype) {
-            ObjectVersioning.ProxyForObjectPrototype =
-                ObjectVersioning.proxyFor(Object.prototype);
+        if (!lively.versions.ObjectVersioning.ProxyForObjectPrototype) {
+            lively.versions.ObjectVersioning.ProxyForObjectPrototype = lively.proxyFor(Object.prototype);
         }
-        return ObjectVersioning.ProxyForObjectPrototype;
+        return lively.versions.ObjectVersioning.ProxyForObjectPrototype;
     },
-    objectFor: function(proxy, optObjectTable) {
+    getObjectForProxy: function(proxy, optObjectTable) {
         var id = proxy.__objectID;
         
         if (id === undefined) {
@@ -432,14 +438,14 @@ ObjectVersioning = {
         
         
         Object.newClassConstructor = function() {
-            return ObjectVersioning.proxyFor(function() { });
+            return lively.proxyFor(function() { });
         };
         
     },
     wrapEval: function() {
         var originalEval = eval;
         eval = function(code) {
-            var transformedCode = ObjectVersioning.transformSource(code);
+            var transformedCode = lively.versions.ObjectVersioning.transformSource(code);
             return originalEval(transformedCode);
         }
         this.originalEval = originalEval;
@@ -452,15 +458,26 @@ ObjectVersioning = {
         // Array methods: concat(), slice(), map(), filter()...
         // Date constructor and parse() and UTC()
         // and other global objects in Global / window
-        
-        JSON = this.proxyFor(JSON);
+
         Object.create = this.proxyFor(Object.create);
+        JSON.parse = this.proxyFor(JSON.parse);
     },
+});
+
+Object.extend(lively.versions.ObjectVersioning, {
     transformSource: function(source) {
-        return ObjectVersioningSourceTransformations.transformSource(source,
-            {beautify: true});
+        return lively.versions.SourceTransformations.transformSource(source, {beautify: true});
     }
-};
+});
+
+var livelyOV = lively.versions.ObjectVersioning;
+
+// shortcuts
+lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
+lively.objectFor = livelyOV.getObjectForProxy.bind(livelyOV);
+lively.isProxy = livelyOV.isProxy.bind(livelyOV);
 
 // start
-ObjectVersioning.init();
+lively.versions.ObjectVersioning.init();
+
+});

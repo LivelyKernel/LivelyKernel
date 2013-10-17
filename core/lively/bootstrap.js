@@ -952,7 +952,6 @@
             'lively/defaultconfig.js',
             'lively/Base.js',
             'lively/ModuleSystem.js',
-            'lively/versions/SourceTransformations.js',
             'lively/versions/ObjectVersioning.js',
         ],
         codeBase = (function findCodeBase() {

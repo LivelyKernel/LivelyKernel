@@ -1637,6 +1637,9 @@ lively.morphic.World.addMethods(
 },
 'window related', {
     onWindowResize: function(evt) {
+        this.submorphs.forEach(function(ea) {
+            ea.onWorldResize && ea.onWorldResize(evt);
+        });
         this.cachedWindowBounds = null;
     },
 

@@ -145,6 +145,9 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     }
     evt.stop(); return true;
 },
+    onWorldResize: function onWorldResize() {
+    this.alignInWorld();
+},
     reset: function reset() {
     this.setExtent(lively.pt(100.0,30.0));
     this.statusText = lively.morphic.Text.makeLabel('Disconnected', {align: 'center', textColor: Color.green, fill: null});

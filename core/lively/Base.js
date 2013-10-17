@@ -63,7 +63,7 @@ Object.extend(Function.prototype, {
         } else {
             klass = lively.Class.newInitializer(shortName);
             klass.superclass = this;
-            var protoclass = function() { }; // that's the constructor of the new prototype object
+            var protoclass = this.newClassConstructor(); // that's the constructor of the new prototype object
             protoclass.prototype = this.prototype;
             klass.prototype = new protoclass();
             klass.prototype.constructor = klass;
@@ -83,6 +83,10 @@ Object.extend(Function.prototype, {
             klass.prototype.initialize = Functions.Empty;
 
         return klass;
+    },
+    
+    newClassConstructor: function() {
+        return function() { };
     },
 
     addMethods: function(/*...*/) {

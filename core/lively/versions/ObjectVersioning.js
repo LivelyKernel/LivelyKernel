@@ -429,6 +429,12 @@ ObjectVersioning = {
         this.init();
         this.wrapEval();
         this.wrapGlobalObjects();
+        
+        
+        Object.newClassConstructor = function() {
+            return ObjectVersioning.proxyFor(function() { });
+        };
+        
     },
     wrapEval: function() {
         var originalEval = eval;

@@ -313,10 +313,10 @@ ObjectVersioning = {
             });
         }
         
-        // set __objectID as not enumerable, not configurable, and not writable
-        // for both the target and the virtualTarget (spec consistency check)
         objectID = lively.CurrentObjectTable.length;
         
+        // set __objectID as not enumerable, not configurable, and not writable
+        // for both the target and the virtualTarget (spec consistency check)
         lively.CurrentObjectTable.push(target);
         Object.defineProperty(target, '__objectID', {
             value: objectID

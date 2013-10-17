@@ -577,7 +577,7 @@ Object.extend(lively.Module, {
 });
 
 (function createLivelyNamespace(Global) {
-    // let Glabal act like a namespace itself
+    // let Global act like a namespace itself
     Object.extend(Global, Global.lively.Module.prototype);
     Object.extend(Global, {
         namespaceIdentifier: 'Global',

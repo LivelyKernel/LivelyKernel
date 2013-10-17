@@ -2776,6 +2776,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',
 lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
 'initializing', {
+    initialViewExtent: pt(580, 90),
     initialize: function($super, label, callback, defaultInputOrOptions) {
         $super(label, callback);
         var options;

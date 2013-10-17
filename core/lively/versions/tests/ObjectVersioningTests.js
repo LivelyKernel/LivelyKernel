@@ -334,6 +334,34 @@ lively.versions.tests.TestCase.subclass(
             '            }';
         
         this.assertEquals(func.toString(), expectedOutput);
+    },
+    test30DefineTriggerAndLookupPropertySetter__deprecatedVariant: function() {
+        var obj = this.proxyFor({});
+        
+        obj.__defineSetter__('aProp', this.proxyFor(function(val) {
+           this.anotherProp = val * 2;
+        }));
+        obj.aProp = 5;
+        
+        this.assertEquals(obj.anotherProp, 10);
+        this.assert(Object.isFunction(obj.__lookupSetter__('aProp')));
+    },
+    test31DefineTriggerAndLookupPropertyGetter__deprecatedVariant: function() {
+        var obj = this.proxyFor({anotherProp: 5});
+        
+        obj.__defineGetter__('aProp', this.proxyFor(function(val) {
+           return this.anotherProp;
+        }));
+        
+        this.assertEquals(obj.aProp, 5);
+        this.assert(Object.isFunction(obj.__lookupGetter__('aProp')));
+    },
+    test32DefineOrLookupGetterOrSetterStuff: function() {
+        var obj = this.proxyFor({set aProp(val) {this.anotherProp = val * 2}});
+        
+        obj.aProp = 5;
+        
+        this.assertEquals(obj.anotherProp, 10);
     }
 });
     

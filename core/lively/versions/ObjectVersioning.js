@@ -94,6 +94,17 @@ ObjectVersioning = {
                     function(result) { return result === undefined }
                 );
                 
+                // workaround for legacy setters and getters:
+                // not sure why, but the apply-trap otherwise uses the
+                // wrong targetObject for these functions
+                if (name === '__defineSetter__' ||
+                    name === '__defineGetter__' ||
+                    name === '__lookupSetter__' ||
+                    name === '__lookupGetter__') {
+                    
+                    result = result.bind(targetObject);
+                }
+                
                 return this.ensureNonPrimitiveObjectIsProxied(result);
             },
             apply: function(virtualTarget, thisArg, args) {
@@ -102,11 +113,23 @@ ObjectVersioning = {
                     targetObject = thisArg;
                 
                 // workaround to have functions print with their function bodies
-                if (Object.isFunction(thisArg) && !thisArg.__protoID &&
-                        ObjectVersioning.isProxy(thisArg)) {
+                if (Object.isFunction(thisArg) && 
+                        ObjectVersioning.isProxy(thisArg) &&
+                        !thisArg.__protoID ) {
                     // can't test if thisArg.name === 'toString' because the
                     // function might be wrapped (in harmony-reflect shim)
                     targetObject = ObjectVersioning.objectFor(thisArg);
+                }
+                
+                // workaround for legacy setters and getters
+                if (method.name === '__defineSetter__' ||
+                    method.name === '__defineGetter__' ||
+                    method.name === '__lookupSetter__' ||
+                    method.name === '__lookupGetter__') {
+                    
+                    result = method.apply(targetObject, [args[0],
+                            ObjectVersioning.objectFor(args[1])]);
+                    return this.ensureNonPrimitiveObjectIsProxied(result);
                 }
                 
                 result = method.apply(targetObject, args);

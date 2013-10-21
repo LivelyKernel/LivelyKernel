@@ -433,12 +433,6 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         return virtualTarget;
     },
-    proxyForRootPrototype: function() {
-        if (!lively.versions.ObjectVersioning.ProxyForObjectPrototype) {
-            lively.versions.ObjectVersioning.ProxyForObjectPrototype = lively.proxyFor(Object.prototype);
-        }
-        return lively.versions.ObjectVersioning.ProxyForObjectPrototype;
-    },
     getObjectForProxy: function(proxy, optObjectTable) {
         var id = proxy.__objectID;
         

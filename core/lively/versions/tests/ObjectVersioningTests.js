@@ -551,15 +551,15 @@ lively.versions.tests.TestCase.subclass(
             '});\n\n';
         
         this.assertEquals(this.transform(input), expectedOutput);
-   },
-   test06IndicatesFailureOnSyntaxError: function() {
-       var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
+    },
+    test06IndicatesFailureOnSyntaxError: function() {
+        var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
        
-       this.assertRaises((function() {
-           this.transform(incorrectInput);
+        this.assertRaises((function() {
+            this.transform(incorrectInput);
         }).bind(this));
-   },
-   test07BiggerExample: function() {
+    },
+    test07BiggerExample: function() {
         var input = 
             "var joe = {\n" +
             "    name: 'Joe',\n" +

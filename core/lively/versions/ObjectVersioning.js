@@ -60,6 +60,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (name === '__proto__') {
                     if (value && value.__objectID) {
                         targetObject.__protoID = value.__objectID;
+                        targetObject.__proto__ = lively.objectFor(value);
                     } else {
                         targetObject.__protoID = null;
                         targetObject.__proto__ = value;
@@ -72,28 +73,36 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return true;
             },
             get: function(virtualTarget, name, receiver) {
-                var targetObject, result, nextAncestor;
+                var result, nextAncestor, proto,
+                    targetObject = this.targetObject();;
                 
                 // proxy meta-information
-                if (name === '__isProxy') {
-                    return true;
-                }
                 if (name === '__objectID') {
                     return this.__objectID;
                 }
-                
-                targetObject = this.targetObject();
+                if (name === '__isProxy') {
+                    return true;
+                }
+               
                 if (name === '__proto__') {
                     if (targetObject.__protoID) {
                         return lively.ProxyTable[targetObject.__protoID];
                     } else {
-                        return targetObject.__proto__;
+                        proto = targetObject.__proto__;
+                        return lively.isPrimitiveObject(proto) ? proto :
+                                lively.proxyFor(proto);
                     }
                 }
                 
                 result = this.lookupInObjAndProtoChainWhile(
                     targetObject,
-                    function(obj) { return obj[name] },
+                    function(obj) {
+                        if (({}).hasOwnProperty.call(obj, name)) {
+                            return obj[name];
+                        } else {
+                            return undefined;
+                        }
+                    },
                     function(result) { return result === undefined }
                 );
                 
@@ -164,7 +173,9 @@ Object.extend(lively.versions.ObjectVersioning, {
             has: function(virtualTarget, name) {
                 return this.lookupInObjAndProtoChainWhile(
                     this.targetObject(),
-                    function(obj) { return name in obj },
+                    function(obj) {
+                        return ({}).hasOwnProperty.call(obj, name);
+                    },
                     function(result) { return !result }
                 );
             },
@@ -246,25 +257,33 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
     },
     wrapObjectCreate: function() {
-        lively.origObjectCreate = Object.create
+        var create = Object.create;
         
-        var wrappedCreate = function(proto) {
-            // when proxies are used as prototypes of objects, the prototypes of these objects
-            // can't be changed. seems related to:
+        var wrappedCreate = function(proto, propertiesObject) {
+            // when proxies are used as prototypes of objects, the prototypes
+            // of these objects can't be changed. seems related to:
             // http://github.com/tvcutsem/harmony-reflect/issues/18
-            var instance;
+            var instance,
+                prototype = proto;
             
             if (lively.isProxy(proto)) {
+                
+                // FIXME: this comment relevant??
                 // can't just un-proxy the proxied prototype and pass it to the
                 // original Object.create, because the prototype itself might
                 // have a prototype only available via __protoID (and that's
                 // thus available when the prototype is proxied)
-                instance = {__protoID: proto.__objectID};
+                
+                prototype = lively.objectFor(proto);
+                instance = create.call(null, prototype, propertiesObject);
+                instance.__protoID = proto.__objectID;
+                
+                return instance;
             } else {
-                instance = lively.origObjectCreate.apply(null, arguments);
+                return create.call(null, prototype, propertiesObject);
             }
-            return instance;
         }
+        lively.originalObjectCreate = create;
         lively.create = wrappedCreate;
         Object.create = lively.create;
     },
@@ -274,17 +293,25 @@ Object.extend(lively.versions.ObjectVersioning, {
         // through lively.CurrentObjectTable
         var proto, protoID, virtualTarget, objectID, proxy;
         
-        if (target === Function.prototype) {throw new Error('root prototypes should not be inserted!!');}
+        // FIXME: is it really a problem to add them? also see below for when
+        // root prototypes are prototypes... if it's necessary, then add all
+        // root prototypes
+        if (target === Function.prototype) {
+            throw new Error('root prototypes should not be inserted!!');
+        }
         
         if (this.isProxy(target)) 
-            throw new TypeError('Proxies shouldn\'t be inserted into the object tables');
-            
-        if (target !== Object(target)) 
+            throw new TypeError('Proxies shouldn\'t be inserted into the ' +                    'object tables');
+         
+        if (lively.isPrimitiveObject(target)) {
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
+        }
         
-        if (target.__objectID !== undefined)
+        // TODO: hasBeenProxiedBefore() (+ move up to isProxy)
+        if (({}).hasOwnProperty.apply(target, ['__objectID']))
             return this.getProxyByID(target.__objectID);
         
+        // FIXME: add a Object.isFunction(target)
         if (target.prototype && !this.isProxy(target.prototype)) {
             // some function's have prototypes, which get used when calling
             // constructors and in the construct-trap. note that some built-in
@@ -298,18 +325,22 @@ Object.extend(lively.versions.ObjectVersioning, {
             proto = Object.getPrototypeOf(target);
             if (proto && !([Object.prototype, Function.prototype,
                     Array.prototype].include(proto))) {
+                
                 if (this.isProxy(proto)) {
-                    // this should currently not happen, because when proxies
-                    // are used as prototypes, the prototype can't be changed
-                    // later on and we, therefore, actively prevent proxies from
-                    // being used as prototypes, see this>>wrapObjectCreate
-                    protoID = proto.__objectID;
-                } else {
-                    protoID = this.proxyFor(proto).__objectID;
+                    // when proxies are used as prototypes, the prototype can't
+                    // be changed later on. see >>wrapObjectCreate, which
+                    // prohibits proxies from becoming prototypes
+                    // otherwise we could do: protoID = proto.__objectID;
+                    
+                    throw new Error('Proxies shouldn\'t be the prototypes of' +
+                        'objects');
                 }
-                target.__proto__ = Object.prototype;
+                
+                protoID = this.proxyFor(proto).__objectID;
             } else {
-                // the prototype is one of the root prototypes
+                // FIXME: is this necessary? or can root prototypes just be
+                // added to the Object tables as well
+
                 protoID = null;
             }
             
@@ -409,7 +440,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // following versions, once they got copied
         lively.CurrentObjectTable.forEach(function (ea) {
             Object.freeze(ea);
-        })
+        });
         
         return previousVersion; 
     },
@@ -479,8 +510,8 @@ var livelyOV = lively.versions.ObjectVersioning;
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
 lively.objectFor = livelyOV.getObjectForProxy.bind(livelyOV);
 lively.isProxy = livelyOV.isProxy.bind(livelyOV);
+lively.isPrimitiveObject = livelyOV.isPrimitiveObject.bind(livelyOV);
 
 // start
 lively.versions.ObjectVersioning.init();
-
 });

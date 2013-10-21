@@ -18,7 +18,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             getObjectByID: function(id) {
                 return lively.versions.ObjectVersioning.getObjectByID(id);
             },
-            ensureNonPrimitiveObjectIsProxied: function(obj) {
+            ensureProxied: function(obj) {
                 var livelyOV = lively.versions.ObjectVersioning;
                 
                 if (!livelyOV.isProxy(obj) && !livelyOV.isPrimitiveObject(obj)) {
@@ -30,8 +30,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             lookupInObjAndProtoChainWhile: function (obj, lookup,
                          whileCondition) {
                 var result = lookup(obj),
-                    proto = obj.__protoID ? this.getObjectByID(obj.__protoID) :
-                        obj.__proto__;
+                    proto = this.getObjectByID(obj.__protoID) || obj.__proto__;
                 
                 if (whileCondition(result) && proto) {
                     result = this.lookupInObjAndProtoChainWhile(
@@ -41,6 +40,23 @@ Object.extend(lively.versions.ObjectVersioning, {
                     );
                 }
                 return result;
+            },
+            checkProtoChains: function(proxyTarget, proxy) {
+                var targetAncestor = proxyTarget.__proto__,
+                    proxyAncestor = proxy.__proto__;
+                
+                while(targetAncestor) {
+                    if (!targetAncestor ===
+                             lively.objectFor(proxyAncestor)) {
+                        
+                        // TODO: fix the proxyTarget's prototype chain in this
+                        // case...
+                        throw new Error('__protoID chain inconsistent to ' +
+                            'the object\'s actual prototype chain');
+                    }
+                    targetAncestor = targetAncestor.__proto__;
+                    proxyAncestor = proxyAncestor.__proto__;
+                }
             },
             
             // === proxy handler traps ===
@@ -117,13 +133,23 @@ Object.extend(lively.versions.ObjectVersioning, {
                     result = result.bind(targetObject);
                 }
                 
-                return this.ensureNonPrimitiveObjectIsProxied(result);
+                return this.ensureProxied(result);
             },
             apply: function(virtualTarget, thisArg, args) {
                 var result,
-                    OV = lively.versions.ObjectVersioning,
                     method = this.targetObject(),
                     targetObject = thisArg;
+                
+                // workaround for legacy setters and getters
+                if (method.name === '__defineSetter__' ||
+                    method.name === '__defineGetter__' ||
+                    method.name === '__lookupSetter__' ||
+                    method.name === '__lookupGetter__') {
+                    
+                    result = method.apply(targetObject, [args[0],
+                            lively.objectFor(args[1])]);
+                    return this.ensureProxied(result);
+                }
                 
                 // workaround to have functions print with their function bodies
                 if (Object.isFunction(thisArg) && 
@@ -134,20 +160,35 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
-                // workaround for legacy setters and getters
-                if (method.name === '__defineSetter__' ||
-                    method.name === '__defineGetter__' ||
-                    method.name === '__lookupSetter__' ||
-                    method.name === '__lookupGetter__') {
+                // TODO: unwrapping might be necessary at other boundaries as
+                // well, not just for DOM nodes
+                if (thisArg && lively.isProxy(thisArg) &&
+                        method.toString().contains(' { [native code] }')) {
                     
-                    result = method.apply(targetObject, [args[0],
-                            lively.objectFor(args[1])]);
-                    return this.ensureNonPrimitiveObjectIsProxied(result);
+                    // DOM Nodes
+                    if (lively.objectFor(thisArg).nodeName) {
+                        targetObject = lively.objectFor(thisArg);
+                        this.checkProtoChains(targetObject, thisArg);
+                    }
+                    
+                    // array.concat
+                    if (method.name === 'concat' &&
+                        Object.isArray(lively.objectFor(thisArg))) {
+                        
+                        targetObject = lively.objectFor(thisArg);
+                        args = args.map(function(each) {
+                            return lively.isProxy(each) ?
+                                 lively.objectFor(each) : each;
+                        })
+                        
+                        this.checkProtoChains(targetObject, thisArg);
+                    }
+                    
                 }
                 
                 result = method.apply(targetObject, args);
                 
-                return this.ensureNonPrimitiveObjectIsProxied(result);
+                return this.ensureProxied(result);
             },
             construct: function(virtualTarget, args) {
                 var OriginalConstructor = this.targetObject(),

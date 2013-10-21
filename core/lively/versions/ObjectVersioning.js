@@ -171,6 +171,12 @@ Object.extend(lively.versions.ObjectVersioning, {
                         this.checkProtoChains(targetObject, thisArg);
                     }
                     
+                    // RegExp
+                    if (Object.isRegExp(lively.objectFor(thisArg))) {
+                        targetObject = lively.objectFor(thisArg);
+                        this.checkProtoChains(targetObject, thisArg);
+                    }
+                    
                     // array.concat
                     if (method.name === 'concat' &&
                         Object.isArray(lively.objectFor(thisArg))) {
@@ -502,6 +508,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     start: function() {
         this.init();
         this.wrapEval();
+        this.wrapNativeFunctions();
         this.wrapGlobalObjects();
         
         Object.extend(Function.prototype, {
@@ -518,6 +525,14 @@ Object.extend(lively.versions.ObjectVersioning, {
             return originalEval(transformedCode);
         }
         this.originalEval = originalEval;
+    },
+    wrapNativeFunctions: function() {
+        var originalStringMatch = String.prototype.match;
+        String.prototype.match = function(regexp) {
+            var exp = lively.isProxy(regexp) ?
+                lively.objectFor(regexp) : regexp;
+            return originalStringMatch.call(this, exp);
+        }
     },
     wrapGlobalObjects: function() {
         // TODO: built-in functions that create new objects

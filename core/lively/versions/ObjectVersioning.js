@@ -438,10 +438,11 @@ Object.extend(lively.versions.ObjectVersioning, {
         this.wrapEval();
         this.wrapGlobalObjects();
         
-        
-        Object.newClassConstructor = function() {
-            return lively.proxyFor(function() { });
-        };
+        Object.extend(Function.prototype, {
+            newClassConstructor : function() {
+                return lively.proxyFor(function() { });
+            }
+        })
         
     },
     wrapEval: function() {

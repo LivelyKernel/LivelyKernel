@@ -353,6 +353,8 @@ Object.extend(lively.versions.ObjectVersioning, {
             virtualTarget = this.originalEval ?
                 this.originalEval(targetExpression) : eval(targetExpression);
             
+        } else if (Object.isArray(actualTarget)) {
+            virtualTarget = []
         } else {
             virtualTarget = {};
         }

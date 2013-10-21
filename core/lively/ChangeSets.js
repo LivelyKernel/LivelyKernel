@@ -317,7 +317,7 @@ Object.extend(ChangeSet, {
 Object.extend(ChangeSet, {
 	loadAndcheckVsSystem: function() {
 
-		this.userStorageRoot = "LivelyChanges:" + $world.savedWorldAsURL + ":author:" + $world.getUserName();
+		this.userStorageRoot = "LivelyChanges:" + location.href + ":author:" + $world.getUserName();
         var defaultChangeSet = this.defaultChangeSetName();
         this.changeSetNames().each(function(e){
             var changeSet = new ChangeSet(e, true);
@@ -372,7 +372,7 @@ Object.extend(ChangeSet, {
     },
     removeAllFromPersistentStorage: function() {// ChangeSet.removeAllFromPersistentStorage()
     
-		var storageRoot = "LivelyChanges:" + $world.savedWorldAsURL + ":author:" + $world.getUserName();
+		var storageRoot = "LivelyChanges:" + location.href + ":author:" + $world.getUserName();
 
         var changesetNamesString = localStorage.getItem(storageRoot + ":changesetNames");
         if(changesetNamesString) {
@@ -384,7 +384,14 @@ Object.extend(ChangeSet, {
 
         var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
         if(allTimestampsString) {
-            JSON.parse("["+ allTimestampsString +"]").each(function(t) {
+            var timestamps;
+            try {
+                timestamps = JSON.parse("["+ allTimestampsString +"]");
+            } catch(e) {
+                timestamps = allTimestampsString.split(",");
+            }
+            
+            timestamps.each(function(t) {
                 localStorage.removeItem(storageRoot + ":allChanges:" + t);
             });
             localStorage.removeItem(storageRoot + ":timestamps");
@@ -392,8 +399,14 @@ Object.extend(ChangeSet, {
 
         localStorage.setItem(storageRoot + ":defaultChangeSet", "Unnamed")
     },
+    nextTimestamp: function() {
+        var current = performance.now();
+        while(current == performance.now());
+        return lively.ChangeSets.createTime.getTime() + performance.now();
+    },
+
     applyChange: function(changeRecord, existingTimestamp) {
-debugger;
+
         if(changeRecord.originalContextPath) {
             var originalContext = lively.lookup(changeRecord.originalContextPath);
             if(!originalContext) {
@@ -445,7 +458,7 @@ debugger;
                         //modified
                         this.logRemoval(changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, oldFunc.timestamp);
                     else
-                        this.logFirstRemoval(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category);
+                        this.logFirstRemoval(changeRecord.originalSource, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category);
                 return;
             case "added":
                 if(oldFunc) {
@@ -464,7 +477,6 @@ debugger;
                     return;
                 }
                 kindOfChange = "moved from "+changeRecord.originalContextPath;
-                debugger;
                 if(!existingTimestamp) {
                     var sourceOldFunc = originalContext[changeRecord.originalPropertyName];
                     if(sourceOldFunc.user && sourceOldFunc.timestamp)
@@ -708,7 +720,7 @@ ChangeSet.addMethods(
         })
         if(replacedRemoval)
             return replacedRemoval;
-        var timestamp = Date.now();
+        var timestamp = ChangeSet.nextTimestamp();
         var array = [source, contextPath, propertyName];
         if(optCategory)
             array.push(optCategory);
@@ -726,7 +738,7 @@ ChangeSet.addMethods(
         //Get the previous change
         var previousChangeRecord = ChangeSet.getChangeRecord(previousChangeStamp);
         var firstTimestamp = previousChangeRecord.firstChangeStamp || previousChangeStamp;
-        var timestamp = Date.now();
+        var timestamp = ChangeSet.nextTimestamp();
         this.storeArray([sourceOrNil, contextPath, propertyName, categoryOrNil, firstTimestamp, previousChangeStamp], timestamp);
         this.removeTimestamp(previousChangeStamp);
 
@@ -743,7 +755,7 @@ ChangeSet.addMethods(
 
     logFirstChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame) {
  
-        var timestamp = Date.now();
+        var timestamp = ChangeSet.nextTimestamp();
         var array = [sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil];
         if(previousSourceOrNilIfSame && sourceOrNil != previousSourceOrNilIfSame) {
             array.push(previousSourceOrNilIfSame);
@@ -767,7 +779,7 @@ ChangeSet.addMethods(
     },
     logFirstRemoval: function(source, contextPath, propertyName, categoryOrNil) {
  
-        this.storeArray([null, contextPath, propertyName, categoryOrNil, null, source], Date.now());
+        this.storeArray([null, contextPath, propertyName, categoryOrNil, null, source], ChangeSet.nextTimestamp());
     },
 
 
@@ -776,7 +788,7 @@ ChangeSet.addMethods(
         //Get the previous change
         var previousChangeRecord = ChangeSet.getChangeRecord(previousChangeStamp);
         var firstTimestamp = previousChangeRecord.firstChangeStamp || previousChangeStamp;
-        var timestamp = Date.now();
+        var timestamp = ChangeSet.nextTimestamp();
         this.storeArray([null, contextPath, propertyName, categoryOrNil, firstTimestamp, previousChangeStamp], timestamp);
         this.removeTimestamp(previousChangeStamp);
 
@@ -810,7 +822,7 @@ ChangeSet.addMethods(
         
         if(!ChangeSet.userStorageRoot) {
             var username = $world.getUserName();
-            var storageRoot = "LivelyChanges:" + $world.savedWorldAsURL;
+            var storageRoot = "LivelyChanges:" + location.href;
             var authorsString = localStorage.getItem(storageRoot + ":authors");
             if(!authorsString)
                 authorsString = "[]";
@@ -845,7 +857,7 @@ ChangeSet.addMethods(
         //otherwise no need for contextPath
             storageArray.push(contextPath);
         
-        this.storeArray(storageArray, Date.now());
+        this.storeArray(storageArray, ChangeSet.nextTimestamp());
     },
 
 	
@@ -1010,11 +1022,13 @@ lively.morphic.Panel.subclass('ChangesBrowser',
     setChangeSet: function(name) {
         var storageRoot = ChangeSet.userStorageRoot;
         if(name == "-- ALL CHANGES --") {
-            var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
-            if(!allTimestampsString)
-                //no changes recorded yet
-                return;
             this.changeSet = null;
+            var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
+            if(!allTimestampsString) {
+                //no changes recorded yet
+                this.changePane.setList([]);
+                return;
+            }
             this.changePane.setList(JSON.parse("["+ allTimestampsString +"]"));
         } else {
             this.changeSet = new ChangeSet(name, true);
@@ -1027,6 +1041,7 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             if(answer) {
                 ChangeSet.removeAllFromPersistentStorage();
                 self.changeSetPane.setList(["-- ALL CHANGES --"]);
+            	self.setChangeSet("-- ALL CHANGES --");
             }
         });        
     },

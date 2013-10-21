@@ -163,7 +163,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // TODO: unwrapping might be necessary at other boundaries as
                 // well, not just for DOM nodes
                 if (thisArg && lively.isProxy(thisArg) &&
-                        method.toString().contains(' { [native code] }')) {
+                        method.toString().include(' { [native code] }')) {
                     
                     // DOM Nodes
                     if (lively.objectFor(thisArg).nodeName) {

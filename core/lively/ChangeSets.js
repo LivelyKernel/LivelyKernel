@@ -135,8 +135,9 @@ Object.extend(Global, {
             var names = [];
             Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
                 if (!obj.__lookupGetter__(name) && 
-                    name != 'requires' &&
+                    name != 'requires' && 
                     (object = obj[name]) instanceof Function &&
+                    object !== lively.Grouping &&   //the only Function instance among well-known containers
                     !lively.Class.isClass(object))
                         names.push(name)});
             return names});
@@ -1032,9 +1033,81 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             this.changePane.setList(JSON.parse("["+ allTimestampsString +"]"));
         } else {
             this.changeSet = new ChangeSet(name, true);
-            this.changePane.setList(this.changeSet.timestamps);
+            this.changePane.setList(this.changeSet.timestamps.concat([]));
         }
     },
+    moveChange: function(t) {
+            var changesets = this.changeSetPane.getList();
+
+            changesets.remove(this.changeSet.name);
+            changesets.remove("-- ALL CHANGES --");
+
+            var proceed = function(otherChangeSet) {
+                var contextPath = panel.codePane.doitContext.lvContextPath();
+                if(!contextPath)
+                    throw new Error("Should not happen");
+                container.lvRemoveMethodFromExistingCategory(functionName, category);
+                container.lvAddMethodToExistingCategory(func, functionName, otherCategory);
+    
+                if(func.user && func.timestamp)
+                    //already modified
+                    func.timestamp = ChangeSet.logChange(func.toString(), contextPath, functionName, otherCategory, func.timestamp);
+                else {
+                    //first change
+                    func.timestamp = ChangeSet.logFirstChange(func.toString(), contextPath, functionName, otherCategory, category, null, null, null);
+                    if(func.timestamp)
+                        func.user = $world.getUserName();
+                }
+                func.kindOfChange = "changed category from "+ category+ " to "+otherCategory;
+
+                panel.setFunctionContainer(container);
+                functionKindPane.setSelectionMatching(otherCategory + ' - proto');
+                panel.functionPane.setSelectionMatching(functionName);
+            }
+    
+            $world.listPrompt('move to...', function(newChangeSet) {
+                        
+                if(newChangeSet == '<new change set>')
+                    $world.editPrompt('new change set', function(newChangeSet) {
+                        if(newChangeSet && newChangeSet.trim().length > 0) {
+                            newChangeSet = newChangeSet.trim();
+                            container.lvAddCategoryIfAbsent(newCategory);
+                            proceed(newChangeSet);
+                        }
+                    });
+                else if(newChangeSet)
+                    proceed(newChangeSet);
+            }, changesets);
+        },
+
+    getChangeMenu: function() {
+        var self = this;
+        var selected = this.changePane.selection;
+        var items = [];
+        if(!selected)
+            return items;
+        items.push(
+            ['remove', function() {
+                        self.removeFromChangeSet(selected)}]
+//                    ,
+//            ['copy to...', function() {
+//                        self.copyChange(selected)}],
+//            ['move to...', function() {
+//                        self.moveChange(selected)}]
+        );
+        return items;
+    },
+    copyChange: function(t) {
+        // enter comment here
+    },
+
+    removeFromChangeSet: function(t) {
+        this.changeSet.removeTimestamp(t);
+        debugger;
+        this.changePane.setList(this.changeSet.timestamps.concat([]));
+    },
+
+
     removeAllChanges: function() {
         var self = this;
         $world.confirm('Are you sure you want to permanently remove all changes?', function(answer){
@@ -1201,6 +1274,10 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
     selectedCategory: function selectedCategory() {
         var category = this.selectedFunctionKind && 
                 this.selectedFunctionKind.substring(0, this.selectedFunctionKind.indexOf(' - '));
+                
+        var categoriesContainer = this.codePane.doitContext.lvCategoriesContainer();
+        if(categoriesContainer && categoriesContainer.categories[category])
+            return category;
         return category == 'default category' ? null : category;
     },
 },
@@ -1459,8 +1536,8 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 titleRenderFunction: function(e){return "Module " + e.name()},
                 listRenderFunction: function(e){return e.name()},
                 containers: function(){
-                    return lively.Module.getLoadedModules().select(function(e){
-                        return e.functions(false).length > 0
+                    return Global.subNamespaces(true).select(function(e){
+                        return !e.isAnonymous() && e.functions(false).length > 0
                     })},
                 nonStaticContainer: function(e){return null}}, 
                 
@@ -1698,12 +1775,14 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
             categories.remove(category);
             categories.remove('default category');  //one for static
             categories.remove('default category');  //one for proto
+            categories.unshift('<new category>');
             
             var proceed = function(otherCategory) {
                 var contextPath = panel.codePane.doitContext.lvContextPath();
                 if(!contextPath)
                     throw new Error("Should not happen");
-                container.lvRemoveMethodFromExistingCategory(functionName, category);
+                if(category)
+                    container.lvRemoveMethodFromExistingCategory(functionName, category);
                 container.lvAddMethodToExistingCategory(func, functionName, otherCategory);
     
                 if(func.user && func.timestamp)

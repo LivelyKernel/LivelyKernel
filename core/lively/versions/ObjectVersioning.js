@@ -198,13 +198,11 @@ Object.extend(lively.versions.ObjectVersioning, {
             },
             construct: function(virtualTarget, args) {
                 var OriginalConstructor = this.targetObject(),
+                    proto = OriginalConstructor.prototype,
                     newInstance;
                 
-                newInstance = lively.proxyFor({
-                    __protoID: OriginalConstructor.prototype.__objectID
-                });
+                newInstance = lively.proxyFor(lively.create(proto));
                 newInstance.constructor = OriginalConstructor;
-                
                 OriginalConstructor.apply(newInstance, args);
                 
                 return newInstance;
@@ -324,11 +322,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                 prototype = lively.objectFor(proto);
                 instance = create.call(null, prototype, propertiesObject);
                 instance.__protoID = proto.__objectID;
-                
-                return instance;
             } else {
-                return create.call(null, prototype, propertiesObject);
+                instance = create.call(null, prototype, propertiesObject);
             }
+            return instance;
         }
         lively.originalObjectCreate = create;
         lively.create = wrappedCreate;
@@ -357,14 +354,6 @@ Object.extend(lively.versions.ObjectVersioning, {
         // TODO: hasBeenProxiedBefore() (+ move up to isProxy)
         if (({}).hasOwnProperty.apply(target, ['__objectID']))
             return this.getProxyByID(target.__objectID);
-        
-        // FIXME: add a Object.isFunction(target)
-        if (target.prototype && !this.isProxy(target.prototype)) {
-            // some function's have prototypes, which get used when calling
-            // constructors and in the construct-trap. note that some built-in
-            // functions don't have prototypes
-            target.prototype = this.proxyFor(target.prototype);
-        }
         
         virtualTarget = this.virtualTargetFor(target);
         
@@ -516,7 +505,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return lively.proxyFor(function() { });
             }
         })
-        
     },
     wrapEval: function() {
         var originalEval = eval;

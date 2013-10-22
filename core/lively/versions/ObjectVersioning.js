@@ -74,7 +74,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 if (name === '__proto__') {
-                    if (value && value.__objectID) {
+                    if (value && lively.isProxy(value)) {
                         targetObject.__protoID = value.__objectID;
                         targetObject.__proto__ = lively.objectFor(value);
                     } else {
@@ -163,7 +163,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // TODO: unwrapping might be necessary at other boundaries as
                 // well, not just for DOM nodes
                 if (thisArg && lively.isProxy(thisArg) &&
-                        method.toString().include(' { [native code] }')) {
+                        method.toString().include('{ [native code] }')) {
                     
                     // DOM Nodes
                     if (lively.objectFor(thisArg).nodeName) {
@@ -210,6 +210,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             },
             getPrototypeOf: function(virtualTarget) {
                 var protoID = this.targetObject().__protoID;
+                
                 if (protoID) {
                     return lively.ProxyTable[protoID];
                 } else {
@@ -314,13 +315,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                 prototype = proto;
             
             if (lively.isProxy(proto)) {
-                
-                // FIXME: this comment relevant??
-                // can't just un-proxy the proxied prototype and pass it to the
-                // original Object.create, because the prototype itself might
-                // have a prototype only available via __protoID (and that's
-                // thus available when the prototype is proxied)
-                
                 prototype = lively.objectFor(proto);
                 instance = create.call(null, prototype, propertiesObject);
                 instance.__protoID = proto.__objectID;
@@ -339,23 +333,21 @@ Object.extend(lively.versions.ObjectVersioning, {
         // through lively.CurrentObjectTable
         var proto, protoID, virtualTarget, objectID, proxy;
         
-        // FIXME: is it really a problem to add them? also see below for when
-        // root prototypes are prototypes... if it's necessary, then add all
-        // root prototypes
-        if (target === Function.prototype) {
+        if ([Object.prototype, Function.prototype, Array.prototype].include(
+                target)) {
+            // don't change root prototypes (i.e. add __objectID)
             throw new Error('root prototypes should not be inserted!!');
         }
         
         if (this.isProxy(target)) 
             throw new TypeError('Proxies shouldn\'t be inserted into the ' +                    'object tables');
+        
+        if (this.objectHasBeenProxiedBefore(target))
+            return this.getProxyByID(target.__objectID);
          
         if (lively.isPrimitiveObject(target)) {
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
         }
-        
-        // TODO: hasBeenProxiedBefore() (+ move up to isProxy)
-        if (({}).hasOwnProperty.apply(target, ['__objectID']))
-            return this.getProxyByID(target.__objectID);
         
         virtualTarget = this.virtualTargetFor(target);
         
@@ -376,9 +368,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 protoID = this.proxyFor(proto).__objectID;
             } else {
-                // FIXME: is this necessary? or can root prototypes just be
-                // added to the Object tables as well
-
                 protoID = null;
             }
             
@@ -456,6 +445,9 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     isPrimitiveObject: function(obj) {
         return obj !== Object(obj);
+    },
+    objectHasBeenProxiedBefore: function(obj) {
+        return ({}).hasOwnProperty.apply(obj, ['__objectID']);
     },
     commitVersion: function() {
         var previousVersion;

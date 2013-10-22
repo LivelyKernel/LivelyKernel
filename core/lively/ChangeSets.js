@@ -550,10 +550,13 @@ Object.extend(ChangeSet, {
                     var originalContainer = container;
                     if(context !== originalContext)
                         originalContainer = originalContext.lvCategoriesContainer();
-                    originalContainer.lvRemoveMethodFromExistingCategory(changeRecord.originalPropertyName, changeRecord.originalCategory);
+                    if(originalContainer)
+                        originalContainer.lvRemoveMethodFromExistingCategory(changeRecord.originalPropertyName, changeRecord.originalCategory);
                 }
-                container.lvAddCategoryIfAbsent(changeRecord.category);
-                container.lvAddMethodToExistingCategory(func, changeRecord.propertyName, changeRecord.category);
+                if(container) {
+                    container.lvAddCategoryIfAbsent(changeRecord.category);
+                    container.lvAddMethodToExistingCategory(func, changeRecord.propertyName, changeRecord.category);
+                }
             }
             if(!existingTimestamp) {
                 if(timestamp)
@@ -1326,6 +1329,7 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
 
     setFunction: function setFunction(aFunctionHolder) {
         if(!aFunctionHolder) {
+            debugger;
             this.selectedFunctionNameInContainer = null;
             this.codePane.setTextString(''); 
             return; }
@@ -1425,6 +1429,13 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 this.selectedContainerKind.titleRenderFunction(aContainer) : 
                 "Simple Code Browser"
     },
+    newDropDownListPane: function newDropDownListPane(extent, optItems) {
+        var list = new lively.morphic.DropDownList(extent, optItems);
+        list.applyStyle({scaleProportional: true});
+        list.onBlur = function(evt){};
+        return list;
+    },
+
     browseVersions: function(timestamp) {
 
         var changeRecord = ChangeSet.getChangeRecord(timestamp);

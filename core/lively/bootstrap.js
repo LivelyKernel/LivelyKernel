@@ -641,7 +641,7 @@
             var source = this.getSync(url);
             if (!source) { console.warn('Could not load %s', url); return; }
             try {
-                eval(source);
+                eval(source, url);
             } catch (e) {
                 console.error('Error when loading %s: %s\n%s', url, e, e.stack);
             }
@@ -657,7 +657,7 @@
             } else {
                 this.getAsync(url, false, function(response) {
                     try {
-                        eval(response);
+                        eval(response, url);
                     } catch (e) {
                         console.error('Error when loading %s: %s\n%s', url, e,
                                 e.stack);

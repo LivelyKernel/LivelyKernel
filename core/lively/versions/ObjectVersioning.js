@@ -477,11 +477,20 @@ Object.extend(lively.versions.ObjectVersioning, {
         })
     },
     wrapEval: function() {
-        var originalEval = eval;
-        eval = function(code) {
-            var transformedCode = lively.versions.ObjectVersioning.transformSource(code);
+        var originalEval = eval,
+            s2s = lively.versions.SourceTransformations;
+        
+        eval = function(code, scriptName) {
+            
+            // for source maps, use:
+            // var transformedCode = s2s.generateCodeFromSource(code, scriptName);
+            
+            // for now:
+            var transformedCode = s2s.transformSource(code, {beautify: true});
+            
             return originalEval(transformedCode);
         }
+        
         this.originalEval = originalEval;
     },
     wrapNativeFunctions: function() {

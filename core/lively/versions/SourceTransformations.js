@@ -133,9 +133,6 @@ Object.extend(lively.versions.SourceTransformations, {
     },
     loadSource: function(url) {
         eval(this.generateCodeFromUrl(url));
-    },
-    evalCode: function(code, optScriptName) {
-        eval(this.generateCodeFromSource(code, optScriptName));
     }
 });
     

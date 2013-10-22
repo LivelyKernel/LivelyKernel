@@ -650,6 +650,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         c.activePane().addMorph(lively.newMorph({style: {fill: Color.green}}))
         c.setExtent(pt(300,200))
         c.openInWorld();
+        return c;
     }
 },
 'settings', {

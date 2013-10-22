@@ -201,10 +201,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                     proto = OriginalConstructor.prototype,
                     newInstance;
                 
-                newInstance = lively.proxyFor(lively.create(proto));
+                newInstance = lively.create(proto);
                 newInstance.constructor = OriginalConstructor;
                 OriginalConstructor.apply(newInstance, args);
                 
+                // newInstance is proxied as lively.create returns a proxy
                 return newInstance;
             },
             getPrototypeOf: function(virtualTarget) {
@@ -228,7 +229,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return ({}).hasOwnProperty.call(this.targetObject(), name);
             },
             getOwnPropertyNames: function(virtualTarget) {
-                return Object.getOwnPropertyNames(this.targetObject());
+                return Object.getOwnPropertyNames(this.targetObject()).
+                    reject(function(ea) {return ea === '__objectID'});
             },
             enumerate: function(virtualTarget) {
                 var targetObject = this.targetObject(),
@@ -325,7 +327,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             } else {
                 instance = create.call(null, prototype, propertiesObject);
             }
-            return instance;
+            return lively.proxyFor(instance);
         }
         lively.originalObjectCreate = create;
         lively.create = wrappedCreate;
@@ -525,13 +527,13 @@ Object.extend(lively.versions.ObjectVersioning, {
     wrapGlobalObjects: function() {
         // TODO: built-in functions that create new objects
         // have to return proxies for the new objects. examples:
-        // Object.create()
         // JSON.parse()
         // Array methods: concat(), slice(), map(), filter()...
         // Date constructor and parse() and UTC()
         // and other global objects in Global / window
-
-        Object.create = this.proxyFor(Object.create);
+        
+        // for Object.create see >>wrapObjectCreate
+        
         JSON.parse = this.proxyFor(JSON.parse);
     },
 });

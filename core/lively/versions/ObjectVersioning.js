@@ -90,6 +90,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             },
             get: function(virtualTarget, name, receiver) {
                 var result, nextAncestor, proto,
+                    OV = lively.versions.ObjectVersioning,
                     targetObject = this.targetObject();;
                 
                 // proxy meta-information
@@ -105,8 +106,12 @@ Object.extend(lively.versions.ObjectVersioning, {
                         return lively.ProxyTable[targetObject.__protoID];
                     } else {
                         proto = targetObject.__proto__;
-                        return lively.isPrimitiveObject(proto) ? proto :
-                                lively.proxyFor(proto);
+                        if (lively.isPrimitiveObject(proto) ||
+                            OV.isRootPrototype(proto)) {
+                                return proto;
+                            } else {
+                                return lively.proxyFor(proto);
+                            }
                     }
                 }
                 
@@ -140,17 +145,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                     method = this.targetObject(),
                     targetObject = thisArg;
                 
-                // workaround for legacy setters and getters
-                if (method.name === '__defineSetter__' ||
-                    method.name === '__defineGetter__' ||
-                    method.name === '__lookupSetter__' ||
-                    method.name === '__lookupGetter__') {
-                    
-                    result = method.apply(targetObject, [args[0],
-                            lively.objectFor(args[1])]);
-                    return this.ensureProxied(result);
-                }
-                
                 // workaround to have functions print with their function bodies
                 if (Object.isFunction(thisArg) && 
                         lively.isProxy(thisArg) &&
@@ -160,36 +154,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
-                // TODO: unwrapping might be necessary at other boundaries as
-                // well, not just for DOM nodes
                 if (thisArg && lively.isProxy(thisArg) &&
-                        method.toString().include('{ [native code] }')) {
+                    method.toString().include('{ [native code] }')) {
                     
-                    // DOM Nodes
-                    if (lively.objectFor(thisArg).nodeName) {
-                        targetObject = lively.objectFor(thisArg);
-                        this.checkProtoChains(targetObject, thisArg);
-                    }
+                    targetObject = lively.objectFor(thisArg);
+                    args = args.map(function(each) {
+                        return lively.isProxy(each) ?
+                             lively.objectFor(each) : each;
+                    })
                     
-                    // RegExp
-                    if (Object.isRegExp(lively.objectFor(thisArg))) {
-                        targetObject = lively.objectFor(thisArg);
-                        this.checkProtoChains(targetObject, thisArg);
-                    }
-                    
-                    // array.concat
-                    if (method.name === 'concat' &&
-                        Object.isArray(lively.objectFor(thisArg))) {
-                        
-                        targetObject = lively.objectFor(thisArg);
-                        args = args.map(function(each) {
-                            return lively.isProxy(each) ?
-                                 lively.objectFor(each) : each;
-                        })
-                        
-                        this.checkProtoChains(targetObject, thisArg);
-                    }
-                    
+                    this.checkProtoChains(targetObject, thisArg);
                 }
                 
                 result = method.apply(targetObject, args);
@@ -333,8 +307,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // through lively.CurrentObjectTable
         var proto, protoID, virtualTarget, objectID, proxy;
         
-        if ([Object.prototype, Function.prototype, Array.prototype].include(
-                target)) {
+        if (this.isRootPrototype(target)) {
             // don't change root prototypes (i.e. add __objectID)
             throw new Error('root prototypes should not be inserted!!');
         }
@@ -353,8 +326,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         if (target.__protoID === undefined) {
             proto = Object.getPrototypeOf(target);
-            if (proto && !([Object.prototype, Function.prototype,
-                    Array.prototype].include(proto))) {
+            if (proto && !(this.isRootPrototype(proto))) {
                 
                 if (this.isProxy(proto)) {
                     // when proxies are used as prototypes, the prototype can't
@@ -445,6 +417,10 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     isPrimitiveObject: function(obj) {
         return obj !== Object(obj);
+    },
+    isRootPrototype: function(obj) {
+        var roots = [Object.prototype, Function.prototype, Array.prototype];
+        return roots.include(obj)
     },
     objectHasBeenProxiedBefore: function(obj) {
         return ({}).hasOwnProperty.apply(obj, ['__objectID']);

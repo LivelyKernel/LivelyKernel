@@ -21,17 +21,64 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
 
 (function extendAcorn() {
 
+    acorn.walk.all = function walkASTNode(astNode, iterator, state) {
+        // walks the tree that's defined by astNode and its referenced objects.
+        // will maintain depth and path information of the current astNode. this
+        // walker will follow all properties of astNode and every value that has a
+        // "type" property will be interpreted as ast node. Note that astNode my
+        // refere to intermediate objects (such as arrays) that are not nodes but
+        // contain nodes.
+        // Example:
+        // all = []; acorn.walk.all(acorn.parse("1+2"), function(node, state) {
+        //     all.push(Strings.indent(
+        //         node.type + ' ' + state.referencedAs.join('.'),
+        //         ' ', state.depth));
+        // }); all.join('\n');
+        //   result:
+        //     Program
+        //      ExpressionStatement body.0
+        //       BinaryExpression expression
+        //       Literal left
+        //       Literal right
+        function makeScope(parentScope) {
+            var scope = {id: Strings.newUUID(), parentScope: parentScope, containingScopes: []};
+            parentScope && parentScope.containingScopes.push(scope);
+            return scope;
+        }
+        if (!state) state = {depth: 0, path: [], referencedAs: [], scope: makeScope()};
+        if (state.depth > 100) throw new Error('Endless recursion?');
+        var isASTNode = !!astNode.type;
+        if (isASTNode && astNode.type === 'FunctionExpression') state.scope = makeScope(state.scope);
+        if (isASTNode) iterator(astNode, state);
+        var excludedKeys = ['start', 'end', 'raw', 'source'];
+
+        Object.getOwnPropertyNames(astNode).forEach(function(key) {
+            if (excludedKeys.indexOf(key) !== -1) return;
+            var val = astNode[key];
+            if (val && typeof val === 'object') {
+                walkASTNode(val, iterator, {
+                    depth: isASTNode ? state.depth + 1 : state.depth,
+                    scope: state.scope,
+                    path: state.path.concat([Object.isNumber ? 'number:'+  key : key]),
+                    parentNode: isASTNode ? astNode : state.parentNode,
+                    referencedAs: isASTNode ? [key] : state.referencedAs.concat([key])
+                });
+            }
+        });
+    }
+
     acorn.walk.forEachNode = function(ast, func, state, options) {
         // note: func can get called with the same node for different
         // visitor callbacks!
         // func args: node, state, depth, type
         options = options || {};
         var traversal = options.traversal || 'preorder'; // also: postorder
-        var visitors = acorn.walk.make({
+        var visitors = options.visitors ? Object.extend({}, options.visitors) : acorn.walk.make({
             MemberExpression: function(node, st, c) {
                 c(node.object, st, "Expression");
                 c(node.property, st, "Expression");
-            }});
+            }
+        });
         var iterator = traversal === 'preorder' ?
             function(orig, type, node, depth, cont) { func(node, state, depth, type); return orig(node, depth+1, cont); } :
             function(orig, type, node, depth, cont) { var result = orig(node, depth+1, cont); func(node, state, depth, type); return result; };
@@ -84,33 +131,84 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         return Objects.inspect(ast);
     }
 
-    acorn.walk.print = function(ast, source) {
-        source = Object.isString(ast) ? ast : source;
-        ast = Object.isString(ast) ? acorn.parse(ast) : ast;
-        var lastActiveProp, types = [];
-        // 1. We are interested in which properties the walker descends, not
-        // just the descended node type. To get this info we install a getter
-        // into the node props that when called will remember the name of the
-        // last accessed prop. This is what we then records in the print
+    acorn.walk.withParentInfo = function(ast, iterator, options) {
+        // options = {visitAllNodes: BOOL}
+        options = options || {};
+        function makeScope(parentScope) {
+            var scope = {id: Strings.newUUID(), parentScope: parentScope, containingScopes: []};
+            parentScope && parentScope.containingScopes.push(scope);
+            return scope;
+        }
+        var visitors = acorn.walk.make({
+            Function: function(node, st, c) {
+                if (st && st.scope) st.scope = makeScope(st.scope);
+                c(node.body, st, "ScopeBody");
+            },
+            VariableDeclarator: function(node, st, c) {
+                // node.id && c(node.id, st, 'Identifier');
+                node.init && c(node.init, st, 'Expression');
+            },
+            VariableDeclaration: function(node, st, c) {
+                for (var i = 0; i < node.declarations.length; ++i) {
+                    var decl = node.declarations[i];
+                    if (decl) c(decl, st, "VariableDeclarator");
+                }
+            },
+            ObjectExpression: function(node, st, c) {
+                for (var i = 0; i < node.properties.length; ++i) {
+                    var prop = node.properties[i];
+                    c(prop.key, st, "Expression");
+                    c(prop.value, st, "Expression");
+                }
+            },
+            MemberExpression: function(node, st, c) {
+                c(node.object, st, "Expression");
+                c(node.property, st, "Expression");
+            }
+        });
+        var lastActiveProp, getters = [];
         acorn.walk.forEachNode(ast, function(node) {
-            Object.keys(node).without('end', 'start', 'type', 'source').forEach(function(propName) {
+            Object.keys(node).without('end', 'start', 'type', 'source', 'raw').forEach(function(propName) {
                 if (node.__lookupGetter__(propName)) return; // already defined
-                var val = node[propName], descriptor = propName + (Object.isArray(val) ? '[]' : '');
-                node.__defineGetter__(propName, function() { lastActiveProp = descriptor; return val; });
+                var val = node[propName];
+                node.__defineGetter__(propName, function() { lastActiveProp = propName; return val; });
+                getters.push([node, propName, node[propName]]);
             });
+        }, null, {visitors: visitors});
+        var result = [];
+        Object.keys(visitors).forEach(function(type) {
+            var orig = visitors[type];
+            visitors[type] = function(node, state, cont) {
+                if (type === node.type || options.visitAllNodes) {
+                    result.push(iterator.call(null, node, {scope: state.scope, depth: state.depth, parent: state.parent, type: type, propertyInParent: lastActiveProp}));
+                    return orig(node, {scope: state.scope, parent: node, depth: state.depth+1}, cont);
+                } else {
+                    return orig(node, state, cont);
+                }
+            }
         });
-        // 2. Actual print visitor
-        acorn.walk.forEachNode(ast, function(node, state, depth, type) {
-            var s = Strings.indent(lastActiveProp + ':' + type, '  ', depth);
-            s += '<' + node.start + '-' + node.end;
-            source && (s += ',' + Strings.print(source.slice(node.start, node.end).replace(/\n|\r/g, '').truncate(20)));
-            s+= '>'
-            types.push(s);
+        acorn.walk.recursive(ast, {scope: makeScope(), parent: null, propertyInParent: '', depth: 0}, null, visitors);
+        getters.forEach(function(nodeNameVal) {
+            delete nodeNameVal[0][nodeNameVal[1]];
+            nodeNameVal[0][nodeNameVal[1]] = nodeNameVal[2];
         });
-        lastActiveProp = 'root';
-        return types.join('\n');
+        return result;
     }
 
+    acorn.walk.print = function(ast, source) {
+        // acorn.walk.print('12+3')
+        source = Object.isString(ast) ? ast : source;
+        ast = Object.isString(ast) ? acorn.parse(ast) : ast;
+        var result = [];
+        acorn.walk.all(ast, function(node, state) {
+            var nodeSrc = source ? ',' + Strings.print(source.slice(node.start, node.end).replace(/\n|\r/g, '').truncate(20)) : '';
+            var indent = Strings.indent('', '  ', state.depth);
+            result.push(Strings.format('%s%s:%s<%s-%s%s>',
+                                    indent, state.referencedAs.length ? state.referencedAs.join('.') : 'root',
+                                    node.type, node.start, node.end, nodeSrc));
+        });
+        return result.join('\n');
+    }
 })();
 
 lively.ide.ModuleWrapper.addMethods(
@@ -287,7 +385,7 @@ Object.subclass('lively.ide.CodeEditor.JS.Navigator',
 },
 'selection', {
     rangeForNodesMatching: function(src, pos, func) {
-        // if the cursor is at a position that has a containing node of type
+        // if the cursor is at a position that has a containing node matching func
         // return start/end index of that node
         var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),

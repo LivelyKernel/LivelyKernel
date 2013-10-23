@@ -1745,11 +1745,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             interactiveEval = function() { return eval(__evalStatement) };
         try {
             var result = interactiveEval.call(ctx);
-            if (Config.changesetsExperiment) {
-                var contextPath = ctx.lvContextPath();
-                if(contextPath)
-                    ChangeSet.logDoit(__evalStatement, contextPath);
-            }
+            if (Config.changesetsExperiment)
+                ChangeSet.logDoit(__evalStatement, ctx.lvContextPath());
             return result;
         } catch(e) {throw e}
     },

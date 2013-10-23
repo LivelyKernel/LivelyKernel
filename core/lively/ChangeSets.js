@@ -844,23 +844,21 @@ ChangeSet.addMethods(
         localStorage.setItem(ChangeSet.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
     },
     logDoit: function(source, contextPath) {
-        //do we really want to log this?
-        //check if it has any potential side-effects
+
+        var storageArray = [source];
+        //check if it has any 'this' references
         var programNode = lively.ast.acorn.parse(source);
-        var assignments = false, functionCalls = false, thisReferences = false;
+        var thisReferences = false;
         lively.ast.acorn.simpleWalk(programNode, {
-            AssignmentExpression: function(node) { assignments = true },
-            CallExpression: function(node) { functionCalls = true },
             ThisExpression: function(node) { thisReferences = true }
         });
-        if(!assignments && !functionCalls)
-            //should be safe to ignore
-            return;
-        var storageArray = [source];
         if(thisReferences)
-        //otherwise no need for contextPath
-            storageArray.push(contextPath);
-        
+            //otherwise no need for contextPath
+            if(contextPath)
+                storageArray.push(contextPath);
+            else
+                //we need a context path, but there is none
+                return;
         this.storeArray(storageArray, ChangeSet.nextTimestamp());
     },
 

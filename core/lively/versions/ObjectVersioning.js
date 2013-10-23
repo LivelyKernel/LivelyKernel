@@ -358,9 +358,6 @@ Object.extend(lively.versions.ObjectVersioning, {
         Object.defineProperty(target, '__objectID', {
             value: objectID
         });
-        Object.defineProperty(virtualTarget, '__objectID', {
-            value: objectID
-        });
         
         proxy = Proxy(virtualTarget,
                 this.versioningProxyHandler(target.__objectID));

@@ -1206,8 +1206,10 @@ Object.subclass("Color",
 });
 
 Object.extend(Color, {
-    random: function() {
-        return new Color(Math.random(), Math.random(), Math.random());
+    random: function(min, max) {
+        if (min === undefined) min = 0;
+        if (max === undefined) max = 255;
+        return new Color(Numbers.random(min, max), Numbers.random(min, max), Numbers.random(min, max));
     },
 
     hsb: function(hue,sat,brt) {

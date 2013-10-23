@@ -614,6 +614,22 @@ lively.versions.tests.TestCase.subclass(
             output = lively.versions.SourceTransformations.generateCodeFromSource(input);
         
         this.assertEquals(output, expectedOutput);
+    },
+    test09AccessorFunctionInDefineProperty: function() {
+        var input =
+            'Object.defineProperty(obj, \"age\", {\n' +
+            '    get: function() {\n' +
+            '        return 2;\n' +
+            '    }\n' +
+            '});';
+        var expectedOutput =
+            'Object.defineProperty(obj, \"age\", lively.versions.ObjectVersioning.proxyFor({\n' +
+            '    get: lively.versions.ObjectVersioning.proxyFor(function() {\n' +
+            '        return 2;\n' +
+            '    })\n' +
+            '}));';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
     }
 });
 

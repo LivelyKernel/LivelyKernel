@@ -400,7 +400,7 @@ Config.addOptions(
 
     // Modules
     ["modulesBeforeWorldLoad", ["lively.morphic.HTML"], "evaluated before all changes"],
-    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker"], "evaluated before world is setup"],
+    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki"], "evaluated before world is setup"],
     ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
     ["showModuleDefStack", true, "so modules know where they were required from"],
     ["loadUserConfig", true, "for sth like jens/config.js, used in lively.bootstrap"],
@@ -513,6 +513,11 @@ Config.addOptions(
     ["lively2livelyAllowRemoteEval", true, 'Allow eval actions from other Lively worlds.'],
     ["lively2livelyEnableConnectionIndicator", true, 'Show a morph that indicates whether lively2lively is running and which provides access to collab actions.']
 ],
+
+"Wiki", [
+    ['showWikiToolFlap', true, 'Show tool flap that gives access to wiki tools.']
+],
+
 'lively.Worker', [
     ['lively.Worker.idleTimeOfPoolWorker', 60*1000, 'Seconds a lively.Worker that is automatically added to the worker pool is kept alive.']
 ],

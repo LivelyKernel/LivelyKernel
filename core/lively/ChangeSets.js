@@ -318,17 +318,13 @@ Object.extend(ChangeSet, {
 Object.extend(ChangeSet, {
 	loadAndcheckVsSystem: function() {
 
-		this.userStorageRoot = "LivelyChanges:" + location.href + ":author:" + $world.getUserName();
-        var defaultChangeSet = this.defaultChangeSetName();
-        this.changeSetNames().each(function(e){
-            var changeSet = new ChangeSet(e, true);
-            if(e == defaultChangeSet)
-                ChangeSet.newChanges(changeSet);
-            if(!changeSet.hasErrors())
-                changeSet.applyChanges();
-            if(changeSet.hasErrors())
-                $world.openInspectorFor(changeSet);
-        })
+		this.userStorageRoot = "LivelyChanges:" + location.origin + location.pathname + ":author:" + $world.getUserName();
+        var changeSet = new ChangeSet(this.defaultChangeSetName(), true);
+        ChangeSet.newChanges(changeSet);
+        if(!changeSet.hasErrors() && Config.automaticChangesReplay)
+            changeSet.applyChanges();
+        if(changeSet.hasErrors())
+            $world.openInspectorFor(changeSet);
 	},
     changeSetNames: function() {
         var namesString = localStorage.getItem(this.userStorageRoot + ":changesetNames");
@@ -344,7 +340,21 @@ Object.extend(ChangeSet, {
 
     logDoit: function(source, contextPath) {
 
-        this.current().logDoit(source, contextPath);
+        var storageArray = [source];
+        //check if it has any 'this' references
+        var programNode = lively.ast.acorn.parse(source);
+        var thisReferences = false;
+        lively.ast.acorn.simpleWalk(programNode, {
+            ThisExpression: function(node) { thisReferences = true }
+        });
+        if(thisReferences)
+            //otherwise no need for contextPath
+            if(contextPath)
+                storageArray.push(contextPath);
+            else
+                //we need a context path, but there is none
+                return;
+        this.storeArray(storageArray, this.nextTimestamp());
     },
 
 
@@ -373,7 +383,7 @@ Object.extend(ChangeSet, {
     },
     removeAllFromPersistentStorage: function() {// ChangeSet.removeAllFromPersistentStorage()
     
-		var storageRoot = "LivelyChanges:" + location.href + ":author:" + $world.getUserName();
+		var storageRoot = "LivelyChanges:" + location.origin + location.pathname + ":author:" + $world.getUserName();
 
         var changesetNamesString = localStorage.getItem(storageRoot + ":changesetNames");
         if(changesetNamesString) {
@@ -400,6 +410,21 @@ Object.extend(ChangeSet, {
 
         localStorage.setItem(storageRoot + ":defaultChangeSet", "Unnamed")
     },
+    storeArray: function(array, timestamp) {
+
+        //Step 1: store the actual change
+        localStorage.setItem(this.userStorageRoot + ":allChanges:" + timestamp, JSON.stringify(array));
+
+        //Step 2: mark the change in the "all storage keys"
+        var allTimestampsString = localStorage.getItem(this.userStorageRoot + ":timestamps");
+        if(!allTimestampsString)
+            allTimestampsString = "" + timestamp;
+        else
+            allTimestampsString += "," + timestamp;
+        localStorage.setItem(this.userStorageRoot + ":timestamps", allTimestampsString);
+
+    },
+
     nextTimestamp: function() {
         var current = performance.now();
         while(current == performance.now());
@@ -432,12 +457,7 @@ Object.extend(ChangeSet, {
             }
         }
         
-        var context = lively.lookup(changeRecord.contextPath);
-        if(!context) {
-            changeRecord.errors.push("Failed evaluating context path: " + changeRecord.contextPath);
-            return;
-        }
-        
+        var context = changeRecord.contextPath && lively.lookup(changeRecord.contextPath);
         if(changeRecord.type == "doIt") {
             try {
                 (function() { eval(changeRecord.source) }).call(context);
@@ -446,6 +466,10 @@ Object.extend(ChangeSet, {
             }
             if(!existingTimestamp)
                 this.logDoit(changeRecord.source, changeRecord.contextPath);
+            return;
+        }
+        if(!context) {
+            changeRecord.errors.push("Failed evaluating context path: " + changeRecord.contextPath);
             return;
         }
         var kindOfChange, 
@@ -699,6 +723,11 @@ ChangeSet.addMethods(
     hasErrors: function() {
         return this.changeRecords.detect(function(e){e.errors.length > 0})
     },
+    addChange: function(t) {
+        this.timestamps.push(t);
+        this.changeRecords.push(ChangeSet.hydrateChange(t));
+    },
+
 
 
 
@@ -805,28 +834,15 @@ ChangeSet.addMethods(
 
     storeArray: function(array, timestamp) {
 
-        var storageRoot = ChangeSet.userStorageRoot;
-    
-        //Step 1: store the actual change
-        localStorage.setItem(storageRoot + ":allChanges:" + timestamp, JSON.stringify(array));
+        ChangeSet.storeArray(array, timestamp);
 
-        //Step 2: mark the change in the "all storage keys"
-        var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
-        if(!allTimestampsString)
-            allTimestampsString = "" + timestamp;
-        else
-            allTimestampsString += "," + timestamp;
-        localStorage.setItem(storageRoot + ":timestamps", allTimestampsString);
-
-        //Step 3: mark the change in the changeset storage so that we can automatically reload
-        this.timestamps.push(timestamp);
-        localStorage.setItem(storageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
+        this.addTimestamp(timestamp);
     },
     storeName: function() {
         
         if(!ChangeSet.userStorageRoot) {
             var username = $world.getUserName();
-            var storageRoot = "LivelyChanges:" + location.href;
+            var storageRoot = "LivelyChanges:" + location.origin + location.pathname;
             var authorsString = localStorage.getItem(storageRoot + ":authors");
             if(!authorsString)
                 authorsString = "[]";
@@ -843,24 +859,20 @@ ChangeSet.addMethods(
         changesetNames.push(this.name);
         localStorage.setItem(ChangeSet.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
     },
-    logDoit: function(source, contextPath) {
+    reorderTimestamp: function(index, newIndex) {
 
-        var storageArray = [source];
-        //check if it has any 'this' references
-        var programNode = lively.ast.acorn.parse(source);
-        var thisReferences = false;
-        lively.ast.acorn.simpleWalk(programNode, {
-            ThisExpression: function(node) { thisReferences = true }
-        });
-        if(thisReferences)
-            //otherwise no need for contextPath
-            if(contextPath)
-                storageArray.push(contextPath);
-            else
-                //we need a context path, but there is none
-                return;
-        this.storeArray(storageArray, ChangeSet.nextTimestamp());
+        var ts = this.timestamps.splice(index, 1)[0];
+        this.timestamps.splice(newIndex, 0, ts);
+        localStorage.setItem(ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
     },
+
+    addTimestamp: function(t) {
+
+        this.timestamps.push(t);
+        localStorage.setItem(ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
+    },
+
+
 
 	
     hydrate: function() {
@@ -961,6 +973,22 @@ lively.morphic.Panel.subclass('ChangesBrowser',
         window.getPartsBinMetaInfo().addRequiredModule('lively.ChangeSets');
         window.copyToPartsBinWithUserRequest();
     },
+    moveUp: function(t) {
+        var i = this.changeSet.timestamps.indexOf(t);
+        var record = this.changeSet.changeRecords.splice(i, 1)[0];
+        this.changeSet.changeRecords.splice(i-1, 0, record);
+        this.changeSet.reorderTimestamp(i, i-1);
+        this.changePane.setList(this.changeSet.timestamps.concat([]));
+    },
+    moveDown: function(t) {
+        var i = this.changeSet.timestamps.indexOf(t);
+        var record = this.changeSet.changeRecords.splice(i, 1)[0];
+        this.changeSet.changeRecords.splice(i+1, 0, record);
+        this.changeSet.reorderTimestamp(i, i+1);
+        this.changePane.setList(this.changeSet.timestamps.concat([]));
+    },
+
+
 
 
     setChange: function(t) {
@@ -1016,6 +1044,17 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             }
             this.changeCategory.setTextString(changeRecord.category);
             this.changeName.setTextString(changeRecord.propertyName);
+        } else {
+            this.originalCodePane.setTextString('');
+            this.originalContext.setTextString('');
+            this.originalCategory.setTextString('');
+            this.originalName.setTextString('');
+            this.systemCodePane.setTextString('');
+            this.systemContext.setTextString('');
+            this.systemCategory.setTextString('');
+            this.systemName.setTextString('');
+            this.changeCategory.setTextString('');
+            this.changeName.setTextString('');
         }
         this.changeContext.setTextString(changeRecord.contextPath);
         this.changeCodePane.setTextString(changeRecord.source);
@@ -1037,76 +1076,65 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             this.changePane.setList(this.changeSet.timestamps.concat([]));
         }
     },
-    moveChange: function(t) {
-            var changesets = this.changeSetPane.getList();
 
-            changesets.remove(this.changeSet.name);
-            changesets.remove("-- ALL CHANGES --");
-
-            var proceed = function(otherChangeSet) {
-                var contextPath = panel.codePane.doitContext.lvContextPath();
-                if(!contextPath)
-                    throw new Error("Should not happen");
-                container.lvRemoveMethodFromExistingCategory(functionName, category);
-                container.lvAddMethodToExistingCategory(func, functionName, otherCategory);
-    
-                if(func.user && func.timestamp)
-                    //already modified
-                    func.timestamp = ChangeSet.logChange(func.toString(), contextPath, functionName, otherCategory, func.timestamp);
-                else {
-                    //first change
-                    func.timestamp = ChangeSet.logFirstChange(func.toString(), contextPath, functionName, otherCategory, category, null, null, null);
-                    if(func.timestamp)
-                        func.user = $world.getUserName();
-                }
-                func.kindOfChange = "changed category from "+ category+ " to "+otherCategory;
-
-                panel.setFunctionContainer(container);
-                functionKindPane.setSelectionMatching(otherCategory + ' - proto');
-                panel.functionPane.setSelectionMatching(functionName);
-            }
-    
-            $world.listPrompt('move to...', function(newChangeSet) {
-                        
-                if(newChangeSet == '<new change set>')
-                    $world.editPrompt('new change set', function(newChangeSet) {
-                        if(newChangeSet && newChangeSet.trim().length > 0) {
-                            newChangeSet = newChangeSet.trim();
-                            container.lvAddCategoryIfAbsent(newCategory);
-                            proceed(newChangeSet);
-                        }
-                    });
-                else if(newChangeSet)
-                    proceed(newChangeSet);
-            }, changesets);
-        },
 
     getChangeMenu: function() {
-        var self = this;
         var selected = this.changePane.selection;
         var items = [];
+        if(!this.changeSet) {
+            if(selected) {
+                var changeSet = new ChangeSet(ChangeSet.defaultChangeSetName(), true);
+                if(changeSet.timestamps.include(selected))
+                    return items;
+                else
+                    return [
+                            ['add to default changeset', function() {
+                                changeSet.addTimestamp(selected)}]
+                        ];
+            }
+            return items;
+        }
+        var self = this;
+        var timestamps = this.changeSet.timestamps;
+        var changeRecords = this.changeSet.changeRecords;
+        if(timestamps.length > 1)
+            items.push(
+                ['apply all', function() {
+                    self.changePane.getList().each(function(e){
+                        ChangeSet.applyChange(changeRecords[timestamps.indexOf(e)], e);
+                    })
+                    if(selected)
+                        self.setChange(selected);
+                    }]);
         if(!selected)
             return items;
         items.push(
+            ['apply selected', function() {
+                ChangeSet.applyChange(changeRecords[timestamps.indexOf(selected)], selected);
+                self.setChange(selected)}]);
+        if(timestamps.indexOf(selected) < timestamps.length - 1)
+            items.push(
+                ['move down', function() {
+                    self.moveDown(selected)}]);
+        if(timestamps.indexOf(selected) > 0)
+            items.push(
+                ['move up', function() {
+                    self.moveUp(selected)}]);
+        items.push(
             ['remove', function() {
-                        self.removeFromChangeSet(selected)}]
-//                    ,
-//            ['copy to...', function() {
-//                        self.copyChange(selected)}],
-//            ['move to...', function() {
-//                        self.moveChange(selected)}]
+                self.removeFromChangeSet(selected)}]
         );
         return items;
     },
-    copyChange: function(t) {
-        // enter comment here
-    },
+
 
     removeFromChangeSet: function(t) {
+        this.changeSet.changeRecords.removeAt(this.changeSet.timestamps.indexOf(t));
         this.changeSet.removeTimestamp(t);
-        debugger;
         this.changePane.setList(this.changeSet.timestamps.concat([]));
     },
+
+
 
 
     removeAllChanges: function() {
@@ -1247,6 +1275,17 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
             }
             this.changeCategory.setTextString(changeRecord.category);
             this.changeName.setTextString(changeRecord.propertyName);
+        } else {
+            this.originalCodePane.setTextString('');
+            this.originalContext.setTextString('');
+            this.originalCategory.setTextString('');
+            this.originalName.setTextString('');
+            this.systemCodePane.setTextString('');
+            this.systemContext.setTextString('');
+            this.systemCategory.setTextString('');
+            this.systemName.setTextString('');
+            this.changeCategory.setTextString('');
+            this.changeName.setTextString('');
         }
         this.changeContext.setTextString(changeRecord.contextPath);
         this.changeCodePane.setTextString(changeRecord.source);

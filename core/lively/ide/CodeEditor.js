@@ -2213,6 +2213,18 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             },
             multiSelectAction: 'forEach',
             readOnly: true
+        }, {
+            name: 'visualizeAST',
+            // bindKey: 'Ctrl-`',
+            exec: function(ed) {
+                var sel = ed.getSelection()
+                var code = !sel.isEmpty() ? ed.session.getTextRange(sel.getRange()) : ed.getValue();
+                require('lively.ast.Visualization').toRun(function() {
+                    lively.ast.visualize(code).openInWorldCenter();
+                });
+            },
+            multiSelectAction: 'forEach',
+            readOnly: true
         }]);
 
         // kbd.bindKeys({"C-M-f": {command: 'forwardSexp'}});

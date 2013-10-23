@@ -299,7 +299,6 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
         lively.originalObjectCreate = create;
         lively.create = wrappedCreate;
-        Object.create = lively.create;
     },
     proxyFor: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 
@@ -506,7 +505,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // Date constructor and parse() and UTC()
         // and other global objects in Global / window
         
-        // for Object.create see >>wrapObjectCreate
+        Object.create = lively.create;
         
         JSON.parse = this.proxyFor(JSON.parse);
     },

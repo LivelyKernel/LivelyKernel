@@ -253,8 +253,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return Object.isSealed(this.targetObject());
             },
             preventExtensions: function(virtualTarget) {
-                // also prevent extensions to the virtual target (required by
-                // the spec)
+                // spec consistency requirement
                 Object.preventExtensions(virtualTarget);
                 
                 return Object.preventExtensions(this.targetObject());
@@ -262,6 +261,17 @@ Object.extend(lively.versions.ObjectVersioning, {
             isExtensible: function(virtualTarget) {
                 return Object.isExtensible(this.targetObject());
             },
+            defineProperty: function(virtualTarget, name, desc) {
+                // spec consistency requirement
+                Object.defineProperty.apply(null, arguments);
+                
+                Object.defineProperty(this.targetObject(), name, desc);
+                
+                return true;
+            },
+            deleteProperty: function(virtualTarget, name) {
+                delete this.targetObject()[name];
+            }
         };
     }
 });

@@ -335,7 +335,7 @@ lively.versions.tests.TestCase.subclass(
         
         this.assertEquals(func.toString(), expectedOutput);
     },
-    test30DefineTriggerAndLookupPropertySetter__deprecatedVariant: function() {
+    test30DefineSetter__deprecatedVariant: function() {
         var obj = this.proxyFor({});
         
         obj.__defineSetter__('aProp', this.proxyFor(function(val) {
@@ -346,7 +346,7 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(obj.anotherProp, 10);
         this.assert(Object.isFunction(obj.__lookupSetter__('aProp')));
     },
-    test31DefineTriggerAndLookupPropertyGetter__deprecatedVariant: function() {
+    test31DefineGetter__deprecatedVariant: function() {
         var obj = this.proxyFor({anotherProp: 5});
         
         obj.__defineGetter__('aProp', this.proxyFor(function(val) {
@@ -356,12 +356,21 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(obj.aProp, 5);
         this.assert(Object.isFunction(obj.__lookupGetter__('aProp')));
     },
-    test32DefineOrLookupGetterOrSetterStuff: function() {
-        var obj = this.proxyFor({set aProp(val) {this.anotherProp = val * 2}});
+    test32DefineGetterViaDefineProperty: function() {
+        var obj = lively.proxyFor({age: 1});
         
-        obj.aProp = 5;
+        Object.defineProperty(obj, 'age', lively.versions.ObjectVersioning.proxyFor({
+            get: lively.proxyFor(function() {return 2})
+        }));
         
-        this.assertEquals(obj.anotherProp, 10);
+        this.assertEquals(obj.age, 2);
+    },
+    test33DeleteProperty: function() {
+        var obj = lively.proxyFor({age: 1});
+        
+        delete obj.age;
+        
+        this.assertEquals(obj.age, undefined);
     }
 });
     

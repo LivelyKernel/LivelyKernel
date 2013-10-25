@@ -331,6 +331,17 @@ Object.extend(lively.versions.ObjectVersioning, {
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
         }
         
+        // functions might get used as constructors and then the prototype
+        // property gets used as prototype for the new objects (__proto__).
+        // therefore, the prototype of a function is used, might get
+        // manipulated, and needs to be looked up via ID just like other
+        // properties will be as well. however, this does assume that functions
+        // that get proxied once are _never_ used as constructors after
+        // unwrapping them.
+        if (Object.isFunction(target) && target.prototype && !lively.isProxy(target.prototype)) {
+            target.prototype = lively.proxyFor(target.prototype);
+        }
+        
         virtualTarget = this.virtualTargetFor(target);
         
         if (target.__protoID === undefined) {

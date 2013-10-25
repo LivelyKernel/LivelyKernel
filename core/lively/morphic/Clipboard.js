@@ -26,7 +26,7 @@ Object.extend(lively.morphic.Clipboard, {
             if (!text) return;
             var match = text.match(/LIVELYKERNELCLIPBOARDDATA\|([0-9]+)\|(.+)/i);
             if (!match || !match[2]) return;
-            var obj = lively.persistence.Serializer.deserialize(match[2]);
+            var obj = lively.morphic.Morph.deserialize(match[2]);
             if (!obj || !obj.isMorph) return;
             withExtractedMorphsDo(null, [obj]);
         } catch(e) { withExtractedMorphsDo(e, null); }

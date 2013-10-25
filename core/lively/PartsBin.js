@@ -104,33 +104,13 @@ Object.subclass('lively.PartsBin.PartItem',
         return ObjectGraphLinearizer.forNewLivelyCopy();
     },
     deserializePart: function(json, optMetaInfo) {
-        // FIXME cleanup
-        var jso = JSON.parse(json),
-            modulesForDeserialization = lively.persistence.Serializer.sourceModulesIn(jso);
-        if (optMetaInfo) {
-            modulesForDeserialization.pushAll(optMetaInfo.getRequiredModules());
-            var objLevel = optMetaInfo.migrationLevel,
-                docLevel =  LivelyMigrationSupport.documentMigrationLevel;
-            if (objLevel && objLevel < docLevel) {
-                Array.range(objLevel + 1, docLevel).forEach(function(i) {
-                    var layer = Global['DocumentMigrationLevel' + i + 'Layer'];
-                    layer && layer.beGlobal();
-                });
-            }
-        }
-        modulesForDeserialization.forEach(function(ea) {
-            var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true) });
-
-        var serializer = this.getSerializer(),
-            part = serializer.deserializeJso(jso),
-            metaInfo = optMetaInfo || part.getPartsBinMetaInfo(),
-            requiredModules = metaInfo.getRequiredModules();
-
-        // ensure
+        var part = lively.morphic.Morph.deserialize(json, {
+            metainfo: optMetaInfo,
+            serializer: this.getSerializer()
+        });
+        var metaInfo = part.getPartsBinMetaInfo();
         metaInfo.setPartsSpace(this.getPartsSpace());
         if (this.lastModifiedDate) metaInfo.lastModifiedDate = this.lastModifiedDate;
-        requiredModules.forEach(function(ea) {
-            var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true) });
         part.withAllSubmorphsDo(function(ea) { ea.setNewId(); });
         part.setPartsBinMetaInfo(metaInfo);
         this.runAfterDeserializationHooks(part);

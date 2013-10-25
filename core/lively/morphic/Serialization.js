@@ -140,6 +140,39 @@ lively.morphic.Morph.addMethods(
     }
 });
 
+Object.extend(lively.morphic.Morph, {
+    deserialize: function(json, options) {
+        // FIXME this is a first step for a cleanup / abstraction of the
+        // serializarion logic of Parts
+        options = options || {};
+        function loadModules(modules) {
+            modules.forEach(function(ea) {
+                var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true); });
+        }
+        var jso = Object.isString(json) ? JSON.parse(json) : json,
+            modulesForDeserialization = lively.persistence.Serializer.sourceModulesIn(jso),
+            metainfo = options.metainfo;
+        if (metainfo) {
+            modulesForDeserialization.pushAll(metainfo.getRequiredModules());
+            var objLevel = metainfo.migrationLevel,
+                docLevel =  LivelyMigrationSupport.documentMigrationLevel;
+            if (objLevel && objLevel < docLevel) {
+                Array.range(objLevel + 1, docLevel).forEach(function(i) {
+                    var layer = Global['DocumentMigrationLevel' + i + 'Layer'];
+                    layer && layer.beGlobal();
+                });
+            }
+        }
+        loadModules(modulesForDeserialization);
+        var serializer = options.serializer || ObjectGraphLinearizer.forNewLivelyCopy(),
+            morph = serializer.deserializeJso(jso),
+            metaInfo = metainfo || morph.getPartsBinMetaInfo(),
+            requiredModules = metaInfo.getRequiredModules().withoutAll(modulesForDeserialization);
+        loadModules(requiredModules);
+        return morph;
+    }
+});
+
 lively.morphic.Text.addMethods(
 'serialization', {
     doNotSerialize: ['charsTyped'],

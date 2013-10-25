@@ -87,12 +87,7 @@ Object.subclass("lively.Sound.AbstractSound", {
     },
 
     play: function() {
-        this.findPlayer().playSound(this)
-    },
-
-    findPlayer: function() {// Look for an outside player and return it if found
-        var player = $morph('PianoKeyboard'); 
-        return player;
+        lively.Sound.SoundPlayer.current().playSound(this)
     },
 
     reset: function() {
@@ -161,18 +156,18 @@ Object.extend(lively.Sound.AbstractSound, {
         return this.bachFugueOn(new lively.Sound.PluckedSound());
     },
 
-    bachFugueOn: function(aSound) {
+    bachFugueOn: function(aSound, aPlayer) {
         // Play a fugue by J. S. Bach using the given sound as the sound for all four voices.
-        // AbstractSound.bachFugue().play()
+        // lively.Sound.AbstractSound.bachFugue().play()
         var mix = new lively.Sound.MixedSound(); 
-        mix.add(this.bachFugueV1On(aSound), 1.0);
-        mix.add(this.bachFugueV2On(aSound), 0.0);
-        mix.add(this.bachFugueV3On(aSound), 1.0);
-        mix.add(this.bachFugueV4On(aSound), 0.0);
+        mix.add(this.bachFugueV1On(aSound, aPlayer), 1.0);
+        mix.add(this.bachFugueV2On(aSound, aPlayer), 0.0);
+        mix.add(this.bachFugueV3On(aSound, aPlayer), 1.0);
+        mix.add(this.bachFugueV4On(aSound, aPlayer), 0.0);
         return mix;
     },
 
-    bachFugueV1On: function(aSound) {
+    bachFugueV1On: function(aSound, aPlayer) {
         // Voice one of a fugue by J. S. Bach.
         return this.noteSequenceOn(aSound,
         [
@@ -445,10 +440,10 @@ Object.extend(lively.Sound.AbstractSound, {
     	[587, 0.4, 268],
     	[0, 0.4, 0],
     	[523, 1.6, 268]
-        ], Color.blue);
+        ], Color.blue, aPlayer);
     },
 
-    bachFugueV2On: function(aSound) {
+    bachFugueV2On: function(aSound, aPlayer) {
         // Voice two of a fugue by J. S. Bach.
         return this.noteSequenceOn(aSound,
         [
@@ -730,10 +725,10 @@ Object.extend(lively.Sound.AbstractSound, {
     	[784, 0.2, 346],
     	[698, 0.2, 346],
     	[659, 1.6, 346]
-    	], Color.green);
+    	], Color.green, aPlayer);
     },
 
-    bachFugueV3On: function(aSound) {
+    bachFugueV3On: function(aSound, aPlayer) {
         // Voice three of a fugue by J. S. Bach.
         return this.noteSequenceOn(aSound,
         [
@@ -986,10 +981,10 @@ Object.extend(lively.Sound.AbstractSound, {
     	[494, 0.4, 268],
     	[0, 0.4, 0],
     	[392, 1.6, 268]
-    	], Color.orange);
+    	], Color.orange, aPlayer);
     },
 
-    bachFugueV4On: function(aSound) {
+    bachFugueV4On: function(aSound, aPlayer) {
         // Voice four of a fugue by J. S. Bach.
         return this.noteSequenceOn(aSound,
         [
@@ -1022,7 +1017,7 @@ Object.extend(lively.Sound.AbstractSound, {
     	[98, 0.3, 500],
     	[131, 3.6, 268],
     	[131, 3.2, 205]
-    	], Color.red);
+    	], Color.red, aPlayer);
     },
 
     bachFragmentOn: function(aSound) {
@@ -1054,7 +1049,7 @@ Object.extend(lively.Sound.AbstractSound, {
         ]);
     },
 
-    noteSequenceOn: function(aSound, noteArray, noteColor) {
+    noteSequenceOn: function(aSound, noteArray, noteColor, player) {
         // Build a note sequence (i.e., a SequentialSound) from the given array
         // using the given sound as the instrument. 
         // Elements are [pitch, duration, loudness] triples with loudness=0 for rests.
@@ -1063,6 +1058,7 @@ Object.extend(lively.Sound.AbstractSound, {
         // noteColor, if specified is the color to be used for depressing these notes on a keyboard
         var score = new lively.Sound.SequentialSound();
         score.noteColor = noteColor;
+        score.player = player;
         noteArray.forEach( function(elt) {
             if (elt[2] == 0) {
                 score.add((new lively.Sound.RestSound()).setPitchDurLoudness(0, elt[1], 0));
@@ -1590,7 +1586,6 @@ lively.Sound.AbstractSound.subclass("lively.Sound.SequentialSound", {
     },
 
     mixSamplesToBuffer: function(n, buffer, startIndex, leftVol, rightVol) {
-        if (this.player == null) this.player = this.findPlayer();  // cache it here for whole melody
         if (this.soundsIndex < 0) return;  // indicator of completion
         var finalIndex = (startIndex + n) - 1;
         var i = startIndex;
@@ -1837,6 +1832,105 @@ Object.extend(lively.Sound.RepeatingSound, {
         return repeat;
     }
 });
+Object.subclass('lively.Sound.SoundPlayer',
+'about', {
+    aboutMe: function() {
+        //  -- Lets Boogie! --
+        // A piano keyboard and synthesizer by Dan Ingalls
+        // The synthesizer methods manage requests to play sounds and musical notes
+        // The playerLoop keeps calling audioHandle.executeCallback which
+        // checks if it is running out of samples and, if so, calls back to
+        // audioUnderRun which is expected to deliver a new set of samples. It does
+        // so by iterating through all activeSounds asking each to mix its samples
+        // into the buffer.
+        //
+        // For a good time...
+        //   lively.Sound.AbstractSound.bachFugue().play()
+        //
+        // Note that I ported the synthesis code and supporting Sound.js
+        // from Smalltalk and Squeak, where they were developed over the years by
+        // John Maloney and others.  I have made a number of improvements and 
+        // simplifications, especially to Envelope and PluckedSound.
+    }
+},
+'initialization', {
+    initialize: function() {
+        this.activeSounds = [];
+        this.sampRate = 44100;
+        this.nChans = 2;
+        this.bufferSecs = 0.2;
+    },
+},
+'playing', {
+    playSound: function(snd) {
+        // Reset and start playing the given sound from its beginning.
+        snd.reset();
+        if (snd.samplesRemaining() == 0) return;
+        this.resumePlaying(snd);
+    },
+    resumePlaying: function(snd) {
+        // Start playing the given sound without resetting it.
+        // It will resume playing from where it last stopped.
+        this.activeSounds.push(snd);
+        if (!this.audioHandle)
+            this.createAudioHandle();
+        // if this was the first sound, start player loop
+        if (this.activeSounds.length === 1)
+            this.playerLoop();
+    }
+},
+'player process', {
+
+    playerStop: function() {
+        // playerLoop() checks this and stops
+        this.audioHandle = null;
+        this.activeSounds = [];
+    },
+    playerLoop: function() {
+        if (this.audioHandle) {
+            // calls our audioUnderRun() if needed to refill buffer
+            this.audioHandle.executeCallback();
+            // keep "looping" as long as there are active sounds
+            if (this.activeSounds.length > 0)
+                this.playerLoop.bind(this).delay(this.bufferSecs / 4);
+            // for buffer size 200 ms underrun is triggered at 100 ms, so check every 50 ms
+        }
+    },
+},
+'audio player', {
+    createAudioHandle: function() {
+         // Set up the buffers and bind audioHandle
+        var buffSize = this.sampRate * this.nChans * this.bufferSecs;  // 0.2 sec worth of samples
+        this.audioHandle = new XAudioServer(this.nChans, this.sampRate,
+            buffSize/2, buffSize,
+            function (sampleCount) { return this.audioUnderRun(sampleCount); }.bind(this),
+            1);
+    },
+    audioUnderRun: function(sampleCount) {
+        // Refill the buffer from the latest generated samples
+        return this.mixActiveSounds(sampleCount);
+    },
+    mixActiveSounds: function(sampleCount) {
+        // Here we go through all active sounds, mixing their samples
+        // into a buffer of the requested size
+        // It is also here that we run the control code for each sound
+        // to change such envelope parameters as volume, pitch, etc.
+        var buffer = this.clearSoundBuffer(sampleCount*2);
+        this.activeSounds = this.activeSounds.select( function(snd) {
+            return snd.samplesRemaining() > 0; });
+        this.activeSounds.forEach( function(snd) { 
+                snd.mixSampleCountIntoBufferStartingAt(sampleCount, buffer, 0, this.sampRate);
+            }, this);
+        // if (this.reverbSound) this.reverbSound.mixSamplesToBuffer(sampleCount, buffer, 1); 
+        return buffer;
+    },
+    clearSoundBuffer: function(sizeUsed) {
+        // Note sizeUsed must be 2 * number of stereo samples
+        var buffer = new Array(sizeUsed);
+        for (var i=0; i<sizeUsed; i++) buffer[i] = 0;
+        return buffer;
+    },
+});
 
 lively.Sound.AbstractSound.subclass("lively.Sound.ScorePlayer", {
     aboutMe: function() {
@@ -2042,6 +2136,20 @@ lively.Sound.AbstractSound.subclass("lively.Sound.ScorePlayer", {
         this.pianoRoll = roll;
     }
 
+});
+
+Object.extend(lively.Sound.SoundPlayer, { 
+    current: function() {
+        if (!this.currentPlayer)
+            this.currentPlayer = new lively.Sound.SoundPlayer();
+    	return this.currentPlayer;
+    },
+    stop: function() {
+        if (this.currentPlayer) {
+            this.currentPlayer.playerStop();
+            this.currentPlayer = undefined;
+        }
+    }
 });
 
 Object.subclass('lively.Sound.Score', {

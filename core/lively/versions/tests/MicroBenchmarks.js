@@ -15,4 +15,36 @@ TestCase.subclass('lively.versions.tests.MicroBenchmarks.ProxiedConstructorAppli
     }
 });
 
+TestCase.subclass('lively.versions.tests.MicroBenchmarks.LookupTest',
+'default category', {
+    setUp: function() {
+        this.client = {};
+        this.client.server = {
+            foo: function() { return 'foo' }
+        };
+        // JIT warm-up
+        this.performCalls(this.client);
+        
+        this.proxyClient = {};
+        this.proxyClient.server = lively.proxyFor(this.client.server);
+        // JIT warm-up
+        this.performCalls(this.proxyClient);
+    },
+
+    performCalls: function(target) {
+        for (var i=0; i < 1000000; i++) {
+            target.server.foo();
+        }
+    },
+
+    testLookupReference: function() {
+        this.performCalls(this.client);
+    },
+
+    testLookupProxy: function() {
+        this.performCalls(this.proxyClient);
+    }
+
+});
+
 });

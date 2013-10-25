@@ -543,6 +543,9 @@ var livelyOV = lively.versions.ObjectVersioning;
 // shortcuts
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
 lively.objectFor = livelyOV.getObjectForProxy.bind(livelyOV);
+lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
+lively.undo = livelyOV.undo.bind(livelyOV);
+lively.redo = livelyOV.redo.bind(livelyOV);
 lively.isPrimitiveObject = livelyOV.isPrimitiveObject.bind(livelyOV);
 
 // start

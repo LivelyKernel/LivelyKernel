@@ -365,8 +365,9 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // set __protoID as not enumerable and not configurable
             Object.defineProperty(target, '__protoID', {
+                value: protoID,
                 writable: true,
-                value: protoID
+                enumerable: true
             });
         }
         

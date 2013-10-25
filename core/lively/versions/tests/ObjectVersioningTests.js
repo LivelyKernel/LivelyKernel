@@ -45,7 +45,7 @@ lively.versions.tests.TestCase.subclass(
     test01ProxyCreation: function() {
         var proxy = this.proxyFor({});
         
-        this.assert(this.isProxy(proxy));
+        this.assert(proxy.isProxy());
     },
     test02ProxyResolvesToObjectViaObjectTable: function() {
         var object = {},
@@ -79,8 +79,8 @@ lively.versions.tests.TestCase.subclass(
             
         personProxy.address = addressProxy;
         
-        this.assert(this.isProxy(personProxy.address));
-        this.assertEquals(this.objectFor(personProxy.address), address);
+        this.assert(personProxy.address.isProxy());
+        this.assertEquals(lively.objectFor(personProxy.address), address);
     },
     test06ProxiesGetPassedByReference: function() {
         var person = this.proxyFor({}),
@@ -105,7 +105,7 @@ lively.versions.tests.TestCase.subclass(
             return 1;
         });
     
-        this.assert(this.isProxy(func));
+        this.assert(func.isProxy());
         this.assertEquals(func.name, 'funcName');
     },
     test09ArraysCanBeProxied: function() {
@@ -113,8 +113,8 @@ lively.versions.tests.TestCase.subclass(
         
         arr[0] = this.proxyFor({});
         
-        this.assert(this.isProxy(arr));
-        this.assert(this.isProxy(arr[0]));
+        this.assert(arr.isProxy());
+        this.assert(arr[0].isProxy());
     },
     test10ProxiedMethodCanBeApplied: function() {
         var obj = this.proxyFor({prop: 24});
@@ -137,8 +137,8 @@ lively.versions.tests.TestCase.subclass(
             },
             proxy = this.proxyFor(obj);
             
-        this.assert(this.isProxy(proxy.prop));
-        this.assert(this.isProxy(proxy.method))
+        this.assert(proxy.prop.isProxy());
+        this.assert(proxy.method.isProxy())
     },
     test13ProxiedConstructorReturnsProxiedInstance: function() {
         var ProxiedConstructor = this.proxyFor(function (name, age) {
@@ -148,7 +148,7 @@ lively.versions.tests.TestCase.subclass(
             }),
             aPerson = new ProxiedConstructor('Joe', '19');
         
-        this.assert(this.isProxy(aPerson));
+        this.assert(aPerson.isProxy());
         this.assert(aPerson.isPerson);
         this.assertEquals(aPerson.name, 'Joe');
         this.assertEquals(aPerson.age, 19);
@@ -159,7 +159,7 @@ lively.versions.tests.TestCase.subclass(
         
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
         this.assertEquals(descendant.__proto__, proto);
-        this.assert(this.isProxy(Object.getPrototypeOf(descendant)));
+        this.assert(Object.getPrototypeOf(descendant).isProxy());
     },
     test15PrototypeOfProxyCanBeChanged: function() {
         var originalPrototype = this.proxyFor({v: 1}),
@@ -216,7 +216,7 @@ lively.versions.tests.TestCase.subclass(
         this.assertEquals(instance.constructor, NewType);
         this.assertEquals(instance.__proto__, NewType.prototype);
         this.assertEquals(instance.prop, 12);
-        this.assert(this.isProxy(instance.getProp));
+        this.assert(instance.getProp.isProxy());
         this.assertEquals(instance.getProp(), 12);
     },
     test20ConstructorWithProxiedPrototypeProperty: function() {
@@ -246,7 +246,10 @@ lively.versions.tests.TestCase.subclass(
     test22ProxyHasCorrectOwnProperties: function() {
         var proto = this.proxyFor({}),
             descendant = lively.create(proto);
-            
+        
+        this.assert(descendant.__proto__ === proto);
+        this.assert(descendant.__proto__.__proto__ === Object.prototype);
+        
         proto.protoProp = 12;
         descendant.ownProp = 24;
         

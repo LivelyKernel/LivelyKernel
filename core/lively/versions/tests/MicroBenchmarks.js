@@ -13,6 +13,6 @@ TestCase.subclass('lively.versions.tests.MicroBenchmarks.ProxiedConstructorAppli
             new NewType(1, 2);
         }
     }
-})
+});
 
 });

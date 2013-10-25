@@ -84,9 +84,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return true;
             },
             get: function(virtualTarget, name, receiver) {
-                var result, nextAncestor, proto,
-                    OV = lively.versions.ObjectVersioning,
-                    targetObject = this.targetObject();;
+                var result, nextAncestor, proto, targetObject,
+                    OV = lively.versions.ObjectVersioning;
                 
                 // proxy meta-information
                 if (name === '__objectID') {
@@ -95,7 +94,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (name === 'isProxy') {
                     return this.isProxy;
                 }
-               
+                if (name === 'proxyTarget') {
+                    return this.targetObject();
+                }
+                
+                targetObject = this.targetObject();
+                
+                // actual handling
                 if (name === '__proto__') {
                     if (targetObject.__protoID) {
                         return lively.ProxyTable[targetObject.__protoID];

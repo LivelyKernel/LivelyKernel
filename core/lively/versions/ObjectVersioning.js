@@ -27,20 +27,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return obj;
                 }
             },
-            lookupInObjAndProtoChainWhile: function (obj, lookup,
-                         whileCondition) {
-                var result = lookup(obj),
-                    proto = this.getObjectByID(obj.__protoID) || obj.__proto__;
-                
-                if (whileCondition(result) && proto) {
-                    result = this.lookupInObjAndProtoChainWhile(
-                        proto,
-                        lookup,
-                        whileCondition
-                    );
-                }
-                return result;
-            },
             checkProtoChains: function(proxyTarget, proxy) {
                 var targetAncestor = proxyTarget.__proto__,
                     proxyAncestor = proxy.__proto__;
@@ -115,17 +101,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                 }
                 
-                result = this.lookupInObjAndProtoChainWhile(
-                    targetObject,
-                    function(obj) {
-                        if (({}).hasOwnProperty.call(obj, name)) {
-                            return obj[name];
-                        } else {
-                            return undefined;
-                        }
-                    },
-                    function(result) { return result === undefined }
-                );
+                if (({}).hasOwnProperty.call(targetObject, name)) {
+                    result = targetObject[name];
+                } else {
+                    if (targetObject.__protoID === null) {
+                        var proto = targetObject.__proto__;
+                    } else {
+                        var proto = lively.ProxyTable[targetObject.__protoID];
+                    }
+                    result = proto ? proto[name] : undefined;
+                }
                 
                 // workaround for legacy setters and getters:
                 // not sure why, but the apply-trap otherwise uses the
@@ -192,13 +177,17 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
             },
             has: function(virtualTarget, name) {
-                return this.lookupInObjAndProtoChainWhile(
-                    this.targetObject(),
-                    function(obj) {
-                        return ({}).hasOwnProperty.call(obj, name);
-                    },
-                    function(result) { return !result }
-                );
+                var targetObject = this.targetObject();
+                if (({}).hasOwnProperty.call(targetObject, name)) {
+                    return true;
+                } else {
+                    if (targetObject.__protoID === null) {
+                        var proto = targetObject.__proto__;
+                    } else {
+                        var proto = lively.ProxyTable[targetObject.__protoID];
+                    }
+                    return proto ? name in proto : false;
+                }
             },
             hasOwn: function(virtualTarget, name) {
                 return ({}).hasOwnProperty.call(this.targetObject(), name);

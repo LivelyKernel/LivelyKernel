@@ -59,12 +59,55 @@ Object.extend(lively.versions.SourceTransformations, {
         var wrapLiterals = new UglifyJS.TreeTransformer(null, function(node) {
             var result;
             
-            if (node instanceof UglifyJS.AST_Object || 
-                node instanceof UglifyJS.AST_Array ||
+            if (node instanceof UglifyJS.AST_Array ||
                 node instanceof UglifyJS.AST_Function) {
                 // an AST_Function is a function expression
                 
                 result = exchangeLiteralExpression(node);
+                
+            } else if (node instanceof UglifyJS.AST_Object) {
+                
+                var accessorProps = node.properties.select(function(each) {
+                    return each instanceof UglifyJS.AST_ObjectSetter ||
+                        each instanceof UglifyJS.AST_ObjectGetter;
+                });
+                
+                if (accessorProps.length == 0) {
+                    result = exchangeLiteralExpression(node);
+                } else {
+                    node.properties = node.properties.withoutAll(accessorProps);
+                
+                    var propsToDefine = {};
+                    accessorProps.forEach(function(each) {
+                        if (!propsToDefine[each.value.name.name]) propsToDefine[each.value.name.name] = {};
+                        propsToDefine[each.value.name.name][each.key] = each.value;
+                    })
+                    
+                    var propDefinitionNodes = [];
+                    for (var propName in propsToDefine) {
+                        // FIXME: don't use UglifyJS.parse...
+                        // TODO: add other property properties (enumerable, writable, and configurable)
+                        propDefinitionNodes.push(UglifyJS.parse('Object.defineProperty(newObject, \'' + propName  + '\', {' +
+                            (propsToDefine[propName].get ? 'get: lively.versions.ObjectVersioning.proxyFor(' + propsToDefine[propName].get.print_to_string() + '),' : '') +
+                            (propsToDefine[propName].set ? 'set: lively.versions.ObjectVersioning.proxyFor(' + propsToDefine[propName].set.print_to_string() + '),' : '') +
+                            'writable: true,\n' +
+                            'enumerable: true,\n' +
+                            'configurable: true\n' +
+                            '});'
+                        ).body[0]);
+                    }
+                    
+                    var code = '(function() {\n';
+                    code += 'var newObject = ' + exchangeLiteralExpression(node).print_to_string() + ';\n';
+                    propDefinitionNodes.forEach(function(each) {
+                        code += each.print_to_string() + ';\n'
+                    })
+                    
+                    code += 'return newObject;\n'
+                    code += '})()'
+                    
+                    result = UglifyJS.parse(code).body[0].body;
+                }
                 
             } else if (node instanceof UglifyJS.AST_Defun) {
                 // an AST_Defun is a function declaration, not function
@@ -76,10 +119,7 @@ Object.extend(lively.versions.SourceTransformations, {
                 // names. and it's syntactically legal to declare variables
                 // multiple times (var declaration gets hoisted)
                 result = exchangeFunctionDeclaration(node);
-            } else if (node instanceof UglifyJS.AST_Accessor) {
-                // FIXME: what is an AST_Accessor node?
-                throw new Error('Transformations of AST_Accessor ' +
-                    'not yet implemented');
+                
             } else {
                 result = node;
             }

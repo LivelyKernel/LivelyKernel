@@ -611,6 +611,39 @@ TestCase.subclass(
             '}));';
         
         this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test10AccessorFunctionInObjectLiteral: function() {
+        var input =
+        'obj = {\n' +
+        '    age: 2,\n' +
+        '    set value(string) {\n' +
+        '        this._value = string;\n' +
+        '    },\n' +
+        '    get value() {\n' +
+        '        return this._value;\n' +
+        '    }\n' +
+        '}'
+        
+        var expectedOutput =
+        'obj = function() {\n' +
+        '    var newObject = lively.versions.ObjectVersioning.proxyFor({\n' +
+        '        age: 2\n' +
+        '    });\n' +
+        '    Object.defineProperty(newObject, "value", {\n' +
+        '        get: lively.versions.ObjectVersioning.proxyFor(function value() {\n' +
+        '            return this._value;\n' +
+        '        }),\n' +
+        '        set: lively.versions.ObjectVersioning.proxyFor(function value(string) {\n' +
+        '            this._value = string;\n' +
+        '        }),\n' +
+        '        writable: true,\n' +
+        '        enumerable: true,\n' +
+        '        configurable: true\n' +
+        '    });\n' +
+        '    return newObject;\n' +
+        '}();'
+        
+        this.assertEquals(this.transform(input), expectedOutput);
     }
 });
 

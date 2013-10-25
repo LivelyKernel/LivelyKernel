@@ -1,4 +1,4 @@
-module('lively.net.tools.Wiki').requires('lively.morphic.Complete').toRun(function() {
+module('lively.net.tools.Wiki').requires('lively.morphic.Complete', 'lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.wiki.VersionViewer', {
     _Extent: lively.pt(336.0,181.0),

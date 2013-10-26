@@ -1113,6 +1113,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return ed.session.getUseSoftTabs(); });
     },
 
+    getTabSize: function() {
+        return this.withAceDo(function(ed) { return ed.session.getTabSize(); });
+    },
+    setTabSize: function(tabSize) {
+        return this.withAceDo(function(ed) { return ed.session.setTabSize(tabSize); });
+    },
+
     setAutocompletionEnabled: function(bool) {
         this.withAceDo(function(ed) { ed.setOption("enableBasicAutocompletion", bool); });
         return this._AutocompletionEnabled = bool;
@@ -1130,6 +1137,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     setShowErrors: function(bool) { return this._ShowErrors = bool; },
     getShowErrors: function() {
         return this.hasOwnProperty("_ShowErrors") ? this._ShowErrors : true
+    },
+
+    getNewLineMode: function() {
+        return this.withAceDo(function(ed) { return ed.session.getNewLineMode(); });
+    },
+    setNewLineMode: function(mode) {
+        // unix, windows, auto
+        return this.withAceDo(function(ed) { return ed.session.setNewLineMode(mode); });
     }
 
 },
@@ -1228,21 +1243,30 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         items.push(["modes", modeItems]);
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        items.push(['settings',
-            [{name: "ShowGutter", menuString: "show line numbers"},
-             {name: "ShowInvisibles", menuString: "show whitespace"},
-             {name: "ShowPrintMargin", menuString: "show print margin"},
-             {name: "ShowActiveLine", menuString: "show active line"},
-             {name: "ShowIndents", menuString: "show indents"},
-             {name: "SoftTabs", menuString: "use soft tabs"},
-             {name: "LineWrapping", menuString: "line wrapping"},
-             {name: "ShowWarnings", menuString: "show warnings"},
-             {name: "ShowErrors", menuString: "show Errors"},
-             {name: "AutocompletionEnabled", menuString: "use Autocompletion"}].map(function(itemSpec) {
-                var enabled = editor["get"+itemSpec.name]();
-                return [Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
-                    editor['set'+itemSpec.name](!enabled); }]
-            })]);
+        function boolItem(itemSpec, items) {
+            var enabled = editor["get"+itemSpec.name]();
+            var item = [Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
+                editor['set'+itemSpec.name](!enabled); }].concat()
+            items.push(item);
+        }
+        var settingsItems = [];
+        boolItem({name: "ShowGutter", menuString: "show line numbers"}, settingsItems);
+        boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, settingsItems);
+        boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, settingsItems);
+        boolItem({name: "ShowActiveLine", menuString: "show active line"}, settingsItems);
+        boolItem({name: "ShowIndents", menuString: "show indents"}, settingsItems);
+        boolItem({name: "SoftTabs", menuString: "use soft tabs"}, settingsItems);
+        settingsItems.push(['Change tab width', function() {
+            $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.getTabSize())
+        }]);
+        boolItem({name: "LineWrapping", menuString: "line wrapping"}, settingsItems);
+        settingsItems.push(['Change line ending mode', function() {
+            $world.listPrompt('Choose line ending mode', function(input) { editor.setNewLineMode(input); }, ['auto', 'windows', 'unix'], editor.getNewLineMode(), pt(200,120));
+        }]);
+        boolItem({name: "ShowWarnings", menuString: "show warnings"}, settingsItems);
+        boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);
+        boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, settingsItems);
+        items.push(['settings', settingsItems]);
 
         var mac = UserAgent.isMacOS;
         function cmdBinding(options) {
@@ -2036,20 +2060,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: 'changeTextMode',
                 exec: function(ed) {
-                    var codeEditor = ed.$morph, currentTextMode = codeEditor.getTextMode();
-                    lively.ide.tools.SelectionNarrowing.getNarrower({
-                        name: 'lively.ide.CodeEditor.TextMode.NarrowingList',
-                        input: '',
-                        spec: {
-                            prompt: 'choose mode: ',
-                            candidates: lively.ide.ace.availableTextModes().map(function(mode) {
-                                return {
-                                    string: Strings.format('[%s] %s', mode === currentTextMode ? 'X' : ' ', mode),
-                                    value: mode, isListItem: true };
-                            }),
-                            actions: [function(mode) { codeEditor.setTextMode(mode); }]
-                        }
-                    });
+                    var codeEditor = ed.$morph,
+                        currentTextMode = codeEditor.getTextMode(),
+                        modes = lively.ide.ace.availableTextModes().map(function(mode) {
+                            return {string: Strings.format('[%s] %s', mode === currentTextMode ? 'X' : ' ', mode), value: mode, isListItem: true }; });
+                    lively.ide.tools.SelectionNarrowing.chooseOne(modes,
+                        function(err, mode) { codeEditor.setTextMode(mode); },
+                        {name: 'lively.ide.CodeEditor.TextMode.NarrowingList', prompt: 'choose mode: '})
                     return true;
                 },
                 handlesCount: true

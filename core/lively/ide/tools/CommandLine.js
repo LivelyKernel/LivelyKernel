@@ -23,6 +23,17 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         hist.index = items.length - 1;
     },
 
+    browseHistory: function browseHistory() {
+        var cmdL = this;
+        var items = this.commandHistory.items.map(function(item, i) {
+            return {isListItem: true, string: item, value: i}
+        }).reverse();
+        lively.ide.tools.SelectionNarrowing.chooseOne(items, function(err, i) {
+            Object.isNumber(i) && cmdL.setAndShowHistItem(i);
+            cmdL.focus.bind(cmdL).delay(0);
+        });
+    },
+
     commandLineInput: function commandLineInput(text) {
         if (text.length > 0) this.addCommandToHistory(text);
         lively.bindings.signal(this, 'input', text);
@@ -101,19 +112,26 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         this.setInput(textString);
     },
 
+    setAndShowHistItem: function(idx) {
+        var hist = this.commandHistory, items = hist.items, len = items.length-1, i = hist.index;
+        if (!Numbers.between(i, 0, len+1)) hist.index = i = len;
+        else hist.index = i;
+        if (this.getInput() !== items[i] && typeof items[i] !== 'undefined') this.setInput(items[i]);
+    },
+
     showHistItem: function showHistItem(dir) {
         dir = dir || 'next';
         var hist = this.commandHistory, items = hist.items, len = items.length-1, i = hist.index;
-        if (!Numbers.between(i, 0, len-1)) hist.index = i = len;
+        if (!Numbers.between(i, 0, len+1)) hist.index = i = len;
         if (this.getInput() !== items[i] && typeof items[i] !== 'undefined') { this.setInput(items[i]); return; }
         if (dir === 'next') {
-            if (i >= len) return;
+            if (i > len) return;
             i = ++hist.index;
         } else {
             if (i <= 0) return;
             i = --hist.index;
         }
-        this.setInput(items[i]);
+        this.setInput(items[i] || '');
     },
 
     showNextCommand: function showNextCommand() {
@@ -134,8 +152,8 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
             case 'Down':
             case 'Alt-å': // "Alt-N"
             case 'Control-Down': this.showNextCommand(); this.focus(); evt.stop(); return true;
+            case 'Alt-H': this.browseHistory(); evt.stop(); return true;
             case 'Esc':
-            case 'Control-C':
             case 'Control-G': this.clear(); evt.stop(); return true;
             default: return $super(evt);        
         }
@@ -155,11 +173,22 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     },
     onLoad: function onLoad() {
         $super();
-        this.onFromBuildSpecCreated();
+        this.withAceDo(function(ed) { this.initCommandLine(ed); });
     },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-        this.withAceDo(function(ed) { this.initCommandLine(ed); });
         this.reset();
+    }
+});
+
+Object.extend(lively.ide.tools.CommandLine, {
+    histories: {},
+    get: function(id) {
+        var cmdLine = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
+        if (id) {
+            if (!this.histories[id]) this.histories[id] = {items: [], max: 30, index: 0};
+            cmdLine.commandHistory = this.histories[id];
+        }
+        return cmdLine;
     }
 });
 

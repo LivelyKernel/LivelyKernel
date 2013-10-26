@@ -1851,7 +1851,7 @@ openReferencingMethodFinder: function () {
     },
 
     internalAddWindow: function(morph, title, pos, suppressReframeHandle) {
-        morph.applyStyle({borderWidth: 1, borderColor: CrayonColors.iron});
+        morph.applyStyle({borderColor: CrayonColors.iron});
         pos = pos || this.firstHand().getPosition().subPt(pt(5, 5));
         var win = this.addFramedMorph(morph, String(title || ""), pos, suppressReframeHandle);
         return morph;
@@ -1902,8 +1902,8 @@ openReferencingMethodFinder: function () {
     confirm: function (message, callback) {
         return this.openDialog(new lively.morphic.ConfirmDialog(message, callback));
     },
-    prompt: function (message, callback, defaultInput) {
-        return this.openDialog(new lively.morphic.PromptDialog(message, callback, defaultInput))
+    prompt: function (message, callback, defaultInputOrOptions) {
+        return this.openDialog(new lively.morphic.PromptDialog(message, callback, defaultInputOrOptions))
     },
     passwordPrompt: function (message, callback, options) {
         return this.openDialog(new lively.morphic.PasswordPromptDialog(message, callback, options));
@@ -2779,12 +2779,13 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',
 lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
 'initializing', {
-    initialize: function($super, label, callback, defaultInput) {
-        $super(label, callback, defaultInput);
-        this.defaultInput = defaultInput;
+    initialize: function($super, label, callback, defaultInputOrOptions) {
+        $super(label, callback);
+        this.options = Object.isString(defaultInputOrOptions) ?
+            {input: defaultInputOrOptions} : defaultInputOrOptions || {};
     },
     buildTextInput: function(bounds) {
-        var input = lively.BuildSpec("lively.ide.tools.CommandLine").createMorph();
+        var input = lively.ide.tools.CommandLine.get(this.options.historyId);
         input.setBounds(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)));
         input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));
         lively.bindings.connect(input, 'savedTextString', this, 'result');
@@ -2792,7 +2793,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         lively.bindings.connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
         input.applyStyle({resizeWidth: true, moveVertical: true});
         this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
-        input.textString = this.defaultInput || '';
+        input.textString = this.options.input || '';
     },
 
     buildView: function($super, extent) {
@@ -2884,6 +2885,27 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
         this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
         input.focus.bind(input).delay(0);
         lively.bindings.connect(input, 'savedTextString', this, 'result');
+        var histId = this.options.historyId;
+        if (!histId) return;
+        lively.bindings.connect(this, 'result', this, 'saveHistory');
+        var hists = lively.morphic.EditDialog.histories || (lively.morphic.EditDialog.histories = {});
+        var hist = hists[histId] || (hists[histId] = {items: [], max: 30, index: 0});
+        input.commandHistory = hist;
+        input.addScript(function onKeyDown(evt) {
+            switch (evt.getKeyString()) {
+                case 'Alt-H': this.browseHistory(); evt.stop(); return true;
+                default: return $super(evt);        
+            }
+        });
+        input.addScript(function browseHistory() {
+            var items = this.commandHistory.items.map(function(ea) {
+                return {isListItem: true, value:ea, string: ea.replace(/\n/g, ' ').truncate(50)}
+            }).reverse();;
+            lively.ide.tools.SelectionNarrowing.chooseOne(items, function(err, string) {
+                Object.isString(string) && (this.textString = string);
+                this.focus.bind(this).delay(0);
+            }.bind(this));
+        });
     },
 
     buildView: function($super, extent) {
@@ -2915,6 +2937,18 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
             return false;
         });
         return panel;
+    }
+},
+"history", {
+    saveHistory: function(string) {
+        if (!string) return;
+        var histId = this.options.historyId;
+        if (!histId) return;
+        var hists = lively.morphic.EditDialog.histories;
+        if (!hists) return;
+        var hist = hists[histId];
+        if (!hist || !hist.items || hist.items.last() === string) return;
+        hist.items.push(string);
     }
 },
 'opening', {

@@ -309,7 +309,7 @@ Object.extend(lively.ide.commands.byName, {
                 if (!input || !input.length) return;
                 var result = dlg.inputText.tryBoundEval(input);
                 alertOK('eval: ' + input.replace(/\n/g, '').truncate(40) + ':\n' + Strings.print(result));
-            }, {textMode: 'javascript'});
+            }, {textMode: 'javascript', historyId: 'lively.ide.evalJavaScript'});
             return true;
         }
     },
@@ -516,7 +516,7 @@ Object.extend(lively.ide.commands.byName, {
                 $world.prompt('Enter shell command to run.', function(cmdString) {
                     if (!cmdString) { show('No command entered, aborting...!'); return; }
                     runCommand(cmdString);
-                }).panel.focus();
+                }, {historyId: 'lively.ide.execShellCommand'}).panel.focus();
             };
         }
     },
@@ -554,7 +554,7 @@ Object.extend(lively.ide.commands.byName, {
                 try { url = String(new URL(input)); } catch(e) { show('%s is not a valid URL', input); return; }
                 JSLoader.removeAllScriptsThatLinkTo(url);/*load even if loaded before*/
                 JSLoader.loadJs(url);
-            }, 'http://lively-web.org/say-hello.js');
+            }, {input: 'http://lively-web.org/say-hello.js', historyId: 'lively.net.loadJavaScriptFile'});
         }
     },
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": {

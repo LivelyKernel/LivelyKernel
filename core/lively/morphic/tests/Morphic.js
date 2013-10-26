@@ -567,6 +567,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AppTests',
             dialog = this.world.confirm('Foo?', function(bool) { answer = bool });
         dialog.cancelButton.simulateButtonClick();
         this.assert(!answer, 'no button does not work')
+        var answer = false,
+            dialog = this.world.confirm('Foo?', function(bool) { answer = bool });
         dialog.okButton.simulateButtonClick();
         this.assert(answer, 'yes button does not work')
     },
@@ -576,6 +578,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AppTests',
             dialog = this.world.prompt('Foo?', function(input) { answer = input });
         dialog.cancelButton.simulateButtonClick();
         this.assert(!answer, 'cancel button does not work')
+        var answer = 'nothing',
+            dialog = this.world.prompt('Foo?', function(input) { answer = input });
         dialog.inputText.setTextString('test input')
         dialog.okButton.simulateButtonClick();
         this.assertEquals('test input', answer, 'ok button does not work')

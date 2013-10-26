@@ -1,4 +1,4 @@
-module('lively.ide.CodeEditorTextOverlay').requires('lively.ide.CodeEditor', 'lively.DOMAbstraction', 'lively.ide.tests.CodeEditor').toRun(function() {
+module('lively.ide.codeeditor.TextOverlay').requires('lively.ide.CodeEditor', 'lively.DOMAbstraction', 'lively.ide.tests.CodeEditor').toRun(function() {
 
 (function setupCSS() {
     var css = ".text-overlay {\n"

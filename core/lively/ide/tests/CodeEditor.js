@@ -77,15 +77,13 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.done();
     },
     testSetMode: function() {
-        var e = this.editor, m;
+        var e = this.editor, sess = e.aceEditor.session;
         e.setTextMode('javascript:LabeledStatement');
-        m = e.aceEditor.session.getMode();
-        this.assertEquals(m.$id, 'ace/mode/javascript');
-        this.assertEquals(m.astType, 'LabeledStatement');
+        this.assertEquals(sess.getMode().$id, 'ace/mode/javascript');
+        this.assertEquals(sess.$astType, 'LabeledStatement');
         e.setTextMode('javascript');
-        m = e.aceEditor.session.getMode();
-        this.assertEquals(m.$id, 'ace/mode/javascript');
-        this.assertEquals(m.astType, null);
+        this.assertEquals(sess.getMode().$id, 'ace/mode/javascript');
+        this.assertEquals(sess.$astType, null);
         this.done();
     },
     testConnectToTextChange: function() {

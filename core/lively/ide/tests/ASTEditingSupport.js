@@ -1,4 +1,4 @@
-module('lively.ide.tests.ASTEditingSupport').requires("lively.ide.tests.CodeEditor", "lively.ast.acorn").toRun(function() {
+module('lively.ide.tests.ASTEditingSupport').requires("lively.ide.tests.CodeEditor", "lively.ide.codeeditor.JS").toRun(function() {
 
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
 'testing', {
@@ -40,7 +40,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 'running', {
     setUp: function() {
-        this.sut = new lively.ide.CodeEditor.JS.Navigator();
+        this.sut = new lively.ide.codeeditor.JS.Navigator();
     }
 },
 'testing', {
@@ -90,7 +90,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
 'running', {
     setUp: function() {
-        this.sut = new lively.ide.CodeEditor.JS.RangeExpander();
+        this.sut = new lively.ide.codeeditor.JS.RangeExpander();
     }
 },
 'testing', {
@@ -113,7 +113,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
 'testing', {
     testFindGlobalVar: function() {
         var src = "var x = 3; (function() { var foo = 3, baz = 5; x = 99; bar = 2; bar; Object.bar = 3; })",
-            sut = new lively.ide.CodeEditor.JS.ScopeAnalyzer(),
+            sut = new lively.ide.codeeditor.JS.ScopeAnalyzer(),
             result = sut.findGlobalVarReferences(src);
         this.assertEquals(2, result.length, 'global ref not found');
         this.assertMatches(
@@ -135,7 +135,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
             "for (var i =0; foo < 1; i++) 1;", ["foo"],
             "function foo(baz) { baz; bar }; foo", ["bar"]
         ];
-        var sut = new lively.ide.CodeEditor.JS.ScopeAnalyzer(),
+        var sut = new lively.ide.codeeditor.JS.ScopeAnalyzer(),
             result = sut.findGlobalVarReferences(src);
         for (var i = 0; i < tests.length; i+=2) {
             var src = tests[i], expected = tests[i+1], result = sut.findGlobalVarReferences(src);

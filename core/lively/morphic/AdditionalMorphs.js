@@ -536,6 +536,11 @@ cop.create('lively.morphic.PathOriginHackLayer')
 }).beNotGlobal();
 
 lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
+"setting", {
+    style: {
+        borderWidth: 0
+    }
+},
 'initializing', {
     initialize: function($super, initialExtent) {
         this.rootElement = document.createElement('div');
@@ -544,7 +549,7 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         this.shape.setBounds({
             extent: function() {return initialExtent;},
             topLeft: function() {return pt(0,0);}});
-
+        this.setStyleClassNames(['selectable']);
         this.setFill(Color.rgb(200,200,200));
     }
 },
@@ -631,11 +636,10 @@ Object.extend(lively.morphic.HtmlWrapperMorph, {
         bounds = bounds || lively.rect(0,0, 500, 500);
         var morph = new lively.morphic.HtmlWrapperMorph(bounds.extent());
         morph.asJQuery().html(html);
-        morph.setFill(Color.white);
+        morph.applyStyle({fill: Color.white, clipMode: 'auto'});
         morph.name = 'HTMLMorph';
-        morph.setClipMode('auto');
         morph.openInWindow();
-        morph.owner.openInWorld(bounds.topLeft());
+        morph.owner.openInWorldCenter();
         return morph;
     }
 });

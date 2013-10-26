@@ -414,6 +414,7 @@ Object.extend(lively.morphic.World, {
             morph = new lively.morphic.Morph(shape);
 
         morph.url = url;
+        morph.setStyleClassNames(['selectable']);
 
         morph.addScript(function morphMenuItems() {
             var target = this;

@@ -2745,12 +2745,18 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 },
 'callbacks', {
     setCallback: function(func) {
-        this.callback = func;
+        var self = this;
+        // ensure invocation only once
+        this.callbackCount = 0;
+        this.callback = function() {
+            self.callbackCount++;
+            func.apply(null, arguments);
+        };
         lively.bindings.connect(this, 'result', this, 'triggerCallback');
     },
     triggerCallback: function(resultBool) {
         this.removeTopLevel();
-        if (this.callback) this.callback(resultBool);
+        if (this.callback && this.callbackCount === 0) this.callback(resultBool);
         if (this.lastFocusedMorph) this.lastFocusedMorph.focus();
     },
 });
@@ -2881,6 +2887,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
                     borderWidth: 1, borderColor: Color.gray.lighter(),
                     textMode: this.options.textMode || 'text'
                 });
+        input.evalEnabled = false;
         input.setBounds(bounds);
         this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
         input.focus.bind(input).delay(0);

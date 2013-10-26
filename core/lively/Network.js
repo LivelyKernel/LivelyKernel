@@ -433,7 +433,7 @@ Object.subclass('NetRequestStatus',
 'testing', {
     isDone: function() {
         // transport.DONE not defined in all browsers, so use constant
-        return this.transport.readyState === 4
+        return this.transport.readyState === 4;
     },
 
     isSuccess: function() {
@@ -452,7 +452,7 @@ Object.subclass('NetRequestStatus',
     setException: function(e) { this.exception = e },
 
     toString: function() {
-        return Strings.format("#<NetRequestStatus{%s,%s,%s}>", this.method, this.url, this.exception || this.transport.status);
+        return Strings.format("Request status (%s): %s", this.requestString(), this.exception || this.transport.status);
     },
 
     requestString: function() { return this.method + " " + decodeURIComponent(this.url) },

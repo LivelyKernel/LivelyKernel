@@ -319,7 +319,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         if (!this.state.keepInputOnReactivate) inputLine.clear();
         this.selectInput(); inputLine.focus();
     },
-    deactivate: function activate() {
+    deactivate: function deactivate() {
         lively.ide.tools.SelectionNarrowing.lastActive = this;
         $world.activateTopMostWindow();
         if (this.state.refocusOnClose && this.state.focusedMorph) this.state.focusedMorph.focus();
@@ -563,6 +563,8 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
     resetCache: function() {
         Object.keys(this.cachedNarrowers).forEach(function(name) {
             show('resetting narrower %s', name);
+            var n = this.cachedNarrowers[name];
+            n && n.remove();
             delete this.cachedNarrowers[name];
         }, this);
     },
@@ -584,14 +586,34 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
         return narrower.open(spec);
     },
 
+    chooseOne: function(list, thenDo, options) {
+        options = options || {};
+        var remove = !options.hasOwnProperty('remove') || options.remove;
+        var thenDoCalled = false;
+        lively.ide.tools.SelectionNarrowing.getNarrower({
+            name: options.name,
+            setup: function(narrower) {
+                remove && lively.bindings.connect(narrower, 'deactivate', narrower, 'remove');
+                lively.bindings.connect(narrower, 'escapePressed', thenDo, 'call', {removeAfterUpdate: true});
+            },
+            spec: {
+                prompt: options.prompt || 'select item: ',
+                candidates: list.asListItemArray(),
+                actions: [
+                    {name: 'with item do', exec: function(candidate) {
+                        thenDoCalled = true;
+                        thenDo(null, candidate); }},
+                ]
+            }
+        });
+    },
+
     example: function() {
         // lively.ide.tools.SelectionNarrowing.example();
         lively.ide.tools.SelectionNarrowing.getNarrower({
             setup: function(narrower) {
                 lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'remove');
                 lively.bindings.connect(narrower, 'escapePressed', narrower, 'remove');
-                // lively.bindings.connect(narrower, 'confirmedSelection', self, 'focus');
-                // lively.bindings.connect(narrower, 'escapePressed', self, 'focus');
             },
             spec: {
                 prompt: 'foo: ',

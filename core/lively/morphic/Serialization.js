@@ -432,6 +432,11 @@ Object.extend(lively.morphic.World, {
                     workspace.addScript(function getDoitContext() {
                         return this.iframe.getGlobal();
                     });
+                }],
+                ['Edit page', function() {
+                    var textEd = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph().openInWorldCenter();
+                    textEd.openURL(target.url);
+                    lively.bindings.connect(textEd, 'contentStored', target, 'reload');
                 }]
             ]);
         });

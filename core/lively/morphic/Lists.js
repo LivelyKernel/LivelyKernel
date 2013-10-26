@@ -1156,8 +1156,9 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 
 Object.extend(Array.prototype, {
     asListItemArray: function() {
-        return this.collect(function(ea) {
-            return {isListItem: true, string: String(ea), value: ea};
+        return this.map(function(ea) {
+            return ea && ea.isListItem ?
+                ea : {isListItem: true, string: String(ea), value: ea};
         });
     }
 });

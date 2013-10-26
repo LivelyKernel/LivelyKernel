@@ -222,9 +222,16 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         }.bind(this));
     },
     saveFileNetwork: function saveFileNetwork() {
+        var ed = this;
         var webR = this.getWebResource();
-        webR.statusMessage(webR.getURL() + ' saved', webR.getURL() + ' could not be saved!');
-        webR.beAsync().put(this.get('editor').textString);
+        webR.beAsync().noProxy().put(this.get('editor').textString).whenDone(function(_, status) {
+            if (status.isSuccess()) {
+                lively.bindings.signal(ed, 'contentStored');
+                ed.message(webR.getURL() + ' saved', Color.green);
+            } else {
+                ed.message('Not saved: ' + status, Color.red);
+            }
+        });
     },
     updateWindowTitle: function updateWindowTitle() {
         var location = this.getLocation();

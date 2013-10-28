@@ -32,20 +32,24 @@ Object.extend(lively.versions.SourceTransformations, {
             end: node.end
         });
     },
+    createAssignmentNode: function(variableName, value) {
+        return new UglifyJS.AST_Var({
+            definitions: [new UglifyJS.AST_VarDef({
+                name: new UglifyJS.AST_SymbolVar({
+                    name: variableName
+                }),
+                value: value
+            })]
+        });
+    },
     transformFunctionDeclaration: function(functionDeclaration) {
         // takes function declaration: function fName() {...}
         // returns AST for:
         // var fName = lively.versions.ObjectVersioning.proxy(function fName() {...})
-        return new UglifyJS.AST_Var({
-            definitions: [new UglifyJS.AST_VarDef({
-                name: new UglifyJS.AST_SymbolVar({
-                    name: functionDeclaration.name.name
-                }),
-                value: this.wrapExpressionInProxyFor(functionDeclaration)
-            })],
-            start: functionDeclaration.start,
-            end: functionDeclaration.end
-        });
+        var variableName = functionDeclaration.name.name,
+            value = this.wrapExpressionInProxyFor(functionDeclaration);
+        
+        return this.createAssignmentNode(variableName, value);
     },
     selectAccessorPropertiesFromObject: function(node) {
         return node.properties.select(function(each) {
@@ -58,11 +62,13 @@ Object.extend(lively.versions.SourceTransformations, {
     },
     transformObjectLiteralWithAccessorDefinitions: function(node) {
         var accessorProperties = this.selectAccessorPropertiesFromObject(node),
+            objectLiteralNode,
             accessorPropertyDefinitions = {},
             definitionNodes = [],
             currentDefinition;
         
         node.properties = node.properties.withoutAll(accessorProperties);
+        objectLiteralNode = this.wrapExpressionInProxyFor(node);
         
         // { value: {
         //     get: function(..),
@@ -92,7 +98,8 @@ Object.extend(lively.versions.SourceTransformations, {
         }
         
         var code = '(function() {\n';
-        code += 'var newObject = ' + this.wrapExpressionInProxyFor(node).print_to_string() + ';\n';
+        
+        code += this.createAssignmentNode('newObject', objectLiteralNode).print_to_string() + ';\n'; 
         definitionNodes.forEach(function(each) {
             code += each.print_to_string() + ';\n'
         })
@@ -109,11 +116,12 @@ Object.extend(lively.versions.SourceTransformations, {
             return this.wrapExpressionInProxyFor(node);
             
         } else if (node instanceof UglifyJS.AST_Object) {
-            // an object literal might define accessor functions (getter or setter) for
-            // properties. these accessor functions don't just expect an expression that
-            // returns a function, but are recognized syntactically. for this reason, we
-            // extract these accessors from object literals and define the accessor
-            // functions immediatelty afterwards using Object.defineProperty(..)
+            // an object literal might define accessor functions (getter or
+            // setter) for properties. these accessor functions don't just
+            // expect an expression that returns a function, but are recognized
+            // syntactically. for this reason, we extract these accessors from
+            // object literals and define the accessor functions immediatelty
+            // afterwards using Object.defineProperty(..)
             
             if (this.hasObjectAccessorProperties(node)) {
                 return this.transformObjectLiteralWithAccessorDefinitions(node);
@@ -137,17 +145,15 @@ Object.extend(lively.versions.SourceTransformations, {
         }
     },
     transformSource: function (originalSource, optCodeGeneratorOptions) {
-        var originalAst,
-            transformer,
-            transformedAst,
-            sourceMap,
+        var originalAst, treeTransformer, transformedAst, sourceMap,
             outputStream,
             codeGeneratorOptions = optCodeGeneratorOptions || {};
         
         originalAst = UglifyJS.parse(originalSource);
         
-        transformer = new UglifyJS.TreeTransformer(null, this.transformLiterals.bind(this));
-        transformedAst = originalAst.transform(transformer);
+        treeTransformer = new UglifyJS.TreeTransformer(null,
+            this.transformLiterals.bind(this));
+        transformedAst = originalAst.transform(treeTransformer);
         
         outputStream = UglifyJS.OutputStream(codeGeneratorOptions);
         transformedAst.print(outputStream);
@@ -160,13 +166,15 @@ Object.extend(lively.versions.SourceTransformations, {
             sourceMap,
             dataUri;  
         
-        generatedCode = this.transformSource(originalSource, {source_map: uglifySourceMap});
+        generatedCode = this.transformSource(originalSource, 
+            {source_map: uglifySourceMap});
                 
         sourceMap = JSON.parse(uglifySourceMap.toString());
         Object.extend(sourceMap, sourceMapOptions);
         
         // see kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
-        dataUri = 'data:application/json;charset=utf-8;base64,'+ btoa(JSON.stringify(sourceMap));
+        dataUri = 'data:application/json;charset=utf-8;base64,' +
+            btoa(JSON.stringify(sourceMap));
         
         return generatedCode + '\n//@ sourceMappingURL=' + dataUri;
     },

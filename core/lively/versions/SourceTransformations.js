@@ -12,124 +12,142 @@ Object.extend(lively.versions.SourceTransformations, {
     // the lexical order of function declarations, see
     // javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
     
+    wrapExpressionInProxyFor: function(node) {
+        // returns AST for: lively.versions.ObjectVersioning.proxy(node)
+       return new UglifyJS.AST_Call({
+            expression: new UglifyJS.AST_Dot({
+                expression: new UglifyJS.AST_Dot({
+                    expression: new UglifyJS.AST_Dot({
+                        expression: new UglifyJS.AST_SymbolRef({
+                            name: 'lively'
+                        }),
+                        property: 'versions'
+                    }),
+                    property: 'ObjectVersioning'
+                }),
+                property: 'proxyFor'
+            }),
+            args: [node],
+            start: node.start,
+            end: node.end
+        });
+    },
+    transformFunctionDeclaration: function(functionDeclaration) {
+        // takes function declaration: function fName() {...}
+        // returns AST for:
+        // var fName = lively.versions.ObjectVersioning.proxy(function fName() {...})
+        return new UglifyJS.AST_Var({
+            definitions: [new UglifyJS.AST_VarDef({
+                name: new UglifyJS.AST_SymbolVar({
+                    name: functionDeclaration.name.name
+                }),
+                value: this.wrapExpressionInProxyFor(functionDeclaration)
+            })],
+            start: functionDeclaration.start,
+            end: functionDeclaration.end
+        });
+    },
+    selectAccessorPropertiesFromObject: function(node) {
+        return node.properties.select(function(each) {
+            return each instanceof UglifyJS.AST_ObjectSetter ||
+                each instanceof UglifyJS.AST_ObjectGetter;
+        });
+    },
+    hasObjectAccessorProperties: function(node) {
+        return this.selectAccessorPropertiesFromObject(node).length > 0;
+    },
+    transformObjectLiteralWithAccessorDefinitions: function(node) {
+        var accessorProperties = this.selectAccessorPropertiesFromObject(node),
+            accessorPropertyDefinitions = {},
+            definitionNodes = [],
+            currentDefinition;
+        
+        node.properties = node.properties.withoutAll(accessorProperties);
+        
+        // { value: {
+        //     get: function(..),
+        //     set: function(..)
+        // }}
+        accessorProperties.forEach(function(each) {
+            if (!accessorPropertyDefinitions[each.value.name.name]) {
+                accessorPropertyDefinitions[each.value.name.name] = {};
+            }
+            
+            accessorPropertyDefinitions[each.value.name.name][each.key] = each.value;
+        })
+        
+        
+        for (var propName in accessorPropertyDefinitions) {
+            // FIXME: don't use UglifyJS.parse...
+            currentDefinition = accessorPropertyDefinitions[propName];
+            
+            definitionNodes.push(UglifyJS.parse('Object.defineProperty(newObject, \'' + propName  + '\', {' +
+                (currentDefinition.get ? 'get: lively.versions.ObjectVersioning.proxyFor(' + currentDefinition.get.print_to_string() + '),' : '') +
+                (currentDefinition.set ? 'set: lively.versions.ObjectVersioning.proxyFor(' + currentDefinition.set.print_to_string() + '),' : '') +
+                'writable: true,\n' +
+                'enumerable: true,\n' +
+                'configurable: true\n' +
+                '});'
+            ).body[0]);
+        }
+        
+        var code = '(function() {\n';
+        code += 'var newObject = ' + this.wrapExpressionInProxyFor(node).print_to_string() + ';\n';
+        definitionNodes.forEach(function(each) {
+            code += each.print_to_string() + ';\n'
+        })
+        code += 'return newObject;\n'
+        code += '})()';
+        
+        return UglifyJS.parse(code).body[0].body;
+    },
+    transformLiterals: function(node) {
+        if (node instanceof UglifyJS.AST_Array ||
+            node instanceof UglifyJS.AST_Function) {
+            // an AST_Function is a function expression
+            
+            return this.wrapExpressionInProxyFor(node);
+            
+        } else if (node instanceof UglifyJS.AST_Object) {
+            // an object literal might define accessor functions (getter or setter) for
+            // properties. these accessor functions don't just expect an expression that
+            // returns a function, but are recognized syntactically. for this reason, we
+            // extract these accessors from object literals and define the accessor
+            // functions immediatelty afterwards using Object.defineProperty(..)
+            
+            if (this.hasObjectAccessorProperties(node)) {
+                return this.transformObjectLiteralWithAccessorDefinitions(node);
+            } else {
+                return this.wrapExpressionInProxyFor(node);
+            }
+            
+        } else if (node instanceof UglifyJS.AST_Defun) {
+            // an AST_Defun is a function declaration, not function
+            // expression, but wrapping the function literal into a
+            // function (in this case the proxy function), makes the
+            // declaration an expression, which then isn't accessible in
+            // the current scope by name.therefore, we need to assign all
+            // function declarations to variables reflecting the function
+            // names. and it's syntactically legal to declare variables
+            // multiple times (var declaration gets hoisted)
+            
+            return this.transformFunctionDeclaration(node);
+        } else {
+            return node;
+        }
+    },
     transformSource: function (originalSource, optCodeGeneratorOptions) {
         var originalAst,
+            transformer,
             transformedAst,
             sourceMap,
             outputStream,
             codeGeneratorOptions = optCodeGeneratorOptions || {};
         
-        var exchangeLiteralExpression = function(node) {
-            // returns AST for: lively.versions.ObjectVersioning.proxy(node)
-           return new UglifyJS.AST_Call({
-                expression: new UglifyJS.AST_Dot({
-                    expression: new UglifyJS.AST_Dot({
-                        expression: new UglifyJS.AST_Dot({
-                            expression: new UglifyJS.AST_SymbolRef({
-                                name: 'lively'
-                            }),
-                            property: 'versions'
-                        }),
-                        property: 'ObjectVersioning'
-                    }),
-                    property: 'proxyFor'
-                }),
-                args: [node],
-                start: node.start,
-                end: node.end
-            });
-        };
-        
-        var exchangeFunctionDeclaration = function(functionDeclaration) {
-            // takes function declaration: function fName() {...}
-            // returns AST for: var fName =
-            // lively.versions.ObjectVersioning.proxy(function fName() {...})
-            return new UglifyJS.AST_Var({
-                definitions: [new UglifyJS.AST_VarDef({
-                    name: new UglifyJS.AST_SymbolVar({
-                        name: functionDeclaration.name.name
-                    }),
-                    value: exchangeLiteralExpression(functionDeclaration)
-                })],
-                start: functionDeclaration.start,
-                end: functionDeclaration.end
-            }); 
-        }
-        
-        var wrapLiterals = new UglifyJS.TreeTransformer(null, function(node) {
-            var result;
-            
-            if (node instanceof UglifyJS.AST_Array ||
-                node instanceof UglifyJS.AST_Function) {
-                // an AST_Function is a function expression
-                
-                result = exchangeLiteralExpression(node);
-                
-            } else if (node instanceof UglifyJS.AST_Object) {
-                
-                var accessorProps = node.properties.select(function(each) {
-                    return each instanceof UglifyJS.AST_ObjectSetter ||
-                        each instanceof UglifyJS.AST_ObjectGetter;
-                });
-                
-                if (accessorProps.length == 0) {
-                    result = exchangeLiteralExpression(node);
-                } else {
-                    node.properties = node.properties.withoutAll(accessorProps);
-                
-                    var propsToDefine = {};
-                    accessorProps.forEach(function(each) {
-                        if (!propsToDefine[each.value.name.name]) propsToDefine[each.value.name.name] = {};
-                        propsToDefine[each.value.name.name][each.key] = each.value;
-                    })
-                    
-                    var propDefinitionNodes = [];
-                    for (var propName in propsToDefine) {
-                        // FIXME: don't use UglifyJS.parse...
-                        // TODO: add other property properties (enumerable, writable, and configurable)
-                        propDefinitionNodes.push(UglifyJS.parse('Object.defineProperty(newObject, \'' + propName  + '\', {' +
-                            (propsToDefine[propName].get ? 'get: lively.versions.ObjectVersioning.proxyFor(' + propsToDefine[propName].get.print_to_string() + '),' : '') +
-                            (propsToDefine[propName].set ? 'set: lively.versions.ObjectVersioning.proxyFor(' + propsToDefine[propName].set.print_to_string() + '),' : '') +
-                            'writable: true,\n' +
-                            'enumerable: true,\n' +
-                            'configurable: true\n' +
-                            '});'
-                        ).body[0]);
-                    }
-                    
-                    var code = '(function() {\n';
-                    code += 'var newObject = ' + exchangeLiteralExpression(node).print_to_string() + ';\n';
-                    propDefinitionNodes.forEach(function(each) {
-                        code += each.print_to_string() + ';\n'
-                    })
-                    
-                    code += 'return newObject;\n'
-                    code += '})()'
-                    
-                    result = UglifyJS.parse(code).body[0].body;
-                }
-                
-            } else if (node instanceof UglifyJS.AST_Defun) {
-                // an AST_Defun is a function declaration, not function
-                // expression, but wrapping the function literal into a
-                // function (in this case the proxy function), makes the
-                // declaration an expression, which then isn't accessible in
-                // the current scope by name.therefore, we need to assign all
-                // function declarations to variables reflecting the function
-                // names. and it's syntactically legal to declare variables
-                // multiple times (var declaration gets hoisted)
-                result = exchangeFunctionDeclaration(node);
-                
-            } else {
-                result = node;
-            }
-            
-            return result;
-        });
-        
         originalAst = UglifyJS.parse(originalSource);
         
-        transformedAst = originalAst.transform(wrapLiterals);
+        transformer = new UglifyJS.TreeTransformer(null, this.transformLiterals.bind(this));
+        transformedAst = originalAst.transform(transformer);
         
         outputStream = UglifyJS.OutputStream(codeGeneratorOptions);
         transformedAst.print(outputStream);
@@ -162,18 +180,15 @@ Object.extend(lively.versions.SourceTransformations, {
         
         return this.generateCodeWithMapping(originalSource, sourceMapOptions);
     },
-    generateCodeFromSource: function(originalSource, optScriptName) {
+    generateCodeFromSource: function(source, optScriptName) {
         var sourceName = optScriptName || 'eval at runtime',
             sourceMapOptions = {
                 sources: [sourceName],
-                sourcesContent: [originalSource]
+                sourcesContent: [source]
             };
 
-        return this.generateCodeWithMapping(originalSource, sourceMapOptions);
+        return this.generateCodeWithMapping(source, sourceMapOptions);
     },
-    loadSource: function(url) {
-        eval(this.generateCodeFromUrl(url));
-    }
 });
     
 });

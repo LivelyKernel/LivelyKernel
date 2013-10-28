@@ -351,7 +351,8 @@ Object.extend(lively.versions.ObjectVersioning, {
         // that get proxied once are _never_ used as constructors after
         // unwrapping them.
         if (Object.isFunction(target) && target.prototype &&
-            !target.prototype.isProxy()) {
+            !target.prototype.isProxy() &&
+            !this.isRootPrototype(target.prototype)) {
             
             target.prototype = lively.proxyFor(target.prototype);
         }

@@ -118,7 +118,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test14PrototypeCanBeAProxy: function() {
         var proto = lively.proxyFor({}),
-            descendant = lively.create(proto);
+            descendant = lively.createObject(proto);
         
         this.assertEquals(Object.getPrototypeOf(descendant), proto);
         this.assertEquals(descendant.__proto__, proto);
@@ -127,7 +127,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     test15PrototypeOfProxyCanBeChanged: function() {
         var originalPrototype = lively.proxyFor({v: 1}),
             otherPrototype = lively.proxyFor({v: 2}),
-            descendant = lively.create(originalPrototype);
+            descendant = lively.createObject(originalPrototype);
         
         descendant.__proto__ = otherPrototype;
         
@@ -137,14 +137,14 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test16ProtoLookupWorksOnProxies: function() {
         var proto = lively.proxyFor({}),
-            descendant = lively.create(proto);
+            descendant = lively.createObject(proto);
         proto.prop = 15;
                 
         this.assertEquals(descendant.prop, 15);
     },
     test17MethodFromPrototypeIsAppliedCorrectly: function() {
         var proto = lively.proxyFor({}),
-            descendant = lively.create(proto);
+            descendant = lively.createObject(proto);
         
         proto.prop = 1;
         proto.method = lively.proxyFor(function(a) {
@@ -157,7 +157,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test18ObjCanOverwriteInheritedProperty: function() {
         var obj = lively.proxyFor({a: 2}),
-            subObj = lively.create(obj);
+            subObj = lively.createObject(obj);
         
         subObj.a = 5;
         
@@ -199,7 +199,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test21ProxyHasCorrectProperties: function() {
         var proto = lively.proxyFor({protoProp: 1}),
-            descendant = lively.create(proto);
+            descendant = lively.createObject(proto);
         descendant.ownProp = 2;
         
         this.assert('protoProp' in descendant);
@@ -208,7 +208,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test22ProxyHasCorrectOwnProperties: function() {
         var proto = lively.proxyFor({}),
-            descendant = lively.create(proto);
+            descendant = lively.createObject(proto);
         
         this.assert(descendant.__proto__ === proto);
         this.assert(descendant.__proto__.__proto__ === Object.prototype);
@@ -221,7 +221,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test23GetOwnPropertyNames: function() {
         var person = lively.proxyFor({}),
-            student = lively.create(person),
+            student = lively.createObject(person),
             ownProps;
             
         person.age = 21;
@@ -233,7 +233,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test24PropertyEnumerationWorks: function() {
         var proto = {a:1, b:2, c:3},
-            obj = lively.create(proto),
+            obj = lively.createObject(proto),
             enumeratedProps = [];
         
         obj.d = 4;
@@ -248,7 +248,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     },
     test25CorrectObjectKeys: function() {
         var proto = {a:1, b:2, c:3},
-            obj = lively.create(proto);
+            obj = lively.createObject(proto);
         
         obj.d = 4;
         obj.e = 5;
@@ -643,6 +643,13 @@ TestCase.subclass(
         '    });\n' +
         '    return newObject;\n' +
         '}();'
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test11TransformObjectCreate: function() {
+        var input = 'var o = Object.create(null);';
+        
+        var expectedOutput = 'var o = lively.createObject(null);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     }

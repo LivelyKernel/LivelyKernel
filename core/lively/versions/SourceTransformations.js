@@ -82,7 +82,6 @@ Object.extend(lively.versions.SourceTransformations, {
             accessorPropertyDefinitions[each.value.name.name][each.key] = each.value;
         })
         
-        
         for (var propName in accessorPropertyDefinitions) {
             // FIXME: don't use UglifyJS.parse...
             currentDefinition = accessorPropertyDefinitions[propName];
@@ -108,7 +107,7 @@ Object.extend(lively.versions.SourceTransformations, {
         
         return UglifyJS.parse(code).body[0].body;
     },
-    transformLiterals: function(node) {
+    transformNode: function(node) {
         if (node instanceof UglifyJS.AST_Array ||
             node instanceof UglifyJS.AST_Function) {
             // an AST_Function is a function expression
@@ -140,6 +139,17 @@ Object.extend(lively.versions.SourceTransformations, {
             // multiple times (var declaration gets hoisted)
             
             return this.transformFunctionDeclaration(node);
+        } else if (node instanceof UglifyJS.AST_Dot) {
+            
+            if (node.property === 'create' &&
+                node.expression.name === 'Object') {
+                
+                node.expression.name = 'lively';
+                node.property = 'createObject';
+            }
+            
+            return node;
+            
         } else {
             return node;
         }
@@ -152,7 +162,7 @@ Object.extend(lively.versions.SourceTransformations, {
         originalAst = UglifyJS.parse(originalSource);
         
         treeTransformer = new UglifyJS.TreeTransformer(null,
-            this.transformLiterals.bind(this));
+            this.transformNode.bind(this));
         transformedAst = originalAst.transform(treeTransformer);
         
         outputStream = UglifyJS.OutputStream(codeGeneratorOptions);

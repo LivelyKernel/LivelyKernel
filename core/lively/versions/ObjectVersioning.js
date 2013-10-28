@@ -174,11 +174,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                     proto = OriginalConstructor.prototype,
                     newInstance;
                 
-                newInstance = lively.create(proto);
+                newInstance = lively.createObject(proto);
                 newInstance.constructor = OriginalConstructor;
                 OriginalConstructor.apply(newInstance, args);
                 
-                // newInstance is proxied as lively.create returns a proxy
+                // newInstance is proxied as lively.createObject returns a proxy
                 return newInstance;
             },
             getPrototypeOf: function(virtualTarget) {
@@ -287,7 +287,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         if (!lively.ProxyTable) {
             lively.ProxyTable = [];
         }
-        if (!lively.create) {
+        if (!lively.createObject) {
             this.wrapObjectCreate();
         }
     },
@@ -308,10 +308,17 @@ Object.extend(lively.versions.ObjectVersioning, {
             } else {
                 instance = create.call(null, prototype, propertiesObject);
             }
-            return lively.proxyFor(instance);
+            return instance;
         }
+        
         lively.originalObjectCreate = create;
-        lively.create = wrappedCreate;
+        
+        Object.create = wrappedCreate;
+        
+        lively.createObject = function() {
+            return lively.proxyFor(wrappedCreate.apply(null, arguments));
+        };
+        
     },
     proxyFor: function(target) {        
         // proxies are fully virtual objects: they don't point to their target, 
@@ -531,7 +538,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // Date constructor and parse() and UTC()
         // and other global objects in Global / window
         
-        Object.create = lively.create;
+        // Object.create handled through source transformation
         
         JSON.parse = this.proxyFor(JSON.parse);
     },

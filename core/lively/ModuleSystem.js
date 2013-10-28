@@ -2,23 +2,36 @@ Object.extend(lively, {
 
     lookup: function(spec, context, createMissing) {
         function createNamespaceObject(spec, context) {
-            context = context || Global;
             spec = spec.valueOf();
             if (typeof spec !== 'string') throw new TypeError();
-            var parts = spec.split('.');
+            var topParts = spec.split(/[\[\]]/);
+            var parts = topParts[0].split('.');
             for (var i = 0, len = parts.length; i < len; i++) {
                 spec = parts[i];
-                if (!lively.Class.isValidIdentifier(spec)) {
-                    throw new Error('"' + spec + '" is not a valid name for a module.');
-                }
                 if (!context[spec]) {
                     if (!createMissing) return null;
+                    if (!lively.Class.isValidIdentifier(spec))
+                        throw new Error('"' + spec + '" is not a valid name for a module.');
                     context[spec] =  new lively.Module(context, spec);
                 }
                 context = context[spec];
             }
+            for(i = 1; i < topParts.length; i = i + 2) {
+                spec = JSON.parse(topParts[i]);
+                context = context[spec];
+                parts = topParts[i + 1].split('.');
+                for (var j = 1, len = parts.length; j < len; j++) {
+                    spec = parts[j];
+                    context = context[spec];
+                }
+            }
             return context;
         }
+        context = context || Global;
+        if(spec.indexOf('.') == -1)
+			if (!context[spec]) {
+				if (!createMissing) return null;
+			} else return context[spec];
         var codeDB;
         if (spec[0] == '$') {
             codeDB = spec.substring(1, spec.indexOf('.'));
@@ -159,14 +172,14 @@ Object.subclass('lively.Module',
         return this.gather(
             'subNamespaces',
             function(ea) { return (ea instanceof lively.Module || ea === Global) && ea !== this },
-            recursive);
+            recursive).uniq();
     },
 
     classes: function(recursive) {
         var normalClasses = this.gather(
             'classes',
             function(ea) { return ea && ea !== this.constructor && lively.Class.isClass(ea) },
-            recursive);
+            recursive).uniq();
         return this === Global ?
             [Array, Boolean, Date, RegExp, Number, String, Function].concat(normalClasses) : normalClasses;
     },

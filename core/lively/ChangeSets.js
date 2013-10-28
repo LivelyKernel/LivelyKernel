@@ -5,8 +5,41 @@ Object.extend(Global, {
     addOwnPropertyIfAbsent: function addOwnPropertyIfAbsent(target, name, value) {
         if(!Object.getOwnPropertyDescriptor(target, name))
             Object.defineProperty(target, name, {value: value});
-    }
+    },
+    instantiatedPublishedParts: function() {
+        var result = [];
+        $world.submorphs.each(function(e){
+            var info = e.getPartsBinMetaInfo();
+            if(info.partsSpaceName && info.partName)
+                result.push(e);
+        });
+        return result;
+    },
+    instantiatedPublishedPartsAndSubmorphsWithPaths: function () {
 
+        var map = {}; 
+        $world.submorphs.each(function(e){
+            var info = e.getPartsBinMetaInfo();
+            if(info.partsSpaceName && info.partName) {
+                var myParentPath = info.partsSpaceName;
+                if(myParentPath.charAt(myParentPath.length - 1) == '/')
+                    myParentPath += info.partName;
+                else
+                    myParentPath += '/' + info.partName;
+                e.gatherWithPath(map, myParentPath, e.name);
+            }
+        });
+        return map;
+    },
+    instantiatedBuildSpecsAndSubmorphsWithPaths: function () {
+
+        var list = []; 
+        Properties.ownValues(lively.persistence.BuildSpec.Registry).each(function(e){
+            debugger;
+            e.gatherWithPath(list, e.lvContextPath(), '');
+        });
+        return list;
+    }
 });
 
 (function setupBaseExtensionsForCategories() {
@@ -100,7 +133,8 @@ Object.extend(Global, {
             var names = [];
             Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
                 var object;
-                if (!obj.__lookupGetter__(name) && 
+                if ('lvContextPath' != name &&
+                    !obj.__lookupGetter__(name) && 
                     (object = obj[name]) instanceof Function &&
                     !lively.Class.isClass(object))
                         names.push(name)});
@@ -152,16 +186,20 @@ Object.extend(Global, {
                     return parentPath + ".prototype";
                 return null;
             }
-            var sampleContainedFunction;
-            for (var name in this)
-                if (!this.__lookupGetter__(name) && this.hasOwnProperty(name) && (sampleContainedFunction = this[name]) instanceof Function)
+            var sampleContainedFunction; 
+            var keys = Object.keys(this);
+            keys.__proto__ = null;
+            for (var name in keys)
+                if (!this.__lookupGetter__(name) && (sampleContainedFunction = this[name]) instanceof Function)
                     break;
-            if(sampleContainedFunction && sampleContainedFunction.belongsToTrait && sampleContainedFunction.belongsToTrait.def === this)
+            if(!sampleContainedFunction)
+                return null;
+            if(sampleContainedFunction.belongsToTrait && sampleContainedFunction.belongsToTrait.def === this)
                 return sampleContainedFunction.belongsToTrait.lvContextPath() + ".def";
             return null;
         });
 
-    ["Global", 
+    ["Global", "$world",
             "Arrays", "Grid", "Interval", "lively.ArrayProjection", "lively.Grouping",
             "Functions", "Numbers", "Objects", "Properties", "Strings", "lively.LocalStorage", "lively.Worker"].each(function(e){
                 addOwnPropertyIfAbsent(lively.lookup(e), 'lvContextPath', function(){return e});
@@ -183,8 +221,12 @@ Object.extend(Global, {
             return "RealTrait.prototype.traitRegistry." + this.name;
         });
 
+    addOwnPropertyIfAbsent(lively.persistence.SpecObject.prototype, 'lvContextPath', function(){
+            return 'lively.persistence.BuildSpec.Registry["' + Properties.nameFor(lively.persistence.BuildSpec.Registry, this) + '"]';
+        });
+
     addOwnPropertyIfAbsent(lively.Module.prototype, 'lvContextPath', function(){
-            return this.namespaceIdentifier;
+            return this.name();
         });
 })();
 
@@ -717,6 +759,8 @@ ChangeSet.addMethods(
             
         for (var i=0; i<this.timestamps.length; i++)
             ChangeSet.applyChange(this.changeRecords[i], this.timestamps[i]);
+        if(!this.hasErrors())
+            alertOK("Changes succesfully applied")
         
     },
 
@@ -1366,7 +1410,6 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
 
     setFunction: function setFunction(aFunctionHolder) {
         if(!aFunctionHolder) {
-            debugger;
             this.selectedFunctionNameInContainer = null;
             this.codePane.setTextString(''); 
             return; }
@@ -1466,6 +1509,50 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 this.selectedContainerKind.titleRenderFunction(aContainer) : 
                 "Simple Code Browser"
     },
+    addClass: function addClass() {
+        var functionPane = this.functionContainerPane,
+            panel = this;
+
+        this.checkSourceNotAccidentlyDeleted(function() {
+            $world.editPrompt('new (fully qualified) class name', function(functionName) {
+                if(!functionName || functionName.trim().length == 0)
+                    return;
+                functionName = functionName.trim();
+                
+                var currentNames = functionPane.getList().collect(function(e){return e.type || e.name});
+                if(currentNames.include(functionName)) {
+                    $world.alert('class name already in use');
+                    return;
+                }
+    
+                $world.editPrompt('fully qualified superclass name', function(superclassName) {
+                    if(!superclassName || superclassName.trim().length == 0)
+                        return;
+                    superclassName = superclassName.trim();
+                    
+                    if(!currentNames.include(superclassName)) {
+                        $world.alert('superclass ' + superclassName + ' does not exist or is not loaded');
+                        return;
+                    }
+        
+                    var targetScope = lively.Class.namespaceFor(functionName);
+                    var contextPath = targetScope.lvContextPath();
+                    if(!contextPath)
+                        throw new Error("Should not happen");
+                    var func = lively.lookup(superclassName).subclass(functionName, 'default category', {});
+                    var shortName = lively.Class.unqualifiedNameFor(functionName);
+
+                    func.timestamp = ChangeSet.logAddition(superclassName + ".subclass('" + functionName + "', 'default category', {})", contextPath, shortName);
+                    func.kindOfChange = "added";
+                    func.user = $world.getUserName();
+        
+                    panel.setFunctionContainerKind(panel.selectedContainerKind);
+                    functionPane.setSelectionMatching(shortName);
+                });
+            });
+        });
+    },
+
     newDropDownListPane: function newDropDownListPane(extent, optItems) {
         var list = new lively.morphic.DropDownList(extent, optItems);
         list.applyStyle({scaleProportional: true});
@@ -1567,8 +1654,8 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
         
         return [
             {string: "loaded classes", 
-                titleRenderFunction: function(e){return "Class " + (e.type || e.displayName || e.name)},
-                listRenderFunction: function(e){return e.name || e.displayName || e.type},
+                titleRenderFunction: function(e){return "Class " + (e.type || e.name)},
+                listRenderFunction: function(e){return e.name || e.type},
                 containers: function(){
                     return classes(true)},
                 nonStaticContainer: function(e){return e.prototype}}, 
@@ -1585,9 +1672,19 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 listRenderFunction: function(e){return e.name()},
                 containers: function(){
                     return Global.subNamespaces(true).select(function(e){
-                        return !e.isAnonymous() && e.functions(false).length > 0
+                        return !e.isAnonymous() && e.lvOwnFunctionNames().length > 0
                     })},
                 nonStaticContainer: function(e){return null}}, 
+                
+            {string: "loaded build specs", 
+                titleRenderFunction: function(e){
+                    var name = lively.persistence.BuildSpec.Registry.nameForSpec(e);
+                    return 'lively.BuildSpec(' + (name ? '"' + name + '", ' : '') + '{className: ' + e.attributeStore.className + '})';
+                    },
+                listRenderFunction: function(e){return e.string},
+                containers: function(){
+                    return instantiatedBuildSpecsAndSubmorphsWithPaths()},
+                nonStaticContainer: function(e){return e.attributeStore}}, 
                 
             {string: "loaded traits", 
                 titleRenderFunction: function(e){return "Trait " + e.name},
@@ -1611,7 +1708,10 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
 
 
     getFunctionContainerMenu: function getFunctionContainerMenu() {
-        return [];
+        var self = this;
+        return [
+            ['add class', function() {self.addClass()}]
+        ];
     },
     getFunctionMenu: function getFunctionMenu() {
         if(!this.selectedFunctionKind)
@@ -1978,5 +2078,43 @@ lively.morphic.Panel.subclass('VersionsBrowser',
         this.changePane.setList(list);
     },
 });
+lively.morphic.Morph.addMethods("iterating", {
+    gatherWithPath: function(pathMap, parentPath, discriminator) {
 
+        var myPath = parentPath + '.' + discriminator;
+        pathMap[myPath] = [this];
+
+        for (var i = 0; i < this.submorphs.length; i++)
+            this.submorphs[i].gatherWithPath(pathMap, myPath, i);
+    },
+});
+
+lively.persistence.SpecObject.addMethods("iterating", {
+    gatherWithPath: function(array, rootContextPath, parentPath, indexPath) {
+
+        var props = this.attributeStore;
+        var myPath;
+        if(props.name)
+            myPath = parentPath ? parentPath.split('.')[0] + '.'  + props.name : props.name;
+        else
+            myPath = parentPath + '.submorphs[' + indexPath.split('.').last() + ']';
+            
+        array.push({string: myPath, value: this});
+        if(parentPath) {
+            var contextPath = rootContextPath;
+            indexPath.split('.').each(function(i){
+                contextPath += '.attributeStore.submorphs[' + i + ']';
+            })
+            addOwnPropertyIfAbsent(this, 'lvContextPath', function(){return contextPath});
+            addOwnPropertyIfAbsent(props, 'lvContextPath', function(){return contextPath + '.attributeStore'});
+        } else
+            addOwnPropertyIfAbsent(props, 'lvContextPath', function(){return rootContextPath + '.attributeStore'});
+
+        if(!props.submorphs)
+            return;
+            
+        for (var i = 0; i < props.submorphs.length; i++)
+            props.submorphs[i].gatherWithPath(array, rootContextPath, myPath, (indexPath? indexPath + '.' : '') + i);
+    },
+});
 }) // end of module

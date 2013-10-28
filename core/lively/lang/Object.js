@@ -420,7 +420,7 @@ Global.Properties = {
 };
 
 Object.extend(lively, {
-    PropertyPath: function(path, splitter) {
+    PropertyPath: function PropertyPath(path, splitter) {
         if (path instanceof Global.lively.PropertyPath) return path;
         if (!(this instanceof Global.lively.PropertyPath)) return new Global.lively.PropertyPath(path, splitter);
         if (splitter) this.setSplitter(splitter);
@@ -429,7 +429,9 @@ Object.extend(lively, {
 });
 
 Object.extend(lively.PropertyPath, {
-    superclass: Object
+    superclass: Object,
+    type: 'lively.PropertyPath',
+    categories: {}
 });
 
 Object.extend(lively.PropertyPath.prototype, {

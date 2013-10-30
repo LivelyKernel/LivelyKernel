@@ -95,14 +95,14 @@ Object.subclass("lively.store.ObjectRepository",
 "accessing", {
     getServerInterfaceURL: function() {
         return URL.nodejsBase.withFilename("ObjectRepositoryServer/");
-    },
+    }
 },
 "querying", {
     getRecords: function(querySpec, thenDo)  {
         // new lively.store.ObjectRepository().getRecords()
         this.getServerInterfaceURL().withQuery({getRecords: encodeURIComponent(JSON.stringify(querySpec))})
             .asWebResource().withJSONWhenDone(function(json, status) {
-                 thenDo(status.isSuccess() ? null : status, json); }).get().beAsync();
+                 thenDo(status.isSuccess() ? null : status, json); }).beAsync().get();
         return this;
     }
 });

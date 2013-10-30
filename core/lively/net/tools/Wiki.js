@@ -101,18 +101,11 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         this.get('VersionList').setList([]);
     },
         showResult: function showResult(err, versions) {
-        if (err) {
-            show(err);
-            versions && show(versions);
-            return;
-        }
+        if (err) { show(err); versions && show(versions); return; }
         var items = versions.map(function(version) {
             try {
                 var date = new Date(version.date).format('yy/mm/dd hh:mm:ss');
-            } catch (e) {
-                show(e);
-                date = 'Invalid date';
-            }
+            } catch (e) { show(e); date = 'Invalid date'; }
             return {
                 isListItem: true,
                 string: version.author + ' - ' + date + ' (' + version.change + ')',

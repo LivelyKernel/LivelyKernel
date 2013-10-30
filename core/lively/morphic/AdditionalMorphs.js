@@ -499,41 +499,6 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathInsertPointHalo
             this.targetMorph.halos.invoke('alignAtTarget');
     },
 });
-cop.create('lively.morphic.PathOriginHackLayer')
-.refineClass(lively.morphic.Path, {
-    getHalos: function() {
-        return cop.proceed();
-        return this.getControlPointHalos()
-            .concat(this.getInsertPointHalos())
-            .concat(lively.morphic.Morph.prototype.getHalos.call(this))
-    },
-    adjustOrigin: function(value) { return this.morphicSetter('Origin', value) },
-    getOrigin: function(value) { return this.morphicGetter('Origin') || pt(0,0)},
-    getPosition: function(value) { return cop.proceed().addPt(this.getOrigin()) },
-    setPosition: function(value) { return cop.proceed(value.subPt(this.getOrigin())) },
-    setRotationHTML: function(ctx, rad) {
-        if (ctx.morphNode)
-            ctx.domInterface.setHTMLTransform(ctx.morphNode, rad, this.getScale(), this.getOrigin());
-    },
-    setScaleHTML: function(ctx, scale) {
-        if (ctx.morphNode)
-            ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), scale, this.getOrigin());
-    },
-    onrestore: function() {
-        cop.proceed();
-        // FIXME actually this shouldnt be necessary
-        (function() {
-            // var owner = this.owner;
-            // this.remove();
-            // this.prepareForNewRenderContext(this.renderContext())
-            // owner && owner.addMorph(this)
-            this.getControlPoints().invoke('alignMarker')
-        }).bind(this).delay(0)
-    },
-})
-.refineClass(lively.morphic.ControlPoint, {
-    getPos: function() { return cop.proceed().subPt(this.morph.getOrigin()) },
-}).beNotGlobal();
 
 lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
 "setting", {

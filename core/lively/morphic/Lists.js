@@ -964,6 +964,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     onMouseDown: function(evt) {
+        this.focus();
         if (!evt.isRightMouseButtonDown()) return false;
         // delayed because when owner is a window and comes forward the window
         // would be also in front of the new menu

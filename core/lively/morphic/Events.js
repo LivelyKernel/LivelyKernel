@@ -2044,9 +2044,9 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
          // does the codeEditor know about key combos?
          || focused.aceEditor.keyBinding.$data.keyChain === undefined) return;
         var combo = this.normalizeCombo(prevKeysPressed),
-            kbd = focused.aceEditor.getKeyboardHandler();
+            kbd = focused.aceEditor.keyBinding.$handlers.detect(function(ea) { return ea.isEmacs; });
         // is the current combo a prefix for codeeditor?
-        if (kbd.commmandKeyBinding[combo] === undefined) return;
+        if (!kbd || kbd.commmandKeyBinding[combo] === undefined) return;
         // the current key will be read in by the editor, just send the last ones
         focused.aceEditor.keyBinding.$data.keyChain = combo;
     },

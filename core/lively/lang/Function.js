@@ -4,6 +4,8 @@
 
 Object.extend(Function.prototype, {
     argumentNames: function() {
+        if(this.superclass)
+            return [];
         var names = this.toString().match(/^[\s\(]*function[^(]*\(([^)]*)\)/)[1].
                 replace(/\/\/.*?[\r\n]|\/\*(?:.|[\r\n])*?\*\//g, '').
                 replace(/\s+/g, '').split(',');

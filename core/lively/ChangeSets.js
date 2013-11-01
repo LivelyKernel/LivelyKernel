@@ -1,4 +1,4 @@
-module('lively.ChangeSets').requires('lively.Traits').toRun(function() {
+module('lively.ChangeSets').requires('lively.Traits').requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
 
 Object.extend(Global, {
 
@@ -31,12 +31,13 @@ Object.extend(Global, {
         });
         return map;
     },
+
+
     instantiatedBuildSpecsAndSubmorphsWithPaths: function () {
 
         var list = []; 
         Properties.ownValues(lively.persistence.BuildSpec.Registry).each(function(e){
-            debugger;
-            e.gatherWithPath(list, e.lvContextPath(), '');
+            e.gatherWithPath(list, e.lvContextPath());
         });
         return list;
     }
@@ -329,7 +330,7 @@ Object.extend(ChangeSet, {
 
     named: function(aName) {
         return this.changeSetNames().detect(function(e) {
-            return e == aName
+            return e == aName;
         })
     },
 
@@ -361,8 +362,16 @@ Object.extend(ChangeSet, {
 	loadAndcheckVsSystem: function() {
 
 		this.userStorageRoot = "LivelyChanges:" + location.origin + location.pathname + ":author:" + $world.getUserName();
-        var changeSet = new ChangeSet(this.defaultChangeSetName(), true);
-        ChangeSet.newChanges(changeSet);
+		var storedNameForDefaultChangeSet = this.defaultChangeSetName();
+		if(!storedNameForDefaultChangeSet)
+		    return;
+        var changeSet = new ChangeSet(storedNameForDefaultChangeSet, true);
+        this.newChanges(changeSet);
+        var changesetNames = this.changeSetNames();
+        if(!changesetNames.include(storedNameForDefaultChangeSet)) {
+            changesetNames.push(storedNameForDefaultChangeSet);
+            localStorage.setItem(this.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
+        }
         if(!changeSet.hasErrors() && Config.automaticChangesReplay)
             changeSet.applyChanges();
         if(changeSet.hasErrors())
@@ -449,8 +458,6 @@ Object.extend(ChangeSet, {
             });
             localStorage.removeItem(storageRoot + ":timestamps");
         }
-
-        localStorage.setItem(storageRoot + ":defaultChangeSet", "Unnamed")
     },
     storeArray: function(array, timestamp) {
 
@@ -947,31 +954,47 @@ lively.morphic.Panel.subclass('ChangesBrowser',
     		['changeSetPane', this.newListPane, new Rectangle(0, 0, 0.333, 0.25), this.changeSetPaneContents()],
     		['changePane', this.newListPane, new Rectangle(0.333, 0, 0.667, 0.25)],
 
-    		['label1', this.newStaticTextPane, new Rectangle(0, 0.25, 0.333, 0.05), "Selected Change"],
-    		['label2', this.newStaticTextPane, new Rectangle(0.333, 0.25, 0.334, 0.05), "Original Source"],
-    		['label3', this.newStaticTextPane, new Rectangle(0.667, 0.25, 0.333, 0.05), "System Source"],
+    		['changeLabel', this.newStaticTextPane, new Rectangle(0, 0.25, 0.167, 0.05), "Selected Change"],
+    		['changeVsOriginalButton', this.newButton, new Rectangle(0.167, 0.25, 0.166, 0.05), "Next diff vs Original"],
+    		['originalLabel', this.newStaticTextPane, new Rectangle(0.333, 0.25, 0.167, 0.05), "Original Source"],
+    		['originalVsSystemButton', this.newButton, new Rectangle(0.5, 0.25, 0.167, 0.05), "Next diff vs System"],
+    		['systemlLabel', this.newStaticTextPane, new Rectangle(0.667, 0.25, 0.167, 0.05), "System Source"],
+    		['systemVsChangeButton', this.newButton, new Rectangle(0.834, 0.25, 0.166, 0.05), "Next diff vs Selected"],
 
-    		['changeContext', this.newStaticTextPane, new Rectangle(0, 0.3, 0.333, 0.05)],
-    		['originalContext', this.newStaticTextPane, new Rectangle(0.333, 0.3, 0.334, 0.05)],
-    		['systemContext', this.newStaticTextPane, new Rectangle(0.667, 0.3, 0.333, 0.05)],
+    		['changeContextLabel', this.newStaticTextPane, new Rectangle(0, 0.3, 0.083, 0.05), "Context:"],
+    		['changeContext', this.newStaticTextPane, new Rectangle(0.083, 0.3, 0.25, 0.05)],
+    		['originalContextLabel', this.newStaticTextPane, new Rectangle(0.333, 0.3, 0.083, 0.05), "Context:"],
+    		['originalContext', this.newStaticTextPane, new Rectangle(0.416, 0.3, 0.251, 0.05)],
+    		['systemContextLabel', this.newStaticTextPane, new Rectangle(0.667, 0.3, 0.083, 0.05), "Context:"],
+    		['systemContext', this.newStaticTextPane, new Rectangle(0.75, 0.3, 0.25, 0.05)],
 
-    		['changeCategory', this.newStaticTextPane, new Rectangle(0, 0.35, 0.333, 0.05)],
-    		['originalCategory', this.newStaticTextPane, new Rectangle(0.333, 0.35, 0.334, 0.05)],
-    		['systemCategory', this.newStaticTextPane, new Rectangle(0.667, 0.35, 0.333, 0.05)],
+    		['changeCategoryLabel', this.newStaticTextPane, new Rectangle(0, 0.35, 0.083, 0.05), "Category:"],
+    		['changeCategory', this.newStaticTextPane, new Rectangle(0.083, 0.35, 0.25, 0.05)],
+    		['originalCategoryLabel', this.newStaticTextPane, new Rectangle(0.333, 0.35, 0.083, 0.05), "Category:"],
+    		['originalCategory', this.newStaticTextPane, new Rectangle(0.416, 0.35, 0.251, 0.05)],
+    		['systemCategoryLabel', this.newStaticTextPane, new Rectangle(0.667, 0.35, 0.083, 0.05), "Category:"],
+    		['systemCategory', this.newStaticTextPane, new Rectangle(0.75, 0.35, 0.25, 0.05)],
 
-    		['changeName', this.newStaticTextPane, new Rectangle(0, 0.4, 0.333, 0.05)],
-    		['originalName', this.newStaticTextPane, new Rectangle(0.333, 0.4, 0.334, 0.05)],
-    		['systemName', this.newStaticTextPane, new Rectangle(0.667, 0.4, 0.333, 0.05)],
+    		['changeNameLabel', this.newStaticTextPane, new Rectangle(0, 0.4, 0.083, 0.05), "Name:"],
+    		['changeName', this.newStaticTextPane, new Rectangle(0.083, 0.4, 0.25, 0.05)],
+    		['originalNameLabel', this.newStaticTextPane, new Rectangle(0.333, 0.4, 0.083, 0.05), "Name:"],
+    		['originalName', this.newStaticTextPane, new Rectangle(0.416, 0.4, 0.251, 0.05)],
+    		['systemNameLabel', this.newStaticTextPane, new Rectangle(0.667, 0.4, 0.083, 0.05), "Name:"],
+    		['systemName', this.newStaticTextPane, new Rectangle(0.75, 0.4, 0.25, 0.05)],
 
     		['changeCodePane', this.newCodePane, new Rectangle(0, 0.45, 0.333, 0.55)],
     		['originalCodePane', this.newReadOnlyCodePane, new Rectangle(0.333, 0.45, 0.334, 0.55)],
     		['systemCodePane', this.newReadOnlyCodePane, new Rectangle(0.667, 0.45, 0.333, 0.55)],
     	]);
     	
-    	this.label1.applyStyle({fontWeight: 'bold'});
-    	this.label2.applyStyle({fontWeight: 'bold'});
-    	this.label3.applyStyle({fontWeight: 'bold'});
+    	this.changeLabel.applyStyle({fontWeight: 'bold'});
+    	this.originalLabel.applyStyle({fontWeight: 'bold'});
+    	this.systemlLabel.applyStyle({fontWeight: 'bold'});
     	
+    	this.setActive(this.originalVsSystemButton, false);
+    	this.setActive(this.systemVsChangeButton, false);
+    	this.setActive(this.changeVsOriginalButton, false);
+
     	var self = this;
     	this.changePane.renderFunction = function(e) {
     	    var prop = "";
@@ -992,9 +1015,60 @@ lively.morphic.Panel.subclass('ChangesBrowser',
         connect(this.changeSetPane, "getMenu", this, "getChangeSetMenu", {});
         connect(this.changePane, "selection", this, "setChange", {});
         connect(this.changePane, "getMenu", this, "getChangeMenu", {});
+        connect(this.originalVsSystemButton, "fire", this, "nextOriginalVsSystem", {});
+        connect(this.systemVsChangeButton, "fire", this, "nextSystemVsChange", {});
+        connect(this.changeVsOriginalButton, "fire", this, "nextChangeVsOriginal", {});
     
     	this.changeSetPane.setSelection(ChangeSet.defaultChangeSetName());
     },
+    nextChangeVsOriginal: function() {
+        delete this.nextOriginalVsSystemImpl;
+        delete this.nextSystemVsChangeImpl;
+        if(!this.nextChangeVsOriginalImpl) {
+            var style = {fontWeight: 'bold', color: Color.red};
+            var extra = [
+                [this.changeContext, this.originalContext],
+                [this.changeCategory, this.originalCategory],
+                [this.changeName, this.originalName]
+                ];
+            var differator = new Differator(this.changeCodePane, this.originalCodePane, style, style, extra);
+            this.nextChangeVsOriginalImpl = differator.next.bind(differator);
+        }
+        this.nextChangeVsOriginalImpl();
+    },
+    nextOriginalVsSystem: function() {
+        delete this.nextChangeVsOriginalImpl;
+        delete this.nextSystemVsChangeImpl;
+        if(!this.nextOriginalVsSystemImpl) {
+            var style = {fontWeight: 'bold', color: Color.red};
+            var extra = [
+                [this.originalContext, this.systemContext],
+                [this.originalCategory, this.systemCategory],
+                [this.originalName, this.systemName]
+                ];
+            var differator = new Differator(this.originalCodePane, this.systemCodePane, style, style, extra);
+            this.nextOriginalVsSystemImpl = differator.next.bind(differator);
+        }
+        this.nextOriginalVsSystemImpl();
+    },
+    nextSystemVsChange: function() {
+        delete this.nextChangeVsOriginalImpl;
+        delete this.nextOriginalVsSystemImpl;
+        if(!this.nextSystemVsChangeImpl) {
+            var style = {fontWeight: 'bold', color: Color.red};
+            var extra = [
+                [this.systemContext, this.changeContext],
+                [this.systemCategory, this.changeCategory],
+                [this.systemName, this.changeName]
+                ];
+            var differator = new Differator(this.systemCodePane, this.changeCodePane, style, style, extra);
+            this.nextSystemVsChangeImpl = differator.next.bind(differator);
+        }
+        this.nextSystemVsChangeImpl();
+    },
+
+
+
     getChangeSetMenu: function() {
         var self = this;
         var items = [
@@ -1036,6 +1110,9 @@ lively.morphic.Panel.subclass('ChangesBrowser',
 
 
     setChange: function(t) {
+        delete this.nextOriginalVsSystemImpl;
+        delete this.nextSystemVsChangeImpl;
+        delete this.nextChangeVsOriginalImpl;
         if(!t) {
             this.originalCodePane.setTextString('');
             this.originalContext.setTextString('');
@@ -1045,10 +1122,13 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             this.systemContext.setTextString('');
             this.systemCategory.setTextString('');
             this.systemName.setTextString('');
+            this.changeCodePane.setTextString('');
+            this.changeContext.setTextString('');
             this.changeCategory.setTextString('');
             this.changeName.setTextString('');
-            this.changeContext.setTextString('');
-            this.changeCodePane.setTextString('');
+        	this.setActive(this.originalVsSystemButton, false);
+        	this.setActive(this.systemVsChangeButton, false);
+        	this.setActive(this.changeVsOriginalButton, false);
             return;
         }
         
@@ -1058,6 +1138,7 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             this.originalContext.setTextString(changeRecord.originalContextPath);
             this.originalCategory.setTextString(changeRecord.originalCategory);
             this.originalName.setTextString(changeRecord.originalPropertyName);
+            this.setActive(this.changeVsOriginalButton, changeRecord.originalSource && changeRecord.source);
             var system, 
                 contextPath = changeRecord.contextPath;
             system = lively.lookup(contextPath);
@@ -1070,6 +1151,8 @@ lively.morphic.Panel.subclass('ChangesBrowser',
                 this.systemContext.setTextString('');
                 this.systemCategory.setTextString('');
                 this.systemName.setTextString('');
+            	this.setActive(this.originalVsSystemButton, false);
+            	this.setActive(this.systemVsChangeButton, false);
             } else {
                 var name;
                 if(system[changeRecord.propertyName] === undefined && changeRecord.originalPropertyName && changeRecord.originalPropertyName != changeRecord.propertyName)
@@ -1085,6 +1168,8 @@ lively.morphic.Panel.subclass('ChangesBrowser',
                 if(systemContainer)
                     category = systemContainer.lvCategoryForMethod(name);
                 this.systemCategory.setTextString(category);
+                this.setActive(this.originalVsSystemButton, system[name] && changeRecord.originalSource);
+                this.setActive(this.systemVsChangeButton, system[name] && changeRecord.source);
             }
             this.changeCategory.setTextString(changeRecord.category);
             this.changeName.setTextString(changeRecord.propertyName);
@@ -1099,6 +1184,9 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             this.systemName.setTextString('');
             this.changeCategory.setTextString('');
             this.changeName.setTextString('');
+        	this.setActive(this.originalVsSystemButton, false);
+        	this.setActive(this.systemVsChangeButton, false);
+        	this.setActive(this.changeVsOriginalButton, false);
         }
         this.changeContext.setTextString(changeRecord.contextPath);
         this.changeCodePane.setTextString(changeRecord.source);
@@ -1106,6 +1194,9 @@ lively.morphic.Panel.subclass('ChangesBrowser',
 
     setChangeSet: function(name) {
         var storageRoot = ChangeSet.userStorageRoot;
+    	this.setActive(this.originalVsSystemButton, false);
+    	this.setActive(this.systemVsChangeButton, false);
+    	this.setActive(this.changeVsOriginalButton, false);
         if(name == "-- ALL CHANGES --") {
             this.changeSet = null;
             var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
@@ -1120,6 +1211,13 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             this.changePane.setList(this.changeSet.timestamps.concat([]));
         }
     },
+    setActive: function(button, bool) {
+        button.applyStyle({borderColor: bool ? Color.red : Color.black, borderWidth: bool ? 2 : 1});
+        button.setActive(bool);
+    },
+
+
+
 
 
     getChangeMenu: function() {
@@ -1218,9 +1316,9 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
     	this.createAndArrangePanesFrom([
     		['changePane', this.newListPane, new Rectangle(0, 0, 1, 0.25)],
     		
-    		['label1', this.newStaticTextPane, new Rectangle(0, 0.25, 0.333, 0.05), "Selected Change"],
-    		['label2', this.newStaticTextPane, new Rectangle(0.333, 0.25, 0.334, 0.05), "Original Source"],
-    		['label3', this.newStaticTextPane, new Rectangle(0.667, 0.25, 0.333, 0.05), "System Source"],
+    		['changeLabel', this.newStaticTextPane, new Rectangle(0, 0.25, 0.333, 0.05), "Selected Change"],
+    		['originalLabel', this.newStaticTextPane, new Rectangle(0.333, 0.25, 0.334, 0.05), "Original Source"],
+    		['systemlLabel', this.newStaticTextPane, new Rectangle(0.667, 0.25, 0.333, 0.05), "System Source"],
 
     		['changeContext', this.newStaticTextPane, new Rectangle(0, 0.3, 0.333, 0.05)],
     		['originalContext', this.newStaticTextPane, new Rectangle(0.333, 0.3, 0.334, 0.05)],
@@ -1239,9 +1337,9 @@ lively.morphic.Panel.subclass('SharedChangeSetBrowser',
     		['systemCodePane', this.newReadOnlyCodePane, new Rectangle(0.667, 0.45, 0.333, 0.55)],
     	]);
     	
-    	this.label1.applyStyle({fontWeight: 'bold'});
-    	this.label2.applyStyle({fontWeight: 'bold'});
-    	this.label3.applyStyle({fontWeight: 'bold'});
+    	this.changeLabel.applyStyle({fontWeight: 'bold'});
+    	this.originalLabel.applyStyle({fontWeight: 'bold'});
+    	this.systemlLabel.applyStyle({fontWeight: 'bold'});
     	
     	this.changePane.renderFunction = function(e) {
     	    var prop = "";
@@ -1380,6 +1478,7 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
     		['functionPane', this.newListPane, new Rectangle(0.5, 0.05, 0.5, 0.5)],
     		['codePane', this.newCodePane, new Rectangle(0, 0.55, 1, 0.45)],
     	]);
+        this.codePane.doSave = this.codePaneDoSave;
     
         this.applyStyle({adjustForNewBounds: true, fill: Color.gray});
     
@@ -1510,17 +1609,17 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 "Simple Code Browser"
     },
     addClass: function addClass() {
-        var functionPane = this.functionContainerPane,
+        var classesPane = this.functionContainerPane,
             panel = this;
 
         this.checkSourceNotAccidentlyDeleted(function() {
-            $world.editPrompt('new (fully qualified) class name', function(functionName) {
-                if(!functionName || functionName.trim().length == 0)
+            $world.editPrompt('new (fully qualified) class name', function(className) {
+                if(!className || className.trim().length == 0)
                     return;
-                functionName = functionName.trim();
+                className = className.trim();
                 
-                var currentNames = functionPane.getList().collect(function(e){return e.type || e.name});
-                if(currentNames.include(functionName)) {
+                var currentNames = classesPane.getList().collect(function(e){return e.type || e.name});
+                if(currentNames.include(className)) {
                     $world.alert('class name already in use');
                     return;
                 }
@@ -1535,19 +1634,19 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                         return;
                     }
         
-                    var targetScope = lively.Class.namespaceFor(functionName);
+                    var targetScope = lively.Class.namespaceFor(className);
                     var contextPath = targetScope.lvContextPath();
                     if(!contextPath)
                         throw new Error("Should not happen");
-                    var func = lively.lookup(superclassName).subclass(functionName, 'default category', {});
-                    var shortName = lively.Class.unqualifiedNameFor(functionName);
+                    var func = lively.lookup(superclassName).subclass(className, 'default category', {initialize: Functions.Empty});
+                    var shortName = lively.Class.unqualifiedNameFor(className);
 
-                    func.timestamp = ChangeSet.logAddition(superclassName + ".subclass('" + functionName + "', 'default category', {})", contextPath, shortName);
+                    func.timestamp = ChangeSet.logAddition(superclassName + ".subclass('" + className + "', 'default category', {initialize: " + Functions.Empty + "})", contextPath, shortName);
                     func.kindOfChange = "added";
                     func.user = $world.getUserName();
         
                     panel.setFunctionContainerKind(panel.selectedContainerKind);
-                    functionPane.setSelectionMatching(shortName);
+                    classesPane.setSelectionMatching(shortName);
                 });
             });
         });
@@ -1562,38 +1661,37 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
 
     browseVersions: function(timestamp) {
 
-        var changeRecord = ChangeSet.getChangeRecord(timestamp);
-        var propertyName = changeRecord.propertyName;
-        if(propertyName) {
-            //not a doIt
-            changeRecord.string = new Date(timestamp).toUTCString() + ' (current)';
-            var versions = [changeRecord];
-            var firstChangeStamp = changeRecord.firstChangeStamp;
-            if(firstChangeStamp) {
-                var firstChangeRecord = ChangeSet.getChangeRecord(firstChangeStamp);
-                if(firstChangeRecord.type != "added") {
-                    var previouslyInTheSystem = {string: 'previously in the system'};
-                    previouslyInTheSystem.contextPath = firstChangeRecord.originalContextPath;
-                    previouslyInTheSystem.propertyName = firstChangeRecord.originalPropertyName;
-                    previouslyInTheSystem.category = firstChangeRecord.originalCategory;
-                    previouslyInTheSystem.source = firstChangeRecord.originalSource;
-                }
+        var current = ChangeSet.getChangeRecord(timestamp);
+        var propertyName = current.propertyName;
+        current.string = new Date(timestamp).toUTCString() + ' (current)';
+        var versions = [current];
+        var firstChangeStamp = current.firstChangeStamp;
+        if(firstChangeStamp) {
+            var firstChangeRecord = ChangeSet.getChangeRecord(firstChangeStamp);
+            if(firstChangeRecord.type != "added") {
+                var previouslyInTheSystem = {string: 'previously in the system'};
+                previouslyInTheSystem.contextPath = firstChangeRecord.originalContextPath;
+                previouslyInTheSystem.propertyName = firstChangeRecord.originalPropertyName;
+                previouslyInTheSystem.category = firstChangeRecord.originalCategory;
+                previouslyInTheSystem.source = firstChangeRecord.originalSource;
             }
-            var t = changeRecord.previousChangeStamp;
-            while(t) {
-                changeRecord = ChangeSet.getChangeRecord(t);
-                changeRecord.string = new Date(t).toUTCString();
-                versions.push(changeRecord);
-                t = changeRecord.previousChangeStamp;
-            }
-            if(previouslyInTheSystem)
-                versions.push(previouslyInTheSystem);
-
-            var browser = new VersionsBrowser(pt(1024, 384));
-            var window = browser.openIn($world, propertyName + ' versions ');
-            browser.setContents(versions);
-            browser.codeBrowser = this;
         }
+        var t = current.previousChangeStamp;
+        var changeRecord = current;
+        while(t) {
+            changeRecord = ChangeSet.getChangeRecord(t);
+            changeRecord.string = new Date(t).toUTCString();
+            versions.push(changeRecord);
+            t = changeRecord.previousChangeStamp;
+        }
+        if(previouslyInTheSystem)
+            versions.push(previouslyInTheSystem);
+
+        var browser = new VersionsBrowser(pt(1024, 384));
+        var window = browser.openIn($world, propertyName + ' versions ');
+        browser.setContents(versions);
+        browser.setVersion1(current);
+        browser.codeBrowser = this;
     },
 
     reset: function reset() {  // this.reset()
@@ -1708,6 +1806,8 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
 
 
     getFunctionContainerMenu: function getFunctionContainerMenu() {
+        if(this.selectedContainerKind.string != "loaded classes")
+            return [];
         var self = this;
         return [
             ['add class', function() {self.addClass()}]
@@ -1757,7 +1857,6 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 if(!containerName || containerName.trim().length == 0)
                     return;
                 containerName = containerName.trim();
-                debugger;
                 var newContext = lively.lookup(containerName);
                 if(!newContext) {
                     $world.alert('Cannot resolve new container name '+ containerName);
@@ -1876,7 +1975,6 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                     $world.alert('method name already in use');
                     return;
                 }
-    debugger;
                 var contextPath = context.lvContextPath();
                 if(!contextPath)
                     throw new Error("Should not happen");
@@ -2016,6 +2114,7 @@ lively.morphic.Panel.subclass('VersionsBrowser',
     	
         this.applyStyle({adjustForNewBounds: true, fill: Color.gray});
     
+        connect(this.changePane, "selection", this, "setVersion2", {});
         connect(this.changePane, "getMenu", this, "getChangeMenu", {});
     
     },
@@ -2026,11 +2125,9 @@ lively.morphic.Panel.subclass('VersionsBrowser',
             return [];
         var items = [
             ['show selected in left code pane', function() {
-                self.timestamp1.setTextString(selected.string);
-                self.codePane1.setTextString(selected.source)}],
+                self.setVersion1(selected)}],
             ['show selected in right code pane', function() {
-                self.timestamp2.setTextString(selected.string);
-                self.codePane2.setTextString(selected.source)}]
+                self.setVersion2(selected)}]
         ];
         if(!selected.string.endsWith(' (current)'))
             items.push(
@@ -2038,6 +2135,11 @@ lively.morphic.Panel.subclass('VersionsBrowser',
             );
         return items;
     },
+    setVersion1: function(selected) {
+        this.timestamp1.setTextString(selected.string);
+        this.codePane1.setTextString(selected.source);
+    },
+
     revertCurrentSourceToSelected: function() {
         var changes = this.changePane.getList();
         var selected = this.changePane.selection;
@@ -2077,7 +2179,117 @@ lively.morphic.Panel.subclass('VersionsBrowser',
     setContents: function(list) {
         this.changePane.setList(list);
     },
+    setVersion2: function(selected) {
+        this.timestamp2.setTextString(selected.string);
+        this.codePane2.setTextString(selected.source);
+    }
 });
+
+Object.subclass('Differator',
+'default category', {
+
+    initialize: function(text1, text2, styleSpec1, styleSpec2, optExtraTexts) {
+        var differ = new JsDiff.Diff();
+        var string1 = text1.textString;
+        var string2 = text2.textString;
+        var whitespace = {};
+        whitespace[string1] = [];
+        whitespace[string2] = [];
+        differ.tokenize = function(input) {
+            var strings = [];
+            lively.ast.acorn.tokens(input).each(function(token){
+                if(token.type == "whitespace")
+                    whitespace[input].push(token.start);
+                strings.push(input.substring(token.start, token.end).valueOf());     //Diff uses === for comparison
+            })
+            return strings;
+        }
+        var diffList = differ.diff(string1, string2);
+        var index1 = 0, index2 = 0;
+        var desynchronizations = [];
+        diffList.each(function(e) {
+            var previous = desynchronizations.last();
+            if (e.added) {
+                if(whitespace[string2].include(index2))
+                    index2 += e.value.length;
+                else
+                    if (previous && !previous.ranges[1])
+                        //We condense a removal followed by an addition into a single change;
+                        //if something changed, we want to show it simultaneously on both sides 
+                        previous.ranges[1] = [index2, index2 += e.value.length, styleSpec2];
+                    else
+                        desynchronizations.push(
+                            {targets: [text1, text2],
+                            ranges: [undefined, [index2, index2 += e.value.length, styleSpec2]]});
+            }
+            if (e.removed) {
+                if(whitespace[string1].include(index1))
+                    index1 += e.value.length;
+                else
+                    if (previous && !previous.ranges[0])
+                        //We condense an addition followed by a removal into a single change;
+                        //if something changed, we want to show it simultaneously on both sides
+                        previous.ranges[0] = [index1, index1 += e.value.length, styleSpec1];
+                    else
+                        desynchronizations.push(
+                            {targets: [text1, text2],
+                            ranges: [[index1, index1 += e.value.length, styleSpec1], undefined]});
+            }
+            if (!e.added && !e.removed) {
+                index1 += e.value.length;
+                index2 += e.value.length;
+            }
+        });
+        if(optExtraTexts) {
+            optExtraTexts.each(function(e){
+                if(e[0].textString != e[1].textString)
+                    desynchronizations.push(
+                        {targets: [e[0], e[1]],
+                        ranges: [[0, e[0].textString.length, styleSpec1], [0, e[1].textString.length, styleSpec2]]});
+            })
+        }
+        this.desynchronizations = desynchronizations;
+        this.cursor = -1;
+    },
+    next: function() {
+        this.removeEmphasis();
+        this.cursor++;
+        if(this.cursor > 0) {
+            if(this.cursor == this.desynchronizations.length)
+                this.cursor = 0;
+        }
+        this.setEmphasis();
+    },
+    setEmphasis: function() {
+        if(this.cursor < 0 || this.cursor >= this.desynchronizations.length)
+            return;
+        var rangesAndTargets = this.desynchronizations[this.cursor];
+        var ranges = rangesAndTargets.ranges;
+        var targets = rangesAndTargets.targets;
+        if (ranges[0]) 
+            targets[0].emphasizeRanges([ranges[0]]);
+        if (ranges[1]) 
+            targets[1].emphasizeRanges([ranges[1]]);
+    },
+
+    removeEmphasis: function() {
+        if(this.cursor < 0 || this.cursor >= this.desynchronizations.length)
+            return;
+        var targets = this.desynchronizations[this.cursor].targets;
+        targets[0].unEmphasizeAll();
+        targets[1].unEmphasizeAll();
+    },
+
+    reset: function() {
+        this.removeEmphasis();
+        this.cursor = -1;
+    }
+
+
+
+}
+);
+    
 lively.morphic.Morph.addMethods("iterating", {
     gatherWithPath: function(pathMap, parentPath, discriminator) {
 
@@ -2095,20 +2307,20 @@ lively.persistence.SpecObject.addMethods("iterating", {
         var props = this.attributeStore;
         var myPath;
         if(props.name)
-            myPath = parentPath ? parentPath.split('.')[0] + '.'  + props.name : props.name;
+            myPath = 
+                parentPath ? parentPath.split('.')[0] + '.'  + props.name : props.name;
         else
             myPath = parentPath + '.submorphs[' + indexPath.split('.').last() + ']';
             
         array.push({string: myPath, value: this});
-        if(parentPath) {
-            var contextPath = rootContextPath;
+        var contextPath = rootContextPath;
+        if(indexPath) {
             indexPath.split('.').each(function(i){
                 contextPath += '.attributeStore.submorphs[' + i + ']';
             })
             addOwnPropertyIfAbsent(this, 'lvContextPath', function(){return contextPath});
-            addOwnPropertyIfAbsent(props, 'lvContextPath', function(){return contextPath + '.attributeStore'});
-        } else
-            addOwnPropertyIfAbsent(props, 'lvContextPath', function(){return rootContextPath + '.attributeStore'});
+        }
+        addOwnPropertyIfAbsent(props, 'lvContextPath', function(){return contextPath + '.attributeStore'});
 
         if(!props.submorphs)
             return;
@@ -2118,3 +2330,4 @@ lively.persistence.SpecObject.addMethods("iterating", {
     },
 });
 }) // end of module
+

@@ -1010,7 +1010,6 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         return text;
     },
     newStaticTextPane: function newStaticTextPane(extent, initialText, style) {
-        // This method should be inherited for all apps
         var text = this.newTextPane(extent, initialText);
         text.applyStyle({scaleProportional: true, allowInput: false, clipMode: 'visible', align: 'center'});
         if(style)
@@ -1023,6 +1022,13 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         list.applyStyle({scaleProportional: true});
         return list;
     },
+    newButton: function newButton(extent, label) {
+        var button = new lively.morphic.Button(extent, label);
+        button.applyStyle({scaleProportional: true});
+        button.setBorderStylingMode(false);
+        return button;
+    },
+
     openIn: function openIn(world, title, pos) {
         this.buildView();
         var window = world.addFramedMorph(this, title);
@@ -1035,15 +1041,14 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         var codePane = this.newTextPane(extent);
         codePane.enableSyntaxHighlighting();
         codePane.evalEnabled = true;
-        codePane.doSave = this.codePaneDoSave;
         codePane.applyStyle({scaleProportional: true});
         codePane.savedTextString = codePane.textString;
         return codePane
     },
     newReadOnlyCodePane: function newReadOnlyCodePane(extent) {
-        // This method should be inherited for all apps
         var codePane = this.newTextPane(extent);
         codePane.enableSyntaxHighlighting();
+        codePane.evalEnabled = true;
         codePane.applyStyle({scaleProportional: true, allowInput: false});
         return codePane;
     },

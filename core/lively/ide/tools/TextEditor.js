@@ -133,14 +133,15 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 case "r": $upd("r"); return;
                 case "css": $upd("css"); return;
                 case "diff": $upd("diff"); return;
-                case "html": $upd("html"); return;
+                case "xhtml": case "html": $upd("html"); return;
                 case "js": $upd("javascript"); return;
-                case "md": $upd("markdown"); return;
+                case "markdown": case "md": $upd("markdown"); return;
                 case "sh": $upd("sh"); return;
                 case "xml": $upd("xml"); return;
                 case "svg": $upd("svg"); return;
                 case "el": $upd("lisp"); return;
                 case "clj": $upd("clojure"); return;
+                case "hs": $upd("haskell"); return;
                 default: $upd("text");
             }
         }});

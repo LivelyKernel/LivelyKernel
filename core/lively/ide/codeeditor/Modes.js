@@ -1,5 +1,32 @@
 module('lively.ide.codeeditor.Modes').requires('lively.ide.codeeditor.ace').toRun(function() {
 
+// Used as a plugin for the lively.ide.CodeEditor.DocumentChangeHandler
+Object.subclass('lively.ide.codeeditor.Modes.ChangeHandler',
+"initializing", {
+    initialize: function() {
+    }
+},
+"testing", {
+    isActiveFor: function(evt) {
+        return evt.type === 'changeMode';
+    }
+},
+'rendering', {
+    onModeChange: function(evt) {
+        var s = evt.session,
+            modeState = s.$livelyModeState || (s.$livelyModeState = {}),
+            lastMode = modeState.lastMode,
+            currentMode = evt.session.getMode();
+        if (lastMode && lastMode.detach) {
+            lastMode.detach(evt.codeEditor.aceEditor);
+        }
+        modeState.lastMode = currentMode;
+        if (currentMode && currentMode.attach) {
+            currentMode.attach(evt.codeEditor.aceEditor);
+        }
+    }
+});
+
 (function setupModes() {
     // R-mode
     lively.ide.ace.require('ace/mode/r').Mode.addMethods({

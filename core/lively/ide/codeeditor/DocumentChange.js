@@ -7,6 +7,7 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
     initialize: function(plugins) {
         this.plugins = plugins;
         this.onDocumentChangeDebounced = Functions.debounce(200, this.onDocumentChange.bind(this));
+        this.onModeChangeDebounced = Functions.debounce(200, this.onModeChange.bind(this));
         this.onDocumentChangeResetDebounced = Functions.debounce(200, this.onDocumentChangeReset.bind(this), true);
     }
 },
@@ -14,6 +15,13 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
     onDocumentChangeReset: function(evt, codeEditor) {
         // called when a document change occurs and is supposed to reset state
         // that will be recomputed in the real on doc change handler
+    },
+
+    onModeChange: function(evt, codeEditor) {
+        var session = codeEditor.getSession();
+        evt.codeEditor = codeEditor;
+        evt.session = session;
+        this.invokePlugins('onModeChange', evt);
     },
 
     onDocumentChange: function(evt, codeEditor) {
@@ -27,24 +35,28 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
             }
         }
 
-        // reacts to a document change by dispatching to plugins depending on
-        // session.$mode
+        // reacts to a document change by dispatching to plugins
         var session = codeEditor.getSession();
-        var plugins = this.getPlugins().select(function(plugin) {
-            return plugin.isActiveFor(codeEditor, session); });
-        if (!plugins.length) {
-            session.$ast = null;
-            session.$livelyCodeMarker && (session.$livelyCodeMarker.globals = []);
-            session.$livelyCodeMarker && (session.$livelyCodeMarker.errors = []);
-            session._emit("changeBackMarker");
-        } else {
-            plugins.invoke('onDocumentChange', {originalEvent: evt, codeEditor: codeEditor, session: session});
-        }
+        evt.codeEditor = codeEditor;
+        evt.session = session;
+        this.invokePlugins('onDocumentChange', evt);
     }
 },
 'plugins', {
-    getPlugins: function() {
-        return this.plugins;
+    invokePlugins: function(methodName, evt) {
+        return this.getPlugins()
+            .select(function(plugin) { return plugin.isActiveFor(evt); })
+            .invoke(methodName, evt)
+            .length;
+    },
+    getPlugins: function() { return this.plugins; }
+});
+
+Object.extend(lively.ide.CodeEditor.DocumentChangeHandler, {
+    create: function() {
+        return new lively.ide.CodeEditor.DocumentChangeHandler(
+                    [new lively.ide.codeeditor.Modes.ChangeHandler(),
+                     new lively.ide.codeeditor.JS.ChangeHandler()]);
     }
 });
 
@@ -53,29 +65,46 @@ Object.subclass('lively.ide.CodeEditor.CodeMarker',
 // into the ace rendering area
 "initializing", {
     initialize: function() {
-        this.errors = [];
-        this.globals = [];
+        this.markerRanges = [];
+    },
+    attach: function(session) {
+        if (!this.id || !(this.id in session.$backMarkers))
+            session.addDynamicMarker(this);
+    },
+    detach: function(session) {
+        this.markerRanges.length = 0;
+        session._emit('changeBackMarker');
+        session.removeMarker(this);
+        session.$astFeedbackMarker = null;
     }
 },
 "rendering", {
     update: function(html, markerLayer, session, config) {
         var Range = lively.ide.ace.require("ace/range").Range;
         var screenStartRow = config.firstRow, screenEndRow = config.lastRow;
-        this.errors.forEach(function(err) {
-            var posStart = session.doc.indexToPosition(err.pos-1),
-                posEnd = session.doc.indexToPosition(err.pos+1);
-            if (posEnd.row < screenStartRow || posStart.row > screenEndRow) return;
-            var range = Range.fromPoints(posStart, posEnd);
-            markerLayer.drawSingleLineMarker(html, range.toScreenRange(session), "ace-syntax-error", config);
+        this.markerRanges.forEach(function(range) {
+            var start, end;
+            if (range.pos) {
+                start = session.doc.indexToPosition(range.pos-1),
+                end = session.doc.indexToPosition(range.pos+1);
+            } else if (range.start && range.end) {
+                start = session.doc.indexToPosition(range.start);
+                end = session.doc.indexToPosition(range.end);
+            } else if (range.startPos &&range.endPos) {
+                start = range.startPos; end = range.endPos;
+            } else {
+                console.warn('lively.morphic.CodeMarker cannot render %s', range);
+                return;
+            }
+            if (start.row < screenStartRow || end.row > screenEndRow) return;
+            var realRange = Range.fromPoints(start, end);
+            var method = start.row === end.row ? 'drawSingleLineMarker' : 'drawTextMarker';
+            markerLayer[method](html, realRange.toScreenRange(session), range.cssClassName || "lively-ace-codemarker", config);
         });
-        this.globals.forEach(function(node) {
-            var start = session.doc.indexToPosition(node.start);
-            if (start.row < screenStartRow) return;
-            var end = session.doc.indexToPosition(node.end);
-            if (end.row > screenEndRow) return;
-            var range = Range.fromPoints(start, end);
-            markerLayer.drawSingleLineMarker(html, range.toScreenRange(session), "ace-global-var", config);
-        });
+    },
+
+    redraw: function(session) {
+        session._emit('changeBackMarker');
     }
 });
 

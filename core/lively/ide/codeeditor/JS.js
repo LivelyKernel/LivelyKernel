@@ -177,15 +177,20 @@ Object.subclass('lively.ide.codeeditor.JS.ScopeAnalyzer',
 });
 
 Object.subclass('lively.ide.codeeditor.JS.ChangeHandler',
+"settings", {
+    targetMode: "ace/mode/javascript"
+},
 "initializing", {
     initialize: function() {
         this.scopeAnalyzer = new lively.ide.codeeditor.JS.ScopeAnalyzer();
     }
 },
 "testing", {
-    isActiveFor: function(codeEditor, session) {
-        var mode = session.getMode();
-        return mode.$id === "ace/mode/javascript";
+    isActiveFor: function(evt) {
+        var mode = evt.session.getMode();
+        if (mode.$id === this.targetMode) return true;
+        var codeMarker = evt.session.$livelyCodeMarker;
+        return codeMarker && codeMarker.modeId === this.targetMode;
     }
 },
 "parsing", {
@@ -196,6 +201,20 @@ Object.subclass('lively.ide.codeeditor.JS.ChangeHandler',
     }
 },
 'rendering', {
+    onModeChange: function(evt) {
+        var sess = evt.session;
+        if (sess.getMode().$id === this.targetMode) {
+            this.onDocumentChange(evt);
+        } else {
+            sess.$ast = null;
+            if (sess.$livelyCodeMarker) {
+                sess.$livelyCodeMarker.markerRanges.length = 0;
+                sess.$livelyCodeMarker.modeId = null;
+                sess._emit("changeBackMarker");
+            }
+        }
+    },
+
     onDocumentChange: function(evt) {
         this.updateAST(evt)
     },
@@ -210,15 +229,26 @@ Object.subclass('lively.ide.codeeditor.JS.ChangeHandler',
         } catch(e) {
             ast = session.$ast = e;
         }
+
         // 2. update lively codemarker
         var marker = session.$livelyCodeMarker;
         if (!marker) {
             marker = session.$livelyCodeMarker = new lively.ide.CodeEditor.CodeMarker();
+            marker.attach(session);
         }
-        marker.globals = this.scopeAnalyzer && codeEditor.getShowWarnings() ? this.scopeAnalyzer.findGlobalVarReferences(evt.ast) : [];
-        marker.errors = ast.parseError && codeEditor.getShowErrors() ? [ast.parseError] : [];
-        if (!(marker.id in session.$backMarkers)) session.addDynamicMarker(marker);
+        marker.modeId = this.targetMode;
+        marker.markerRanges.length = 0;
+        if (this.scopeAnalyzer && codeEditor.getShowWarnings()) {
+            marker.markerRanges.pushAll(
+                this.scopeAnalyzer.findGlobalVarReferences(ast).map(function(ea) {
+                    ea.cssClassName = "ace-global-var"; return ea; }));
+        }
+        if (ast.parseError && codeEditor.getShowErrors()) {
+            ast.parseError.cssClassName = "ace-syntax-error";
+            marker.markerRanges.push(ast.parseError);
+        }
         session._emit("changeBackMarker");
+
         // 3. emit session astChange event
         var astChange = {ast: ast, docChange: evt.data, codeEditor: codeEditor};
         session._emit('astChange', astChange);

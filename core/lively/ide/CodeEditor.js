@@ -207,27 +207,41 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         Global.clearInterval(aceEditor.renderer.$textLayer.$pollSizeChangesTimer);
     },
 
-    listenForDocumentChanges: function(evt) {
+    
+    stopListenForDocumentChanges: function(evt) {
         if (this._listenForDocumentChanges && evt.oldSession) {
             evt.oldSession.removeEventListener('change', this._onDocumentChange);
             delete this._onDocumentChange;
         }
+    },
+
+    listenForDocumentChanges: function(evt) {
+        this.stopListenForDocumentChanges(evt);
         this._listenForDocumentChanges = this._listenForDocumentChanges || this.listenForDocumentChanges.bind(this);
         this._onDocumentChange = this._onDocumentChange || this.onDocumentChange.bind(this);
+        this._onModeChange = this._onModeChange || this.onModeChange.bind(this);
         this.withAceDo(function(ed) {
             ed.on('changeSession', this._listenForDocumentChanges);
-            ed.on('changeMode', this._onDocumentChange);
+            ed.on('changeMode', this._onModeChange);
             ed.session.on('change', this._onDocumentChange);
         });
     },
 
+    ensureChangeHandler: function() {
+        var sess = this.aceEditor.session;
+        return sess.$changeHandler || (sess.$changeHandler =
+            lively.ide.CodeEditor.DocumentChangeHandler.create());
+    },
+
     onDocumentChange: function(evt) {
-        var sess = this.aceEditor.session,
-            changeHandler = sess.$changeHandler ||
-                (sess.$changeHandler = new lively.ide.CodeEditor.DocumentChangeHandler(
-                    [new lively.ide.codeeditor.JS.ChangeHandler()]));
-        changeHandler.onDocumentChangeResetDebounced(evt, this);
-        changeHandler.onDocumentChangeDebounced(evt, this);
+        var changeH = this.ensureChangeHandler();
+        changeH.onDocumentChangeResetDebounced(evt, this);
+        changeH.onDocumentChangeDebounced(evt, this);
+    },
+
+    onModeChange: function(evt) {
+        var changeH = this.ensureChangeHandler();
+        changeH.onModeChangeDebounced(evt, this);
     },
 
     addCommands: function(commands) {

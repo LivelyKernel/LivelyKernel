@@ -67,13 +67,24 @@ Object.extend(Function.prototype, {
             protoclass.prototype = this.prototype;
             klass.prototype = new protoclass();
             klass.prototype.constructor = klass;
-            klass.prototype.constructor.type = className; // KP: .name would be better but js ignores .name on anonymous functions
-            klass.prototype.constructor.displayName = className; // for debugging, because name can not be assigned
+            klass.type = className; // KP: .name would be better but js ignores .name on anonymous functions
+            klass.displayName = className; // for debugging, because name can not be assigned
             if (className) targetScope[shortName] = klass; // otherwise it's anonymous
 
             // remember the module that contains the class def
             if (Global.lively && lively.Module && lively.Module.current)
                 klass.sourceModule = lively.Module.current();
+                
+            // add a more appropriate toString implementation
+            klass.toString = function(){
+                var name = this.type;
+                if(name.startsWith("anonymous_"))
+                    name = "null";
+                else
+                    name = "'" + name + "'";
+                return (this.superclass.type || this.superclass.name) + ".subclass(" + name + 
+                        ", 'default category', {initialize: " + this.prototype.initialize + "})";
+            }
         };
 
         // the remaining args should be category strings or source objects

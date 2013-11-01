@@ -60,6 +60,27 @@ Object.extend(lively.ide, {
         moduleNameForTheme: function(themeName) {
             return this.availableThemes().include(themeName) ?
                 "ace/theme/" + themeName : null
+        },
+
+        createKeyHandler: function(options) {
+            // Easily create a new key handler. Example usage
+            // handler = lively.ide.ace.createKeyHandler({
+            //     bindings: {'Alt-a': 'test'},
+            //     commands: {test: {exec: function(ed) { show(123); }}}});
+            // aceEditor.keyBinding.addKeyboardHandler(handler)
+            options = options || {};
+            var commands = options.commands || {},
+                bindings = options.bindings || {},
+                resolvedBindings = {},
+                h = new (lively.ide.ace.require("ace/keyboard/hash_handler")).HashHandler();
+            for (var key in bindings) { // inline commands
+                if (!bindings.hasOwnProperty(key)) continue;
+                resolvedBindings[key] = Object.isString(bindings[key]) ?
+                    commands[bindings[key]] : bindings[key];
+            }
+            h.addCommands(commands);
+            h.bindKeys(resolvedBindings);
+            return h;
         }
     })
 });

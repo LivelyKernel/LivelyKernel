@@ -227,6 +227,10 @@ Object.extend(lively.ast.acorn, {
     parse: function(source) {
         return acorn.parse(source);
     },
+    tokenize: function(input) {
+        return acorn.tokenize(input);
+    },
+
 
     fuzzyParse: function(source, options) {
         // options: verbose, addSource, type
@@ -281,6 +285,54 @@ Object.extend(lively.ast.acorn, {
         ast.end += 'return '.length
         return lively.ast.acorn.nodeSource(newSource, ast);
     },
+    tokens: function(input) {
+        //this returns an array of all tokens, including recreating the skipped ones (comments and whitespace)
+        var next = acorn.tokenize(input, {onComment: function(bool, text, start, end){
+            tokens.push({value: text, start: start, end: end, type: "comment"});
+        }});
+        var tokens = [];
+        var token = next();
+        var previousEnd = token.end;
+        var whitespace, prevValue, prevType, prevIndex;
+        var _eof = acorn.tokTypes.eof;
+        var _slash = acorn.tokTypes.slash;
+        var _name = acorn.tokTypes.name;
+        var _bracketR = acorn.tokTypes.bracketR;
+        while(token.type !== _eof) {
+            prevType = token.type;
+            prevValue = token.value || prevType.type.valueOf();
+            prevIndex = tokens.length;
+            tokens.push({value: prevValue, start: token.start, end: token.end, type: prevType.type});
+            token = next();
+            if(token.start > previousEnd) {
+                whitespace = input.substring(previousEnd, token.start);
+                tokens.push({value: whitespace, start: previousEnd, end: token.start, type: "whitespace"});
+            }
+            if (token.type.type == "assign" && token.value == "/=" && prevType !== _name && prevType !== _bracketR) {
+                debugger;
+                token = next(true);
+            }
+            else if(token.type === _slash && prevValue === ")") {
+                var count = 1;
+                for(var i = prevIndex - 1; i > 0; i--) {
+                    var value = tokens[i].value;
+                    if(value == ")")
+                        count++;
+                    else if(value == "(")
+                        count--;
+                    if(count == 0)
+                        break;
+                }
+                if(i > 0 && ["if", "while", "for", "with"].indexOf(tokens[i - 1].value.valueOf()) > -1 ) {
+                    debugger;
+                    token = next(true);
+                }
+            }
+            previousEnd = token.end;
+        }
+        return tokens;
+    },
+
     simpleWalk: function(aNode, arg) {
         acorn.walk.simple(aNode, arg);
     }

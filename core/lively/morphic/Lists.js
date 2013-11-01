@@ -830,7 +830,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     removeItemOrValue: function(itemOrValue) {
         var idx = this.find(itemOrValue), item = this.itemList[idx];
         this.updateList(this.itemList.without(item));
-        return item;
+        return idx;
     },
 
     moveUpInList: function(itemOrValue) {

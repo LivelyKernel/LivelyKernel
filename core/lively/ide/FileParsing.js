@@ -733,13 +733,11 @@ CodeParser.subclass('JsParser', {
 
     debugMode: false,
 
-    ometaRules: [/*'blankLine',*/ 'comment',
-               'klassDef', 'objectDef', 'klassExtensionDef', 'traitDef', 'copDef', 'propertyDef',
-               'functionDef', 'categoryDef', 'unknown'],
+    ometaRules: [/*'blankLine',*/ 'comment', 'klassDef', 'objectDef',
+                 'klassExtensionDef', 'traitDef', 'buildspecDef', 'copDef',
+                 'propertyDef', 'functionDef', 'categoryDef', 'unknown'],
 
-    parseClass: function() {
-        return this.callOMeta("klassDef");
-    },
+    parseClass: function() { return this.callOMeta("klassDef"); },
 
     parseModuleBegin: function() {
         var moduleBeginRegex = /^\s*module\([\'\"](.*)[\'\"]\)\s*\.\s*requires\(\s*.*\s*\.\s*toRun\(\s*.*/,

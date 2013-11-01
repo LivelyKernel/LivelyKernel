@@ -267,7 +267,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
 'accssing', {
     childNodes: function() {
         var acceptedTypes = ['klassDef', 'klassExtensionDef', 'functionDef', 'objectDef',
-                             'copDef', 'traitDef' /*,'propertyDef'*/],
+                             'copDef', 'traitDef', 'buildspecDef' /*,'propertyDef'*/],
             browser = this.browser,
             completeFileFragment = this.target;
         if (!completeFileFragment) return [];
@@ -281,6 +281,8 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
                 return lively.ide.CopFragmentNode;
             if (type === 'traitDef')
                 return lively.ide.TraitFragmentNode;
+            if (type === 'buildspecDef')
+                return lively.ide.BuildSpecFragmentNode;
             return lively.ide.ObjectFragmentNode;
         }
         return this.target.subElements(2)
@@ -819,6 +821,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CopMemberFragmentNode', {
     },
 
 });
+
 lively.ide.FileFragmentNode.subclass('lively.ide.TraitFragmentNode', {
 
     isClassNode: true,
@@ -843,6 +846,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.TraitFragmentNode', {
     },
 
 });
+
 lively.ide.FileFragmentNode.subclass('lively.ide.TraitElemFragmentNode', {
 
     isMemberNode: true,
@@ -931,6 +935,20 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteSnippet', {
     onSelect: function($super) {
         this.browser.currentModuleName = null;
         $super();
+    }
+});
+
+lively.ide.FileFragmentNode.subclass('lively.ide.BuildSpecFragmentNode', {
+    isClassNode: true,
+    childNodes: function() { return []; },
+    evalSource: function(newSource) {
+        this.browser.withCurrentModuleActiveDo(function() {
+            try { eval(newSource); } catch (er) {
+                console.warn("error evaluating BuildSpec:" + er);
+                throw(er);
+            }
+        });
+        return true;
     }
 });
 

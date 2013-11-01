@@ -1438,4 +1438,29 @@ lively.ide.tests.FileParserTests.FileFragmentTest.subclass('lively.ide.tests.Fil
     }
 });
 
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserBuildSpecTest',
+'tests', {
+
+    testParseBuildSpec: function() {
+        var src = "lively.BuildSpec('lively.ide.tests.BuildSpecForParserTest', {\n"
+                + "    className: \"lively.morphic.Box\",\n"
+                + "    name: \"Foo\",\n"
+                + "    sourceModule: \"lively.morphic.Core\",\n"
+                + "    _Extent: lively.pt(100,100),\n"
+                + "    submorphs: [{\n"
+                + "        _Extent: lively.pt(87,20),\n"
+                + "        className: \"lively.morphic.Box\",\n"
+                + "     }],\n"
+                + "    fooBar: function fooBar() {\n"
+                + "    show('test!');\n"
+                + "}\n"
+                + "});";
+        this.sut.src = src;
+        var descriptor = this.sut.callOMeta("buildspecDef");
+        this.assert(descriptor, 'no descriptor');
+        this.assertEquals(descriptor.name, 'lively.ide.tests.BuildSpecForParserTest');
+    }
+
+});
+
 }) // end of module

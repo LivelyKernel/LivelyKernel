@@ -314,7 +314,14 @@ traitApplication =
 	"applyTo" '(' klass:n restKlassDef:spec ')'
 	-> { {name: ' -> ' + n, subElementSpec: spec} },
 
-    unknown = pos:p somethingBigRelated defEnd -> { this._fragment(null, 'unknown', p, this.pos()-1) }
+unknown = pos:p somethingBigRelated defEnd -> { this._fragment(null, 'unknown', p, this.pos()-1) },
+
+quote = char:x ?(x === "'" || x === '"') -> x,
+
+buildspecDef =
+    pos:p "lively.BuildSpec" '(' nameString:n "," spaces chunk('{', '}') ')' spaces defEnd
+    -> { this._fragment(n, 'buildspecDef', p, this.pos()-1, []) }
+
 
 };
 

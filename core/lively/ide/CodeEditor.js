@@ -97,11 +97,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return new lively.morphic.CodeEditorShape();
     },
 
-    onOwnerChanged: function(newOwner) {
-        if (newOwner) Functions.debounceNamed(
-            this.id + ':onOwnerChanged:initializeAce',
-            200, this.initializeAce.bind(this), true);
-    }
 },
 'styling', {
     applyStyle: function ($super, spec) {

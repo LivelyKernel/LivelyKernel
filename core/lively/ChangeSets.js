@@ -1765,6 +1765,24 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                     return Global.nonClassConstructors()},
                 nonStaticContainer: function(e){return e.prototype}}, 
                 
+           {string: "loaded commands", 
+                titleRenderFunction: function(e){
+                    var key = Properties.nameFor(lively.ide.commands.byName, e)
+                    var binding = lively.ide.commands.getKeyboardBindings()[key];
+                    if(binding && typeof binding.valueOf() != "string") {
+                        if (navigator.appVersion.indexOf("Win")!=-1)
+                            binding = binding.win;
+                        else if (navigator.appVersion.indexOf("Mac")!=-1)
+                            binding = binding.mac;
+                    }
+                    if(binding)
+                        binding = binding.replace("-s-", "-shift-");
+                    return e.description + (binding ? "      (" + binding + ")" : "")},
+                listRenderFunction: function(e){ return Properties.nameFor(lively.ide.commands.byName, e)},
+                containers: function(){
+                    return Object.values(lively.ide.commands.byName)},
+                nonStaticContainer: function(e){return null}}, 
+                
             {string: "loaded modules", 
                 titleRenderFunction: function(e){return "Module " + e.name()},
                 listRenderFunction: function(e){return e.name()},

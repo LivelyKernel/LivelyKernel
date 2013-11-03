@@ -2787,8 +2787,13 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 'initializing', {
     initialize: function($super, label, callback, defaultInputOrOptions) {
         $super(label, callback);
-        this.options = Object.isObject(defaultInputOrOptions) ?
-            defaultInputOrOptions : {input: String(defaultInputOrOptions)};
+        var options;
+        switch (typeof defaultInputOrOptions) {
+            case 'object': options = defaultInputOrOptions; break;
+            case 'undefined': options = {input: ''}; break;
+            default: options = {input: String(defaultInputOrOptions)}
+        }
+        this.options = options;
     },
     buildTextInput: function(bounds) {
         module('lively.ide.tools.CommandLine').load(true);

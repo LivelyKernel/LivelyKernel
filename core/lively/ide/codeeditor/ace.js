@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.ace').requires().requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());

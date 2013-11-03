@@ -1,4 +1,4 @@
-module('lively.morphic.tools.ConfirmList').requires().toRun(function() {
+module('lively.morphic.tools.ConfirmList').requires('lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.morphic.tools.ConfirmList', {
     _BorderColor: Color.rgb(102,102,102),

@@ -1,4 +1,4 @@
-module('lively.morphic.tools.PartsBin').requires('lively.PartsBin').toRun(function() {
+module('lively.morphic.tools.PartsBin').requires('lively.persistence.BuildSpec', 'lively.PartsBin').toRun(function() {
 
 lively.BuildSpec('lively.morphic.tools.PartsBin', {
     _BorderColor: Color.rgb(204,0,0),

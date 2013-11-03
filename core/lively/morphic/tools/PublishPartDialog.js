@@ -1,4 +1,4 @@
-module('lively.morphic.tools.PublishPartDialog').requires('lively.PartsBin').toRun(function() {
+module('lively.morphic.tools.PublishPartDialog').requires('lively.persistence.BuildSpec', 'lively.PartsBin').toRun(function() {
 
 lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
     _Extent: lively.pt(479.0,437.0),

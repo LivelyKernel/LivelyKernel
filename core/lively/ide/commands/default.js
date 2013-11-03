@@ -333,14 +333,27 @@ Object.extend(lively.ide.commands.byName, {
                 }).compact();
             }
             function update(candidates, narrower, thenDo) {
-                dir = narrower.dir || lively.shell.exec('pwd', {sync:true}).resultString();
-                require('lively.ide.DirectoryWatcher').toRun(function() {
-                    lively.ide.DirectoryWatcher.withFilesOfDir(dir, function(files) {
-                        candidates.length = 0;
-                        candidates.pushAll(makeCandidates(dir, files));
-                        thenDo();
+                function withDirDo(func) {
+                    if (narrower.dir) func(narrower.dir);
+                    else lively.shell.exec('pwd', {}, function(cmd) { func(cmd.resultString()); });
+                }
+                function showLoadingIndicatorThenDo(thenDo) {
+                    require('lively.morphic.tools.LoadingIndicator').toRun(function() {
+                        lively.morphic.tools.LoadingIndicator.open(thenDo);
                     });
-                });
+                }
+                showLoadingIndicatorThenDo(function(closeLoadingIndicator) {
+                    require('lively.ide.DirectoryWatcher').toRun(function() {
+                        withDirDo(function(dir) {
+                            lively.ide.DirectoryWatcher.withFilesOfDir(dir, function(files) {
+                                candidates.length = 0;
+                                candidates.pushAll(makeCandidates(dir, files));
+                                closeLoadingIndicator();
+                                thenDo();
+                            });
+                        });
+                    });
+                })
             }
             var actions = [
                 {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},

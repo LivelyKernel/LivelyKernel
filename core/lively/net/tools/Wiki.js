@@ -167,10 +167,11 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
     }],
     alignInWorld: function alignInWorld() {
     this.world().cachedWindowBounds = null;
-    this.setFixed(false);
     var topRight = pt(this.world().visibleBounds().width-(40+2*130),-10);
     this.setPosition(topRight);
-    this.setFixed(true);
+    this.alignSubmorphs();
+},
+alignSubmorphs: function alignSubmorphs() {
     this.statusText.align(this.statusText.bounds().center(), this.innerBounds().bottomCenter().addXY(0,-8));
     this.menu && this.menu.align(
         this.menu.bounds().bottomCenter(),
@@ -180,7 +181,7 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
     // this.collapse()
     this.withCSSTransitionForAllSubmorphsDo(function() {
         this.setExtent(lively.pt(130.0,30.0));
-        this.alignInWorld();
+        this.alignSubmorphs();
     }, 500, function() {
         if (this.menu) {
             this.menu.remove();
@@ -203,7 +204,7 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
     this.menu.setBounds(lively.rect(0,-66,130,23*1));
     this.withCSSTransitionForAllSubmorphsDo(function() {
         this.setExtent(pt(140, 46+23*1));
-        this.alignInWorld();
+        this.alignSubmorphs();
     }, 500, function() {});
 },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
@@ -212,7 +213,8 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
     },
     onLoad: function onLoad() {
     // this.startStepping(5*1000, 'update');
-    this.whenOpenedInWorld(function() { this.alignInWorld(); });
+    this.whenOpenedInWorld(function() {
+        this.alignInWorld(); });
     this.openInWorld();
     this.statusText.setHandStyle('pointer');
     this.isEpiMorph = true;

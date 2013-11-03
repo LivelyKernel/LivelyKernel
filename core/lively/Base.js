@@ -82,8 +82,14 @@ Object.extend(Function.prototype, {
                     name = "null";
                 else
                     name = "'" + name + "'";
+                var categories = this.categories;
+                if(categories)
+                    var category = Object.keys(categories).detect(function(category){
+                        return categories[category].include("initialize");
+                    });
+                if(!category) category = "default category";
                 return (this.superclass.type || this.superclass.name) + ".subclass(" + name + 
-                        ", 'default category', {initialize: " + this.prototype.initialize + "})";
+                        ", '" + category + "', {initialize: " + this.prototype.initialize + "})";
             }
         };
 

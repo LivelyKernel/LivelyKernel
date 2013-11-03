@@ -1036,6 +1036,11 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         if (world.currentScene) world.currentScene.addMorph(window); // FIXME
         return window;
     },
+    
+    setActive: function(button, bool) {
+        button.applyStyle({borderColor: bool ? Color.red : Color.black, borderWidth: bool ? 2 : 1});
+        button.setActive(bool);
+    },
 
     newCodePane: function newCodePane(extent) {
         var codePane = this.newTextPane(extent);

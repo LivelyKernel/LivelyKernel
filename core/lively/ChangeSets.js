@@ -1022,8 +1022,14 @@ lively.morphic.Panel.subclass('ChangesBrowser',
     	this.changeSetPane.setSelection(ChangeSet.defaultChangeSetName());
     },
     nextChangeVsOriginal: function() {
-        delete this.nextOriginalVsSystemImpl;
-        delete this.nextSystemVsChangeImpl;
+        if(this.nextOriginalVsSystemImpl) {
+            this.nextOriginalVsSystemImpl.reset();
+            delete this.nextOriginalVsSystemImpl;
+        }
+        if(this.nextSystemVsChangeImpl) {
+            this.nextSystemVsChangeImpl.reset();
+            delete this.nextSystemVsChangeImpl;
+        }
         if(!this.nextChangeVsOriginalImpl) {
             var style = {fontWeight: 'bold', color: Color.red};
             var extra = [
@@ -1031,14 +1037,19 @@ lively.morphic.Panel.subclass('ChangesBrowser',
                 [this.changeCategory, this.originalCategory],
                 [this.changeName, this.originalName]
                 ];
-            var differator = new Differator(this.changeCodePane, this.originalCodePane, style, style, extra);
-            this.nextChangeVsOriginalImpl = differator.next.bind(differator);
+            this.nextChangeVsOriginalImpl = new Differator(this.changeCodePane, this.originalCodePane, style, style, extra);
         }
-        this.nextChangeVsOriginalImpl();
+        this.nextChangeVsOriginalImpl.next();
     },
     nextOriginalVsSystem: function() {
-        delete this.nextChangeVsOriginalImpl;
-        delete this.nextSystemVsChangeImpl;
+        if(this.nextChangeVsOriginalImpl) {
+            this.nextChangeVsOriginalImpl.reset();
+            delete this.nextChangeVsOriginalImpl;
+        }
+        if(this.nextSystemVsChangeImpl) {
+            this.nextSystemVsChangeImpl.reset();
+            delete this.nextSystemVsChangeImpl;
+        }
         if(!this.nextOriginalVsSystemImpl) {
             var style = {fontWeight: 'bold', color: Color.red};
             var extra = [
@@ -1046,14 +1057,19 @@ lively.morphic.Panel.subclass('ChangesBrowser',
                 [this.originalCategory, this.systemCategory],
                 [this.originalName, this.systemName]
                 ];
-            var differator = new Differator(this.originalCodePane, this.systemCodePane, style, style, extra);
-            this.nextOriginalVsSystemImpl = differator.next.bind(differator);
+            this.nextOriginalVsSystemImpl = new Differator(this.originalCodePane, this.systemCodePane, style, style, extra);
         }
-        this.nextOriginalVsSystemImpl();
+        this.nextOriginalVsSystemImpl.next();
     },
     nextSystemVsChange: function() {
-        delete this.nextChangeVsOriginalImpl;
-        delete this.nextOriginalVsSystemImpl;
+        if(this.nextOriginalVsSystemImpl) {
+            this.nextOriginalVsSystemImpl.reset();
+            delete this.nextOriginalVsSystemImpl;
+        }
+        if(this.nextChangeVsOriginalImpl) {
+            this.nextChangeVsOriginalImpl.reset();
+            delete this.nextChangeVsOriginalImpl;
+        }
         if(!this.nextSystemVsChangeImpl) {
             var style = {fontWeight: 'bold', color: Color.red};
             var extra = [
@@ -1061,10 +1077,9 @@ lively.morphic.Panel.subclass('ChangesBrowser',
                 [this.systemCategory, this.changeCategory],
                 [this.systemName, this.changeName]
                 ];
-            var differator = new Differator(this.systemCodePane, this.changeCodePane, style, style, extra);
-            this.nextSystemVsChangeImpl = differator.next.bind(differator);
+            this.nextSystemVsChangeImpl = new Differator(this.systemCodePane, this.changeCodePane, style, style, extra);
         }
-        this.nextSystemVsChangeImpl();
+        this.nextSystemVsChangeImpl.next();
     },
 
 
@@ -1211,10 +1226,7 @@ lively.morphic.Panel.subclass('ChangesBrowser',
             this.changePane.setList(this.changeSet.timestamps.concat([]));
         }
     },
-    setActive: function(button, bool) {
-        button.applyStyle({borderColor: bool ? Color.red : Color.black, borderWidth: bool ? 2 : 1});
-        button.setActive(bool);
-    },
+
 
 
 
@@ -1642,6 +1654,7 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                     var shortName = lively.Class.unqualifiedNameFor(className);
 
                     func.timestamp = ChangeSet.logAddition(superclassName + ".subclass('" + className + "', 'default category', {initialize: " + Functions.Empty + "})", contextPath, shortName);
+                    ChangeSet.logAddition(Functions.Empty.toString(), contextPath + "." + shortName + ".prototype", "initialize");
                     func.kindOfChange = "added";
                     func.user = $world.getUserName();
         
@@ -2123,17 +2136,20 @@ lively.morphic.Panel.subclass('VersionsBrowser',
     	this.createAndArrangePanesFrom([
     		['changePane', this.newListPane, new Rectangle(0, 0, 1, 0.35)],
     		
-    		['timestamp1', this.newStaticTextPane, new Rectangle(0, 0.35, 0.5, 0.05)],
-    		['timestamp2', this.newStaticTextPane, new Rectangle(0.5, 0.35, 0.5, 0.05)],
+    		['timestamp1', this.newStaticTextPane, new Rectangle(0, 0.35, 0.4, 0.05)],
+    		['diffButton', this.newButton, new Rectangle(0.4, 0.35, 0.2, 0.05), "Next diff"],
+    		['timestamp2', this.newStaticTextPane, new Rectangle(0.6, 0.35, 0.4, 0.05)],
 
     		['codePane1', this.newCodePane, new Rectangle(0, 0.4, 0.5, 0.6)],
     		['codePane2', this.newReadOnlyCodePane, new Rectangle(0.5, 0.4, 0.5, 0.6)],
     	]);
     	
+    	this.setActive(this.diffButton, false);
         this.applyStyle({adjustForNewBounds: true, fill: Color.gray});
     
         connect(this.changePane, "selection", this, "setVersion2", {});
         connect(this.changePane, "getMenu", this, "getChangeMenu", {});
+        connect(this.diffButton, "fire", this, "nextDiff", {});
     
     },
     getChangeMenu: function() {
@@ -2154,9 +2170,22 @@ lively.morphic.Panel.subclass('VersionsBrowser',
         return items;
     },
     setVersion1: function(selected) {
+        if(this.nextDiffImpl) {
+            this.nextDiffImpl.reset();
+            delete this.nextDiffImpl;
+        }
+        this.setActive(this.diffButton, this.timestamp2.textString != selected.string);
         this.timestamp1.setTextString(selected.string);
         this.codePane1.setTextString(selected.source);
     },
+    nextDiff: function() {
+        if(!this.nextDiffImpl) {
+            var style = {fontWeight: 'bold', color: Color.red};
+            this.nextDiffImpl = new Differator(this.codePane1, this.codePane2, style, style);
+        }
+        this.nextDiffImpl.next();
+    },
+
 
     revertCurrentSourceToSelected: function() {
         var changes = this.changePane.getList();
@@ -2198,6 +2227,11 @@ lively.morphic.Panel.subclass('VersionsBrowser',
         this.changePane.setList(list);
     },
     setVersion2: function(selected) {
+        if(this.nextDiffImpl) {
+            this.nextDiffImpl.reset();
+            delete this.nextDiffImpl;
+        }
+        this.setActive(this.diffButton, this.timestamp1.textString != selected.string);
         this.timestamp2.setTextString(selected.string);
         this.codePane2.setTextString(selected.source);
     }
@@ -2217,7 +2251,7 @@ Object.subclass('Differator',
             var strings = [];
             lively.ast.acorn.tokens(input).each(function(token){
                 if(token.type == "whitespace")
-                    whitespace[input].push(token.start);
+                    whitespace[input].push([token.start, token.value.length]);
                 strings.push(input.substring(token.start, token.end).valueOf());     //Diff uses === for comparison
             })
             return strings;
@@ -2228,7 +2262,7 @@ Object.subclass('Differator',
         diffList.each(function(e) {
             var previous = desynchronizations.last();
             if (e.added) {
-                if(whitespace[string2].include(index2))
+                if(whitespace[string2][0].include(index2) && whitespace[string2][1] == e.value.length)
                     index2 += e.value.length;
                 else
                     if (previous && !previous.ranges[1])
@@ -2241,7 +2275,7 @@ Object.subclass('Differator',
                             ranges: [undefined, [index2, index2 += e.value.length, styleSpec2]]});
             }
             if (e.removed) {
-                if(whitespace[string1].include(index1))
+                if(whitespace[string1][0].include(index1) && whitespace[string1][1] == e.value.length)
                     index1 += e.value.length;
                 else
                     if (previous && !previous.ranges[0])
@@ -2270,16 +2304,16 @@ Object.subclass('Differator',
         this.cursor = -1;
     },
     next: function() {
+        if(this.desynchronizations.length == 0)
+            return;
         this.removeEmphasis();
         this.cursor++;
-        if(this.cursor > 0) {
-            if(this.cursor == this.desynchronizations.length)
-                this.cursor = 0;
-        }
+        if(this.cursor > 0 && this.cursor == this.desynchronizations.length)
+            this.cursor = 0;
         this.setEmphasis();
     },
     setEmphasis: function() {
-        if(this.cursor < 0 || this.cursor >= this.desynchronizations.length)
+        if(this.cursor < 0)
             return;
         var rangesAndTargets = this.desynchronizations[this.cursor];
         var ranges = rangesAndTargets.ranges;
@@ -2291,7 +2325,7 @@ Object.subclass('Differator',
     },
 
     removeEmphasis: function() {
-        if(this.cursor < 0 || this.cursor >= this.desynchronizations.length)
+        if(this.cursor < 0)
             return;
         var targets = this.desynchronizations[this.cursor].targets;
         targets[0].unEmphasizeAll();

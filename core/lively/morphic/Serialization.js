@@ -416,25 +416,29 @@ Object.extend(lively.morphic.World, {
         morph.url = url;
         morph.setStyleClassNames(['selectable']);
 
+        morph.addScript(function makeEditorEvalInIframe(editor) {
+            editor.iframe = this;
+            editor.addScript(function boundEval(__evalStatement) {
+                var ctx = this.getDoitContext() || this,
+                    __evalStatement = lively.ast.acorn.transformReturnLastStatement(__evalStatement),
+                    interactiveEval = new Function(__evalStatement);
+                return this.iframe.run(interactiveEval);
+            });
+            editor.addScript(function getDoitContext() { return this.iframe.getGlobal(); });
+        });
+
         morph.addScript(function morphMenuItems() {
             var target = this;
             return $super().concat([
                 ['Reload', function() { target.reload(); }],
                 ['Open workspace', function() {
                     var workspace = $world.addCodeEditor({title: String(target.url)});
-                    workspace.iframe = target;
-                    workspace.addScript(function boundEval(__evalStatement) {
-                        var ctx = this.getDoitContext() || this,
-                            __evalStatement = lively.ast.acorn.transformReturnLastStatement(__evalStatement),
-                            interactiveEval = new Function(__evalStatement);
-                        return this.iframe.run(interactiveEval);
-                    });
-                    workspace.addScript(function getDoitContext() {
-                        return this.iframe.getGlobal();
-                    });
+                    target.makeEditorEvalInIframe(workspace);
                 }],
                 ['Edit page', function() {
+                    module('lively.ide.tools.TextEditor').load(true);
                     var textEd = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph().openInWorldCenter();
+                    target.makeEditorEvalInIframe(textEd.get('editor'));
                     textEd.openURL(target.url);
                     lively.bindings.connect(textEd, 'contentStored', target, 'reload');
                 }]

@@ -715,10 +715,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     setSelectionRange: function(startIdx, endIdx) {
-        var doc = this.getDocument(),
-            start = doc.indexToPosition(startIdx),
-            end = doc.indexToPosition(endIdx);
-        this.getSelection().setRange({start: start, end: end});
+        this.withAceDo(function(aceEditor) {
+            var doc = aceEditor.session.doc,
+                start = doc.indexToPosition(startIdx),
+                end = doc.indexToPosition(endIdx);
+            aceEditor.selection.setRange({start: start, end: end});
+        });
     },
 
     getSelectionRange: function() {

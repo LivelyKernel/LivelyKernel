@@ -132,6 +132,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 lively.BuildSpec('lively.wiki.ToolFlap', {
+    _FixedPosition: true,
     _BorderRadius: 20,
     _Extent: lively.pt(130.0,30.0),
     _Fill: Color.rgba(255,255,255,0.8),
@@ -165,13 +166,11 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
         textString: "Wiki"
     }],
     alignInWorld: function alignInWorld() {
-        this.world().cachedWindowBounds=null;
-    // var topRight = pt(-(40+130),-10);
-    // var topRight = this.world().windowBounds().topRight().addXY(-(40+130),-10);
+    this.world().cachedWindowBounds = null;
+    this.setFixed(false);
     var topRight = pt(this.world().visibleBounds().width-(40+2*130),-10);
     this.setPosition(topRight);
-    // this.align(this.innerBounds().topRight(),topRight);
-    // this.align(this.worldPoint(this.innerBounds().topRight()),topRight);
+    this.setFixed(true);
     this.statusText.align(this.statusText.bounds().center(), this.innerBounds().bottomCenter().addXY(0,-8));
     this.menu && this.menu.align(
         this.menu.bounds().bottomCenter(),
@@ -213,12 +212,8 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
     },
     onLoad: function onLoad() {
     // this.startStepping(5*1000, 'update');
+    this.whenOpenedInWorld(function() { this.alignInWorld(); });
     this.openInWorld();
-    // this.enableFixedPositioning()
-    // this.disableFixedPositioning()
-    this.setFixedPosition(true)
-    this.alignInWorld();
-    // this.update();
     this.statusText.setHandStyle('pointer');
     this.isEpiMorph = true;
 },
@@ -250,8 +245,7 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
 },
     session: function session() {
     return lively.net.SessionTracker.getSession();
-},
-    update: function update() {}
+}
 });
 
 }) // end of module

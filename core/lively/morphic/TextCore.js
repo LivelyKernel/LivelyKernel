@@ -1608,28 +1608,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return range && range[0];
     },
 
-
     setNullSelectionAt: function(idx) { this.setSelectionRange(idx, idx) },
-
-    getSelectionBounds: function() {
-        var r = this.getGlobalSelectionBounds(),
-            world = this.world(),
-            transformed = world ? world.transformToMorph(this).transformRectToRect(r) : r;
-        return transformed;
-    },
-
-    getGlobalSelectionBounds: function() {
-        var sel = this.domSelection();
-        if (!sel) return new Rectangle(0,0,0,0);
-        var range = sel.getRangeAt(0);
-        if (!range) return new Rectangle(0,0,0,0);
-        // FIXME HTML specific
-        var domR = range.getBoundingClientRect();
-        if (!domR) return new Rectangle(0,0,0,0);
-        var s = this.getAccumulatedScroll(),
-            r = new Rectangle(domR.left+s[0], domR.top+s[1], domR.width, domR.height);
-        return r;
-    },
 
     selectWord: function(str, i1) { // Selection caret before char i1
         if (!str) return i1;
@@ -1929,12 +1908,22 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     getSelectionBounds: function() {
-        // returns bounds of selection in world coordinates
-        var r = this.domSelection().getRangeAt(0).getBoundingClientRect(),
-            s = 1 / this.world().getScale();
-        if (!r) { return undefined; }
-        r = rect(pt(s * r.left , s * r.top), pt(s * r.right, s * r.bottom));
-        return r.translatedBy($world.visibleBounds().topLeft());
+        var sel = this.domSelection(), $win = lively.$(window), scroll = this.getScroll();
+        if (!sel) return lively.rect(0,0,0,0);
+        // 1. get the bounding box of the current selection
+        // https://developer.mozilla.org/en-US/docs/Web/API/Selection
+        var domRect = sel.getRangeAt(0).getBoundingClientRect();
+        // 2. make a livelyRectangle from the DOMSelection rect
+        return rect(domRect.left, domRect.top, domRect.width, domRect.height)
+            // 3. the DOM selection is in absolute (world) coordinates offsetted by the
+            // current scroll of web browser window. Remove that offset:
+            // make them absolute
+            .translatedBy(pt($win.scrollLeft(), $win.scrollTop()))
+            // the rectangle does not take the scroll value of the morph into account, add it
+            .translatedBy(pt(scroll[0], scroll[1]))
+            // we now make that rectnagle local so that it can be compared to
+            // this.innerBounds() or this.getScrollBounds()
+            .translatedBy(this.getPositionInWorld().addXY(scroll[0], scroll[1]).negated());
     }
 
 },

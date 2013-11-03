@@ -267,7 +267,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
         $super();
         this.text = new lively.morphic.Text(new Rectangle(0,0, 60, 200));
         this.world.addMorph(this.text);
-        this.text.applyStyle({clipMode: 'scroll', fixedHeight: true})
+        this.text.applyStyle({position: lively.pt(200,300), clipMode: 'scroll', fixedHeight: true})
 
         // 10x test, 9x \n\n\n
         var str = Array.range(1,10).collect(function(i) { return 'test'+i }).join('\n\n\n')
@@ -289,11 +289,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
         //this.assertMatches([0, 239], m.getScroll(), 'does not scroll down');
 
         // scroll up to be in scroll bounds
-        m.setSelectionRange(0,5) // select "test1"
+        m.setSelectionRange(0,5); // select "test1"
+        m.scrollSelectionIntoView();
 
-        m.scrollSelectionIntoView()
         this.epsilon = 5;
-        this.assertEquals(0, m.getScroll()[1], 'does not scroll up');
+        this.assertEqualsEpsilon(0, m.getScroll()[1], 'does not scroll up');
     },
     test02ScrollWorld: function() {
         this.world.setExtent(pt(10000, 10000));

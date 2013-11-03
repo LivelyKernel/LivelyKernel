@@ -4,6 +4,7 @@ var crypto = require("crypto");
 var path = require("path");
 var fs = require("fs");
 
+var debug = true;
 var haskellState = global.haskellState || (global.haskellState = {process: null});
 
 if (haskellState.process) {
@@ -17,8 +18,8 @@ function ensureHaskell(thenDo) {
     }
     var proc = haskellState.process = spawn("ghci", [], {});
     proc.on('exit', function() { haskellState.process = null; });
-// haskellState.process.stdout.pipe(process.stdout)
-// haskellState.process.stderr.pipe(process.stdout)
+    // debug && haskellState.process.stdout.pipe(process.stdout)
+    // debug && haskellState.process.stderr.pipe(process.stdout) 
     ensureHaskellWithListeners(function(data) {console.log("%s", data);}, function(err) {}, function(err, proc, uninstall) {
         if (err) { thenDo(err); uninstall && uninstall(); return }
         proc.stdin.write(":set prompt >>>\n");
@@ -44,6 +45,7 @@ function ensureHaskellWithListeners(onData, onError, thenDo) {
 }
 
 function haskellEval(expr, thenDo) {
+    debug && console.log('Haskel eval %s', expr);
     var output = new Buffer(''), sentinel, error, uninstallListeners;
     function checkForOutputAndClose() {
         clearTimeout(sentinel);
@@ -56,6 +58,7 @@ function haskellEval(expr, thenDo) {
         checkForOutputAndClose();
     }
     function onData(data) {
+        debug && console.log('Haskel output %s', expr);
         output = Buffer.concat([output, data]);
         if (sentinel) clearTimeout(sentinel);
         sentinel = setTimeout(checkForOutputAndClose, 200);

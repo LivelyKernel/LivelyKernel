@@ -42,25 +42,21 @@ HaskellMode.addMethods({
             function wrap(code) { return Strings.format(':{\n%s\n:}\n', code) }
             if (noDefRe.test(code)) return wrap(code);
             
-            if (!code.include('|')) {
+            if (!code.include('|') && !code.include('::')) {
                 var equalSigns = code.match(/\=+/g) || [];
                 var hasAssignment = equalSigns.any(function(match) { return match.length === 1; });
                 if (!hasAssignment) return wrap(code);
             }
-            var lines = code
-                .split('\n').map(function(line, i) {
-                    return line.replace(/^\s+/, ''); });
-            var linesCleaned = [];
-            if (lines.length <= 1) {
-                linesCleaned = lines;
-            } else {
-                linesCleaned.push(lines[0]);
-                linesCleaned = linesCleaned.concat(lines.slice(1,-1).map(function(line) {
-                    return line.match(/^\s*\|/) ? (" " + line) : (' ; ' + line);
-                }));
-                linesCleaned.push(lines[lines.length-1]);
-            }
-            code = Strings.format("let { %s }", linesCleaned.join(''));
+            var lines = code.split('\n').invoke('trim').reject(function(line) { line.trim().length; });
+            lines = lines.map(function(line, i) {
+                var nextLine = lines[i+1];
+                if (!nextLine || nextLine.match(/^\||where/)) return line + ' ';
+                return line + '; ';
+            });
+            code = lines.join('')
+            var needsLet = !lines[0].include('let');
+            if (needsLet) code = Strings.format("let { %s }", code);
+            console.log('Haskell eval: %s', code);
             return wrap(code);
         }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

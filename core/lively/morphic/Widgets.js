@@ -2791,6 +2791,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
             {input: defaultInputOrOptions} : defaultInputOrOptions || {};
     },
     buildTextInput: function(bounds) {
+        module('lively.ide.tools.CommandLine').load(true);
         var input = lively.ide.tools.CommandLine.get(this.options.historyId);
         input.setBounds(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)));
         input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));

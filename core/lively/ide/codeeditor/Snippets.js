@@ -22,11 +22,13 @@ Object.subclass('lively.morphic.CodeEditorSnippets',
 });
 
 (function setupSnippets() {
-    if (!lively.morphic.CodeEditor) lively.morphic.Morph.subclass('lively.morphic.CodeEditor'); // ensure class
-    var snippets = lively.morphic.CodeEditor.snippets;
-    if (snippets) return;
-    snippets = lively.morphic.CodeEditor.snippets = new lively.morphic.CodeEditorSnippets();
-    snippets.readSnippetsFromURL(URL.codeBase.withFilename('lively/ide/snippets/javascript.snippets'));
+    require('lively.morphic.Core').toRun(function() {
+        if (!lively.morphic.CodeEditor) lively.morphic.Morph.subclass('lively.morphic.CodeEditor'); // ensure class
+        var snippets = lively.morphic.CodeEditor.snippets;
+        if (snippets) return;
+        snippets = lively.morphic.CodeEditor.snippets = new lively.morphic.CodeEditorSnippets();
+        snippets.readSnippetsFromURL(URL.codeBase.withFilename('lively/ide/snippets/javascript.snippets'));
+    });
 })();
 
 

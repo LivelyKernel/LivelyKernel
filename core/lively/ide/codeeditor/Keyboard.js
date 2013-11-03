@@ -439,7 +439,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     $world.prompt('enter new tab width', function(input) {
                         if (input && Number(input)) ed.$morph.setTabSize(Number(input));
                         ed.$morph.focus();
-                    }, ed.$morph.getTabSize()); 
+                    }, ed.$morph.getTabSize() || lively.Config.defaultTabSize);
                  }
             }, {
                 name: "set line ending mode",

@@ -2685,8 +2685,8 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     },
 
     buildLabel: function() {
-        var bounds = new lively.Rectangle(this.inset, this.inset,
-                                          this.panel.getExtent().x - 2*this.inset, 18);
+        var bounds = new lively.Rectangle(
+            this.inset, this.inset, this.panel.getExtent().x - 2*this.inset, 18);
         this.label = new lively.morphic.Text(bounds, this.message).beLabel({
             fill: Color.white,
             fixedHeight: false, fixedWidth: false,
@@ -2787,8 +2787,8 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 'initializing', {
     initialize: function($super, label, callback, defaultInputOrOptions) {
         $super(label, callback);
-        this.options = Object.isString(defaultInputOrOptions) ?
-            {input: defaultInputOrOptions} : defaultInputOrOptions || {};
+        this.options = Object.isObject(defaultInputOrOptions) ?
+            defaultInputOrOptions : {input: String(defaultInputOrOptions)};
     },
     buildTextInput: function(bounds) {
         module('lively.ide.tools.CommandLine').load(true);

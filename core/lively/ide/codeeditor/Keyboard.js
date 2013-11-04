@@ -243,6 +243,16 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 },
                 multiSelectAction: "forEach"
             }, {
+                name: "remove duplicate lines / uniq",
+                exec: function(ed, args) {
+                    if (ed.selection.isEmpty()) ed.selection.selectAll();
+                    var range = ed.selection.getRange(),
+                        wholeText = ed.session.getTextRange(range),
+                        lines = wholeText.split('\n');
+                    ed.session.replace(range, lines.uniq().join('\n'));
+                },
+                multiSelectAction: "forEach"
+            }, {
                 name: "joinLines",
                 exec: function(ed, args) {
                     if (ed.selection.isEmpty()) return;

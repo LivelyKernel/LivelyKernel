@@ -33,7 +33,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         selection: {}
     },
     currentSel: 0,
-    doNotSerialize: ["timeOpened","state"],
+    doNotSerialize: ['timeOpened', 'state', "selectNextThrottled", "selectPrevThrottled"],
     droppingEnabled: false,
     grabbingEnabled: false,
     initialSelection: 1,
@@ -221,7 +221,19 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         }
         return false;
     },
-
+    onMouseWheel: function onMouseWheel(evt) {
+        // this.selectNextThrottled = null
+        // this.selectPrevThrottled = null
+        if (!evt.wheelDeltaY) return false;
+        var delta = evt.wheelDeltaY;
+        var method = delta < 0 ? "selectNext" : "selectPrev",
+            methodThrottled = method + 'Debounced';
+        if (!this[methodThrottled])
+            this[methodThrottled] = Functions.throttle(this[method].bind(this), 20);
+        this[methodThrottled]();
+        evt.stop();
+        return true;
+    },
     onSelectionConfirmed: function onSelectionConfirmed(state, actionIndex, candidate) {
         state = state || this.state;
         candidate = candidate || this.getSelecteddCandidate(state);
@@ -473,7 +485,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         this.currentSel = 0;
         this.initialSelection = 1; // index to select
         this.showDelay = 700; // ms
-        this.doNotSerialize = ['timeOpened', 'state'];
+        this.doNotSerialize = ['timeOpened', 'state', "selectNextThrottled", "selectPrevThrottled"];
         this.state = null;
         this.applyStyle({clipMode: 'hidden'});
         this.setZIndex(1000);

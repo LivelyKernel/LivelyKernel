@@ -348,7 +348,8 @@ var prim_preventExtensions =        Object.preventExtensions,
     prim_getPrototypeOf =           Object.getPrototypeOf,
     prim_getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor,
     prim_defineProperty =           Object.defineProperty,
-    prim_isArray =                  Array.isArray;
+    prim_isArray =                  Array.isArray,
+    prim_concat =                   Array.prototype.concat;
 
 // these will point to the patched versions of the respective methods on
 // Object. They are used within this module as the "intrinsic" bindings
@@ -1596,6 +1597,32 @@ Array.isArray = function(subject) {
     return prim_isArray(subject);
   }  
 }
+
+function isProxyArray(arg) {
+  var vHandler = safeWeakMapGet(directProxies, arg);
+  if (vHandler !== undefined) {
+    return Array.isArray(vHandler.target);
+  }
+  return false;
+}
+
+// Array.prototype.concat internally tests whether one of its
+// arguments is an Array, by checking whether [[Class]] == "Array"
+// As such, it will fail to recognize proxies-for-arrays as arrays.
+// We patch Array.prototype.concat so that it "unwraps" proxies-for-arrays
+// by making a copy. This will trigger the exact same sequence of
+// traps on the proxy-for-array as if we would not have unwrapped it.
+// See <https://github.com/tvcutsem/harmony-reflect/issues/19> for more.
+Array.prototype.concat = function concat(/*...args*/) {
+  var length;
+  for (var i = 0; i < arguments.length; i++) {
+    if (isProxyArray(arguments[i])) {
+      length = arguments[i].length;
+      arguments[i] = Array.prototype.slice.call(arguments[i], 0, length);
+    }
+  }
+  return prim_concat.apply(this, arguments);
+};
 
 // setPrototypeOf support on platforms that support __proto__
 

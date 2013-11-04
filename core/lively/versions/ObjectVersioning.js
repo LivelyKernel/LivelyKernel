@@ -80,6 +80,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                     return true;
                 }
+                
+                if (name === 'onreadystatechange' && value.isProxy()) {
+                    value = value.proxyTarget;
+                }
                        
                 targetObject[name] = value;
                 
@@ -182,6 +186,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                 var OriginalConstructor = this.targetObject(),
                     proto = OriginalConstructor.prototype,
                     newInstance;
+                
+                if (OriginalConstructor.name === 'XMLHttpRequest') {
+                    newInstance = new lively.origXMLHttpRequest();
+                    newInstance.__protoID =
+                        lively.origXMLHttpRequest.prototype.__objectID;
+                    return this.ensureProxied(newInstance);
+                }
                 
                 newInstance = lively.createObject(proto);
                 newInstance.constructor = OriginalConstructor;
@@ -547,13 +558,15 @@ Object.extend(lively.versions.ObjectVersioning, {
         // TODO: built-in functions that create new objects
         // have to return proxies for the new objects. examples:
         // JSON.parse()
-        // Array methods: concat(), slice(), map(), filter()...
         // Date constructor and parse() and UTC()
         // and other global objects in Global / window
         
         // Object.create handled through source transformation
         
         JSON.parse = this.proxyFor(JSON.parse);
+        
+        lively.origXMLHttpRequest = XMLHttpRequest;
+        XMLHttpRequest = this.proxyFor(XMLHttpRequest);
     },
 });
 

@@ -65,6 +65,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // targetObject was commited in previous version (copy-on-write)
                 if (Object.isFrozen(targetObject)) {
                     newObject = Object.clone(targetObject);
+                    newObject.__protoID = targetObject.__protoID;
                     lively.CurrentObjectTable[this.__objectID] = newObject;
                     targetObject = newObject;
                 }
@@ -381,7 +382,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             Object.defineProperty(target, '__protoID', {
                 value: protoID,
                 writable: true,
-                enumerable: true
+                // enumerable: true
             });
         }
         

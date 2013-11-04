@@ -155,6 +155,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
+                // some primitive code can't handle proxies
                 if (thisArg && thisArg.isProxy() &&
                     method.toString().include('{ [native code] }')) {
                     
@@ -165,6 +166,12 @@ Object.extend(lively.versions.ObjectVersioning, {
                     })
                     
                     this.checkProtoChains(targetObject, thisArg);
+                }
+                // concat would be handled by the exception above, however it's
+                // patched by reflect.js and thus doesn't match [native code]
+                if (thisArg && thisArg.isProxy() && Array.isArray(thisArg) &&
+                    method.name === 'concat') {
+                    targetObject = lively.objectFor(thisArg);
                 }
                 
                 result = method.apply(targetObject, args);

@@ -468,15 +468,16 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         return listItemMorph;
     },
     updateList: function(items) {
+        var list = this;
         if (!items) items = [];
         this.itemList = items;
-        var oldItemMorphs = this.itemMorphs;
-        this.itemMorphs = items.collect(function(ea) { return this.renderFunction(ea); }, this);
+        var oldItemMorphs = this.getItemMorphs();
+        this.itemMorphs = items.collect(function(ea) { return list.renderFunction(ea); });
         oldItemMorphs.withoutAll(this.itemMorphs).invoke('remove');
-        this.itemMorphs.forEach(function(ea) { this.submorphs.include(ea) || this.addMorph(ea); }, this);
+        this.itemMorphs.forEach(function(ea) { list.submorphs.include(ea) || list.addMorph(ea); });
     },
 
-    getItemMorphs: function() { return this.itemMorphs; },
+    getItemMorphs: function() { return this.itemMorphs || []; },
 
     getItemMorphForListItem: function(listItem) {
         return listItem ?

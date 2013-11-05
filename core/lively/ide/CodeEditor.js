@@ -1448,26 +1448,6 @@ Object.extend(lively.ide, {
                 return editor;
             }),
 
-            openWorldCSSEditor: function () {
-                var editor = this.openPartItem('WorldCSS', 'PartsBin/Tools');
-                if (Config.get('useAceEditor')) {
-                    var oldEditor = editor.get("CSSCodePane"),
-                        newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
-                    newEditor.applyStyle({
-                        fontSize: Config.get('defaultCodeFontSize')-1,
-                        gutter: false,
-                        textMode: 'css',
-                        lineWrapping: false,
-                        printMargin: false,
-                        resizeWidth: true, resizeHeight: true
-                    });
-                    lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("WorldCSS"), "applyWorldCSS", {});
-                    newEditor.replaceTextMorph(oldEditor);
-                }
-                editor.comeForward();
-                return editor;
-            },
-
             openPartItem: lively.morphic.World.prototype.openPartItem.getOriginal().wrap(function($proceed, name, partsbinCat) {
                 var part = $proceed(name, partsbinCat);
                 if (!Config.get('useAceEditor')) { return part; }

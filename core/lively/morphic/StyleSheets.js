@@ -51,8 +51,9 @@ lively.morphic.Shapes.Shape.addMethods('Styling', {
 
 Trait('lively.morphic.WorldStyleSheetTrait',
 'convenience functions', {
-    openWorldCSSEditor: function () {
-        return this.openPartItem('WorldCSS', 'PartsBin/Tools');
+    openWorldCSSEditor: function() {
+        module('lively.ide.tools.WorldCSSEditor').load(true);
+        return lively.BuildSpec('lively.ide.tools.WorldCSSEditor').createMorph().openInWorld().comeForward();
     }
 },
 'menu items', {
@@ -65,9 +66,7 @@ Trait('lively.morphic.WorldStyleSheetTrait',
         }
         return items;
     })
-}).applyTo(lively.morphic.World, {
-    override: 'morphMenuItems'
-});
+}).applyTo(lively.morphic.World, {override: ['morphMenuItems']});
 
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters', {

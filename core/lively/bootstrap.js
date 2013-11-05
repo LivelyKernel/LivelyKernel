@@ -632,6 +632,14 @@
                     this.loadAsync(exactUrl, onLoadCb, el);
             },
 
+        evaluateCode: function(code, url) {
+            // slows everything (DOM related) significantly..:
+            // var code = document.createTextNode(response);
+            // script.appendChild(code);
+            
+            Global.eval(code, url);
+        },
+
         loadSync: function(url, onLoadCb) {
             if (this.isCSS(url)) {
                 console.log('skipping eval for css: ' + url);
@@ -641,7 +649,7 @@
             var source = this.getSync(url);
             if (!source) { console.warn('Could not load %s', url); return; }
             try {
-                eval(source, url);
+                this.evaluateCode(source, url);
             } catch (e) {
                 console.error('Error when loading %s: %s\n%s', url, e, e.stack);
             }
@@ -657,7 +665,7 @@
             } else {
                 this.getAsync(url, false, function(response) {
                     try {
-                        eval(response, url);
+                        JSLoader.evaluateCode(response, url);
                     } catch (e) {
                         console.error('Error when loading %s: %s\n%s', url, e,
                                 e.stack);

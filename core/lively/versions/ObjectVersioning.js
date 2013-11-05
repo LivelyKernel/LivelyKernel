@@ -520,15 +520,13 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     start: function() {
         this.init();
-        // this.wrapEval();
-        this.wrapNativeFunctions();
-        this.wrapGlobalObjects();
         
-        Object.extend(Function.prototype, {
-            newClassConstructor : function() {
-                return lively.proxyFor(function() { });
-            }
-        })
+        // this.wrapEval();
+        
+        this.patchNativeFunctions();
+        this.wrapNativeObjects();
+        
+        this.patchBaseCode();
     },
     
     // really not sufficient as eval usually has access to the lexically
@@ -552,15 +550,18 @@ Object.extend(lively.versions.ObjectVersioning, {
     //     this.originalEval = originalEval;
     // },
     
-    wrapNativeFunctions: function() {
+    patchNativeFunctions: function() {
+        
+        // 'aString'.match(regExp): regExp can't be proxy
         var originalStringMatch = String.prototype.match;
         String.prototype.match = function(regexp) {
             var exp = regexp && regexp.isProxy() ?
                 lively.objectFor(regexp) : regexp;
             return originalStringMatch.call(this, exp);
         }
+        
     },
-    wrapGlobalObjects: function() {
+    wrapNativeObjects: function() {
         // TODO: built-in functions that create new objects
         // have to return proxies for the new objects. examples:
         // JSON.parse()
@@ -574,6 +575,31 @@ Object.extend(lively.versions.ObjectVersioning, {
         lively.origXMLHttpRequest = XMLHttpRequest;
         XMLHttpRequest = this.proxyFor(XMLHttpRequest);
     },
+    patchBaseCode: function() {
+        // patches for bootstrap.js:
+        Object.extend(JSLoader, {
+            evaluateCode: function(code, url) {
+                if (lively.transformSource) {
+                    Global.eval(lively.transformSource(code), url);
+                } else {
+                    Global.eval(code, url);
+                }
+            }
+        });
+        
+        // patches for Base.js:
+        Object.extend(Function.prototype, {
+            newClassConstructor : function() {
+                return lively.proxyFor(function() { });
+            }
+        });
+        
+        Object.extend(lively.Class, {
+            newInitializer: function(name) {
+                return eval(lively.transformSource(lively.Class.initializerTemplate.replace(/CLASS/g, name) + ";" + name));
+            },
+        });
+    }
 });
 
 Object.extend(lively.versions.ObjectVersioning, {
@@ -591,6 +617,7 @@ lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
 lively.undo = livelyOV.undo.bind(livelyOV);
 lively.redo = livelyOV.redo.bind(livelyOV);
 lively.isPrimitiveObject = livelyOV.isPrimitiveObject.bind(livelyOV);
+lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 
 // start
 lively.versions.ObjectVersioning.init();

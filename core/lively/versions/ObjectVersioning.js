@@ -81,7 +81,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return true;
                 }
                 
-                if (name === 'onreadystatechange' && value.isProxy()) {
+                if (name === 'onreadystatechange' && value.isProxy() &&
+                    targetObject.constructor.name === 'XMLHttpRequest') {
                     value = value.proxyTarget;
                 }
                        
@@ -519,7 +520,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     start: function() {
         this.init();
-        this.wrapEval();
+        // this.wrapEval();
         this.wrapNativeFunctions();
         this.wrapGlobalObjects();
         
@@ -529,23 +530,28 @@ Object.extend(lively.versions.ObjectVersioning, {
             }
         })
     },
-    wrapEval: function() {
-        var originalEval = eval,
-            s2s = lively.versions.SourceTransformations;
-        
-        eval = function(code, scriptName) {
-            
-            // for source maps, use:
-            // var transformedCode = s2s.generateCodeFromSource(code, scriptName);
-            
-            // for now:
-            var transformedCode = s2s.transformSource(code, {beautify: true});
-            
-            return originalEval(transformedCode);
-        }
-        
-        this.originalEval = originalEval;
-    },
+    
+    // really not sufficient as eval usually has access to the lexically
+    // surrounding function's var bindings, but hasn't when wrapped
+    
+    // wrapEval: function() {
+    //     var originalEval = eval,
+    //         s2s = lively.versions.SourceTransformations;
+    //     
+    //     eval = function(code, scriptName) {
+    //         
+    //         // for source maps, use:
+    //         // var transformedCode = s2s.generateCodeFromSource(code, scriptName);
+    //         
+    //         // for now:
+    //         var transformedCode = s2s.transformSource(code, {beautify: true});
+    //         
+    //         return originalEval(transformedCode);
+    //     }
+    //     
+    //     this.originalEval = originalEval;
+    // },
+    
     wrapNativeFunctions: function() {
         var originalStringMatch = String.prototype.match;
         String.prototype.match = function(regexp) {

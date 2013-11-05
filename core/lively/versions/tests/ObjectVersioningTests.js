@@ -647,12 +647,29 @@ TestCase.subclass(
         this.assertEquals(this.transform(input), expectedOutput);
     },
     test11TransformObjectCreate: function() {
-        var input = 'var o = Object.create(null);';
-        
-        var expectedOutput = 'var o = lively.createObject(null);';
+        var input = 'var o = Object.create(null);',
+            expectedOutput = 'var o = lively.createObject(null);';
         
         this.assertEquals(this.transform(input), expectedOutput);
-    }
+    },
+    test12_TransformEvalCorrectly: function() {
+        var input = 'eval(\"some string argument\");',
+            expectedOutput = 'eval(lively.versions.ObjectVersioning.transformSource(\"some string argument\"));';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test13_TransformGlobalEvalCorrectly: function() {
+        var input = 'Global.eval(\"some string argument\");',
+            expectedOutput = 'Global.eval(lively.versions.ObjectVersioning.transformSource(\"some string argument\"));';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test14_TransformWindowEvalCorrectly: function() {
+        var input = 'window.eval(\"some string argument\");',
+            expectedOutput = 'window.eval(lively.versions.ObjectVersioning.transformSource(\"some string argument\"));';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
 });
 
 });

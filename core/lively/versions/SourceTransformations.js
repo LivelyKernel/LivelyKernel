@@ -115,7 +115,6 @@ Object.extend(lively.versions.SourceTransformations, {
             definitionNodes.push(UglifyJS.parse('Object.defineProperty(newObject, \'' + propName  + '\', {' +
                 (currentDefinition.get ? 'get: lively.versions.ObjectVersioning.proxyFor(' + currentDefinition.get.print_to_string() + '),' : '') +
                 (currentDefinition.set ? 'set: lively.versions.ObjectVersioning.proxyFor(' + currentDefinition.set.print_to_string() + '),' : '') +
-                'writable: true,\n' +
                 'enumerable: true,\n' +
                 'configurable: true\n' +
                 '});'

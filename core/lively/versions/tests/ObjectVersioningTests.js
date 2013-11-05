@@ -637,7 +637,6 @@ TestCase.subclass(
         '        set: lively.versions.ObjectVersioning.proxyFor(function value(string) {\n' +
         '            this._value = string;\n' +
         '        }),\n' +
-        '        writable: true,\n' +
         '        enumerable: true,\n' +
         '        configurable: true\n' +
         '    });\n' +

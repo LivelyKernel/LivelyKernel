@@ -49,6 +49,16 @@
 
 /* for centered button labels let the textNode use table layouting */
 
+.Text.vertically-centered > div {
+	display: table !important;
+}
+
+.Text.vertically-centered span {
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+}
+
 .Button .Text > div {
 	display: table !important;
 }

@@ -197,7 +197,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             var n = Number(String.fromCharCode(evt.keyCode));
             if (n) {
                 this.runAction(this.state, n-1, this.getSelecteddCandidate(this.state));
-                (function() { this.ignoreMouseInput(); this.focus(); }).bind(this).delay(0);
+                this.ignoreMouseInput.bind().delay(0);
+                this.focus.bind(this).delay(0.3);
                 evt.stop(); return true;
             }
         } else if (evt.keyCode === Event.KEY_TAB) {

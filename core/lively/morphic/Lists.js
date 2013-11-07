@@ -686,6 +686,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         $super(bounds);
         this.isMultipleSelectionList = false;
         this.allowDeselectClick = false;
+        this.noSingleSelectionIfMultipleSelected = false;
         this.selectedIndexes = [];
         this.itemMorphs = [];
         this.setList(items);
@@ -756,6 +757,8 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
 },
 'accessing', {
     get selectedLineNo() {
+        if(this.noSingleSelectionIfMultipleSelected && this.selectedIndexes.length > 1)
+            return undefined;
         return this.selectedIndexes.last();
     },
     set selectedLineNo(idx) {
@@ -891,7 +894,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     deselectAt: function(idx) {
-        this.selectedIndexes.remove(idx);
+        this.removeSelectedIndex(idx);
         this.updateView();
     },
 
@@ -914,14 +917,52 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     addSelectedIndex: function(idx) {
         if (!this.selectedIndexes) this.selectedIndexes = [];
         if (typeof idx !== 'number') return null;
-        if (!this.isMultipleSelectionList) this.selectedIndexes.length = 0;
-        var found = this.selectedIndexes.indexOf(idx);
-        if (found > -1) this.selectedIndexes.splice(found, 1);
+        var oldIdx = this.selectedLineNo;
+        var oldSelection = this.selection;
+        if (this.isMultipleSelectionList) this.selectedIndexes.remove(idx);
+        else this.selectedIndexes.length = 0;
         this.selectedIndexes.push(idx);
-        lively.bindings.signal(this, 'selection', this.selection);
-        lively.bindings.signal(this, 'selectedLineNo', this.selectedLineNo);
-        return idx;
+        var newSelectedLineNo = this.selectedLineNo;    //may be undefined for multiple selection
+
+        var connections = this.attributeConnections;
+        if (!connections) return newSelectedLineNo;
+        var newSelection = this.selection;
+        for (var i = 0, len = connections.length; i < len; i++) {
+            var c = connections[i];
+            if (c.getSourceAttrName() == 'selection')
+                c.update(newSelection, oldSelection);
+            if (this.selectedLineNo != newSelectedLineNo)
+                return this.selectedLineNo;                 //the updater has vetoed the change
+            if (c.getSourceAttrName() == 'selectedLineNo') 
+                c.update(newSelectedLineNo, oldIdx);
+            if (this.selectedLineNo != newSelectedLineNo)
+                return this.selectedLineNo;                 //the updater has vetoed the change
+        }
+        return newSelectedLineNo;
     },
+    removeSelectedIndex: function(idx) {
+        var oldIdx = this.selectedLineNo;
+        var oldSelection = this.selection;
+        if (this.isMultipleSelectionList) this.selectedIndexes.remove(idx);
+        else this.selectedIndexes.length = 0;
+        var newSelectedLineNo = this.selectedLineNo;    //may be undefined for multiple selection
+
+        var connections = this.attributeConnections;
+        if (!connections) return newSelectedLineNo;
+        var newSelection = this.selection;
+        for (var i = 0, len = connections.length; i < len; i++) {
+            var c = connections[i];
+            if (c.getSourceAttrName() == 'selection')
+                c.update(newSelection, oldSelection);
+            if (this.selectedLineNo != newSelectedLineNo)
+                return this.selectedLineNo;                 //the updater has vetoed the change
+            if (c.getSourceAttrName() == 'selectedLineNo') 
+                c.update(newSelectedLineNo, oldIdx);
+            if (this.selectedLineNo != newSelectedLineNo)
+                return this.selectedLineNo;                 //the updater has vetoed the change
+        }
+    },
+
     getSelectedItems: function() {
         var items = this.itemList;
         return this.getSelectedIndexes().collect(function(i) { return items[i]; });
@@ -1072,7 +1113,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
         });
         text.addScript(function onMouseDown(evt) {
-            if (this.owner.allowDeselectClick) {
+            if (this.owner.owner.allowDeselectClick) {
                 this.setIsSelected(!this.selected);
             } else if (!this.isSelected) {
                 this.setIsSelected(true);

@@ -121,6 +121,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                             }
                     }
                 }
+                if (name === 'prototype' && Object.isFunction(targetObject)) {
+                    // prototype is already proxied or a root prototype
+                    return targetObject.prototype;
+                }
                 
                 // default handling
                 if (({}).hasOwnProperty.call(targetObject, name)) {

@@ -325,7 +325,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
     test32DefineGetterViaDefineProperty: function() {
         var obj = lively.proxyFor({age: 1});
         
-        Object.defineProperty(obj, 'age', lively.versions.ObjectVersioning.proxyFor({
+        Object.defineProperty(obj, 'age', lively.proxyFor({
             get: lively.proxyFor(function() {return 2})
         }));
         
@@ -479,6 +479,39 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         this.assert(!descendant.method);
     },
 });
+TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ExtensionTests',
+'testing', {
+    test01ObjectInstanceOf_TwoObjects: function() {
+        var Type = function () {},
+            instance = new Type();
+        
+        Object.instanceOf(instance, Type);
+    },
+    test02ObjectInstanceOf_TwoProxies: function() {
+        var Type = lively.proxyFor(function () {}),
+            instance = new Type();
+        
+        Object.instanceOf(instance, Type);
+    },
+    test03ObjectInstanceOf_OnlyInstanceProxied: function() {
+        var Type = function () {},
+            instance = lively.proxyFor(new Type());
+        
+        Object.instanceOf(instance, Type);
+    },
+    test04ObjectInstanceOf_OnlyTypePrototypeProxied: function() {
+        var Type = function () {},
+            proto = {},
+            instance;
+        
+        Type.prototype = proto;
+        instance = new Type()
+        
+        Type.prototype = lively.proxyFor(proto);
+        
+        Object.instanceOf(instance, Type);
+    },
+});
 
 TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
@@ -490,13 +523,13 @@ TestCase.subclass(
 'testing', {
     test01ObjectLiterals: function() {
         var input = 'var obj = {};',
-            expectedOutput = 'var obj = lively.versions.ObjectVersioning.proxyFor({});';
+            expectedOutput = 'var obj = lively.proxyFor({});';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
     test02ArrayLiterals: function() {
        var input = 'var arr = [];',
-            expectedOutput = 'var arr = lively.versions.ObjectVersioning.proxyFor([]);';
+            expectedOutput = 'var arr = lively.proxyFor([]);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
@@ -506,7 +539,7 @@ TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcVariable = lively.versions.ObjectVersioning.proxyFor(function() {\n' +
+            'var funcVariable = lively.proxyFor(function() {\n' +
             '    return 12;\n' +
             '});';
         
@@ -518,7 +551,7 @@ TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcVariable = lively.versions.ObjectVersioning.proxyFor(function funcName() {\n' +
+            'var funcVariable = lively.proxyFor(function funcName() {\n' +
             '    return 12;\n' +
             '});';
         
@@ -537,7 +570,7 @@ TestCase.subclass(
             '   return 12;\n' +
             '};';
         var expectedOutput =
-            'var funcName = lively.versions.ObjectVersioning.proxyFor(function funcName() {\n' +
+            'var funcName = lively.proxyFor(function funcName() {\n' +
             '    return 12;\n' +
             '});\n\n';
         
@@ -568,18 +601,18 @@ TestCase.subclass(
             "    }\n" +
             "}";
     var expectedOutput = 
-        'var joe = lively.versions.ObjectVersioning.proxyFor({\n' +
+        'var joe = lively.proxyFor({\n' +
         '    name: "Joe",\n' +
         '    age: 25,\n' +
-        '    address: lively.versions.ObjectVersioning.proxyFor({\n' +
+        '    address: lively.proxyFor({\n' +
         '        street: "Mainstr. 20",\n' +
         '        zipCode: "12125"\n' +
         '    }),\n' +
-        '    friends: lively.versions.ObjectVersioning.proxyFor([]),\n' +
-        '    becomeFriendsWith: lively.versions.ObjectVersioning.proxyFor(function(otherPerson) {\n' +
+        '    friends: lively.proxyFor([]),\n' +
+        '    becomeFriendsWith: lively.proxyFor(function(otherPerson) {\n' +
         '        this.friends.push(otherPerson.name);\n' +
         '    }),\n' +
-        '    isFriendOf: lively.versions.ObjectVersioning.proxyFor(function(otherPerson) {\n' +
+        '    isFriendOf: lively.proxyFor(function(otherPerson) {\n' +
         '        return this.friends.include(otherPerson.name);\n' +
         '    })\n' +
         '});';
@@ -588,7 +621,7 @@ TestCase.subclass(
     },
     test08GenerateSourceWithMapping: function() {
         var input = 'var obj = {};',
-            expectedOutput = 'var obj=lively.versions.ObjectVersioning.proxyFor({});\n' +
+            expectedOutput = 'var obj=lively.proxyFor({});\n' +
                 '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
                 'eyJ2ZXJzaW9uIjozLCJmaWxlIjpudWxsLCJzb3VyY2VzIjpbImV2YWwgYXQgcnVud' +
                 'GltZSJdLCJuYW1lcyI6WyJvYmoiXSwibWFwcGluZ3MiOiJBQUFBLEdBQUlBIiwic2' +
@@ -605,8 +638,8 @@ TestCase.subclass(
             '    }\n' +
             '});';
         var expectedOutput =
-            'Object.defineProperty(obj, \"age\", lively.versions.ObjectVersioning.proxyFor({\n' +
-            '    get: lively.versions.ObjectVersioning.proxyFor(function() {\n' +
+            'Object.defineProperty(obj, \"age\", lively.proxyFor({\n' +
+            '    get: lively.proxyFor(function() {\n' +
             '        return 2;\n' +
             '    })\n' +
             '}));';
@@ -627,14 +660,14 @@ TestCase.subclass(
         
         var expectedOutput =
         'obj = function() {\n' +
-        '    var newObject = lively.versions.ObjectVersioning.proxyFor({\n' +
+        '    var newObject = lively.proxyFor({\n' +
         '        age: 2\n' +
         '    });\n' +
         '    Object.defineProperty(newObject, "value", {\n' +
-        '        get: lively.versions.ObjectVersioning.proxyFor(function value() {\n' +
+        '        get: lively.proxyFor(function value() {\n' +
         '            return this._value;\n' +
         '        }),\n' +
-        '        set: lively.versions.ObjectVersioning.proxyFor(function value(string) {\n' +
+        '        set: lively.proxyFor(function value(string) {\n' +
         '            this._value = string;\n' +
         '        }),\n' +
         '        enumerable: true,\n' +
@@ -651,24 +684,30 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test12_TransformEvalCorrectly: function() {
+    test12TransformEvalCorrectly: function() {
         var input = 'eval(\"some string argument\");',
-            expectedOutput = 'eval(lively.versions.ObjectVersioning.transformSource(\"some string argument\"));';
+            expectedOutput = 'eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test13_TransformGlobalEvalCorrectly: function() {
+    test13TransformGlobalEvalCorrectly: function() {
         var input = 'Global.eval(\"some string argument\");',
-            expectedOutput = 'Global.eval(lively.versions.ObjectVersioning.transformSource(\"some string argument\"));';
+            expectedOutput = 'Global.eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test14_TransformWindowEvalCorrectly: function() {
+    test14TransformWindowEvalCorrectly: function() {
         var input = 'window.eval(\"some string argument\");',
-            expectedOutput = 'window.eval(lively.versions.ObjectVersioning.transformSource(\"some string argument\"));';
+            expectedOutput = 'window.eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
+    test15TransformInstanceofOperator: function() {
+        var input = 'obj instanceof Type;',
+            expectedOutput = 'Object.instanceOf(obj, Type);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    }
 });
 
 });

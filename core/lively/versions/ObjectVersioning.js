@@ -7,6 +7,25 @@ Object.defineProperty(Object.prototype, 'isProxy', {
     writable: true
 });
 
+Object.extend(Object, {
+    instanceOf: function(obj, type) {
+        var realObj, realPrototype, FakeConstructor;
+        
+        if (!obj.isProxy() && (!type.prototype || !type.prototype.isProxy())) {
+            return obj instanceof type
+        }
+        
+        realObj = obj.isProxy() ? obj.proxyTarget : obj;
+        realPrototype = type.prototype.isProxy() ?
+            type.prototype.proxyTarget : type.prototype;
+        
+        FakeConstructor = function() {};
+        FakeConstructor.prototype = realPrototype;
+        
+        return realObj instanceof FakeConstructor;
+    }
+});
+
 Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function(objectID) {
         return {

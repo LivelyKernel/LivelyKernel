@@ -6,13 +6,7 @@ Global.MOZ_SourceMap = Global.sourceMap;
         
 Object.extend(lively.versions.SourceTransformations, {
     
-    // TODO: function declarations get hoisted in JavaScript, so we need to
-    // move the func decs we transform to variable assignments of function
-    // expressions to the beginning of each function scope, while preserving
-    // the lexical order of function declarations, see
-    // javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
-    
-    isCallToGlobalEval: function(node) {
+    isCallToEval: function(node) {
         
         if (!node instanceof UglifyJS.AST_Call)
             return false;
@@ -30,33 +24,33 @@ Object.extend(lively.versions.SourceTransformations, {
             
         return false;
     },
-    wrapExpressionInObjectVersioningFunctionCall: function(expressionNode, functionToCall) {
-        // returns AST for: lively.versions.ObjectVersioning[functionToCall](node)
-       return new UglifyJS.AST_Call({
+    isCallToObjectCreate: function(node) {
+        return node instanceof UglifyJS.AST_Dot &&
+            node.property === 'create' &&
+            node.expression.name === 'Object';
+    },
+    wrapInCallOnSymbol: function(symbolName, functionName, argOrArgs) {
+        return new UglifyJS.AST_Call({
             expression: new UglifyJS.AST_Dot({
-                expression: new UglifyJS.AST_Dot({
-                    expression: new UglifyJS.AST_Dot({
-                        expression: new UglifyJS.AST_SymbolRef({
-                            name: 'lively'
-                        }),
-                        property: 'versions'
-                    }),
-                    property: 'ObjectVersioning'
+                expression:  new UglifyJS.AST_SymbolRef({
+                    name: symbolName
                 }),
-                property: functionToCall
+                property: functionName,
             }),
-            args: [expressionNode],
-            start: expressionNode.start,
-            end: expressionNode.end
-       });
+            args: Object.isArray(argOrArgs) ? argOrArgs : [argOrArgs],
+        });
     },
-    wrapExpressionInProxyForCall: function(expressionNode) {
-        // returns AST for: lively.versions.ObjectVersioning.proxy(node)
-       return this.wrapExpressionInObjectVersioningFunctionCall(expressionNode, 'proxyFor');
+    wrapInLivelyCall: function(functionName, argOrArgs) {
+        return this.wrapInCallOnSymbol('lively', functionName, argOrArgs);
     },
-    wrapExpressionInTransformSourceCall: function(expressionNode) {
-        // returns AST for: lively.versions.ObjectVersioning.transformSource(node)
-        return this.wrapExpressionInObjectVersioningFunctionCall(expressionNode, 'transformSource');
+    wrapInProxyForCall: function(node) {
+       return this.wrapInLivelyCall('proxyFor', node);
+    },
+    wrapInTransformSourceCall: function(node) {
+        return this.wrapInLivelyCall('transformSource', node);
+    },
+    wrapInObjectInstanceOfCall: function(args) {
+        return this.wrapInCallOnSymbol('Object', 'instanceOf', args);
     },
     createAssignmentNode: function(variableName, value) {
         return new UglifyJS.AST_Var({
@@ -69,22 +63,19 @@ Object.extend(lively.versions.SourceTransformations, {
         });
     },
     transformFunctionDeclaration: function(functionDeclaration) {
-        // takes function declaration: function fName() {...}
-        // returns AST for:
-        // var fName = lively.versions.ObjectVersioning.proxy(function fName() {...})
         var variableName = functionDeclaration.name.name,
-            value = this.wrapExpressionInProxyForCall(functionDeclaration);
+            value = this.wrapInProxyForCall(functionDeclaration);
         
         return this.createAssignmentNode(variableName, value);
+    },
+    hasObjectAccessorProperties: function(node) {
+        return this.selectAccessorPropertiesFromObject(node).length > 0;
     },
     selectAccessorPropertiesFromObject: function(node) {
         return node.properties.select(function(each) {
             return each instanceof UglifyJS.AST_ObjectSetter ||
                 each instanceof UglifyJS.AST_ObjectGetter;
         });
-    },
-    hasObjectAccessorProperties: function(node) {
-        return this.selectAccessorPropertiesFromObject(node).length > 0;
     },
     transformObjectLiteralWithAccessorDefinitions: function(node) {
         var accessorProperties = this.selectAccessorPropertiesFromObject(node),
@@ -94,12 +85,8 @@ Object.extend(lively.versions.SourceTransformations, {
             currentDefinition;
         
         node.properties = node.properties.withoutAll(accessorProperties);
-        objectLiteralNode = this.wrapExpressionInProxyForCall(node);
+        objectLiteralNode = this.wrapInProxyForCall(node);
         
-        // { value: {
-        //     get: function(..),
-        //     set: function(..)
-        // }}
         accessorProperties.forEach(function(each) {
             if (!accessorPropertyDefinitions[each.value.name.name]) {
                 accessorPropertyDefinitions[each.value.name.name] = {};
@@ -113,8 +100,8 @@ Object.extend(lively.versions.SourceTransformations, {
             currentDefinition = accessorPropertyDefinitions[propName];
             
             definitionNodes.push(UglifyJS.parse('Object.defineProperty(newObject, \'' + propName  + '\', {' +
-                (currentDefinition.get ? 'get: lively.versions.ObjectVersioning.proxyFor(' + currentDefinition.get.print_to_string() + '),' : '') +
-                (currentDefinition.set ? 'set: lively.versions.ObjectVersioning.proxyFor(' + currentDefinition.set.print_to_string() + '),' : '') +
+                (currentDefinition.get ? 'get: lively.proxyFor(' + currentDefinition.get.print_to_string() + '),' : '') +
+                (currentDefinition.set ? 'set: lively.proxyFor(' + currentDefinition.set.print_to_string() + '),' : '') +
                 'enumerable: true,\n' +
                 'configurable: true\n' +
                 '});'
@@ -132,12 +119,15 @@ Object.extend(lively.versions.SourceTransformations, {
         
         return UglifyJS.parse(code).body[0].body;
     },
+    
     transformNode: function(node) {
+        
         if (node instanceof UglifyJS.AST_Array ||
             node instanceof UglifyJS.AST_Function) {
-            // an AST_Function is a function expression
+            // Note: AST_Function is a function expression, not a declaration,
+            // function declarations are handled below (AST_Defun)
             
-            return this.wrapExpressionInProxyForCall(node);
+            return this.wrapInProxyForCall(node);
             
         } else if (node instanceof UglifyJS.AST_Object) {
             // an object literal might define accessor functions (getter or
@@ -150,7 +140,7 @@ Object.extend(lively.versions.SourceTransformations, {
             if (this.hasObjectAccessorProperties(node)) {
                 return this.transformObjectLiteralWithAccessorDefinitions(node);
             } else {
-                return this.wrapExpressionInProxyForCall(node);
+                return this.wrapInProxyForCall(node);
             }
             
         } else if (node instanceof UglifyJS.AST_Defun) {
@@ -163,23 +153,35 @@ Object.extend(lively.versions.SourceTransformations, {
             // names. and it's syntactically legal to declare variables
             // multiple times (var declaration gets hoisted)
             
+            // TODO: function declarations get hoisted in JavaScript, so we
+            // need to move the func decs we transform to variable assignments
+            // of function expressions to the beginning of each function
+            // scope, while preserving the lexical order of function
+            // declarations, see javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
+            
             return this.transformFunctionDeclaration(node);
-        } else if (node instanceof UglifyJS.AST_Dot) {
+        } else if (this.isCallToObjectCreate(node)) {
             
-            if (node.property === 'create' &&
-                node.expression.name === 'Object') {
-                
-                node.expression.name = 'lively';
-                node.property = 'createObject';
-            }
+            // rewrite: Object.create -> lively.create,
+            // which prevents proxies from becoming prototypes
+            node.expression.name = 'lively';
+            node.property = 'createObject';
             
             return node;
             
-        } else if (this.isCallToGlobalEval(node)) {
+        } else if (this.isCallToEval(node)) {
             
-            node.args[0] = this.wrapExpressionInTransformSourceCall(node.args[0]);
+            node.args[0] = this.wrapInTransformSourceCall(node.args[0]);
             
             return node;
+        } else if (node instanceof UglifyJS.AST_Binary &&
+            node.operator === 'instanceof') {
+            
+            // rewrite: o instanceof T  ==> Object.instanceOf(o, T)
+            // as instanceof doesn't work when proxies are used as virtual
+            // objects
+            
+            return this.wrapInObjectInstanceOfCall([node.left, node.right]);
         } else {
             return node;
         }

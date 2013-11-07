@@ -96,7 +96,9 @@ Object.extend(Function.prototype, {
         for (var i = 0; i < args.length; i++) {
             if (Object.isString(args[i])) {
                 category = args[i];
-            } else if (Global.RealTrait && args[i] instanceof RealTrait) {
+            } else if (Global.RealTrait &&
+                Object.instanceOf(args[i], RealTrait)) {
+                
                 // FIXME Traits are optional and defined in lively.Traits
                 // This should go somewhere into lively.Traits...
                 // we apply traits afterwards because they can override behavior

@@ -107,7 +107,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 targetObject = this.targetObject();
                 
-                // actual handling
+                // special handling
                 if (name === '__proto__') {
                     if (targetObject.__protoID) {
                         return lively.ProxyTable[targetObject.__protoID];
@@ -122,6 +122,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                 }
                 
+                // default handling
                 if (({}).hasOwnProperty.call(targetObject, name)) {
                     result = targetObject[name];
                 } else {
@@ -154,7 +155,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // workaround to have functions print with their function bodies
                 if (Object.isFunction(thisArg) && 
                         thisArg.isProxy() &&
-                        !thisArg.__protoID ) {
+                        !thisArg.__protoID) {
                     // can't test if thisArg.name === 'toString' because the
                     // function might be wrapped (in harmony-reflect shim)
                     targetObject = lively.objectFor(thisArg);
@@ -189,9 +190,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                     newInstance;
                 
                 if (OriginalConstructor.name === 'XMLHttpRequest') {
-                    newInstance = new lively.origXMLHttpRequest();
+                    newInstance = new OriginalConstructor();
                     newInstance.__protoID =
-                        lively.origXMLHttpRequest.prototype.__objectID;
+                        OriginalConstructor.prototype.__objectID;
                     return this.ensureProxied(newInstance);
                 }
                 
@@ -345,7 +346,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // proxies are fully virtual objects: they don't point to their target, 
         // but refer to their target only via their __objectID-property,
         // through lively.CurrentObjectTable
-        var proto, protoID, objectID, proxy;
+        var proto, protoID, objectID, handler, proxy;
         
         if (lively.isPrimitiveObject(target)) {
             throw new TypeError('Primitive objects shouldn\'t be wrapped');
@@ -415,11 +416,8 @@ Object.extend(lively.versions.ObjectVersioning, {
             value: objectID
         });
         
-        proxy = Proxy(this.dummyTargetFor(target),
-            this.versioningProxyHandler(target.__objectID),
-            true // virtual objects: so, don't enforce consistency between trap
-                 // results and the dummyTarget
-        );
+        handler = this.versioningProxyHandler(target.__objectID);
+        proxy = Proxy(this.dummyTargetFor(target), handler, true);
         
         lively.ProxyTable[objectID] = proxy;
         
@@ -521,35 +519,11 @@ Object.extend(lively.versions.ObjectVersioning, {
     start: function() {
         this.init();
         
-        // this.wrapEval();
-        
         this.patchNativeFunctions();
         this.wrapNativeObjects();
         
         this.patchBaseCode();
     },
-    
-    // really not sufficient as eval usually has access to the lexically
-    // surrounding function's var bindings, but hasn't when wrapped
-    
-    // wrapEval: function() {
-    //     var originalEval = eval,
-    //         s2s = lively.versions.SourceTransformations;
-    //     
-    //     eval = function(code, scriptName) {
-    //         
-    //         // for source maps, use:
-    //         // var transformedCode = s2s.generateCodeFromSource(code, scriptName);
-    //         
-    //         // for now:
-    //         var transformedCode = s2s.transformSource(code, {beautify: true});
-    //         
-    //         return originalEval(transformedCode);
-    //     }
-    //     
-    //     this.originalEval = originalEval;
-    // },
-    
     patchNativeFunctions: function() {
         
         // 'aString'.match(regExp): regExp can't be proxy
@@ -571,14 +545,12 @@ Object.extend(lively.versions.ObjectVersioning, {
         // Object.create handled through source transformation
         
         JSON.parse = this.proxyFor(JSON.parse);
-        
-        lively.origXMLHttpRequest = XMLHttpRequest;
         XMLHttpRequest = this.proxyFor(XMLHttpRequest);
     },
     patchBaseCode: function() {
         // patches for bootstrap.js:
         Object.extend(JSLoader, {
-            evaluateCode: function(code, url) {
+            runCode: function(code, url) {
                 if (lively.transformSource) {
                     Global.eval(lively.transformSource(code), url);
                 } else {

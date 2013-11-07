@@ -632,8 +632,10 @@
                     this.loadAsync(exactUrl, onLoadCb, el);
             },
 
-        evaluateCode: function(code, url) {
-            // slows everything (DOM related) significantly..:
+        runCode: function(code, url) {
+            // using a script tag instead, currently slows everything (at least
+            // DOM related) down significantly..:
+            
             // var code = document.createTextNode(response);
             // script.appendChild(code);
             
@@ -649,7 +651,7 @@
             var source = this.getSync(url);
             if (!source) { console.warn('Could not load %s', url); return; }
             try {
-                this.evaluateCode(source, url);
+                this.runCode(source, url);
             } catch (e) {
                 console.error('Error when loading %s: %s\n%s', url, e, e.stack);
             }
@@ -665,7 +667,7 @@
             } else {
                 this.getAsync(url, false, function(response) {
                     try {
-                        JSLoader.evaluateCode(response, url);
+                        JSLoader.runCode(response, url);
                     } catch (e) {
                         console.error('Error when loading %s: %s\n%s', url, e,
                                 e.stack);

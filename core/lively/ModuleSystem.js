@@ -216,7 +216,7 @@ Object.subclass('lively.Module',
         if (this.namespaceIdentifier.startsWith('Global.')) {
             namespacePrefix = 'Global.';
         } else {
-            throw dbgOn(new Error('unknown namespaceIdentifier'));
+            throw dbgOn(new Error('unknown namespaceIdentifier "' + this.namespaceIdentifier + '"'));
         }
         var relativePath = this.namespaceIdentifier
                            .substr(namespacePrefix.length)
@@ -245,7 +245,7 @@ Object.subclass('lively.Module',
                 namespacePrefix = 'Global.';
                 id = id.substring(7);
             } else {
-                throw dbgOn(new Error('unknown namespaceIdentifier'));
+                throw dbgOn(new Error('unknown namespaceIdentifier "' + id + '"'));
             }
             // FIXME: extract to lively.Config.codeBaseDB
             var url = lively.Config.couchDBURL
@@ -261,7 +261,7 @@ Object.subclass('lively.Module',
             url = this.findUri(optType);
         } else {
             if (id.startsWith('Global.')) namespacePrefix = 'Global.';
-            else throw dbgOn(new Error('unknown namespaceIdentifier'));
+            else throw dbgOn(new Error('unknown namespaceIdentifier "' + id + '"'));
             url = lively.Config.codeBase
                 + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
         }

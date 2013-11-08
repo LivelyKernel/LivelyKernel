@@ -160,17 +160,13 @@ Object.extend(lively.versions.SourceTransformations, {
             // declarations, see javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
             
             return this.transformFunctionDeclaration(node);
-        } else if (this.isCallToObjectCreate(node)) {
-            
-            // rewrite: Object.create -> lively.create,
-            // which prevents proxies from becoming prototypes
-            node.expression.name = 'lively';
-            node.property = 'createObject';
-            
-            return node;
-            
+        } else if (node instanceof UglifyJS.AST_SymbolRef &&
+            node.name === 'Object') {
+        
+            return this.wrapInProxyForCall(node);
         } else if (this.isCallToEval(node)) {
             
+            // rewrite: eval([code]) -> eval(lively.transformSource([code]))
             node.args[0] = this.wrapInTransformSourceCall(node.args[0]);
             
             return node;

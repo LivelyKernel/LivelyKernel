@@ -50,7 +50,9 @@ Object.extend(lively.versions.ObjectVersioning, {
             ensureProxied: function(obj) {
                 var livelyOV = lively.versions.ObjectVersioning;
                 
-                if (!livelyOV.isPrimitiveObject(obj) && !obj.isProxy()) {
+                if (!livelyOV.isPrimitiveObject(obj) &&
+                    !obj.isProxy() &&
+                    !livelyOV.isRootPrototype(obj)) {
                     return lively.proxyFor(obj);
                  } else {
                     return obj;
@@ -360,6 +362,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         Object.create = wrappedCreate;
         
+        // for running tests without source transformations
         lively.createObject = function() {
             return lively.proxyFor(wrappedCreate.apply(null, arguments));
         };

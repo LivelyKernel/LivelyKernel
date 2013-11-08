@@ -638,7 +638,7 @@ TestCase.subclass(
             '    }\n' +
             '});';
         var expectedOutput =
-            'Object.defineProperty(obj, \"age\", lively.proxyFor({\n' +
+            'lively.proxyFor(Object).defineProperty(obj, \"age\", lively.proxyFor({\n' +
             '    get: lively.proxyFor(function() {\n' +
             '        return 2;\n' +
             '    })\n' +
@@ -680,7 +680,7 @@ TestCase.subclass(
     },
     test11TransformObjectCreate: function() {
         var input = 'var o = Object.create(null);',
-            expectedOutput = 'var o = lively.createObject(null);';
+            expectedOutput = 'var o = lively.proxyFor(Object).create(null);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
@@ -707,7 +707,13 @@ TestCase.subclass(
             expectedOutput = 'Object.instanceOf(obj, Type);';
         
         this.assertEquals(this.transform(input), expectedOutput);
-    }
+    },
+    test16TransformObject: function() {
+        var input = 'xy === Object;',
+            expectedOutput = 'xy === lively.proxyFor(Object);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
 });
 
 });

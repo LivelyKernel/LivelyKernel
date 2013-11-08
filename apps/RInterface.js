@@ -61,7 +61,7 @@ Object.extend(apps.RInterface, {
                                 results = [];
                             }
                             // if we found any results this time, don't wait long before asking again.
-                            pollForResult.delay(out ? 0.1 : 0.3);
+                            pollForResult.delay(out ? 0.1 : 1.0);
                         }
                     });
                 }

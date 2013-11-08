@@ -17,7 +17,7 @@ var debug = false;
 function evalAtStartup(rState, thenDo) {
     // thenDo()
     var initCode = ".libPaths(paste(getwd(), '/R-libraries', sep=''))\n"
-             + "options(repos=structure(c(CRAN=\"http://cran.us.r-project.org\")))\n"
+             + "options(repos=structure(c(CRAN=\"http://cran.us.r-project.org\")), keep.source=TRUE, error=quote(dump.frames(\"lively_R_dump\", TRUE)))\n"
              + "pkgTest <- function(x) {\n"
              + "    if (!require(x,character.only = TRUE)) {\n"
              + "        install.packages(x,dep=TRUE)\n"

@@ -231,6 +231,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         this.grid.at(4,3).activate();
         this.grid.moveActiveCellBy(pt(0,1));
         this.assertIdentity(this.grid.at(4,3), this.grid.activeCell);
+    },
+    
+    test06AddRow: function() {
+        this.grid.addRow();
+        this.grid.addRow();
+        this.assert(this.grid.rows[this.grid.rows.length - 2][0] !== this.grid.rows[this.grid.rows.length - 1][0], "When adding rows after creation, the new cell's positions ought to be correct.")
+    },
+    
+    test07settingDataPreservesColNames: function(){
+        this.grid.setColNames(["testString"])
+        this.assertEquals('testString', this.grid.rows[0][0].textString, 'head name not initialized on creation');
+        this.grid.setData([])
+        this.assertEquals('testString', this.grid.rows[0][0].textString, 'head name changed when setting data');
     }
 
 });

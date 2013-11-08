@@ -116,12 +116,14 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     },
 
     createCell: function(x, y, headOffsetX, headOffsetY) {
+        // numRows, i.e. y, contains the headOffsetY, i.e. the colHeads row.
+        // Only in naming, it has to be removed.
         var cell = new lively.morphic.DataGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         cell.addToGrid(this);
-        cell.gridCoords = pt(x + headOffsetX, y + headOffsetY);
-        cell.name = '[' + x + ';' + y + ']';
+        cell.gridCoords = pt(x + headOffsetX, y);
+        cell.name = '[' + x + ';' + (y - headOffsetY) + ']';
         return cell;
     },
 
@@ -413,6 +415,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     },
 
     removeRow: function() {
+        if(this.numRows == 0) return
         var lastRowIndex = this.numRows - 1;
         this.rows[lastRowIndex].forEach(function(ea) {
             delete ea.gridCoords; ea.remove(); });
@@ -551,6 +554,11 @@ lively.morphic.DataGridCell.subclass('lively.morphic.DataGridHeadCell',
 lively.morphic.DataGridHeadCell.subclass('lively.morphic.DataGridColHead',
 'settings', {
     isColHead: true
+},
+'default category', {
+    clear: function() {
+        this.evalExpression = undefined;
+    }
 });
 
 lively.morphic.DataGridHeadCell.subclass('lively.morphic.DataGridRowHead',

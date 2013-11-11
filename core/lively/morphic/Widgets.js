@@ -3425,17 +3425,17 @@ module('lively.ide'); // so that the namespace is defined even if ide is not loa
 
 Object.extend(lively.ide, {
     openFile: function (url) {
-        require('lively.ide.tools.TextEditor').toRun(function() {
-            var editor = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph();
-            if (url) {
-                if (String(url).match(/^(\/|.:\\)/)) { // absolute local path
-                } else if (!String(url).startsWith('http')) {
-                    url = URL.root.withFilename(url).withRelativePartsResolved();
-                }
-                editor.openURL(url);
+        if (!module('lively.ide.tools.TextEditor').isLoaded()) module('lively.ide.tools.TextEditor').load(true);
+        var editor = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph();
+        if (url) {
+            if (String(url).match(/^(\/|.:\\)/)) { // absolute local path
+            } else if (!String(url).startsWith('http')) {
+                url = URL.root.withFilename(url).withRelativePartsResolved();
             }
-            editor.openInWorld($world.positionForNewMorph(editor)).comeForward();
-        });
+            editor.openURL(url);
+        }
+        editor.openInWorld($world.positionForNewMorph(editor)).comeForward();
+        return editor;
     }
 });
 

@@ -43,6 +43,13 @@ Object.extend(String.prototype, {
         truncation = truncation === undefined ? '...' : truncation;
         return this.length > length ? this.slice(0, length - truncation.length) + truncation : String(this);
     },
+    regExpEscape: function() {
+    //from google' closure library
+
+      return this.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').
+          replace(/\x08/g, '\\x08');
+    },
+
 
     strip: function() {
         return this.replace(/^\s+/, '').replace(/\s+$/, '');

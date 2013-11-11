@@ -173,6 +173,11 @@ Object.extend(Global, {
             return 'lively.persistence.BuildSpec.Registry["' + Properties.nameFor(lively.persistence.BuildSpec.Registry, this) + '"]';
         });
 
+    Object.keys(lively.ide.commands.byName).each(function(e){
+            var path = 'lively.ide.commands.byName["' + e + '"]';
+            addOwnPropertyIfAbsent(lively.ide.commands.byName[e], 'lvContextPath', function(){return path});
+        });
+
     addOwnPropertyIfAbsent(lively.Module.prototype, 'lvContextPath', function(){
             return this.name();
         });
@@ -1050,11 +1055,14 @@ lively.morphic.Panel.subclass('ChangesBrowser',
     },
     publish: function() {
         var browser = new SharedChangeSetBrowser(pt(1024, 384));
-        var title = 'Changeset '+ this.changeSet.name + ' from ' + $world.getUserName();
+        var title = this.changeSet.name + '_' + $world.getUserName();
         var window = browser.openIn($world, title);
         browser.setChangeSetContents(this.changeSet.name);
         window.name = title;
-        window.getPartsBinMetaInfo().addRequiredModule('lively.ChangeSets');
+        var info = window.getPartsBinMetaInfo();
+        info.addRequiredModule('lively.ChangeSets');
+        info.partsSpaceName = 'PartsBin/Changesets';
+        info.comment = 'A shared set of code changes'; 
         window.copyToPartsBinWithUserRequest();
     },
     moveUp: function(t) {
@@ -1837,16 +1845,7 @@ debugger;
                 ['remove', function() {self.removeProperty()}],
                 ['rename as... ', function() {self.renameProperty()}],
                 ['senders', function() {
-                    openFunctionList('senders', self.selectedFunctionNameInContainer, function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else if (!this.selected) {
-                                this.setIsSelected(true);
-                            } else {
-                                this.owner.owner.owner.cycle();
-                            }
-                            evt.stop(); return true;
-                        }); 
+                    openFunctionList('senders', self.selectedFunctionNameInContainer, true); 
                     }],
                 ['implementors', function() {
                     openFunctionList('implementors', self.selectedFunctionNameInContainer); }]
@@ -2447,6 +2446,18 @@ lively.morphic.Panel.subclass('FunctionListBrowser',
     		['codePane', this.newCodePane, new Rectangle(0, 0.3, 1, 0.7)],
     	]);
     	
+        if(this.cycleThroughResults) {
+            this.functionPane.textOnMouseDown = function onMouseDown(evt) {
+                            if (this.owner.owner.allowDeselectClick) {
+                                this.setIsSelected(!this.selected);
+                            } else if (!this.selected) {
+                                this.setIsSelected(true);
+                            } else {
+                                this.owner.owner.owner.cycle();
+                            }
+                            evt.stop(); return true;
+                        };
+        }
         this.functionPane.noSingleSelectionIfMultipleSelected = true;
         this.applyStyle({adjustForNewBounds: true, fill: Color.gray});
     
@@ -2474,16 +2485,7 @@ lively.morphic.Panel.subclass('FunctionListBrowser',
         if (functionPane.selection)
             items.push(
                 ['senders', function() {
-                    openFunctionList('senders', functionPane.selection.name, function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else if (!this.selected) {
-                                this.setIsSelected(true);
-                            } else {
-                                this.owner.owner.owner.cycle();
-                            }
-                            evt.stop(); return true;
-                        }); 
+                    openFunctionList('senders', functionPane.selection.name, true); 
                     }],
                 ['implementors', function() {
                     openFunctionList('implementors', functionPane.selection.name); }]
@@ -2501,11 +2503,16 @@ lively.morphic.Panel.subclass('FunctionListBrowser',
         }
         if(selected) {
             this.codePane.setTextString(printInContext(selected.name, selected.context));
-            if(this.cyclingOn)
+            if(this.cycleThroughResults)
                 this.cycle();
         } else
             this.codePane.setTextString('');
     },
+    initialize: function($super, bounds, cycleThroughResults) {
+        $super(bounds);
+        this.cycleThroughResults = cycleThroughResults;
+    },
+
     cycle: function() {
         if(!this.cycleImpl) {
             var style = {fontWeight: 'bold', color: Color.red};
@@ -2524,11 +2531,7 @@ lively.morphic.Panel.subclass('FunctionListBrowser',
     },
 
 
-    setContents: function(list, optTextOnMouseDown) {
-        if(optTextOnMouseDown) {
-            this.functionPane.textOnMouseDown = optTextOnMouseDown;
-            this.cyclingOn = true;
-        }
+    setContents: function(list) {
         this.functionPane.setList(list);
     },
 });
@@ -2540,14 +2543,19 @@ Object.subclass('ReferencesCycler',
         this.text = text;
         var source = text.textString;
         var options = {
-            MemberExpression: function(node) { if(source[node.end] != "." && node.property.name == reference) {
-                references.push([node.property.start, node.property.end]);} },
             Literal: function(node) {if(node.value == reference) 
                 references.push([node.start, node.end]); }
         }
-        if(reference in Global)
-            options.Expression = function(node) {if(node.type == "Identifier" && source[node.end] != "." && node.name == reference) 
+        if(reference.indexOf('.') > -1 || reference.indexOf('[') > -1) {
+            options.MemberExpression = function(node) { if(source[node.end] != "." && source.substring(node.start, node.end) == reference) 
                 references.push([node.start, node.end]); };
+        } else {
+            options.MemberExpression = function(node) { if(source[node.end] != "." && node.property.name == reference)
+                references.push([node.property.start, node.property.end]); };
+            if(reference in Global)
+                options.Expression = function(node) {if(node.type == "Identifier" && source[node.end] != "." && node.name == reference) 
+                references.push([node.start, node.end]); };
+        }
         var references = [];
 		lively.ast.acorn.simpleWalk(lively.ast.acorn.parse(source), options);
         this.references = references;
@@ -2627,7 +2635,7 @@ Object.extend(Global, {
         var func = context[aFunctionName];
         if(func.user && func.timestamp) {
             var ts = new Date(func.timestamp).toUTCString();
-            var kindOfChange = func.kindOfChange;
+            var kindOfChange = func.kindOfChange || 'changed';
             annotation += Strings.format('// '+kindOfChange+' at %s by %s  \n', ts, func.user);
         }
         return annotation + "this." + aFunctionName + " = " + func;
@@ -2793,7 +2801,7 @@ Object.extend(Global, {
             }
             re = new RegExp(queryPattern, 'i');
         } else
-            re = new RegExp(searchString);
+            re = new RegExp('\\b' + searchString + '\\b');
         var containers = [];
         knownFunctionContainers().each(function(e){
             var names = e.lvOwnFunctionNames().select(function(n){
@@ -2804,8 +2812,8 @@ Object.extend(Global, {
         });
         return containers
     },
-    openFunctionList: function(kind, searchString, optTextOnMouseDown) {
-        var browser = new FunctionListBrowser(pt(640, 480));
+    openFunctionList: function(kind, searchString, cycleThroughResults) {
+        var browser = new FunctionListBrowser(pt(640, 480), cycleThroughResults);
         browser.openIn($world, kind + ' of ' + searchString);
         var searchResults = Global[kind](searchString);
         var sortList = [];
@@ -2826,20 +2834,21 @@ Object.extend(Global, {
                 list.push({string: key + "." + n, context: context, name: n})
             })
         })
-        browser.setContents(list, optTextOnMouseDown);
+        browser.setContents(list);
     },
 
     
     senders: function(searchString) {
         // senders("f")
         var matched, source;
+        var preamble = "var f = ";
         var options = {
-            MemberExpression: function(node) { if(source[node.end - 8] != "." && node.property.name == searchString) matched = true; },
+            MemberExpression: function(node) { if(source[node.end - preamble.length] != "." && node.property.name == searchString) matched = true; },
             Literal: function(node) {if(node.value == searchString) matched = true; }
         }
         var preceding;
         if(searchString in Global) {
-            options.Expression = function(node) {if(node.type == "Identifier" && source[node.end - 8] != "." && node.name == searchString) matched = true; };
+            options.Expression = function(node) {if(node.type == "Identifier" && source[node.end - preamble.length] != "." && node.name == searchString) matched = true; };
             preceding = '\\b';
         } else
             preceding = '["\'.]';
@@ -2852,7 +2861,51 @@ Object.extend(Global, {
                 f = f.getOriginal ? f.getOriginal() : f;
                 source = String(f);
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
-                    var programNode = lively.ast.acorn.parse("var f = " + source);
+                    var programNode = lively.ast.acorn.parse(preamble + source);
+                    matched = false;
+                    lively.ast.acorn.simpleWalk(programNode, options);
+                    return matched;
+                } else
+                    return false;
+            });
+            if(names.length > 0) {
+                containers.push({context: e, names: names})
+            }
+        });
+        return containers
+    },
+    references: function(searchString) {
+        // references("$world.get")
+        if(!searchString || !searchString.trim())
+            return [];
+        searchString = searchString.trim();
+        var matched, source, options, re;
+        var preamble = "var f = ";
+        var options = {
+            Literal: function(node) {if(node.value == searchString) matched = true; }
+        }
+        if(searchString.indexOf('.') > -1 || searchString.indexOf('[') > -1) {
+            options.MemberExpression = function(node) { if(source[node.end - preamble.length] != "." && source.substring(node.start - preamble.length, node.end - preamble.length) == searchString) matched = true; };
+            re = new RegExp('\\b' + searchString.regExpEscape() + '\\b');
+        } else {
+            options.MemberExpression = function(node) { if(source[node.end - preamble.length] != "." && node.property.name == searchString) matched = true; };
+            var preceding;
+            if(searchString in Global) {
+                options.Expression = function(node) {if(node.type == "Identifier" && source[node.end - preamble.length] != "." && node.name == searchString) matched = true; };
+                preceding = '\\b';
+            } else
+                preceding = '["\'.]';
+
+            re = new RegExp(preceding + searchString.regExpEscape() + '\\b'); 
+        }
+        var containers = [];
+        knownFunctionContainers().each(function(e){
+            var names = e.lvOwnFunctionNames().select(function(n){
+                var f = e[n];
+                f = f.getOriginal ? f.getOriginal() : f;
+                source = String(f);
+                if (source.match(re) && !source.endsWith("{ [native code] }")) {
+                    var programNode = lively.ast.acorn.parse(preamble + source);
                     matched = false;
                     lively.ast.acorn.simpleWalk(programNode, options);
                     return matched;
@@ -3051,7 +3104,7 @@ alignSubmorphs: function alignSubmorphs() {
 },
     reset: function reset() {
     this.setExtent(lively.pt(100.0,30.0));
-    this.statusText = lively.morphic.Text.makeLabel('Wiki', {align: 'center', textColor: Color.rgb(33,33,33), fill: null});
+    this.statusText = lively.morphic.Text.makeLabel('Changesets', {align: 'center', textColor: Color.rgb(33,33,33), fill: null});
     // this.statusText = this.get('statusText')
     this.addMorph(this.statusText);
     this.statusText.name = 'statusText'
@@ -3059,7 +3112,7 @@ alignSubmorphs: function alignSubmorphs() {
     this.isEpiMorph = true;
     this.setHandStyle('pointer');
     this.statusText.setHandStyle('pointer');
-    this.startStepping(5*1000, 'update');
+//    this.startStepping(5*1000, 'update');
     this.grabbingEnabled = false;
     this.lock();
     this.doNotSerialize = ['currentMenu']

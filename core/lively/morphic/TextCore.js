@@ -674,6 +674,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 case "e": { this.doEdit(); return true; }
                 case "d": { this.doDebugit(); return true; }
                 case "p": { this.doListProtocol(); return true; }
+                case "r": { this.doBrowseReferences(); return true; }
                 case "f": { this.doBrowseImplementors(); return true; }
                 case "b": { this.doBrowseClass(); return true; }
                 case "s": { this.convertTabsToSpaces(); return true; }
@@ -836,6 +837,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     doBrowseSenders: function() {
         this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__sender')
     },
+    doBrowseReferences: this.doBrowseSenders,
+
     doBrowseClass: function() {
         this.world().openClassBrowserFor(this.getSelectionOrLineString())
     },

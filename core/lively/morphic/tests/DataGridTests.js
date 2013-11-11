@@ -185,6 +185,22 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         this.grid.moveActiveCellBy(pt(0,1));
         this.assertIdentity(this.grid.at(1,2), this.grid.activeCell);
     },
+    test23evalutedPut: function() {
+        var str = "someCaption",
+            evalStr = "= 'someOtherCaption'",
+            thisEvalStr = "= 'someCaption'; this.correctThis = true;",
+            cell = this.grid.at(2, 3);
+
+        cell.put(str);
+        this.assert(cell.textString == str, "Unable to change the caption of a DataGridCell.");
+        cell.put(evalStr);
+        this.assert(cell.textString == "someOtherCaption", "Unable to set caption to a string-to-be-evaluated");
+
+        cell.correctThis = false;
+        cell.put(thisEvalStr);
+        this.assert(cell.correctThis, "During evaluation, this was bound to an unexpected object.");
+    }
+
 
 });
 

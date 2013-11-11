@@ -482,8 +482,14 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
     },
 
     put: function(aValue) {
-        // TODO: check if aValue starts with =, then evaluate it or not
-        this.textString = aValue;
+        if (("" + aValue).startsWith("=")){
+            // We need to bind eval-'this' to 'this'
+            var ctxt = this.getDoitContext();
+            this.doitContext = this;
+            this.tryBoundEval("this.textString " + aValue)
+            this.doitContext = ctxt;
+        } else
+            this.textString = aValue;
     },
     onKeyPress: function($super, evt) {
         // enter comment here
@@ -536,6 +542,11 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
         this.evalExpression = undefined;
     }
 
+},
+'rendering values', {
+    updateRelativeTimestamp: function(baseTime) {
+        this.textString = (baseTime.relativeTo(new Date()) + ' ago');
+    }
 });
 
 lively.morphic.DataGridCell.subclass('lively.morphic.DataGridHeadCell',

@@ -562,16 +562,13 @@ Object.extend(lively.versions.ObjectVersioning, {
         
     },
     wrapNativeObjects: function() {
-        // TODO: built-in functions that create new objects
+        // built-in functions that create new objects
         // have to return proxies for the new objects. examples:
-        // JSON.parse()
-        // Date constructor and parse() and UTC()
-        // and other global objects in Global / window
         
-        // Object.create handled through source transformation
+        // TODO:
+        // Date, Global, window
         
-        JSON.parse = this.proxyFor(JSON.parse);
-        XMLHttpRequest = this.proxyFor(XMLHttpRequest);
+        // handled in source transformations: Object, JSON, XMLHttpRequest
     },
     patchBaseCode: function() {
         // patches for bootstrap.js:

@@ -161,7 +161,9 @@ Object.extend(lively.versions.SourceTransformations, {
             
             return this.transformFunctionDeclaration(node);
         } else if (node instanceof UglifyJS.AST_SymbolRef &&
-            node.name === 'Object') {
+            (node.name === 'Object' ||
+            node.name ==='JSON' ||
+            node.name === 'XMLHttpRequest')) {
         
             return this.wrapInProxyForCall(node);
         } else if (this.isCallToEval(node)) {

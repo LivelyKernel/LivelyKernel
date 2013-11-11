@@ -2988,13 +2988,13 @@ alignSubmorphs: function alignSubmorphs() {
     var self = this;
     var items = [];
     var y;
-    if(!localStorage.getItem("LivelyChangesets")) {
+    if(!localStorage.getItem("LivelyChangesets:" + location.pathname)) {
         items.push(
             ['Turn changesets on', function(){
                 if(!$world.getUserName()) 
                     $world.askForUserName();
                 if($world.getUserName()) 
-                    localStorage.setItem("LivelyChangesets", "on");
+                    localStorage.setItem("LivelyChangesets:" + location.pathname, "on");
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }]
@@ -3002,7 +3002,8 @@ alignSubmorphs: function alignSubmorphs() {
         y = 23*1;
     } else {
         items.push(
-            ['Turn changesets off', function(){localStorage.removeItem("LivelyChangesets");
+            ['Turn changesets off', function(){
+                localStorage.removeItem("LivelyChangesets:" + location.pathname);
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }],

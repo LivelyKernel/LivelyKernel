@@ -53,12 +53,24 @@ lively.morphic.Morph.addMethods(
         this.priorExtent = newExtent;
     },
 
-    setLayouter: function(aLayouter) {
+    setLayouter: function(layouter) {
         if (!this.layout) {
             this.layout = {};
         }
-        this.layout.layouter = aLayouter;
-        //this.adjustForNewBounds();
+        if (layouter && !(layouter instanceof lively.morphic.Layout.Layout) && layouter.type) {
+            var klass;
+            switch (layouter.type) {
+                case 'vertical': klass = lively.morphic.Layout.VerticalLayout; break;
+                case 'horizontal': klass = lively.morphic.Layout.HorizontalLayout; break;
+                case 'tiling': klass = lively.morphic.Layout.TileLayout; break;
+                default: klass = lively.morphic.Layout.TileLayout; break;
+            }
+            var l = new klass(this);
+            l.setBorderSize(layouter.border || 3);
+            l.setSpacing(layouter.spacing || 3);
+            layouter = l;
+        }
+        this.layout.layouter = layouter;
     },
 
     getLayouter: function() {

@@ -621,6 +621,10 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         isListItem: true,
                         string: "TileLayout",
                         value: "lively.morphic.Layout.TileLayout"
+                    }, {
+                        isListItem: true,
+                        string: "GridLayout",
+                        value: "lively.morphic.Layout.GridLayout"
                     }],
                     name: "layouterList",
                     selectOnMove: false,
@@ -630,19 +634,6 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     submorphs: [],
                     connectionRebuilder: function connectionRebuilder() {
                     lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setLayouter", {});
-                },
-                    setup: function setup() {
-                    var layoutClasses = [lively.morphic.Layout.HorizontalLayout,
-                            lively.morphic.Layout.TightHorizontalLayout,
-                            lively.morphic.Layout.VerticalLayout,
-                            lively.morphic.Layout.JournalLayout];
-                
-                    var items = layoutClasses.collect(function(ea) {
-                            return {isListItem: true, string: ea.name, value: ea.type} 
-                    });
-                
-                    items.unshift({isListItem: true, string: 'none', value: null})
-                    this.setList(items)
                 }
                 },{
                     _BorderColor: Color.rgb(214,214,214),

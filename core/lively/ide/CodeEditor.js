@@ -594,7 +594,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 };
         try {
             var result = interactiveEval.call(ctx);
-            if (Config.changesetsExperiment)
+            if (localStorage.getItem("LivelyChangesets"))
                 ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
         } catch(e) {throw e}

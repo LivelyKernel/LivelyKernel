@@ -1784,11 +1784,6 @@ openReferencingMethodFinder: function () {
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
             ['Save world', this.saveWorld.bind(this), 'synchron']
         ];
-        if (Config.changesetsExperiment)
-            items.splice(2, 0, ["Changes", [
-                ["Open changes browser", this.openChangesBrowser.bind(this)],
-                ["Open simple code browser", this.openSimpleBrowser.bind(this)]
-                ]]);
 
         return items;
     },
@@ -1798,12 +1793,8 @@ openReferencingMethodFinder: function () {
             this.openMethodFinderFor(s, '__sender');
         }.bind(this));
     },
-    openChangesBrowser: function() {
-        new ChangesBrowser(pt(1024, 384)).openIn($world, 'Changes Browser');
-    },
-    openSimpleBrowser: function() {
-        new lively.SimpleCodeBrowser(pt(640, 480)).openIn($world, 'Simple Code Browser');
-    },
+
+
 
 
 },

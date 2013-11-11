@@ -1048,6 +1048,9 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         codePane.evalEnabled = true;
         codePane.applyStyle({scaleProportional: true});
         codePane.savedTextString = codePane.textString;
+        if(localStorage.getItem("LivelyChangesets"))
+            codePane.doBrowseImplementors = function () {
+                openFunctionList('implementors', codePane.getSelectionOrLineString())};
         return codePane
     },
     newReadOnlyCodePane: function newReadOnlyCodePane(extent) {

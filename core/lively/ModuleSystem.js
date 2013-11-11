@@ -180,6 +180,8 @@ Object.subclass('lively.Module',
             'classes',
             function(ea) { return ea && ea !== this.constructor && lively.Class.isClass(ea) },
             recursive).uniq();
+        if(lively.morphic && lively.morphic.CSS && lively.morphic.CSS.Fill)
+            normalClasses.push(lively.morphic.CSS.Fill);
         return this === Global ?
             [Array, Boolean, Date, RegExp, Number, String, Function].concat(normalClasses) : normalClasses;
     },
@@ -626,8 +628,8 @@ Object.extend(lively.Module, {
 })(lively);
 
 (function testModuleLoad() {
-    if (Config.changesetsExperiment)
-        require('lively.ChangeSets').toRun(function(){
-            ChangeSet.loadAndcheckVsSystem()}) ;
+    require('lively.ChangeSets').toRun(function(){
+        if (localStorage.getItem("LivelyChangesets"))
+            ChangeSet.loadAndcheckVsSystem()})
     lively.Module.checkModuleLoadStates();
 }).delay(10);

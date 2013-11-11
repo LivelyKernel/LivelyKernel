@@ -523,7 +523,7 @@ Config.addOptions(
     ['lively.Worker.idleTimeOfPoolWorker', 60*1000, 'Seconds a lively.Worker that is automatically added to the worker pool is kept alive.']
 ],
 "Changesets", [
-    ['changesetsExperiment', false, 'track changes and restore them automatically on world load'],
+    ['changesetsExperiment', true, 'track changes and provide a UI for a changesets-based worlkflow'],
     ['automaticChangesReplay', true, 'restore changes automatically on world load']
 ]
 );

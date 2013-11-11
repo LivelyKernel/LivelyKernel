@@ -287,11 +287,13 @@ Object.extend(lively.ast.acorn, {
     },
     tokens: function(input) {
         //this returns an array of all tokens, including recreating the skipped ones (comments and whitespace)
-        var next = acorn.tokenize(input, {onComment: function(bool, text, start, end){
-            tokens.push({value: text, start: start, end: end, type: "comment"});
-        }});
+        var next = acorn.tokenize(input);
         var tokens = [];
         var token = next();
+        if(token.start > 0) {
+            whitespace = input.substring(0, token.start);
+            tokens.push({value: whitespace, start: 0, end: token.start, type: "whitespace"});
+        }
         var previousEnd = token.end;
         var whitespace, prevValue, prevType, prevIndex;
         var _eof = acorn.tokTypes.eof;

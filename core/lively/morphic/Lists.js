@@ -899,7 +899,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
     },
 
     clearSelections: function() {
-        this.selectedIndexes.length = 0;
+        this.removeAllSelectedIndexes();
         this.updateView();
     },
 
@@ -1021,6 +1021,16 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         this.selectPrev();
         evt.stop(); return true;
     },
+    
+    textOnMouseDown: function onMouseDown(evt) {
+        if (this.owner.owner.allowDeselectClick) {
+            this.setIsSelected(!this.selected);
+        } else if (!this.selected) {
+            this.setIsSelected(true);
+        }
+        evt.stop(); return true;
+    },
+
 
     onDownPressed: function($super, evt) {
         if (evt.isCommandKey()) return $super(evt);
@@ -1076,6 +1086,28 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
         return string;
     
     },
+    removeAllSelectedIndexes: function() {
+        var oldIdx = this.selectedLineNo;
+        var oldSelection = this.selection;
+        this.selectedIndexes.length = 0;
+        if(oldIdx === undefined)
+            return;
+
+        var connections = this.attributeConnections;
+        if (!connections) return;
+        for (var i = 0, len = connections.length; i < len; i++) {
+            var c = connections[i];
+            if (c.getSourceAttrName() == 'selection')
+                c.update(undefined, oldSelection);
+            if (this.selectedLineNo !== undefined)
+                return this.selectedLineNo;                 //the updater has vetoed the change
+            if (c.getSourceAttrName() == 'selectedLineNo') 
+                c.update(undefined, oldIdx);
+            if (this.selectedLineNo !== undefined)
+                return this.selectedLineNo;                 //the updater has vetoed the change
+        }
+    },
+
 
     renderItems: function(items, from, to, selectedIndexes, renderBounds, layout) {
         this.ensureItemMorphs(to-from, layout).forEach(function(itemMorph, i) {
@@ -1112,14 +1144,7 @@ lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
             function setState() { self.selected = bool; }
             if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
         });
-        text.addScript(function onMouseDown(evt) {
-            if (this.owner.owner.allowDeselectClick) {
-                this.setIsSelected(!this.selected);
-            } else if (!this.isSelected) {
-                this.setIsSelected(true);
-            }
-            evt.stop(); return true;
-        });
+        text.addScript(this.textOnMouseDown);
         // text.disableEvents();
         text.unignoreEvents();
         text.setInputAllowed.bind(text, false).delay(1);

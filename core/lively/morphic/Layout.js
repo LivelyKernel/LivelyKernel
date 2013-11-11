@@ -987,7 +987,7 @@ lively.morphic.Layout.JournalLayout.subclass("lively.morphic.Layout.TreeLayout",
 'layouting', {
     orderedSubmorphs: function(submorphs) {
         return submorphs.reject(function(ea) {
-            return ea.isEpiMorp || !ea.isLayoutable;
+            return ea.isEpiMorph || !ea.isLayoutable;
         });
     }
 },
@@ -1032,7 +1032,7 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.AccordionLa
     },
     orderedSubmorphs: function(submorphs) {
         return submorphs.reject(function(ea) {
-            return ea.isEpiMorp;
+            return ea.isEpiMorph;
         });
     }
 });

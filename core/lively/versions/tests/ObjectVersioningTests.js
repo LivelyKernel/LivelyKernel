@@ -692,13 +692,13 @@ TestCase.subclass(
     },
     test13TransformGlobalEvalCorrectly: function() {
         var input = 'Global.eval(\"some string argument\");',
-            expectedOutput = 'Global.eval(lively.transformSource(\"some string argument\"));';
+            expectedOutput = 'lively.proxyFor(Global).eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
     test14TransformWindowEvalCorrectly: function() {
         var input = 'window.eval(\"some string argument\");',
-            expectedOutput = 'window.eval(lively.transformSource(\"some string argument\"));';
+            expectedOutput = 'lively.proxyFor(window).eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },

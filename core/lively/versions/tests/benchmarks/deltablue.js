@@ -878,8 +878,8 @@ function change(v, newValue) {
 var planner = null;
 
 function deltaBlue() {
-  chainTest(100);
-  projectionTest(100);
+  chainTest(80);
+  projectionTest(80);
 }
 
 deltaBlue();

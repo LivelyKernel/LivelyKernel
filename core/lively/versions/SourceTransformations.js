@@ -16,10 +16,9 @@ Object.extend(lively.versions.SourceTransformations, {
             node.expression.name === 'eval')
             return true;
         
-        // Global.eval('something') || window.eval('something')
+        // e.g. Global.eval('something') || window.eval('something')
         if (node.expression instanceof UglifyJS.AST_Dot &&
-            node.expression.property === 'eval' &&
-            (node.expression.expression.name === 'window' || node.expression.expression.name === 'Global'))
+            node.expression.property === 'eval')
             return true;
             
         return false;
@@ -161,10 +160,11 @@ Object.extend(lively.versions.SourceTransformations, {
             
             return this.transformFunctionDeclaration(node);
         } else if (node instanceof UglifyJS.AST_SymbolRef &&
-            (node.name === 'Object' ||
-            node.name ==='JSON' ||
-            node.name === 'XMLHttpRequest')) {
-        
+            lively.GlobalObjectsToWrap.include(node.name)) {
+            
+            // global native and host Objects / Constructors need to be wrapped
+            // into proxyFor-calls
+            
             return this.wrapInProxyForCall(node);
         } else if (this.isCallToEval(node)) {
             

@@ -8,7 +8,7 @@
 // * removed all print()-calls
 // * removed arguments[0], just uses 500 instead
 
-var SIZE = 10000;
+var SIZE = 500;
 
 function test_lists()
 {
@@ -46,7 +46,7 @@ function test_lists()
 }
 
 // var n = arguments[0];
-var n = 500;
+var n = 25;
 var resultl
 
 while( n-- )

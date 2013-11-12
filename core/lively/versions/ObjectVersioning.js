@@ -26,6 +26,59 @@ Object.extend(Object, {
     }
 });
 
+// native and host objects (Constructors) that create new
+// objects, which should be proxied
+lively.GlobalObjectsToWrap = [
+    // native objects:
+    // http://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
+    
+    // Global Objects - General-purpose constructors
+    'Array',
+    'Boolean',
+    'Date',
+    'Function',
+    'Iterator',
+    'Number',
+    'Object',
+    'RegExp',
+    'String',
+    'ParallelArray',
+    
+    // Global Objects - Typed array constructors
+    'ArrayBuffer',
+    'DataView',
+    'Float32Array',
+    'Float64Array',
+    'Int16Array',
+    'Int32Array',
+    'Int8Array',
+    'Uint16Array',
+    'Uint32Array',
+    'Uint8Array',
+    'Uint8ClampedArray',
+    
+    // Global Objects - Others
+    'JSON',
+    'Math',
+    'Intl',
+    
+    // NOTE: 
+    // - errors unproxied for now
+    // - eval handled elsewhere and other Non-constructor functions seem not
+    // to create objects
+    
+    
+    // the Global object itself
+    'Global',
+    'window',
+    
+    // TODO: also check host objects:
+    // http://developer.mozilla.org/en-US/docs/Web/API
+    'document',
+    'XMLHttpRequest',
+    
+];
+
 Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function(objectID) {
         return {
@@ -205,22 +258,43 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
-                result = method.apply(targetObject, args);
+                try {
+                    result = method.apply(targetObject, args);
+                } catch(e) {
+                    debugger;
+                }
                 
                 return this.ensureProxied(result);
             },
             construct: function(dummyTarget, args) {
                 var OriginalConstructor = this.targetObject(),
+                    name = OriginalConstructor.name,
                     proto = OriginalConstructor.prototype,
                     newInstance;
                 
-                if (OriginalConstructor.name === 'XMLHttpRequest') {
-                    newInstance = new OriginalConstructor();
-                    newInstance.__protoID =
-                        OriginalConstructor.prototype.__objectID;
+                if (lively.GlobalObjectsToWrap.include(name)) {
+                    // new-operator seems necessary for constructing new
+                    // instances of built-in constructors. and using them
+                    // shouldn't be problematic as the prototype chains of
+                    // built-in objects isn't expected to change
+                    
+                    newInstance = eval('new OriginalConstructor(' +
+                        args.map(function(ea, idx) {
+                            return 'args[' + idx + ']'
+                        }).reduce(function (prev, current){
+                            return prev ? prev + ', ' + current : current
+                        }, '') + ')');
+                    
+                    newInstance.__protoID = null;
+                    
                     return this.ensureProxied(newInstance);
                 }
                 
+                // we don't use a new-operator on the OriginalConstructor as
+                // the prototype of a function is proxied and would, thus,
+                // result in an object that has a proxy as actual prototype,
+                // which it shouldn't (prototype-traps + no __proto__
+                // assignments)
                 newInstance = lively.createObject(proto);
                 newInstance.constructor = OriginalConstructor;
                 OriginalConstructor.apply(newInstance, args);
@@ -400,6 +474,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // unwrapping them.
         if (Object.isFunction(target) && target.prototype &&
             !target.prototype.isProxy() &&
+            !lively.GlobalObjectsToWrap.include(target.name) &&
             !this.isRootPrototype(target.prototype)) {
             
             target.prototype = lively.proxyFor(target.prototype);
@@ -559,15 +634,6 @@ Object.extend(lively.versions.ObjectVersioning, {
             return originalStringMatch.call(this, exp);
         }
         
-    },
-    wrapNativeObjects: function() {
-        // built-in functions that create new objects
-        // have to return proxies for the new objects. examples:
-        
-        // TODO:
-        // Date, Global, window
-        
-        // handled in source transformations: Object, JSON, XMLHttpRequest
     },
     patchBaseCode: function() {
         // patches for bootstrap.js:

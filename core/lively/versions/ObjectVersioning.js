@@ -546,13 +546,12 @@ Object.extend(lively.versions.ObjectVersioning, {
         this.init();
         
         this.patchNativeFunctions();
-        this.wrapNativeObjects();
         
         this.patchBaseCode();
     },
     patchNativeFunctions: function() {
         
-        // 'aString'.match(regExp): regExp can't be proxy
+        // 'aString'.match(regExp): regExp can't be a proxy
         var originalStringMatch = String.prototype.match;
         String.prototype.match = function(regexp) {
             var exp = regexp && regexp.isProxy() ?
@@ -584,7 +583,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         // patches for Base.js:
         Object.extend(Function.prototype, {
-            newClassConstructor : function() {
+            protoClassConstructor : function() {
                 return lively.proxyFor(function() { });
             }
         });

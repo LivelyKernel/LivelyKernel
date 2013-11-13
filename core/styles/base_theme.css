@@ -256,3 +256,9 @@
 	border-radius: 3px;
 	background: rgba(255,0,0,0.7);
 }
+
+.ace-marker-warning {
+	position: absolute;
+	border-radius: 3px;
+	background: rgba(204,204,0,0.7);
+}

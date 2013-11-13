@@ -2,8 +2,13 @@ module('lively.versions.ObjectVersioning').requires('lively.versions.SourceTrans
     
 Object.defineProperty(Object.prototype, 'isProxy', {
     value: function() {
-        return false
+        return false;
     },
+    writable: true
+});
+// for convenience: to have autocompletion in dev tools
+Object.defineProperty(Object.prototype, 'proxyTarget', {
+    value: undefined,
     writable: true
 });
 

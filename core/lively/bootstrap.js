@@ -890,28 +890,18 @@
         },
         
         getAsync: function(url, forceUncached, callback) {
-            var cb = function(req) {
-                callback(req.status < 400 ? req.responseText : null);
-            }
-            this.getAsyncReq(url, forceUncached, cb);
-        },
-
-
-        getAsync: function(url, forceUncached, callback) {
             if (typeof WebResource !== "undefined") {
                 var webR = new WebResource(url);
                 
                 if (forceUncached) webR.forceUncached();
                 webR.beAsync();
-                
-                connect(webR, 'content', {cb: function(content){
-                        if (webR.status && webR.status.isDone()) {
-                            callback(webR.status.isSuccess() ? content : null);
-                        }
+                webR.whenDone(function(content, status) {
+                    if (status.isDone()) {
+                        callback(content);
                     }
-                }, 'cb');
+                });
                 
-                var webRGet = webR.get();
+                webR.get();
             } else {
                 var req = new XMLHttpRequest();
                 

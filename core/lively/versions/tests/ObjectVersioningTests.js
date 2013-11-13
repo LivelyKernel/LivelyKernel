@@ -619,10 +619,10 @@ TestCase.subclass(
         '        zipCode: "12125"\n' +
         '    }),\n' +
         '    friends: lively.proxyFor([]),\n' +
-        '    becomeFriendsWith: lively.proxyFor(function(otherPerson) {\n' +
+        '    becomeFriendsWith: lively.proxyFor(function becomeFriendsWith(otherPerson) {\n' +
         '        this.friends.push(otherPerson.name);\n' +
         '    }),\n' +
-        '    isFriendOf: lively.proxyFor(function(otherPerson) {\n' +
+        '    isFriendOf: lively.proxyFor(function isFriendOf(otherPerson) {\n' +
         '        return this.friends.include(otherPerson.name);\n' +
         '    })\n' +
         '});';
@@ -649,7 +649,7 @@ TestCase.subclass(
             '});';
         var expectedOutput =
             'lively.proxyFor(Object).defineProperty(obj, \"age\", lively.proxyFor({\n' +
-            '    get: lively.proxyFor(function() {\n' +
+            '    get: lively.proxyFor(function get() {\n' +
             '        return 2;\n' +
             '    })\n' +
             '}));';

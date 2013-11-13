@@ -2226,12 +2226,12 @@ if (typeof Proxy !== "undefined") {
       if (typeof target === "function") {
         proxy = primCreateFunction(vHandler,
           // call trap
-          function() {
+          function invokeCallTrap() {
             var args = Array.prototype.slice.call(arguments);
             return vHandler.apply(target, this, args);
           },
           // construct trap
-          function() {
+          function invokeConstructTrap() {
             var args = Array.prototype.slice.call(arguments);
             return vHandler.construct(target, args);
           });

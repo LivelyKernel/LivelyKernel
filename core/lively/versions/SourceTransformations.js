@@ -118,9 +118,38 @@ Object.extend(lively.versions.SourceTransformations, {
         
         return UglifyJS.parse(code).body[0].body;
     },
-    
-    transformNode: function(node) {
+    isAKeyValuePairWithAProxiedFunction: function (node) {
+        // search key value pairs of object literals for assignments of
+        // the following form: {func: lively.proxyFor(function(..) {..})}
         
+        // note: we're checking for proxyFor, because the tree transformation
+        // looks at leaves first, that
+        
+        return node instanceof UglifyJS.AST_ObjectKeyVal &&
+            node.value instanceof UglifyJS.AST_Call &&
+            node.value.expression instanceof UglifyJS.AST_Dot &&
+            node.value.expression.property === 'proxyFor' &&
+            node.value.args[0] instanceof UglifyJS.AST_Function &&
+            !node.value.args[0].name;
+    },
+    addKeyAsFunctionNameForAnonymousFunctions: function (node) {
+        var functionNode = node.value.args[0],
+            invalidFunctionNames = /[-|]|true|false|this|break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|this|throw|try|typeof|var|void|while|with/;
+        
+        if (node.key.match(invalidFunctionNames))
+            return;
+        
+        functionNode.name = new UglifyJS.AST_SymbolLambda({name: node.key});
+        
+        // debugging for invalid function names..
+        // try {
+        //     eval(functionNode.print_to_string());
+        // } catch (e) {
+        //     debugger;
+        // }
+        
+    },
+    transformNode: function(node) {
         if (node instanceof UglifyJS.AST_Array ||
             node instanceof UglifyJS.AST_Function) {
             // Note: AST_Function is a function expression, not a declaration,
@@ -180,6 +209,17 @@ Object.extend(lively.versions.SourceTransformations, {
             // objects
             
             return this.wrapInObjectInstanceOfCall([node.left, node.right]);
+        } if (this.isAKeyValuePairWithAProxiedFunction(node)) {
+            
+            // use property keys as function names to have less anonymous
+            // functions in the debugger
+            
+            // obj = {myMethod: lively.proxyFor(function())}
+            // -->
+            // obj = {myMethod: lively.proxyFor(function myMethod())}
+            
+            this.addKeyAsFunctionNameForAnonymousFunctions(node);
+            return node;
         } else {
             return node;
         }

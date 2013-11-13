@@ -459,6 +459,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         ed.$morph.focus();
                     });
                 }
+            }, {
+                name: "toggle text overlays",
+                exec: function(ed) {
+                    var method = ed.$morph.jQuery().find('.text-overlay').hasClass('hidden') ?
+                        "unhideTextOverlays" : "hideTextOverlays"
+                    ed.$morph[method]();
+                }
             }]);
     },
 

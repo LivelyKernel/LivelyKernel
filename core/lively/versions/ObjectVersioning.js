@@ -394,7 +394,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return true;
             },
             deleteProperty: function(dummyTarget, name) {
-                delete this.targetObject()[name];
+                var targetObject = this.targetObject();
+                return delete targetObject[name];
             }
         };
     }

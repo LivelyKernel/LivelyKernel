@@ -312,6 +312,16 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(obj.anotherProp, 10);
         this.assert(Object.isFunction(obj.__lookupSetter__('aProp')));
     },
+    test30bDeleteDefinedSetter__deprecatedVariant: function() {
+        var obj = lively.proxyFor({});
+        
+        obj.__defineSetter__('aProp', lively.proxyFor(function(val) {
+           this.anotherProp = val * 2;
+        }));
+        delete obj['aProp'];
+        
+        this.assertEquals(obj.__lookupSetter__('aProp'));
+    },
     test31DefineGetter__deprecatedVariant: function() {
         var obj = lively.proxyFor({anotherProp: 5});
         

@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.TextOverlay').requires('lively.ide.CodeEditor', 'lively.DOMAbstraction', 'lively.ide.tests.CodeEditor').toRun(function() {
+module('lively.ide.codeeditor.TextOverlay').requires('lively.DOMAbstraction').toRun(function() {
 
 (function setupCSS() {
     var css = ".text-overlay {\n"
@@ -15,6 +15,10 @@ module('lively.ide.codeeditor.TextOverlay').requires('lively.ide.CodeEditor', 'l
          // + "    text-shadow: 0px 0px 5px rgba(0,0,200, 0.7);\n"
          // + "    text-shadow: 0px 0px 5px blue;\n"
          // + "    text-shadow: 0px 0px 5px white;\n"
+            + "    white-space: pre;\n"
+            + "}\n"
+            + ".text-overlay.hidden {\n"
+            + "    display: none;\n"
             + "}"
     XHTMLNS.addCSSDef(css, 'lively.ide.CodeEditorTextOverlay');
 })();
@@ -97,97 +101,47 @@ Object.subclass("lively.ide.CodeEditorTextOverlay.Overlay",
     }
 });
 
-lively.morphic.CodeEditor.addMethods(
-'text overlay', {
-    setupOverlaySupport: function(ed) {
-        var session = ed.session;
-        var $overlay = session.$textOverlay;
-        if ($overlay) $overlay.detach(session)
-        session.$textOverlay = new lively.ide.CodeEditorTextOverlay.Overlay()
-        session.$textOverlay.attach(session);
-        return session.$textOverlay;
-    },
+(function extendCodeEditor() {
+require('lively.ide.CodeEditor').toRun(function() {
 
-    withOverlaySupport: function(func) {
-        this.withAceDo(function(ed) {
-            func.call(this, ed.session.$textOverlay || this.setupOverlaySupport(ed), ed);
-        });
-    },
+    lively.morphic.CodeEditor.addMethods(
+    'text overlay', {
+        setupOverlaySupport: function(ed) {
+            var session = ed.session;
+            var $overlay = session.$textOverlay;
+            if ($overlay) $overlay.detach(session)
+            session.$textOverlay = new lively.ide.CodeEditorTextOverlay.Overlay()
+            session.$textOverlay.attach(session);
+            return session.$textOverlay;
+        },
 
-    addTextOverlay: function(overlay) {
-        this.withOverlaySupport(function($overlay, ed) {
-            $overlay.add(overlay, ed.session); });
-    },
-
-    removeTextOverlay: function() {
-        this.withOverlaySupport(function($overlay, ed) {
-            $overlay.detach(ed.session);
-            delete ed.session.$textOverlay;
-        });
-    }
-});
-
-lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditorTextLayer',
-'running', {
-    setUp: function($super, run) {
-        var self = this;
-        $super(function() {
-            this.editor.setShowGutter(false);
-            this.editor.openInWorldCenter();
-            this.editor.withAceDo(function(ed) {
-                run.delay(0.1);
+        withOverlaySupport: function(func) {
+            this.withAceDo(function(ed) {
+                func.call(this, ed.session.$textOverlay || this.setupOverlaySupport(ed), ed);
             });
-        });
-    }
-},
-"assertion", {
-    assertRenderedOverlayPositions: function(positions, overlayMarker) {
-        var layerConfig = this.editor.aceEditor.renderer.layerConfig,
-            els = overlayMarker.getElements(this.editor.aceEditor);
-        els.forEach(function(el, i) {
-            var overlay = overlayMarker.overlays[i],
-                style = Global.getComputedStyle(el),
-                left = Number(style.left.replace(/[^0-9]+/g, '')),
-                expectedLeft = layerConfig.padding + (layerConfig.characterWidth * positions[i].column),
-                top = Number(style.top.replace(/[^0-9]+/g, '')),
-                expectedTop = layerConfig.offset + (layerConfig.lineHeight * positions[i].row);
-            this.assertEquals(expectedLeft, left, 'left');
-            this.assertEquals(expectedTop, top, 'top');
-        }, this);
-    },
-    assertRenderedOverlayText: function(texts, overlayMarker) {
-        var els = overlayMarker.getElements(this.editor.aceEditor);
-        els.forEach(function(el, i) {
-            this.assertEquals(texts[i], el.textContent);
-        }, this);
-    }
-},
-'testing', {
+        },
 
-    testRendersOverlay: function() {
-        var codeEditor = this.editor,
-            session = this.editor.getSession(),
-            ed = this.editor.aceEditor,
-            el, layerConfig, style;
-        codeEditor.setTextString('\nhello ');
-        codeEditor.addTextOverlay({
-            text: 'world',
-            classNames: ['test-overlay'],
-            start: {row: 1, column: 6}
-        });
-        this.delay(function() {
-            this.assertRenderedOverlayText(['world'], session.$textOverlay);
-            this.assertRenderedOverlayPositions([{row: 1, column: 6}], session.$textOverlay);
+        addTextOverlay: function(overlay) {
+            this.withOverlaySupport(function($overlay, ed) {
+                $overlay.add(overlay, ed.session); });
+        },
 
-            ed.moveCursorToPosition({row: 1, column: 0});
-            ed.insert('x');
-            this.delay(function assertOverlayDoesntMoveWithText() {
-                this.assertRenderedOverlayPositions([{row: 1, column: 6}], session.$textOverlay);
-                this.done();
-            }, 100);
-        }, 100);
-    }
+        removeTextOverlay: function() {
+            this.withOverlaySupport(function($overlay, ed) {
+                $overlay.detach(ed.session);
+                delete ed.session.$textOverlay;
+            });
+        },
 
+        hideTextOverlays: function() {
+            this.jQuery().find('.text-overlay').addClass('hidden');
+        },
+
+        unhideTextOverlays: function() {
+            this.jQuery().find('.text-overlay').removeClass('hidden');
+        }
+    });
 });
+})();
 
 }) // end of module

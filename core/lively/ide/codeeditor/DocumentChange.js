@@ -2,6 +2,8 @@ module('lively.ide.codeeditor.DocumentChange').requires().toRun(function() {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // how to deal with document changes
+// this class connects the lively.morphic.CodeEditor with the change handlers
+// out there
 Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
 'initialize', {
     initialize: function(plugins) {
@@ -53,11 +55,132 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
 });
 
 Object.extend(lively.ide.CodeEditor.DocumentChangeHandler, {
+    plugins: [],
     create: function() {
-        return new lively.ide.CodeEditor.DocumentChangeHandler(
-                    [new lively.ide.codeeditor.Modes.ChangeHandler(),
-                     new lively.ide.codeeditor.JS.ChangeHandler()]);
+        return new lively.ide.CodeEditor.DocumentChangeHandler(this.plugins);
     }
+});
+
+(function addDocChangeModePlugins() {
+    require('lively.ide.codeeditor.Modes', 'lively.ide.codeeditor.JS').toRun(function() {
+        Object.extend(lively.ide.CodeEditor.DocumentChangeHandler, {
+            plugins: [
+                new lively.ide.codeeditor.Modes.ChangeHandler(),
+                new lively.ide.codeeditor.JS.ChangeHandler(),
+                new lively.ide.codeeditor.modes.Haskell.ChangeHandler()]
+        });
+    })
+})();
+
+// Used as a plugin for the lively.ide.CodeEditor.DocumentChangeHandler, will
+// trigger attach/detach actions for modes that require those
+Object.subclass('lively.ide.codeeditor.Modes.ChangeHandler',
+"testing", {
+    isActiveFor: function(evt) { return evt.type === 'changeMode'; }
+},
+'rendering', {
+    onModeChange: function(evt) {
+        var s = evt.session,
+            modeState = s.$livelyModeState || (s.$livelyModeState = {}),
+            lastMode = modeState.lastMode,
+            currentMode = evt.session.getMode();
+        if (lastMode && lastMode.detach) {
+            lastMode.detach(evt.codeEditor.aceEditor);
+        }
+        modeState.lastMode = currentMode;
+        if (currentMode && currentMode.attach) {
+            currentMode.attach(evt.codeEditor.aceEditor);
+        }
+    }
+});
+
+// Abstract super class for specific text modes
+Object.subclass('lively.ide.codeeditor.ModeChangeHandler',
+"settings", {
+    targetMode: null
+},
+"testing", {
+    isActiveFor: function(evt) {
+        if (!this.targetMode) return false;
+        var mode = evt.session.getMode();
+        if (mode.$id === this.targetMode) return true;
+        var codeMarker = evt.session.$livelyCodeMarker;
+        return codeMarker && codeMarker.modeId === this.targetMode;
+    }
+},
+"markers", {
+    // simple background markers for highlighting
+    ensureLivelyCodeMarker: function(session) {
+        var marker = session.$livelyCodeMarker;
+        if (!marker) {
+            marker = session.$livelyCodeMarker = new lively.ide.CodeEditor.CodeMarker();
+            marker.attach(session);
+        }
+        return marker;
+    },
+
+    drawMarkerHighlight: function(spec, codeEditor, marker) {
+        // spec = {pos: {start: NUMBER, end: NUMBER}, message: STRING, cssClassName: STRING
+        var pos = spec.pos;
+        var line = codeEditor.getSession().getLine(pos) || '';
+        var start = {row: pos.row, column: Math.max(0, pos.column-1)};
+        var end = {row: pos.row, column: Math.min(pos.column+1, line.length)};
+        if (start.column === end.column) end.column++;
+        var absStart = codeEditor.positionToIndex(start);
+        var absEnd = codeEditor.positionToIndex(end);
+        var markerPart = {
+            cssClassName: spec.cssClassName,
+            end: absEnd, start: absStart
+        }
+        marker.markerRanges.push(markerPart);
+        marker.redraw(codeEditor.getSession());
+    }
+},
+"overlays", {
+    // text overlay that is rendered on top of the real text
+    addOverlay: function(spec, codeEditor, marker, overlayBounds) {
+        // spec = {pos: {start: NUMBER, end: NUMBER}, message: STRING, cssClassName: STRING
+        var messageWidth = spec.message.split('\n').pluck('length').max(),
+            edWidth = Math.floor(
+                (codeEditor.aceEditor.renderer.$size.width-codeEditor.aceEditor.renderer.gutterWidth) /
+                codeEditor.aceEditor.renderer.characterWidth),
+            col = edWidth-messageWidth,
+            row = spec.pos.row,
+            overlay = {start: {column: col, row: row}, text: spec.message};
+        overlay = this.transformOverlaySpecToNotOverlap(overlay, overlayBounds);
+        this.recordOverlayedArea(overlay, overlayBounds);
+        codeEditor.addTextOverlay(overlay);
+    },
+
+    overlaySpecBounds: function(overlaySpec) {
+        var x = overlaySpec.start.column, y = overlaySpec.start.row,
+            lines = overlaySpec.text.split('\n'),
+            width = lines.max(function(line) { return line.length; }).length,
+            height = lines.length;
+        return lively.rect(x,y,width,height);
+    },
+
+    recordOverlayedArea: function(overlaySpec, overlayBounds) {
+        overlayBounds.push(this.overlaySpecBounds(overlaySpec));
+    },
+
+    transformOverlaySpecToNotOverlap: function(overlaySpec, otherOverlayBounds) {
+        var bounds = this.overlaySpecBounds(overlaySpec), last = otherOverlayBounds.last();
+        if (!last || !last.intersects(bounds)) return overlaySpec;
+        return Object.extend(Object.create(overlaySpec), {start: {column: bounds.left(), row: last.bottom()}});
+    }
+},
+'update', {
+    onModeChange: function(evt) {
+        var sess = evt.session;
+        if (sess.getMode().$id === this.targetMode) { this.onDocumentChange(evt); return; }
+        var marker = this.ensureLivelyCodeMarker(sess);
+        sess.$ast = null;
+        marker.markerRanges.length = 0;
+        marker.modeId = null;
+        marker.redraw(sess);
+    },
+    onDocumentChange: function(evt) {}
 });
 
 Object.subclass('lively.ide.CodeEditor.CodeMarker',

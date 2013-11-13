@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.JS').requires('lively.ast.acorn').toRun(function() {
+module('lively.ide.codeeditor.JS').requires('lively.ast.acorn', 'lively.ide.codeeditor.DocumentChange').toRun(function() {
 
 Object.subclass('lively.ide.codeeditor.JS.Navigator',
 'parsing', {
@@ -176,21 +176,13 @@ Object.subclass('lively.ide.codeeditor.JS.ScopeAnalyzer',
 
 });
 
-Object.subclass('lively.ide.codeeditor.JS.ChangeHandler',
+lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.ChangeHandler',
 "settings", {
     targetMode: "ace/mode/javascript"
 },
 "initializing", {
     initialize: function() {
         this.scopeAnalyzer = new lively.ide.codeeditor.JS.ScopeAnalyzer();
-    }
-},
-"testing", {
-    isActiveFor: function(evt) {
-        var mode = evt.session.getMode();
-        if (mode.$id === this.targetMode) return true;
-        var codeMarker = evt.session.$livelyCodeMarker;
-        return codeMarker && codeMarker.modeId === this.targetMode;
     }
 },
 "parsing", {
@@ -201,23 +193,10 @@ Object.subclass('lively.ide.codeeditor.JS.ChangeHandler',
     }
 },
 'rendering', {
-    onModeChange: function(evt) {
-        var sess = evt.session;
-        if (sess.getMode().$id === this.targetMode) {
-            this.onDocumentChange(evt);
-        } else {
-            sess.$ast = null;
-            if (sess.$livelyCodeMarker) {
-                sess.$livelyCodeMarker.markerRanges.length = 0;
-                sess.$livelyCodeMarker.modeId = null;
-                sess._emit("changeBackMarker");
-            }
-        }
-    },
-
     onDocumentChange: function(evt) {
         this.updateAST(evt)
     },
+
     updateAST: function(evt) {
         var codeEditor = evt.codeEditor,
             session = evt.session,
@@ -231,11 +210,7 @@ Object.subclass('lively.ide.codeeditor.JS.ChangeHandler',
         }
 
         // 2. update lively codemarker
-        var marker = session.$livelyCodeMarker;
-        if (!marker) {
-            marker = session.$livelyCodeMarker = new lively.ide.CodeEditor.CodeMarker();
-            marker.attach(session);
-        }
+        var marker = this.ensureLivelyCodeMarker(session);
         marker.modeId = this.targetMode;
         marker.markerRanges.length = 0;
         if (this.scopeAnalyzer && codeEditor.getShowWarnings()) {
@@ -247,7 +222,7 @@ Object.subclass('lively.ide.codeeditor.JS.ChangeHandler',
             ast.parseError.cssClassName = "ace-syntax-error";
             marker.markerRanges.push(ast.parseError);
         }
-        session._emit("changeBackMarker");
+        marker.redraw(session);
 
         // 3. emit session astChange event
         var astChange = {ast: ast, docChange: evt.data, codeEditor: codeEditor};

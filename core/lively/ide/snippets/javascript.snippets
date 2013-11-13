@@ -66,9 +66,7 @@ snippet do
 # Object Method
 snippet :f
 regex /([,{[])|^\s*/:f/
-	${1:methodName}: function(${2:attribute}) {
-		${0}
-	}${3:,}
+	${1:methodName}: function(${2:attribute}) {${0}}${3:,}
 # Object Property
 snippet :p
 regex /([,{[])|^\s*/:p/
@@ -80,7 +78,7 @@ regex /\b/st|timeout|setTimeo?u?t?/
 # delay function
 snippet delay
 regex /\b/st|del(ay)?/
-	(function() { ${0}; })${2:.bind(this)}.delay(${1:0});
+	(function() {${0}})${2:.bind(this)}.delay(${1:0});
 # Get Elements
 snippet gett
 	getElementsBy${1:TagName}('${2}')${3}
@@ -125,10 +123,7 @@ snippet jsons
 snippet sdf
 	var ${1:function_name} = function(${2:argument}) {
 		${3:// initial code ...}
-
-		$1 = function($2) {
-			${4:// main code}
-		};
+		$1 = function($2) {${4:// main code}};
 	}
 # class
 name subclass
@@ -155,12 +150,12 @@ snippet init
 	initialize: function(${1}) {${0}}
 # initialize category
 snippet initCat
-	"initializing", {
+	'initializing', {
 		initialize: function(${1}) {${0}}
 	}
 # category
 snippet cat
-	"${1:category name}", {${0}}${2:,}
+	'${1:category name}', {${0}}${2:,}
 # addMethods
 name addMethods
 regex /^\s*([^\.]+)?/\.?addMe?t?h?o?d?s?/
@@ -208,8 +203,8 @@ snippet $m
 	\$morph('${1:name}')${0}
 # 
 snippet for-
-	for (var ${1:i} = ${2:Things}.length; ${1:i}--; ) {
-		${0:${2:Things}[${1:i}];}
+	for (var ${1:i} = ${2:THINGS}.length; ${1:i}--; ) {
+		${0:${2:THINGS}[${1:i}];}
 	}
 # for (...) {...}
 snippet for

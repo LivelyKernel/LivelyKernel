@@ -14,7 +14,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
             proxy = lively.proxyFor(object);
         
         this.assertEquals(lively.objectFor(proxy), object);
-        this.assertEquals(proxy.proxyTarget, object);
+        this.assertEquals(proxy.proxyTarget(), object);
     },
     test03ProxyRetrievesPrimitiveProperty: function() {
         var obj = {},

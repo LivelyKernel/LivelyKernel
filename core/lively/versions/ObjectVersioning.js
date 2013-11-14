@@ -8,7 +8,9 @@ Object.defineProperty(Object.prototype, 'isProxy', {
 });
 // for convenience: to have autocompletion in dev tools
 Object.defineProperty(Object.prototype, 'proxyTarget', {
-    value: undefined,
+    value: function() {
+        return undefined;
+    },
     writable: true
 });
 
@@ -20,9 +22,9 @@ Object.extend(Object, {
             return obj instanceof type
         }
         
-        realObj = obj.isProxy() ? obj.proxyTarget : obj;
+        realObj = obj.isProxy() ? obj.proxyTarget() : obj;
         realPrototype = type.prototype.isProxy() ?
-            type.prototype.proxyTarget : type.prototype;
+            type.prototype.proxyTarget() : type.prototype;
         
         FakeConstructor = function() {};
         FakeConstructor.prototype = realPrototype;
@@ -98,6 +100,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // === helpers ===
             isProxy: function() { return true },
+            proxyTarget: function() { return this.targetObject() },
             
             targetObject: function() {
                 return this.getObjectByID(this.__objectID);
@@ -162,7 +165,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 if (name === 'onreadystatechange' && value.isProxy() &&
                     targetObject.constructor.name === 'XMLHttpRequest') {
-                    value = value.proxyTarget;
+                    value = value.proxyTarget();
                 }
                        
                 targetObject[name] = value;
@@ -181,7 +184,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return this.isProxy;
                 }
                 if (name === 'proxyTarget') {
-                    return this.targetObject();
+                    return this.proxyTarget.bind(this);
                 }
                 
                 targetObject = this.targetObject();

@@ -586,61 +586,41 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test06IndicatesFailureOnSyntaxError: function() {
-        var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
-       
-        this.assertRaises((function() {
-            this.transform(incorrectInput);
-        }).bind(this));
-    },
-    test07BiggerExample: function() {
-        var input = 
-            "var joe = {\n" +
-            "    name: 'Joe',\n" +
-            "    age: 25,\n" +
-            "    address: {\n" +
-            "        street: 'Mainstr. 20',\n" +
-            "        zipCode: '12125'\n" +
-            "    },\n" +
-            "    friends: [],\n" +
-            "    becomeFriendsWith: function(otherPerson) {\n" +
-            "        this.friends.push(otherPerson.name);\n" +
-            "    },\n" +
-            "    isFriendOf: function(otherPerson) {\n" +
-            "        return this.friends.include(otherPerson.name);\n" +
-            "    }\n" +
-            "}";
-    var expectedOutput = 
-        'var joe = lively.proxyFor({\n' +
-        '    name: "Joe",\n' +
-        '    age: 25,\n' +
-        '    address: lively.proxyFor({\n' +
-        '        street: "Mainstr. 20",\n' +
-        '        zipCode: "12125"\n' +
-        '    }),\n' +
-        '    friends: lively.proxyFor([]),\n' +
-        '    becomeFriendsWith: lively.proxyFor(function becomeFriendsWith(otherPerson) {\n' +
-        '        this.friends.push(otherPerson.name);\n' +
-        '    }),\n' +
-        '    isFriendOf: lively.proxyFor(function isFriendOf(otherPerson) {\n' +
-        '        return this.friends.include(otherPerson.name);\n' +
-        '    })\n' +
-        '});';
+    test06FunctionDeclarationHoisting: function() {
+        var input =
+            'funcName();\n' +
+            'function funcName() {\n' +
+            '   return 12;\n' +
+            '};';
+        var expectedOutput =
+            'var funcName = lively.proxyFor(function funcName() {\n' +
+            '    return 12;\n' +
+            '});\n' +
+            '\n' +
+            'funcName();\n\n';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test08GenerateSourceWithMapping: function() {
-        var input = 'var obj = {};',
-            expectedOutput = 'var obj=lively.proxyFor({});\n' +
-                '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
-                'eyJ2ZXJzaW9uIjozLCJmaWxlIjpudWxsLCJzb3VyY2VzIjpbImV2YWwgYXQgcnVud' +
-                'GltZSJdLCJuYW1lcyI6WyJvYmoiXSwibWFwcGluZ3MiOiJBQUFBLEdBQUlBIiwic2' +
-                '91cmNlc0NvbnRlbnQiOlsidmFyIG9iaiA9IHt9OyJdfQ==',
-            output = lively.versions.SourceTransformations.generateCodeFromSource(input);
+    test07FunctionDeclarationHoistingInAFunction: function() {
+        var input =
+            '(function() {\n' +
+            '    funcName();\n' +
+            '\n' +
+            '    function funcName() {\n' +
+            '        return 12;\n' +
+            '    }\n' +
+            '})();';
+        var expectedOutput =
+            'lively.proxyFor(function() {\n' +
+            '    var funcName = lively.proxyFor(function funcName() {\n' +
+            '        return 12;\n' +
+            '    });\n' +
+            '    funcName();\n' +
+            '})();';
         
-        this.assertEquals(output, expectedOutput);
+        this.assertEquals(this.transform(input), expectedOutput);
     },
-    test09AccessorFunctionInDefineProperty: function() {
+    test08TransformsDefinePropertyCorrectly: function() {
         var input =
             'Object.defineProperty(obj, \"age\", {\n' +
             '    get: function() {\n' +
@@ -656,7 +636,7 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test10AccessorFunctionInObjectLiteral: function() {
+    test09TransformsAccessorInObjectLiteralToDefinePropertyCall: function() {
         var input =
         'obj = {\n' +
         '    age: 2,\n' +
@@ -688,39 +668,93 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test11TransformObjectCreate: function() {
-        var input = 'var o = Object.create(null);',
-            expectedOutput = 'var o = lively.proxyFor(Object).create(null);';
-        
-        this.assertEquals(this.transform(input), expectedOutput);
-    },
-    test12TransformEvalCorrectly: function() {
-        var input = 'eval(\"some string argument\");',
-            expectedOutput = 'eval(lively.transformSource(\"some string argument\"));';
-        
-        this.assertEquals(this.transform(input), expectedOutput);
-    },
-    test13TransformGlobalEvalCorrectly: function() {
-        var input = 'Global.eval(\"some string argument\");',
-            expectedOutput = 'lively.proxyFor(Global).eval(lively.transformSource(\"some string argument\"));';
-        
-        this.assertEquals(this.transform(input), expectedOutput);
-    },
-    test14TransformWindowEvalCorrectly: function() {
-        var input = 'window.eval(\"some string argument\");',
-            expectedOutput = 'lively.proxyFor(window).eval(lively.transformSource(\"some string argument\"));';
-        
-        this.assertEquals(this.transform(input), expectedOutput);
-    },
-    test15TransformInstanceofOperator: function() {
+    test10TransformInstanceofOperator: function() {
         var input = 'obj instanceof Type;',
             expectedOutput = 'Object.instanceOf(obj, Type);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test16TransformObject: function() {
+    test11TransformObject: function() {
         var input = 'xy === Object;',
             expectedOutput = 'xy === lively.proxyFor(Object);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test12TransformObjectCreate: function() {
+        var input = 'var o = Object.create(null);',
+            expectedOutput = 'var o = lively.proxyFor(Object).create(null);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test13TransformEvalCorrectly: function() {
+        var input = 'eval(\"some string argument\");',
+            expectedOutput = 'eval(lively.transformSource(\"some string argument\"));';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test14TransformGlobalEvalCorrectly: function() {
+        var input = 'Global.eval(\"some string argument\");',
+            expectedOutput = 'lively.proxyFor(Global).eval(lively.transformSource(\"some string argument\"));';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test15TransformWindowEvalCorrectly: function() {
+        var input = 'window.eval(\"some string argument\");',
+            expectedOutput = 'lively.proxyFor(window).eval(lively.transformSource(\"some string argument\"));';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test16IndicatesFailureOnSyntaxError: function() {
+        var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
+       
+        this.assertRaises((function() {
+            this.transform(incorrectInput);
+        }).bind(this));
+    },
+    test17GenerateSourceWithMapping: function() {
+        var input = 'var obj = {};',
+            expectedOutput = 'var obj=lively.proxyFor({});\n' +
+                '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
+                'eyJ2ZXJzaW9uIjozLCJmaWxlIjpudWxsLCJzb3VyY2VzIjpbImV2YWwgYXQgcnVud' +
+                'GltZSJdLCJuYW1lcyI6WyJvYmoiXSwibWFwcGluZ3MiOiJBQUFBLEdBQUlBIiwic2' +
+                '91cmNlc0NvbnRlbnQiOlsidmFyIG9iaiA9IHt9OyJdfQ==',
+            output = lively.versions.SourceTransformations.generateCodeFromSource(input);
+        
+        this.assertEquals(output, expectedOutput);
+    },
+    test18BiggerExample: function() {
+        var input =
+            "var joe = {\n" +
+            "    name: 'Joe',\n" +
+            "    age: 25,\n" +
+            "    address: {\n" +
+            "        street: 'Mainstr. 20',\n" +
+            "        zipCode: '12125'\n" +
+            "    },\n" +
+            "    friends: [],\n" +
+            "    becomeFriendsWith: function(otherPerson) {\n" +
+            "        this.friends.push(otherPerson.name);\n" +
+            "    },\n" +
+            "    isFriendOf: function(otherPerson) {\n" +
+            "        return this.friends.include(otherPerson.name);\n" +
+            "    }\n" +
+            "}";
+    var expectedOutput =
+        'var joe = lively.proxyFor({\n' +
+        '    name: "Joe",\n' +
+        '    age: 25,\n' +
+        '    address: lively.proxyFor({\n' +
+        '        street: "Mainstr. 20",\n' +
+        '        zipCode: "12125"\n' +
+        '    }),\n' +
+        '    friends: lively.proxyFor([]),\n' +
+        '    becomeFriendsWith: lively.proxyFor(function becomeFriendsWith(otherPerson) {\n' +
+        '        this.friends.push(otherPerson.name);\n' +
+        '    }),\n' +
+        '    isFriendOf: lively.proxyFor(function isFriendOf(otherPerson) {\n' +
+        '        return this.friends.include(otherPerson.name);\n' +
+        '    })\n' +
+        '});';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },

@@ -5,7 +5,6 @@ module('lively.versions.SourceTransformations').requires().toRun(function() {
 Global.MOZ_SourceMap = Global.sourceMap;
         
 Object.extend(lively.versions.SourceTransformations, {
-    
     isCallToEval: function(node) {
         
         if (!node instanceof UglifyJS.AST_Call)
@@ -27,6 +26,12 @@ Object.extend(lively.versions.SourceTransformations, {
         return node instanceof UglifyJS.AST_Dot &&
             node.property === 'create' &&
             node.expression.name === 'Object';
+    },
+    isProxyForCall: function(node) {
+        return node instanceof UglifyJS.AST_Call &&
+            node.expression instanceof UglifyJS.AST_Dot &&
+            node.expression.property === 'proxyFor' &&
+            node.args.length === 1;
     },
     wrapInCallOnSymbol: function(symbolName, functionName, argOrArgs) {
         return new UglifyJS.AST_Call({
@@ -64,6 +69,8 @@ Object.extend(lively.versions.SourceTransformations, {
     transformFunctionDeclaration: function(functionDeclaration) {
         var variableName = functionDeclaration.name.name,
             value = this.wrapInProxyForCall(functionDeclaration);
+        
+        functionDeclaration.shouldBeHoisted = true;
         
         return this.createAssignmentNode(variableName, value);
     },
@@ -126,9 +133,7 @@ Object.extend(lively.versions.SourceTransformations, {
         // looks at leaves first, that
         
         return node instanceof UglifyJS.AST_ObjectKeyVal &&
-            node.value instanceof UglifyJS.AST_Call &&
-            node.value.expression instanceof UglifyJS.AST_Dot &&
-            node.value.expression.property === 'proxyFor' &&
+            this.isProxyForCall(node.value) &&
             node.value.args[0] instanceof UglifyJS.AST_Function &&
             !node.value.args[0].name;
     },
@@ -149,7 +154,43 @@ Object.extend(lively.versions.SourceTransformations, {
         // }
         
     },
+    isTransformedFunctionDeclaration: function(node) {
+        var proxyForCall;
+        
+        // 1. check: var [NAME] = [EXPR];
+        if (!(node instanceof UglifyJS.AST_Var &&
+            node.definitions.length === 1))
+            return false;
+        
+        // 2. check: var xy = lively.proxyFor([EXPR])
+        if (!this.isProxyForCall(node.definitions[0].value))
+            return false;
+        
+        proxyForCall = node.definitions[0].value;
+        
+        // 3. check [EXPR] in (2) is a function we wrapped previously
+        return proxyForCall.args[0] instanceof UglifyJS.AST_Defun &&
+            proxyForCall.args[0].shouldBeHoisted;
+    },
     transformNode: function(node) {
+        
+        // function declarations get hoisted in JavaScript, so we need to move
+        // the function declarations we transformed to variable assignments (of
+        // the form 'var funcName = function expression') (and note that we
+        // transform leaves first) to the beginning of each scope, while
+        // preserving the order of function declarations. for examples, see:
+        // javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
+        
+        if (node instanceof UglifyJS.AST_Scope) {
+            // find function declarations that need to hoisted
+            var toHoist = node.body.select((function(each) {
+                return this.isTransformedFunctionDeclaration(each);
+            }).bind(this));
+            
+            // actually hoist them
+            node.body = toHoist.concat(node.body.withoutAll(toHoist));
+        }
+        
         if (node instanceof UglifyJS.AST_Array ||
             node instanceof UglifyJS.AST_Function) {
             // Note: AST_Function is a function expression, not a declaration,
@@ -212,7 +253,7 @@ Object.extend(lively.versions.SourceTransformations, {
         } if (this.isAKeyValuePairWithAProxiedFunction(node)) {
             
             // use property keys as function names to have less anonymous
-            // functions in the debugger
+            // functions in the browser's developer tools
             
             // obj = {myMethod: lively.proxyFor(function())}
             // -->

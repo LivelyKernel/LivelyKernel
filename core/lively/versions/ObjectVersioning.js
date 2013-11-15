@@ -19,7 +19,7 @@ Object.extend(Object, {
         var realObj, realPrototype, FakeConstructor;
         
         if (!obj.isProxy() && (!type.prototype || !type.prototype.isProxy())) {
-            return obj instanceof type
+            return obj instanceof type;
         }
         
         realObj = obj.isProxy() ? obj.proxyTarget() : obj;
@@ -119,7 +119,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return obj;
                 }
             },
-            checkProtoChains: function(proxyTarget, proxy) {
+            checkProtoChains: function(proxy, proxyTarget) {
                 var targetAncestor = proxyTarget.__proto__,
                     proxyAncestor = proxy.__proto__;
                 
@@ -220,22 +220,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                     result = proto ? proto[name] : undefined;
                 }
                 
-                // workaround for legacy setters and getters:
-                // not sure why, but the apply-trap otherwise uses the
-                // wrong targetObject for these functions
-                if (name === '__defineSetter__' ||
-                    name === '__defineGetter__' ||
-                    name === '__lookupSetter__' ||
-                    name === '__lookupGetter__') {
-                    
-                    result = result.bind(targetObject);
-                }
-                
                 return this.ensureProxied(result);
             },
             apply: function(dummyTarget, thisArg, args) {
                 var result,
-                    method = this.targetObject(),
+                    func = this.targetObject(),
                     targetObject = thisArg;
                 
                 // workaround to have functions print with their function bodies
@@ -248,29 +237,30 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 // some primitive code can't handle proxies
-                if (thisArg && thisArg.isProxy() &&
-                    method.toString().include('{ [native code] }')) {
+                if (func.toString().include('{ [native code] }')) {
                     
-                    targetObject = lively.objectFor(thisArg);
+                    if (thisArg && thisArg.isProxy()) {
+                        targetObject = lively.objectFor(thisArg);
+                    }
+                    
                     args = args.map(function(each) {
                         return (each && each.isProxy()) ?
                              lively.objectFor(each) : each;
                     })
                     
-                    this.checkProtoChains(targetObject, thisArg);
+                    // TODO: do we also need to check-up the prototype chains of the arguments?
+                    if (thisArg) {
+                        this.checkProtoChains(thisArg, thisArg.proxyTarget());
+                    }
                 }
                 // concat would be handled by the exception above, however it's
                 // patched by reflect.js and thus doesn't match [native code]
                 if (thisArg && thisArg.isProxy() && Array.isArray(thisArg) &&
-                    method.name === 'concat') {
+                    func.name === 'concat') {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
-                try {
-                    result = method.apply(targetObject, args);
-                } catch(e) {
-                    debugger;
-                }
+                result = func.apply(targetObject, args);
                 
                 return this.ensureProxied(result);
             },
@@ -512,7 +502,6 @@ Object.extend(lively.versions.ObjectVersioning, {
             Object.defineProperty(target, '__protoID', {
                 value: protoID,
                 writable: true,
-                // enumerable: true
             });
         }
         

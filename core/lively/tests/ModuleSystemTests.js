@@ -90,6 +90,7 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
     },
     tearDown: function($super) {
         Global.JSLoader = this.originalJSLoader;
+        module('foo.bar').remove();
         $super();
     }
 },
@@ -138,8 +139,23 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
         this.assert(moduleCodeExecuted, 'module body not loaded');
         this.assert(module('foo.baz').isLoaded(), 'module not loaded')
         this.done();
-    }
+    },
 
+    testRunAfterLoad: function() {
+        var moduleCodeExecuted = false,
+            afterLoadCodeRunCount = 0
+        lively.module('foo.baz').runWhenLoaded(function() { afterLoadCodeRunCount++; });
+        this.delay(function() {
+            this.assertEquals(0, afterLoadCodeRunCount, 'run call count');
+            this.assert(!module('foo.baz').isLoaded(), 'module already loaded?!');
+            module('foo.baz').load();
+            module('foo.baz').load();
+        }, 20);
+        this.delay(function() {
+            this.assert(1, afterLoadCodeRunCount, 'after load callback not run');
+            this.done();
+        }, 60);
+    }
 
 });
 

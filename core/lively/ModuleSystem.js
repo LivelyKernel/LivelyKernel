@@ -395,12 +395,17 @@ Object.subclass('lively.Module',
         };
     },
 
-    isAnonymous: function() {
-        return this._isAnonymous;
+    runWhenLoaded: function(callback) {
+        // when module is already loaded just run callback
+        // otherwise schedule callback to run when module is loaded
+        // BUT don't trigger load (this makes it unlike requires.toRun!)
+        if (this.isLoaded()) callback();
+        else this.addOnloadCallback(callback);
     }
-
 },
 'testing', {
+    isAnonymous: function() { return this._isAnonymous; },
+
     isLoaded: function() {
         return this._isLoaded;
     },

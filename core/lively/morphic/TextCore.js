@@ -2429,16 +2429,28 @@ function getProtoChain(obj) {
 }
 
 function getDescriptorOf(originalObj, proto) {
-    if (originalObj === proto) {
-        var descr = originalObj.toString()
-        if (descr.length > 50) descr = descr.slice(0,50) + '...';
-        return descr;
-    }
+    function shorten(s, len) { if (s.length > len) s = s.slice(0,len) + '...'; return s.replace(/\n/g, ''); }
+    if (originalObj === proto) return shorten(originalObj.toString(), 50);
     var klass = proto.hasOwnProperty('constructor') && proto.constructor;
     if (!klass) return 'prototype';
-    if (typeof klass.type === 'string' && klass.type.length) return klass.type;
-    if (typeof klass.name === 'string' && klass.name.length) return klass.name;
+    if (typeof klass.type === 'string' && klass.type.length) return shorten(klass.type, 50);
+    if (typeof klass.name === 'string' && klass.name.length) return shorten(klass.name, 50);
     return "anonymous class";
+}
+
+function getCompletionsOfObj(obj, thenDo) {
+    var err, completions;
+    try {
+        var excludes = [];
+        completions = getProtoChain(obj).map(function(proto) {
+            var descr = getDescriptorOf(obj, proto),
+                methodsAndAttributes = getMethodsOf(excludes, proto)
+                    .concat(getAttributesOf(excludes, proto));
+            excludes = excludes.concat(pluck(methodsAndAttributes, 'name'));
+            return [descr, pluck(methodsAndAttributes, 'completion')];
+        });
+    } catch (e) { err = e; }
+    thenDo(err, completions);
 }
 
 function getCompletions(evalFunc, string, thenDo) {
@@ -2463,7 +2475,7 @@ function getCompletions(evalFunc, string, thenDo) {
 }
 
 /*
-(function testCompletion() {
+;(function testCompletion() {
     function assertCompletions(err, completions, prefix) {
         assert(!err, 'getCompletions error: ' + err);
         assert(prefix === '', 'prefix: ' + prefix);
@@ -2482,7 +2494,7 @@ function getCompletions(evalFunc, string, thenDo) {
              + "obj2."
     getCompletions(evalFunc, code, assertCompletions)
 })();
-*/
+
     
     },
     evalSelectionAndOpenNarrower: function() {

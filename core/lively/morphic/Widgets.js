@@ -2219,7 +2219,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         enableDragging: true
     },
     isWindow: true,
-    isCollapsed: function() { return this.state === 'collapsed'; }
+    isCollapsed: function() { return this.state === 'collapsed'; },
+    doNotSerialize: ['highlighted', 'cameForward']
 },
 'initializing', {
     initialize: function($super, targetMorph, titleString, optSuppressControls) {
@@ -2422,9 +2423,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             this.highlight(true);
         }
 
-        var inner = this.targetMorph,
-            callGetsFocus = inner && !!inner.onWindowGetsFocus;
-        if (this.isInFront()) { if (callGetsFocus) { inner.onWindowGetsFocus(this); }; return this; }
+        var inner = this.targetMorph, callGetsFocus = inner && !!inner.onWindowGetsFocus;
+        if (this.isActive()) { callGetsFocus && inner.onWindowGetsFocus(this); return this; }
 
         // step 2: make me the frontmost morph of the world
         var scrolledMorphs = [], scrolls = [];

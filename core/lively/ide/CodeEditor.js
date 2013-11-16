@@ -447,6 +447,54 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return ed.session.getWordRange(p.row, p.column);
         });
     },
+    tokenAt: function(pos/*ace pos or null*/) {
+        // that.tokenAt()
+        return this.withAceDo(function(ed) {
+            pos = pos || ed.getCursorPosition();
+            return ed.session.getTokenAt(pos.row, pos.column); });
+    },
+    tokenAtPoint: function() { return this.tokenAt(null); },
+    tokensInRange: function(range/*range or null for sel range*/) {
+        // if no range given current selection range is used.
+        // takes the range and returns all tokens in that range
+        // (tokens from aceEditor.sesssion.getTokens()
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        return this.withAceDo(function(ed) {
+            range = range || ed.selection.getRange();
+            return tokensInRangeTrimmed(ed, range);
+        });
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function tokensInRange(ed, range) {
+            // aceEditor -> {start: {column, row}, end: {column, row}} -> [[TOKEN]]
+            if (range.isEmpty()) return [[ed.session.getTokenAt(range.start.row, range.start.column)]];
+            var row1 = Math.min(range.start.row, range.end.row);
+            var row2 = Math.max(range.start.row, range.end.row);
+            return Array.range(row1, row2).map(function(row) { return ed.session.getTokens(row); });
+        }
+        function takeTokensBetween(startColumn, endColumn, tokens) {
+            // including
+            // Maybe Integer -> Maybe Integer -> [TOKENS]
+            if (!tokens) return [];
+            return tokens.reduce(function(akk, token) {
+                var startCol = akk.currentCol,
+                    endCol = startCol + token.value.length;
+                akk.currentCol = endCol;
+                if ((startColumn === undefined || endCol >= startColumn)
+                 && (endColumn === undefined || startCol <= endColumn)) akk.tokens.push(token);
+                return akk;
+            }, {tokens: [], currentCol: 0}).tokens;
+        }
+        function tokensInRangeTrimmed(ed, range) {
+            // aceEditor -> {start: {row, column}, end: {row, column}} -> [TOKEN]
+            var tokensPerRow = tokensInRange(ed, range);
+            if (!tokensPerRow || !tokensPerRow.length) return [];
+            var startCol = range.start.column, endCol = range.end.column;
+            if (tokensPerRow.length == 1) return takeTokensBetween(startCol, endCol, tokensPerRow[0]);
+            return [takeTokensBetween(startCol, undefined, tokensPerRow[0])]
+                .concat(tokensPerRow.slice(1,-1))
+                .concat(takeTokensBetween(undefined, endCol, tokensPerRow.last())).flatten();
+        }
+    }
 },
 'snippets', {
     getSnippets: function() {

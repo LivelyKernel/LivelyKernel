@@ -113,6 +113,78 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
 
 });
 
+lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Tokens',
+'running', {
+    prepareEditor: function() {
+        var e = this.editor, sess = e.aceEditor.session;
+        e.textString = 'function foo() {\n  return 42;\n}\n'
+        e.setTextMode('javascript');
+        return e;
+    },
+},
+'testing', {
+    testTokensAtPoint: function() {
+        var e = this.prepareEditor();
+        e.setCursorPosition(pt(11, 0));
+        var result = e.tokenAtPoint(),
+            expected = {index: 2, start: 9, type: "entity.name.function", value: "foo"};
+        this.assertEqualState(expected, result, 'token at point');
+        this.done();
+    },
+
+    testTokensInEmptyRange: function() {
+        var e = this.prepareEditor();
+        e.setSelectionRange(3,3)
+        var result = e.tokensInRange(),
+            expected = [{index: 0, start: 0, type: "storage.type", value: "function"}];
+        this.assertEqualState(expected, result, 'tokens at range');
+        this.done();
+    },
+    testTokensInRange: function() {
+        // don't just return all row tokens, truncate according to range
+        var e = this.prepareEditor();
+        e.setSelectionRange(11,30)
+        var result = e.tokensInRange(),
+            expected = [{
+              type: "entity.name.function",
+              value: "foo"
+            },{
+              type: "paren.lparen",
+              value: "("
+            },{
+              type: "paren.rparen",
+              value: ")"
+            },{
+              type: "text",
+              value: " "
+            },{
+              type: "paren.lparen",
+              value: "{"
+            },{
+              type: "text",
+              value: "  "
+            },{
+              type: "keyword",
+              value: "return"
+            },{
+              type: "text",
+              value: " "
+            },{
+              type: "constant.numeric",
+              value: "42"
+            },{
+              type: "punctuation.operator",
+              value: ";"
+            }, {
+              type: "paren.rparen",
+              value: "}"
+            }];
+        this.assertEqualState(expected, result, 'tokens at range');
+        this.done();
+    }
+
+});
+
 lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands',
 'testing', {
     testBracketsMatching: function() {

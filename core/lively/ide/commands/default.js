@@ -121,17 +121,18 @@ Object.extend(lively.ide.commands.byName, {
     'lively.morphic.Morph.copy': {
         description: 'copy morph',
         exec: function() {
-            var focused = lively.morphic.Morph.focusedMorph(),
-                morph = $world.getActiveWindow() || focused, copy;
+            var morph = $world.getActiveWindow();
+            if (!morph) morph = lively.morphic.Morph.focusedMorph();
+            var win = morph && morph.getWindow();
+            if (win) morph = win;
             if (!morph) return true;
+            var copy;
             try { copy = morph.copy(); } catch (e) {
                 show('failed to copy ' + morph + '\n' + e); return true; }
             copy.openInWorld();
             alertOK('copied ' + morph);
-            (function() { 
-                copy[copy.isWindow ? 'comeForward' : 'focus']();
-                copy.showHalos();
-            }).delay(0);
+            copy.showHalos();
+            copy[copy.isWindow ? 'comeForward' : 'focus'].bind(copy).delay(0);
             return true;
         }
     },

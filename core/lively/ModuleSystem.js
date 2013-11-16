@@ -108,7 +108,7 @@ Object.extend(lively, {
                         module.deactivate();
                     }
                 }
-                module.addOnloadCallback(codeWrapper);
+                module.addOnloadCallback(codeWrapper, 0/*add as first callback*/);
                 // wasDefined: module body and module requirements encountered but
                 // body not necessarily executed or requirements loaded
                 module.wasDefined = true;
@@ -377,9 +377,10 @@ Object.subclass('lively.Module',
     }
 },
 'load callbacks', {
-    addOnloadCallback: function(cb) {
+    addOnloadCallback: function(cb, idx) {
         if (!this.callbacks) this.callbacks = [];
-        this.callbacks.push(cb);
+        if (Object.isNumber(idx)) this.callbacks.splice(idx,0,cb);
+        else this.callbacks.push(cb);
     },
 
     runOnloadCallbacks: function() {

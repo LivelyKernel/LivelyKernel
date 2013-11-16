@@ -84,13 +84,13 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
         this.originalJSLoader = Global.JSLoader;
         Global.JSLoader = {
             loadJs: Functions.Null,
-            scriptInDOM: Functions.True
+            scriptInDOM: Functions.True,
+            removeAllScriptsThatLinkTo: Functions.Null
         }
         $super();
     },
     tearDown: function($super) {
         Global.JSLoader = this.originalJSLoader;
-        module('foo.bar').remove();
         $super();
     }
 },
@@ -142,17 +142,16 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
     },
 
     testRunAfterLoad: function() {
-        var moduleCodeExecuted = false,
-            afterLoadCodeRunCount = 0
-        lively.module('foo.baz').runWhenLoaded(function() { afterLoadCodeRunCount++; });
+        var loadLogger = [];
+        lively.module('foo.baz').remove();
+        lively.module('foo.baz').runWhenLoaded(function() {debugger; loadLogger.push('whenLoaded callback'); });
         this.delay(function() {
-            this.assertEquals(0, afterLoadCodeRunCount, 'run call count');
+            this.assertEquals([], loadLogger, 'no load before');
             this.assert(!module('foo.baz').isLoaded(), 'module already loaded?!');
-            module('foo.baz').load();
-            module('foo.baz').load();
+            lively.module('foo.baz').requires().toRun(function() { loadLogger.push('module body'); });
         }, 20);
         this.delay(function() {
-            this.assert(1, afterLoadCodeRunCount, 'after load callback not run');
+            this.assertEquals(['module body', 'whenLoaded callback'], loadLogger, 'after load callback not run');
             this.done();
         }, 60);
     }

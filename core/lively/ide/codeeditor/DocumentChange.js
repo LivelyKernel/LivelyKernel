@@ -141,9 +141,8 @@ Object.subclass('lively.ide.codeeditor.ModeChangeHandler',
     addOverlay: function(spec, codeEditor, marker, overlayBounds) {
         // spec = {pos: {start: NUMBER, end: NUMBER}, message: STRING, cssClassName: STRING
         var messageWidth = spec.message.split('\n').pluck('length').max(),
-            edWidth = Math.floor(
-                (codeEditor.aceEditor.renderer.$size.width-codeEditor.aceEditor.renderer.gutterWidth) /
-                codeEditor.aceEditor.renderer.characterWidth),
+            r = codeEditor.aceEditor.renderer,
+            edWidth = Math.floor((r.$size.width-r.gutterWidth-r.scrollBarV.width)/r.characterWidth),
             col = edWidth-messageWidth,
             row = spec.pos.row,
             overlay = {start: {column: col, row: row}, text: spec.message};

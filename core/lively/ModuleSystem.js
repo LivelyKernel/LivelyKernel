@@ -557,14 +557,14 @@ Object.extend(lively.Module, {
 });
 
 Object.extend(lively.Module, {
-    findAllInThenDo: function(url, callback) {
-        var dir = new URL(url).getDirectory();
-        if (url.isLeaf()) {
-            throw new Error(url + ' is not a directory!');
-        }
-        var webR = dir.asWebResource();
+    findAllInThenDo: function(url, callback, beSync) {
+        if (url.isLeaf()) throw new Error(url + ' is not a directory!');
+        var webR = url.asWebResource();
+        if (beSync) webR.beSync(); else webR.beAsync();
         lively.bindings.connect(webR, 'subDocuments', {onLoad: function(files) {
-            var moduleNames = files.invoke('getURL') .invoke('asModuleName'),
+            var moduleNames = files.invoke('getURL')
+                    .reject(function(url) { return url.filename().startsWith('.'); })
+                    .invoke('asModuleName'),
                 modules = moduleNames.collect(function(name) { return lively.module(name); })
             callback(modules);
         }}, 'onLoad');

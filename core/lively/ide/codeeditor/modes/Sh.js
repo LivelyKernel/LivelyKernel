@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.modes.Shell').requires('lively.ide.codeeditor.ace').toRun(function() {
+module('lively.ide.codeeditor.modes.Sh').requires('lively.ide.codeeditor.ace').toRun(function() {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Shell-mode

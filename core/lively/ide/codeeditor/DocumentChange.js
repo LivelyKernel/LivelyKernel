@@ -23,7 +23,9 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
         var session = codeEditor.getSession();
         evt.codeEditor = codeEditor;
         evt.session = session;
-        this.invokePlugins('onModeChange', evt);
+        var self = this;
+        lively.ide.codeeditor.Modes.ensureModeExtensionIsLoaded(session.getMode(),
+            function(err, modeExtModule) { self.invokePlugins('onModeChange', evt); });
     },
 
     onDocumentChange: function(evt, codeEditor) {
@@ -58,39 +60,10 @@ Object.extend(lively.ide.CodeEditor.DocumentChangeHandler, {
     plugins: [],
     create: function() {
         return new lively.ide.CodeEditor.DocumentChangeHandler(this.plugins);
-    }
-});
-
-(function addDocChangeModePlugins() {
-    require('lively.ide.codeeditor.Modes', 'lively.ide.codeeditor.JS').toRun(function() {
-        Object.extend(lively.ide.CodeEditor.DocumentChangeHandler, {
-            plugins: [
-                new lively.ide.codeeditor.Modes.ChangeHandler(),
-                new lively.ide.codeeditor.JS.ChangeHandler(),
-                new lively.ide.codeeditor.modes.Haskell.ChangeHandler()]
-        });
-    })
-})();
-
-// Used as a plugin for the lively.ide.CodeEditor.DocumentChangeHandler, will
-// trigger attach/detach actions for modes that require those
-Object.subclass('lively.ide.codeeditor.Modes.ChangeHandler',
-"testing", {
-    isActiveFor: function(evt) { return evt.type === 'changeMode'; }
-},
-'rendering', {
-    onModeChange: function(evt) {
-        var s = evt.session,
-            modeState = s.$livelyModeState || (s.$livelyModeState = {}),
-            lastMode = modeState.lastMode,
-            currentMode = evt.session.getMode();
-        if (lastMode && lastMode.detach) {
-            lastMode.detach(evt.codeEditor.aceEditor);
-        }
-        modeState.lastMode = currentMode;
-        if (currentMode && currentMode.attach) {
-            currentMode.attach(evt.codeEditor.aceEditor);
-        }
+    },
+    registerModeHandler: function(handlerClass) {
+        if (!this.plugins.pluck('constructor').include(handlerClass))
+            this.plugins.push(new handlerClass());
     }
 });
 

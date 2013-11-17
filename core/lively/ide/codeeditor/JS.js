@@ -176,6 +176,8 @@ Object.subclass('lively.ide.codeeditor.JS.ScopeAnalyzer',
 
 });
 
+// Used as a plugin for the lively.ide.CodeEditor.DocumentChangeHandler, will
+// trigger attach/detach actions for modes that require those
 lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.ChangeHandler',
 "settings", {
     targetMode: "ace/mode/javascript"
@@ -229,5 +231,11 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.Chang
         session._emit('astChange', astChange);
     }
 });
+
+(function registerModeHandler() {
+    lively.module('lively.ide.codeeditor.DocumentChange').runWhenLoaded(function() {
+        lively.ide.CodeEditor.DocumentChangeHandler.registerModeHandler(lively.ide.codeeditor.JS.ChangeHandler);
+    });
+})();
 
 }) // end of module

@@ -104,7 +104,11 @@ lively.Worker = {
                         // var match = url.match(/http:\/\/[^\/]+(\/?.*)/);
                         // if (match && match[1]) url = match[1];
                         loadedURLs.push(url);
-                        importScripts(url);
+                        try {
+                            importScripts(url);
+                        } catch(e) {
+                            postMessage({type: 'warning', message: url + ' could not be loaded in worker: '+ e});
+                        }
                     },
                     currentDir: function () { return options.locationDirectory; },
                     scriptInDOM: function(url) { return loadedURLs.indexOf(url) !== -1; },

@@ -514,4 +514,10 @@ lively.ide.codeeditor.modes.Haskell.AceHaskellMode.addMethods({
     });
 })();
 
+(function registerModeHandler() {
+    lively.module('lively.ide.codeeditor.DocumentChange').runWhenLoaded(function() {
+        lively.ide.CodeEditor.DocumentChangeHandler.registerModeHandler(lively.ide.codeeditor.modes.Haskell.ChangeHandler);
+    });
+})();
+
 }) // end of module

@@ -139,8 +139,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // === proxy handler traps ===
             set: function(dummyTarget, name, value, receiver) {
-                var targetObject,
-                    newObject;
+                var targetObject, newObject, setter;
                 
                 targetObject = this.targetObject();
                 
@@ -152,6 +151,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetObject = newObject;
                 }
                 
+                // special cases
                 if (name === '__proto__') {
                     if (value && value.isProxy()) {
                         targetObject.__protoID = value.__objectID;
@@ -162,19 +162,32 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                     return true;
                 }
-                
                 if (name === 'onreadystatechange' && value.isProxy() &&
                     targetObject.constructor.name === 'XMLHttpRequest') {
-                    value = value.proxyTarget();
+                    value = lively.objectFor(value);
                 }
-                       
+                
+                descriptor =
+                    Object.getOwnPropertyDescriptor(targetObject, name);
+                setter = (descriptor && descriptor.set) ||
+                    Object.prototype.__lookupSetter__.call(targetObject, name);
+                if (setter) {
+                    // setting the slot triggers an accessor function, in which
+                    // case the target should be proxied
+                    
+                    setter.call(receiver, value);
+                    
+                    return true;
+                }
+                
+                // default handling
                 targetObject[name] = value;
                 
                 return true;
             },
             get: function(dummyTarget, name, receiver) {
                 var result, nextAncestor, proto, targetObject,
-                    OV = lively.versions.ObjectVersioning;
+                    descriptor, getter, OV = lively.versions.ObjectVersioning;
                 
                 // proxy meta-information
                 if (name === '__objectID') {
@@ -189,7 +202,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 targetObject = this.targetObject();
                 
-                // special handling
+                // special cases
                 if (name === '__proto__') {
                     if (targetObject.__protoID) {
                         return lively.ProxyTable[targetObject.__protoID];
@@ -206,6 +219,17 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (name === 'prototype' && Object.isFunction(targetObject)) {
                     // prototype is already proxied or a root prototype
                     return targetObject.prototype;
+                }
+                
+                descriptor =
+                    Object.getOwnPropertyDescriptor(targetObject, name);
+                getter = (descriptor && descriptor.get) ||
+                    Object.prototype.__lookupGetter__.call(targetObject, name);
+                if (getter) {
+                    // getting the slot triggers an accessor function, in which
+                    // case the target should be proxied
+                    
+                    return getter.call(receiver);;
                 }
                 
                 // default handling

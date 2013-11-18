@@ -237,7 +237,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 // some primitive code can't handle proxies
-                if (func.toString().include('{ [native code] }')) {
+                if (func.toString().include('{ [native code] }') &&
+                    !(func === Function.prototype.apply ||
+                      func === Function.prototype.call)) {
                     
                     if (thisArg && thisArg.isProxy()) {
                         targetObject = lively.objectFor(thisArg);

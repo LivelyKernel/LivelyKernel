@@ -145,14 +145,6 @@ Object.extend(lively.versions.SourceTransformations, {
             return;
         
         functionNode.name = new UglifyJS.AST_SymbolLambda({name: node.key});
-        
-        // debugging for invalid function names..
-        // try {
-        //     eval(functionNode.print_to_string());
-        // } catch (e) {
-        //     debugger;
-        // }
-        
     },
     isTransformedFunctionDeclaration: function(node) {
         var proxyForCall;

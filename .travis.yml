@@ -29,7 +29,7 @@ branches:
 notifications:
   email:
     - lauritz.thamsen@gmail.com
-    - bastian.steinert@gmail.com
+    # - bastian.steinert@gmail.com
     # - astrid.thomschke@gmail.com
     # - bgnauk@gmail.com
     # - conrad@calmez.net

@@ -74,7 +74,6 @@ lively.GlobalObjectsToWrap = [
     // - eval handled elsewhere and other Non-constructor functions seem not
     // to create objects
     
-    
     // the Global object itself
     'Global',
     'window',
@@ -136,6 +135,27 @@ Object.extend(lively.versions.ObjectVersioning, {
                     proxyAncestor = proxyAncestor.__proto__;
                 }
             },
+            wasObjectPreviouslyCommited: function(obj, propertyName) {
+                // subsequentely cloning the object might result in setting the
+                // properties 'sourceModule' and 'displayName' on obj, leading
+                // consequentely to an infinite recursion
+                
+                return obj.__versionID !== lively.CurrentObjectTable.ID &&
+                    propertyName !== 'displayName' &&
+                    propertyName !== 'sourceModule';
+            },
+            copyObjectForCurrentVersion: function(targetObject) {
+                var newObject = Object.clone(targetObject);
+                
+                // copy non-enumerable versioning properties explicitly
+                newObject.__protoID = targetObject.__protoID;
+                newObject.__objectID = targetObject.__objectID;
+                newObject.__versionID = lively.CurrentObjectTable.ID;
+                
+                lively.CurrentObjectTable[this.__objectID] = newObject;
+                
+                return newObject;
+            },
             
             // === proxy handler traps ===
             set: function(dummyTarget, name, value, receiver) {
@@ -143,12 +163,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 targetObject = this.targetObject();
                 
-                // targetObject was commited in previous version (copy-on-write)
-                if (Object.isFrozen(targetObject)) {
-                    newObject = Object.clone(targetObject);
-                    newObject.__protoID = targetObject.__protoID;
-                    lively.CurrentObjectTable[this.__objectID] = newObject;
-                    targetObject = newObject;
+                // copy-on-write: create and work on a new version of the target
+                // when target was commited with a previous version
+                if (this.wasObjectPreviouslyCommited(targetObject)) {
+                    targetObject =
+                        this.copyObjectForCurrentVersion(targetObject);
                 }
                 
                 // special cases
@@ -429,6 +448,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     init: function() {
         if (!lively.CurrentObjectTable) {
             lively.CurrentObjectTable = [];
+            lively.CurrentObjectTable.ID = 0;
         }
         if (!lively.ProxyTable) {
             lively.ProxyTable = [];
@@ -471,22 +491,23 @@ Object.extend(lively.versions.ObjectVersioning, {
         // proxies are fully virtual objects: they don't point to their target, 
         // but refer to their target only via their __objectID-property,
         // through lively.CurrentObjectTable
-        var proto, protoID, objectID, handler, proxy;
+        var proto, protoID, objectID, versionID, handler, proxy;
         
         if (lively.isPrimitiveObject(target)) {
-            throw new TypeError('Primitive objects shouldn\'t be wrapped');
+            throw new TypeError('Primitive objects shouldn\'t be proxied');
         }
         
         if (this.isRootPrototype(target)) {
             // don't touch root prototypes (i.e. add __objectID)
-            throw new Error('root prototypes should not be inserted!!');
+            throw new Error('Root prototypes shouldn\'t be proxied');
         }
         
         if (target.isProxy()) {
-            throw new TypeError('Proxies shouldn\'t be inserted into the ' +                    'object tables');
+            throw new TypeError('Proxies shouldn\'t be inserted into the ' +
+                'object tables');
         }
         
-        if (this.objectHasBeenProxiedBefore(target)) {
+        if (this.hasObjectBeenProxiedBefore(target)) {
             return this.getProxyByID(target.__objectID);
         }
         
@@ -497,10 +518,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // properties will be as well. however, this does assume that functions
         // that get proxied once are _never_ used as constructors after
         // unwrapping them.
-        if (Object.isFunction(target) && target.prototype &&
-            !target.prototype.isProxy() &&
-            !lively.GlobalObjectsToWrap.include(target.name) &&
-            !this.isRootPrototype(target.prototype)) {
+        if (Object.isFunction(target) && this.hasUnproxiedPrototype(target)) {
             
             target.prototype = lively.proxyFor(target.prototype);
         }
@@ -520,6 +538,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 protoID = this.proxyFor(proto).__objectID;
+                
             } else {
                 protoID = null;
             }
@@ -532,16 +551,19 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
         
         objectID = lively.CurrentObjectTable.length;
+        versionID = lively.CurrentObjectTable.ID;
         
-        // set __objectID as not enumerable, not configurable, and not writable
-        // for both the target and the dummyTarget (spec consistency check)
-        lively.CurrentObjectTable.push(target);
-        
+        // set __objectID and __versionID as not enumerable, not configurable, and not writable properties
         Object.defineProperty(target, '__objectID', {
             value: objectID
         });
+        Object.defineProperty(target, '__versionID', {
+            value: versionID
+        });
         
-        handler = this.versioningProxyHandler(target.__objectID);
+        lively.CurrentObjectTable.push(target);
+        
+        handler = this.versioningProxyHandler(objectID);
         proxy = Proxy(this.dummyTargetFor(target), handler, true);
         
         lively.ProxyTable[objectID] = proxy;
@@ -599,25 +621,23 @@ Object.extend(lively.versions.ObjectVersioning, {
         var roots = [Object.prototype, Function.prototype, Array.prototype];
         return roots.include(obj)
     },
-    objectHasBeenProxiedBefore: function(obj) {
+    hasObjectBeenProxiedBefore: function(obj) {
         return ({}).hasOwnProperty.apply(obj, ['__objectID']);
+    },
+    hasUnproxiedPrototype: function(obj) {
+        return obj.prototype &&
+            !obj.prototype.isProxy() &&
+            !lively.GlobalObjectsToWrap.include(obj.name) &&
+            !this.isRootPrototype(obj.prototype)
     },
     commitVersion: function() {
         var previousVersion;
         
         previousVersion = lively.CurrentObjectTable;
         lively.CurrentObjectTable = Object.clone(lively.CurrentObjectTable);
+        lively.CurrentObjectTable.ID = previousVersion.ID + 1;
         lively.CurrentObjectTable.previousVersion = previousVersion;
         previousVersion.nextVersion = lively.CurrentObjectTable;
-        
-        // freeze all objects as the objects of previous versions shouldn't
-        // change. frozen objects get copied when they are changed in following
-        // versions. however: using Object.freeze() for this has the
-        // disadvantage that objects frozen elsewhere can be written again in
-        // following versions, once they got copied
-        lively.CurrentObjectTable.forEach(function (ea) {
-            Object.freeze(ea);
-        });
         
         return previousVersion; 
     },

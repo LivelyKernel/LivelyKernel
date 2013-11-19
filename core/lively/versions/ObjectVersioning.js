@@ -503,8 +503,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
         
         if (target.isProxy()) {
-            throw new TypeError('Proxies shouldn\'t be inserted into the ' +
-                'object tables');
+            return target;
         }
         
         if (this.hasObjectBeenProxiedBefore(target)) {

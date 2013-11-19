@@ -3940,8 +3940,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         if (this.label.textString !== str) {
             this.label.textString = this.item.name;
             if (this.item.description) {
-                var gray = {color: Color.web.darkgray};
-                this.label.appendRichText("  " + this.item.description, gray);
+                if (!this.item.descriptionStyle) {
+                    this.item.descriptionStyle = {color: Color.web.darkgray};
+                }
+                this.label.appendRichText("  " + this.item.description, this.item.descriptionStyle);
             }
             changed = true;
         }
@@ -4030,8 +4032,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             label.oldStyle = this.item.style;
         }
         if (this.item.description) {
-            var gray = {color: Color.web.darkgray};
-            label.appendRichText('  ' + this.item.description, gray);
+            if (!this.item.descriptionStyle) {
+                this.item.descriptionStyle = {color: Color.web.darkgray};
+            }
+            label.appendRichText('  ' + this.item.description, this.item.descriptionStyle);
         }
         return label;
     },

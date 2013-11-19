@@ -82,6 +82,7 @@ lively.GlobalObjectsToWrap = [
     // http://developer.mozilla.org/en-US/docs/Web/API
     'document',
     'XMLHttpRequest',
+    'Worker'
     
 ];
 
@@ -134,6 +135,47 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetAncestor = targetAncestor.__proto__;
                     proxyAncestor = proxyAncestor.__proto__;
                 }
+            },
+            unwrapArrayDeeply: function(array) {
+                var newArray = [];
+                
+                array.forEach((function(each, idx) {
+                    newArray[idx] = this.unwrapDeeply(each);
+                }).bind(this));
+                
+                return newArray;
+            },
+            unwrapObjectDeeply: function(obj) {
+                var newObject = {};
+                
+                // including vs. excluding inherited props?
+                for (var name in obj) {
+                    newObject[name] = this.unwrapDeeply(obj[name]);
+                }
+                
+                return newObject;
+            },
+            unwrapDeeply: function(obj) {
+                
+                if (lively.isPrimitiveObject(obj)) {
+                    return obj;
+                }
+                if (Object.isArray(obj)) {
+                    return this.unwrapArrayDeeply(obj);
+                }
+                if (Object.isObject(obj)) {
+                    return this.unwrapObjectDeeply(obj);
+                }
+                
+                if (Object.isFunction(obj)) {
+                    // TODO: what about functions?
+                    debugger;
+                    throw new Error('not yet implemented...')
+                }
+                
+                // TODO: what kind of objects did we miss? :D
+                throw new Error('not yet implemented...')
+                
             },
             wasObjectPreviouslyCommited: function(obj, propertyName) {
                 // subsequentely cloning the object might result in setting the
@@ -287,11 +329,21 @@ Object.extend(lively.versions.ObjectVersioning, {
                     if (thisArg && thisArg.isProxy()) {
                         targetObject = lively.objectFor(thisArg);
                     }
-                    
-                    args = args.map(function(each) {
-                        return (each && each.isProxy()) ?
-                             lively.objectFor(each) : each;
-                    })
+
+                    if (func.name === 'postMessage' &&
+                        targetObject instanceof Worker) {
+                        // WebWorker get some option objects which can't have
+                        // proxied properties. otherwise:
+                        // DOM Exception 25, DATA_CLONE_ERR
+                        
+                        args = this.unwrapDeeply(args);
+                        
+                    } else {
+                        args = args.map(function(each) {
+                            return (each && each.isProxy()) ?
+                                 lively.objectFor(each) : each;
+                        })
+                    }
                     
                     // TODO: do we also need to check-up the prototype chains of the arguments?
                     if (thisArg) {
@@ -666,6 +718,11 @@ Object.extend(lively.versions.ObjectVersioning, {
         this.patchNativeFunctions();
         
         this.patchBaseCode();
+        
+        // Worker.js is loaded before OV code,
+        // but neither lang stuff nor Base stuff nor OV stuff depends on it...
+        Worker = lively.proxyFor(Worker);
+        
     },
     patchNativeFunctions: function() {
         

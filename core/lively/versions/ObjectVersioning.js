@@ -527,6 +527,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                 instance.__protoID = proto.__objectID;
             } else {
                 instance = create.call(null, prototype, propertiesObject);
+                
+                if (!proto) {
+                    instance.isProxy = Object.prototype.isProxy;
+                }
             }
             return instance;
         }

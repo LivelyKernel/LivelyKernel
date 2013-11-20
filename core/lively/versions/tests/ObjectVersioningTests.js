@@ -58,20 +58,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assertIdentity(person.address, roomMate.address);
     },
-    test07ProxiesReturnUndefinedForNotDefinedProperties: function() {
-        var place = lively.proxyFor({});
-        
-        this.assert(place.coordinates === undefined);
-    },
-    test08FunctionsCanBeProxied: function() {
-        var func = lively.proxyFor(function funcName(a) {
-            return 1;
-        });
-    
-        this.assert(func.isProxy());
-        this.assertEquals(func.name, 'funcName');
-    },
-    test09ArraysCanBeProxied: function() {
+    test07ArraysCanBeProxied: function() {
         var arr = lively.proxyFor([]);
         
         arr[0] = lively.proxyFor({});
@@ -79,7 +66,28 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(arr.isProxy());
         this.assert(arr[0].isProxy());
     },
-    test10ProxiedMethodCanBeApplied: function() {
+    test08ProxiesReturnUndefinedForNotDefinedProperties: function() {
+        var place = lively.proxyFor({});
+        
+        this.assert(place.coordinates === undefined);
+    },
+    test09RegularExpressionsCanBeProxied: function() {
+        var regExp = lively.proxyFor(/\/\.\//);
+        
+        this.assert(regExp.isProxy());
+        this.assert(Object.isRegExp(regExp));
+    },
+    test10FunctionsCanBeProxied: function() {
+        var func = lively.proxyFor(function() {});
+        
+        this.assert(func.isProxy());
+    },
+    test11ProxiedFunctionsHaveCorrectName: function() {
+        var func = lively.proxyFor(function funcName() {});
+        
+        this.assertEquals(func.name, 'funcName');
+    },
+    test12ProxiedMethodCanBeApplied: function() {
         var obj = lively.proxyFor({prop: 24});
 
         obj.method = lively.proxyFor(function(a) {
@@ -88,12 +96,12 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assert(obj.method(), 24);
     },
-    test11ProxiedAnonymousFunctionCanBeApplied: function() {
+    test13ProxiedAnonymousFunctionCanBeApplied: function() {
         var func = lively.proxyFor(function() {return 123});
         
         this.assertEquals(func(), 123);
     },
-    test12ProxiesAlwaysReturnProxies: function() {
+    test14ProxiesAlwaysReturnProxies: function() {
         var obj = {
                 prop: {}, 
                 method: function() {return {}}
@@ -103,7 +111,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(proxy.prop.isProxy());
         this.assert(proxy.method.isProxy())
     },
-    test13ProxiedConstructorReturnsProxiedInstance: function() {
+    test15ProxiedConstructorReturnsProxiedInstance: function() {
         var ProxiedConstructor = lively.proxyFor(function (name, age) {
                 this.name = name;
                 this.age = age;
@@ -116,7 +124,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(aPerson.name, 'Joe');
         this.assertEquals(aPerson.age, 19);
     },
-    test14PrototypeCanBeAProxy: function() {
+    test16PrototypeCanBeAProxy: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         
@@ -124,7 +132,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(descendant.__proto__, proto);
         this.assert(Object.getPrototypeOf(descendant).isProxy());
     },
-    test15PrototypeOfProxyCanBeChanged: function() {
+    test17PrototypeOfProxyCanBeChanged: function() {
         var originalPrototype = lively.proxyFor({v: 1}),
             otherPrototype = lively.proxyFor({v: 2}),
             descendant = lively.createObject(originalPrototype);
@@ -135,14 +143,14 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(descendant.__proto__, otherPrototype);
         this.assertEquals(descendant.v, 2);
     },
-    test16ProtoLookupWorksOnProxies: function() {
+    test18ProtoLookupWorksOnProxies: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         proto.prop = 15;
                 
         this.assertEquals(descendant.prop, 15);
     },
-    test17MethodFromPrototypeIsAppliedCorrectly: function() {
+    test19MethodFromPrototypeIsAppliedCorrectly: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         
@@ -155,7 +163,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         descendant.prop = 2;
         this.assert(descendant.method(), 2);
     },
-    test18ObjCanOverwriteInheritedProperty: function() {
+    test20ObjCanOverwriteInheritedProperty: function() {
         var obj = lively.proxyFor({a: 2}),
             subObj = lively.createObject(obj);
         
@@ -164,7 +172,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(obj.a, 2);
         this.assertEquals(subObj.a, 5);
     },
-    test19MethodCanBeAddedToPrototypeOfConstructor: function() {
+    test21MethodCanBeAddedToPrototypeOfConstructor: function() {
         var instance,
             NewType = lively.proxyFor(function() {
                 this.prop = 12;
@@ -182,7 +190,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(instance.getProp.isProxy());
         this.assertEquals(instance.getProp(), 12);
     },
-    test20ConstructorWithProxiedPrototypeProperty: function() {
+    test22ConstructorWithProxiedPrototypeProperty: function() {
         var prototype = lively.proxyFor({protoProp: 'p'}),
             Constructor = lively.proxyFor(function C(parameter){
                 this.constructorProp = 'c';
@@ -197,7 +205,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(instance.constructorProp, 'c');
         this.assertEquals(instance.argument, 'a');
     },
-    test21ProxyHasCorrectProperties: function() {
+    test23ProxyHasCorrectProperties: function() {
         var proto = lively.proxyFor({protoProp: 1}),
             descendant = lively.createObject(proto);
         descendant.ownProp = 2;
@@ -206,7 +214,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert('ownProp' in descendant);
         this.assert(!('neverDefinedProperty' in descendant));
     },
-    test22ProxyHasCorrectOwnProperties: function() {
+    test24ProxyHasCorrectOwnProperties: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         
@@ -219,7 +227,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(descendant.hasOwnProperty('ownProp'));
         this.assert(!descendant.hasOwnProperty('protoProp'));
     },
-    test23GetOwnPropertyNames: function() {
+    test25GetOwnPropertyNames: function() {
         var person = lively.proxyFor({}),
             student = lively.createObject(person),
             ownProps;
@@ -231,7 +239,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         ownProps = Object.getOwnPropertyNames(student);
         this.assertEquals(['avgGrade', 'semester'].intersect(ownProps).length, 2);
     },
-    test24PropertyEnumerationWorks: function() {
+    test26PropertyEnumerationWorks: function() {
         var proto = {a:1, b:2, c:3},
             obj = lively.createObject(proto),
             enumeratedProps = [];
@@ -246,7 +254,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
 
         this.assert(['a','b','c','d', 'e', 'f'].intersect(enumeratedProps).length === 6);
     },
-    test25CorrectObjectKeys: function() {
+    test27CorrectObjectKeys: function() {
         var proto = {a:1, b:2, c:3},
             obj = lively.createObject(proto);
         
@@ -256,7 +264,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assert(['d', 'e', 'f'].intersect(Object.keys(obj)).length === 3);
     },
-    test26ProxiedObjectsCanBeFrozen: function() {
+    test28ProxiedObjectsCanBeFrozen: function() {
         var obj = {},
             proxy = lively.proxyFor(obj);
             
@@ -267,7 +275,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(Object.isFrozen(proxy));
         this.assert(Object.isFrozen(obj));
     },
-    test27ProxiedObjectsCanBeSealed: function() {
+    test29ProxiedObjectsCanBeSealed: function() {
         var obj = {},
             proxy = lively.proxyFor(obj);
             
@@ -278,7 +286,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(Object.isSealed(proxy));
         this.assert(Object.isSealed(obj));
     },
-    test28ExtensionsToProxiedObjectsCanBePrevented: function() {
+    test30ExtensionsToProxiedObjectsCanBePrevented: function() {
         var obj = {},
             proxy = lively.proxyFor(obj);
             
@@ -288,8 +296,12 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assertEquals(Object.isExtensible(proxy), false);
         this.assertEquals(Object.isExtensible(obj), false);
-    },
-    test29FunctionIsPrintedWithFunctionParamtersAndBody: function() {
+    }
+});
+
+TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxiesMeetNativeCodeTests',
+'testing', {
+    test01FunctionIsPrintedWithFunctionParamtersAndBody: function() {
         // which is helpful during debugging and necessary for
         // how lively's $super-calls work
         var func = lively.proxyFor(function addition($super, a, b) {
@@ -301,7 +313,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assertEquals(func.toString(), expectedOutput);
     },
-    test30DefineSetter__deprecatedVariant: function() {
+    test02DefineSetter__deprecatedVariant: function() {
         var obj = lively.proxyFor({});
         
         obj.__defineSetter__('aProp', lively.proxyFor(function(val) {
@@ -312,7 +324,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(obj.anotherProp, 10);
         this.assert(Object.isFunction(obj.__lookupSetter__('aProp')));
     },
-    test30bDeleteDefinedSetter__deprecatedVariant: function() {
+    test03DeleteDefinedSetter__deprecatedVariant: function() {
         var obj = lively.proxyFor({});
         
         obj.__defineSetter__('aProp', lively.proxyFor(function(val) {
@@ -322,7 +334,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assertEquals(obj.__lookupSetter__('aProp'));
     },
-    test31DefineGetter__deprecatedVariant: function() {
+    test04DefineGetter__deprecatedVariant: function() {
         var obj = lively.proxyFor({anotherProp: 5});
         
         obj.__defineGetter__('aProp', lively.proxyFor(function(val) {
@@ -332,7 +344,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(obj.aProp, 5);
         this.assert(Object.isFunction(obj.__lookupGetter__('aProp')));
     },
-    test32DefineGetterViaDefineProperty: function() {
+    test05DefineGetterViaDefineProperty: function() {
         var obj = lively.proxyFor({age: 1});
         
         Object.defineProperty(obj, 'age', lively.proxyFor({
@@ -341,15 +353,30 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assertEquals(obj.age, 2);
     },
-    test33DeleteProperty: function() {
+    test06DeleteProperty: function() {
         var obj = lively.proxyFor({age: 1});
         
         delete obj.age;
         
         this.assertEquals(obj.age, undefined);
+    },
+    test07StringReplaceWorksWithProxiedRegExp: function() {
+        var string = "ace/./editor",
+            result = string.
+                replace(lively.proxyFor(/\/\.\//), "/").
+                replace(lively.proxyFor(/[^\/]+\/\.\.\//), "");
+        
+        this.assertEquals(result, "ace/editor");
+    },
+    test08ArrayIndexOfWorksOnProxies: function() {
+        var element1 = lively.proxyFor({}),
+            element2 = lively.proxyFor({}),
+            array = lively.proxyFor([element1, element2]);
+        
+        this.assert(array.indexOf(element2) === 1);
     }
 });
-    
+
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
 'helpers', {
     assertInVersion: function(func, version) {
@@ -543,7 +570,13 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test03FunctionExpression: function() {
+    test03ArrayLiterals: function() {
+       var input = 'var regExp = /(?:)/;',
+            expectedOutput = 'var regExp = lively.proxyFor(/(?:)/);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test04FunctionExpression: function() {
         var input =
             'var funcVariable = function() {\n' +
             '   return 12;\n' +
@@ -555,7 +588,7 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test04NamedFunctionExpression: function() {
+    test05NamedFunctionExpression: function() {
         var input =
             'var funcVariable = function funcName() {\n' +
             '   return 12;\n' +
@@ -567,7 +600,7 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test05FunctionDeclaration: function() {
+    test06FunctionDeclaration: function() {
         // here, the input is a function declaration, which would make the function's
         // accessible in the declaration's parent's scope by its name, so we need to
         // make the function explicitly accessible using a variable when we wrap the
@@ -586,7 +619,7 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test06FunctionDeclarationHoisting: function() {
+    test07FunctionDeclarationHoisting: function() {
         var input =
             'funcName();\n' +
             'function funcName() {\n' +
@@ -601,7 +634,7 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test07FunctionDeclarationHoistingInAFunction: function() {
+    test08FunctionDeclarationHoistingInAFunction: function() {
         var input =
             '(function() {\n' +
             '    funcName();\n' +
@@ -620,7 +653,7 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test08TransformsDefinePropertyCorrectly: function() {
+    test09TransformsDefinePropertyCorrectly: function() {
         var input =
             'Object.defineProperty(obj, \"age\", {\n' +
             '    get: function() {\n' +
@@ -636,7 +669,7 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test09TransformsAccessorInObjectLiteralToDefinePropertyCall: function() {
+    test10TransformsAccessorInObjectLiteralToDefinePropertyCall: function() {
         var input =
         'obj = {\n' +
         '    age: 2,\n' +
@@ -668,50 +701,50 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test10TransformInstanceofOperator: function() {
+    test11TransformInstanceofOperator: function() {
         var input = 'obj instanceof Type;',
             expectedOutput = 'Object.instanceOf(obj, Type);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test11TransformObject: function() {
+    test12TransformObject: function() {
         var input = 'xy === Object;',
             expectedOutput = 'xy === lively.proxyFor(Object);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test12TransformObjectCreate: function() {
+    test13TransformObjectCreate: function() {
         var input = 'var o = Object.create(null);',
             expectedOutput = 'var o = lively.proxyFor(Object).create(null);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test13TransformEvalCorrectly: function() {
+    test14TransformEvalCorrectly: function() {
         var input = 'eval(\"some string argument\");',
             expectedOutput = 'eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test14TransformGlobalEvalCorrectly: function() {
+    test15TransformGlobalEvalCorrectly: function() {
         var input = 'Global.eval(\"some string argument\");',
             expectedOutput = 'lively.proxyFor(Global).eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test15TransformWindowEvalCorrectly: function() {
+    test16TransformWindowEvalCorrectly: function() {
         var input = 'window.eval(\"some string argument\");',
             expectedOutput = 'lively.proxyFor(window).eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test16IndicatesFailureOnSyntaxError: function() {
+    test17IndicatesFailureOnSyntaxError: function() {
         var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
        
         this.assertRaises((function() {
             this.transform(incorrectInput);
         }).bind(this));
     },
-    test17GenerateSourceWithMapping: function() {
+    test18GenerateSourceWithMapping: function() {
         var input = 'var obj = {};',
             expectedOutput = 'var obj=lively.proxyFor({});\n' +
                 '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
@@ -722,7 +755,7 @@ TestCase.subclass(
         
         this.assertEquals(output, expectedOutput);
     },
-    test18BiggerExample: function() {
+    test19BiggerExample: function() {
         var input =
             "var joe = {\n" +
             "    name: 'Joe',\n" +

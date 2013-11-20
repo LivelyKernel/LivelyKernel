@@ -508,6 +508,8 @@ Object.extend(lively.versions.ObjectVersioning, {
         if (!lively.createObject) {
             this.wrapObjectCreate();
         }
+        
+        this.patchBuiltInFunctions();
     },
     wrapObjectCreate: function() {
         var create = Object.create;
@@ -715,8 +717,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     start: function() {
         this.init();
         
-        this.patchNativeFunctions();
-        
+        // Module System + Class System (Base.js)
         this.patchBaseCode();
         
         // Worker.js is loaded before OV code,
@@ -724,15 +725,39 @@ Object.extend(lively.versions.ObjectVersioning, {
         Worker = lively.proxyFor(Worker);
         
     },
-    patchNativeFunctions: function() {
+    patchBuiltInFunctions: function() {
         
         // 'aString'.match(regExp): regExp can't be a proxy
         var originalStringMatch = String.prototype.match;
-        String.prototype.match = function(regexp) {
+        String.prototype.match = function match(regexp) {
             var exp = regexp && regexp.isProxy() ?
-                lively.objectFor(regexp) : regexp;
+                regexp.proxyTarget() : regexp;
             return originalStringMatch.call(this, exp);
-        }
+        };
+        
+        // 'aString'.search(regExp): regExp can't be a proxy
+        var originalStringSearch = String.prototype.match;
+        String.prototype.search = function search(regexp) {
+            var regularExp = regexp && regexp.isProxy() ?
+                regexp.proxyTarget() : regexp;
+            return originalStringSearch.call(this, regularExp);
+        };
+        
+        // 'aString'.replace(first, ..): first can't be a proxy
+        var originalStringReplace = String.prototype.replace;
+        String.prototype.replace = function replace(first, second, third) {
+            var goodFirst = (first && first.isProxy()) ?
+                first.proxyTarget() : first;
+            return originalStringReplace.call(this, goodFirst, second, third);
+        };
+        
+        // 'aString'.split(separator, ..): separator can't be a proxy
+        var originalStringSplit = String.prototype.split;
+        String.prototype.split = function replace(first, second) {
+            var goodFirst = (first && first.isProxy()) ?
+                first.proxyTarget() : first;
+            return originalStringSplit.call(this, goodFirst, second);
+        };
         
     },
     patchBaseCode: function() {

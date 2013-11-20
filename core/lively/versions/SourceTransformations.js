@@ -184,7 +184,8 @@ Object.extend(lively.versions.SourceTransformations, {
         }
         
         if (node instanceof UglifyJS.AST_Array ||
-            node instanceof UglifyJS.AST_Function) {
+            node instanceof UglifyJS.AST_Function ||
+            node instanceof UglifyJS.AST_RegExp) {
             // Note: AST_Function is a function expression, not a declaration,
             // function declarations are handled below (AST_Defun)
             

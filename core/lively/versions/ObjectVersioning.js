@@ -315,32 +315,81 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return this.ensureProxied(result);
             },
-            apply: function(dummyTarget, thisArg, args) {
+            apply: function(dummyTarget, suppliedThisArg, suppliedArgs) {
                 var result,
-                    func = this.targetObject(),
-                    targetObject = thisArg;
+                    thisArg = suppliedThisArg,
+                    targetObject = suppliedThisArg,
+                    args = suppliedArgs,
+                    func = this.targetObject();
                 
-                // workaround to have functions print with their function bodies
-                if (Object.isFunction(thisArg) && 
-                        thisArg.isProxy() &&
-                        !thisArg.__protoID) {
-                    // can't test if thisArg.name === 'toString' because the
-                    // function might be wrapped (in harmony-reflect shim)
+                // workaround to have functions print with their function
+                // bodies, which is not only helpful in the chrome dev tools,
+                // but also necessary for $super to work (for classes)
+                if (func === Function.prototype.toString &&
+                    Object.isFunction(thisArg)) {
+                    
                     targetObject = lively.objectFor(thisArg);
                 }
                 
-                // some primitive code can't handle proxies
+                // when aFunc.apply or aFunc.call is used, correct thisArg
+                // and arguments (as apply is done below, practically removing
+                // the apply-meta level) to not have to repeat all further
+                // checks..
+                
+                var normalizeFunctionApplication = 
+                    function flattenMeta(originalFunction, originalArguments) {
+                    func = thisArg.proxyTarget();
+                    
+                    thisArg = originalArguments[0];
+                    targetObject = originalArguments[0];
+                    
+                    if (originalFunction === Function.prototype.apply) {
+                        args = originalArguments[1];
+                    } else {
+                        args = originalArguments.slice(1);
+                    }
+                    
+                    if (args && !Object.isArray(args)) {
+                        args = Array.prototype.slice.call(args);
+                    }
+                    
+                    if (func === Function.prototype.apply ||
+                        func === Function.prototype.call) {
+                        normalizeFunctionApplication(func, args);
+                    }
+                }
+                
+                if (func === Function.prototype.apply ||
+                      func === Function.prototype.call) {
+                    
+                    normalizeFunctionApplication(func, args);
+                }
+                
+                // some primitive code can't handle proxies,
+                // therefore we unwrap the target and arguments.
+                // note: [native code] also (at least) results from printing
+                // functions that are not actually native/host functions, but
+                // have been boiund (aFunc.bind()) to some thisArg..
+                
+                // exceptions:
+                //  * don't unwrap arguments to anArray.indexOf, because
+                //    lively.proxyFor(obj) !== obj
                 if (func.toString().include('{ [native code] }') &&
-                    !(func === Function.prototype.apply ||
-                      func === Function.prototype.call) &&
-                      !(func === Array.prototype.indexOf)) {
+                    !(func === Array.prototype.indexOf)) {
                     
                     if (thisArg && thisArg.isProxy()) {
                         targetObject = lively.objectFor(thisArg);
                     }
-
-                    if (func.name === 'postMessage' &&
-                        targetObject instanceof Worker) {
+                    
+                    // UNWRAP THE ARGUMENTS: deeply or not?
+                    // some functions expect objects with properties or
+                    // arrays with some elements, which both can be proxied
+                    // and wouldn't be unproxied when we just unwrap a single
+                    // level (each argument)... however, we don't want to unwrap
+                    // everything (because we neither want to modify objects
+                    // permanently nor copy every object or array passed to
+                    // [native code])
+                    if (func === Worker.prototype.postMessage) {
                         // WebWorker get some option objects which can't have
                         // proxied properties. otherwise:
                         // DOM Exception 25, DATA_CLONE_ERR
@@ -348,21 +397,22 @@ Object.extend(lively.versions.ObjectVersioning, {
                         args = this.unwrapDeeply(args);
                         
                     } else {
-                        args = args.map(function(each) {
+                        
+                        args = args && args.map(function(each) {
                             return (each && each.isProxy()) ?
                                  lively.objectFor(each) : each;
                         })
                     }
                     
-                    // TODO: do we also need to check-up the prototype chains of the arguments?
-                    if (thisArg) {
+                    // TODO: check-up the arguments
+                    if (thisArg && thisArg.isProxy()) {
                         this.checkProtoChains(thisArg, thisArg.proxyTarget());
                     }
                 }
-                // concat would be handled by the exception above, however it's
-                // patched by reflect.js and thus doesn't match [native code]
-                if (thisArg && thisArg.isProxy() && Array.isArray(thisArg) &&
-                    func.name === 'concat') {
+                
+                // concat is patched by reflect.js and thus doesn't match
+                // [native code]
+                if (func === Array.prototype.concat) {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
@@ -652,7 +702,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 this.originalEval(targetExpression) : eval(targetExpression);
             
         } else if (Object.isArray(actualTarget)) {
-            dummyTarget = []
+            dummyTarget = [];
         } else {
             dummyTarget = {};
         }
@@ -733,8 +783,14 @@ Object.extend(lively.versions.ObjectVersioning, {
         // Module System + Class System (Base.js)
         this.patchBaseCode();
         
-        // Worker.js is loaded before OV code,
-        // but neither lang stuff nor Base stuff nor OV stuff depends on it...
+        this.proxyBuiltInObjectsGlobally();
+    },
+    proxyBuiltInObjectsGlobally: function() {
+        
+        // Note: we can only proxy global objects globally, when such Objects
+        // are not used in code that is loaded before the Object Versioning
+        // code and also not in the Object Versioning code itself
+        
         Worker = lively.proxyFor(Worker);
         
     },
@@ -777,11 +833,18 @@ Object.extend(lively.versions.ObjectVersioning, {
         // patches for bootstrap.js:
         Object.extend(JSLoader, {
             runCode: function(code, url) {
+                var sources = code;
+                
                 if (lively.transformSource) {
-                    Global.eval(lively.transformSource(code), url);
-                } else {
-                    Global.eval(code, url);
+                    try {
+                        sources = lively.transformSource(code);
+                    } catch (e) {
+                        throw new Error('Versioning: Couldn\'t transform code '
+                            + ' from ' + url + ', Error: ' + e);
+                    }
                 }
+                
+                Global.eval(sources, url);
             }
         });
         

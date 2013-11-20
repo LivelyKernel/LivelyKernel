@@ -14,6 +14,14 @@ Object.defineProperty(Object.prototype, 'proxyTarget', {
     writable: true
 });
 
+Object.isRegExp = function (object) {
+    if (!lively.isPrimitiveObject(object) && object.isProxy()) {
+        return object.proxyTarget().proxyTarget() instanceof RegExp;
+    } else {
+        return object instanceof RegExp;
+    }
+}
+
 Object.extend(Object, {
     instanceOf: function(obj, type) {
         var realObj, realPrototype, FakeConstructor;

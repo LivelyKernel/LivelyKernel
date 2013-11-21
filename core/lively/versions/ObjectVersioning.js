@@ -16,7 +16,7 @@ Object.defineProperty(Object.prototype, 'proxyTarget', {
 
 Object.isRegExp = function (object) {
     if (!lively.isPrimitiveObject(object) && object.isProxy()) {
-        return object.proxyTarget().proxyTarget() instanceof RegExp;
+        return object.proxyTarget() instanceof RegExp;
     } else {
         return object instanceof RegExp;
     }

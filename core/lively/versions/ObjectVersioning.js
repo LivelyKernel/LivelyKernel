@@ -331,38 +331,34 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
-                // when aFunc.apply or aFunc.call is used, correct thisArg
-                // and arguments (as apply is done below, practically removing
-                // the apply-meta level) to not have to repeat all further
-                // checks..
-                
-                var normalizeFunctionApplication = 
-                    function flattenMeta(originalFunction, originalArguments) {
-                    func = thisArg.proxyTarget();
-                    
-                    thisArg = originalArguments[0];
-                    targetObject = originalArguments[0];
-                    
-                    if (originalFunction === Function.prototype.apply) {
-                        args = originalArguments[1];
-                    } else {
-                        args = originalArguments.slice(1);
-                    }
-                    
-                    if (args && !Object.isArray(args)) {
-                        args = Array.prototype.slice.call(args);
-                    }
-                    
-                    if (func === Function.prototype.apply ||
-                        func === Function.prototype.call) {
-                        normalizeFunctionApplication(func, args);
-                    }
-                }
-                
+                // when aFunc is Function.prototype.apply or .call, normalize
+                // the arguments as we apply the function below, removing the
+                // apply-meta level here to not have to repeat handling of
+                // special cases ([native code] and stuff)
                 if (func === Function.prototype.apply ||
                       func === Function.prototype.call) {
                     
-                    normalizeFunctionApplication(func, args);
+                    (function normalizeArguments(originalFunc, originalArgs) {
+                        func = thisArg.proxyTarget();
+                    
+                        thisArg = originalArgs[0];
+                        targetObject = originalArgs[0];
+                    
+                        if (originalFunc === Function.prototype.apply) {
+                            args = originalArgs[1];
+                        } else {
+                            args = originalArgs.slice(1);
+                        }
+                    
+                        if (args && !Object.isArray(args)) {
+                            args = Array.prototype.slice.call(args);
+                        }
+                    
+                        if (func === Function.prototype.apply ||
+                            func === Function.prototype.call) {
+                            normalizeArguments(func, args);
+                        }
+                    })(func, args);
                 }
                 
                 // some primitive code can't handle proxies,

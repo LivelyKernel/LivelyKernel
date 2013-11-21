@@ -416,7 +416,25 @@ Object.extend(lively.versions.ObjectVersioning, {
                     targetObject = lively.objectFor(thisArg);
                 }
                 
-                result = func.apply(targetObject, args);
+                try {
+                    result = func.apply(targetObject, args);
+                } catch (e) {
+                    // FIXME: temporary to ease debugging - remove this later
+                    
+                    // don't debug this error, as this error occurs in trying
+                    // two XPath query alternatives and caught immediately..
+                    if (e.message !== 'An attempt was made to create or ' +
+                        'change an object in a way which is incorrect with ' +
+                        'regard to namespaces.') {
+                        
+                        debugger;
+                        
+                        // result = func.apply(targetObject, args);
+                    }
+                    
+                    
+                    throw e;
+                }
                 
                 return this.ensureProxied(result);
             },

@@ -354,8 +354,8 @@ Config.addOptions(
 'lively.persistence', [
     ["ignoreClassNotFound", true, "if a class is not found during deserializing a place holder object can be created instead of raising an error"],
     ["silentFailOnWrapperClassNotFound", true, "DEPRECATED old serialization logic"],
-    ["ignoreLoadingErrors", true],
-    ["ignoreMissingModules", true],
+    ["ignoreLoadingErrors", false],
+    ["ignoreMissingModules", false],
     ["keepSerializerIds", false],
     ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."]
 ],

@@ -3722,8 +3722,8 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         tree.setItem({
             name: "root",
             children: [
-                {name: "item 1", children: [{name: "subitem"}]},
-                {name: "item 2"}]
+                {name: "item 1", children: [{name: "subitem", style: {color: Color.red}}]},
+                {name: "item 2", description: "description"}]
         });
     }
 },
@@ -3959,7 +3959,9 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 this.childNodes.push(node);
             }, this);
             if (this.childNodes.length < this.item.children.length) {
-                var more = {name: "[...show more]", 
+                var more = {name: Strings.format("[... show more (%s total)]",
+                                    this.item.children.length),
+                            style: {color: Color.web.darkgray},
                             onSelect: this.showMoreChildren.bind(this)}; 
                 this.showMoreNode = this.createNodeBefore(more);
             }

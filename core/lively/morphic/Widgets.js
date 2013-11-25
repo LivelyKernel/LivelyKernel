@@ -1523,12 +1523,6 @@ openReferencingMethodFinder: function () {
         });
     },
 
-    openPreferences: function() {
-        require('lively.morphic.tools.Preferences').toRun(function() {
-            lively.BuildSpec('lively.morphic.tools.Preferences').createMorph().openInWorldCenter().comeForward();
-        });
-    },
-
     openServerWorkspace: function() {
         require('lively.ide.tools.ServerWorkspace').toRun(function() {
             lively.BuildSpec('lively.ide.tools.ServerWorkspace').createMorph().openInWorldCenter().comeForward();
@@ -1930,6 +1924,12 @@ openReferencingMethodFinder: function () {
     },
 },
 'preferences', {
+    openPreferences: function() {
+        require('lively.morphic.tools.Preferences').toRun(function() {
+            lively.BuildSpec('lively.morphic.tools.Preferences').createMorph().openInWorldCenter().comeForward();
+        });
+    },
+
     askForNewWorldExtent: function() {
         var world = this;
         this.prompt("Please enter new world extent", function(str) {
@@ -1946,7 +1946,7 @@ openReferencingMethodFinder: function () {
             }
             world.setExtent(newExtent);
             alertOK("Set world extent to " +  newExtent);
-        }, this.getExtent())
+        }, this.getExtent().toString());
     },
     askForNewBackgroundColor: function() {
         var world = this,

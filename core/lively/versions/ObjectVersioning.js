@@ -23,21 +23,28 @@ Object.isRegExp = function (object) {
 }
 
 Object.extend(Object, {
+    
+    // there's no trap for the instanceOf operator. instead it always
+    // works directly on the proxy's original target (dummyTarget for our
+    // fully virtual object-proxies, but the proto-chain can also change).
+    
+    // further, a function's prototype property is proxied, whereas the
+    // __proto__-chain of an object doesn't contain any proxies.. that is,
+    // we also couldn't use the instanceof operator on a target that has been
+    // resolved using the __objectID
+    
     instanceOf: function(obj, type) {
-        var realObj, realPrototype, FakeConstructor;
+        var realObj, 
+            realType = type;
         
-        if (!obj.isProxy() && (!type.prototype || !type.prototype.isProxy())) {
-            return obj instanceof type;
+        realObj = (obj && obj.isProxy()) ? obj.proxyTarget() : obj;
+        
+        if (type.prototype && type.prototype.isProxy()) {
+            realType = function() {};
+            realType.prototype = type.prototype.proxyTarget();
         }
         
-        realObj = obj.isProxy() ? obj.proxyTarget() : obj;
-        realPrototype = type.prototype.isProxy() ?
-            type.prototype.proxyTarget() : type.prototype;
-        
-        FakeConstructor = function() {};
-        FakeConstructor.prototype = realPrototype;
-        
-        return realObj instanceof FakeConstructor;
+        return realObj instanceof realType;
     }
 });
 

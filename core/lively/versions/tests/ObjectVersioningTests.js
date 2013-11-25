@@ -524,25 +524,33 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
 });
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ExtensionTests',
 'testing', {
-    test01ObjectInstanceOf_TwoObjects: function() {
+    test01ObjectInstanceOf_NullValues: function() {
+        this.assert(!Object.instanceOf(undefined, Object));
+        this.assert(!Object.instanceOf(null, Object));
+    },
+    test02ObjectInstanceOf_PrimitiveValues: function() {
+        this.assert(!Object.instanceOf(15, Object));
+        this.assert(!Object.instanceOf('what type?', Object));
+    },
+    test03ObjectInstanceOf_TwoObjects: function() {
         var Type = function () {},
             instance = new Type();
         
-        Object.instanceOf(instance, Type);
+        this.assert(Object.instanceOf(instance, Type));
     },
-    test02ObjectInstanceOf_TwoProxies: function() {
+    test04ObjectInstanceOf_TwoProxies: function() {
         var Type = lively.proxyFor(function () {}),
             instance = new Type();
         
-        Object.instanceOf(instance, Type);
+        this.assert(Object.instanceOf(instance, Type));
     },
-    test03ObjectInstanceOf_OnlyInstanceProxied: function() {
+    test05ObjectInstanceOf_OnlyInstanceProxied: function() {
         var Type = function () {},
             instance = lively.proxyFor(new Type());
         
-        Object.instanceOf(instance, Type);
+        this.assert(Object.instanceOf(instance, Type));
     },
-    test04ObjectInstanceOf_OnlyTypePrototypeProxied: function() {
+    test06ObjectInstanceOf_OnlyTypePrototypeProxied: function() {
         var Type = function () {},
             proto = {},
             instance;
@@ -552,7 +560,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ExtensionTests',
         
         Type.prototype = lively.proxyFor(proto);
         
-        Object.instanceOf(instance, Type);
+        this.assert(Object.instanceOf(instance, Type));
     },
 });
 

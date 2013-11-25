@@ -199,9 +199,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         cell.correctThis = false;
         cell.put(thisEvalStr);
         this.assert(cell.correctThis, "During evaluation, this was bound to an unexpected object.");
+    },
+    test24addRowWithContent: function() {
+        var content = ["a", "b", "c", "d", "e"];
+        this.grid.addRow(content);
+        this.assertEquals(this.grid.rows[this.grid.rows.length - 1].collect(function(cell) { return cell.textString}), content, "setting captions was not successful");
     }
-
-
 });
 
 

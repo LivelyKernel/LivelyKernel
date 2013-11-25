@@ -115,12 +115,11 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         }
     },
 
-    createCell: function(x, y, headOffsetX, headOffsetY) {
+    createCell: function(x, y, headOffsetX, headOffsetY, string) {
         // numRows, i.e. y, contains the headOffsetY, i.e. the colHeads row.
         // Only in naming, it has to be removed.
-        var cell = new lively.morphic.DataGridCell();
+        var cell = new lively.morphic.DataGridCell(new Rectangle(0, 0, this.defaultCellWidth, this.defaultCellHeight), string);
         cell.doitContext = this;
-        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         cell.addToGrid(this);
         cell.gridCoords = pt(x + headOffsetX, y);
         cell.name = '[' + x + ';' + (y - headOffsetY) + ']';
@@ -379,17 +378,19 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         this.createLayout();
     },
 
-    addRow: function() {
+    addRow: function(content) {
         var row = [];
+        if(content !== undefined && content.length != this.numCols){
+            throw new Error("Not enough content supplied.");
+        }
         if (!this.hideRowHeads) {
             var head = this.createRowHead(this.numRows, '[' + this.numRows + ']');
             this.rowHeads.push(head);
             row.push(head);
         }
-
         var numCellCols = this.numCols - (this.hideRowHeads ? 0 : 1);
         for (var i = 0; i < numCellCols; i++) {
-            var cell = this.createCell(i, this.numRows, this.hideRowHeads ? 0 : 1, this.hideColHeads ? 0 : 1);
+            var cell = this.createCell(i, this.numRows, this.hideRowHeads ? 0 : 1, this.hideColHeads ? 0 : 1, content && content[i]);
             row.push(cell);
         }
         this.rows.push(row);
@@ -507,8 +508,8 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
         return false;
     },
 
-    initialize: function($super, arg) {
-        $super(arg);
+    initialize: function($super, arg, string) {
+        $super(arg, string);
         this.evalExpression = undefined;
     },
     updateDisplay: function() {

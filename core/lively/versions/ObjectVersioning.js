@@ -91,8 +91,9 @@ lively.GlobalObjectsToWrap = [
     'document',
     'XMLHttpRequest',
     'Worker'
-    
 ];
+
+lively.ArrayIterators = [Array.prototype.forEach, Array.prototype.every, Array.prototype.some, Array.prototype.filter, Array.prototype.map, Array.prototype.reduce, Array.prototype.reduceRight];
 
 Object.extend(lively.versions.ObjectVersioning, {
     versioningProxyHandler: function(objectID) {
@@ -322,15 +323,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                     args = suppliedArgs,
                     func = this.targetObject();
                 
-                // workaround to have functions print with their function
-                // bodies, which is not only helpful in the chrome dev tools,
-                // but also necessary for $super to work (for classes)
-                if (func === Function.prototype.toString &&
-                    Object.isFunction(thisArg)) {
-                    
-                    targetObject = lively.objectFor(thisArg);
-                }
-                
                 // when aFunc is Function.prototype.apply or .call, normalize
                 // the arguments as we apply the function below, removing the
                 // apply-meta level here to not have to repeat handling of
@@ -371,10 +363,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // exceptions:
                 //  * don't unwrap arguments to anArray.indexOf, because
                 //    lively.proxyFor(obj) !== obj
+                //  * don't unwrap arguments to iteration methods, which
+                //    even might include a this-context
+
                 if ((func.toString().include('{ [native code] }') &&
-                    !(func === Array.prototype.indexOf)) ||
-                    func === Array.prototype.concat ||
-                    func === Date.prototype.toString
+                    func !== Array.prototype.indexOf &&
+                    !lively.ArrayIterators.include(func)) ||
+                    
+                    (func === Array.prototype.concat ||
+                    func === Function.prototype.toString ||
+                    func === Date.prototype.toString)
                 ) {
                     
                     if (thisArg && thisArg.isProxy()) {
@@ -397,14 +395,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                         args = this.unwrapDeeply(args);
                         
                     } else {
-                        
                         args = args && args.map(function(each) {
                             return (each && each.isProxy()) ?
                                  lively.objectFor(each) : each;
                         })
                     }
                     
-                    // TODO: check-up the arguments
+                    // TODO: check-up the arguments, except for array iterators
                     if (thisArg && thisArg.isProxy()) {
                         this.checkProtoChains(thisArg, thisArg.proxyTarget());
                     }

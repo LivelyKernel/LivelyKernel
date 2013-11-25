@@ -41,7 +41,7 @@ lively.morphic.Morph.addMethods(
     },
     getHalos: function() {
         var morph = this;
-        return this.getHaloClasses().map(function(ea) { return new ea.getInstanceFor(morph) });
+        return this.getHaloClasses().map(function(ea) { return ea.getInstanceFor(morph) });
     },
 
     removeHalos: function(optWorld) {

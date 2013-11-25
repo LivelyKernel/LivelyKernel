@@ -366,12 +366,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // note: [native code] also (at least) results from printing
                 // functions that are not actually native/host functions, but
                 // have been boiund (aFunc.bind()) to some thisArg..
-                
+                // note 2: anArray.concat and aDate.toString are patched by
+                // reflect.js and thus doesn't match [native code].
                 // exceptions:
                 //  * don't unwrap arguments to anArray.indexOf, because
                 //    lively.proxyFor(obj) !== obj
-                if (func.toString().include('{ [native code] }') &&
-                    !(func === Array.prototype.indexOf)) {
+                if ((func.toString().include('{ [native code] }') &&
+                    !(func === Array.prototype.indexOf)) ||
+                    func === Array.prototype.concat ||
+                    func === Date.prototype.toString
+                ) {
                     
                     if (thisArg && thisArg.isProxy()) {
                         targetObject = lively.objectFor(thisArg);
@@ -404,12 +408,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                     if (thisArg && thisArg.isProxy()) {
                         this.checkProtoChains(thisArg, thisArg.proxyTarget());
                     }
-                }
-                
-                // concat is patched by reflect.js and thus doesn't match
-                // [native code]
-                if (func === Array.prototype.concat) {
-                    targetObject = lively.objectFor(thisArg);
                 }
                 
                 try {

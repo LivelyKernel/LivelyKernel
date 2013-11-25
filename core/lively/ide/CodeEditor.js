@@ -676,7 +676,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         function insert(ed) {
             var sel = ed.selection, range = sel.getRange();
             sel.moveCursorToPosition(range.end); sel.clearSelection();
-            var string = obj instanceof Error ? printError(obj) : String(obj);
+            var string;
+            try {
+                string = obj instanceof Error ? printError(obj) : String(obj);
+            } catch (e) { string = printError(e); }
             ed.onPaste(string);
             if (!suppressSelection) {
                 var newRange = range.constructor.fromPoints(range.end, sel.getCursor());

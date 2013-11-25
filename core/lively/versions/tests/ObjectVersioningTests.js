@@ -124,7 +124,13 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(aPerson.name, 'Joe');
         this.assertEquals(aPerson.age, 19);
     },
-    test16PrototypeCanBeAProxy: function() {
+    test16ConstructorReturnsReturnValue: function() {
+        var anObject = lively.proxyFor({}),
+            aClass = lively.proxyFor(function() { return anObject });
+        
+        this.assertEquals(new aClass(), anObject);
+    },
+    test17PrototypeCanBeAProxy: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         
@@ -132,7 +138,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(descendant.__proto__, proto);
         this.assert(Object.getPrototypeOf(descendant).isProxy());
     },
-    test17PrototypeOfProxyCanBeChanged: function() {
+    test18PrototypeOfProxyCanBeChanged: function() {
         var originalPrototype = lively.proxyFor({v: 1}),
             otherPrototype = lively.proxyFor({v: 2}),
             descendant = lively.createObject(originalPrototype);
@@ -143,14 +149,14 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(descendant.__proto__, otherPrototype);
         this.assertEquals(descendant.v, 2);
     },
-    test18ProtoLookupWorksOnProxies: function() {
+    test19ProtoLookupWorksOnProxies: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         proto.prop = 15;
                 
         this.assertEquals(descendant.prop, 15);
     },
-    test19MethodFromPrototypeIsAppliedCorrectly: function() {
+    test20MethodFromPrototypeIsAppliedCorrectly: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         
@@ -163,7 +169,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         descendant.prop = 2;
         this.assert(descendant.method(), 2);
     },
-    test20ObjCanOverwriteInheritedProperty: function() {
+    test21ObjCanOverwriteInheritedProperty: function() {
         var obj = lively.proxyFor({a: 2}),
             subObj = lively.createObject(obj);
         
@@ -172,7 +178,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(obj.a, 2);
         this.assertEquals(subObj.a, 5);
     },
-    test21MethodCanBeAddedToPrototypeOfConstructor: function() {
+    test22MethodCanBeAddedToPrototypeOfConstructor: function() {
         var instance,
             NewType = lively.proxyFor(function() {
                 this.prop = 12;
@@ -190,7 +196,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(instance.getProp.isProxy());
         this.assertEquals(instance.getProp(), 12);
     },
-    test22ConstructorWithProxiedPrototypeProperty: function() {
+    test23ConstructorWithProxiedPrototypeProperty: function() {
         var prototype = lively.proxyFor({protoProp: 'p'}),
             Constructor = lively.proxyFor(function C(parameter){
                 this.constructorProp = 'c';
@@ -205,7 +211,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(instance.constructorProp, 'c');
         this.assertEquals(instance.argument, 'a');
     },
-    test23ProxyHasCorrectProperties: function() {
+    test24ProxyHasCorrectProperties: function() {
         var proto = lively.proxyFor({protoProp: 1}),
             descendant = lively.createObject(proto);
         descendant.ownProp = 2;
@@ -214,7 +220,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert('ownProp' in descendant);
         this.assert(!('neverDefinedProperty' in descendant));
     },
-    test24ProxyHasCorrectOwnProperties: function() {
+    test25ProxyHasCorrectOwnProperties: function() {
         var proto = lively.proxyFor({}),
             descendant = lively.createObject(proto);
         
@@ -227,7 +233,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(descendant.hasOwnProperty('ownProp'));
         this.assert(!descendant.hasOwnProperty('protoProp'));
     },
-    test25GetOwnPropertyNames: function() {
+    test26GetOwnPropertyNames: function() {
         var person = lively.proxyFor({}),
             student = lively.createObject(person),
             ownProps;
@@ -239,7 +245,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         ownProps = Object.getOwnPropertyNames(student);
         this.assertEquals(['avgGrade', 'semester'].intersect(ownProps).length, 2);
     },
-    test26PropertyEnumerationWorks: function() {
+    test27PropertyEnumerationWorks: function() {
         var proto = {a:1, b:2, c:3},
             obj = lively.createObject(proto),
             enumeratedProps = [];
@@ -254,7 +260,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
 
         this.assert(['a','b','c','d', 'e', 'f'].intersect(enumeratedProps).length === 6);
     },
-    test27CorrectObjectKeys: function() {
+    test28CorrectObjectKeys: function() {
         var proto = {a:1, b:2, c:3},
             obj = lively.createObject(proto);
         
@@ -264,7 +270,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assert(['d', 'e', 'f'].intersect(Object.keys(obj)).length === 3);
     },
-    test28ProxiedObjectsCanBeFrozen: function() {
+    test29ProxiedObjectsCanBeFrozen: function() {
         var obj = {},
             proxy = lively.proxyFor(obj);
             
@@ -275,7 +281,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(Object.isFrozen(proxy));
         this.assert(Object.isFrozen(obj));
     },
-    test29ProxiedObjectsCanBeSealed: function() {
+    test30ProxiedObjectsCanBeSealed: function() {
         var obj = {},
             proxy = lively.proxyFor(obj);
             
@@ -286,7 +292,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assert(Object.isSealed(proxy));
         this.assert(Object.isSealed(obj));
     },
-    test30ExtensionsToProxiedObjectsCanBePrevented: function() {
+    test31ExtensionsToProxiedObjectsCanBePrevented: function() {
         var obj = {},
             proxy = lively.proxyFor(obj);
             

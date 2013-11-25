@@ -436,7 +436,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 var OriginalConstructor = this.targetObject(),
                     name = OriginalConstructor.name,
                     proto = OriginalConstructor.prototype,
-                    newInstance;
+                    newInstance, constructorReturnValue;
                 
                 if (lively.GlobalObjectsToWrap.include(name)) {
                     // new-operator seems necessary for constructing new
@@ -457,16 +457,21 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 // we don't use a new-operator on the OriginalConstructor as
-                // the prototype of a function is proxied and would, thus,
-                // result in an object that has a proxy as actual prototype,
-                // which it shouldn't (prototype-traps + no __proto__
-                // assignments)
+                // the prototype of a function will be proxied and would, thus,
+                // return an object with a proxy as actual prototype, which it
+                // shouldn't have (prototype-traps + no __proto__ assignments)
+                
                 newInstance = lively.createObject(proto);
                 newInstance.constructor = OriginalConstructor;
-                OriginalConstructor.apply(newInstance, args);
+                constructorReturnValue =
+                    OriginalConstructor.apply(newInstance, args);
                 
-                // newInstance is proxied as lively.createObject returns a proxy
-                return newInstance;
+                // note: newInstance is proxied as lively.createObject returns
+                // a proxy, whereas we can't be sure for another return value,
+                // which has to be returned instead when there is one
+                
+                return constructorReturnValue ?
+                    lively.proxyFor(constructorReturnValue) : newInstance;
             },
             getPrototypeOf: function(dummyTarget) {
                 var protoID = this.targetObject().__protoID;

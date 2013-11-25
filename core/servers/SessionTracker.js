@@ -41,7 +41,8 @@ var sessionActions = {
         var sessions = sessionServer.getLocalSessions()[sessionServer.id()],
             session = sessions[msg.sender] = sessions[msg.sender] || {};
         util._extend(session, msg.data);
-        util._extend(session, {remoteAddress: connection.remoteAddress});
+        util._extend(session, {remoteAddress: connection.remoteAddress,
+            timeOfRegistration: new Date().getTime()});
         connection.id = msg.data.id;
         connection.on('close', function() {
             // remove the session registration after the connection closes

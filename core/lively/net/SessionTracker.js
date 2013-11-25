@@ -13,6 +13,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
         // a value other than null will enable session caching, i.e.
         // this.getSessions will only do a request at most as specified by timeout
         this.getSessionsCacheInvalidationTimeout = options.getSessionsCacheInvalidationTimeout || null;
+        this.timeOfCreation = Date.now(); // UNIX timestamp
     }
 },
 'l2l state storage', {
@@ -198,7 +199,8 @@ Object.subclass('lively.net.SessionTrackerConnection',
             id: this.sessionId,
             worldURL: URL.source.toString(),
             user: this.username || 'anonymous',
-            lastActivity: Global.LastEvent && Global.LastEvent.timeStamp
+            lastActivity: Global.LastEvent && Global.LastEvent.timeStamp,
+            timeOfCreation: this.timeOfCreation,
         }, this.connectionEstablished.bind(this));
     },
 

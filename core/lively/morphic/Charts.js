@@ -26,8 +26,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super();
         this.setExtent(pt(500, 250));
         this.setFill(Color.gray);
-        this.dataIn = null;
-        this.dataOut = null;
+        this.data = null;
         
         this.createLabel();
         this.createButton();
@@ -49,7 +48,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     createButton: function() {
         var b = new lively.morphic.Button();
         connect(b, "fire", this, "update", {});
-        b.setLabel("Update");
+        b.setLabel("Do");
         b.setExtent(pt(100, 20));
         b.setPosition(pt(400, 230));
         this.addMorph(b);
@@ -58,9 +57,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     update: function() {
         var morphAbove = this.getMorphAbove();
         if (morphAbove)
-            this.dataIn = morphAbove.dataOut;
+            this.data = morphAbove.data;
         else
-            this.dataIn = null;
+            this.data = null;
         this.updateComponent();
         
     },

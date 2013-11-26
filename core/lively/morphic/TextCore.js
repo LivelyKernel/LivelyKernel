@@ -250,12 +250,17 @@ Trait('TextChunkOwner',
         return domChanged;
     }
 },
-'debugging', {
-    isInChunkDebugMode: function() { return !!this.chunkDebugMode; },
-    setChunkDebugMode: function(bool) { this.chunkDebugMode = bool; this.forceRender(); }
-});
 
-lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), Trait('TextChunkOwner'),
+'debugging', {
+    isInChunkDebugMode: function() { 
+        return !!this.chunkDebugMode; 
+    },
+    setChunkDebugMode: function(bool) { this.chunkDebugMode = bool; this.forceRender(); 
+    }
+}
+);
+
+lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 'properties', {
     isText: true,
     allowInput: true,
@@ -1294,9 +1299,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         return false;
     },
-
-
+    
+    onMouseWheel: function(evt) {
+        this.stopScrollWhenBordersAreReached(evt);
+        return true;
+    }
 },
+
 'selection', {
     domSelection: function() {
         var sel = Global.getSelection(),
@@ -2309,7 +2318,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return line.replace(varRegexp, indent + '$2;');
         }
     }
-});
+}
+);
 
 
 Object.extend(lively.morphic.Text, {

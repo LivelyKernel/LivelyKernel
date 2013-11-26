@@ -435,15 +435,7 @@ Object.extend(Event, {
     }
 });
 
-Trait('ScrollableTrait',
-'accessing', {
-    basicGetScrollableNode: function() {
-        throw new Error('Base class should implement basicGetScrollableNode()');
-    },
-    world: function() {
-        throw new Error('Base class should implement world()');
-    },
-},
+lively.morphic.Morph.addMethods(
 'scrolling', {
     getScroll: function() {
         var node = this.getScrollableNode(),
@@ -508,11 +500,6 @@ Trait('ScrollableTrait',
     }
 },
 'scroll event handling', {
-    onMouseWheel: function(evt) {
-        this.stopScrollWhenBordersAreReached(evt);
-        return true;
-    },
-
     undoScroll: function(evt) {
         // The following is to restore the scroll in a scrollable widget that does not have
         // the focus. The browser scrolled that one automatically.
@@ -560,8 +547,6 @@ Trait('ScrollableTrait',
         this.setScroll(this.getScroll()[0], this.getMaxScrollExtent().y);
     }
 })
-.applyTo(lively.morphic.Morph)
-.applyTo(lively.morphic.Text, {override: ['onMouseWheel']})
 
 Trait('lively.morphic.DragMoveTrait',
 'event handling', {

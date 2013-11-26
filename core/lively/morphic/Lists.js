@@ -1,6 +1,6 @@
 module('lively.morphic.Lists').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.TextCore', 'lively.morphic.Styles').toRun(function() {
 
-lively.morphic.Box.subclass('lively.morphic.OldList', Trait('ScrollableTrait'),
+lively.morphic.Box.subclass('lively.morphic.OldList', 
 'documentation', {
     connections: {
         selection: {},
@@ -664,7 +664,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     }
 });
 
-lively.morphic.Box.subclass('lively.morphic.List', Trait('ScrollableTrait'),
+lively.morphic.Box.subclass('lively.morphic.List', 
 'settings', {
     style: {
         fill: Color.white,

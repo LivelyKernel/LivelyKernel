@@ -85,4 +85,68 @@ Object.extend(lively.ide, {
     })
 });
 
+(function acePatches() {
+    var CstyleBehaviour = lively.ide.ace.require('ace/mode/behaviour/cstyle').CstyleBehaviour;
+    // CstyleBehaviour = origCstyleBehaviour
+    // origCstyleBehaviour = CstyleBehaviour
+    var oop = lively.ide.ace.require('ace/lib/oop')
+    var LivelyCstyleBehaviour = function() {
+        this.inherit(CstyleBehaviour);
+        this.add("braces", "insertion", function (state, action, editor, session, text) {
+            if (text == '{') {
+                var selection = editor.getSelectionRange();
+                var selected = session.doc.getTextRange(selection);
+                if (selected !== "" && editor.getWrapBehavioursEnabled()) {
+                    return {
+                        text: '{' + selected + '}',
+                        selection: false
+                    };
+                } else if (CstyleBehaviour.isSaneInsertion(editor, session)) {
+                    CstyleBehaviour.recordAutoInsert(editor, session, '}');
+                    return {
+                        text: '{}',
+                        selection: [1, 1]
+                    };
+                }
+            } else if (text == '}') {
+                var cursor = editor.getCursorPosition();
+                var line = session.doc.getLine(cursor.row);
+                var rightChar = line.substring(cursor.column, cursor.column + 1);
+                if (rightChar == '}') {
+                    var matching = session.$findOpeningBracket('}', {column: cursor.column + 1, row: cursor.row});
+                    if (matching !== null && CstyleBehaviour.isAutoInsertedClosing(cursor, line, text)) {
+                        CstyleBehaviour.popAutoInsertedClosing();
+                        return {
+                            text: '',
+                            selection: [1, 1]
+                        };
+                    }
+                }
+            } else if (text == "\n" || text == "\r\n") {
+                // if we are left of a closing brace and press enter then move
+                // that closing brace down one more line to open a typically
+                // c-style block and indent it correctly
+                var cursor = editor.getCursorPosition();
+                var line = session.doc.getLine(cursor.row);
+                var rightChar = line.substring(cursor.column, cursor.column + 1);
+                if (rightChar == '}') {
+                    var openBracePos = session.findMatchingBracket({row: cursor.row, column: cursor.column+1}, '}');
+                    if (!openBracePos)
+                         return null;
+
+                    var indent = this.getNextLineIndent(state, line.substring(0, cursor.column), session.getTabString());
+                    var next_indent = this.$getIndent(line);
+
+                    return {
+                        text: '\n' + indent + '\n' + next_indent, // <- existing bracket will be indented
+                        selection: [1, indent.length, 1, indent.length]
+                    };
+                }
+            }
+        });
+    }
+    Object.extend(LivelyCstyleBehaviour, CstyleBehaviour);
+    oop.inherits(LivelyCstyleBehaviour, CstyleBehaviour);
+    lively.ide.ace.require('ace/mode/behaviour/cstyle').CstyleBehaviour = LivelyCstyleBehaviour;
+})();
 }); // end of module

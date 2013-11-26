@@ -6,7 +6,7 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
         $super();
         this.setFill(Color.white);
         this.setExtent(pt(w, h));
-        this.OFFSET = 10;
+        this.OFFSET = 20;
         this.currentX = this.OFFSET;
     },
     
@@ -15,7 +15,13 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
         this.currentX = this.currentX + element.getExtent().x + this.OFFSET;
         this.addMorph(element);
         return this.currentX;
+    },
+    
+    clear: function(){
+        this.currentX = this.OFFSET;
+        this.removeAllMorphs();
     }
+    
 } )
 
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
@@ -31,10 +37,22 @@ lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     },
     
     draw: function(data){
-        var WIDTH,SPACE = 10;
-        for (var i = 0; i < data.length; i++) {
-            var rect = new lively.morphic.Morph.makeRectangle(0,0,WIDTH,100*data[i]);
-            rect.setFill(Color.grey);
+        var WIDTH = 20, MARGIN_TOP=10;
+        this.linearLayout.clear();
+        
+        var max = Object.values(data).max();
+        for (var element in data) {
+            var rect = new lively.morphic.Morph.makeRectangle(0,0,WIDTH,data[element]/max*this.linearLayout.getExtent().y-MARGIN_TOP);
+            rect.setFill(Color.blue);
+            rect.setBorderWidth(0);
+            var text = new lively.morphic.Text();
+            text.setTextString(element);
+            text.setExtent(pt(50, 20));
+            text.setFill(Color.gray);
+            text.setBorderWidth(0);
+            text.setPosition(pt(text.getPosition().x-rect.getExtent().x/2,
+                text.getPosition().y+rect.getExtent().y));
+            rect.addMorph(text);
             this.linearLayout.addElement(rect);
         }
     },

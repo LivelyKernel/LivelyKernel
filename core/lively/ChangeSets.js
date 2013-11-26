@@ -101,6 +101,8 @@ Object.extend(Global, {
     addOwnPropertyIfAbsent(Function.prototype, 'lvIsConstructor', function(){
         if(this.superclass) 
             return true;
+        if(this.originalFunction)
+            return this.getOriginal().lvIsConstructor();
         return Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
                     return name != 'lvContextPath' && name != 'caller' && name != 'originalFunction' &&
                             !obj.__lookupGetter__(name) && obj[name] instanceof Function}
@@ -149,9 +151,11 @@ Object.extend(Global, {
             for (var name, i=0; i<keys.length; i++)
                 if (!this.__lookupGetter__(name = keys[i]) && (sampleMethod = this[name]) instanceof Function && 
                     (sampleMethod.belongsToTrait && sampleMethod.belongsToTrait.def === this || 
-                    sampleMethod.declaredClass && sampleMethod.methodName && sampleMethod.declaredClass.prototype === this))
+                    sampleMethod.declaredClass && sampleMethod.methodName && sampleMethod.declaredClass.prototype === this ||
+                    sampleMethod.displayName && sampleMethod.displayName.startsWith('layered ')))
                         return sampleMethod.belongsToTrait ? sampleMethod.belongsToTrait.lvContextPath() + ".def" :
-                                sampleMethod.declaredClass + ".prototype";
+                                (sampleMethod.declaredClass ? sampleMethod.declaredClass + ".prototype" :
+                                layeredFunctionContainers().detect(function(e){return e === this}, this).lvContextPath());
             return null;
         });
 
@@ -204,7 +208,8 @@ Object.extend(Global, {
             var identifier = this.namespaceName, globalIdStart = 'Global.';
             if (identifier.startsWith(globalIdStart)) {
                 identifier = identifier.substring(globalIdStart.length);
-            }
+            } else if (identifier == 'Global')
+                return this.name;
             return identifier + '.' + this.name;
         });
 })();
@@ -1453,6 +1458,8 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
 
 'accessing', {
     selectedCategory: function selectedCategory() {
+        if(this.selectedFunctionKind == '-- all --  proto')
+            return null;
         var category = this.selectedFunctionKind && 
                 this.selectedFunctionKind.substring(0, this.selectedFunctionKind.indexOf(' - '));
                 
@@ -1529,13 +1536,14 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
             categories.push({string: 'default category - static', names: staticNames.sort()});
         var nonStaticContainer = this.selectedContainerKind.nonStaticContainer(aContainer);
         if(nonStaticContainer) {
-            var allProtoNames = nonStaticContainer.lvOwnFunctionNames();
+            var allProtoNames = nonStaticContainer.lvOwnFunctionNames().sort();
             if(allProtoNames.length > 0) {
+                categories.push({string: '-- all --  proto', names: allProtoNames.slice()});
                 aContainer.lvCategoriesWithMethodNamesDo(function(category, methodNames){
                     var names = methodNames.intersect(allProtoNames);
                     if(names.length > 0) {
                         names.each(function(n){allProtoNames.remove(n)});
-                        categories.push({string: category + ' - proto', names: names.sort()});
+                        categories.push({string: category + ' - proto', names: names});
                     }
                 });
                 if(allProtoNames.length > 0) {
@@ -1546,7 +1554,7 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                         defaultCategory.names = defaultCategory.names.concat(allProtoNames);
                         defaultCategory.names.sort();
                     } else
-                        categories.push({string: 'default category - proto', names: allProtoNames.sort()});
+                        categories.push({string: 'default category - proto', names: allProtoNames});
                 }
             }
         }
@@ -1804,7 +1812,8 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 nonStaticContainer: function(e){return null}}, 
                 
             {string: "layers", 
-                titleRenderFunction: function(e){return "Layer " + e.lvContextPath()},
+                titleRenderFunction: function(e){
+                    return "Layer  " + e.lvContextPath() + "  applied to  " + e._layered_object.lvContextPath()},
                 listRenderFunction: function(e){
                     var parts = e.lvContextPath().split("[");
                     return lively.lookup(parts[0]).name + "[" + parts[1]},
@@ -1963,11 +1972,17 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
         var codePane = this.codePane,
             functionPane = this.functionPane,
             selectedContainer = this.selectedContainer,
-            panel = this;
+            panel = this,
+            context = codePane.doitContext;
 
         var functionName = this.selectedFunctionNameInContainer;
         if (functionName)
-            var currentModule = codePane.doitContext[functionName].sourceModule;
+            var currentModule = context[functionName].sourceModule;
+        if(!currentModule) {
+            var funcWithSource = functionPane.getList().detect(function(e){return context[e].sourceModule});
+            if (funcWithSource)
+                currentModule = funcWithSource.sourceModule;
+        }
             
         this.checkSourceNotAccidentlyDeleted(function() {
             $world.editPrompt('new method name', function(functionName) {
@@ -1975,17 +1990,17 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                     return;
                 functionName = functionName.trim();
                 
-                var currentNames = functionPane.getList().collect(function(e){return e.string});
+                var currentNames = functionPane.getList().collect(function(e){return e});
                 if(currentNames.include(functionName)) {
                     $world.alert('method name already in use');
                     return;
                 }
     
-                var contextPath = codePane.doitContext.lvContextPath();
+                var contextPath = context.lvContextPath();
                 if(!contextPath)
                     throw new Error("Should not happen");
                 var func = function() {};
-                codePane.doitContext[functionName] = func;
+                context[functionName] = func;
     
                 var category = panel.selectedCategory();
                 if (category)
@@ -1995,6 +2010,10 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                 func.kindOfChange = "added";
                 func.user = $world.getUserName();
                 func.sourceModule = currentModule;
+                if(panel.selectedContainerKind.string == 'classes' && panel.selectedFunctionKind != 'default category - static') {
+                    func.declaredClass = panel.selectedContainer.lvContextPath();
+                    func.methodName = functionName;
+                }
     
                 lively.bindings.noUpdate(panel.setFunctionContainer.bind(panel, selectedContainer));
                 panel.functionKindPane.setSelectionMatching(panel.selectedFunctionKind);
@@ -2016,7 +2035,7 @@ lively.morphic.Panel.subclass('lively.SimpleCodeBrowser',
                     return;
                 functionName = functionName.trim();
                         
-                var currentNames = functionPane.getList().collect(function(e){return e.string});
+                var currentNames = functionPane.getList().collect(function(e){return e});
                 if(currentNames.include(functionName)) {
                     $world.alert('method name already in use');
                     return;
@@ -2539,10 +2558,13 @@ lively.morphic.Panel.subclass('FunctionListBrowser',
         }
         if(selected) {
             this.codePane.setTextString(printInContext(selected.name, selected.context));
+            this.codePane.doitContext = selected.context;
             if(this.cycleThroughResults)
                 this.cycle();
-        } else
+        } else {
             this.codePane.setTextString('');
+            this.codePane.doitContext = null;
+        }
     },
     initialize: function($super, bounds, cycleThroughResults) {
         $super(bounds);
@@ -2583,13 +2605,13 @@ Object.subclass('ReferencesCycler',
                 references.push([node.start, node.end]); }
         }
         if(reference.indexOf('.') > -1 || reference.indexOf('[') > -1) {
-            options.MemberExpression = function(node) { if(source[node.end] != "." && source.substring(node.start, node.end) == reference) 
+            options.MemberExpression = function(node) { if(source.substring(node.start, node.end) == reference) 
                 references.push([node.start, node.end]); };
         } else {
-            options.MemberExpression = function(node) { if(source[node.end] != "." && node.property.name == reference)
+            options.MemberExpression = function(node) { if(node.property.name == reference)
                 references.push([node.property.start, node.property.end]); };
             if(reference in Global)
-                options.Expression = function(node) {if(node.type == "Identifier" && source[node.end] != "." && node.name == reference) 
+                options.Expression = function(node) {if(node.type == "Identifier" && node.name == reference) 
                 references.push([node.start, node.end]); };
         }
         var references = [];
@@ -2642,7 +2664,7 @@ Object.extend(Global, {
                         var contextPath = object.lvContextPath();
                         if(!contextPath) {
                             addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
-                            contextPath = object.lvContextPath();
+                            contextPath = name;
                         }
                         var protoContextPath = object.prototype.lvContextPath();
                         if(!protoContextPath)
@@ -2669,7 +2691,7 @@ Object.extend(Global, {
                                     else if(object.name != name )
                                         debugger;
                                     addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path});
-                                    contextPath = object.lvContextPath();
+                                    contextPath = path;
                                 }
                                 var protoContextPath = object.prototype.lvContextPath();
                                 if(!protoContextPath)
@@ -2753,7 +2775,7 @@ Object.extend(Global, {
                 (methods = object.lvOwnFunctionNames()).length > 0 &&
                 methods.indexOf("constructor") == -1) {
                     result.push(object);
-                    if(!object.lvContextPath())
+                    if(!object.hasOwnProperty('lvContextPath'))
                         addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return name;})}
         }, this);
         if (!recursive) return result;
@@ -2793,7 +2815,7 @@ Object.extend(Global, {
                     return;
                 var container = layer[key];
                 result.push(container);
-                if(!container.lvContextPath()) {
+                if(!container.hasOwnProperty('lvContextPath')) {
                     var path = layer.lvContextPath() + "[" + key + "]";
                     addOwnPropertyIfAbsent(container, 'lvContextPath', function(){return path;});
                 }
@@ -2941,15 +2963,14 @@ Object.extend(Global, {
     senders: function(searchString) {
         // senders("f")
         var source;
-        var preamble = "var f = ";
         var foundMarker = new Object();
         var options = {
-            MemberExpression: function(node) { if(source[node.end - preamble.length] != "." && node.property.name == searchString) throw foundMarker; },
+            MemberExpression: function(node) { if(node.property.name == searchString) throw foundMarker; },
             Literal: function(node) {if(node.value == searchString) throw foundMarker; }
         }
         var preceding;
         if(searchString in Global) {
-            options.Expression = function(node) {if(node.type == "Identifier" && source[node.end - preamble.length] != "." && node.name == searchString) throw foundMarker; };
+            options.Expression = function(node) {if(node.type == "Identifier" && node.name == searchString) throw foundMarker; };
             preceding = '\\b';
         } else
             preceding = '["\'.]';
@@ -2959,10 +2980,9 @@ Object.extend(Global, {
         knownFunctionContainers().each(function(e){
             var names = e.lvOwnFunctionNames().select(function(n){
                 var f = e[n];
-                f = f.getOriginal ? f.getOriginal() : f;
-                source = String(f);
+                source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
-                    var programNode = lively.ast.acorn.parse(preamble + source);
+                    var programNode = lively.ast.acorn.parse("var f = " + source);
                     try { lively.ast.acorn.simpleWalk(programNode, options); }
                     catch(t) { 
                         if(t === foundMarker) return true;
@@ -2983,19 +3003,19 @@ Object.extend(Global, {
             return [];
         searchString = searchString.trim();
         var source, options, re;
-        var preamble = "var f = ";
         var foundMarker = new Object();
+        var preamble = "var f = ";
         var options = {
             Literal: function(node) {if(node.value == searchString) throw foundMarker; }
         }
         if(searchString.indexOf('.') > -1 || searchString.indexOf('[') > -1) {
-            options.MemberExpression = function(node) { if(source[node.end - preamble.length] != "." && source.substring(node.start - preamble.length, node.end - preamble.length) == searchString) throw foundMarker; };
+            options.MemberExpression = function(node) { if(source.substring(node.start - preamble.length, node.end - preamble.length) == searchString) throw foundMarker; };
             re = new RegExp('\\b' + searchString.regExpEscape() + '\\b');
         } else {
-            options.MemberExpression = function(node) { if(source[node.end - preamble.length] != "." && node.property.name == searchString) throw foundMarker; };
+            options.MemberExpression = function(node) { if(node.property.name == searchString) throw foundMarker; };
             var preceding;
             if(searchString in Global) {
-                options.Expression = function(node) {if(node.type == "Identifier" && source[node.end - preamble.length] != "." && node.name == searchString) throw foundMarker; };
+                options.Expression = function(node) {if(node.type == "Identifier" && node.name == searchString) throw foundMarker; };
                 preceding = '\\b';
             } else
                 preceding = '["\'.]';
@@ -3006,8 +3026,7 @@ Object.extend(Global, {
         knownFunctionContainers().each(function(e){
             var names = e.lvOwnFunctionNames().select(function(n){
                 var f = e[n];
-                f = f.getOriginal ? f.getOriginal() : f;
-                source = String(f);
+                source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
                     var programNode = lively.ast.acorn.parse(preamble + source);
                     try { lively.ast.acorn.simpleWalk(programNode, options); }
@@ -3046,7 +3065,7 @@ lively.Module.addMethods("iterating", {
                             else if(object.name != name )
                                 debugger;
                             addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path});
-                            contextPath = object.lvContextPath();
+                            contextPath = path;
                         }
                         var protoContextPath = object.prototype.lvContextPath();
                         if(!protoContextPath)
@@ -3072,7 +3091,7 @@ lively.Module.addMethods("iterating", {
                                     else if(object.name != name )
                                         debugger;
                                     addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path});
-                                    contextPath = object.lvContextPath();
+                                    contextPath = path;
                                 }
                                 var protoContextPath = object.prototype.lvContextPath();
                                 if(!protoContextPath)
@@ -3095,7 +3114,7 @@ lively.Module.addMethods("iterating", {
                 (methods = object.lvOwnFunctionNames()).length > 0 &&
                 methods.indexOf("constructor") == -1) {
                     result.push(object);
-                    if(!object.lvContextPath()) {
+                    if(!object.hasOwnProperty('lvContextPath')) {
                         var path = thisPath + "." + name;
                         addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path})}}
         }, this);

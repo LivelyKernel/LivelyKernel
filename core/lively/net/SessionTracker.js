@@ -1,4 +1,4 @@
-module('lively.net.SessionTracker').requires('lively.Network').toRun(function() {
+module('lively.net.SessionTracker').requires('lively.Network', 'lively.persistence.BuildSpec').toRun(function() {
 
 Object.subclass('lively.net.SessionTrackerConnection',
 'initializing', {

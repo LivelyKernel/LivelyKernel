@@ -26,43 +26,41 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super();
         this.setExtent(pt(500, 250));
         this.setFill(Color.gray);
+        this.dataIn = null;
+        this.dataOut = null;
         
-        // TODO
-        this.dataInput = null;
-        this.dataOutput = null;
-        
-        //this.createLabel();
+        this.createLabel();
         this.createButton();
+        this.addScript(function updateComponent() {
+            // put your code here
+        });
     },
     
     createLabel: function() {
         var t = new lively.morphic.Text();
         t.setTextString("DataFlowComponent");
         t.setName("DataFlowComponentLabel");
+        t.setExtent(pt(140, 20));
+        t.setFill(Color.gray);
+        t.setBorderWidth(0);
         this.addMorph(t);
     },
     
     createButton: function() {
         var b = new lively.morphic.Button();
-        b.addScript(function update() { console.log("update") });
-        connect(b, "fire", b, "update", {});
+        connect(b, "fire", this, "update", {});
         b.setLabel("Update");
         b.setExtent(pt(100, 20));
-        
+        b.setPosition(pt(400, 230));
         this.addMorph(b);
     },
     
     update: function() {
         var morphAbove = this.getMorphAbove();
-        
         if (morphAbove) {
-            this.dataInput = morphAbove.dataOutput;
+            this.dataIn = morphAbove.dataOut;
             this.updateComponent();
         }
-    },
-    
-    updateComponent: function() {
-        // subclass responsibility
     },
     
     getMorphAbove: function() {
@@ -73,9 +71,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         });
         
         var closestAbove = null;
-        console.log(this);
         var myPosition = this.getPosition();
-        console.log("test");
         allDFComponents.forEach(function(el) {
             if (el == this)
                 return;

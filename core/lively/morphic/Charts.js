@@ -89,7 +89,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             this.data = null;
     },
     
-    getMorphAbove: function() {
+    getMorphAbove: function(point) {
         var parentMorph = this.owner;
         
         var allDFComponents = parentMorph.withAllSubmorphsSelect(function(el) {
@@ -97,14 +97,17 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         });
         
         var closestAbove = null;
-        var myPosition = this.getPosition();
+
+        // choose the top middle point as myPosition as default
+        var myPosition = point || this.getPosition().addPt(pt(this.getExtent().x / 2, 0));
         allDFComponents.forEach(function(el) {
             if (el == this)
                 return;
             
             var elPosition = el.getPosition();
             
-            if (elPosition.y < myPosition.y)
+            // check for the nearest DF component straight above myPosition
+            if (elPosition.y < myPosition.y && elPosition.x < myPosition.x && elPosition.x + el.getExtent().x > myPosition.x)
                 if (closestAbove == null || elPosition.y > closestAbove.getPosition().y)
                     closestAbove = el;
         });
@@ -112,6 +115,5 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         return closestAbove;
         
     }
-    
 });
 }) // end of module

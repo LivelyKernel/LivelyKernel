@@ -206,7 +206,7 @@ Object.subclass('lively.persistence.SpecObject',
         var buildSpecProps = Object.mergePropertyInHierarchy(instance, "buildSpecProperties");
 
         // watchers for debugging
-        var watchers = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key] && buildSpecProps[key].watch; });
+        var watchers = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key] && buildSpecProps[key].hasOwnProperty('watch'); });
         watchers.forEach(function(key) {
             var watchSpec = buildSpecProps[key].watch;
             lively.PropertyPath(key).watch(Object.extend(watchSpec, {target: instance}));

@@ -55,13 +55,17 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     update: function() {
+        this.refreshData();
+        this.updateComponent();
+        
+    },
+    
+    refreshData: function() {
         var morphAbove = this.getMorphAbove();
         if (morphAbove)
             this.data = morphAbove.data;
         else
             this.data = null;
-        this.updateComponent();
-        
     },
     
     getMorphAbove: function() {

@@ -17,23 +17,8 @@ script: "DISPLAY=:1 npm test"
 
 notifications:
   email:
-    - astrid.thomschke@gmail.com
-    - bgnauk@gmail.com
-    - conrad@calmez.net
-    - cschuster@ucdavis.edu
-    - danhhingalls@gmail.com
-    - fbornhofen@gmail.com
-    - jens.lincke@hpi.uni-potsdam.de
     - lauritz.thamsen@gmail.com
-    - Marko.Roeder@student.hpi.uni-potsdam.de
-    - robert.krahn@gmail.com
-    - yoshiki.ohshima@acm.org
-    - bert@freudenbergs.de
     - bastian.steinert@gmail.com
-    - aranlunzer@gmail.com
-    - justinkk@stanford.edu
-    - fmateoc@gmail.com
-    - alexwarth@gmail.com
     - philipp.otto@student.hpi.uni-potsdam.de
     - daniel.werner@student.hpi.uni-potsdam.de
     - felix.wolff@student.hpi.uni-potsdam.de

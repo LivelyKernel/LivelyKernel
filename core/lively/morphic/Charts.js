@@ -1,5 +1,23 @@
 module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.morphic.Widgets').toRun(function() {
 
+lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
+    
+    initialize: function($super,h,w) {
+        $super();
+        this.setFill(Color.white);
+        this.setExtent(pt(w, h));
+        this.OFFSET = 10;
+        this.currentX = this.OFFSET;
+    },
+    
+    addElement: function(element){
+        element.setPosition(pt(this.currentX, this.getExtent().y - element.getExtent().y));
+        this.currentX = this.currentX + element.getExtent().x + this.OFFSET;
+        this.addMorph(element);
+        return this.currentX;
+    }
+} )
+
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
         $super();

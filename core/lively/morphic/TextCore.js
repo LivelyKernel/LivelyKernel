@@ -2329,8 +2329,9 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 'interface', {
     getCompletions: function(code, evalFunc) {
         var err, completions
-        getCompletions(evalFunc, code, function(e, c) { err = e, completions = c; })
-        if (err) { alert(err); return []; }
+        getCompletions(evalFunc, code, function(e, c, pre) {
+            err = e, completions = {prefix: pre, completions: c}; })
+        if (err) { alert(err); return {prefix: '', completions: []}; }
         else return completions;
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // rk 2013-10-10 I extracted the code below into a nodejs module (since this
@@ -2367,7 +2368,7 @@ function getObjectForCompletion(evalFunc, stringToEval, thenDo) {
     var idx = stringToEval.lastIndexOf('.'),
         startLetters = '';
     if (idx >= 0) {
-        startLetters = stringToEval.substring(idx+1);
+        startLetters = stringToEval.slice(idx+1);
         stringToEval = stringToEval.slice(0,idx);
     }
     var completions = [];
@@ -2437,14 +2438,15 @@ function getCompletions(evalFunc, string, thenDo) {
             excludes = excludes.concat(pluck(methodsAndAttributes, 'name'));
             return [descr, pluck(methodsAndAttributes, 'completion')];
         });
-        thenDo(err, completions);
+        thenDo(err, completions, startLetters);
     })
 }
 
 /*
 (function testCompletion() {
-    function assertCompletions(err, completions) {
+    function assertCompletions(err, completions, prefix) {
         assert(!err, 'getCompletions error: ' + err);
+        assert(prefix === '', 'prefix: ' + prefix);
         assert(completions.length === 3, 'completions does not contain 3 groups ' + completions.length)
         assert(completions[2][0] === 'Object', 'last completion group is Object')
         objectCompletions = completions.slice(0,2)
@@ -2471,19 +2473,27 @@ function getCompletions(evalFunc, string, thenDo) {
 },
 'accessing', {
 
-    openNarrower: function(completions) {
-        var complete = function(completion) {
-                this.printObject(this.aceEditor, completion, true); }.bind(this.textMorph),
-            candidates = completions.reduce(function(candidates, protoGroup) {
-                var protoName = protoGroup[0], completions = protoGroup[1];
-                return candidates.concat(completions.map(function(completion) {
-                    return {
-                        isListItem: true,
-                        string: '[' + protoName + '] ' + completion,
-                        value: complete.curry(completion)
-                    }
-                }));
-            }, []);
+    openNarrower: function(completionSpec) {
+        var completions = completionSpec.completions;
+        var prefix = completionSpec.prefix;
+        var ed = this.textMorph;
+        var candidates = completions.reduce(function(candidates, protoGroup) {
+            var protoName = protoGroup[0], completions = protoGroup[1];
+            return candidates.concat(completions.map(function(completion) {
+                return {
+                    isListItem: true,
+                    string: '[' + protoName + '] ' + completion,
+                    value: complete.curry(completion)
+                }
+            }));
+        }, []);
+        function complete(completion) {
+            if (prefix && prefix.length) {
+                var range = ed.aceEditor.find({needle: prefix, backwards: true, preventScroll: true})
+                ed.replace(range, '');
+            }
+            ed.printObject(ed.aceEditor, completion, true);
+        };
         lively.ide.tools.SelectionNarrowing.getNarrower({
             name: 'lively.morphic.Text.ProtocolLister.CompletionNarrower',
             setup: function(narrower) {
@@ -2493,6 +2503,7 @@ function getCompletions(evalFunc, string, thenDo) {
             spec: {
                 prompt: 'pattern: ',
                 candidates: candidates,
+                input: prefix || '',
                 actions: [{name: 'insert completion', exec: function(candidate) { candidate(); }}]
             }
         });

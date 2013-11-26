@@ -52,7 +52,7 @@ function getObjectForCompletion(evalFunc, stringToEval, thenDo) {
     var idx = stringToEval.lastIndexOf('.'),
         startLetters = '';
     if (idx >= 0) {
-        startLetters = stringToEval.substring(idx+1);
+        startLetters = stringToEval.slice(idx+1);
         stringToEval = stringToEval.slice(0,idx);
     }
     var completions = [];
@@ -122,14 +122,15 @@ function getCompletions(evalFunc, string, thenDo) {
             excludes = excludes.concat(pluck(methodsAndAttributes, 'name'));
             return [descr, pluck(methodsAndAttributes, 'completion')];
         });
-        thenDo(err, completions);
+        thenDo(err, completions, startLetters);
     })
 }
 
 /*
 (function testCompletion() {
-    function assertCompletions(err, completions) {
+    function assertCompletions(err, completions, prefix) {
         assert(!err, 'getCompletions error: ' + err);
+        assert(prefix === '', 'prefix: ' + prefix);
         assert(completions.length === 3, 'completions does not contain 3 groups ' + completions.length)
         assert(completions[2][0] === 'Object', 'last completion group is Object')
         objectCompletions = completions.slice(0,2)
@@ -171,9 +172,9 @@ module.exports = d.bind(function(route, app, subserver) {
             res.status(400).end('payload {string: STRING} expected');
             return;
         }
-        getCompletions(function(code) { return eval(code); }, req.body.string, function(err, completions) {
+        getCompletions(function(code) { return eval(code); }, req.body.string, function(err, completions, startLetters) {
             if (err) res.status(400).end(String(err));
-            else res.json(completions).end();
+            else res.json({completions: completions, prefix: startLetters}).end();
         });
     });
 

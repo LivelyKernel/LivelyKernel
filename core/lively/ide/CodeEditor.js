@@ -207,7 +207,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         Global.clearInterval(aceEditor.renderer.$textLayer.$pollSizeChangesTimer);
     },
 
-    
+
     stopListenForDocumentChanges: function(evt) {
         if (this._listenForDocumentChanges && evt.oldSession) {
             evt.oldSession.removeEventListener('change', this._onDocumentChange);
@@ -674,18 +674,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return string.include(err) ? string : err + '\n' + string;
         }
         function insert(ed) {
-            var sel = ed.selection, range = sel.getRange();
-            sel.moveCursorToPosition(range.end); sel.clearSelection();
+            self.collapseSelection('end');
             var string;
             try {
                 string = obj instanceof Error ? printError(obj) : String(obj);
             } catch (e) { string = printError(e); }
             ed.onPaste(string);
-            if (!suppressSelection) {
-                var newRange = range.constructor.fromPoints(range.end, sel.getCursor());
-                sel.setRange(newRange);
-            }
+            if (!suppressSelection) self.extendSelectionRange(-string.length);
         }
+        var self = this;
         if (editor) insert(editor); else this.withAceDo(insert);
     },
 
@@ -703,20 +700,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     doListProtocol: function() {
         var pl = new lively.morphic.Text.ProtocolLister(this);
-        // FIXME
-        pl.createSubMenuItemFromSignature = function(signature, optStartLetters) {
-            var textMorph = this.textMorph, replacer = signature;
-            if (typeof(optStartLetters) !== 'undefined') {
-                replacer = signature.substring(optStartLetters.size());
-            }
-            return [signature, function() {
-                textMorph.focus();
-                textMorph.clearSelection();
-                textMorph.insertAtCursor(replacer, true);
-            }];
-        }
         pl.evalSelectionAndOpenNarrower();
-        this.clearSelection();
     },
 
     doInspect: function() {
@@ -772,6 +756,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 end = doc.indexToPosition(endIdx);
             aceEditor.selection.setRange({start: start, end: end});
         });
+    },
+
+    extendSelectionRange: function(delta) {
+        if (!delta) return;
+        var dir = delta > 0 ? 'end' : 'start',
+            range = this.getSelectionRangeAce(),
+            idx = this.positionToIndex(range[dir]),
+            extendPos = this.indexToPosition(idx + delta),
+            extendedRange = this.getSelectionRangeAce().extend(extendPos.row, extendPos.column);
+        this.setSelectionRangeAce(extendedRange);
     },
 
     getSelectionRange: function() {
@@ -863,7 +857,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
-
     multiSelectNext: function() {
         this.multiSelect({backwards: false});
     },
@@ -899,6 +892,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             ed.selection.addRange(foundRange);
         });
     },
+
+    collapseSelection: function(dir) {
+        // dir = 'start' || 'end'
+        var sel = this.getSelection(), range = sel.getRange();
+        dir && sel.moveCursorToPosition(range[dir]);
+        sel.clearSelection();
+    }
+
+},
+'annotations and markers', {
     addFloatingAnnotation: function(range) {
         var Range = lively.ide.ace.require('ace/range').Range,
             ann = {

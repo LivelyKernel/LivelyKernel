@@ -66,6 +66,16 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.done();
     },
 
+    testExtendSelectionRange: function() {
+        this.editor.textString = "some\ncontent";
+        this.editor.setCursorPosition(pt(2,0))
+        this.editor.extendSelectionRange(5);
+        this.assertEquals('me\nco', this.editor.getSelectionOrLineString());
+        this.editor.extendSelectionRange(-1);
+        this.assertEquals('ome\nco', this.editor.getSelectionOrLineString());
+        this.done();
+    },
+
     testHasUnsavedChanges: function() {
         var e = this.editor;
         e.textString = "some\ncontent";

@@ -21,18 +21,21 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
         $super();
-        this.setExtent(pt(500, 500));
-        this.setFill(Color.black);
-        data = [4,6,2,7,1];
-        this.draw(data);
+        alert(10);
+        this.setExtent(pt(500,500));
+        this.setFill(Color.blue);
+        this.linearLayout = new lively.morphic.LinearLayout(500,500);
+        this.addMorph(this.linearLayout);
+        this.data = [4,6,2,7,1];
+        this.draw(this.data);
     },
     
     draw: function(data){
-        WIDTH = 50; SPACE = 8;
+        var WIDTH,SPACE = 10;
         for (var i = 0; i < data.length; i++) {
-            rect = new lively.morphic.Morph.makeRectangle((WIDTH+SPACE)*i,0,WIDTH,100*data[i]);
+            var rect = new lively.morphic.Morph.makeRectangle(0,0,WIDTH,100*data[i]);
             rect.setFill(Color.grey);
-            this.addMorph(rect);
+            this.linearLayout.addElement(rect);
         }
     },
     

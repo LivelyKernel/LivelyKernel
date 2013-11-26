@@ -1,4 +1,4 @@
-module('lively.morphic.Charts').requires().toRun(function() {
+module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.morphic.Widgets').toRun(function() {
 
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
@@ -24,12 +24,32 @@ lively.morphic.Morph.subclass("lively.morphic.BarChart", {
 lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     initialize: function($super) {
         $super();
-        this.setExtent(pt(100, 100));
-        this.setFill(Color.black);
+        this.setExtent(pt(500, 250));
+        this.setFill(Color.gray);
         
         // TODO
         this.dataInput = null;
         this.dataOutput = null;
+        
+        //this.createLabel();
+        this.createButton();
+    },
+    
+    createLabel: function() {
+        var t = new lively.morphic.Text();
+        t.setTextString("DataFlowComponent");
+        t.setName("DataFlowComponentLabel");
+        this.addMorph(t);
+    },
+    
+    createButton: function() {
+        var b = new lively.morphic.Button();
+        b.addScript(function update() { console.log("update") });
+        connect(b, "fire", b, "update", {});
+        b.setLabel("Update");
+        b.setExtent(pt(100, 20));
+        
+        this.addMorph(b);
     },
     
     update: function() {

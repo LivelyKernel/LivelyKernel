@@ -1,4 +1,4 @@
-module('lively.ide.tools.SelectionNarrowing').requires("lively.ide.tools.CommandLine").toRun(function() {
+module('lively.ide.tools.SelectionNarrowing').requires('lively.persistence.BuildSpec', "lively.ide.tools.CommandLine").toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.NarrowingList', {
     isNarrowingList: true,

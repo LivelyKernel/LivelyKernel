@@ -445,6 +445,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // FIXME this returns the name of the current text mode without Lively
         // additions that are appended via :xyz
         return this.getTextMode().split(':')[0];
+    },
+
+    showsCompleter: function() {
+        return this.withAceDo(function(ed) {
+            return ed.completer && ed.completer.activated; })
     }
 
 },

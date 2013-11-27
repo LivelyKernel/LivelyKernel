@@ -1,4 +1,4 @@
-module('lively.ide.tools.ServerLog').requires().toRun(function() {
+module('lively.ide.tools.ServerLog').requires('lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.ServerLog', {
     _BorderColor: Color.rgb(204,0,0),

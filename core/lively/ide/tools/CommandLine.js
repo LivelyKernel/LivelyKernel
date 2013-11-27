@@ -143,6 +143,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     },
 
     onKeyDown: function onKeyDown(evt) {
+        if (this.showsCompleter()) return $super(evt);
         var sig = evt.getKeyString();
         switch(sig) {
             case 'Enter': this.commandLineInput(this.getInput()); evt.stop(); return true;

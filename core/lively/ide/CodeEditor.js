@@ -433,6 +433,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 name = mode && mode.$id ? mode.$id : 'text';
             return name.replace('ace/mode/', '');
         }) || 'text';
+    },
+    getTextModeNoExtension: function() {
+        // FIXME this returns the name of the current text mode without Lively
+        // additions that are appended via :xyz
+        return this.getTextMode().split(':')[0];
     }
 
 },
@@ -499,7 +504,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'snippets', {
     getSnippets: function() {
         return this.constructor.snippets || new lively.morphic.CodeEditorSnippets();
-    }
+    },
+    withSnippetsForCurrentModeDo: function(doFunc) {
+        this.getSnippets().withSnippetsForEditorDo(this, doFunc.bind(this));
+    },
+    insertSnippetNamedAt: function(snippetName, pos) {
+        this.getSnippets().insertNamed(this, snippetName, pos);
+    },
 },
 'search and find', {
 

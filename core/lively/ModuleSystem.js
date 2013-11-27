@@ -557,18 +557,22 @@ Object.extend(lively.Module, {
 });
 
 Object.extend(lively.Module, {
-    findAllInThenDo: function(url, callback, beSync) {
+
+    withURLsInDo: function(url, callback, beSync) {
         if (url.isLeaf()) throw new Error(url + ' is not a directory!');
         var webR = url.asWebResource();
         if (beSync) webR.beSync(); else webR.beAsync();
         lively.bindings.connect(webR, 'subDocuments', {onLoad: function(files) {
-            var moduleNames = files.invoke('getURL')
-                    .reject(function(url) { return url.filename().startsWith('.'); })
-                    .invoke('asModuleName'),
-                modules = moduleNames.collect(function(name) { return lively.module(name); })
-            callback(modules);
+            callback(files.invoke('getURL').reject(function(url) {
+                return url.filename().startsWith('.'); }));
         }}, 'onLoad');
         webR.getSubElements();
+    },
+
+    findAllInThenDo: function(url, callback, beSync) {
+        this.withURLsInDo(url, function(urls) {
+            callback(urls.invoke('asModuleName').map(lively.module));
+        }, beSync);
     },
 
     checkModuleLoadStates: function() {

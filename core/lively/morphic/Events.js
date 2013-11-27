@@ -424,6 +424,7 @@ Object.extend(Event, {
         var id;
         if (evt.keyCode === Event.KEY_TAB) id = 'Tab';
         else if (evt.keyCode === Event.KEY_ESC) id = 'Esc';
+        else if (evt.keyCode === Event.KEY_DELETE) id = 'Del';
         else id = this.decodeKeyIdentifier(evt);
         if (options.ignoreModifiersIfNoCombo) {
             if (keyParts.length >= 1 && keyParts.include(id)) return '';

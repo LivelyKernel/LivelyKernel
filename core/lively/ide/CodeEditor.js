@@ -220,9 +220,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this._listenForDocumentChanges = this._listenForDocumentChanges || this.listenForDocumentChanges.bind(this);
         this._onDocumentChange = this._onDocumentChange || this.onDocumentChange.bind(this);
         this._onModeChange = this._onModeChange || this.onModeChange.bind(this);
+        this._onSelectionChange = this._onSelectionChange || this.onSelectionChange.bind(this);
         this.withAceDo(function(ed) {
             ed.on('changeSession', this._listenForDocumentChanges);
             ed.on('changeMode', this._onModeChange);
+            ed.on('changeSelection', this._onSelectionChange);
             ed.session.on('change', this._onDocumentChange);
         });
     },
@@ -238,6 +240,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         changeH.onDocumentChangeResetDebounced(evt, this);
         changeH.onDocumentChangeDebounced(evt, this);
     },
+    onSelectionChange: function(evt) {
+        var changeH = this.ensureChangeHandler();
+        changeH.onSelectionChangeDebounced(evt, this);
+    },
+
 
     onModeChange: function(evt) {
         var changeH = this.ensureChangeHandler();

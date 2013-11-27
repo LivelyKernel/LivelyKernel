@@ -11,6 +11,7 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
         this.onDocumentChangeDebounced = Functions.debounce(200, this.onDocumentChange.bind(this));
         this.onModeChangeDebounced = Functions.debounce(200, this.onModeChange.bind(this));
         this.onDocumentChangeResetDebounced = Functions.debounce(200, this.onDocumentChangeReset.bind(this), true);
+        this.onSelectionChangeDebounced = Functions.debounce(300, this.onSelectionChange.bind(this), true);
     }
 },
 'editor state changes', {
@@ -44,12 +45,18 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
         evt.codeEditor = codeEditor;
         evt.session = session;
         this.invokePlugins('onDocumentChange', evt);
+    },
+
+    onSelectionChange: function(evt, codeEditor) {
+        evt.codeEditor = codeEditor;
+        evt.session = codeEditor.getSession();
+        this.invokePlugins('onSelectionChange', evt);
     }
 },
 'plugins', {
     invokePlugins: function(methodName, evt) {
         return this.getPlugins()
-            .select(function(plugin) { return plugin.isActiveFor(evt); })
+            .select(function(plugin) { return plugin[methodName] && plugin.isActiveFor(evt); })
             .invoke(methodName, evt)
             .length;
     },

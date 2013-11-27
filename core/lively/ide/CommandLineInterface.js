@@ -139,6 +139,84 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     }
 });
 
+lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterface.PersistentCommand',
+"initializing", {
+    _pid: null
+},
+"connection", {
+    
+    isOnline: function() {
+        var s = this.getSession();
+        return s && s.isConnected();
+    },
+
+    send: function(selector, msg, thenDo) {
+        if (!this.isOnline()) {
+            thenDo(new Error('Not online!'), null);
+            return;
+        }
+        var s = this.getSession();
+        s.sendTo(s.trackerId, selector, msg, function(answer) {
+            thenDo(null, answer);
+        });
+    }
+
+},
+"control", {
+    start: function() {
+        var cmdInstructions = {
+            command: this.getCommand(),
+            cwd: this._options.cwd,
+            env: this._options.env,
+            stdin: this._options.stdin,
+            isExec: true
+        }, self = this;
+        this.send('runShellCommand', cmdInstructions, function(err, answer) {
+            if (!answer) return;
+            if (!answer.expectMoreResponses) { self.onEnd(answer.data); return; }
+            if (!answer.data) return;
+            if (answer.data.pid) { self._pid = answer.data.pid; lively.bindings.signal(self, 'pid', self._pid); return; }
+            answer.data.stderr && read('stderr', answer.data.stderr);
+            answer.data.stdout && read('stdout', answer.data.stdout);
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            function read(type, content) {
+                if (self._options.ansiAttributesRegexp) content = content.replace(self._options.ansiAttributesRegexp, '');
+                lively.bindings.signal(self, type, content);
+                self['_' + type] += content;
+            }
+        });
+    },
+    onEnd: function(exitCode) {
+        this._code = exitCode;
+        this._done = true;
+        lively.bindings.signal(this, 'end', this);
+        if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,this);
+    }
+},
+"accessing", {
+
+    getSession: function() {
+        return lively.net.SessionTracker
+            && lively.net.SessionTracker.getSession();
+    },
+
+    getPid: function() { return this._pid; },
+
+    kill: function(thenDo) {
+        if (this._done) { thenDo && thenDo(null); return}
+        var pid = this.getPid();
+        if (!pid) { thenDo(new Error('Command has no pid!'), null); }
+        var self = this;
+        this.send('stopShellCommand', {pid:pid} , function(err, answer) {
+            self._killed = true;
+            thenDo(err, answer);
+        });
+    }
+},
+'internal', {
+    getCommand: function() { return this._commandString; }
+});
+
 Object.extend(lively.ide.CommandLineInterface, {
     rootDirectory: null,
     commandQueue: {},

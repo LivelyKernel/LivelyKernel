@@ -376,6 +376,27 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
     }
 });
 
+AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunPersistentCommand',
+'testing', {
+    testRunSimpleCommand: function() {
+        var cmd = new lively.ide.CommandLineInterface.PersistentCommand('echo 1; sleep 0.5; echo 2', {});
+        var result, listener = { onOut: function(out) { result = out; } };
+        lively.bindings.connect(cmd, 'stdout', listener, 'onOut');
+        cmd.start();
+        this.delay(function() {
+            this.assertEquals('1', result.trim());
+        }, 200);
+        this.delay(function() {
+            this.assertEquals('2', result.trim());
+            this.assert(cmd.isDone(), 'cmd is not done!');
+            this.assertEquals(0, cmd.getCode(), 'code: ' + cmd.getCode());
+            this.done();
+        }, 700);
+    }
+
+});
+
+
 TestCase.subclass("lively.ide.tests.CommandLineInterface.CommandLineSearch",
 "running", {
     setUp: function()  {},

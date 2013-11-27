@@ -11,6 +11,7 @@ d.on('error', function(err) {
 });
 
 // [{process: null, stdout: '', stderr: '', lastExitCode: null}]
+// shellCommands[1].process.kill('SIGKILL')
 var shellCommands = global.shellCommands = [];
 var env = {
     __proto__: process.env,
@@ -68,22 +69,25 @@ function runShellCommand(cmdInstructions) {
             stdout: '', stderr: '',
             lastExitCode: null};
     shellCommands.push(shellCommand);
-    // util._extend(shellCommand, require('events').EventEmitter.prototype);
+    util._extend(shellCommand, require('events').EventEmitter.prototype);
 
     shellCommand.process.stdout.on('data', function (data) {
         debug && console.log('STDOUT: ' + data);
         shellCommand.stdout += data;
+        shellCommand.emit('output', {stdout: String(data)});
     });
 
     shellCommand.process.stderr.on('data', function (data) {
         debug && console.log('STDERR: ' + data);
         shellCommand.stderr += data;
+        shellCommand.emit('output', {stderr: String(data)});
     });
 
     shellCommand.process.on('close', function(code) {
         debug && console.log('shell command exited with code ' + code);
         shellCommand.process = null;
         shellCommand.lastExitCode = code;
+        shellCommand.emit('close', code);
         callback && callback(code, shellCommand.stdout, shellCommand.stdout);
     });
 
@@ -91,6 +95,7 @@ function runShellCommand(cmdInstructions) {
         debug && console.log('shell command errored ' + err);
         shellCommand.process = null;
         shellCommand.stderr += err.stack;
+        shellCommand.emit('output', {stderr: String(err.stack)});
         shellCommand.lastExitCode = 1;
     });
 
@@ -101,6 +106,45 @@ function formattedResponseText(type, data) {
     var s = String(data);
     return '<SHELLCOMMAND$' + type.toUpperCase() + s.length + '>' + s;
 }
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+var shellServices = {
+    runShellCommand: function(sessionServer, connection, msg) {
+        function answer(hasMore, data) {
+            connection.send({
+                expectMoreResponses: hasMore,
+                action: msg.action + 'Result',
+                inResponseTo: msg.messageId, data: data});
+        }
+        var cmdInstructions = msg.data;
+        var cmd = runShellCommand(cmdInstructions);
+        answer(true, {pid: cmd.process.pid});
+        cmd.on('output', function(out) { answer(true, out); });
+        cmd.on('close', function(exit) { answer(false, exit); });
+    },
+    stopShellCommand: function(sessionServer, connection, msg) {
+        function answer(data) {
+            connection.send({action: msg.action + 'Result',
+                inResponseTo: msg.messageId, data: data});
+        }
+        var pid = msg.data.pid;
+        if (!pid) { answer({error: 'no pid'}); return; }
+        var cmd;
+        for (var i = 0; i < shellCommands.length; i++) {
+            var proc = shellCommands[i] && shellCommands[i].process;
+            if (proc && proc.pid === pid) { cmd = shellCommands[i]; break; }
+        }
+        if (!cmd) { answer({error: 'command not found'}); return; }
+        cmd.process.kill('SIGKILL');
+        answer({message: 'OK'});
+    }
+}
+
+var services = require("./LivelyServices").services;
+util._extend(services, shellServices);
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 module.exports = d.bind(function(route, app) {
 

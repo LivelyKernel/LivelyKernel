@@ -28,6 +28,8 @@ snippet ife
 	} else {
 		${0}
 	}
+snippet err
+	if (${1:err}) { ${2:thenDo}(err, null); return; }
 # tertiary conditional
 snippet ter
 	${1:/* condition */} ? ${2:a} : ${3:b}

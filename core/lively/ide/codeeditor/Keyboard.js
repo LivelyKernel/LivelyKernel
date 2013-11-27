@@ -451,10 +451,16 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 name: "toggleLineWrapping",
                 exec: function(ed) { ed.$morph.setLineWrapping(!ed.$morph.getLineWrapping()); }
             }, {
-                name: "set tab width",
+                name: "set tab size",
                 exec: function(ed) {
-                    $world.prompt('enter new tab width', function(input) {
-                        if (input && Number(input)) ed.$morph.setTabSize(Number(input));
+                    $world.prompt('enter new tab size', function(input) {
+                        var newTabSize = input;
+                        if (newTabSize && Number(newTabSize)) ed.$morph.setTabSize(Number(newTabSize));
+                        $world.confirm('Set tab size to ' + newTabSize + ' for all editors?', function(input) {
+                            if (!input) return;
+                            lively.Config.set("defaultTabSize", newTabSize);
+                            alertOK('Changed global tab size to ' + newTabSize);
+                        });
                         ed.$morph.focus();
                     }, ed.$morph.getTabSize() || lively.Config.defaultTabSize);
                  }
@@ -472,6 +478,20 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     var method = ed.$morph.jQuery().find('.text-overlay').hasClass('hidden') ?
                         "unhideTextOverlays" : "hideTextOverlays"
                     ed.$morph[method]();
+                }
+            }, {
+                name: "toggle showing errors",
+                exec: function(ed) {
+                    var showsErrors = ed.$morph.getShowErrors();
+                    ed.$morph.setShowErrors(!showsErrors);
+                    alertOK('showing errors ' + (!showsErrors ? 'enabled': 'disabled'));
+                }
+            }, {
+                name: "toggle showing warnings",
+                exec: function(ed) {
+                    var showsWarnings = ed.$morph.getShowWarnings();
+                    ed.$morph.setShowWarnings(!showsWarnings);
+                    alertOK('showing warnings ' + (!showsWarnings ? 'enabled': 'disabled'));
                 }
             }]);
     },
@@ -500,6 +520,19 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 var success = ed.$morph.getSnippets().getSnippetManager().expandWithTab(ed);
                 if (!success)
                     ed.execCommand("indent");
+            },
+            multiSelectAction: "forEach"
+        }, {
+            name: 'browseSnippets',
+            exec: function(ed) {
+                ed.$morph.withSnippetsForCurrentModeDo(function(err, snippets) {
+                    var list = snippets ?
+                        Properties.forEachOwn(snippets, function(name, snippet) {
+                            return {isListItem: true, string: name, value: snippet} }) :
+                        ['no snippets: ' + err];
+                    lively.ide.tools.SelectionNarrowing.chooseOne(list, function(err, candidate) {
+                        candidate && ed.$morph.insertSnippetNamedAt(candidate.name); });
+                });
             },
             multiSelectAction: "forEach"
         }]);

@@ -534,6 +534,16 @@ Object.extend(lively.ide.commands.byName, {
             };
         }
     },
+    'lively.ide.execShellCommandInWindow': {
+        description: 'execute shell command in window',
+        exec: function() {
+            require('lively.ide.tools.ShellCommandRunner').toRun(function() {
+                lively.BuildSpec('lively.ide.tools.ShellCommandRunner')
+                    .createMorph().openInWorldCenter().comeForward();
+            });
+            return true;
+        }
+    },
     'lively.ide.CommandLineInterface.killShellCommandProcess': {
         description: 'kill shell command process',
         exec: function(codeEditor, args) { lively.ide.CommandLineInterface.kill(null, show); }
@@ -638,7 +648,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},
     'lively.morphic.List.selectItem': "m-space",
     'lively.ide.CommandLineInterface.doGrepSearch': {mac: "cmd-s-g", win: 'ctrl-s-g'},
-    'lively.ide.execShellCommand': "m-s-!",
+    'lively.ide.execShellCommandInWindow': "m-s-!",
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
     'lively.ide.commands.execute': "m-x"
 });

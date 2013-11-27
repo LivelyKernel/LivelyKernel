@@ -184,11 +184,12 @@ Object.extend(lively.ide.tools.CommandLine, {
     histories: {},
     get: function(id) {
         var cmdLine = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
-        if (id) {
-            if (!this.histories[id]) this.histories[id] = {items: [], max: 30, index: 0};
-            cmdLine.commandHistory = this.histories[id];
-        }
+        if (id) cmdLine.commandHistory = this.getHistory(id);
         return cmdLine;
+    },
+    getHistory: function(id) {
+        if (!this.histories[id]) this.histories[id] = {items: [], max: 30, index: 0};
+        return this.histories[id];
     }
 });
 

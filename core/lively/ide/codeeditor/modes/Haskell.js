@@ -103,8 +103,9 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         if (noDefRe.test(code)) return wrap(code);
 
         if (!code.include('|') && !code.include('::') || (code.include('::') && code.split('\n').length <= 1)) {
-            var equalSigns = code.match(/\=+/g) || [];
-            var hasAssignment = equalSigns.any(function(match) { return match.length === 1; });
+            // don't put let in front of ":type (>>=)" but let' "x = 33"
+            var equalSigns = code.match(/\s*[^:]\=+/g) || [];
+            var hasAssignment = equalSigns.invoke('trim').any(function(match) { return match.length === 1; });
             if (!hasAssignment) return wrap(code);
         }
         var lines = code.split('\n').invoke('trim').reject(function(line) { line.trim().length; });
@@ -128,16 +129,57 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
             var webR = URL.nodejsBase.withFilename('HaskellServer/eval').asWebResource().beAsync(),
                 data = {sessionId: session.id, baseDirectory: session.baseDirectory, expr: code, prompt: prompt};
             webR.post(JSON.stringify(data), "application/json").withJSONWhenDone(function(json, status) {
-                if (json.error) { thenDo('Haskell error ' + json.error, ''); return; }
-                json.result.output = json.result.result
-                    .replace(/^(\*?(?:\w+\s*)+\|\s+)+/, '')
+                if (json.error) { thenDo && thenDo('Haskell error ' + json.error, ''); return; }
+                var resultString = json.result.result;
+                var modulePrefixIdx = resultString.indexOf('|')+1;
+                var modulePrefix = resultString.slice(0, modulePrefixIdx);
+                json.result.output = resultString
+                    .split(modulePrefix).last().trim()
                     .replace(new RegExp('\\n?'+prompt+"$"), '');
-                thenDo(null, json.result);
+                thenDo && thenDo(null, json.result);
             });
         }
-
     },
 
+    ghciTokenInfo: function(session, token, thenDo) {
+        var tokenString = tokenToString(token);
+        if (!tokenString) { thenDo(new Error('No valid token'), null); return; }
+        var cmd = infoCommand(tokenString);
+        this.ghciEval(session, cmd, function(err, json) {
+            if (err) { thenDo(err, null); return; }
+            var out = json.output;
+            thenDo(null, validResponse(out) ? out : null);
+        });
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function validResponse(response) { return !response.startsWith("<interactive>:"); }
+        function infoCommand(code) { return ":t (" + code + ")"; }
+        function tokenToString(token) {
+            var code = token.value.trim();
+            return code && code.length ? code : null;
+        }
+    },
+
+    tokenInfo: function(token, thenDo) {
+        // lively.ide.codeeditor.modes.Haskell.Interface.tokenInfoState = null
+        if (!token) return;
+        var tokenInfoState = this.tokenInfoState || (this.tokenInfoState = {
+            cache: {},
+            doQuery: Functions.debounce(300, this.ghciTokenInfo.bind(this))
+        })
+        if (getCachedVal()) { thenDo(null, getCachedVal()); return; }
+        tokenInfoState.doQuery(this.getCurrentSession(), token, function(err, result) {
+            if (err) { thenDo(err, null); return; }
+            addCachedVal(result);
+            thenDo(err, result);
+        });
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var cacheTTL = 400;/*ms*/
+        function getCachedVal() { return tokenInfoState.cache[token.value]; }
+        function addCachedVal(val) {
+            tokenInfoState.cache[token.value] = val;
+            setTimeout(function() { delete tokenInfoState.cache[token.value]; }, cacheTTL);
+        }
+    },
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // reset
     reset: function(thenDo) {
@@ -166,6 +208,25 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
             thenDo(status.isSuccess() ? null : json || status, json);
         });
     },
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // reporting
+    withHaskellOutputWindowDo: function(func) {
+        var name = 'HaskellCheckOutput';
+        var win = ($morph(name) || $world.addCodeEditor({
+            title: 'Haskell check',
+            textMode: 'text',
+            extent: pt(600,400),
+            lineWrapping: true
+        })).getWindow();
+        win.name = name;
+        func(null, win);
+    },
+    showOutput: function(msg) {
+        this.withHaskellOutputWindowDo(function(err, win) {
+            win.targetMorph.textString = msg;
+            win.comeForward.bind(win).delay(0);
+        });
+    }
 });
 
 lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Haskell.ChangeHandler',
@@ -208,7 +269,17 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Ha
             this.drawMarkerHighlight(spec, ed, marker);
             this.addOverlay(spec, ed, marker, overlayBounds);
         }, this);
+    },
+
+    onSelectionChange: function(evt) {
+        var haskell = lively.ide.codeeditor.modes.Haskell.Interface
+        var ed = evt.codeEditor;
+        var token = ed.tokenAtPoint();
+        haskell.tokenInfo(token, function(err, tokenInfo) {
+            tokenInfo && ed.setStatusMessage(tokenInfo, Color.black);
+        });
     }
+
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -352,9 +423,55 @@ lively.ide.codeeditor.modes.Haskell.AceHaskellMode.addMethods({
     commands: {
         doHoogleSearch: {
             exec: function(ed) { lively.ide.codeeditor.modes.Haskell.doHoogleSearchWithNarrower(ed.$morph); }
+        },
+        checkHaskellCode: {
+            exec: function(ed) {
+                var haskell = lively.ide.codeeditor.modes.Haskell.Interface;
+                haskell.checkHaskellCode({
+                    id: haskell.getCurrentSession().id,
+                    code: ed.$morph.textString || ''
+                }, function(err, result) {
+                    if (!result) { show(err); return; }
+                    function printCheck(spec) { return Strings.format('at line %s column %s:\n%s', spec.pos.row, spec.pos.column, spec.message) }
+                    var errors = haskell.getGHCErrors(result.ghc),
+                        hlint = haskell.getHLintWarnings(result.hlint),
+                        message = Strings.format("ghc:\n%s\n\n\nhlint:\n%s",
+                            errors.map(printCheck).join('\n\n'),
+                            hlint.map(printCheck).join('\n\n'));
+                    haskell.showOutput(message);
+                });
+            }
+        },
+        loadHaskellModule: {
+            exec: function(ed) {
+                ed.$morph.doSave();
+                (function() { lively.ide.commands.exec('haskell.ghciLoad', ed.$morph); }).delay(0);
+            }
+        },
+        reloadHaskellModule: {
+            exec: function(ed) {
+                ed.$morph.doSave();
+                (function() { lively.ide.commands.exec('haskell.reload', ed.$morph); }).delay(0);
+            }
+        },
+        haskellInfoForThingAtPoint: {
+            exec: function(ed) {
+                var haskell = lively.ide.codeeditor.modes.Haskell.Interface
+                var editor = ed.$morph;
+                var token = editor.tokenAtPoint();
+                haskell.tokenInfo(token, function(err, tokenInfo) {
+                    tokenInfo && editor.setStatusMessage(tokenInfo, Color.black);
+                });
+            }
         }
     },
-    keybindings: {"Alt-h": "doHoogleSearch"},
+    keybindings: {
+        "Alt-h": "doHoogleSearch",
+        "Alt-c": "checkHaskellCode",
+        "Alt-l": "loadHaskellModule",
+        "Alt-r": "reloadHaskellModule",
+        "Alt-i": "haskellInfoForThingAtPoint"
+    },
     keyhandler: null,
     initKeyHandler: function() {
         var h = this.keyhandler = lively.ide.ace.createKeyHandler({
@@ -410,16 +527,16 @@ lively.ide.codeeditor.modes.Haskell.AceHaskellMode.addMethods({
             },
             'haskell.ghciLoad': {
                 description: 'haskell ghci :load file into current session',
-                exec: function() {
-                    var focused = lively.morphic.Morph.focusedMorph();
-                    var win = focused && focused.getWindow();
-                    if (!focused || !focused.isCodeEditor || !win || !win.getLocation) {
-                        show('Not in a Text Editor!');
+                exec: function(codeEditor) {
+                    var focused = codeEditor || lively.morphic.Morph.focusedMorph();
+                    var path = focused && focused.isCodeEditor && focused.getTargetFilePath();
+                    if (!path) {
+                        show('%s does not point to a file!', focused);
                         return true;
                     }
-                    var filepath = win.getLocation(true);
-                    haskell.ghciEval(haskell.getCurrentSession(), ':load ' + filepath, function(err, result) {
-                        focused.setStatusMessage(result.output);
+                    haskell.ghciEval(haskell.getCurrentSession(), ':load ' + path, function(err, result) {
+                        if (result.output.trim().split('\n').length > 2) haskell.showOutput(result.output);
+                        else $world.setStatusMessage(result.output);
                     })
                     return true;
                 }
@@ -428,13 +545,16 @@ lively.ide.codeeditor.modes.Haskell.AceHaskellMode.addMethods({
                 description: 'Haskell session reload (ghci :reload)',
                 exec: function(session) {
                     session = session || haskell.getCurrentSession();
-                    haskell.ghciEval(session, ":reload\n", function(err, result) { show(result.output); })
+                    haskell.ghciEval(session, ":reload\n", function(err, result) {
+                        if (result.output.trim().split('\n').length > 2) haskell.showOutput(result.output);
+                        else $world.setStatusMessage(result.output);
+                    })
                     return true;
                 }
             },
             'haskell.selectSession': {
                 description: 'select a Haskell eval session',
-                exec: function() {
+                exec: function(codeEditor) {
                     var haskell = lively.ide.codeeditor.modes.Haskell.Interface;
                     var sessions = haskell.getSessions()
                     var list = sessions.map(function(sess) {

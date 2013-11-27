@@ -343,6 +343,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
                     ed.findAll(ed.$morph.getTextRange()); },
                 readOnly: true
+            }, {
+                bindKey: {mac: "©"},
+                name: "gotolineInsertPreventMac",
+                readOnly: true,
+                exec: function (ed) {
+                    // Alt-G = gotoline will insert © in Mac OS, this prevents it
+                }
             }]);
     },
 

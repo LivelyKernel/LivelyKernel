@@ -3,23 +3,11 @@ module('lively.ide.tools.ObjectEditor').requires('lively.persistence.BuildSpec')
 lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(816.0,457.8),
-    _Position: lively.pt(572.0,353.0),
-    cameForward: true,
     className: "lively.morphic.Window",
-    collapsedExtent: null,
-    collapsedTransform: null,
     contentOffset: lively.pt(4.0,22.0),
-    doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
     draggingEnabled: true,
-    expandedExtent: null,
-    expandedTransform: null,
-    highlighted: false,
-    ignoreEventsOnExpand: false,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: {adjustForNewBounds: true},
     name: "ObjectEditor",
-    sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _Extent: lively.pt(808.0,431.8),
@@ -60,21 +48,15 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         sourceModule: "lively.morphic.Core",
         submorphs: [{
             _BorderColor: Color.rgb(204,0,0),
-            _Extent: lively.pt(590.0,381.0),
+            _Extent: lively.pt(590.0,380.0),
             _FontSize: 12,
             _Position: lively.pt(200.0,40.0),
-            _ShowGutter: true,
-            _StyleClassNames: ["Morph","CodeEditor","ace_editor","ace_nobold","emacs-mode","ace-chrome"],
-            _TextMode: "javascript",
+            _ShowGutter: false,
             _setShowIndents: true,
             accessibleInInactiveWindow: true,
             className: "lively.morphic.CodeEditor",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             doitContext: null,
-            droppingEnabled: true,
             grabbingEnabled: false,
-            hasRobertsKeys: true,
             lastSaveSource: "",
             layout: {
                 resizeHeight: true,
@@ -88,7 +70,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             sourceModule: "lively.ide.CodeEditor",
             storedString: "",
             storedTextString: "",
-            submorphs: [],
             textMode: "javascript",
             boundEval: function boundEval(str) {
             var result;
@@ -167,6 +148,15 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         function (value) {
             return (value === '-- ALL --') ? null : value;
         }});
+        },
+            onKeyDown: function onKeyDown(evt) {
+                var keys = evt.getKeyString();
+                switch (keys) {
+                    case 'Del': case 'Backspace':
+                        this.get('ObjectEditorPane').deleteSelectedScript();
+                        evt.stop(); return true;
+                }
+                return $super(evt);
         },
             preselectItem: function preselectItem() {
             if (this.getList().size() === 2) {
@@ -267,23 +257,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(25.0,20.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             _Position: lively.pt(130.0,322.8),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
@@ -294,42 +267,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             layout: {
                 moveVertical: true
             },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             morphRefId: 21,
             name: "ObjectEditorAddConnectionButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             padding: lively.rect(5,0,0,0),
             showsMorphMenu: true,
             sourceModule: "lively.morphic.Widgets",
@@ -344,23 +283,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(25.0,20.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             _Position: lively.pt(130.0,40.0),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
@@ -368,42 +290,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             isCopyMorphRef: true,
             isPressed: false,
             label: "+",
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             morphRefId: 22,
             name: "ObjectEditorAddScriptButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             padding: lively.rect(5,0,0,0),
             showsMorphMenu: true,
             sourceModule: "lively.morphic.Widgets",
@@ -418,23 +306,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(25.0,20.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             _Position: lively.pt(160.0,322.8),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
@@ -445,42 +316,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             layout: {
                 moveVertical: true
             },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             morphRefId: 23,
             name: "ObjectEditorRemoveConnectionButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             objectEditorPane: {
                 isMorphRef: true,
                 name: "ObjectEditorPane"
@@ -517,23 +354,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(25.0,20.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(221,221,221),
-            offset: 0.3
-          },{
-            color: Color.rgb(221,221,221),
-            offset: 0.7
-          },{
-            color: Color.rgb(204,204,204),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             _Position: lively.pt(160.0,40.0),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
@@ -541,42 +361,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             isCopyMorphRef: true,
             isPressed: false,
             label: "-",
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             morphRefId: 24,
             name: "ObjectEditorRemoveScriptButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             objectEditorPane: {
                 isMorphRef: true,
                 name: "ObjectEditorPane"
@@ -588,19 +374,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             toggle: false,
             value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this, "deleteSelectedScript", {});
-        },
-            deleteSelectedScript: function deleteSelectedScript() {
-            var editor = this.objectEditorPane,
-                selection = editor.scriptList.selection;
-            if (!editor.target || editor.scriptList.getList().size() < 2) return;    
-            return this.world().confirm('Delete "' + selection + '" script?', function (confirmed) {
-                if (!confirmed || !selection || !editor.target
-                 || !editor.target.hasOwnProperty(selection)) return;
-                delete editor.target[selection];
-                editor.updateLists();
-                editor.displayInitialScript();
-            });
+            lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "deleteSelectedScript", {});
         }
         },{
             _BorderWidth: 1,
@@ -636,65 +410,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderColor: Color.rgb(214,214,214),
             _BorderRadius: 5,
             _BorderWidth: 1,
-            _Extent: lively.pt(220.0,20.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(200.1,10.0),
+            _Extent: lively.pt(220.0,21),
+            _Position: lively.pt(200,10),
             className: "lively.morphic.Button",
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             isPressed: false,
             label: "empty",
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             list: [],
             name: "ObjectEditorMorphSelector",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             padding: lively.rect(5,0,0,0),
             selection: {
                 isMorphRef: true,
@@ -702,10 +424,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },
             showsMorphMenu: true,
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            textString: "<lively.morphic.Text#121>",
-            toggle: false,
-            value: false,
+            textString: "",
             createScenePresentation: function createScenePresentation() {
              var that = this,
                 items = this.currentMorphicScene(),
@@ -920,65 +639,14 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(130.0,20.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(230,243,253),
-            offset: 0
-          },{
-            color: Color.rgb(171,215,248),
-            offset: 0.3
-          },{
-            color: Color.rgb(171,215,248),
-            offset: 0.7
-          },{
-            color: Color.rgb(157,198,229),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             _Position: lively.pt(39.1,10.0),
             className: "lively.morphic.Button",
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             isPressed: false,
             label: "all",
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             list: [],
             listMorph: null,
             name: "ObjectEditorTagChooser",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             padding: lively.rect(5,0,0,0),
             savedTextString: "all",
             selection: "",
@@ -1060,101 +728,26 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         }
         },{
             _BorderColor: Color.rgb(214,214,214),
-            _BorderRadius: 5.2,
-            _BorderWidth: 1.1840000000000002,
-            _Extent: lively.pt(101.0,21.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(687.7,9.5),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(100,21),
+            _Position: lively.pt(690,10),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            isPressed: false,
             label: "run",
             layout: {
                 centeredHorizontal: false,
                 moveHorizontal: true
             },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             name: "Button",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "runScript", {});
         }
         },{
             _BorderColor: Color.rgb(214,214,214),
-            _BorderRadius: 5.2,
-            _BorderWidth: 1.1840000000000002,
-            _Extent: lively.pt(101.0,21.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(574.4,9.5),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(100,21),
+            _Position: lively.pt(580,10),
             className: "lively.morphic.Button",
             doNotCopyProperties: [],
             doNotSerialize: [],
@@ -1164,41 +757,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 centeredHorizontal: false,
                 moveHorizontal: true
             },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             name: "saveButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             toggle: false,
@@ -1208,153 +767,37 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         }
         },{
             _BorderColor: Color.rgb(214,214,214),
-            _BorderRadius: 5.2,
-            _BorderWidth: 1.1840000000000002,
-            _Extent: lively.pt(101.0,21.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(468.5,9.0),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(100,21),
+            _Position: lively.pt(470,10),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            isPressed: false,
             label: "Tests",
-            layout: {
-                moveHorizontal: true
-            },
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
+            layout: { moveHorizontal: true },
             name: "openTestsButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "openPartTestRunner", {});
         }
         },{
             _BorderColor: Color.rgb(214,214,214),
-            _BorderRadius: 5.2,
-            _BorderWidth: 1.1840000000000002,
-            _Extent: lively.pt(27.0,24.0),
-            _Fill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(221,221,221),
-            offset: 0.3
-          },{
-            color: Color.rgb(221,221,221),
-            offset: 0.7
-          },{
-            color: Color.rgb(204,204,204),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            _Position: lively.pt(424.5,8.5),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(27.0,21),
+            _Position: lively.pt(425,10),
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
             highlightRectangle: {
                 isMorphRef: true,
                 name: "HighlightRectangle"
             },
-            isPressed: false,
-            lighterFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(250,250,250),
-            offset: 0
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.4
-          },{
-            color: Color.rgb(232,232,232),
-            offset: 0.6
-          },{
-            color: Color.rgb(248,248,248),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
             name: "MagnifierButton",
-            normalFill: lively.morphic.Gradient.create({
-          stops: [{
-            color: Color.rgb(245,245,245),
-            offset: 0
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.4
-          },{
-            color: Color.rgb(209,209,209),
-            offset: 0.6
-          },{
-            color: Color.rgb(240,240,240),
-            offset: 1
-          }],
-          type: "linear",
-          vector: lively.rect(0,0,0,1)
-        }),
-            sourceModule: "lively.morphic.Widgets",
             submorphs: [{
                 _BorderColor: Color.rgb(204,0,0),
                 _Extent: lively.pt(29.0,29.0),
                 _HandStyle: "default",
                 _PointerEvents: "none",
-                _Position: lively.pt(-3.0,0.0),
+                _Position: lively.pt(-14,1),
                 className: "lively.morphic.Image",
-                doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
-                droppingEnabled: true,
                 eventsAreDisabled: true,
                 name: "leftpointing_magnifying_glass.png",
                 sourceModule: "lively.morphic.Widgets",
@@ -1475,16 +918,27 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             disconnectAll(this.getHighlightRectangle());
         }
         }],
-        tagChooser: {
-            isMorphRef: true,
-            name: "ObjectEditorTagChooser"
-        },
+        tagChooser: {isMorphRef: true, name: "ObjectEditorTagChooser" },
         target: null,
         confirmUnsavedChanges: function confirmUnsavedChanges(callback) {
         return this.world().confirm("Discard unsaved changes?", callback.bind(this));
     },
         copyToPartsBinWithUserRequest: function copyToPartsBinWithUserRequest() {
         this.owner.copyToPartsBinWithUserRequest();
+    },
+        deleteSelectedScript: function deleteSelectedScript() {
+        var editor = this,
+            selection = editor.scriptList.selection,
+            idx = editor.scriptList.selectedLineNo;
+        if (!editor.target || editor.scriptList.getList().size() < 2) return;    
+        
+        return editor.world().confirm('Delete "' + selection + '" script?', function (confirmed) {
+            if (!confirmed || !selection || !editor.target
+             || !editor.target.hasOwnProperty(selection)) return;
+            delete editor.target[selection];
+            editor.updateLists();
+            editor.scriptList.selectAt(idx);
+        });
     },
         displayInitialScript: function displayInitialScript() {
         if (this.scriptList.getList().size() > 1) {
@@ -1495,14 +949,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.scriptList.selectAt(0);
         }
     },
-        displayJavaScriptSource: function displayJavaScriptSource(jsCode) {
-        if (this.scriptPane.hasChanged()) {
-            this.confirmUnsavedChanges(function(confirmed) {
-                if (confirmed) this.scriptPane.display(jsCode);
-            });
-        } else {
-            this.scriptPane.display(jsCode);
+        displayJavaScriptSource: function displayJavaScriptSource(jsCode, selectString) {
+        var editor = this.scriptPane;
+        function insert() {
+            editor.display(jsCode);
+            editor.focus();
+            selectString && editor.find({needle: selectString});
         }
+        if (this.scriptPane.hasChanged()) {
+            this.confirmUnsavedChanges(function(confirmed) { confirmed && insert(); });
+        } else { insert(); }
     },
         displaySourceForConnection: function displaySourceForConnection(connection) {
         var code = "", that = this;
@@ -1628,20 +1084,32 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     },
         newConnection: function newConnection() {
         if (this.target) {
-            var code = "connect(SOURCE, SOURCE_PROPERTY, TARGET, TARGET_PROPERTY);";
-            this.displayJavaScriptSource(code);
+            var code = "lively.bindings.connect(SOURCE, SOURCE_PROPERTY, TARGET, TARGET_PROPERTY);";
+            this.displayJavaScriptSource(code, "SOURCE");
         }
     },
         newScript: function newScript() {
         if (this.target) {
             var code = "this.addScript(function SCRIPTNAME() {\n    \n}).tag([]);";
-            this.displayJavaScriptSource(code);
+            this.displayJavaScriptSource(code, "SCRIPTNAME");
         }
     },
         confirmShutdown: function confirmShutdown(thenDo) {
         if (!this.scriptPane.hasChanged()) return thenDo(true);
         this.confirmUnsavedChanges(thenDo);
     },
+    onKeyDown: function onKeyDown(evt) {
+    var keys = evt.getKeyString();
+    switch (keys) {
+        case 'Command-Shift-R': case 'Control-Shift-R':
+            this.runScript();
+            evt.stop(); return true;
+        case 'Command-Shift-+': case 'Control-Shift-+':
+            this.newScript();
+            evt.stop(); return true;
+    }
+    return $super(evt);
+},
         onWindowGetsFocus: function onWindowGetsFocus() {
                 this.get('ObjectEditorScriptPane').focus();
             },
@@ -1686,6 +1154,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         runScript: function runScript() {
         var scriptName = this.get("ObjectEditorScriptList").selection;
         if (!scriptName || !this.target) return;
+        this.world().alertOK("Running " + scriptName);
         this.target[scriptName]();
     },
         selectChangedContent: function selectChangedContent(source) {

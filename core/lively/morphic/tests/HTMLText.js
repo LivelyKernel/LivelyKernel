@@ -136,7 +136,8 @@ AsyncTestCase.subclass('lively.morphic.tests.HTMLText.Extent', lively.morphic.te
         text.emphasize({fontSize: 24}, 1,2);
         this.world.addMorph(text);
         var bounds = text.computeRealTextBounds();
-        this.assertEquals(lively.rect(5,3,39,37), bounds);
+        this.epsilon = 3;
+        this.assertEqualsEpsilon(lively.rect(5,3,39,37), bounds);
         this.done();
     }
 });

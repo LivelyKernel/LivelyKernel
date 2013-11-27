@@ -521,6 +521,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'search and find', {
 
+    find: function(options) {
+        if (!options || !options.needle) return;
+        options.backwards = options.hasOwnProperty("backwards") ? options.backwards : false;
+        options.preventScroll = options.hasOwnProperty("preventScroll") ? options.preventScroll : false;
+        return this.withAceDo(function(ed) {
+            return ed.find(options); });
+    },
+
     searchWithPrompt: function() {
         var world = this.world();
         if (!world) return;

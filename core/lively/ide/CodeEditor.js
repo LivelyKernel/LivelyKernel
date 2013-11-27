@@ -1019,6 +1019,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.withAceDo(function(ed) { ed.onPaste(string) });
     },
 
+    append: function(string) {
+        this.withAceDo(function(ed) {
+            var doc = ed.session.doc;
+            var lastRow = doc.getLength() - 1;
+            var col = doc.getLine(lastRow).length;
+            ed.session.insert({row: lastRow, column: col}, String(string));
+        });
+    },
+
     replace: function(range, text) {
         return this.withAceDo(function(ed) {
             return ed.session.replace(range, text);

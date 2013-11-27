@@ -1381,6 +1381,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     showError: function (e, offset) {
         this.setStatusMessage(String(e), Color.red);
     }
+},
+'file access', {
+    getTargetFilePath: function() {
+        // a codeeditor can target a file. This method figures out if the
+        // current one does
+        var win = this.getWindow();
+        if (!win || !win.getLocation) return null;
+        return win.getLocation(true);
+    }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

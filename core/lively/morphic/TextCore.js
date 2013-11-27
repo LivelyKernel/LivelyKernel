@@ -522,7 +522,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         } else {
             style.minHeight = null;
         }
+    },
+    computeRealTextBounds: function() {
+        var node = this.renderContext().textNode,
+            clone = node.cloneNode(true),
+            attrs = ["width", "height", "min-width", "min-height", "max-width", "max-height"];
+        attrs.forEach(function(attr) { clone.style[attr] = '' });
+        node.parentNode.appendChild(clone);
+        var domBounds = lively.$(clone).bounds();
+        return rect(pt(domBounds.left,domBounds.top), pt(domBounds.right,domBounds.bottom));
     }
+
 
 },
 'text modes', {

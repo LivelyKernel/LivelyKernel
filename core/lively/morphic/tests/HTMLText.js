@@ -115,7 +115,8 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
 
 });
 
-lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.Extent',
+AsyncTestCase.subclass('lively.morphic.tests.HTMLText.Extent', lively.morphic.tests.HTMLText.TestCase.prototype,
+// lively.morphic.tests.HTMLText.Extent.remove()
 'testing', {
     testExtentOfClippedAndFixedText: function() {
         var text = new lively.morphic.Text(lively.rect(0,0, 200, 300), 'foo');
@@ -126,6 +127,17 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.E
         this.assertEquals(
             pt(200,300).addXY(-p.left() - p.right() - 2*borderWidth, -p.top() - p.bottom() - 2*borderWidth),
             text.getTextExtent());
+        this.done();
+    },
+    testComputeRealExtent: function() {
+        var text = new lively.morphic.Text(lively.rect(0,0, 200, 300), 'foo');
+        text.applyStyle({fontFamily: 'Courier', fontSize: 12, clipMode: 'auto',
+                         fixedWidth: true, fixedHeight: true});
+        text.emphasize({fontSize: 24}, 1,2);
+        this.world.addMorph(text);
+        var bounds = text.computeRealTextBounds();
+        this.assertEquals(lively.rect(5,3,39,37), bounds);
+        this.done();
     }
 });
 

@@ -33,6 +33,7 @@ function log(/*args*/) {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // haskell process + eval
 // haskellState.processes[0]
+// haskellState.processes[0].proc.kill()
 var haskellState = global.haskellState || (global.haskellState = {processes: []});
 
 function resetHaskellState(thenDo) {
@@ -98,6 +99,7 @@ function isIdle(procState) { return procState.evalQueue.length === 0; }
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // haskell interaction
 function initHaskellProcess(procState, thenDo) {
+    log('initing haskell process...');
     var statements = [
         ":set prompt " + procState.prompt,
         ":cd " + procState.baseDirectory,
@@ -122,13 +124,17 @@ function initHaskellProcess(procState, thenDo) {
         ":def where     GOA.lambdabot \"where\"",
         ":def version   GOA.lambdabot \"version\"",
         ":def src       GOA.lambdabot \"src\"",
-        ":def pretty    GOA.lambdabot \"pretty\""
+        ":def pretty    GOA.lambdabot \"pretty\"",
+        "import qualified Debug.HTrace",
+        "trace = Debug.HTrace.htrace . unwords"
     ].join('\n') + '\n';
     haskellEval({
         sessionId: procState.id,
         evalId: 'initial',
         expr: statements
-    }, function(err, out) { thenDo(err, procState); });
+    }, function(err, out) {
+        log('haskell init done');
+        thenDo(err, procState); });
 }
 
 function ensureHaskell(options, thenDo) {
@@ -137,8 +143,8 @@ function ensureHaskell(options, thenDo) {
     if (haskellProcessIsRunning(procState)) { thenDo(null, procState); return; }
     var proc = setProcess(procState, spawn("ghci", [], {}));
     proc.on('exit', function() { removeProcess(procState); });
-    // debug && haskellState.process.stdout.pipe(process.stdout)
-    // debug && haskellState.process.stderr.pipe(process.stdout)
+    // debug && proc.stdout.pipe(process.stdout)
+    // debug && proc.stderr.pipe(process.stdout)
     initHaskellProcess(procState, thenDo);
 }
 
@@ -146,11 +152,13 @@ function ensureHaskellWithListeners(options, onData, onError, thenDo) {
     ensureHaskell(options, function(err, procState) {
         if (err) { thenDo(err, proc); return; }
         var proc = getProcess(procState);
+        // log('attaching listeners for ', options);
         proc.stdout.on('data', onData);
         proc.stderr.on('data', onData);
         proc.on('error', onError);
         proc.on('exit', onError);
         function uninstall() {
+            // log('detaching listeners for ', options);
             proc.stdout.removeListener('data', onData);
             proc.stderr.removeListener('data', onData);
             proc.removeListener('exit', onError);
@@ -167,13 +175,14 @@ function haskellEval(options, thenDo) {
     var timeout = 30*1000; // ms
     var startTime = Date.now();
     var haskellProcState;
-    debug && console.log('Haskel eval %s', expr);
+    log('Haskell eval %s', expr);
     function checkForOutputAndClose() {
         var stringified = String(output);
         if (stringified.indexOf(prompt) === -1
          && Date.now()-startTime < timeout) return;
         clearTimeout(sentinel);
         uninstallListeners && uninstallListeners();
+        log('eval %s done', stringified);
         thenDo(error, stringified);
     }
     function onError(err) {
@@ -198,7 +207,7 @@ function haskellEval(options, thenDo) {
 function haskellEvalQueuedNext(procState) {
     var evalState = procState.evalQueue[0];
     if (!evalState) return;
-    console.log('Resuming eval %s', evalState.expr);
+    log('Resuming eval %s', evalState.expr);
     var thenDo = evalState.callback;
     delete evalState.callback;
     haskellEval(evalState.options, thenDo);
@@ -207,7 +216,7 @@ function haskellEvalQueuedNext(procState) {
 function haskellEvalQueued(options, thenDo) {
     function addEvalResultToEvalState(err, stringifiedResult) {
         evalState.result = stringifiedResult;
-        debug && console.log('Haskell output %s: %s', options.expr, stringifiedResult);
+        // log('Haskell output %s: %s', options.expr, stringifiedResult);
         removeEvalState(procState, evalState.id);
         thenDo(err, evalState);
         haskellEvalQueuedNext(procState);
@@ -217,8 +226,8 @@ function haskellEvalQueued(options, thenDo) {
     var evalState = addNewEvalState(procState, options, addEvalResultToEvalState);
     if (idle) haskellEval(options, addEvalResultToEvalState);
     else {
-        console.log(procState.evalQueue);
-        console.log('Queuing eval %s', options.expr);
+        log(procState.evalQueue);
+        log('Queuing eval %s', options.expr);
     }
 }
 
@@ -291,11 +300,11 @@ function syntaxCheck(options, thenDo) {
         function(next) { fs.writeFile(tempFileName, source, next); },
         function(next) {
             log('running ghc...');
-            task.proc = exec("ghc -Wall -fno-code " + tempFileName, {cwd: path}, function(code, out, err) {
+            task.proc = exec("ghc -Wall -fno-code -fno-warn-unused-binds -fno-warn-type-defaults -fno-warn-name-shadowing -fno-warn-missing-signatures " + tempFileName, {cwd: path}, function(code, out, err) {
             // task.proc = exec("ghc -v0 " + tempFileName, function(code, out, err) {
             // task.proc = exec("ghc -c --make " + tempFileName, function(code, out, err) {
                 result.ghc.code = code; result.ghc.out = out; result.ghc.err = err;
-                next(err || (task.killInitialized && 'killed'));
+                next(task.killInitialized && 'killed');
             });
         },
         function(next) {

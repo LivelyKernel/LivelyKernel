@@ -119,6 +119,24 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.assertEquals('some', textInExcursion, 'in');
         this.assertEquals('content', textAfterExcursion, 'after');
         this.done();
+    },
+
+    testFind: function() {
+        var e = this.editor;
+        e.textString = "some\ncontent";
+        e.setSelectionRange(13,13);
+        var result = e.find({backwards: true, asString: true, needle: /.m/});
+        this.assertEquals('om', result);
+        this.done();
+    },
+
+    testFindInbetween: function() {
+        var e = this.editor;
+        e.textString = "some\ncontent";
+        e.setSelectionRange(13,13);
+        var result = e.find({inbetween: true, backwards: true, asString: true, needle: /.m/});
+        this.assertEquals('ome\ncontent', result);
+        this.done();
     }
 
 });

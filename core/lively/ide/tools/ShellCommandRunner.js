@@ -239,6 +239,77 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             },
             showPrevCommand: function showPrevCommand() {
                 this.showHistItem('prev');
+            },
+            getPrefixForShellCompletion: function getPrefixForShellCompletion() {
+                var raw = this.find({asString: true, needle: ' ', preventScroll: true, backwards: true, inbetween: true});
+                return raw ? raw.trim() : '';
+            },
+            
+            withShellCompletionsDo: function withShellCompletionsDo(input, thenDo) {
+                if (input && input.length) input = " '" + input + "'";
+                else input = "";
+                var results = {};
+                var i = 0;
+                [{cmd: 'compgen  -f', type: 'file'},
+                 {cmd: 'compgen  -d', type: 'dir'}
+                ].doAndContinue(function(next, ea) {
+                    lively.shell.exec(ea.cmd + input, function(cmd) {
+                        var out = cmd.getStdout().trim();
+                        var lines = Strings.lines(out);
+                        lines.forEach(function(line) { results[line] = {type: ea.type, rank: null, inverseRank: i}; });
+                        next();
+                    });
+                }, function() {
+                    var num = Object.keys(results).length;
+                    Properties.forEachOwn(function(_, val) {
+                        val.rank = num - val.inverseRank; });
+                    thenDo(null, results);
+                });
+            },
+            
+            doListProtocol: function doListProtocol() {
+                var ed = this;
+                var prefix = this.getPrefixForShellCompletion();
+                this.withShellCompletionsDo(prefix, function(err, completions) {
+                    if (err) { return; }
+                    var items = Properties.forEachOwn(completions, function(string, val) {
+                        string = string + (val.type === 'dir' ? '/' : '');
+                        return {
+                            isListItem: true,
+                            string: Strings.format("[%s] %s", val.type, string),
+                            value: string,
+                            rank: val.rank
+                        }
+                    }).sortByKey('rank');
+                    lively.ide.tools.SelectionNarrowing.chooseOne(items,
+                        function(err, option) {
+                            if (!option) return;
+                            ed.find({backwards: true, needle: prefix});
+                            ed.insertAtCursor(option, false, true);
+                        }, {})
+                });
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                //     completer = {
+                //     getCompletions: function (editor, session, pos, _, callback) {
+                //         var prefix = editor.$morph.getPrefixForShellCompletion();
+                //         editor.$morph.withShellCompletionsDo(prefix, function(err, result) {
+                //             if (err) { callback(err, []); return; }
+                //             var completions = Properties.forEachOwn(result, function(string, val) {
+                //                 var value = string + (val.type === 'dir' ? '/' : '');
+                //                 return {
+                //                     name: string,
+                //                     value: value,
+                //                     score: 9999999+ val.rank,
+                //                     meta: val.type,
+                //                 }
+                //             });
+                //             callback(null, completions);
+                //         });
+                //     }
+                // }
+                // // that.aceEditor.completers.push(completer)
+                // // that.aceEditor.completers.pop()
+            
             }
         }],
         onClose: function onClose(cmd) {

@@ -209,7 +209,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         var self = this;
         this.send('stopShellCommand', {pid:pid} , function(err, answer) {
             self._killed = true;
-            thenDo(err, answer);
+            thenDo && thenDo(err, answer);
         });
     }
 },

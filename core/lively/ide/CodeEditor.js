@@ -531,7 +531,17 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         options.backwards = options.hasOwnProperty("backwards") ? options.backwards : false;
         options.preventScroll = options.hasOwnProperty("preventScroll") ? options.preventScroll : false;
         return this.withAceDo(function(ed) {
-            return ed.find(options); });
+            var start = options.inbetween && ed.getCursorPosition();
+            var range = ed.find(options);
+            if (!range) return null;
+            if (!options.inbetween) return options.asString ?
+                ed.session.getTextRange(range) : range;
+            var end = options.backwards ? range.start : range.end,
+                betweenRange = range.constructor.fromPoints(
+                    options.backwards ? end : start, options.backwards ? start: end);
+            return options.asString ?
+                ed.session.getTextRange(betweenRange) : betweenRange;
+        });
     },
 
     searchWithPrompt: function() {

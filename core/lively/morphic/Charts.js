@@ -42,18 +42,20 @@ lively.morphic.Morph.subclass("lively.morphic.BarChart", {
         
         var max = Object.values(data).max();
         for (var element in data) {
-            var rect = new lively.morphic.Morph.makeRectangle(0,0,WIDTH,data[element]/max*this.linearLayout.getExtent().y-MARGIN_TOP);
-            rect.setFill(Color.blue);
-            rect.setBorderWidth(0);
-            var text = new lively.morphic.Text();
-            text.setTextString(element);
-            text.setExtent(pt(50, 20));
-            text.setFill(Color.gray);
-            text.setBorderWidth(0);
-            text.setPosition(pt(text.getPosition().x-rect.getExtent().x/2,
-                text.getPosition().y+rect.getExtent().y));
-            rect.addMorph(text);
-            this.linearLayout.addElement(rect);
+            if (data.hasOwnProperty(element)) {
+                var rect = new lively.morphic.Morph.makeRectangle(0,0,WIDTH,data[element]/max*this.linearLayout.getExtent().y-MARGIN_TOP);
+                rect.setFill(Color.blue);
+                rect.setBorderWidth(0);
+                var text = new lively.morphic.Text();
+                text.setTextString(element);
+                text.setExtent(pt(50, 20));
+                text.setFill(Color.gray);
+                text.setBorderWidth(0);
+                text.setPosition(pt(text.getPosition().x-rect.getExtent().x/2,
+                    text.getPosition().y+rect.getExtent().y));
+                rect.addMorph(text);
+                this.linearLayout.addElement(rect);
+            }
         }
     },
     

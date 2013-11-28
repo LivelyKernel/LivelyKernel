@@ -46,7 +46,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         // first remove a keybinding if one already exists
         commands.forEach(function(cmd) {
             var keys = cmd.bindKey && (cmd.bindKey[platform] || cmd.bindKey),
-                existing = keys && lookupCommand(keys);
+                existing = keys && typeof keys === "string" && lookupCommand(keys);
             if (existing) kbd.removeCommand(existing);
         });
         kbd.addCommands(commands);

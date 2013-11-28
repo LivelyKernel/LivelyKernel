@@ -6,6 +6,7 @@ Object.defineProperty(Object.prototype, 'isProxy', {
     },
     writable: true
 });
+
 // for convenience: to have autocompletion in dev tools
 Object.defineProperty(Object.prototype, 'proxyTarget', {
     value: function() {
@@ -14,15 +15,15 @@ Object.defineProperty(Object.prototype, 'proxyTarget', {
     writable: true
 });
 
-Object.isRegExp = function (object) {
-    if (!lively.isPrimitiveObject(object) && object.isProxy()) {
-        return object.proxyTarget() instanceof RegExp;
-    } else {
-        return object instanceof RegExp;
-    }
-}
-
 Object.extend(Object, {
+    isProxy: function(obj) { return !!obj && !!obj.isProxy && obj.isProxy() },
+    isRegExp: function (obj) {
+        if (Object(obj).isProxy()) {
+            return obj.proxyTarget() instanceof RegExp;
+        } else {
+            return obj instanceof RegExp;
+        }
+    },
     
     // there's no trap for the instanceOf operator. instead it always
     // works directly on the proxy's original target (dummyTarget for our
@@ -32,14 +33,13 @@ Object.extend(Object, {
     // __proto__-chain of an object doesn't contain any proxies.. that is,
     // we also couldn't use the instanceof operator on a target that has been
     // resolved at runtime
-    
     instanceOf: function(obj, type) {
         var realObj, 
             realType = type;
         
-        realObj = (obj && obj.isProxy()) ? obj.proxyTarget() : obj;
+        realObj = Object.isProxy(obj) ? obj.proxyTarget() : obj;
         
-        if (type.prototype && type.prototype.isProxy()) {
+        if (Object.isProxy(type.prototype)) {
             realType = function() {};
             realType.prototype = type.prototype.proxyTarget();
         }
@@ -138,7 +138,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 var livelyOV = lively.versions.ObjectVersioning;
                 
                 if (!livelyOV.isPrimitiveObject(obj) &&
-                    !obj.isProxy() &&
+                    !Object.isProxy(obj) &&
                     !livelyOV.isRootPrototype(obj)) {
                     return lively.proxyFor(obj);
                  } else {
@@ -237,7 +237,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 // special cases
                 if (name === '__proto__') {
-                    if (value && value.isProxy()) {
+                    if (Object.isProxy(value)) {
                         targetObject.__protoProxy = value;
                         targetObject.__proto__ = value.proxyTarget();
                     } else {
@@ -246,7 +246,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                     return true;
                 }
-                if (name === 'onreadystatechange' && value.isProxy() &&
+                if (name === 'onreadystatechange' && Object.isProxy(value) &&
                     targetObject.constructor.name === 'XMLHttpRequest') {
                     value = value.proxyTarget();
                 }
@@ -610,10 +610,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                 instance.__protoProxy = proto;
             } else {
                 instance = create.call(null, prototype, propertiesObject);
-                
-                if (!proto) {
-                    instance.isProxy = Object.prototype.isProxy;
-                }
             }
             return instance;
         }
@@ -640,7 +636,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             throw new Error('Root prototypes shouldn\'t be proxied');
         }
         
-        if (target.isProxy()) {
+        if (Object.isProxy(target)) {
             return target;
         }
         
@@ -725,8 +721,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         return roots.include(obj)
     },
     hasUnproxiedPrototype: function(obj) {
-        return obj.prototype &&
-            !obj.prototype.isProxy() &&
+        return obj.prototype && !Object.isProxy(obj.prototype) &&
             !lively.GlobalObjectsToWrap.include(obj.name) &&
             !this.isRootPrototype(obj.prototype)
     },
@@ -790,7 +785,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // 'aString'.match(regExp): regExp can't be a proxy
         var originalStringMatch = String.prototype.match;
         String.prototype.match = function match(regexp) {
-            var exp = regexp && regexp.isProxy() ?
+            var exp = Object.isProxy(regexp) ?
                 regexp.proxyTarget() : regexp;
             return originalStringMatch.call(this, exp);
         };
@@ -798,7 +793,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // 'aString'.search(regExp): regExp can't be a proxy
         var originalStringSearch = String.prototype.match;
         String.prototype.search = function search(regexp) {
-            var regularExp = regexp && regexp.isProxy() ?
+            var regularExp = Object.isProxy(regexp) ?
                 regexp.proxyTarget() : regexp;
             return originalStringSearch.call(this, regularExp);
         };
@@ -806,7 +801,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // 'aString'.replace(first, ..): first can't be a proxy
         var originalStringReplace = String.prototype.replace;
         String.prototype.replace = function replace(first, second, third) {
-            var goodFirst = (first && first.isProxy()) ?
+            var goodFirst = Object.isProxy(first) ?
                 first.proxyTarget() : first;
             return originalStringReplace.call(this, goodFirst, second, third);
         };
@@ -814,7 +809,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         // 'aString'.split(separator, ..): separator can't be a proxy
         var originalStringSplit = String.prototype.split;
         String.prototype.split = function replace(first, second) {
-            var goodFirst = (first && first.isProxy()) ?
+            var goodFirst = Object.isProxy(first) ?
                 first.proxyTarget() : first;
             return originalStringSplit.call(this, goodFirst, second);
         };

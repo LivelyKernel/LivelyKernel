@@ -98,25 +98,38 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     update: function() {
         this.refreshData();
         this.updateComponent();
-        
+        this.notifyNextComponent();
+    },
+    
+    notifyNextComponent: function() {
+        var nextComponent = this.getMorphInDirection(-1);
+        if (nextComponent){
+            nextComponent.notify();
+        }
+    },
+    
+    notify: function() {
+        this.update();
     },
     
     refreshData: function() {
-        var morphAbove = this.getMorphAbove();
+        var morphAbove = this.getMorphInDirection(1);
         if (morphAbove)
             this.data = morphAbove.data;
         else
             this.data = null;
     },
     
-    getMorphAbove: function(point) {
+    getMorphInDirection: function(direction, point) {
+        // direction should be 1 or -1 for above or below
+        
         var parentMorph = this.owner;
         
         var allDFComponents = parentMorph.withAllSubmorphsSelect(function(el) {
             return el instanceof lively.morphic.DataFlowComponent;
         });
         
-        var closestAbove = null;
+        var closestMorph = null;
 
         // choose the top middle point as myPosition as default
         var myPosition = point || this.getPosition().addPt(pt(this.getExtent().x / 2, 0));
@@ -126,13 +139,15 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             
             var elPosition = el.getPosition();
             
-            // check for the nearest DF component straight above myPosition
-            if (elPosition.y < myPosition.y && elPosition.x < myPosition.x && elPosition.x + el.getExtent().x > myPosition.x)
-                if (closestAbove == null || elPosition.y > closestAbove.getPosition().y)
-                    closestAbove = el;
+            // check for the nearest DF component straight above or below myPosition
+            if (direction * elPosition.y < direction * myPosition.y &&
+                elPosition.x < myPosition.x && elPosition.x + el.getExtent().x > myPosition.x)
+                
+                if (closestMorph == null || direction * elPosition.y > direction * closestMorph.getPosition().y)
+                    closestMorph = el;
         });
 
-        return closestAbove;
+        return closestMorph;
         
     }
 });

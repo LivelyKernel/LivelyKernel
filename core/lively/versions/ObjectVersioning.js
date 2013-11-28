@@ -31,7 +31,7 @@ Object.extend(Object, {
     // further, a function's prototype property is proxied, whereas the
     // __proto__-chain of an object doesn't contain any proxies.. that is,
     // we also couldn't use the instanceof operator on a target that has been
-    // resolved using the __objectID
+    // resolved at runtime
     
     instanceOf: function(obj, type) {
         var realObj, 
@@ -103,26 +103,36 @@ lively.GlobalObjectsToWrap = [
 lively.ArrayIterators = [Array.prototype.forEach, Array.prototype.every, Array.prototype.some, Array.prototype.filter, Array.prototype.map, Array.prototype.reduce, Array.prototype.reduceRight];
 
 Object.extend(lively.versions.ObjectVersioning, {
-    versioningProxyHandler: function(objectID) {
+    versioningProxyHandler: function(target) {
         return {
-            // the versioning proxies are fully virtual. so, the first
-            // parameter to all traps, the actual proxy target, should be an
-            // empty object and shouldn't be touched (except when required by
-            // the spec's consistency checks), to reflect this it's named
-            // dummyTarget
+            // the versioning proxies are virtual. so, the first parameter to
+            // all traps, the actual proxy target, is an empty
+            // object/function/array, only there to get typeof checks right,
+            // and shouldn't be touched. to reflect this, we use dummyTarget as
+            // parameter name
             
-            // __objectID can be resolved via global object table
-            __objectID: objectID,
+            __targetVersions: (function() {
+                var versions = {};
+                
+                versions[lively.CurrentVersion.ID] = target;
+                
+                return versions;
+            })(),
             
             // === helpers ===
             isProxy: function() { return true },
             proxyTarget: function() { return this.targetObject() },
             
             targetObject: function() {
-                return this.getObjectByID(this.__objectID);
-            },
-            getObjectByID: function(id) {
-                return lively.versions.ObjectVersioning.getObjectByID(id);
+                var version = lively.CurrentVersion,
+                    targetObject;
+                
+                while(!targetObject && version) {
+                    targetObject = this.__targetVersions[version.ID];
+                    version = version.previousVersion;
+                }
+                
+                return targetObject;
             },
             ensureProxied: function(obj) {
                 var livelyOV = lively.versions.ObjectVersioning;
@@ -141,11 +151,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 while(targetAncestor) {
                     if (!targetAncestor ===
-                             lively.objectFor(proxyAncestor)) {
+                             proxyAncestor.proxyTarget()) {
                         
                         // TODO: fix the proxyTarget's prototype chain in this
                         // case...
-                        throw new Error('__protoID chain inconsistent to ' +
+                        throw new Error('proxy-proto-chain inconsistent to ' +
                             'the object\'s actual prototype chain');
                     }
                     targetAncestor = targetAncestor.__proto__;
@@ -193,26 +203,23 @@ Object.extend(lively.versions.ObjectVersioning, {
                 throw new Error('not yet implemented...')
                 
             },
-            wasObjectPreviouslyCommited: function(obj, propertyName) {
-                // subsequentely cloning the object might result in setting the
-                // properties 'sourceModule' and 'displayName' on obj, leading
-                // consequentely to an infinite recursion
-                
-                return obj.__versionID !== lively.CurrentObjectTable.ID &&
-                    propertyName !== 'displayName' &&
-                    propertyName !== 'sourceModule';
-            },
             copyObjectForCurrentVersion: function(targetObject) {
                 var newObject = Object.clone(targetObject);
                 
-                // copy non-enumerable versioning properties explicitly
-                newObject.__protoID = targetObject.__protoID;
-                newObject.__objectID = targetObject.__objectID;
-                newObject.__versionID = lively.CurrentObjectTable.ID;
+                // copy non-enumerable properties explicitly
+                Object.defineProperty(newObject, '__protoProxy', {
+                    value: targetObject.__protoProxy,
+                    writable: true,
+                });
                 
-                lively.CurrentObjectTable[this.__objectID] = newObject;
+                this.__targetVersions[lively.CurrentVersion.ID] = newObject;
                 
                 return newObject;
+            },
+            shouldObjectBeCopiedFirst: function(propertyName) {
+                return !this.__targetVersions[lively.CurrentVersion.ID] &&
+                    propertyName !== 'displayName' &&
+                    propertyName !== 'sourceModule';
             },
             
             // === proxy handler traps ===
@@ -223,7 +230,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 // copy-on-write: create and work on a new version of the target
                 // when target was commited with a previous version
-                if (this.wasObjectPreviouslyCommited(targetObject)) {
+                if (this.shouldObjectBeCopiedFirst(name)) {
                     targetObject =
                         this.copyObjectForCurrentVersion(targetObject);
                 }
@@ -231,17 +238,17 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // special cases
                 if (name === '__proto__') {
                     if (value && value.isProxy()) {
-                        targetObject.__protoID = value.__objectID;
-                        targetObject.__proto__ = lively.objectFor(value);
+                        targetObject.__protoProxy = value;
+                        targetObject.__proto__ = value.proxyTarget();
                     } else {
-                        targetObject.__protoID = null;
+                        targetObject.__protoProxy = null;
                         targetObject.__proto__ = value;
                     }
                     return true;
                 }
                 if (name === 'onreadystatechange' && value.isProxy() &&
                     targetObject.constructor.name === 'XMLHttpRequest') {
-                    value = lively.objectFor(value);
+                    value = value.proxyTarget();
                 }
                 
                 descriptor =
@@ -267,9 +274,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                     descriptor, getter, OV = lively.versions.ObjectVersioning;
                 
                 // proxy meta-information
-                if (name === '__objectID') {
-                    return this.__objectID;
-                }
                 if (name === 'isProxy') {
                     return this.isProxy;
                 }
@@ -281,8 +285,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 // special cases
                 if (name === '__proto__') {
-                    if (targetObject.__protoID) {
-                        return lively.ProxyTable[targetObject.__protoID];
+                    if (targetObject.__protoProxy) {
+                        return targetObject.__protoProxy;
                     } else {
                         proto = targetObject.__proto__;
                         if (lively.isPrimitiveObject(proto) ||
@@ -306,17 +310,17 @@ Object.extend(lively.versions.ObjectVersioning, {
                     // getting the slot triggers an accessor function, in which
                     // case the target should be proxied
                     
-                    return getter.call(receiver);;
+                    return getter.call(receiver);
                 }
                 
                 // default handling
                 if (({}).hasOwnProperty.call(targetObject, name)) {
                     result = targetObject[name];
                 } else {
-                    if (targetObject.__protoID === null) {
+                    if (targetObject.__protoProxy === null) {
                         var proto = targetObject.__proto__;
                     } else {
-                        var proto = lively.ProxyTable[targetObject.__protoID];
+                        var proto = targetObject.__protoProxy;
                     }
                     result = proto ? proto[name] : undefined;
                 }
@@ -383,7 +387,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 ) {
                     
                     if (thisArg && thisArg.isProxy()) {
-                        targetObject = lively.objectFor(thisArg);
+                        targetObject = thisArg.proxyTarget();
                     }
                     
                     // UNWRAP THE ARGUMENTS: deeply or not?
@@ -404,7 +408,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     } else {
                         args = args && args.map(function(each) {
                             return (each && each.isProxy()) ?
-                                 lively.objectFor(each) : each;
+                                 each.proxyTarget() : each;
                         })
                     }
                     
@@ -419,8 +423,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 } catch (e) {
                     // FIXME: temporary to ease debugging - remove this later
                     
-                    // don't debug this error, as this error occurs in trying
-                    // two XPath query alternatives and caught immediately..
+                    // don't debug the following error, as that error might
+                    // occur when trying the first of two XPath query
+                    // alternatives and is then caught immediately..
                     if (e.message !== 'An attempt was made to create or ' +
                         'change an object in a way which is incorrect with ' +
                         'regard to namespaces.') {
@@ -455,7 +460,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                             return prev ? prev + ', ' + current : current
                         }, '') + ')');
                     
-                    newInstance.__protoID = null;
+                    newInstance.__protoProxy = null;
                     
                     return this.ensureProxied(newInstance);
                 }
@@ -478,10 +483,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                     lively.proxyFor(constructorReturnValue) : newInstance;
             },
             getPrototypeOf: function(dummyTarget) {
-                var protoID = this.targetObject().__protoID;
+                var protoProxy = this.targetObject().__protoProxy;
                 
-                if (protoID) {
-                    return lively.ProxyTable[protoID];
+                if (protoProxy) {
+                    return protoProxy;
                 } else {
                     return Object.getPrototypeOf(this.targetObject());
                 }
@@ -491,10 +496,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (({}).hasOwnProperty.call(targetObject, name)) {
                     return true;
                 } else {
-                    if (targetObject.__protoID === null) {
+                    if (targetObject.__protoProxy === null) {
                         var proto = targetObject.__proto__;
                     } else {
-                        var proto = lively.ProxyTable[targetObject.__protoID];
+                        var proto = targetObject.__protoProxy;
                     }
                     return proto ? name in proto : false;
                 }
@@ -503,29 +508,24 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return ({}).hasOwnProperty.call(this.targetObject(), name);
             },
             getOwnPropertyNames: function(dummyTarget) {
-                return Object.getOwnPropertyNames(this.targetObject()).
-                    reject(function(ea) {return ea === '__objectID'});
+                return Object.getOwnPropertyNames(this.targetObject());
             },
             enumerate: function(dummyTarget) {
                 var targetObject = this.targetObject(),
                     enumerableProps = [],
-                    nextAncestor,
-                    protoID;
-                    
+                    nextAncestor;
+                
                 for (var prop in targetObject) {
                     enumerableProps.push(prop);
                 }
                 
-                protoID = targetObject.__protoID;
-                nextAncestor = protoID ? this.getObjectByID(protoID) : null;
+                nextAncestor = targetObject.__protoProxy ? targetObject.__protoProxy.proxyTarget() : null;
                 while (nextAncestor) {
                     for (var prop in nextAncestor) {
                         if (!enumerableProps.include(prop))
                             enumerableProps.push(prop);
                     }
-                    nextAncestor = nextAncestor.__protoID ? 
-                        this.getObjectByID(nextAncestor.__protoID) : 
-                        null;
+                    nextAncestor = nextAncestor.__protoProxy ? nextAncestor.__protoProxy.proxyTarget() : null;
                 }
                 
                 return enumerableProps;
@@ -578,12 +578,15 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 Object.extend(lively.versions.ObjectVersioning, {
     init: function() {
-        if (!lively.CurrentObjectTable) {
-            lively.CurrentObjectTable = [];
-            lively.CurrentObjectTable.ID = 0;
+        if (!lively.CurrentVersion) {
+            lively.CurrentVersion = {
+                ID: 0,
+                previousVersion: null,
+                nextVersion: null
+            };
         }
         if (!lively.ProxyTable) {
-            lively.ProxyTable = [];
+            lively.ProxyTable = new WeakMap();
         }
         if (!lively.createObject) {
             this.wrapObjectCreate();
@@ -602,9 +605,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 prototype = proto;
             
             if (proto && proto.isProxy()) {
-                prototype = lively.objectFor(proto);
+                prototype = proto.proxyTarget();
                 instance = create.call(null, prototype, propertiesObject);
-                instance.__protoID = proto.__objectID;
+                instance.__protoProxy = proto;
             } else {
                 instance = create.call(null, prototype, propertiesObject);
                 
@@ -626,17 +629,14 @@ Object.extend(lively.versions.ObjectVersioning, {
         
     },
     proxyFor: function(target) {        
-        // proxies are fully virtual objects: they don't point to their target, 
-        // but refer to their target only via their __objectID-property,
-        // through lively.CurrentObjectTable
-        var proto, protoID, objectID, versionID, handler, proxy;
+        var proto, protoProxy, handler, proxy;
         
         if (lively.isPrimitiveObject(target)) {
             throw new TypeError('Primitive objects shouldn\'t be proxied');
         }
         
         if (this.isRootPrototype(target)) {
-            // don't touch root prototypes (i.e. add __objectID)
+            // don't touch root prototypes
             throw new Error('Root prototypes shouldn\'t be proxied');
         }
         
@@ -644,8 +644,8 @@ Object.extend(lively.versions.ObjectVersioning, {
             return target;
         }
         
-        if (this.hasObjectBeenProxiedBefore(target)) {
-            return this.getProxyByID(target.__objectID);
+        if (lively.ProxyTable.has(target)) {
+            return lively.ProxyTable.get(target);
         }
         
         // functions might get used as constructors and then the prototype
@@ -660,7 +660,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             target.prototype = lively.proxyFor(target.prototype);
         }
         
-        if (target.__protoID === undefined) {
+        if (target.__protoProxy === undefined) {
             proto = Object.getPrototypeOf(target);
             if (proto && !(this.isRootPrototype(proto))) {
                 
@@ -668,42 +668,29 @@ Object.extend(lively.versions.ObjectVersioning, {
                     // when proxies are used as prototypes, the prototype can't
                     // be changed later on. see >>wrapObjectCreate, which
                     // prohibits proxies from becoming prototypes
-                    // otherwise we could do: protoID = proto.__objectID;
                     
                     throw new Error('Proxies shouldn\'t be the prototypes of' +
                         'objects');
                 }
                 
-                protoID = this.proxyFor(proto).__objectID;
+                protoProxy = this.proxyFor(proto);
                 
             } else {
-                protoID = null;
+                protoProxy = null;
             }
             
-            // set __protoID as not enumerable and not configurable
-            Object.defineProperty(target, '__protoID', {
-                value: protoID,
+            // set __protoProxy as not enumerable and not configurable
+            Object.defineProperty(target, '__protoProxy', {
+                value: protoProxy,
                 writable: true,
             });
         }
         
-        objectID = lively.CurrentObjectTable.length;
-        versionID = lively.CurrentObjectTable.ID;
+        handler = this.versioningProxyHandler(target);
         
-        // set __objectID and __versionID as not enumerable, not configurable, and not writable properties
-        Object.defineProperty(target, '__objectID', {
-            value: objectID
-        });
-        Object.defineProperty(target, '__versionID', {
-            value: versionID
-        });
-        
-        lively.CurrentObjectTable.push(target);
-        
-        handler = this.versioningProxyHandler(objectID);
         proxy = Proxy(this.dummyTargetFor(target), handler, true);
         
-        lively.ProxyTable[objectID] = proxy;
+        lively.ProxyTable.set(target, proxy);
         
         return proxy;
     },
@@ -730,36 +717,12 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         return dummyTarget;
     },
-    getObjectForProxy: function(proxy, optObjectTable) {
-        var id = proxy.__objectID;
-        
-        if (id === undefined) {
-            return undefined;
-        }
-        
-        return this.getObjectByID(id, optObjectTable);
-    },
-    getObjectByID: function(id, optObjectTable) {
-        var objectTable = optObjectTable || lively.CurrentObjectTable;
-        
-        return objectTable[id];
-    },
-    getProxyByID: function(id) {
-        return lively.ProxyTable[id];
-    },
-    setObjectForProxy: function(target, proxy, optObjectTable) {
-        var objectTable = optObjectTable || lively.CurrentObjectTable;
-        objectTable[proxy.__objectID] = target;
-    },
     isPrimitiveObject: function(obj) {
         return obj !== Object(obj);
     },
     isRootPrototype: function(obj) {
         var roots = [Object.prototype, Function.prototype, Array.prototype];
         return roots.include(obj)
-    },
-    hasObjectBeenProxiedBefore: function(obj) {
-        return ({}).hasOwnProperty.apply(obj, ['__objectID']);
     },
     hasUnproxiedPrototype: function(obj) {
         return obj.prototype &&
@@ -768,13 +731,18 @@ Object.extend(lively.versions.ObjectVersioning, {
             !this.isRootPrototype(obj.prototype)
     },
     commitVersion: function() {
-        var previousVersion;
+        var previousVersion = lively.CurrentVersion,
+            newVersion;
         
-        previousVersion = lively.CurrentObjectTable;
-        lively.CurrentObjectTable = Object.clone(lively.CurrentObjectTable);
-        lively.CurrentObjectTable.ID = previousVersion.ID + 1;
-        lively.CurrentObjectTable.previousVersion = previousVersion;
-        previousVersion.nextVersion = lively.CurrentObjectTable;
+        newVersion = {
+            ID: previousVersion.ID + 1,
+            previousVersion: previousVersion,
+            nextVersion: null
+        };
+        
+        previousVersion.nextVersion = newVersion;
+        
+        lively.CurrentVersion = newVersion;
         
         return previousVersion; 
     },
@@ -783,23 +751,25 @@ Object.extend(lively.versions.ObjectVersioning, {
         if (!previousVersion) {
             throw new Error('Can\'t undo: No previous version.');
         }
-        lively.CurrentObjectTable = previousVersion;
+        lively.CurrentVersion = previousVersion;
     },
     redo: function() {
         var followingVersion = this.followingVersion();
         if (!followingVersion) {
             throw new Error('Can\'t redo: No next version.');
         }
-        lively.CurrentObjectTable = this.followingVersion();
+        lively.CurrentVersion = this.followingVersion();
     },
     previousVersion: function() {
-        return lively.CurrentObjectTable.previousVersion;
+        return lively.CurrentVersion.previousVersion;
     },
     followingVersion: function() {
-       return lively.CurrentObjectTable.nextVersion;
+       return lively.CurrentVersion.nextVersion;
     },
     start: function() {
         this.init();
+        
+        lively.versions.ObjectVersioning.isActive = true;
         
         // Module System + Class System (Base.js)
         this.patchBaseCode();
@@ -894,7 +864,6 @@ var livelyOV = lively.versions.ObjectVersioning;
 
 // shortcuts
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
-lively.objectFor = livelyOV.getObjectForProxy.bind(livelyOV);
 lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
 lively.undo = livelyOV.undo.bind(livelyOV);
 lively.redo = livelyOV.redo.bind(livelyOV);

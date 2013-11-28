@@ -13,7 +13,6 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         var object = {},
             proxy = lively.proxyFor(object);
         
-        this.assertEquals(lively.objectFor(proxy), object);
         this.assertEquals(proxy.proxyTarget(), object);
     },
     test03ProxyRetrievesPrimitiveProperty: function() {
@@ -43,7 +42,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         personProxy.address = addressProxy;
         
         this.assert(personProxy.address.isProxy());
-        this.assertEquals(lively.objectFor(personProxy.address), address);
+        this.assertEquals(personProxy.address.proxyTarget(), address);
     },
     test06ProxiesGetPassedByReference: function() {
         var person = lively.proxyFor({}),
@@ -386,14 +385,13 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxiesMeetNative
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
 'helpers', {
     assertInVersion: function(func, version) {
-        var a, b,
-            previousVersion = lively.CurrentObjectTable;
+        var previousVersion = lively.CurrentVersion;
         
-        lively.CurrentObjectTable = version;
+        lively.CurrentVersion = version;
         
         this.assert(func.apply());
         
-        lively.CurrentObjectTable = previousVersion;
+        lively.CurrentVersion = previousVersion;
     },
 },
 'testing', {
@@ -411,7 +409,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         // in the previous version:
         this.assertInVersion(function() {return person.age === 23}, versionBefore);
         // currently:
-        this.assertInVersion(function() {return person.age === 25}, lively.CurrentObjectTable);
+        this.assertInVersion(function() {return person.age === 25}, lively.CurrentVersion);
     },
     test02VersionsOfAnArray: function() {
         var arr, versionBefore;
@@ -429,8 +427,8 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         this.assertInVersion(function() {return arr[0] === 1}, versionBefore);
         this.assertInVersion(function() {return arr[1] === undefined}, versionBefore);
         // currently:
-        this.assertInVersion(function() {return arr[0] === 2}, lively.CurrentObjectTable);
-        this.assertInVersion(function() {return arr[1] === 2}, lively.CurrentObjectTable);
+        this.assertInVersion(function() {return arr[0] === 2}, lively.CurrentVersion);
+        this.assertInVersion(function() {return arr[1] === 2}, lively.CurrentVersion);
     },
     test03ChangesAfterCommitCanBeUndone: function() {
         var app = lively.proxyFor({});

@@ -8,21 +8,20 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     layout: {adjustForNewBounds: true},
     name: "ShellCommandRunner",
     submorphs: [{
-        _BorderColor: Color.rgb(95,94,95),
-        _BorderWidth: 1,
+        _BorderWidth: 0,
         _Extent: lively.pt(588.0,311.0),
-        _Fill: Color.rgb(255,255,255),
+        _Fill: Color.rgb(180,180,180),
         _Position: lively.pt(3.0,22.0),
         className: "lively.morphic.Box",
         doNotSerialize: ['currentCommand'],
         lastFocused: {isMorphRef: true, name: "commandLine"},
         layout: {
             adjustForNewBounds: true,
-            borderSize: 4,
+            borderSize: 2,
             extentWithoutPlaceholder: lively.pt(686.0,362.0),
             resizeHeight: true,
             resizeWidth: true,
-            spacing: 7,
+            spacing: 3,
             type: "lively.morphic.Layout.VerticalLayout"
         },
         name: 'ShellCommandRunner',
@@ -47,17 +46,11 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             layout: { resizeHeight: true, resizeWidth: true },
             name: "output",
             storedString: "",
+            theme: Config.get('aceWorkspaceTheme'),
             focus: function focus() {
             this.get("ShellCommandRunner").lastFocused = this;
             return $super();
         },
-        },{
-            _Extent: lively.pt(578.6,1.0),
-            _Fill: Color.rgb(200,200,200),
-            _Position: lively.pt(4.7,278.5),
-            className: "lively.morphic.Box",
-            droppingEnabled: true,
-            layout: { resizeWidth: true }
         },{
             _AutocompletionEnabled: true,
             _BorderColor: Color.rgb(195,195,195),
@@ -74,6 +67,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             _aceInitialized: true,
             allowInput: true,
             className: "lively.morphic.CodeEditor",
+            theme: Config.get('aceWorkspaceTheme'),
             clearOnInput: false,
             commandHistory: { index: 0, items: [], max: 30 },
             connections: {input: {}},

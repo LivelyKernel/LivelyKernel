@@ -169,7 +169,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
             cwd: this._options.cwd,
             env: this._options.env,
             stdin: this._options.stdin,
-            isExec: true
+            isExec: false
         }, self = this;
         this.send('runShellCommand', cmdInstructions, function(err, answer) {
             if (!answer) return;
@@ -185,6 +185,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
                 self['_' + type] += content;
             }
         });
+        return this;
     },
     onEnd: function(exitCode) {
         this._code = exitCode;
@@ -214,7 +215,14 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
     }
 },
 'internal', {
-    getCommand: function() { return this._commandString; }
+    getCommand: function() {
+        return [
+            "/usr/bin/env", "bash", "-c",
+            this._commandString.replace(/'/g, "\\'")];
+    }
+},
+'compatibility', {
+    startRequest: function() { return this.start(); }
 });
 
 Object.extend(lively.ide.CommandLineInterface, {
@@ -282,6 +290,21 @@ Object.extend(lively.ide.CommandLineInterface, {
         options = !options || Object.isFunction(options) ? {} : options;
         if (thenDo) options.whenDone = thenDo;
         var cmd = new lively.ide.CommandLineInterface.Command(commandString, options);
+        this.scheduleCommand(cmd, options.group);
+        return cmd;
+    },
+
+    runPersistent: function(commandString, options, thenDo) {
+        /*
+        Uses an improved command backend (via websockets) that will output
+        stdout/err while the command is running and will first invoke thenDo
+        when the command is really done (no cutoofs). This will replace the
+        current default command in the future.
+        */
+        thenDo = Object.isFunction(options) ? options : thenDo;
+        options = !options || Object.isFunction(options) ? {} : options;
+        if (thenDo) options.whenDone = thenDo;
+        var cmd = new lively.ide.CommandLineInterface.PersistentCommand(commandString, options);
         this.scheduleCommand(cmd, options.group);
         return cmd;
     },
@@ -376,7 +399,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     readFile: function(path, options, thenDo) {
         options = options || {};
-        var cmd = this.run('cat ' + path);
+        var cmd = this.runPersistent('cat ' + path);
         if (options.onInput) lively.bindings.connect(cmd, 'stdout', options, 'onInput');
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');

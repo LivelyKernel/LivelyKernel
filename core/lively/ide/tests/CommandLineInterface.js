@@ -392,6 +392,15 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunPersistentComma
             this.assertEquals(0, cmd.getCode(), 'code: ' + cmd.getCode());
             this.done();
         }, 700);
+    },
+
+    testInterface: function() {
+        var cmdString = 'echo 4; sleep 0.1; echo 2', result = '',
+            cmd = lively.ide.CommandLineInterface.runPersistent(cmdString,{}, function() { result += cmd.resultString(); });
+        this.waitFor(function() { return cmd.isDone(); }, 10, function() {
+            this.assertEquals('4\n2', result);
+            this.done();
+        });
     }
 
 });

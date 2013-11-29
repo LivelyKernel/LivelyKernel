@@ -8168,7 +8168,9 @@ var Mode = function() {
             }
         }
 
-        var delegations = ['toggleCommentLines', 'getNextLineIndent', 'checkOutdent', 'autoOutdent', 'transformAction', 'getCompletions'];
+        var delegations = ['toggleCommentLines', 'toggleBlockComment',
+                           'getNextLineIndent', 'checkOutdent', 'autoOutdent',
+                           'transformAction'];
 
         for (var i = 0; i < delegations.length; i++) {
             (function(scope) {
@@ -55668,7 +55670,6 @@ oop.inherits(Mode, TextMode);
 
 (function() {
     this.type = "text";
-    this.lineCommentStart = ">";
 
     this.getNextLineIndent = function(state, line, tab) {
         if (state == "listblock") {

@@ -684,7 +684,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         handler = this.versioningProxyHandler(target);
         
-        proxy = Proxy(this.dummyTargetFor(target), handler, true);
+        proxy = new Proxy(this.dummyTargetFor(target), handler, true);
         
         lively.ProxyTable.set(target, proxy);
         

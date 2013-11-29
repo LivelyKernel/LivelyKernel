@@ -2488,8 +2488,8 @@ function getCompletions(evalFunc, string, thenDo) {
              + "obj2."
     getCompletions(evalFunc, code, assertCompletions)
 })();
+*/
 
-    
     },
     evalSelectionAndOpenNarrower: function() {
         var evalIt, code, editor = this.textMorph;

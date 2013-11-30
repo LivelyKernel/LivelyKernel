@@ -358,16 +358,14 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     openIn: function (world, pos, ext) {
         var extent = ext || this.getInitialViewExtent(),
             panel = this.buildView(extent),
-            window = world.addFramedMorph(panel, this.defaultTitle);
-        if (pos) window.setPosition(pos);
-        if (world.currentScene) world.currentScene.addMorph(window); // FIXME
+            win = world.addFramedMorph(panel, this.defaultTitle);
+        if (pos) win.setPosition(pos);
+        if (world.currentScene) world.currentScene.addMorph(win); // FIXME
         panel.ownerApp = this;
         this.panel = panel;
-        this.view = window;
-        
+        this.view = win;
         this.addNavigationCollapseButton();
-        
-        return window;
+        return win;
     },
     addNavigationCollapseButton: function() {
         var navButton = this.view.titleBar.addNewButtonAt(2, "N");

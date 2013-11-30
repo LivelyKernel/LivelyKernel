@@ -1455,7 +1455,7 @@ openReferencingMethodFinder: function () {
             browser;
         require('lively.ide.SystemCodeBrowser').toRun(function() {
             browser = new lively.ide.SystemBrowser();
-            browser.openIn(world);
+            browser.openIn(world).comeForward();
         });
         return browser;
     },
@@ -2484,6 +2484,28 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     }
 },
 'collapsing', {
+    computeOptimalCollapsedExtent: function(prevCollapsedExtent) {
+        var win = this;
+        // cut off the label if it's bigger than that
+        var maxLabelExtent = lively.pt(350,20);
+        // padding around the window contents
+        var border = win.contentOffset.x
+        // how big is the label really? Compute its upper right point
+        var labelExtent = win.titleBar.label.computeRealTextBounds().extent();
+        var labelExtentMin = labelExtent.minPt(maxLabelExtent);
+        var labelBounds = labelExtentMin.extentAsRectangle();
+        var labelTopRight = labelExtentMin.withY(border);
+        // compute the unified bounds of the titlebar buttons and "put" it right
+        // next to the label. This plus some spacing is the boudns we really
+        // need to display the titlebar
+        var buttonBounds = win.titleBar.buttons.invoke('bounds') 
+        var leftMostButtonPosX = buttonBounds.pluck('x').min();
+        var buttonOffset = pt(leftMostButtonPosX,0);
+        var offset = buttonOffset.negated().addPt(labelTopRight);
+        var buttonBoundsShiftedLeft = buttonBounds.reduce(function(akk, ea) {
+            return akk.union(ea.translatedBy(offset)); }, rect(0,0,0,0));
+        return buttonBoundsShiftedLeft.extent().addXY(20,0);
+    },
     toggleCollapse: function() {
         return this.isCollapsed() ? this.expand() : this.collapse();
     },
@@ -2496,16 +2518,18 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.targetMorph.remove();
         this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
         this.helperMorphs.invoke('remove');
-        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
-        var finCollapse = function () {
-            this.state = 'collapsed';  // Set it now so setExtent works right
-            if (this.collapsedTransform) this.setTransform(this.collapsedTransform);
-            if (this.collapsedExtent) this.setExtent(this.collapsedExtent);
-            if (this.collapsedPosition) this.setPosition(this.collapsedPosition);
-            this.shape.setBounds(this.titleBar.bounds());
-        }.bind(this);
+        this.collapsedExtent = this.computeOptimalCollapsedExtent(this.collapsedExtent);
+        if (this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
+        var self = this;
+        function finCollapse() {
+            self.state = 'collapsed';  // Set it now so setExtent works right
+            if (self.collapsedTransform) self.setTransform(self.collapsedTransform);
+            if (self.collapsedExtent) self.setExtent(self.collapsedExtent);
+            if (self.collapsedPosition) self.setPosition(self.collapsedPosition);
+            self.shape.setBounds(self.titleBar.bounds());
+        }
         if (this.collapsedPosition && this.collapsedPosition.dist(this.getPosition()) > 100)
-            this.animatedInterpolateTo(this.collapsedPosition, 5, 50, finCollapse);
+            this.withCSSTransitionForAllSubmorphsDo(finCollapse, 250, function() {});
         else finCollapse();
     },
 
@@ -2514,31 +2538,22 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.collapsedTransform = this.getTransform();
         this.collapsedExtent = this.innerBounds().extent();
         this.collapsedPosition = this.getPosition();
-        var finExpand = function () {
-            this.state = 'expanded';
-            if (this.expandedTransform)
-                this.setTransform(this.expandedTransform);
-            if (this.expandedExtent) {
-                this.setExtent(this.expandedExtent);
-            }
-            if (this.expandedPosition) {
-                this.setPosition(this.expandedPosition);
-            }
-
-            this.addMorph(this.targetMorph);
-
-            this.helperMorphs.forEach(function(ea) {
-                this.addMorph(ea)
-            }, this);
-
+        if (this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
+        var self = this;
+        function finExpand() {
+            self.state = 'expanded';
+            if (self.expandedTransform) self.setTransform(self.expandedTransform);
+            if (self.expandedExtent) self.setExtent(self.expandedExtent);
+            if (self.expandedPosition) self.setPosition(self.expandedPosition);
+            self.addMorph(self.targetMorph);
+            self.helperMorphs.forEach(function(ea) { self.addMorph(ea); });
             // Bring this window forward if it wasn't already
-            this.comeForward();
-            this.targetMorph.onWindowExpand && this.targetMorph.onWindowExpand();
-        }.bind(this);
+            self.comeForward();
+            self.targetMorph.onWindowExpand && self.targetMorph.onWindowExpand();
+        }
         if (this.expandedPosition && this.expandedPosition.dist(this.getPosition()) > 100)
-            this.animatedInterpolateTo(this.expandedPosition, 5, 50, finExpand);
+            this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {})
         else finExpand();
-        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
     }
 
 });

@@ -401,6 +401,20 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunPersistentComma
             this.assertEquals('4\n2', result);
             this.done();
         });
+    },
+
+    testRead: function() {
+        this.onTearDown(function() { cmd.isRunning() && cmd.kill(); });
+        var cmdString = 'echo "Enter stuff:"; read input; echo "input was $input"', result = '',
+            cmd = lively.ide.CommandLineInterface.runPersistent(cmdString,{}, function() {});
+        this.delay(function() {
+            this.assertEquals("Enter stuff:", cmd.getStdout().trim());
+            cmd.write('aha\n');
+        }, 250);
+        this.waitFor(function() { return cmd.isDone(); }, 10, function() {
+            this.assertEquals("Enter stuff:\ninput was aha", cmd.resultString());
+            this.done();
+        });
     }
 
 });

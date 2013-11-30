@@ -112,7 +112,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         this.setInput(textString);
     },
 
-    setAndShowHistItem: function(idx) {
+    setAndShowHistItem: function setAndShowHistItem(idx) {
         var hist = this.commandHistory, items = hist.items, len = items.length-1, i = hist.index;
         if (!Numbers.between(i, 0, len+1)) hist.index = i = len;
         else hist.index = i;

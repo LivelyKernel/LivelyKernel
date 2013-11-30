@@ -25,6 +25,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 },
 "testing", {
     isDone: function() { return !!this._done; },
+    isRunning: function() { return !this.isDone() && !!this.interval; },
     wasKilled: function() { return !!this._killed; },
 },
 "accessing", {
@@ -37,7 +38,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 
     getGroup: function() { return this._options.group || null; },
 
-    kill: function(thenDo) {
+    kill: function(signal, thenDo) {
         if (this._done) {
             thenDo && thenDo();
         } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
@@ -82,7 +83,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     },
 
     endInterval: function() {
-        if (this.interval) { Global.clearInterval(this.interval); }
+        if (this.interval) { Global.clearInterval(this.interval); this.interval = null; }
     },
 
     read: function(string) {
@@ -143,6 +144,9 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 "initializing", {
     _pid: null
 },
+'testing', {
+    isRunning: function() { return !this.isDone() && !!this.getPid(); }
+},
 "connection", {
     
     isOnline: function() {
@@ -156,9 +160,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
             return;
         }
         var s = this.getSession();
-        s.sendTo(s.trackerId, selector, msg, function(answer) {
-            thenDo(null, answer);
-        });
+        s.sendTo(s.trackerId, selector, msg, function(answer) { thenDo(null, answer); });
     }
 
 },
@@ -187,11 +189,41 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         });
         return this;
     },
+    write: function(string, thenDo) {
+        if (!this.isRunning) { thenDo && thenDo('Not running', null); }
+        var data = {pid: this.getPid(), input: string || ''};
+        this.send('writeToShellCommand', data, function(err, answer) {
+            if (answer.error) { thenDo && thenDo(answer.error, null); return; }
+            thenDo && thenDo(answer);
+        });
+    },
     onEnd: function(exitCode) {
         this._code = exitCode;
         this._done = true;
         lively.bindings.signal(this, 'end', this);
         if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,this);
+    },
+    checkIfCommandIsStillAttachedAndRunning: function(thenDo) {
+        var pid = this.getPid();
+        if (!pid) { thenDo && thenDo('no pid'); return; }
+        var checkCmd = new this.constructor("ps aux | grep " + pid);
+        var self = this;
+        function cb() {
+            if (checkCmd.getCode()) { thenDo && thenDo(checkCmd.resultString()); }
+            // out like
+            // robert  66091  0.0  0.0  2432784...
+            // robert  66089  0.0  0.0  2433364...
+            var out = checkCmd.resultString(), table = Strings.tableize(out),
+                pids = table.pluck(1);
+            if (pids.include(pid)) {
+                self._killed = false;
+                thenDo && thenDo(null);
+            } else {
+                self.onEnd(666);
+            }
+        }
+        lively.bindings.connect(checkCmd, 'end', {cb: cb}, 'cb');
+        return checkCmd.start();
     }
 },
 "accessing", {
@@ -203,13 +235,16 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 
     getPid: function() { return this._pid; },
 
-    kill: function(thenDo) {
+    kill: function(signal, thenDo) {
         if (this._done) { thenDo && thenDo(null); return}
         var pid = this.getPid();
         if (!pid) { thenDo(new Error('Command has no pid!'), null); }
         var self = this;
-        this.send('stopShellCommand', {pid:pid} , function(err, answer) {
-            self._killed = true;
+        this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
+            err = err || (answer.data && answer.data.error);
+            if (err) show(err);
+            var running = answer && answer.commandIsRunning;
+            self._killed = !running; // hmmmmm
             thenDo && thenDo(err, answer);
         });
     }

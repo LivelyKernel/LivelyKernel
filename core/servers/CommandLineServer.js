@@ -21,6 +21,14 @@ var env = {
     TERM:"xterm"
 }
 
+function findShellCommand(pid) {
+    for (var i = 0; i < shellCommands.length; i++) {
+        var proc = shellCommands[i] && shellCommands[i].process;
+        if (proc && proc.pid === pid) return shellCommands[i];
+    }
+    return null;
+}
+
 function startSpawn(cmdInstructions) {
     var commandEnv = cmdInstructions.env || {};
     commandEnv.__proto__ = env;
@@ -36,8 +44,8 @@ function startSpawn(cmdInstructions) {
     // hmm (variable) expansion seems not to work with spawn
     // as a quick hack do it manually here
     args = args.map(function(arg) {
-        return arg.replace(/\$[a-zA-Z_]+/g, function(match) {
-            return process.env[match.slice(1,match.length)] || ''; }); });
+        return arg.replace(/\$[a-zA-Z0-9_]+/g, function(match) {
+            return process.env[match.slice(1,match.length)] || match; }); });
     command = args.shift();
 
     if (debug) console.log('Running command: %s', [command].concat(args));
@@ -119,24 +127,44 @@ var shellServices = {
         }
         var cmdInstructions = msg.data;
         var cmd = runShellCommand(cmdInstructions);
-        answer(true, {pid: cmd.process.pid});
+        var pid = cmd.process.pid
+        answer(true, {pid: pid});
         cmd.on('output', function(out) { answer(true, out); });
-        cmd.on('close', function(exit) { answer(false, exit); });
+        cmd.on('close', function(exit) {
+            debug && console.log('Shell command %s exited %s', pid, exit);
+            answer(false, exit); });
     },
     stopShellCommand: function(sessionServer, connection, msg) {
         function answer(data) {
             connection.send({action: msg.action + 'Result',
                 inResponseTo: msg.messageId, data: data});
         }
-        var pid = msg.data.pid;
-        if (!pid) { answer({error: 'no pid'}); return; }
-        var cmd;
-        for (var i = 0; i < shellCommands.length; i++) {
-            var proc = shellCommands[i] && shellCommands[i].process;
-            if (proc && proc.pid === pid) { cmd = shellCommands[i]; break; }
+        var pid = msg.data.pid, signal = msg.data.signal || "SIGKILL";
+        if (!pid) { answer({commandIsRunning: false, error: 'no pid'}); return; }
+        var cmd = findShellCommand(pid);
+        if (!cmd) { answer({commandIsRunning: false, error: 'command not found'}); return; }
+        debug && console.log('signal pid %s with', pid, signal);
+        signal = signal.toUpperCase().replace(/^SIG/, '');
+        exec('kill -s ' + signal + " " + pid, function(code, out, err) {
+            debug && console.log('signl result: ', out, err);
+            answer({
+                commandIsRunning: !!code,
+                message: 'signal send',
+                out: String(out), err: String(err)}); });
+    },
+    writeToShellCommand: function(sessionServer, connection, msg) {
+        function answer(data) {
+            connection.send({action: msg.action + 'Result',
+                inResponseTo: msg.messageId, data: data});
         }
+        var pid = msg.data.pid, input = msg.data.input;
+        if (!pid) { answer({error: 'no pid'}); return; }
+        if (!input) { answer({error: 'no input'}); return; }
+        var cmd = findShellCommand(pid);
         if (!cmd) { answer({error: 'command not found'}); return; }
-        cmd.process.kill('SIGKILL');
+        if (!cmd.process) { answer({error: 'command not running'}); return; }
+        debug && console.log('writing to shell command %s: %s', pid, input);
+        cmd.process.stdin.write(input);
         answer({message: 'OK'});
     }
 }

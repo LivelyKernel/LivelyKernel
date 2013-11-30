@@ -104,6 +104,12 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
                     cmdL.focus.bind(cmdL).delay(0);
                 });
             },
+            setAndShowHistItem: function setAndShowHistItem(idx) {
+                var hist = this.commandHistory, items = hist.items, len = items.length-1, i = hist.index;
+                if (!Numbers.between(i, 0, len+1)) hist.index = i = len;
+                else hist.index = i;
+                if (this.getInput() !== items[i] && typeof items[i] !== 'undefined') this.setInput(items[i]);
+            },
             clear: function clear() {
                 $super();
                 if (this.labelString) this.textString = this.labelString;
@@ -118,7 +124,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "textString", this, "inputChanged", {converter: 
         function (string) { return this.sourceObj.getInput(); }});
-            lively.bindings.connect(this, "input", this.owner, "runCommand", {});
+            lively.bindings.connect(this, "input", this.owner, "sendInput", {});
         },
             focus: function focus() {
                 if (this.labelString) {
@@ -336,16 +342,22 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         switch(sig) {
             case 'Alt-Up': case 'F1': this.get('output').focus(); evt.stop(); return true;
             case 'Alt-Down': case 'F2': this.get('commandLine').focus(); evt.stop(); return true;
-            case 'Esc': this.killCommand(); evt.stop(); return true;
+            case 'Control-C': this.killCommand('SIGINT'); evt.stop(); return true;
+            case 'Esc': this.killCommand('SIGKILL'); evt.stop(); return true;
             default: return $super(evt);        
         }
     },
         reset: function reset() {
         this.doNotSerialize = ['currentCommand'];
-        lively.bindings.connect(this.get('commandLine'), 'input', this, 'runCommand');
+        lively.bindings.connect(this.get('commandLine'), 'input', this, 'sendInput');
         this.getWindow().setTitle('execute Shell command');
         this.get('commandLine').textString = '';
         this.get('output').textString = '';
+    },
+        sendInput: function sendInput(input) {
+        var cmd = this.currentCommand;
+        if (cmd && cmd.isRunning()) cmd.write(input+'\n');
+        else this.runCommand(input);
     },
         runCommand: function runCommand(command) {
         this.get('output').textString = '';
@@ -368,13 +380,14 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         cmd.start();
         this.onStart(cmd);
     },
-        killCommand: function runCommand() {
-        if (!this.currentCommand) {
-            show('No command running!');
-            return;
+        killCommand: function killCommand(signal) {
+        var cmd = this.currentCommand;
+        if (!cmd) { show('No command running!'); return; }
+        if (cmd._killed) { // was killed already?
+            cmd.checkIfCommandIsStillAttachedAndRunning();
+        } else {
+            cmd.kill(signal);
         }
-        show('Killing command ' + this.currentCommand.getPid());
-        this.currentCommand.kill();
     },
     }],
     titleBar: "execute Shell command",

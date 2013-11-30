@@ -263,6 +263,17 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 },
                 multiSelectAction: "forEach"
             }, {
+                name: "alignSelection",
+                exec: function(ed, args) {
+                    if (ed.selection.isEmpty()) return;
+                    lively.morphic.World.current().prompt('Enter String or RegEx for alignment', function(input) {
+                        if (!input || !input.length) return;
+                        var needle = /^\/.*\/$/.test(input) ?  new RegExp(input) : needle = input;
+                        ed.$morph.alignInSelectionRange(needle);
+                    });
+                },
+                multiSelectAction: "forEach"
+            }, {
                 name: "cleanupWhitespace",
                 exec: function(ed, args) {
                     var prevPos, sel = ed.selection;
@@ -475,6 +486,8 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: "toggle text overlays",
                 exec: function(ed) {
+                    var enabled = ed.$morph.getTextOverlaysEnabled();
+                    ed.$morph.setTextOverlaysEnabled(!enabled);
                     var method = ed.$morph.jQuery().find('.text-overlay').hasClass('hidden') ?
                         "unhideTextOverlays" : "hideTextOverlays"
                     ed.$morph[method]();

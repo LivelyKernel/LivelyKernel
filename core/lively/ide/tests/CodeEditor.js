@@ -399,4 +399,18 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.JSAST',
 
 });
 
+lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.TextOperations',
+'testing', {
+    testIndentInRange: function() {
+        var ed = this.editor;
+        ed.textString = "some content\nfoo bar\nw x u v";;
+        var range = ed.createRange(
+            ed.getTextStartPosition(),
+            ed.getTextEndPosition());
+        ed.indentRange(/ /, range);
+        this.assertHasText(ed, "some content\nfoo  bar\nw    x u v");
+        this.done();
+    }
+});
+
 }) // end of module

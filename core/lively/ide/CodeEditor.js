@@ -356,6 +356,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
+    createRange: function(start, end) {
+        return lively.ide.ace.require("ace/range").Range.fromPoints(start, end);
+    },
+
+    getTextStartPosition: function() {
+        return this.getSession().screenToDocumentPosition(0,0);
+    },
+
+    getTextEndPosition: function() {
+        return this.getSession().screenToDocumentPosition(Number.MAX_VALUE, Number.MAX_VALUE);
+    },
+
     moveToMatching: function(forward, shouldSelect, moveAnyway) {
         // This method tries to find a matching char to the one the cursor
         // currently points at. If a match is found it is set as the new
@@ -1404,6 +1416,27 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     showError: function (e, offset) {
         this.setStatusMessage(String(e), Color.red);
     }
+},
+'text operations', {
+    alignInSelectionRange: function(needle) {
+        return this.alignInRange(needle, this.getSelectionRangeAce());
+    },
+    alignInRange: function(needle, range) {
+        if (!range || range.isEmpty()) return null;
+        if (range.start.column > 0) range.start.column = 0;
+        var lines = Strings.lines(this.getTextRange(range));
+        var linesAndIndentIndicies = lines.map(function(line) {
+            var idx = Strings.peekRight(line, 0, needle);
+            return {line: line, idx: idx || -1};
+        });
+        var maxColumn = linesAndIndentIndicies.max(function(ea) { return ea.idx; }).idx;
+        if (maxColumn < 0) return null;
+        var indentedLines = linesAndIndentIndicies.map(function(lineAndIdx) {
+            var l = lineAndIdx.line, i = lineAndIdx.idx;
+            return i <= 0 ? l : l.slice(0,i) + ' '.times(maxColumn-i) + l.slice(i);
+        });
+        return this.replace(range, indentedLines.join('\n'));
+    },
 },
 'file access', {
     getTargetFilePath: function() {

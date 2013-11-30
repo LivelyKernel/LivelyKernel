@@ -68,6 +68,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         return messageStrings.map(function(message) {
             message = message.trim();
             var lines = Strings.lines(message);
+            var type = lines[0] && lines[0].include('Warning:') ? 'warning' : 'error';
             var positions = lines.map(function(line) {
                 var match;
                 if ((match = line.match(lineNoErrRe))) return {row: Number(match[1])-1, column: Number(match[2])-1};
@@ -77,7 +78,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
             // first line is location, we have this already, then remove indent
             lines = lines.slice(1).invoke('replace', /^    /, '');
             if (!positions.length) return null;
-            var ann = {pos: null, message: lines.join('\n')}
+            var ann = {pos: null, message: lines.join('\n'), type: type};
             var whichPos = positions.length === 1 ? 0 : 1;
             ann.pos = positions[whichPos]; return ann;
         }).compact();
@@ -88,7 +89,8 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
     },
 
     getHLintWarnings: function(hlintOutput) {
-        return this.parseAnnotations(this.clean(hlintOutput.out));
+        return this.parseAnnotations(this.clean(hlintOutput.out)).map(function(spec) {
+            spec.type = 'warning'; return spec; });
     },
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -245,20 +247,29 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Ha
             ed = evt.codeEditor;
         marker.modeId = this.targetMode;
         marker.markerRanges.length = 0;
-        haskellInterface.checkHaskellCodeDebounced(ed, function(err, result) {
-            if (!result || !result.ghc) { /*show(err);*/ return; }
-            var overlayBounds = [];
-            if (ed.getShowErrors()) {
-                var errors = haskellInterface.getGHCErrors(result.ghc).map(function(spec) {
-                    return Object.extend({cssClassName: "ace-syntax-error"}, spec); });
-                self.renderErrorsAndWarnings(ed, errors, overlayBounds);
-            }
-            if (ed.getShowWarnings()) {
-                var warnings = haskellInterface.getHLintWarnings(result.hlint).map(function(spec) {
-                    return Object.extend({cssClassName: "ace-marker-warning"}, spec); });
-                self.renderErrorsAndWarnings(ed, warnings, overlayBounds);
-            }
-        })
+        if (!ed.getShowErrors() && !ed.getShowWarnings()) return;
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var result, errors = [], warnings = [];
+        [function(next) { // invoke check
+            haskellInterface.checkHaskellCodeDebounced(ed, function(err, r) {
+                if (!r || !r.ghc) { /*show(err);*/ return; }
+                result = r; next();
+            });
+        }, function(next) { // process and gather ghc output
+            if (!ed.getShowErrors()) { next(); return; }
+            var group = haskellInterface.getGHCErrors(result.ghc).groupByKey('type');
+            group.error && errors.pushAll(group.error);
+            group.warning && warnings.pushAll(group.warning);
+            next();
+        }, function(next) { // process and gather hlint output
+            if (!ed.getShowWarnings()) { next(); return; }
+            var ws = haskellInterface.getHLintWarnings(result.hlint);
+            ws && warnings.pushAll(ws);
+            next();
+        }, function(next) { // render errors and warnings
+            self.renderErrorsAndWarnings(ed, errors.concat(warnings), []);
+            next();
+        }].doAndContinue(null, function() { /*done*/ });
     },
 
     renderErrorsAndWarnings: function(ed, errorOrWaningSpecs, overlayBounds) {
@@ -271,14 +282,7 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Ha
         }, this);
     },
 
-    onSelectionChange: function(evt) {
-        var haskell = lively.ide.codeeditor.modes.Haskell.Interface
-        var ed = evt.codeEditor;
-        var token = ed.tokenAtPoint();
-        haskell.tokenInfo(token, function(err, tokenInfo) {
-            tokenInfo && ed.setStatusMessage(tokenInfo, Color.black);
-        });
-    }
+    onSelectionChange: function(evt) {}
 
 });
 
@@ -360,6 +364,21 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
             runHoogle(searchTerm, ['--info'], function(err, output) { thenDo(err, output); });
         }
 
+        function runGhcPkgDescribe(spec, thenDo) {
+            if (!spec.kind === 'package') return;
+            lively.shell.runPersistent("ghc-pkg describe " + spec.name, function(cmd) {
+                thenDo(null, cmd.resultString()); });
+        }
+
+        function openInCodeEditor(options, err, string) {
+            $world.addCodeEditor({
+                title: options.title,
+                content: string,
+                textMode: 'text',
+                lineWrapping: true
+            }).getWindow().comeForward();
+        }
+
         var doHoogleSearch = Functions.debounce(300, function(input, callback) {
             runHoogleSearch(input, function(err, matches) {
                 err && show(err);
@@ -371,7 +390,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
         // doHoogleSearch('Control.Monad.mapAndUnzipM');
 
         var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-            name: 'lively.ide.codeeditor.Haskell.hoogle',
+            // name: 'lively.ide.codeeditor.Haskell.hoogle',
             reactivateWithoutInit: true,
             spec: {
                 prompt: 'hoogle: ',
@@ -397,16 +416,11 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
                         }
                     }
                 }, {
-                    name: 'hoogle info',
+                    name: 'more info',
                     exec: function(candidate) {
-                        runHoogleInfo(candidate, function(err, result) {
-                            $world.addCodeEditor({
-                                title: candidate.printString,
-                                content: result,
-                                textMode: 'text',
-                                lineWrapping: true
-                            }).getWindow().comeForward();
-                        });
+                        var open = openInCodeEditor.curry({title: candidate.printString});
+                        if (candidate.kind === "package") runGhcPkgDescribe(candidate, open);
+                        else runHoogleInfo(candidate, open);
                     }
                 }]
             }
@@ -457,10 +471,19 @@ lively.ide.codeeditor.modes.Haskell.AceHaskellMode.addMethods({
         haskellInfoForThingAtPoint: {
             exec: function(ed) {
                 var haskell = lively.ide.codeeditor.modes.Haskell.Interface
-                var editor = ed.$morph;
-                var token = editor.tokenAtPoint();
+                var source = ed.$morph.getSelectionOrWordString();
+                var token = {value: source};
                 haskell.tokenInfo(token, function(err, tokenInfo) {
-                    tokenInfo && editor.setStatusMessage(tokenInfo, Color.black);
+                    // tokenInfo && ed.$morph.setStatusMessage(tokenInfo, Color.black, 30);
+                    tokenInfo && ed.$morph.printObject(ed, tokenInfo);
+                });
+            }
+        },
+        haskellPointfree: {
+            exec: function(ed) {
+                var source = ed.$morph.getSelectionOrLineString();
+                lively.shell.runPersistent('pointfree "' + source.replace(/"/g, '\\"') + '"', function(cmd) {
+                    ed.$morph.printObject(ed, cmd.resultString());
                 });
             }
         }
@@ -470,7 +493,8 @@ lively.ide.codeeditor.modes.Haskell.AceHaskellMode.addMethods({
         "Alt-c": "checkHaskellCode",
         "Alt-l": "loadHaskellModule",
         "Alt-r": "reloadHaskellModule",
-        "Alt-i": "haskellInfoForThingAtPoint"
+        "Command-i": "haskellInfoForThingAtPoint",
+        "Alt-p": "haskellPointfree"
     },
     keyhandler: null,
     initKeyHandler: function() {

@@ -66,7 +66,10 @@ function ensureProcessState(options) {
 function getProcess(procState) { return procState.proc; }
 function setProcess(procState, proc) { return procState.proc = proc; }
 function removeProcess(procState) { procState.proc = null; }
-function stopProcess(procState) { procState.proc && procState.proc.kill('SIGKILL'); }
+function stopProcess(procState, thenDo) {
+    if (!procState.proc) return;
+    exec('kill -9 ' + procState.proc.pid, thenDo);
+}
 function haskellProcessIsRunning(procState) { return procState.proc && !!procState.proc._handle; }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -360,6 +363,7 @@ module.exports = function(route, app) {
     });
 
     app.post(route + 'reset', function(req, res) {
+        console.log("resetting...");
         resetHaskellState(function(err) {
             if (err) res.status(500);
             res.json({status: err ? String(err) : "OK"});

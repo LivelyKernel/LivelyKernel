@@ -6,6 +6,7 @@ Object.extend(lively.ide.commands, {
     exec: function(commandName, arg1, arg2, arg3, arg4) {
         var cmd = lively.ide.commands.byName[commandName];
         try {
+            if (cmd.isActive && !cmd.isActive()) return false;
             return !cmd || !cmd.exec ? null : cmd.exec(arg1, arg2, arg3, arg4);
         } catch(err) {
             show('Error when executing command %s:\n %s', commandName, err);
@@ -16,7 +17,13 @@ Object.extend(lively.ide.commands, {
         if (!command) delete lively.ide.commands.byName[name];
         else lively.ide.commands.byName[name] = command;
     },
-    getKeyboardBindings: function() { return this.defaultBindings; }
+    getKeyboardBindings: function() { return this.defaultBindings; },
+    helper: {
+        noCodeEditorActive: function() {
+            var f = lively.morphic.Morph.focusedMorph();
+            return f && !f.isCodeEditor;
+        }
+    }
 });
 
 Object.extend(lively.ide.commands.byName, {
@@ -35,6 +42,7 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.morphic.World.save': {
         description: 'save world',
+        isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function() {
             $world.saveWorld(); return true;
         }
@@ -138,6 +146,7 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.morphic.Morph.openObjectEditor': {
         description: 'open ObjectEditor for focused Morph',
+        isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function() {
             var morph = $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
             $world.openObjectEditorFor(morph);
@@ -549,27 +558,26 @@ Object.extend(lively.ide.commands.byName, {
         exec: function(codeEditor, args) { lively.ide.CommandLineInterface.kill(null, show); }
     },
     // tools
-    'lively.ide.openWorkspace': {description: 'open Workspace', exec: function() { $world.openWorkspace(); }},
-    'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', exec: function() { $world.openSystemBrowser(); }},
-    'lively.ide.openObjectEditor': {description: 'open ObjectEditor', exec: function() { $world.openObjectEditor().comeForward(); }},
-    'lively.ide.openBuildSpecEditor': {description: 'open BuildSpecEditor', exec: function() { $world.openBuildSpecEditor(); }},
-    'lively.ide.openWorldCSSEditor': {description: 'open CSS Editor', exec: function() { $world.openWorldCSSEditor(); }},
-    'lively.ide.openTestRunner': {description: 'open TestRunner', exec: function() { $world.openTestRunner(); }},
-    'lively.ide.openMethodFinder': {description: 'open MethodFinder', exec: function() { $world.openMethodFinder(); }},
-    'lively.ide.openTextEditor': {description: 'open TextEditor', exec: function() { lively.ide.openFile(URL.source.toString()); }},
-    'lively.ide.openSystemConsole': {description: 'open SystemConsole', exec: function() { $world.openSystemConsole(); }},
-    'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', exec: function() { $world.openOMetaWorkspace(); }},
-    'lively.ide.openSubserverViewer': {description: 'open SubserverViewer', exec: function() { $world.openSubserverViewer(); }},
-    'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', exec: function() { $world.openServerWorkspace(); }},
-    'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', exec: function() { var codeEditor = $world.openWorkspace().applyStyle({textMode: 'sh', theme: 'pastel_on_dark'}); codeEditor.owner.setTitle('Shell Workspace'); }},
-    'lively.ide.openTerminal': {description: 'open Terminal', exec: function() { $world.openTerminal(); }},
-    'lively.ide.openGitControl': {description: 'open GitControl', exec: function() { $world.openGitControl(); }},
-    'lively.ide.openServerLog': {description: 'open ServerLog', exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); }},
-    'lively.ide.openDiffer': {description: 'open text differ', exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); }},
-    'lively.ide.openFileTree': {description: 'open file tree', exec: function() { $world.openFileTree(); }},
-    'lively.ide.openPresentationController': {description: 'open presentation controller', exec: function() { $world.openPresentationController(); }},
-    'lively.PartsBin.open': {description: 'open PartsBin', exec: function() { $world.openPartsBin(); }},
-    'lively.Config.openPreferences': {description: 'customize user preferences and config options', exec: function() { $world.openPreferences(); }},
+    'lively.ide.openWorkspace': {description: 'open Workspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openWorkspace(); return true; }},
+    'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemBrowser(); return true; }},
+    'lively.ide.openObjectEditor': {description: 'open ObjectEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openObjectEditor().comeForward(); return true; }},
+    'lively.ide.openBuildSpecEditor': {description: 'open BuildSpecEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openBuildSpecEditor(); return true; }},
+    'lively.ide.openWorldCSSEditor': {description: 'open CSS Editor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openWorldCSSEditor(); return true; }},
+    'lively.ide.openTestRunner': {description: 'open TestRunner', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openTestRunner(); return true; }},
+    'lively.ide.openMethodFinder': {description: 'open MethodFinder', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openReferencingMethodFinder(); return true; }},
+    'lively.ide.openTextEditor': {description: 'open TextEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { lively.ide.openFile(URL.source.toString()); return true; }},
+    'lively.ide.openSystemConsole': {description: 'open SystemConsole', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemConsole(); return true; }},
+    'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
+    'lively.ide.openSubserverViewer': {description: 'open SubserverViewer', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSubserverViewer(); return true; }},
+    'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
+    'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.openWorkspace().applyStyle({textMode: 'sh', theme: 'pastel_on_dark'}); return true; codeEditor.owner.setTitle('Shell Workspace'); return true; }},
+    'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
+    'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
+    'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
+    'lively.ide.openFileTree': {description: 'open file tree', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openFileTree(); return true; }},
+    'lively.ide.openPresentationController': {description: 'open presentation controller', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openPresentationController(); return true; }},
+    'lively.PartsBin.open': {description: 'open PartsBin', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openPartsBin(); return true; }},
+    'lively.Config.openPreferences': {description: 'customize user preferences and config options', exec: function() { $world.openPreferences(); return true; }},
     // network helper
     'lively.net.loadJavaScriptFile': {
         description: 'load JavaScript file',
@@ -626,19 +634,33 @@ Object.extend(lively.ide.commands.byName, {
             });
             return true;
         }
+    },
+    // meta
+    'disabled': {
+        isActive: lively.ide.commands.helper.noCodeEditorActive,
+        exec: function() {
+            var evt = Global.event, keys = evt.getKeyString();
+            lively.morphic.World.current().alert(keys + ' globally disabled');
+            return true;
+        }
     }
 });
 
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys
+    'lively.morphic.World.save': {mac: ["Command-S", "cmd-s-l s a v e"], win: "Control-S"},
+    'lively.ide.openSystemCodeBrowser': {mac: "Command-B", win: "Control-B"},
+    'lively.ide.openWorkspace': {mac: "Command-K", win: "Control-K"},
+    'lively.ide.openObjectEditor': {mac: "Command-O", win: "Control-O"},
+    'lively.PartsBin.open': {mac: "Command-P", win: "Control-P"},
+    'lively.ide.openMethodFinder': {mac: "Command-Shift-F", win: "Control-Shift-F"},
+    'lively.morphic.World.resetScale': {mac: "Command-0", win: "Control-0"},
     'lively.morphic.World.escape': "esc",
-    'lively.morphic.World.save': {mac: 'cmd-s-l s a v e', win: 'ctrl-s-l s a v e'},
     'lively.morphic.Window.close': {mac: "cmd-esc", win: "ctrl-esc"},
     'lively.morphic.Window.gather':{mac: 'cmd-s-l s t a c k w', win: 'ctrl-s-l s t a c k w'},
     'lively.morphic.Window.rename': {mac: 'cmd-s-l r e n', win: 'ctrl-s-l r e n'},
     'lively.morphic.Window.toggleCollapse': 'm-s-c',
     'lively.morphic.Morph.copy': {mac: 'cmd-s-l c o p y', win: 'ctrl-s-l c o p y'},
     'lively.morphic.Morph.showSceneGraph': 'm-m',
-    'lively.morphic.Morph.openObjectEditor': {mac: 'cmd-s-l o e', win: 'ctrl-s-l o e'},
     'lively.ide.evalJavaScript': 'm-s-:',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-à"},
     'lively.ide.browseFiles': 'Alt-t',
@@ -650,7 +672,9 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.CommandLineInterface.doGrepSearch': {mac: "cmd-s-g", win: 'ctrl-s-g'},
     'lively.ide.execShellCommandInWindow': "m-s-!",
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
-    'lively.ide.commands.execute': "m-x"
+    'lively.ide.commands.execute': "m-x",
+    // normally browser fwd/bwd shortcut:
+    'disabled': {mac: ["Command-[", "Command-]"], win: ["Control-[", "Control-]"]},
 });
 
 }) // end of module

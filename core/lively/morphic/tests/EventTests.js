@@ -265,6 +265,9 @@ TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
         this.assertEquals(undefined, this.sut.bindings['c-c s-k'], 6);
         this.sut.addKeyCombo("Shift-Alt-c", 'test4');
         this.assertEquals('test4', this.sut.bindings['s-m-c'], 7);
+        this.sut.addBindings({test5: ["X", "ctrl-Y"]});
+        this.assertEquals('test5', this.sut.bindings['x'], 8);
+        this.assertEquals('test5', this.sut.bindings['c-y'], 9);
     },
 
     testLookupCombos: function() {

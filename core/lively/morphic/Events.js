@@ -1366,43 +1366,6 @@ lively.morphic.World.addMethods(
         return false;
     },
 
-    processCommandKeys: function($super, evt) {
-        var key = evt.getKeyChar();
-        if (key) key = key.toLowerCase();
-        if (evt.isShiftDown()) {  // shifted commands here...
-            switch (key) {
-                case "f": {
-                    LastWorld = this;
-                    this.openReferencingMethodFinder();
-                    return true;
-                }
-            }
-        }
-
-        switch (key) {
-            case "r": {
-                // let the browser handle reload ...
-                return false
-            }
-            case "w": {
-                // many browsers won't allow this
-                alert('close window?'); return true; }
-            case "s": { this.saveWorld(); return true; }
-            case "b": {this.openSystemBrowser(evt); return true; }
-            case "k": { this.openWorkspace(evt); return true; }
-            case "o": { this.openObjectEditor(evt); return true; }
-            case "p": { this.openPartsBin(evt); return true; }
-            case "0": { this.resetScale(); return true; }
-        }
-
-        switch(evt.getKeyCode()) {
-            case 221/*cmd+]*/: { this.alert('CMD+[ disabled'); return true }
-            case 219/*cmd+[*/: { this.alert('CMD+] disabled'); return true }
-        }
-
-        return $super(evt);
-    },
-
     onBackspacePressed: function(evt) {
         if (!this.isFocused()) return;
         alert('<BACKSPACE> disabled')
@@ -1411,7 +1374,7 @@ lively.morphic.World.addMethods(
     },
 
     doKeyCopy: function() {
-        lively.morphic.alert('Sorry, copying the world is currently not supported.');
+        lively.morphic.alert('Copy the whole world: Nope!');
     }
 },
 'mouse event handling', {
@@ -1960,8 +1923,11 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
     addBindings: function(bindings) {
         var platform = UserAgent.isMacOS ? 'mac' : 'win';
         Properties.forEachOwn(bindings, function(command, keys) {
-            if (typeof keys === 'object') keys = keys[platform];
-            this.addKeyCombo(keys, command);
+            if (typeof keys === 'object' && !Object.isArray(keys)) keys = keys[platform];
+            if (typeof keys === 'string') this.addKeyCombo(keys, command);
+            else if (Object.isArray(keys)) keys.forEach(function(ea) {
+                this.addKeyCombo(ea, command); }, this);
+            else console.warn('Cannot add key bindings: ', keys);
         }, this);
     }
 },
@@ -2104,11 +2070,11 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
     },
     reset: function() {
         show('resetting keyboard dispatcher');
-        if (!this._global) return;
-        this._global = null;
+        if (!lively.morphic.KeyboardDispatcher._global) return;
+        lively.morphic.KeyboardDispatcher._global = null;
     },
     handleGlobalKeyEvent: function(evt) {
-        var handler = this.global();
+        var handler = lively.morphic.KeyboardDispatcher.global();
         return handler.handleKeyEvent(evt, handler.keyInputState);
     }
 });

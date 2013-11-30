@@ -19278,6 +19278,7 @@ oop.inherits(Occur, Search);
     }
 
     this.displayOccurContent = function(editor, options) {
+        // this.setSession(session || new EditSession(""))
         this.$originalSession = editor.session;
         var found = this.matchingLines(editor.session, options);
         var lines = found.map(function(foundLine) { return foundLine.content; });
@@ -19285,13 +19286,17 @@ oop.inherits(Occur, Search);
         occurSession.$occur = this;
         occurSession.$occurMatchingLines = found;
         editor.setSession(occurSession);
+        this.$useEmacsStyleLineStart = this.$originalSession.$useEmacsStyleLineStart;
+        occurSession.$useEmacsStyleLineStart = this.$useEmacsStyleLineStart;
         this.highlight(occurSession, options.re);
         occurSession._emit('changeBackMarker');
     }
 
     this.displayOriginalContent = function(editor) {
         editor.setSession(this.$originalSession);
+        this.$originalSession.$useEmacsStyleLineStart = this.$useEmacsStyleLineStart;
     }
+
     this.originalToOccurPosition = function(session, pos) {
         var lines = session.$occurMatchingLines;
         var nullPos = {row: 0, column: 0};

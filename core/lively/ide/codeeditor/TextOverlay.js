@@ -3,15 +3,13 @@ module('lively.ide.codeeditor.TextOverlay').requires('lively.DOMAbstraction').to
 (function setupCSS() {
     var css = ".text-overlay {\n"
             + "    font-family: Monaco, monospace;\n"
-            + "    font-size: 12px;\n"
+            + "    font-size: 11px;\n"
             + "    position: absolute;\n"
             + "    color: white;\n"
             + "    background: darkviolet;\n"
-       //   + "    padding: 2px;\n"
-       //   + "    margin-top: -2px;\n"
-       //   + "    margin-left: -2px;\n"
+            + "    padding: 1px;\n"
             + "    border-radius: 4px;\n"
-            + "    box-shadow: 0px 0px 5px 3px darkviolet;\n"
+            + "    box-shadow: 0px 0px 5px 3px rgb(160, 100, 210);\n"
          // + "    text-shadow: 0px 0px 5px rgba(0,0,200, 0.7);\n"
          // + "    text-shadow: 0px 0px 5px blue;\n"
          // + "    text-shadow: 0px 0px 5px white;\n"
@@ -122,6 +120,7 @@ require('lively.ide.CodeEditor').toRun(function() {
         },
 
         addTextOverlay: function(overlay) {
+            if (!this.getTextOverlaysEnabled()) return;
             this.withOverlaySupport(function($overlay, ed) {
                 $overlay.add(overlay, ed.session); });
         },
@@ -139,6 +138,14 @@ require('lively.ide.CodeEditor').toRun(function() {
 
         unhideTextOverlays: function() {
             this.jQuery().find('.text-overlay').removeClass('hidden');
+        },
+
+        setTextOverlaysEnabled: function(bool) {
+            if (!bool) this.removeTextOverlay();
+            return this._TextOverlaysEnabled = bool;
+        },
+        getTextOverlaysEnabled: function() {
+            return this._TextOverlaysEnabled === undefined || this._TextOverlaysEnabled;
         }
     });
 });

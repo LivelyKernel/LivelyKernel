@@ -102,16 +102,17 @@ Object.subclass('lively.ide.codeeditor.ModeChangeHandler',
     drawMarkerHighlight: function(spec, codeEditor, marker) {
         // spec = {pos: {start: NUMBER, end: NUMBER}, message: STRING, cssClassName: STRING
         var pos = spec.pos;
-        var line = codeEditor.getSession().getLine(pos) || '';
         var start = {row: pos.row, column: Math.max(0, pos.column-1)};
-        var end = {row: pos.row, column: Math.min(pos.column+1, line.length)};
+        var end = {row: pos.row, column: pos.column+1};
         if (start.column === end.column) end.column++;
         var absStart = codeEditor.positionToIndex(start);
         var absEnd = codeEditor.positionToIndex(end);
-        var markerPart = {
-            cssClassName: spec.cssClassName,
-            end: absEnd, start: absStart
+        var cssClass = spec.cssClassName;
+        if (!cssClass) {
+            if (spec.type === 'error') cssClass = "ace-syntax-error";
+            if (spec.type === 'warning') cssClass = "ace-marker-warning";
         }
+        var markerPart = {cssClassName: cssClass, end: absEnd, start: absStart}
         marker.markerRanges.push(markerPart);
         marker.redraw(codeEditor.getSession());
     }

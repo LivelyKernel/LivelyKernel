@@ -530,6 +530,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         attrs.forEach(function(attr) { clone.style[attr] = '' });
         node.parentNode.appendChild(clone);
         var domBounds = lively.$(clone).bounds();
+        node.parentNode.removeChild(clone);
         return rect(pt(domBounds.left,domBounds.top), pt(domBounds.right,domBounds.bottom));
     }
 
@@ -680,7 +681,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 
     processCommandKeys: function(evt) {
         var key = evt.getKeyChar();
-        // alert("key " + key)
         if (key) key = key.toLowerCase();
 
         if (evt.isShiftDown()) {  // shifted commands here...
@@ -699,7 +699,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 case "6": { this.emphasizeSelection({color: Config.userColor2 || Color.red}); return true; }
                 case "7": { this.emphasizeSelection({color: Config.userColor3 ||  Color.green}); return true; }
                 case "8": { this.emphasizeSelection({color: Config.userColor4 || Color.blue}); return true; }
-
             }
         }
 
@@ -741,18 +740,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 this.selectAll();
                 return true;
             }
-            case "x": { lively.morphic.Text.clipboardString = this.selectionString();
-                return false; }
-            case "c": { lively.morphic.Text.clipboardString = this.selectionString();
-                return false; }
-            case "v": { //  Just do the native paste
-                return false; }
+            case "x": { lively.morphic.Text.clipboardString = this.selectionString(); return false; }
+            case "c": { lively.morphic.Text.clipboardString = this.selectionString(); return false; }
+            case "v": { /*Just do the native paste*/ return false; }
             case "z": {
-                if (this.undo) {
-                    this.undo();
-                    return true;
-                }
-                return false; }
+                if (!this.undo) return false;
+                this.undo(); return true;
+            }
         }
 
         switch(evt.getKeyCode()) {
@@ -2498,8 +2492,12 @@ function getCompletions(evalFunc, string, thenDo) {
     
     },
     evalSelectionAndOpenNarrower: function() {
-        var evalIt = this.textMorph.boundEval.bind(this.textMorph),
-            code = this.textMorph.getSelectionOrLineString();
+        var evalIt, code, editor = this.textMorph;
+        editor.saveExcursion(function(reset) {
+            evalIt = editor.boundEval.bind(editor);
+            code = editor.getSelectionOrLineString();
+            reset();
+        });
         this.openNarrower(this.getCompletions(code, evalIt));
     }
 },

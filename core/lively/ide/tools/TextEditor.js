@@ -24,7 +24,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             resizeWidth: true
         },
         onWindowGetsFocus: function onWindowGetsFocus() {
-            this.get('editor').focus();
+            if (!this.lastFocused) this.lastFocused = this.get('editor');
+            this.lastFocused.focus();
         },
         submorphs: [
         lively.BuildSpec('lively.ide.tools.CommandLine').customize({
@@ -32,6 +33,11 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             clearOnInput: false,
             name: 'urlText',
             layout: {resizeWidth: true},
+            focus: function focus() {
+                var win = this.getWindow();
+                win && win.targetMorph && (win.targetMorph.lastFocused = this);
+                return $super();
+            }
         }), {
             className: "lively.morphic.Button",
             name: 'saveButton',
@@ -91,7 +97,12 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             theme: Config.get("aceTextEditorTheme"),
             layout: {resizeHeight: true,resizeWidth: true},
             sourceModule: "lively.ide.CodeEditor",
-            textString: ""
+            textString: "",
+            focus: function focus() {
+                var win = this.getWindow();
+                win && win.targetMorph && (win.targetMorph.lastFocused = this);
+                return $super();
+            }
         }]
     }],
     titleBar: "TextEditor",
@@ -124,6 +135,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(removeButton, 'fire', this, 'removeFile');
         lively.bindings.connect(saveButton, 'fire', this, 'saveFile');
         lively.bindings.connect(editor, 'savedTextString', this, 'saveFile');
+        lively.bindings.connect(this, 'savedTextString', this, 'updateWindowTitle');
         lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
         lively.bindings.connect(this, 'contentLoaded', this, 'gotoLocationLine');
         lively.bindings.connect(this, 'contentLoaded', this, 'updateWindowTitle');
@@ -141,7 +153,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 case "svg": $upd("svg"); return;
                 case "lisp": case "el": $upd("lisp"); return;
                 case "clj": $upd("clojure"); return;
-                case "hs": $upd("haskell"); return;
+                case "cabal": case "hs": $upd("haskell"); return;
                 default: $upd("text");
             }
         }});
@@ -249,19 +261,18 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     },
     message: function message(/*msg, color, ...*/) { var ed = this.get('editor'); ed.setStatusMessage.apply(ed,arguments); },
     onKeyDown: function onKeyDown(evt) {
-        var keys = evt.getKeyString();
-        if (keys === 'F1') {
-            this.get('urlText').focus(); evt.stop(); return true;
-        } else if (keys === 'F2') {
-            this.get('editor').focus(); evt.stop(); return true;
-        } else if (keys === "Command-U") {
-            $world.confirm('Revert input / reload file?', function(input) {
-                if (!input) { alertOK('Revert canceled'); return; }
-                this.loadFile();
-            }.bind(this));
-            return true;
+        var sig = evt.getKeyString();
+        switch(sig) {
+            case 'Alt-Up': case 'F1': this.get('urlText').focus(); evt.stop(); return true;
+            case 'Alt-Down': case 'F2': this.get('editor').focus(); evt.stop(); return true;
+            case "Command-U": 
+                $world.confirm('Revert input / reload file?', function(input) {
+                    if (!input) { alertOK('Revert canceled'); return; }
+                    this.loadFile();
+                }.bind(this));
+                evt.stop(); return true;
+            default: return $super(evt);        
         }
-        return $super(evt);
     }
 });
 

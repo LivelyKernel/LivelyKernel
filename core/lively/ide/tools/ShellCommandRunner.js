@@ -362,7 +362,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     },
         runCommand: function runCommand(command) {
         this.get('output').textString = '';
-        var cmd = new lively.ide.CommandLineInterface.PersistentCommand(command);
+        var cmd = lively.ide.CommandLineInterface.runPersistent(command, {group: this.name + '-' + this.id}, function() {});
         var self = this, listener = {
             onPid: function(pid) { self.onPid(pid); },
             onOut: function(out) { self.onStdout(out); },

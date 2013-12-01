@@ -557,6 +557,74 @@ Object.extend(lively.ide.commands.byName, {
         description: 'kill shell command process',
         exec: function(codeEditor, args) { lively.ide.CommandLineInterface.kill(null, show); }
     },
+    'lively.ide.CommandLineInterface.browseRunningShellCommands': {
+        description: 'browse shell command processes',
+        exec: function() {
+            var q = lively.ide.CommandLineInterface.commandQueue;
+            var groups = Object.keys(q);
+            var cmds = groups
+                .map(function(group) {
+                    return q[group].map(function(cmd) {
+                        return {
+                            isListItem: true,
+                            value: cmd,
+                            string: Strings.format('%s [%s]', cmd, group)
+                        }
+                    })
+                }).flatten();
+            var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+                // name: '_lively.ide.CommandLineInterface.browseRunningShellCommands',
+                spec: {
+                    prompt: 'select: ',
+                    candidates: cmds,
+                    keepInputOnReactivate: true,
+                    actions: [{
+                        name: 'open in ShellCommandRunner',
+                        exec: function(cmd) {
+                            require("lively.ide.tools.ShellCommandRunner").toRun(function() {
+                                lively.ide.tools.ShellCommandRunner.forCommand(
+                                    cmd).openInWorldCenter().comeForward();
+                            });
+                        }
+                    }, {
+                        name: 'kill command',
+                        exec: function(cmd) {
+                            cmd.kill("SIGKILL", function() { show('kill signal send'); });
+                        }
+                    }]
+                }
+            });
+            return true;
+        }
+    },
+    'lively.ide.CommandLineInterface.showRunningShellCommands': {
+        description: 'show shell command processes',
+        exec: function() {
+            var ed =$world.addCodeEditor({
+                title: 'Running commands',
+                textMode: 'text'
+            });
+            ed.addScript(function update() {
+                // this.startStepping(100, 'update')
+                var q = lively.ide.CommandLineInterface.commandQueue;
+                var groups = Object.keys(q);
+                var output = groups
+                    .reject(function(g) { return !q[g]|| !q[g].length; })
+                    .map(function(group) { return printGroup(group, q[group]); })
+                    .join('\n\n');
+                this.textString = output;
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                function printGroup(name, cmds) {
+                    var cmdStrings = cmds.invoke('printState').join('\n  ');
+                    return Strings.format('%s:\n  %s', name, cmdStrings);
+                }
+            })
+            ed.startStepping(700, 'update');
+            return ed;
+        
+            return true;
+        }
+    },
     // tools
     'lively.ide.openWorkspace': {description: 'open Workspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openWorkspace(); return true; }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemBrowser(); return true; }},

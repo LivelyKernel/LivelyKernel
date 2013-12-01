@@ -1,5 +1,13 @@
 module('lively.ide.tools.ShellCommandRunner').requires('lively.persistence.BuildSpec', 'lively.ide.CommandLineInterface', 'lively.ide.tools.CommandLine').toRun(function() {
 
+Object.extend(lively.ide.tools.ShellCommandRunner, {
+    forCommand: function(cmd) {
+        var runner = lively.BuildSpec('lively.ide.tools.ShellCommandRunner').createMorph();
+        runner.attachTo(cmd);
+        return runner;
+    }
+});
+
 lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     _Extent: lively.pt(594.0,336.0),
     className: "lively.morphic.Window",
@@ -312,17 +320,25 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             
             }
         }],
+        updateTitleBar: function updateTitleBar(state, cmd) {
+        var string = cmd.getCommand() + ' [';
+        if (state === 'closed') string += 'exited, ' + cmd.getCode() + ']'
+        else if (state === 'pid') string += 'running, pid ' + cmd.getPid() + ']';
+        else if (state === 'started') string += 'running]';
+        else string += '???]';
+        this.getWindow().setTitle(string);
+    },
         onClose: function onClose(cmd) {
-        this.getWindow().setTitle(cmd.getCommand() + ' [exited, ' + cmd.getCode() + ']');
+        this.updateTitleBar('closed', cmd);
         this.currentCommand = null;
     },
         onPid: function onPid(pid) {
         var cmd = this.currentCommand;
-        this.getWindow().setTitle(cmd.getCommand() + ' [running, pid ' + pid + ']');
+        this.updateTitleBar('pid', cmd);
     },
         onStart: function onStart(cmd) {
         this.currentCommand = cmd;
-        this.getWindow().setTitle(cmd.getCommand() + ' [running]');
+        this.updateTitleBar('started', cmd);
     },
         onStderr: function onStderr(string) {
         this.print(string);
@@ -363,21 +379,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         runCommand: function runCommand(command) {
         this.get('output').textString = '';
         var cmd = lively.ide.CommandLineInterface.runPersistent(command, {group: this.name + '-' + this.id}, function() {});
-        var self = this, listener = {
-            onPid: function(pid) { self.onPid(pid); },
-            onOut: function(out) { self.onStdout(out); },
-            onErr: function(err) { self.onStderr(err); },
-            onClose: function(cmd) { self.onClose(cmd); }
-        };
-        lively.bindings.connect(cmd, 'pid', listener, 'onPid');
-        lively.bindings.connect(cmd, 'stdout', listener, 'onOut');
-        lively.bindings.connect(cmd, 'stderr', listener, 'onErr');
-        lively.bindings.connect(cmd, 'end', listener, 'onClose', {
-            updater: function($upd, cmd) {
-                lively.bindings.disconnectAll(this.sourceObj);
-                $upd(cmd);
-            }
-        });
+        this.listenForEvents(cmd);
         cmd.start();
         this.onStart(cmd);
     },
@@ -390,6 +392,41 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             cmd.kill(signal);
         }
     },
+        attachTo: function attachTo(cmd) {
+            if (this.currentCommand) {
+                show('%s cannot reattach because a current command is still running.', this);
+                return;
+            }
+            this.currentCommand = cmd;
+            this.listenForEvents(cmd);
+            if (cmd.isRunning()) this.updateTitleBar('pid', cmd);
+            else this.updateTitleBar('closed');
+            this.print(cmd.getStdout() || '');
+            this.print(cmd.getStderr() || '');
+        },
+        listenForEvents: function listenForEvents(cmd) {
+            var self = this, listener = {
+                onPid: function(pid) { self.onPid(pid); },
+                onOut: function(out) { self.onStdout(out); },
+                onErr: function(err) { self.onStderr(err); },
+                onClose: function(cmd) { self.onClose(cmd); }
+            };
+            lively.bindings.connect(cmd, 'pid', listener, 'onPid');
+            lively.bindings.connect(cmd, 'stdout', listener, 'onOut');
+            lively.bindings.connect(cmd, 'stderr', listener, 'onErr');
+            lively.bindings.connect(cmd, 'end', listener, 'onClose', {
+                updater: function($upd, cmd) {
+                    lively.bindings.disconnectAll(this.sourceObj);
+                    $upd(cmd);
+                }
+            });
+        },
+        morphMenuItems: function morphMenuItems() {
+            var items = $super();
+            items.push(['Browse Running commands', function() { lively.ide.commands.exec('lively.ide.CommandLineInterface.browseRunningShellCommands'); }]);
+            items.push(['Show Running commands', function() { lively.ide.commands.exec('lively.ide.CommandLineInterface.showRunningShellCommands'); }]);
+            return items;
+        }
     }],
     titleBar: "execute Shell command",
     runCommand: function runCommand(command) {
@@ -401,7 +438,8 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     (function() {
         cmdLine.commandHistory = lively.ide.tools.CommandLine.getHistory('lively.ide.execShellCommand');
     }).delay(0);
-}
+},
+    attachTo: function attachTo(cmd) { this.targetMorph.attachTo(cmd); },
 });
 
 

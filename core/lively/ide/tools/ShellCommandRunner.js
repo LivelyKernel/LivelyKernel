@@ -343,6 +343,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             case 'Alt-Up': case 'F1': this.get('output').focus(); evt.stop(); return true;
             case 'Alt-Down': case 'F2': this.get('commandLine').focus(); evt.stop(); return true;
             case 'Control-C': this.killCommand('SIGINT'); evt.stop(); return true;
+            case 'Control-D': this.killCommand('SIGQUIT'); evt.stop(); return true;
             case 'Esc': this.killCommand('SIGKILL'); evt.stop(); return true;
             default: return $super(evt);        
         }

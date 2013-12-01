@@ -138,6 +138,18 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     getCommand: function() {
         return this._options.exec ? this._commandString : lively.ide.CommandLineInterface.parseCommandIntoCommandAndArgs(this._commandString);
     }
+},
+'debugging', {
+    printState: function() {
+        var cmdString = this.getCommand();
+        cmdString = Object.isArray(cmdString) ? cmdString.join(' ') : cmdString;
+        return [this.getPid ? this.getPid() : 'no pid',
+                this.isRunning() ? 'running' : "not running",
+                cmdString].join(',');
+    },
+    toString: function() {
+        return 'ShellCommand(' + this.printState() + ')';
+    }
 });
 
 lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterface.PersistentCommand',

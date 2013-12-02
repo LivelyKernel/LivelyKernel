@@ -380,7 +380,6 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         this.get('output').textString = '';
         var cmd = lively.ide.CommandLineInterface.runPersistent(command, {group: this.name + '-' + this.id}, function() {});
         this.listenForEvents(cmd);
-        cmd.start();
         this.onStart(cmd);
     },
         killCommand: function killCommand(signal) {

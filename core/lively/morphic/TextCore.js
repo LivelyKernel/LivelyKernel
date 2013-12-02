@@ -252,10 +252,10 @@ Trait('TextChunkOwner',
 },
 
 'debugging', {
-    isInChunkDebugMode: function() { 
-        return !!this.chunkDebugMode; 
+    isInChunkDebugMode: function() {
+        return !!this.chunkDebugMode;
     },
-    setChunkDebugMode: function(bool) { this.chunkDebugMode = bool; this.forceRender(); 
+    setChunkDebugMode: function(bool) { this.chunkDebugMode = bool; this.forceRender();
     }
 }
 );
@@ -1303,7 +1303,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 
         return false;
     },
-    
+
     onMouseWheel: function(evt) {
         this.stopScrollWhenBordersAreReached(evt);
         return true;
@@ -2480,7 +2480,7 @@ function getCompletions(evalFunc, string, thenDo) {
                     ["prototype", ["m3(a,b,c)"]]]
         assert(Objects.equal(expected, objectCompletions), 'compl not equal');
         alertOK('all good!')
-        
+
     }
     function evalFunc(string) { return eval(string); }
     var code = "obj1 = {m2: function() {}, m3:function(a,b,c) {}}\n"
@@ -2488,8 +2488,7 @@ function getCompletions(evalFunc, string, thenDo) {
              + "obj2."
     getCompletions(evalFunc, code, assertCompletions)
 })();
-
-    
+*/
     },
     evalSelectionAndOpenNarrower: function() {
         var evalIt, code, editor = this.textMorph;

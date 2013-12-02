@@ -555,7 +555,9 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.CommandLineInterface.killShellCommandProcess': {
         description: 'kill shell command process',
-        exec: function(codeEditor, args) { lively.ide.CommandLineInterface.kill(null, show); }
+        exec: function(codeEditor, args) {
+            lively.ide.CommandLineInterface.reset();
+        }
     },
     'lively.ide.CommandLineInterface.browseRunningShellCommands': {
         description: 'browse shell command processes',

@@ -250,7 +250,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
     kill: function(signal, thenDo) {
         if (this._done) { thenDo && thenDo(null); return}
         var pid = this.getPid();
-        if (!pid) { thenDo(new Error('Command has no pid!'), null); }
+        if (!pid) { thenDo && thenDo(new Error('Command has no pid!'), null); }
         var self = this;
         this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
             err = err || (answer.data && answer.data.error);
@@ -275,6 +275,12 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 Object.extend(lively.ide.CommandLineInterface, {
     rootDirectory: null,
     commandQueue: {},
+    reset: function() {
+        this.rootDirectory = null,
+        this.commandQueue && Properties.forEachOwn(this.commandQueue, function(group, cmds) {
+            cmds.invoke('kill'); })
+        this.commandQueue = {};
+    },
     getGroupCommandQueue: function(group) {
         return this.commandQueue[group] || (this.commandQueue[group] = []);
     },

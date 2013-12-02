@@ -238,10 +238,17 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // special cases
                 if (name === '__proto__') {
                     if (Object.isProxy(value)) {
-                        targetObject.__protoProxy = value;
+                        
+                        Object.defineProperty(targetObject, '__protoProxy', {
+                            value: value,
+                            writable: true
+                        });
                         targetObject.__proto__ = value.proxyTarget();
                     } else {
-                        targetObject.__protoProxy = null;
+                        Object.defineProperty(targetObject, '__protoProxy', {
+                            value: null,
+                            writable: true
+                        });
                         targetObject.__proto__ = value;
                     }
                     return true;
@@ -460,7 +467,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                             return prev ? prev + ', ' + current : current
                         }, '') + ')');
                     
-                    newInstance.__protoProxy = null;
+                    Object.defineProperty(newInstance, '__protoProxy', {
+                        value: null,
+                        writable: true
+                    });
                     
                     return this.ensureProxied(newInstance);
                 }
@@ -607,7 +617,11 @@ Object.extend(lively.versions.ObjectVersioning, {
             if (proto && proto.isProxy()) {
                 prototype = proto.proxyTarget();
                 instance = create.call(null, prototype, propertiesObject);
-                instance.__protoProxy = proto;
+                
+                Object.defineProperty(instance, '__protoProxy', {
+                    value: proto,
+                    writable: true
+                });
             } else {
                 instance = create.call(null, prototype, propertiesObject);
             }
@@ -678,7 +692,7 @@ Object.extend(lively.versions.ObjectVersioning, {
             // set __protoProxy as not enumerable and not configurable
             Object.defineProperty(target, '__protoProxy', {
                 value: protoProxy,
-                writable: true,
+                writable: true
             });
         }
         

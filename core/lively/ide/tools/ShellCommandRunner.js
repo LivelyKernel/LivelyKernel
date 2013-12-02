@@ -400,7 +400,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             this.currentCommand = cmd;
             this.listenForEvents(cmd);
             if (cmd.isRunning()) this.updateTitleBar('pid', cmd);
-            else this.updateTitleBar('closed');
+            else this.updateTitleBar('closed', cmd);
             this.print(cmd.getStdout() || '');
             this.print(cmd.getStderr() || '');
         },

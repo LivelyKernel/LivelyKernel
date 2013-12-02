@@ -97,7 +97,8 @@ lively.GlobalObjectsToWrap = [
     // http://developer.mozilla.org/en-US/docs/Web/API
     'document',
     'XMLHttpRequest',
-    'Worker'
+    'Worker',
+    'XMLSerializer'
 ];
 
 lively.ArrayIterators = [Array.prototype.forEach, Array.prototype.every, Array.prototype.some, Array.prototype.filter, Array.prototype.map, Array.prototype.reduce, Array.prototype.reduceRight];

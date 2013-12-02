@@ -113,11 +113,11 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     },
 
     setAndShowHistItem: function setAndShowHistItem(idx) {
-        var hist = this.commandHistory, items = hist.items, len = items.length-1, i = hist.index;
-        if (!Numbers.between(i, 0, len+1)) hist.index = i = len;
-        else hist.index = i;
-        if (this.getInput() !== items[i] && typeof items[i] !== 'undefined') this.setInput(items[i]);
-    },
+    var hist = this.commandHistory, items = hist.items, len = items.length-1, i = idx;
+    if (!Numbers.between(i, 0, len+1)) hist.index = i = len;
+    else hist.index = i;
+    if (this.getInput() !== items[i] && typeof items[i] !== 'undefined') this.setInput(items[i]);
+},
 
     showHistItem: function showHistItem(dir) {
         dir = dir || 'next';

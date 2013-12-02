@@ -7,17 +7,13 @@ before_install:
   - "chromium-browser --version"
   - "sudo chmod 1777 /dev/shm"
   - "nvm use v0.10"
-  - "npm install -g livelykernel-scripts@latest"
 
 before_script:
   - "nvm use v0.10"
-  - "mkdir `lk scripts-dir`/workspace"
-  - echo "Linking $PWD to `lk scripts-dir`/workspace/lk"
-  - "ln -s $PWD `lk scripts-dir`/workspace/lk"
   - "Xvfb :1 -screen 0 800x600x24 &"
-  - "lk server --forever"
+  - "node bin/lk_server.js --forever"
 
-script: "lk test --display :1"
+script: "node bin/lk_test.js --display :1"
 
 branches:
   except: ww-mirror-2.1.3

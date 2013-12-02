@@ -2528,9 +2528,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             if (self.collapsedPosition) self.setPosition(self.collapsedPosition);
             self.shape.setBounds(self.titleBar.bounds());
         }
-        if (this.collapsedPosition && this.collapsedPosition.dist(this.getPosition()) > 100)
-            this.withCSSTransitionForAllSubmorphsDo(finCollapse, 250, function() {});
-        else finCollapse();
+        this.withCSSTransitionForAllSubmorphsDo(finCollapse, 250, function() {});
     },
 
     expand: function() {
@@ -2551,9 +2549,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             self.comeForward();
             self.targetMorph.onWindowExpand && self.targetMorph.onWindowExpand();
         }
-        if (this.expandedPosition && this.expandedPosition.dist(this.getPosition()) > 100)
-            this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {})
-        else finExpand();
+        this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {});
     }
 
 });

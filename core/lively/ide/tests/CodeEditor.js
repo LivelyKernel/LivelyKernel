@@ -407,7 +407,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.TextOpera
         var range = ed.createRange(
             ed.getTextStartPosition(),
             ed.getTextEndPosition());
-        ed.indentRange(/ /, range);
+        ed.alignInRange(/ /, range);
         this.assertHasText(ed, "some content\nfoo  bar\nw    x u v");
         this.done();
     }

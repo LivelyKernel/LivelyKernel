@@ -254,12 +254,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                     newObject = Object.create(oldObject.__proto__);
                 
                 // copy non-enumerable properties explicitly
-                newObject.constructor = oldObject.constructor;
+                if (hasOwn.call(oldObject, 'constructor')) {
+                    newObject.constructor = oldObject.constructor;
+                }
+                
                 Object.defineProperty(newObject, '__protoProxy', {
                     value: oldObject.__protoProxy,
                     writable: true
                 });
                 
+                // copy all other values/references
                 for (var name in oldObject) {
                     if (hasOwn.call(oldObject, name) &&
                         !hasOwn.call(newObject, name)) {

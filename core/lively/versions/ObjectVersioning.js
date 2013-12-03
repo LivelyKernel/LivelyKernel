@@ -217,10 +217,19 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return newObject;
             },
-            shouldObjectBeCopiedFirst: function(propertyName) {
-                return !this.__targetVersions[lively.CurrentVersion.ID] &&
-                    propertyName !== 'displayName' &&
-                    propertyName !== 'sourceModule';
+            shouldObjectBeCopiedBeforeWrite: function(target, propertyName) {
+                
+                if (propertyName === 'displayName' ||
+                    propertyName === 'sourceModule' ||
+                    target === Global ||
+                    target instanceof Node ||
+                    target instanceof CSSStyleDeclaration) {
+                    
+                    return false;
+                }
+                
+                return !this.__targetVersions.
+                    hasOwnProperty(lively.CurrentVersion.ID);
             },
             
             // === proxy handler traps ===
@@ -231,7 +240,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 // copy-on-write: create and work on a new version of the target
                 // when target was commited with a previous version
-                if (this.shouldObjectBeCopiedFirst(name)) {
+                if (this.shouldObjectBeCopiedBeforeWrite(targetObject, name)) {
                     targetObject =
                         this.copyObjectForCurrentVersion(targetObject);
                 }

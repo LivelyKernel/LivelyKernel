@@ -63,6 +63,7 @@ lively.morphic.Morph.subclass("lively.morphic.BarChart", {
 
 lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     initialize: function($super) {
+        debugger;
         $super();
         this.setExtent(pt(500, 250));
         this.setFill(Color.gray);
@@ -70,6 +71,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         
         this.createLabel();
         this.createButton();
+        // this.openInWindow();
         this.addScript(function updateComponent() {
             // put your code here
         });
@@ -165,6 +167,59 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
         return closestMorph;
         
+    },
+    adjustForNewBounds: function() {
+        // resizeVertical, resizeHorizontal, moveVertical, moveHorizontal
+
+        if (this.getLayouter()) {
+            this.applyLayout();
+            return;
+        }
+
+        var newExtent = this.getShape().getBounds().extent();
+        if (!this.priorExtent) {
+            this.priorExtent = newExtent;
+            return;
+        }
+
+        var scalePt = newExtent.scaleByPt(this.priorExtent.invertedSafely()),
+            diff = newExtent.subPt(this.priorExtent);
+
+        for (var i = 0; i < this.submorphs.length; i++) {
+            var morph = this.submorphs[i], spec = morph.layout;
+            if (!spec) continue;
+            var moveX = 0, moveY = 0, resizeX = 0, resizeY = 0;
+
+            if (spec.centeredHorizontal)
+                moveX = this.innerBounds().center().x - morph.bounds().center().x;
+            if (spec.centeredVertical)
+                moveY = this.innerBounds().center().y - morph.bounds().center().y;
+
+            if (spec.moveHorizontal) moveX = diff.x;
+            if (spec.moveVertical) moveY = diff.y;
+            if (spec.resizeWidth) resizeX = diff.x;
+            if (spec.resizeHeight) resizeY = diff.y;
+
+            if (spec.scaleHorizontal || spec.scaleVertical) {
+                var morphScale = pt(
+                    spec.scaleHorizontal ? scalePt.x : 1,
+                    spec.scaleVertical ? scalePt.y : 1);
+                morph.setPosition(morph.getPosition().scaleByPt(morphScale));
+                morph.setExtent(morph.getExtent().scaleByPt(morphScale));
+            }
+
+            if (moveX || moveY) morph.moveBy(pt(moveX, moveY));
+            if (resizeX || resizeY) morph.setExtent(morph.getExtent().addXY(resizeX, resizeY));
+        }
+
+        this.priorExtent = newExtent;
+    },
+    setExtent: function($super, newExtent) {
+        var oldExtent = this.getExtent();
+        $super(newExtent);
+        this.adjustForNewBounds();
+        var button = this.get("DoButton");
+        button.setPosition(button.getPosition().addPt(newExtent.subPt(oldExtent)));
     }
 });
 }) // end of module

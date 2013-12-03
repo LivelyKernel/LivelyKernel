@@ -13,6 +13,7 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     addElement: function(element){
         element.setPosition(pt(this.currentX, this.getExtent().y - element.getExtent().y));
         this.currentX = this.currentX + element.getExtent().x + this.OFFSET;
+        debugger;
         this.addMorph(element);
         return this.currentX;
     },
@@ -27,7 +28,6 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
         $super();
-        alert(10);
         this.setExtent(pt(500,500));
         this.setFill(Color.blue);
         this.linearLayout = new lively.morphic.LinearLayout(500,500);

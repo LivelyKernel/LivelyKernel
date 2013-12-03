@@ -438,7 +438,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         app.counter = 2;
         
-        lively.undo();
+        lively.versions.ObjectVersioning.undo();
         
         this.assertEquals(app.counter, 1);
     },
@@ -451,7 +451,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         app.view.color = 'green';
         
-        lively.undo();
+        lively.versions.ObjectVersioning.undo();
         
         this.assertEquals(app.view.color, 'red');
     },
@@ -462,7 +462,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         obj.isPropertyDefined = true;
         
-        lively.undo();
+        lively.versions.ObjectVersioning.undo();
         
         this.assert(obj.isPropertyDefined === undefined);
     },
@@ -473,7 +473,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         lively.commitVersion();
         
-        lively.undo();
+        lively.versions.ObjectVersioning.undo();
         lively.redo();
         
         this.assertEquals(address.city, 'Chicago');
@@ -485,8 +485,8 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         lively.commitVersion();
         address.city = 'Chicago';
         
-        lively.undo();
-        lively.undo();
+        lively.versions.ObjectVersioning.undo();
+        lively.versions.ObjectVersioning.undo();
         lively.redo();
         
         this.assertEquals(address.street, 'Meanstreet');
@@ -509,12 +509,12 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         descendant.__proto__ = otherPrototype;
         
-        lively.undo();
+        lively.versions.ObjectVersioning.undo();
         
         this.assertEquals(Object.getPrototypeOf(descendant), originalPrototype);
         this.assertEquals(descendant.method(), 1);
         
-        lively.undo();
+        lively.versions.ObjectVersioning.undo();
         
         this.assertEquals(Object.getPrototypeOf(descendant), Object.prototype);
         this.assert(!descendant.method);

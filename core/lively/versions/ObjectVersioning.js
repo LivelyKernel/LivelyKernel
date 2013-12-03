@@ -757,19 +757,23 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         return previousVersion; 
     },
-    undo: function() {
+    undo: function(callback) {
         var previousVersion = this.previousVersion();
         if (!previousVersion) {
             throw new Error('Can\'t undo: No previous version.');
         }
         lively.CurrentVersion = previousVersion;
+        
+        if (callback) callback();
     },
-    redo: function() {
+    redo: function(callback) {
         var followingVersion = this.followingVersion();
         if (!followingVersion) {
             throw new Error('Can\'t redo: No next version.');
         }
         lively.CurrentVersion = this.followingVersion();
+        
+        if (callback) callback();
     },
     previousVersion: function() {
         return lively.CurrentVersion.previousVersion;
@@ -879,13 +883,24 @@ Object.extend(lively.versions.ObjectVersioning, {
     }
 });
 
-var livelyOV = lively.versions.ObjectVersioning;
+var livelyOV = lively.versions.ObjectVersioning,
+    updateMorphs = function() {
+        $world.withAllSubmorphsDo(function(morph) {
+            var shape = morph.shape;
+            
+            morph.renderContextDispatch('init');
+            shape &&
+                shape.renderContextDispatch('init', shape.renderContext());
+        });
+    }
 
 // shortcuts
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
 lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
-lively.undo = livelyOV.undo.bind(livelyOV);
-lively.redo = livelyOV.redo.bind(livelyOV);
+
+lively.undo = livelyOV.undo.bind(livelyOV).curry(updateMorphs);
+lively.redo = livelyOV.redo.bind(livelyOV).curry(updateMorphs);
+
 lively.isPrimitiveObject = livelyOV.isPrimitiveObject.bind(livelyOV);
 lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 

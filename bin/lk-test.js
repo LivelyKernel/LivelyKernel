@@ -73,3 +73,4 @@ argList.push([path.relative(env.PWD || process.cwd(), env.LK_TEST_STARTER)]);
 var proc = spawn(cmd, argList);
 proc.stdout.pipe(process.stdout);
 proc.stderr.pipe(process.stdout);
+proc.on('close', function(code) { process.exit(code); })

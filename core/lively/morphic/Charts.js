@@ -97,8 +97,23 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     update: function() {
         this.refreshData();
-        this.updateComponent();
-        this.notifyNextComponent();
+        
+        var promise;
+        try {
+            promise = this.updateComponent();
+            this.setFill(Color.gray);
+        } catch (e) {
+            this.setFill(Color.red);
+            if (!e.alreadyThrown){
+                throw e;
+            }
+        }
+        
+        var _this = this;
+        if (promise && typeof promise.done == "function")
+            promise.done(_this.notifyNextComponent());
+        else
+            this.notifyNextComponent();
     },
     
     notifyNextComponent: function() {

@@ -13,7 +13,7 @@ before_script:
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "node bin/lk-server.js --forever"
 
-script: "node bin/lk-test.js --display :1"
+script: "DISPLAY=:1 node bin/lk-test.js"
 
 branches:
   except: ww-mirror-2.1.3

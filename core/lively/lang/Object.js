@@ -533,7 +533,7 @@ Object.extend(lively.PropertyPath.prototype, {
 Object.extend(JSON, {
     prettyPrint: function(jsoOrJson, indent) {
         var jso = (typeof jsoOrJson == 'string') ? JSON.parse(jsoOrJson) : jsoOrJson,
-    		isArray = jsoOrJson && jsoOrJson.constructor === Array,
+    		isArray = Array.isArray(jso),
     		str = '',
     		propStrings = [];
     	indent = indent || '';

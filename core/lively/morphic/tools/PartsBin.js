@@ -803,9 +803,12 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         setSelectedPartVersions: function setSelectedPartVersions(versions) {
         // alertOK("set versions:" + versions.length)
         var list = versions.collect(function(ea) {
+            var formattedDate = ea.date;
+            if (formattedDate.format) {
+                formattedDate = formattedDate.format("yyyy-mm-dd HH:MM") 
+            }
             return { 
-                string: '' + ea.date.format("yyyy-mm-dd HH:MM") 
-                    + " " + ea.author + " (" + ea.rev + ")", 
+                string: formattedDate + " " + ea.author + " (" + ea.rev + ")",
                 value: ea, isListItem: true}
         })
         this.get('selectedPartVersions').updateList(list)

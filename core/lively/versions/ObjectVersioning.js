@@ -204,14 +204,24 @@ Object.extend(lively.versions.ObjectVersioning, {
                 throw new Error('not yet implemented...')
                 
             },
-            copyObjectForCurrentVersion: function(targetObject) {
-                var newObject = Object.clone(targetObject);
+            copyObjectForCurrentVersion: function(oldObject) {
+                var hasOwn = Object.prototype.hasOwnProperty,
+                    newObject = Object.create(oldObject.__proto__);
                 
                 // copy non-enumerable properties explicitly
+                newObject.constructor = oldObject.constructor;
                 Object.defineProperty(newObject, '__protoProxy', {
-                    value: targetObject.__protoProxy,
-                    writable: true,
+                    value: oldObject.__protoProxy,
+                    writable: true
                 });
+                
+                for (var name in oldObject) {
+                    if (hasOwn.call(oldObject, name) &&
+                        !hasOwn.call(newObject, name)) {
+                        
+                        newObject[name] = oldObject[name];
+                    }
+                }
                 
                 this.__targetVersions[lively.CurrentVersion.ID] = newObject;
                 

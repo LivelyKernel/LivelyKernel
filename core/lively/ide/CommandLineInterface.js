@@ -452,6 +452,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     readFile: function(path, options, thenDo) {
         options = options || {};
+        path = '"' + path + '"';
         var cmd = this.runPersistent('cat ' + path);
         if (options.onInput) lively.bindings.connect(cmd, 'stdout', options, 'onInput');
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
@@ -462,6 +463,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     writeFile: function(path, options, thenDo) {
         options = options || {};
         options.content = options.content || '';
+        path = '"' + path + '"';
         var cmd = this.run('tee ' + path, {stdin: options.content});
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');

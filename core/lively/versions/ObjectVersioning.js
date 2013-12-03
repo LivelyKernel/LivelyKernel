@@ -832,6 +832,14 @@ Object.extend(lively.versions.ObjectVersioning, {
         
     },
     patchBaseCode: function() {
+        
+        // patches for String.js
+        var originalStringsPrint = Strings.print;
+        Strings.print = function(obj) {
+            var actualObj = Object.isProxy(obj) ? obj.proxyTarget() : obj;
+            return originalStringsPrint.call(this, actualObj);
+        }
+        
         // patches for bootstrap.js:
         Object.extend(JSLoader, {
             runCode: function(code, url) {

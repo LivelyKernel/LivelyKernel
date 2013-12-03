@@ -65,11 +65,10 @@ function addChange(changeRecord, type, fileName, stat) {
 
 function startWatching(dir, thenDo) {
     var ignoredItems = [
-            function(fn) {
-                return fn.indexOf(dir) === 0
-                    && fn.slice(dir.length).indexOf("node_modules") > -1; }
+            /.git(\/|$)/,
+            /node_modules(\/|$)/
         ],
-        options = {ignoreDotFiles: true, filter: ignore.bind(null, ignoredItems)},
+        options = {ignoreDotFiles: false, filter: ignore.bind(null, ignoredItems)},
         changes = watchState[dir] = {
             monitor: null,
             lastChange: null,

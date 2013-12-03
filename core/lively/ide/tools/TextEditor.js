@@ -135,7 +135,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(removeButton, 'fire', this, 'removeFile');
         lively.bindings.connect(saveButton, 'fire', this, 'saveFile');
         lively.bindings.connect(editor, 'savedTextString', this, 'saveFile');
-        lively.bindings.connect(this, 'savedTextString', this, 'updateWindowTitle');
+        lively.bindings.connect(this, 'contentStored', this, 'updateWindowTitle');
         lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
         lively.bindings.connect(this, 'contentLoaded', this, 'gotoLocationLine');
         lively.bindings.connect(this, 'contentLoaded', this, 'updateWindowTitle');
@@ -261,6 +261,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     },
     message: function message(/*msg, color, ...*/) { var ed = this.get('editor'); ed.setStatusMessage.apply(ed,arguments); },
     onKeyDown: function onKeyDown(evt) {
+        if (this.showsHalos) return $super(evt);
         var sig = evt.getKeyString();
         switch(sig) {
             case 'Alt-Up': case 'F1': this.get('urlText').focus(); evt.stop(); return true;

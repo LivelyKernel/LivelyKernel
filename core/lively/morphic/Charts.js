@@ -13,7 +13,6 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     addElement: function(element){
         element.setPosition(pt(this.currentX, this.getExtent().y - element.getExtent().y));
         this.currentX = this.currentX + element.getExtent().x + this.OFFSET;
-        debugger;
         this.addMorph(element);
         return this.currentX;
     },
@@ -140,7 +139,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     getMorphInDirection: function(direction, point) {
         // direction should be 1 or -1 for above or below
         
-        var parentMorph = this.owner;
+        var parentMorph = $world;
         
         var allDFComponents = parentMorph.withAllSubmorphsSelect(function(el) {
             return el instanceof lively.morphic.DataFlowComponent;
@@ -149,18 +148,18 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var closestMorph = null;
 
         // choose the top middle point as myPosition as default
-        var myPosition = point || this.getPosition().addPt(pt(this.getExtent().x / 2, 0));
+        var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
         allDFComponents.forEach(function(el) {
             if (el == this)
                 return;
             
-            var elPosition = el.getPosition();
+            var elPosition = el.getPositionInWorld();
             
             // check for the nearest DF component straight above or below myPosition
             if (direction * elPosition.y < direction * myPosition.y &&
                 elPosition.x < myPosition.x && elPosition.x + el.getExtent().x > myPosition.x)
                 
-                if (closestMorph == null || direction * elPosition.y > direction * closestMorph.getPosition().y)
+                if (closestMorph == null || direction * elPosition.y > direction * closestMorph.getPositionInWorld().y)
                     closestMorph = el;
         });
 

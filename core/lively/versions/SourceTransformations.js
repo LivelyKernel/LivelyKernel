@@ -223,7 +223,7 @@ Object.extend(lively.versions.SourceTransformations, {
             
             return this.transformFunctionDeclaration(node);
         } else if (node instanceof UglifyJS.AST_SymbolRef &&
-            lively.GlobalObjectsToWrap.include(node.name)) {
+            Config.get('GlobalSymbolsToWrap').include(node.name)) {
             
             // global native and host Objects / Constructors need to be wrapped
             // into proxyFor-calls

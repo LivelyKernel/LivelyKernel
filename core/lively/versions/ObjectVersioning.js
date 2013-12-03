@@ -406,7 +406,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                     // everything (because we neither want to modify objects
                     // permanently nor copy every object or array passed to
                     // [native code])
-                    if (func === Worker.prototype.postMessage) {
+                    if (func === Worker.prototype.postMessage ||
+                        func === JSON.stringify) {
                         // WebWorker get some option objects which can't have
                         // proxied properties. otherwise:
                         // DOM Exception 25, DATA_CLONE_ERR

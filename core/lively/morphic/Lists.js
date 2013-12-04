@@ -1025,7 +1025,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
     textOnMouseDown: function onMouseDown(evt) {
         if (this.owner.owner.allowDeselectClick) {
             this.setIsSelected(!this.selected);
-        } else if (!this.selected) {
+        } else {
             this.setIsSelected(true);
         }
         evt.stop(); return true;

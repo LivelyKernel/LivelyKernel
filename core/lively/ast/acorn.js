@@ -208,6 +208,309 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                                     node.type, node.start, node.end, nodeSrc));
         });
         return result.join('\n');
+    },
+
+    acorn.walk.toLKObjects = function (ast) {
+        if (!!!ast.type) throw new Error('Given AST is not an Acorn AST.');
+        function newUndefined(start, end) {
+            start = start || -1;
+            end = end || -1;
+            return new lively.ast.Variable([start, end], 'undefined');
+        }
+        var visitors = {
+            Program: function(n, c) {
+                return new lively.ast.Sequence([n.start, n.end], n.body.map(c))
+            },
+            FunctionDeclaration: function(n, c) {
+                var args = n.params.map(function(param) {
+                    return new lively.ast.Variable(
+                        [param.start, param.end], param.name
+                    );
+                });
+                var fn = new lively.ast.Function(
+                    [n.id.end, n.end], c(n.body), args
+                );
+                return new lively.ast.VarDeclaration(
+                    [n.start, n.end], n.id.name, fn
+                );
+            },
+            BlockStatement: function(n, c) {
+                var children = n.body.map(c);
+                return new lively.ast.Sequence([n.start + 1, n.end], children);
+            },
+            ExpressionStatement: function(n, c) {
+                return c(n.expression); // just skip it
+            },
+            CallExpression: function(n, c) {
+                if ((n.callee.type == 'MemberExpression') &&
+                    (n.type != 'NewExpression')) { // reused in NewExpression
+                    // Send
+                    var property; // property
+                    var r = n.callee.object; // reciever
+                     if (n.callee.computed) {
+                        // object[property] => Expression
+                        property = c(n.callee.property)
+                    } else {
+                        // object.property => Identifier
+                        property = new lively.ast.String(
+                            [n.callee.property.start, n.callee.property.end],
+                            n.callee.property.name
+                        );
+                    }
+                    return new lively.ast.Send(
+                        [n.start, n.end], property, c(r), n.arguments.map(c)
+                    );
+                } else if ((n.callee.type == 'Identifier') ||
+                    (n.type == 'NewExpression')) { // reused in NewExpression
+                    return new lively.ast.Call(
+                        [n.start, n.end],
+                        c(n.callee),
+                        n.arguments.map(c)
+                    );
+                }
+            },
+            MemberExpression: function(n, c) {
+                var slotName;
+                if (n.computed) {
+                    // object[property] => Expression
+                    slotName = c(n.property)
+                } else {
+                    // object.property => Identifier
+                    slotName = new lively.ast.String(
+                        [n.property.start, n.property.end], n.property.name
+                    );
+                }
+                return new lively.ast.GetSlot(
+                    [n.start, n.end], slotName, c(n.object)
+                );
+            },
+            NewExpression: function(n, c) {
+                return new lively.ast.New(
+                    [n.start, n.end], this.CallExpression(n, c)
+                );
+            },
+            VariableDeclaration: function(n, c) {
+                var start = n.declarations[0] ? n.declarations[0].start - 1 : n.start;
+                return new lively.ast.Sequence(
+                    [start, n.end], n.declarations.map(c)
+                );
+            },
+            VariableDeclarator: function(n, c) {
+                return new lively.ast.VarDeclaration(
+                    [n.start - 1, n.end], n.id.name, c(n.init)
+                );
+            },
+            FunctionExpression: function(n, c) {
+                var args = n.params.map(function(param) {
+                    return new lively.ast.Variable(
+                        [param.start, param.end], param.name
+                    );
+                });
+                return new lively.ast.Function(
+                    [n.start, n.end], c(n.body), args
+                );
+            },
+            IfStatement: function(n, c) {
+                return new lively.ast.If(
+                    [n.start, n.end],
+                    c(n.test),
+                    c(n.consequent),
+                    n.alternate ? c(n.alternate) :
+                        newUndefined(n.consequent.end, n.consequent.end)
+                );
+            },
+            ConditionalExpression: function(n, c) {
+                return new lively.ast.Cond(
+                    [n.start, n.end], c(n.test), c(n.consequent), c(n.alternate)
+                );
+            },
+            SwitchStatement: function(n, c) {
+                return new lively.ast.Switch(
+                    [n.start, n.end], c(n.discriminant), n.cases.map(c)
+                );
+            },
+            SwitchCase: function(n, c) {
+                var seq = new lively.ast.Sequence(
+                    [n.consequent.start, n.consequent.end], n.consequent.map(c)
+                );
+                if (n.test != null) {
+                    return new lively.ast.Case([n.start, n.end], c(n.test), seq);
+                } else {
+                    return new lively.ast.Default([n.start, n.end], seq);
+                }
+            },
+            BreakStatement: function(n, c) {
+                if (n.label != null) {
+                    throw new Error('LK parser did not support labeled breaks!');
+                }
+                return new lively.ast.Break([n.start, n.end]);
+            },
+            ContinueStatement: function(n, c) {
+                if (n.label != null) {
+                    throw new Error('LK parser did not support labeled continues!');
+                }
+                return new lively.ast.Continue([n.start, n.end]);
+            },
+            TryStatement: function(n, c) {
+                var errVar, catchSeq;
+                if (n.handler) {
+                    catchSeq = c(n.handler.body);
+                    errVar = c(n.handler.param);
+                } else {
+                    catchSeq = newUndefined(n.block.end + 1, n.block.end + 1);
+                    errVar = newUndefined(n.block.end + 1, n.block.end + 1);
+                }
+                var finallySeq = n.finalizer ?
+                    c(n.finalizer) : newUndefined(n.end, n.end);
+                return new lively.ast.TryCatchFinally(
+                    [n.start, n.end], c(n.block), errVar, catchSeq, finallySeq
+                );
+            },
+            ThrowStatement: function(n, c) {
+                return new lively.ast.Throw([n.start, n.end], c(n.argument));
+            },
+            ForStatement: function(n, c) {
+                var init = n.init ? c(n.init) : newUndefined(4, 4);
+                var cond = n.test ? c(n.test) :
+                    newUndefined(init.pos[1] + 1, init.pos[1] + 1);
+                var upd = n.update ? c(n.update) :
+                    newUndefined(cond.pos[1] + 1, cond.pos[1] + 1);
+                return new lively.ast.For(
+                    [n.start, n.end], init, cond, c(n.body), upd
+                );
+            },
+            ForInStatement: function(n, c) {
+                return new lively.ast.ForIn(
+                    [n.start, n.end], c(n.left), c(n.right), c(n.body)
+                );
+            },
+            WhileStatement: function(n, c) {
+                return new lively.ast.While(
+                    [n.start, n.end], c(n.test), c(n.body)
+                );
+            },
+            DoWhileStatement: function(n, c) {
+                return new lively.ast.DoWhile(
+                    [n.start, n.end], c(n.body), c(n.test)
+                );
+            },
+            WithStatement: function(n ,c) {
+                return new lively.ast.With([n.start, n.end], c(n.object), c(n.body));
+            },
+            UnaryExpression: function(n, c) {
+                return new lively.ast.UnaryOp(
+                    [n.start, n.end], n.operator, c(n.argument)
+                );
+            },
+            BinaryExpression: function(n, c) {
+                return new lively.ast.BinaryOp(
+                    [n.start, n.end], n.operator, c(n.left), c(n.right)
+                );
+            },
+            AssignmentExpression: function(n, c) {
+                if (n.operator == '=') {
+                    return new lively.ast.Set(
+                        [n.start, n.end], c(n.left), c(n.right)
+                    );
+                } else {
+                    return new lively.ast.ModifyingSet(
+                        [n.start, n.end], c(n.left), n.operator, c(n.right)
+                    );
+                }
+            },
+            UpdateExpression: function(n, c) {
+                if (n.prefix) {
+                    return new lively.ast.PreOp(
+                        [n.start, n.stop], n.operator, c(n.argument)
+                    );
+                } else {
+                    return new lively.ast.PostOp(
+                        [n.start, n.stop], n.operator, c(n.argument)
+                    );
+                }
+            },
+            ReturnStatement: function(n, c) {
+                return new lively.ast.Return(
+                    [n.start, n.end],
+                    n.argument ? c(n.argument) : newUndefined(n.end, n.end)
+                );
+            },
+            Identifier: function(n, c) {
+                return new lively.ast.Variable([n.start, n.end], n.name);
+            },
+            Literal: function(n, c) {
+                if (Object.isNumber(n.value)) {
+                    return new lively.ast.Number([n.start, n.end], n.value);
+                } else if (Object.isBoolean(n.value)) {
+                    return new lively.ast.Variable(
+                        [n.start, n.end], n.value.toString()
+                    );
+                } else if (Object.isString(n.value)) {
+                    return new lively.ast.String(
+                        [n.start, n.end], n.value
+                    );
+                } else if (Object.isRegExp(n.value)) {
+                    var flags = n.raw.substr(n.raw.lastIndexOf('/') + 1);
+                    return new lively.ast.Regex(
+                        [n.start, n.end], n.value.source, flags
+                    );
+                } else {
+                    throw new Error('Case of Literal not handled!');
+                }
+            },
+            ObjectExpression: function(n, c) {
+                var props = n.properties.map(function(prop) {
+                    var propName = prop.key.type == 'Identifier' ?
+                        prop.key.name :
+                        prop.key.value;
+                    if (prop.kind == 'init') {
+                        return new lively.ast.ObjProperty(
+                            [prop.key.start, prop.value.end], propName, c(prop.value)
+                        );
+                    } else if (prop.kind == 'get') {
+                        return new lively.ast.ObjPropertyGet(
+                            [prop.key.start, prop.value.end], propName,
+                            c(prop.value.body)
+                        );
+                    } else if (prop.kind == 'set') {
+                        return new lively.ast.ObjPropertySet(
+                            [prop.key.start, prop.value.end], propName,
+                            c(prop.value.body), c(prop.value.params[0])
+                        );
+                    } else {
+                        throw new Error('Case of ObjectExpression not handled!');
+                    }
+                });
+                return new lively.ast.ObjectLiteral(
+                    [n.start, n.end], props
+                );
+            },
+            ArrayExpression: function(n, c) {
+                return new lively.ast.ArrayLiteral([n.start, n.end], n.elements.map(c));
+            },
+            SequenceExpression: function(n, c) {
+                return new lively.ast.Sequence(
+                    [n.start, n.end], n.expressions.map(c)
+                );
+            },
+            EmptyStatement: function(n, c) {
+                return newUndefined(n.start, n.end);
+            },
+            ThisExpression: function(n, c) {
+                return new lively.ast.This([n.start, n.end]);
+            },
+            DebuggerStatement: function(n, c) {
+                return new lively.ast.Debugger([n.start, n.end]);
+            },
+            LabeledStatement: function(n, c) {
+                throw new Error('LK parser did not support labels!');
+            }
+        }
+        visitors.LogicalExpression = visitors.BinaryExpression;
+        function c(node) {
+          return visitors[node.type](node, c);
+        }
+        return c(ast);
     }
 })();
 

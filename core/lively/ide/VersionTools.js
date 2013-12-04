@@ -67,10 +67,24 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
 
         var versionList = this.panel.versionList.innerMorph();
         versionList.updateList(['loading']);
-        var res = new WebResource(url);
-        lively.bindings.connect(res, 'versions', versionList, 'updateList',
-            {converter: function(list) { return list ? list.asListItemArray() : [] }});
-        res.beAsync().getVersions();
+        
+        var path = url.relativePathFrom(URL.root)
+        new lively.store.ObjectRepository().getRecords({
+            paths: [path],
+            attributes: ['date', 'author', 'change', 'version', 'content']
+        }, function(err, rows) {
+            if (!err && rows) {
+                versionList.updateList(rows.map(function(ea) {
+                    var formattedDate = ea.date;
+                    if (formattedDate.format) {
+                        formattedDate = formattedDate.format("yyyy-mm-dd HH:MM") 
+                    }
+                    return { 
+                        string: formattedDate + " " + ea.author + " (" + ea.version + ")",
+                        value: ea, isListItem: true}
+                }));
+            }
+        });
     },
 
     fetchSelectedVersionAndDo: function(doBlock) {
@@ -94,6 +108,16 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
     },
 
     showVersion: function() {
+        
+        if (this.url) {
+            var sel = this.panel.versionList.innerMorph().selection
+            if (sel && sel.content) {
+                return lively.morphic.World.current().addTextWindow({
+                    content: sel.content, 
+                    syntaxHighlighting: true
+                });
+            }
+        }
         this.fetchSelectedVersionAndDo(function(resForGet) {
             lively.bindings.connect(resForGet, 'content', lively.morphic.World.current(), 'addTextWindow');
         });

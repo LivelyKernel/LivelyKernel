@@ -249,38 +249,12 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return newObject;
             },
-            copyObjectForCurrentVersion: function(oldObject) {
-                var hasOwn = Object.prototype.hasOwnProperty,
-                    newObject = Object.create(oldObject.__proto__);
-                
-                // copy non-enumerable properties explicitly
-                if (hasOwn.call(oldObject, 'constructor')) {
-                    newObject.constructor = oldObject.constructor;
-                }
-                
-                Object.defineProperty(newObject, '__protoProxy', {
-                    value: oldObject.__protoProxy,
-                    writable: true
-                });
-                
-                // copy all other values/references
-                for (var name in oldObject) {
-                    if (hasOwn.call(oldObject, name) &&
-                        !hasOwn.call(newObject, name)) {
-                        
-                        newObject[name] = oldObject[name];
-                    }
-                }
-                
-                this.__targetVersions[lively.CurrentVersion.ID] = newObject;
-                
-                return newObject;
-            },
             shouldObjectBeCopiedBeforeWrite: function(target, propertyName) {
+                // copy objects before writing into them, when there's not yet
+                // a version of the object (= a copy) for the current version
                 
-                if (propertyName === 'displayName' ||
-                    propertyName === 'sourceModule' ||
-                    target === Global ||
+                // don't create new versions of window or DOM or CSS objects
+                if (target === window ||
                     target instanceof Node ||
                     target instanceof CSSStyleDeclaration) {
                     
@@ -289,6 +263,72 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return !this.__targetVersions.
                     hasOwnProperty(lively.CurrentVersion.ID);
+            },
+            copyObjectForOtherVersion: function(originalObject) {
+                var hasOwn = Object.prototype.hasOwnProperty,
+                    copy;
+                
+                // a Date object stores its data as a hidden member..
+                if (originalObject instanceof Date) {
+                    
+                    var copy = new Date();
+                    copy.setTime(originalObject.getTime());
+                    
+                } else if (Object.isFunction(originalObject)) {
+                    
+                    // note: one limitation will be if the function needs to be
+                    // copied (because properties of the function get changed
+                    // in another version) and it was binding values via its
+                    // closure that we can't access those bindings and
+                    // ultimately can't copy the function with those closure
+                    // bindings, except probably for the lively scripts
+                    
+                    // TODO: use lively script's closure bindings when possible
+                    
+                    eval('copy = ' + originalObject.toString());
+                    
+                    if (originalObject.hasOwnProperty('prototype')) {
+                        copy.prototype = originalObject.prototype;
+                    }
+                    
+                    for (var key in originalObject) {
+                        copy[key] = originalObject[key];
+                    }
+                    
+                } else if (Object.isArray(originalObject)) {
+                    
+                    var copy = [];
+                    for (var i = 0; i < originalObject.length; i++) {
+                        copy[i] = originalObject[i];
+                    }
+                    
+                } else if (Object.isObject(originalObject)) {
+                    
+                    copy = Object.create(originalObject.__proto__);
+                    
+                    // copy non-enumerable properties explicitly
+                    if (hasOwn.call(originalObject, 'constructor')) {
+                        copy.constructor = originalObject.constructor;
+                    }
+                    Object.defineProperty(copy, '__protoProxy', {
+                        value: originalObject.__protoProxy,
+                        writable: true
+                    });
+                    
+                    // copy all other values/references
+                    for (var name in originalObject) {
+                        if (hasOwn.call(originalObject, name) &&
+                            !hasOwn.call(copy, name)) {
+                            
+                            copy[name] = originalObject[name];
+                        }
+                    }
+                    
+                }
+                
+                this.__targetVersions[lively.CurrentVersion.ID] = copy;
+                
+                return copy;
             },
             canFunctionHandleProxies: function(func) {
                 // note, however: the following [native code]-check also
@@ -315,9 +355,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 // copy-on-write: create and work on a new version of the target
                 // when target was commited with a previous version
-                if (this.shouldObjectBeCopiedBeforeWrite(targetObject, name)) {
-                    targetObject =
-                        this.copyObjectForCurrentVersion(targetObject);
+                if (this.shouldObjectBeCopiedBeforeWrite(targetObject)) {
+                    targetObject = this.copyObjectForOtherVersion(targetObject);
                 }
                 
                 // special cases

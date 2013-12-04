@@ -1,5 +1,71 @@
 module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec').toRun(function() {
 
+Object.extend(lively.net.tools.Lively2Lively, {
+    withWikiRecordsDo: function(lastUpdate, thenDo) {
+        lively.net.Wiki.getRecords({
+            limit: 10,
+            newer: lastUpdate,
+            newest: true,
+            attributes: ['path', 'change', 'author', 'date']
+        }, function(err, result) {
+            if (err) { thenDo(err, []); return; }
+            thenDo(null, result.reject(function(dbRec) {
+                // PartsBin items always have three associated files, just use
+                // .metainfo for counting updates.
+                return dbRec.path.startsWith("PartsBin")
+                    && (dbRec.path.endsWith(".html") 
+                     || dbRec.path.endsWith(".json"));
+            }));
+        })
+    },
+    withSessionsAndDeltaDo: function(knownSessions, thenDo){
+        // assumes knownSessions is sorted by id
+        var self = this;
+        var localSession = lively.net.SessionTracker.getSession();
+        if (localSession && localSession.isConnected()) {
+            localSession.getSessions(function(remotes) {
+                var items = Object.keys(remotes).map(function(trackerId) {
+                    return Object.keys(remotes[trackerId]).map(function(sessionId) {
+                        return remotes[trackerId][sessionId];
+                    });
+                }).flatten();
+                var delta = lively.net.tools.Lively2Lively.sessionDeltaOf(knownSessions, items);
+                thenDo(null, items, delta[1], delta[0]);
+            });
+        } else {
+            thenDo("L2L not connected.", [], [], [])
+        }
+    },
+    sessionDeltaOf: function (knownSessions, items){
+        items.sort(function(a, b) {
+            if (a.id < b.id) return -1;
+            if (b.id < a.id) return 1;
+            return 0;
+        });
+        var newSessions = [], disconnectedSessions = [];
+        if (knownSessions === undefined) {
+            newSessions = items;
+        }
+        for(var i = 0, j = 0; i < items.length; i ++){
+            while(knownSessions[j] && items[i].id > knownSessions[j].id){
+                disconnectedSessions.push(knownSessions[j]);
+                j = j + 1;
+            }
+            if (knownSessions[j] && items[i].id == knownSessions[j].id) {
+                // session still active, i.e. neither new nor disconnected
+                j = j + 1;
+            } else {
+                newSessions.push(items[i]);
+            }
+        }
+        while(j < knownSessions.length){
+            disconnectedSessions.push(knownSessions[j])
+            j = j + 1;
+        }
+        return [disconnectedSessions, newSessions];
+    }
+});
+
 lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     _BorderRadius: 20,
     _Extent: lively.pt(130.0,30.0),
@@ -73,6 +139,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     this.withCSSTransitionForAllSubmorphsDo(function() {
         this.setExtent(lively.pt(130.0,30.0));
         this.alignInWorld();
+        this.alignNotificationIcon();
     }, 500, function() {
         if (this.menu) {
             this.menu.remove();
@@ -105,6 +172,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     this.withCSSTransitionForAllSubmorphsDo(function() {
         this.setExtent(pt(140, 115));
         this.alignInWorld();
+        this.alignNotificationIcon();
     }, 500, function() {});
 },
     onConnect: function onConnect() {
@@ -133,6 +201,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     this.update();
     this.statusText.setHandStyle('pointer');
     this.isEpiMorph = true;
+    this.showNotificationIcon();
 },
     onMouseDown: function onMouseDown(evt) {
     if (evt.getTargetMorph() !== this.statusText && evt.getTargetMorph() !== this) {
@@ -168,6 +237,19 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     session: function session() {
     return lively.net.SessionTracker.getSession();
 },
+
+
+    showNotificationIcon: function showNotificationIcon() {
+        var icon = lively.PartsBin.getPart('NotificationRectangle', 'PartsBin/Collaboration');
+        this.addMorph(icon);
+        this.alignNotificationIcon();
+    },
+    
+    alignNotificationIcon: function alignNotificationIcon() {
+        var icon = this.get('NotificationRectangle');
+        icon && icon.align(icon.bounds().bottomRight(), this.innerBounds().bottomRight().addXY(3,8));
+    },
+
     update: function update() {
     var s = this.session();
     switch (s && s.status()) {

@@ -630,11 +630,9 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         if (!item) return;
         connect(item, 'part', this, 'openPart');
         var selectedVersion = this.get('selectedPartVersions').selection,
-    	rev = selectedVersion ? selectedVersion.rev : null;
-        cop.withoutLayers([PartCachingLayer], function() {
-            item.loadPart(true, null, rev);
-        })
-        alert('loading ' + item.name + '...');
+    	    rev = selectedVersion ? selectedVersion.version : null;
+        item.loadPart(true, null, rev);
+        alertOK('loading ' + item.name + '...');
     },
         loadPartsOfCategory: function loadPartsOfCategory(categoryName) {
         this.removeParts();
@@ -808,7 +806,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 formattedDate = formattedDate.format("yyyy-mm-dd HH:MM") 
             }
             return { 
-                string: formattedDate + " " + ea.author + " (" + ea.rev + ")",
+                string: formattedDate + " " + ea.author + " (" + ea.version + ")",
                 value: ea, isListItem: true}
         })
         this.get('selectedPartVersions').updateList(list)

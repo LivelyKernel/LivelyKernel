@@ -166,15 +166,42 @@ Object.subclass('lively.PartsBin.PartItem',
 },
 'upload and download', {
     load: function(isAsync, rev) {
-        var webR = new WebResource(this.getFileURL()).noProxy().forceUncached();
-        if (isAsync) webR.beAsync();
-        lively.bindings.connect(webR, 'content', this, 'json', {updater: function($upd, json) {
-            if (!this.sourceObj.status.isSuccess()) { $upd(null); return; }
-            if (!this.sourceObj.status.isDone()) { return; }
-            this.targetObj.lastModifiedDate = this.sourceObj.lastModified;
-            $upd(json);
-        }});
-        webR.get(rev);
+        if(!isAsync){
+            var webR = new WebResource(this.getFileURL()).noProxy().forceUncached();
+            if (isAsync) webR.beAsync();
+            lively.bindings.connect(webR, 'content', this, 'json', {updater: function($upd, json) {
+                if (!this.sourceObj.status.isSuccess()) { $upd(null); return; }
+                if (!this.sourceObj.status.isDone()) { return; }
+                this.targetObj.lastModifiedDate = this.sourceObj.lastModified;
+                $upd(json);
+            }});
+            webR.get();
+            return this;
+        }
+        
+        var self = this,
+            path = this.getFileURL().relativePathFrom(URL.root),
+            query = !!rev ?
+                {
+                    paths: [path],
+                    attributes: ['content'],
+                    version: rev,
+                    limit: 1
+                } : {
+                    paths: [path],
+                    attributes: ['content'],
+                    newest: true,
+                    limit: 1
+                };
+
+        new lively.store.ObjectRepository().getRecords(query, function(err, rows) {
+            if (err) {
+                show(err);
+                self.json = null
+            } else {
+                self.json = rows[0].content;
+            }
+        });
         return this;
     },
 
@@ -222,23 +249,57 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     loadPartVersions: function(isAsync) {
-        var webR = new WebResource(this.getFileURL());
-        if (isAsync) webR.beAsync();
-        connect(webR, 'versions', this, 'partVersions');
-        webR.getVersions();
+        module('lively.store.Interface').load(true);
+        var self = this,
+            path = this.getFileURL().relativePathFrom(URL.root)
+        new lively.store.ObjectRepository().getRecords({
+            paths: [path],
+            attributes: ['path', 'date', 'author', 'change', 'version']
+        }, function(err, rows) {
+            if (err) {
+                show(err);
+            } else {
+                self.partVersions = rows;
+            }
+        });
         return this;
     },
 
     loadPartMetaInfo: function(isAsync, rev) {
-        var webR = new WebResource(this.getMetaInfoURL());
-        if (isAsync) webR.beAsync();
-        connect(webR, 'content', this, 'loadedMetaInfo', {updater: function($upd, json) {
-            if (!this.sourceObj.status.isSuccess()) return $upd(null);
-            if (!this.sourceObj.status.isDone()) return;
-            $upd(lively.persistence.Serializer.deserialize(json));
-        }});
-        webR.forceUncached().get();
-        return this;
+        if (!isAsync) {
+            var webR = new WebResource(this.getMetaInfoURL());
+            if (isAsync) webR.beAsync();
+            connect(webR, 'content', this, 'loadedMetaInfo', {updater: function($upd, json) {
+                if (!this.sourceObj.status.isSuccess()) return $upd(null);
+                if (!this.sourceObj.status.isDone()) return;
+                $upd(lively.persistence.Serializer.deserialize(json));
+            }});
+            webR.forceUncached().get();
+            return this;
+        }
+        var self = this,
+            path = this.getMetaInfoURL().relativePathFrom(URL.root),
+            query = !!rev ?
+                {
+                    paths: [path],
+                    attributes: ['content'],
+                    version: rev,
+                    limit: 1
+                } : {
+                    paths: [path],
+                    attributes: ['content'],
+                    newest: true,
+                    limit: 1
+                };
+
+        new lively.store.ObjectRepository().getRecords(query, function(err, rows) {
+            if (err) {
+                show(err);
+                self.loadedMetaInfo = null
+            } else {
+                self.loadedMetaInfo = lively.persistence.Serializer.deserialize(rows[0].content);
+            }
+        });
     },
 
     loadRevision: function(isAsync, rev) {

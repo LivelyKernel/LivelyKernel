@@ -144,10 +144,11 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             name: "ObjectEditorScriptList",
             sourceModule: "lively.morphic.Core",
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {converter: 
-        function (value) {
-            return (value === '-- ALL --') ? null : value;
-        }});
+            connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {updater: 
+                function ($upd, value) {
+                    this.sourceObj.isFocused() && this.sourceObj.focus.bind(this.sourceObj).delay(0.1);
+                    $upd(value === '-- ALL --'? null : value);
+                }});;
         },
             onKeyDown: function onKeyDown(evt) {
                 var keys = evt.getKeyString();
@@ -954,7 +955,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         function insert() {
             editor.display(jsCode);
             editor.focus();
-            selectString && editor.find({needle: selectString});
+            selectString && editor.find({needle: selectString, start: {column: 0, row: 0}});
         }
         if (this.scriptPane.hasChanged()) {
             this.confirmUnsavedChanges(function(confirmed) { confirmed && insert(); });

@@ -3,6 +3,8 @@ module('lively.ide.tools.CommandLine').requires('lively.persistence.BuildSpec', 
 lively.BuildSpec('lively.ide.tools.CommandLine', {
     name: "CommandLine",
     className: "lively.morphic.CodeEditor",
+    theme: Config.get('aceDefaultTheme'),
+    _ShowGutter: false,
     style: {
         gutter: false,
         enableGrabbing: false,

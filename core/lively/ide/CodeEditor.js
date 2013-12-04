@@ -557,24 +557,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     searchWithPrompt: function() {
-        var world = this.world();
-        if (!world) return;
-        this.withAceDo(function(ed) {
-            // Note we should be able simply to pass in this.findFirst
-            world.prompt('Enter text or regexp to search for.', function(input) {
-                if (!input) { ed.focus(); return }
-                var regexpMatch = input.match(/^\/(.*)\/$/),
-                    needle = regexpMatch && regexpMatch[1] ? new RegExp(regexpMatch[1], "") : input;
-                ed.focus();
-                ed.find({
-                    needle: needle,
-                    preventScroll: false,
-                    skipCurrent: true,
-                    start: ed.getCursorPosition(),
-                    wrap: false,
-                    animate: true
-                });
-            }, this.getCurrentSearchTerm());
+        var self = this;
+        require('lively.ide.tools.SearchPrompt').toRun(function() {
+            lively.BuildSpec("lively.ide.tools.SearchPrompt").createMorph().openForCodeEditor(self);
         });
     },
 

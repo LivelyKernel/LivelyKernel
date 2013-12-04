@@ -55,6 +55,8 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
                 this.withAceDo(function(ed) { ed.moveCursorToPosition(p); })
             }
         }
+        var win = this.getWindow();
+        win && (win.targetMorph.lastFocused = this);
         return $super();
     },
 

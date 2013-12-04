@@ -537,14 +537,17 @@ Object.extend(lively.versions.ObjectVersioning, {
                 // return an object with a proxy as actual prototype, which it
                 // shouldn't have (prototype-traps + no __proto__ assignments)
                 
-                newInstance = lively.createObject(proto);
-                newInstance.constructor = OriginalConstructor;
+                // note that an object constructed from a function always has a
+                // prototype (via __proto__)
+                
+                newInstance = lively.createObject(proto ? proto : {});
+                
                 constructorReturnValue =
                     OriginalConstructor.apply(newInstance, args);
                 
                 // note: newInstance is proxied as lively.createObject already
-                // returns, but we can't be sure for the constructor's return
-                // value
+                // returns a proxy, but we can't be sure for the constructor's
+                // return value
                 return constructorReturnValue ?
                     lively.proxyFor(constructorReturnValue) : newInstance;
             },

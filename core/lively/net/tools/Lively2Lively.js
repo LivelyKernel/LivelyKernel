@@ -238,11 +238,14 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     return lively.net.SessionTracker.getSession();
 },
 
-
     showNotificationIcon: function showNotificationIcon() {
-        var icon = lively.PartsBin.getPart('NotificationRectangle', 'PartsBin/Collaboration');
-        this.addMorph(icon);
-        this.alignNotificationIcon();
+        try {
+            var icon = lively.PartsBin.getPart('NotificationRectangle', 'PartsBin/Collaboration');
+            this.addMorph(icon);
+            this.alignNotificationIcon();
+        } catch(e) {
+            console.warn("wiki notificications not available: ", e);
+        }
     },
     
     alignNotificationIcon: function alignNotificationIcon() {

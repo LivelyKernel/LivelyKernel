@@ -146,25 +146,20 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
                 lively.bindings.connect(this, "input", this.owner, "sendInput", {});
             }
         })],
-        updateTitleBar: function updateTitleBar(state, cmd) {
-        var string = cmd.getCommand() + ' [';
-        if (state === 'closed') string += 'exited, ' + cmd.getCode() + ']'
-        else if (state === 'pid') string += 'running, pid ' + cmd.getPid() + ']';
-        else if (state === 'started') string += 'running]';
-        else string += '???]';
-        this.getWindow().setTitle(string);
+        updateTitleBar: function updateTitleBar(cmd) {
+        this.getWindow().setTitle(cmd.printState());
     },
         onClose: function onClose(cmd) {
-        this.updateTitleBar('closed', cmd);
+        this.updateTitleBar(cmd);
         this.currentCommand = null;
     },
         onPid: function onPid(pid) {
         var cmd = this.currentCommand;
-        this.updateTitleBar('pid', cmd);
+        this.updateTitleBar(cmd);
     },
         onStart: function onStart(cmd) {
         this.currentCommand = cmd;
-        this.updateTitleBar('started', cmd);
+        this.updateTitleBar(cmd);
     },
         onStderr: function onStderr(string) {
         this.print(string);
@@ -217,6 +212,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         this.onStart(cmd);
     },
         killCommand: function killCommand(signal) {
+        this.print('[signal ' + signal + ']');
         var cmd = this.currentCommand;
         if (!cmd) { show('No command running!'); return; }
         if (cmd._killed) { // was killed already?
@@ -232,8 +228,8 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             }
             this.currentCommand = cmd;
             this.listenForEvents(cmd);
-            if (cmd.isRunning()) this.updateTitleBar('pid', cmd);
-            else this.updateTitleBar('closed', cmd);
+            if (cmd.isRunning()) this.updateTitleBar(cmd);
+            else this.updateTitleBar(cmd);
             this.print(cmd.getStdout() || '');
             this.print(cmd.getStderr() || '');
         },

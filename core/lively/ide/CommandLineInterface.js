@@ -142,10 +142,14 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 'debugging', {
     printState: function() {
         var cmdString = this.getCommand();
-        cmdString = Object.isArray(cmdString) ? cmdString.join(' ') : cmdString;
-        return [this.getPid ? this.getPid() : 'no pid',
-                this.isRunning() ? 'running' : "not running",
-                cmdString].join(',');
+        var string = Object.isArray(cmdString) ? cmdString.join(' ') : cmdString;
+        var statusString = [
+            this.isRunning() ?
+                'running' :
+                    this.isDone() ?
+                        "exit code " + this.getCode() : "not started",
+            this.getPid ? 'pid ' + this.getPid() : 'no pid'].join(',');
+        return string + ' [' + statusString + ']';
     },
     toString: function() {
         return 'ShellCommand(' + this.printState() + ')';

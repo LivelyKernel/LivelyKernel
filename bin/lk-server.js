@@ -6,6 +6,7 @@ var args = require('./helper/args'),
     path = require('path'),
     fs = require('fs'),
     env = require('./env'),
+    life_star = require('life_star'),
     cmdAndArgs = [];
 
 // -=-=-=-=-=-=-=-=-=-=-
@@ -153,6 +154,29 @@ function killOldServer(infoAboutOldServer, callback) {
     callback();
 }
 
+function startServer(callback) {
+    life_star({
+        host:                host,
+        port:                port,
+        fsNode:              options.lkDir, // LivelyKernel directory to serve from
+        dbConf:              options.dbConfig, // lively-davfs
+        enableTesting:       env.LIFE_STAR_TESTING  === 'testing',
+        logLevel:            options.logLevel || env.LIFE_STAR_LOG_LEVEL, // log level for logger: error, warning, info, debug
+        behindProxy:         options.defined('behindProxy'),
+        subservers:          subservers || null,
+        useManifestCaching:  options.defined('useManifest'),
+        enableSSL:           options.defined('enableSsl'),
+        enableSSLClientAuth: options.defined('enableSsl') ? options.defined('enableSslClientAuth') : false,
+        sslServerKey:        options.defined('enableSsl') ? options.sslServerKey : null,
+        sslServerCert:       options.defined('enableSsl') ? options.sslServerCert : null,
+        sslCACert:           options.defined('enableSsl') ? options.sslCaCert : null
+    });
+    console.log("Server with pid %s is now running at %s://%s:%s",
+                process.pid, options.defined('enableSsl') ? 'https' : 'http', host, port);
+    console.log("Serving files from " + options.lkDir);
+    callback(null, process);
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-
 // This is where we do stuff
 // -=-=-=-=-=-=-=-=-=-=-=-=-
@@ -164,41 +188,6 @@ if (options.defined('info')) {
 } else if (options.defined('kill')) {
     async.waterfall([getServerInfo, killOldServer]);
 } else {
-
-    // -=-=-=-=-=-=-=-=-
-    // Start the server
-    // -=-=-=-=-=-=-=-=-
-
-    cmdAndArgs.push('node');
-    cmdAndArgs.push(env.LIFE_STAR);
-    cmdAndArgs.push(port);
-    cmdAndArgs.push(options.lkDir);
-    cmdAndArgs.push(dbConfig);
-    cmdAndArgs.push(env.LIFE_STAR_TESTING);
-    cmdAndArgs.push(options.logLevel || env.LIFE_STAR_LOG_LEVEL);
-    cmdAndArgs.push(options.defined('behindProxy'));
-    cmdAndArgs.push(JSON.stringify(subservers));
-    cmdAndArgs.push(options.defined('useManifest') ? true : false);
-    if (options.defined('enableSsl')) {
-        cmdAndArgs.push(true);
-        cmdAndArgs.push(options.defined('enableSslClientAuth'));
-        cmdAndArgs.push(options.sslServerKey);
-        cmdAndArgs.push(options.sslServerCert);
-        cmdAndArgs.push(options.sslCaCert);
-    }
-
-
-    // -=-=-=-=-=-=-=-=-=-
-    // Server start logic
-    // -=-=-=-=-=-=-=-=-=-
-    function startServer(callback) {
-        var child = spawn(cmdAndArgs[0], cmdAndArgs.slice(1), {stdio: 'inherit'});
-        console.log("Server with pid %s is now running at %s://%s:%s",
-                    child.pid, options.defined('enableSsl') ? 'https' : 'http', host, port);
-        console.log("Serving files from " + options.lkDir);
-        callback(null, child);
-    }
-
     // let it fly!
     async.waterfall([
         getServerInfo,

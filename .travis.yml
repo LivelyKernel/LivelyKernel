@@ -11,9 +11,9 @@ before_install:
 before_script:
   - "nvm use v0.10"
   - "Xvfb :1 -screen 0 800x600x24 &"
-  - "node bin/lk-server.js --forever"
+  - "npm start"
 
-script: "DISPLAY=:1 node bin/lk-test.js"
+script: "DISPLAY=:1 npm test"
 
 branches:
   except: ww-mirror-2.1.3

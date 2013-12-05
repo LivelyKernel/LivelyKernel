@@ -14,11 +14,7 @@ var args = require('./helper/args'),
 
 var options = args.options([
     ['-h', '--help', 'show this help'],
-    ['-w', '--watch [DIR]', 'Run with nodemon and watch for file changes'],
-    ['-f', '--forever', 'Run with forever and restart server on a crash'],
-    [      '--forever-log-dir DIR', 'Where the forever stdout and stderr log is placed'],
     ['-p', '--port NUMBER', "On which port to run"],
-    ['-s', '--life-star', 'Start the Life Star server (fully operational!)'],
     [      '--log-level STRING', 'Log level, accepted values: error, warning, info, debug'],
     [      '--lk-dir DIR', 'The directory of the Lively Kernel core repository (git) '],
     [      '--db-config JSON', 'Stringified JSON object that configures the object DB and lively-davfs\n'
@@ -50,9 +46,6 @@ var options = args.options([
     [      '--use-manifest', 'Enables the creation of manifest file for application cache.']],
     {},
     "Start a server to be used for running the tests. Either -m or -s must be given.");
-
-// life_star is the default server
-options.lifeStar = true;
 
 var port = options.port || env.LIFE_STAR_PORT,
     host = env.LIFE_STAR_HOST,
@@ -142,8 +135,6 @@ function processExists(pid, callback) {
 }
 
 function getServerInfo(callback) {
-    // FIXME! this does not yet work for servers that are started with
-    // forever!!!
     async.waterfall([
         readPid,
         processExists
@@ -155,8 +146,6 @@ function getServerInfo(callback) {
 }
 
 function killOldServer(infoAboutOldServer, callback) {
-    // Note: this does not work with forever...
-    // since forever is daemonized the starting process will exit anyway
     if (infoAboutOldServer.alive) {
         console.log('Stopping lk server process with pid ' + infoAboutOldServer.pid);
         try { process.kill(infoAboutOldServer.pid) } catch(e) {}
@@ -180,50 +169,22 @@ if (options.defined('info')) {
     // Start the server
     // -=-=-=-=-=-=-=-=-
 
-    // TODO add forever stop since forever automatically starts daemonized
-    if (options.defined('forever')) {
-        if (!lkDevDependencyExist(env.FOREVER)) process.exit(1);
-        cmdAndArgs = [env.FOREVER, 'start', '--spinSleepTime', '800'/*ms*/];
-        if (options.foreverLogDir) {
-            var baseName = '-lk-server-' + port + '.log',
-                outLog = path.join(options.foreverLogDir, 'out' + baseName),
-                errLog = path.join(options.foreverLogDir, 'err' + baseName);
-            cmdAndArgs = cmdAndArgs.concat(['-o', outLog, '-e', errLog, '--append']);
-        }
-    }
-
-    if (options.defined('watch')) {
-        console.log("watch " + options.watch);
-        if (!lkDevDependencyExist(env.NODEMON)) process.exit(1);
-        cmdAndArgs.push(env.NODEMON);
-        if (options.defined('forever')) {
-            cmdAndArgs.push('--exitcrash');
-        }
-        cmdAndArgs.push('--watch');
-        cmdAndArgs.push(options.watch || env.LIFE_STAR_DIR);
-    }
-
-    if (!options.defined('forever') && !options.defined('watch')) {
-        cmdAndArgs.push('node');
-    }
-
+    cmdAndArgs.push('node');
     cmdAndArgs.push(env.LIFE_STAR);
     cmdAndArgs.push(port);
     cmdAndArgs.push(options.lkDir);
-    if (options.defined('lifeStar')) {
-        cmdAndArgs.push(dbConfig);
-        cmdAndArgs.push(env.LIFE_STAR_TESTING);
-        cmdAndArgs.push(options.logLevel || env.LIFE_STAR_LOG_LEVEL);
-        cmdAndArgs.push(options.defined('behindProxy'));
-        cmdAndArgs.push(JSON.stringify(subservers));
-        cmdAndArgs.push(options.defined('useManifest') ? true : false);
-        if (options.defined('enableSsl')) {
-            cmdAndArgs.push(true);
-            cmdAndArgs.push(options.defined('enableSslClientAuth'));
-            cmdAndArgs.push(options.sslServerKey);
-            cmdAndArgs.push(options.sslServerCert);
-            cmdAndArgs.push(options.sslCaCert);
-        }
+    cmdAndArgs.push(dbConfig);
+    cmdAndArgs.push(env.LIFE_STAR_TESTING);
+    cmdAndArgs.push(options.logLevel || env.LIFE_STAR_LOG_LEVEL);
+    cmdAndArgs.push(options.defined('behindProxy'));
+    cmdAndArgs.push(JSON.stringify(subservers));
+    cmdAndArgs.push(options.defined('useManifest') ? true : false);
+    if (options.defined('enableSsl')) {
+        cmdAndArgs.push(true);
+        cmdAndArgs.push(options.defined('enableSslClientAuth'));
+        cmdAndArgs.push(options.sslServerKey);
+        cmdAndArgs.push(options.sslServerCert);
+        cmdAndArgs.push(options.sslCaCert);
     }
 
 
@@ -245,5 +206,4 @@ if (options.defined('info')) {
         startServer,
         writePid
     ]);
-
 }

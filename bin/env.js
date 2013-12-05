@@ -12,8 +12,8 @@ function join(pathA, pathB) {
     return path.join(pathA, pathB);
 }
 
-function lkScriptDir(dirInRoot) {
-    return path.normalize(join(env.LK_SCRIPTS_ROOT, dirInRoot));
+function lkCoreDir(dirInRoot) {
+    return path.normalize(join(env.LK_CORE_DIR, dirInRoot));
 }
 
 function set(varName, choices, options) {
@@ -31,25 +31,16 @@ function set(varName, choices, options) {
 /*
  * general stuff
  */
-set("LK_SCRIPTS_ROOT", [path.normalize(__dirname + '/..')]);
-set("LK_BIN",          [join(env.LK_SCRIPTS_ROOT, isWindows ? 'bin/lk.cmd' : 'bin/lk')]);
-set("LK_SCRIPTS_DIR",  [lkScriptDir("/scripts")]);
+set("LK_CORE_DIR",     [path.normalize(__dirname + '/..')]);
+set("LK_BIN",          [join(env.LK_CORE_DIR, isWindows ? 'bin/lk.cmd' : 'bin/lk')]);
 set("NODE_BIN",        [which('node'), which('node.exe'), process.execPath]);
-set("NODEMODULES",     [lkScriptDir("/node_modules"),
-                            join(env.LK_SCRIPTS_ROOT, '..')]);
-set("NODEUNIT",        [join(env.NODEMODULES, "nodeunit/bin/nodeunit"),
-                            which('nodeunit')]);
-set("NODEMON",         [join(env.NODEMODULES, "nodemon/nodemon.js"),
-                            which('nodemon')]);
-set("FOREVER",         [join(env.NODEMODULES, "forever/bin/forever"),
-                            which('forever')]);
+set("NODEMODULES",     [lkCoreDir("/node_modules"), join(env.LK_CORE_DIR, '..')]);
 set("TEMP_DIR",        [env.TMP, env.TEMP, env.TEMPDIR, '/tmp'], {useLastIfNothingIsValid: true});
 
 /*
  * server related stuff
  */
 set("LIFE_STAR_PORT",      [9001], {notFs: true});
-set("LIFE_STAR",           [join(__dirname, "serve.js")]);
 set("LIFE_STAR_HOST",      ["localhost"], {notFs: true});
 // replace with "notesting" to disable test runner interface on server
 set("LIFE_STAR_TESTING",   ["testing"], {notFs: true});
@@ -59,7 +50,6 @@ set("LIFE_STAR_LOG_LEVEL", ["debug"], {notFs: true});
 /*
  * tests
  */
-set("LK_TEST_STARTER",       [join(__dirname, 'testing/lively_test.js')]);
 set("LK_TEST_WORLD_NAME",    ["run_tests"], {notFs: true});
 set("LK_TEST_WORLD_SCRIPT",  ["run_tests.js"], {notFs: true});
 set("LK_TEST_BROWSER",       ["chrome"], {notFs: true});
@@ -82,31 +72,45 @@ set("FIREFOX_BIN",            [which('firefox'),
                                join(env.ProgramFiles, 'Mozilla Firefox', 'firefox.exe')]);
 
 /*
- * jshint
- */
-set("JSHINT",        [join(env.LK_SCRIPTS_ROOT, "node_modules/jshint/bin/hint"), which('jshint')]);
-set("JSHINT_CONFIG", [join(env.LK_SCRIPTS_ROOT, "jshint.config")]);
-
-/*
  * workspace
  */
-set("WORKSPACE_DIR", [lkScriptDir('/workspace')], env.LK_SCRIPTS_ROOT, {useLastIfNothingIsValid: true});
-set("WORKSPACE_LK",  [env.LK_SCRIPTS_ROOT, env.LIVELY, lkScriptDir('/workspace/lk'), env.LK_SCRIPTS_ROOT], {useLastIfNothingIsValid: true});
+set("WORKSPACE_LK",  [env.LK_CORE_DIR], {useLastIfNothingIsValid: true});
 set("WORKSPACE_LK_EXISTS", [fs.existsSync(env.WORKSPACE_LK)], {notFs: true});
-set("SERVER_PID_DIR", [env.WORKSPACE_DIR], {useLastIfNothingIsValid: true});
+set("SERVER_PID_DIR", [env.LK_CORE_DIR], {useLastIfNothingIsValid: true});
 
 /*
  * PartsBin
  */
-set("PARTSBIN_DIR", [join(env.WORKSPACE, 'PartsBin/'),
-                     join(env.WORKSPACE_LK, 'PartsBin/'),
-                     join(env.LIVELY, 'PartsBin/'),
-                     join(env.WORKSPACE, 'PartsBin/')], {useLastIfNothingIsValid: true});
+set("PARTSBIN_DIR", [join(env.LK_CORE_DIR, 'PartsBin/')], {useLastIfNothingIsValid: true});
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+/** <DEPRECATED> */
+/**/function lkScriptDir(dirInRoot) {
+/**/    return path.normalize(join(env.LK_SCRIPTS_ROOT, dirInRoot));
+/**/}
+/**/set("LK_SCRIPTS_ROOT", [env.LK_CORE_DIR]);
+/**/set("LK_SCRIPTS_DIR",  [lkScriptDir("/scripts")]);
+/**/set("NODEUNIT",        [join(env.NODEMODULES, "nodeunit/bin/nodeunit"),
+/**/                            which('nodeunit')]);
+/**/set("NODEMON",         [join(env.NODEMODULES, "nodemon/nodemon.js"),
+/**/                            which('nodemon')]);
+/**/set("FOREVER",         [join(env.NODEMODULES, "forever/bin/forever"),
+/**/                            which('forever')]);
+/**/set("LIFE_STAR",           [join(__dirname, "serve.js")]);
+/**/set("LK_TEST_STARTER",       [join(__dirname, 'testing/lively_test.js')]);
+/**/set("JSHINT",        [join(env.LK_SCRIPTS_ROOT, "node_modules/jshint/bin/hint"), which('jshint')]);
+/**/set("JSHINT_CONFIG", [join(env.LK_SCRIPTS_ROOT, "jshint.config")]);
+/**/set("WORKSPACE_DIR", [lkScriptDir('/workspace')], env.LK_SCRIPTS_ROOT, {useLastIfNothingIsValid: true});
+/** </DEPRECATED> */
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 /*
  * This is used to test prerequisites and show warnings
  */
-var installCmd = "cd " + env.LK_SCRIPTS_ROOT + " && npm install";
-global.lkDevDependencyExist = function lkDevDependencyExist(path) {
+var installCmd = "cd " + env.LK_CORE_DIR + " && npm install";
+global.lkDevDependencyExist = function(path) {
     if (fs.existsSync(path)) return true;
     console.warn("The dev dependency " + path + " was not found, please run\n\n" + installCmd);
     return false;

@@ -11,7 +11,7 @@ before_install:
 before_script:
   - "nvm use v0.10"
   - "Xvfb :1 -screen 0 800x600x24 &"
-  - "npm start"
+  - "npm start &"
 
 script: "DISPLAY=:1 npm test"
 

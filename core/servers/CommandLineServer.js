@@ -10,9 +10,9 @@ d.on('error', function(err) {
     console.error('CommandLinerServer error:', err);
 });
 
-// [{process: null, stdout: '', stderr: '', lastExitCode: null}]
-// shellCommands[1].process.kill('SIGKILL')
-var shellCommands = global.shellCommands = [];
+/*
+ * default env settings for spawning new commands
+ */
 var env = {
     __proto__: process.env,
     SHELL: '/bin/bash',
@@ -21,6 +21,11 @@ var env = {
     TERM:"xterm"
 }
 
+/*
+ * this is the state that holds on to running shell commands
+ * [{process: null, stdout: '', stderr: '', lastExitCode: null}]
+ */
+var shellCommands = global.shellCommands = [];
 function findShellCommand(pid) {
     for (var i = 0; i < shellCommands.length; i++) {
         var proc = shellCommands[i] && shellCommands[i].process;
@@ -29,6 +34,41 @@ function findShellCommand(pid) {
     return null;
 }
 
+/*
+ * determine the kill command at startup. if pkill is available then use that
+ * to do a full process tree kill
+ */
+function defaultKill(pid, cmd, signal, thenDo) {
+    // signal = "SIGKILL"|"SIGQUIT"|"SIGINT"|...
+    debug && console.log('signal pid %s with', pid, signal);
+    signal = signal.toUpperCase().replace(/^SIG/, '');
+    exec('kill -s ' + signal + " " + pid, function(code, out, err) {
+        debug && console.log('signl result: ', out, err);
+        thenDo(code, out, err);
+    });
+}
+
+function pkillKill(pid, cmd, signal, thenDo) {
+    // signal = "SIGKILL"|"SIGQUIT"|"SIGINT"|...
+    debug && console.log('signal pid %s with', pid, signal);
+    signal = signal.toUpperCase().replace(/^SIG/, '');
+    exec(util.format('pkill -%s -P %s; kill -s %s %s', signal, pid, signal, pid), function(code, out, err) {
+        debug && console.log('signal result: ', out, err);
+        thenDo(code, out, err);
+    });
+}
+
+var doKill = defaultKill;
+(function determineKillCommand() {
+    exec('which pkill', function(code) { if (!code) doKill = pkillKill; });
+})();
+
+/*
+ * the server both supports starting shell commands via child_process spawn and
+ * exec. Exec has a fixed buffer size but does command/argument parsing. Spawn is
+ * more suited for long running processes but requires the executable and
+ * arguments to be handed in separately. We mostly use it via bash -c "..."
+ */
 function startSpawn(cmdInstructions) {
     var commandEnv = cmdInstructions.env || {};
     commandEnv.__proto__ = env;
@@ -70,6 +110,9 @@ function startExec(cmdInstructions) {
     });
 }
 
+/*
+ * interface for starting commands, will call spawn or exec and install listeners
+ */
 function runShellCommand(cmdInstructions) {
     var callback = cmdInstructions.callback,
         shellCommand = {
@@ -115,10 +158,12 @@ function formattedResponseText(type, data) {
     return '<SHELLCOMMAND$' + type.toUpperCase() + s.length + '>' + s;
 }
 
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
+/*
+ * Lively2Lively services
+ */
 var shellServices = {
     runShellCommand: function(sessionServer, connection, msg) {
+        // spawn/exec
         function answer(hasMore, data) {
             connection.send({
                 expectMoreResponses: hasMore,
@@ -135,6 +180,7 @@ var shellServices = {
             answer(false, exit); });
     },
     stopShellCommand: function(sessionServer, connection, msg) {
+        // kill
         function answer(data) {
             connection.send({action: msg.action + 'Result',
                 inResponseTo: msg.messageId, data: data});
@@ -145,14 +191,15 @@ var shellServices = {
         if (!cmd) { answer({commandIsRunning: false, error: 'command not found'}); return; }
         debug && console.log('signal pid %s with', pid, signal);
         signal = signal.toUpperCase().replace(/^SIG/, '');
-        exec('kill -s ' + signal + " " + pid, function(code, out, err) {
-            debug && console.log('signl result: ', out, err);
+        doKill(pid, cmd, signal, function(code, out, err) {
             answer({
                 commandIsRunning: !!code,
                 message: 'signal send',
-                out: String(out), err: String(err)}); });
+                out: String(out), err: String(err)});
+        });
     },
     writeToShellCommand: function(sessionServer, connection, msg) {
+        // sends input (stdin) to running processes
         function answer(data) {
             connection.send({action: msg.action + 'Result',
                 inResponseTo: msg.messageId, data: data});

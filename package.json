@@ -1,22 +1,21 @@
 {
-  "author": "The Lively Kernel Team <lively-kernel@hpi.uni-potsdam.de>",
+  "author": "The Lively Kernel Team <team@lively-web.org>",
   "name": "livelykernel",
   "description": "The Lively Kernel core system",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "homepage": "http://lively-web.org",
   "repository": {
     "type": "git",
-    "url": "git://github.com/LivelyKernel/LivelyKernel.git"
+    "url": "https://github.com/LivelyKernel/LivelyKernel.git"
   },
   "main": "core/lively/bootstrap.js",
   "dependencies": {
     "jsdom": ">=0.5.3",
     "xmlhttprequest": ">=1.5.0",
-    "optparse": "~1.0",
     "life_star": "~0.4",
     "async": "~0.2",
     "shelljs": "~0.2",
-    "forever": "~0.10",
+    "optparse": "~1.0",
     "colorize": "~0.1"
   },
   "scripts": {

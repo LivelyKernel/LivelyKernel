@@ -69,7 +69,9 @@ Object.subclass('lively.persistence.SpecObject',
     },
 
     customize: function(spec) {
-        return this.fromPlainObject(Object.extend(Object.extend({}, this.attributeStore), spec));
+        var copy = Object.extend({}, this.attributeStore);
+        var customizedCopy = Object.extend(copy, spec);
+        return this.fromPlainObject(customizedCopy);
     },
 
     fromString: function(string) {

@@ -19,6 +19,10 @@
     "forever": "~0.10",
     "colorize": "~0.1"
   },
+  "scripts": {
+    "test": "node bin/lk-test.js",
+    "start": "node bin/lk-server.js"
+  },
   "devDependencies": {},
   "optionalDependencies": {}
 }

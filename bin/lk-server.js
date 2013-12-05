@@ -12,12 +12,11 @@ var args = require('./helper/args'),
 // -=-=-=-=-=-=-=-=-=-=-
 // script options
 // -=-=-=-=-=-=-=-=-=-=-
-
 var options = args.options([
-    ['-h', '--help', 'show this help'],
-    ['-p', '--port NUMBER', "On which port to run"],
-    [      '--log-level STRING', 'Log level, accepted values: error, warning, info, debug'],
-    [      '--lk-dir DIR', 'The directory of the Lively Kernel core repository (git) '],
+    ['-h', '--help', 'Show this help.'],
+    ['-p', '--port NUMBER', "On which port to run."],
+    [      '--log-level STRING', 'Log level, accepted values: error, warning, info, debug.'],
+    [      '--lk-dir DIR', 'The directory of the Lively Kernel core repository (git).'],
     [      '--db-config JSON', 'Stringified JSON object that configures the object DB and lively-davfs\n'
     + "                                 like {\n"
     + '                                   includedFiles: [STRING],\n'
@@ -28,25 +27,25 @@ var options = args.options([
     + '                                 }'],
     [      '--behind-proxy', 'Add this option if requests going to the server are '
                            + 'proxied by another server, e.g. Apache'],
-    [      '--enable-ssl', 'Enable https server'],
-    [      '--enable-ssl-client-auth', 'Whether to use authentication via SSL client certificate'],
-    [      '--ssl-server-key FILE', 'Where the server key is located'],
-    [      '--ssl-server-cert FILE', 'Where the server certificate is located'],
-    [      '--ssl-ca-cert FILE', 'Where the CA certificate is located'],
+    [      '--enable-ssl', 'Enable https server.'],
+    [      '--enable-ssl-client-auth', 'Whether to use authentication via SSL client certificate.'],
+    [      '--ssl-server-key FILE', 'Where the server key is located.'],
+    [      '--ssl-server-cert FILE', 'Where the server certificate is located.'],
+    [      '--ssl-ca-cert FILE', 'Where the CA certificate is located.'],
     [      '--info', 'Print whether there is a running server on '
                    + 'the specified port or ' + env.LIFE_STAR_PORT
-                   + ' and the process pid'],
+                   + ' and the process pid.'],
     [      '--kill', 'Stop the server process for the specified port or ' + env.LIFE_STAR_PORT
                    + ' if there exist one.'],
     [      '--no-subservers', 'By default servers in ' + env.WORKSPACE_LK
                             + ' are started with the core server. Setting this option'
-                            + ' disables this behavior'],
+                            + ' disables this behavior.'],
     [      '--subserver STRING', 'Add a subserver, expects filesystem path to js file like '
                                + '"foo/bar.js" to start subserver bar. Aliasing supported via '
                                + '"baz:foo/bar.js" to start subserver bar.js as baz.'],
     [      '--use-manifest', 'Enables the creation of manifest file for application cache.']],
     {},
-    "Start a server to be used for running the tests. Either -m or -s must be given.");
+    "Starts a Lively Kernel server.");
 
 var port = options.port || env.LIFE_STAR_PORT,
     host = env.LIFE_STAR_HOST,
@@ -57,7 +56,7 @@ if (!options.lkDir && env.WORKSPACE_LK_EXISTS) {
 } else {
     env.WORKSPACE_LK = options.lkDir;
 }
-console.log("test");
+
 if (!options.defined('lkDir')) {
     console.log("Cannot find the Lively core repository. "
                + "Please start the server with --lk-dir PATH/TO/LK-REPO")

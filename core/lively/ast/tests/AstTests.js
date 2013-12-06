@@ -213,11 +213,11 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertMatches(expected, r);
     },
     test02SimpleFunction: function() {
-        var src = 'function(a) { return a++ }',
+        var src = '(function (a) { return a++ })',
             r = this.parseJS(src),
             expected = {
                 isFunction: true,
-                args: [{name: 'a'}],
+                args: [{isVariable: true, name: 'a'}],
                 body: {
                     isSequence: true,
                     children: [{
@@ -302,8 +302,8 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertEquals(0, funcAst.body.children[0].astIndex());
     },
     test06ParseObjWithGetter: function() {
-        var src = '{get x() { return 3 }}',
-            r = this.parseJS(src, 'json'),
+        var src = '({get x() { return 3 }})',
+            r = this.parseJS(src),
             expected = {
                 isObjectLiteral: true,
                 properties: [{
@@ -320,7 +320,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                     }
                 }]
             };
-        this.assertMatches(expected, r);
+        this.assertMatches(expected, r.children[0]);
     },
 })
 
@@ -397,15 +397,15 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
         this.assertEquals(1, node.startInterpretation());
     },
     test09aEarlyReturn: function() {
-        var node = this.parseJS('return 1; 2');
+        var node = this.parseJS('(function() { return 1; 2; })()');
         this.assertEquals(1, node.startInterpretation());
     },
     test09bEarlyReturnInFor: function() {
-        var node = this.parseJS('for (var i=0;i<10;i++) if (i==5) return i');
+        var node = this.parseJS('(function() { for (var i=0;i<10;i++) if (i==5) return i; })()');
         this.assertEquals(5, node.startInterpretation());
     },
     test09cEarlyReturnInWhile: function() {
-        var node = this.parseJS('var i = 0; while (i<10) { i++; if (i==5) return i }');
+        var node = this.parseJS('(function() { var i = 0; while (i<10) { i++; if (i==5) return i; } })()');
         this.assertEquals(5, node.startInterpretation());
     },
     test10Recursion: function() {
@@ -637,7 +637,7 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
         this.assertIdentity(result, true, 'attribute name in object check not working');
     },
     test33WhileTrue: function() {
-        var src = 'while(true) return 23;return 24;',
+        var src = '(function() { while(true) return 23; return 24; })()',
             ast = this.parseJS(src, 'topLevel'),
             result  = ast.startInterpretation();
         this.assertIdentity(result, 23, 'while(true) not working');
@@ -854,9 +854,9 @@ TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
             ["Foo.bar()", [["Foo", 0, 3]]],
             ["var Foo = x(); Foo.bar()", [["x", 10, 11]]],
             ["Foo = false;", [["Foo", 0, 3]]],
-            ["function() { function() { Foo = 3 }}", [["Foo", 26, 29]]],
-            ["function(arg) { return arg + 1 }", []],
-            ["function() { function(arg) {}; return arg }", [['arg', 38, 41]]]
+            ["(function() { (function() { Foo = 3 }) })", [["Foo", 28, 31]]],
+            ["(function(arg) { return arg + 1 })", []],
+            ["(function() { (function(arg) {}); return arg })", [['arg', 41, 44]]]
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {
@@ -2112,7 +2112,7 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         this.assert(node.isVarDeclaration);
     },
     testIfBlock: function() {
-        var fun = function() { if (2 == 1+1) { a(3); a(4) } ; var a = 1};
+        var fun = function() { if (2 == 1+1) { a(3); a(4) } var a = 1};
         var ast = fun.ast();
         var node = ast.firstStatement();
         this.assert(node.isBinaryOp);
@@ -2124,7 +2124,7 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         this.assert(node.isVarDeclaration);
     },
     testIfThenElseBlock: function() {
-        var fun = function() {if(2>1){a(3);a(4)}else{c=3;c=4};var a=1};
+        var fun = function() {if(2>1){a(3);a(4)}else{c=3;c=4}var a=1};
         var ast = fun.ast();
         var node = ast.firstStatement();
         this.assert(node.isBinaryOp, "2>1");

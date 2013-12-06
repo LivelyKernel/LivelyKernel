@@ -3,8 +3,8 @@ var util = require('util'),
     f = util.format,
     j = require('path').join,
     EventEmitter = require('events').EventEmitter,
-    lifeStarDir = j(process.env.LK_SCRIPTS_ROOT, 'node_modules/life_star'),
-    websocket = require(j(lifeStarDir, 'node_modules/websocket')),
+    lifeStarDir = j(process.env.LK_CORE_DIR, 'node_modules/life_star'),
+    websocket = require("websocket"),
     lifeStar = require(lifeStarDir);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

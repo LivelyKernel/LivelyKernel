@@ -16,7 +16,8 @@
     "async": "~0.2",
     "shelljs": "~0.2",
     "optparse": "~1.0",
-    "colorize": "~0.1"
+    "colorize": "~0.1",
+    "websocket": "1.0.8"
   },
   "scripts": {
     "test": "node bin/lk-test.js",

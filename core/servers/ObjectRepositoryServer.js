@@ -1,5 +1,5 @@
 var path = require('path');
-var async = require(path.join(process.env.LK_SCRIPTS_ROOT, 'node_modules', 'async'));
+var async = require('async');
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var log = function log(/*args*/) {

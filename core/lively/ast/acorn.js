@@ -260,8 +260,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     return new lively.ast.Send(
                         [n.start, n.end], property, c(r), n.arguments.map(c)
                     );
-                } else if ((n.callee.type == 'Identifier') ||
-                    (n.type == 'NewExpression')) { // reused in NewExpression
+                } else {
                     return new lively.ast.Call(
                         [n.start, n.end],
                         c(n.callee),
@@ -296,8 +295,9 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 );
             },
             VariableDeclarator: function(n, c) {
+                var value = n.init ? c(n.init) : newUndefined(n.start -1, n.start - 1);
                 return new lively.ast.VarDeclaration(
-                    [n.start - 1, n.end], n.id.name, c(n.init)
+                    [n.start - 1, n.end], n.id.name, value
                 );
             },
             FunctionExpression: function(n, c) {
@@ -330,9 +330,9 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 );
             },
             SwitchCase: function(n, c) {
-                var seq = new lively.ast.Sequence(
-                    [n.consequent.start, n.consequent.end], n.consequent.map(c)
-                );
+                var start = n.consequent.length > 0 ? n.consequent[0].start : n.end;
+                var end = n.consequent.length > 0 ? n.consequent[n.consequent.length - 1].end : n.end;
+                var seq = new lively.ast.Sequence([start, end], n.consequent.map(c));
                 if (n.test != null) {
                     return new lively.ast.Case([n.start, n.end], c(n.test), seq);
                 } else {
@@ -380,8 +380,10 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 );
             },
             ForInStatement: function(n, c) {
+                var left = n.left.type == 'VariableDeclaration' ?
+                    c(n.left.declarations[0]) : c(n.left);
                 return new lively.ast.ForIn(
-                    [n.start, n.end], c(n.left), c(n.right), c(n.body)
+                    [n.start, n.end], left, c(n.right), c(n.body)
                 );
             },
             WhileStatement: function(n, c) {
@@ -414,18 +416,19 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     );
                 } else {
                     return new lively.ast.ModifyingSet(
-                        [n.start, n.end], c(n.left), n.operator, c(n.right)
+                        [n.start, n.end],
+                        c(n.left), n.operator.substr(0, n.operator.length - 1), c(n.right)
                     );
                 }
             },
             UpdateExpression: function(n, c) {
                 if (n.prefix) {
                     return new lively.ast.PreOp(
-                        [n.start, n.stop], n.operator, c(n.argument)
+                        [n.start, n.end], n.operator, c(n.argument)
                     );
                 } else {
                     return new lively.ast.PostOp(
-                        [n.start, n.stop], n.operator, c(n.argument)
+                        [n.start, n.end], n.operator, c(n.argument)
                     );
                 }
             },
@@ -454,9 +457,10 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     return new lively.ast.Regex(
                         [n.start, n.end], n.value.source, flags
                     );
-                } else {
-                    throw new Error('Case of Literal not handled!');
+                } else if (n.value === null) {
+                    return new lively.ast.Variable([n.start, n.end], 'null');
                 }
+                throw new Error('Case of Literal not handled!');
             },
             ObjectExpression: function(n, c) {
                 var props = n.properties.map(function(prop) {
@@ -508,7 +512,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         }
         visitors.LogicalExpression = visitors.BinaryExpression;
         function c(node) {
-          return visitors[node.type](node, c);
+            return visitors[node.type](node, c);
         }
         return c(ast);
     }

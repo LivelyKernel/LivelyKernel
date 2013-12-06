@@ -877,6 +877,16 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
         this.acornToLK = acorn.walk.toLKObjects;
     },
 },
+'helping', {
+    assertPositions: function(ast) {
+        ast.withAllChildNodesDo(function(node, parent, nameInParent, depth) {
+            if (!node.pos || (node.pos.length != 2) || isNaN(node.pos[0]) || isNaN(node.pos[1])) {
+                throw new Error(node.constructor.name + ' has invalid pos: (' + node.pos + ')');
+            }
+            return true;
+        });
+    },
+},
 'testing', {
     test01UnaryExpression: function() {
         // also checks: Program, ExpressionStatement, Literal(boolean)
@@ -889,8 +899,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     expr: { isVariable: true, name: 'true' }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test02BinaryExpression: function() {
@@ -905,8 +917,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     right: { isNumber: true, value: 2 }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test03LogicalExpression: function() {
@@ -920,8 +934,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     right: { isVariable: true, name: 'false' }
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test04UpdateExpression: function() {
@@ -937,8 +953,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     expr: { isVariable: true, name: 'a' }
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         // pre op
         src = '--b;';
@@ -951,7 +969,9 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             }],
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test05AssignmentExpression: function() {
@@ -965,8 +985,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     right: { isNumber: true, value: 10 }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         // modifying set
         src = 'ten += 0;';
@@ -974,13 +996,15 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             isSequence: true,
             children: [{
                 isModifyingSet: true,
-                name: '+=',
+                name: '+',
                 left: { isVariable: true, name: 'ten' },
                 right: { isNumber: true, value: 0 }
             }]
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test06FunctionDeclaration: function() {
@@ -1007,25 +1031,30 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test07VariableDeclaration: function() {
         // also checks: Literal(string)
-        var src = 'var a = 23, b = "fortytwo";';
+        var src = 'var a = 23, b = "fortytwo", c;';
             expected = {
                 isSequence: true,
                 children: [{
                     isSequence: true,
                     children: [
                         { isVarDeclaration: true, name: 'a', val: { isNumber: true, value: 23 } },
-                        { isVarDeclaration: true, name: 'b', val: { isString: true, value: 'fortytwo' } }
+                        { isVarDeclaration: true, name: 'b', val: { isString: true, value: 'fortytwo' } },
+                        { isVarDeclaration: true, name: 'c', val: { isVariable: true, name: 'undefined' } }
                     ]
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test08ObjectExpression: function() {
@@ -1055,8 +1084,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     ]
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test09ArrayExpression: function() {
@@ -1072,8 +1103,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     ]
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test10EmptyStatement: function() {
@@ -1082,8 +1115,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                 isSequence: true,
                 children: [{ isVariable: true, name: 'undefined' }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test11IfStatement: function() {
@@ -1115,8 +1150,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test12SwitchStatement: function() {
@@ -1147,8 +1184,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     ]
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test13TryStatement: function() {
@@ -1174,8 +1213,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         // try - catch
         src = 'try { true; } catch (err) { err; }';
@@ -1196,7 +1237,9 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             }]
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         // try - finally
         src = 'try { true; } finally { "final"; }';
@@ -1217,7 +1260,9 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             }]
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test14ForStatement: function() {
@@ -1251,8 +1296,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         src = 'for (;;) { j = i; }';
         expected = {
@@ -1273,7 +1320,9 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             }]
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test15ForInStatement: function() {
@@ -1287,8 +1336,29 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     body: { isSequence: true }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
+
+        src = 'for (var elem in obj) { }';
+        expected = {
+            isSequence: true,
+            children: [{
+                isForIn: true,
+                name: {
+                    isVarDeclaration: true,
+                    name: 'elem',
+                    val: { isVariable: true, name: 'undefined' }
+                },
+                obj: { isVariable: true, name: 'obj' },
+                body: { isSequence: true }
+            }]
+        };
+        aAST = this.acornParser.parse(src);
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test16WhileStatement: function() {
@@ -1304,8 +1374,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test17DoWhileStatement: function() {
@@ -1321,8 +1393,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test18ThisExpression: function() {
@@ -1333,8 +1407,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     isThis: true
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test19DebuggerStatement: function() {
@@ -1345,8 +1421,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     isDebugger: true
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test20WithStatement: function() {
@@ -1362,8 +1440,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test21ConditionalExpression: function() {
@@ -1377,8 +1457,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     falseExpr: { isVariable: true, name: 'false' }
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test22SequenceExpression: function() {
@@ -1393,8 +1475,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     ]
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test23CallExpression: function() {
@@ -1410,8 +1494,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     ]
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test24MemberExpression: function() {
@@ -1424,8 +1510,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     slotName: { isString: true, value: 'prop' },
                 }]
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         src = 'obj["prop"];';
         expected = {
@@ -1437,7 +1525,9 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             }]
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         src = 'arr[123];';
         expected = {
@@ -1449,7 +1539,9 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             }]
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test25NewExpression: function() {
@@ -1464,8 +1556,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         src = 'new lively.Class();',
         expected = {
@@ -1482,8 +1576,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                 }
             }],
         },
-        aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        aAST = this.acornParser.parse(src),
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test26RegexLiteral: function() {
@@ -1496,8 +1592,10 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     flags: ''
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
 
         src = '/foo/img';
         expected = {
@@ -1509,7 +1607,9 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             }],
         };
         aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+        result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test27LabeledExpression: function() {
@@ -1537,8 +1637,22 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
                     }
                 }],
             },
-            aAST = this.acornParser.parse(src);
-        this.assertMatches(expected, this.acornToLK(aAST));
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
+    },
+
+    test29NullLiteral: function() {
+        var src = 'null;',
+            expected = {
+                isSequence: true,
+                children: [{ isVariable: true, name: 'null' }],
+            },
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 });
 

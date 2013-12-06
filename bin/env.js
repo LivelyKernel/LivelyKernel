@@ -32,7 +32,6 @@ function set(varName, choices, options) {
  * general stuff
  */
 set("LK_CORE_DIR",     [path.normalize(__dirname + '/..')]);
-set("LK_BIN",          [join(env.LK_CORE_DIR, isWindows ? 'bin/lk.cmd' : 'bin/lk')]);
 set("NODE_BIN",        [which('node'), which('node.exe'), process.execPath]);
 set("NODEMODULES",     [lkCoreDir("/node_modules"), join(env.LK_CORE_DIR, '..')]);
 set("TEMP_DIR",        [env.TMP, env.TEMP, env.TEMPDIR, '/tmp'], {useLastIfNothingIsValid: true});
@@ -102,6 +101,7 @@ set("PARTSBIN_DIR", [join(env.LK_CORE_DIR, 'PartsBin/')], {useLastIfNothingIsVal
 /**/set("JSHINT",        [join(env.LK_SCRIPTS_ROOT, "node_modules/jshint/bin/hint"), which('jshint')]);
 /**/set("JSHINT_CONFIG", [join(env.LK_SCRIPTS_ROOT, "jshint.config")]);
 /**/set("WORKSPACE_DIR", [lkScriptDir('/workspace')], env.LK_SCRIPTS_ROOT, {useLastIfNothingIsValid: true});
+/**/set("LK_BIN",          [join(env.LK_CORE_DIR, isWindows ? 'bin/lk.cmd' : 'bin/lk')]);
 /** </DEPRECATED> */
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

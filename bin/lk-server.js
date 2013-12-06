@@ -1,3 +1,55 @@
+function checkNPMPackages() {
+    var path = require("path");
+    var exec = require("child_process").exec;
+    var fs = require("fs");
+    var lkDir = path.join(__dirname, '..')
+
+    function findMissingNPMPackages() {
+        var packageJson = path.join(lkDir, "package.json");
+        var packageJsonContent = fs.readFileSync(packageJson);
+        var packageJso = JSON.parse(packageJsonContent);
+        var requiredDepNames = Object.keys(packageJso.dependencies);
+
+        var nodeModulesDir = path.join(lkDir, "node_modules");
+        var actualDepNames = fs.readdirSync(nodeModulesDir);
+
+        var uninstalled = requiredDepNames.reduce(function(reqDeps, name) {
+            if (actualDepNames.indexOf(name) == -1) reqDeps.push(name);
+            return reqDeps;
+        }, []);
+
+        return uninstalled;
+    }
+
+    function installAll(pkgNames, thenDo) {
+        if (!pkgNames.length) { thenDo(null); return; }
+        var pkgName = pkgNames.pop();
+        console.log("Installing package %s...", pkgName);
+        install(pkgName, function(code, out, err) {
+            if (code) {
+                console.warn('Problem installing npm package %s:\n%s\n%s', pkgName, out, err);
+            } else {
+                console.log("Package %s successfully installed.", pkgName);
+            }
+            installAll(pkgNames, thenDo);
+        });
+    }
+
+    function install(pkgName, thenDo) {
+        exec("npm install " + pkgName, {cwd: lkDir}, thenDo);
+    }
+
+
+    var missingPackages = findMissingNPMPackages();
+    if (!missingPackages || !missingPackages.length) return true;
+    console.log('Not all required npm packages are installed! Installing packages %s', missingPackages);
+    console.log('Please wait until the packages are installed and then restart the server.');
+    installAll(missingPackages, function(err) { process.exit(0); });
+    return false;
+}
+
+if (checkNPMPackages()) {
+
 /*global require, process*/
 var args = require('./helper/args'),
     async = require('async'),
@@ -194,4 +246,6 @@ if (options.defined('info')) {
         startServer,
         writePid
     ]);
+}
+
 }

@@ -156,12 +156,14 @@ module.exports = d.bind(function(route, app, subserver) {
     app.post(route, function(req, res) {
         var data = '';
         req.on('data', function(d) { data += d.toString() });
-        req.on('end', function(d) {
-            try {
-                res.end(String(eval(data)));
-            } catch(e) {
-                res.status(400).end(String(e));
-            }
+        req.on('end', function() {
+            d.run(function() {
+                try {
+                    res.end(String(eval(data)));
+                } catch(e) {
+                    res.status(400).end(String(e));
+                }
+            })
         });
     });
 

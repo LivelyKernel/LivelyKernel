@@ -1,8 +1,9 @@
+/*global __dirname*/
 function checkNPMPackages() {
     var path = require("path");
     var exec = require("child_process").exec;
     var fs = require("fs");
-    var lkDir = path.join(__dirname, '..')
+    var lkDir = path.join(__dirname, '..');
 
     function findMissingNPMPackages() {
         var packageJson = path.join(lkDir, "package.json");
@@ -11,7 +12,7 @@ function checkNPMPackages() {
         var requiredDepNames = Object.keys(packageJso.dependencies);
 
         var nodeModulesDir = path.join(lkDir, "node_modules");
-        var actualDepNames = fs.readdirSync(nodeModulesDir);
+        var actualDepNames = fs.existsSync(nodeModulesDir) ? fs.readdirSync(nodeModulesDir) : [];
 
         var uninstalled = requiredDepNames.reduce(function(reqDeps, name) {
             if (actualDepNames.indexOf(name) == -1) reqDeps.push(name);

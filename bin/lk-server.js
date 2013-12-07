@@ -241,6 +241,7 @@ if (options.defined('info')) {
 } else {
     // let it fly!
     async.waterfall([
+        require("./download-partsbin.js"),
         getServerInfo,
         killOldServer, // Ensure that only one server for the given port is running
         startServer,

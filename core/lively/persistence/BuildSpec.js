@@ -69,9 +69,10 @@ Object.subclass('lively.persistence.SpecObject',
     },
 
     customize: function(spec) {
-        var copy = Object.extend({}, this.attributeStore);
-        var customizedCopy = Object.extend(copy, spec);
-        return this.fromPlainObject(customizedCopy);
+        var newStore = {}
+        Object.extend(newStore, this.attributeStore);
+        Object.extend(newStore, spec);
+        return this.constructor.fromPlainObject(newStore);
     },
 
     fromString: function(string) {
@@ -261,6 +262,11 @@ Object.subclass('lively.persistence.SpecObject',
     }
 
 },
+'removal', {
+    remove: function() {
+        lively.persistence.BuildSpec.Registry.remove(this);
+    }
+},
 'stringification', {
 
     stringify: function() {
@@ -300,7 +306,10 @@ Object.subclass('lively.persistence.SpecObjectRegistry',
     nameForSpec: function(spec) {
         return Properties.nameFor(this, spec);
     },
-
+    remove: function(spec) {
+        var name = this.nameForSpec(spec);
+        if (name) delete this[name];
+    }
 },
 'testing', {
     has: function(name) { return !!this.get(name); }

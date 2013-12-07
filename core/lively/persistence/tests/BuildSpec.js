@@ -179,7 +179,7 @@ Functions.timeToRun(function() {
 
 });
 
-lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.PrintSpec',
+lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Spec',
 'testing', {
     test01CreateSimpleSpec: function() {
         var m = new lively.morphic.Box(lively.rect(0,0,100,100));
@@ -196,6 +196,16 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Pri
                      + "    foo: function foo() { return 123; }\n"
                      + "})"
         this.assertEquals(expected, spec);
+    },
+
+    test02Customize: function() {
+        lively.persistence.BuildSpec.Registry.remove(lively.BuildSpec('test02Customize'));
+        var spec = lively.BuildSpec('test02Customize', {name: "bar"}),
+            spec2 = spec.customize({}),
+            spec3 = spec.customize({name: 'foo'});
+        this.assertEquals('bar', spec.attributeStore.name, "spec");
+        this.assertEquals('bar', spec2.attributeStore.name, "spec2");
+        this.assertEquals('foo', spec3.attributeStore.name, "spec3");
     }
 
 });

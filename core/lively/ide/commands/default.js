@@ -37,6 +37,8 @@ Object.extend(lively.ide.commands.byName, {
             if (world.worldMenuOpened) { h.removeOpenMenu(event); return true; }
             if (world.hasSelection()) { world.resetSelection(); return true; }
             if (world.currentHaloTarget) { world.removeHalosOfCurrentHaloTarget(); return true; }
+            var narrowers = world.submorphs.filter(function(m) { return m.isNarrowingList && m.isVisible(); })
+            if (narrowers.length) { narrowers.invoke('deactivate'); return true; }
             return false;
         }
     },
@@ -739,7 +741,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-y",
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},
     'lively.morphic.List.selectItem': "m-space",
-    'lively.ide.CommandLineInterface.doGrepSearch': {mac: "cmd-s-g", win: 'ctrl-s-g'},
+    'lively.ide.CommandLineInterface.doGrepSearch': {mac: ["Command-Shift-C", "Command-Shift-G"], win: ["Control-Shift-C", 'Control-Shift-G']},
     'lively.ide.execShellCommandInWindow': "m-s-!",
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
     'lively.ide.commands.execute': "m-x",

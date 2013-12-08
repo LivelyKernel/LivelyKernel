@@ -2123,9 +2123,16 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
     function defaulGlobalKeyHandler(evt) { // <-- capturing phase
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false});
+        if (doDefaultEscapeAction(evt, keys)) return true;
         if (ensureFocusedMorph(evt, keys)) return undefined;
         if (triggerHalosViaKeyCombo(evt, keys)) return true;
+        if (showPressedKeys(evt, keys)) return true;
         return undefined;
+    }
+    // ---------------------
+    function doDefaultEscapeAction(evt, keys) {
+        return keys === 'Esc'
+            && lively.ide.commands.exec('lively.morphic.World.escape');
     }
     // ---------------------
     function ensureFocusedMorph(evt, keys) {

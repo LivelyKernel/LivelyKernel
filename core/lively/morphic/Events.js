@@ -1786,31 +1786,49 @@ Object.extend(lively.morphic.Events, {
 
     GlobalEvents: {
         handlers: {},
-        register: function(type, handler) {
-            var handlers = this.handlers[type];
+        bubblingHandlers: {},
+        register: function(type, handler, capturing) {
+            if (capturing === undefined) capturing = true;
+            var handlerDict = capturing ? this.handlers : this.bubblingHandlers;
+            var handlers = handlerDict[type];
             if (!handlers) handlers = [];
-            if (handlers.length === 0) window.addEventListener(type, this.dispatchGlobalEvent, true);
+            if (handlers.length === 0) {
+                var func = this[capturing ? "dispatchGlobalEvent" : "dispatchGlobalEventBubbling"];
+                window.addEventListener(type, func, capturing);
+            }
             handlers.push(handler);
-            this.handlers[type] = handlers;
+            handlerDict[type] = handlers;
         },
-        unregister: function(type, handler) {
-            var handlers = this.handlers[type];
+        unregister: function(type, handler, capturing) {
+            if (capturing === undefined) capturing = true;
+            var handlerDict = capturing ? this.handlers : this.bubblingHandlers;
+            var handlers = handlerDict[type];
             if (handlers) {
-                if (!handler) {
-                    handlers.clear();
-                } else {
+                if (!handler) { handlers.length = 0; } else {
                     if (typeof handler === 'string') {
                         handler = handlers.detect(function(func) { return func.name === handler });
                     }
                     handlers.remove(handler);
                 }
             }
-            if (!handlers || handlers.length === 0) window.removeEventListener(type, this.dispatchGlobalEvent, true);
-            this.handlers[type] = handlers;
+            if (!handlers || handlers.length === 0) {
+                var func = this[capturing ? "dispatchGlobalEvent" : "dispatchGlobalEventBubbling"];
+                window.removeEventListener(type, func, true);
+            }
+            handlerDict[type] = handlers;
         },
         dispatchGlobalEvent: function(evt) {
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             var handlers = lively.morphic.Events.GlobalEvents.handlers[evt.type];
+            var stopped = false;
+            for (var i = 0, len = handlers.length; i < len; i ++) {
+                stopped = handlers[i](evt);
+                if (stopped) return stopped;
+            }
+            return undefined;
+        },
+        dispatchGlobalEventBubbling: function(evt) {
+            var handlers = lively.morphic.Events.GlobalEvents.bubblingHandlers[evt.type];
             var stopped = false;
             for (var i = 0, len = handlers.length; i < len; i ++) {
                 stopped = handlers[i](evt);
@@ -2080,38 +2098,72 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
 });
 
 (function installDefaultGlobalKeys() {
-    lively.morphic.Events.GlobalEvents.unregister('keydown', "defaulGlobalKeyHandler");
-    var haloTriggerCount = 0; // count succinct command key presses, FIXME use real key handler that can deal with combos
-    lively.morphic.Events.GlobalEvents.register('keydown', function defaulGlobalKeyHandler(evt) {
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // key dispatcher using lively.ide.commands
+    // Global events work as follows: we first ensure that at least the world
+    // has the keyboard focus. this is followed by some experimental actions. We
+    // then prepare for dispatching to the global event handler
+    // lively.morphic.Events.GlobalEvents which can invoke global shortcuts
+    // defined in lively.ide.commands.default. *NOTE* The event handler below will
+    // act in the capturing phase. Since it is attached to window it will be the
+    // first object to react to a keydown. However, in order to allow morphs to
+    // overwrite key handling we will defer running global actions to the bubbling
+    // phase! We do this by attaching another handler dynamically that will only
+    // be called when morphs to not actively handle (= calling evt.stop()) the
+    // event
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "defaulGlobalKeyHandler", true);
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "doGlobalActionsOnBubble", false);
+    lively.morphic.Events.GlobalEvents.register('keydown', defaulGlobalKeyHandler, true);
+    lively.morphic.Events.GlobalEvents.register('keydown', doGlobalActionsOnBubble, false);
+    // ---------------------
+    function doGlobalActionsOnBubble(evt) { // <-- bubbling phase
         var result = lively.morphic.KeyboardDispatcher.handleGlobalKeyEvent(evt);
-        if (result) { evt.stop(); return true; }
+        if (!result) return false;
+        evt.stop(); return true;
+    }
+    // ---------------------
+    function defaulGlobalKeyHandler(evt) { // <-- capturing phase
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false}),
-            focused = lively.morphic.Morph.focusedMorph(),
-            world = focused && focused.world() || lively.morphic.World.current();
-        if (!focused) { world.focus.bind(world).delay(); return undefined; }
+        var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false});
+        if (ensureFocusedMorph(evt, keys)) return undefined;
+        if (triggerHalosViaKeyCombo(evt, keys)) return true;
+        return undefined;
+    }
+    // ---------------------
+    function ensureFocusedMorph(evt, keys) {
+        var focused = lively.morphic.Morph.focusedMorph(),
+            world = focused && focused.world() || evt.world || lively.morphic.World.current();
+        var focused = lively.morphic.Morph.focusedMorph();
+        if (focused) return false;
+        world.focus.bind(world).delay();
+        return true;
+    }
+    // ---------------------
+    function showPressedKeys(evt, keys) {
+        if (!evt.world.showPressedKeys) return false;
+        var keysNoModifier = evt.getKeyString({ignoreModifiersIfNoCombo: true});
+        keysNoModifier && keysNoModifier.length > 0 && lively.log(keysNoModifier);
+        return true;
+    }
+    // ---------------------
+    // trigger halos via Command-Alt press. This is an experimental feature
+    // that might soon be removed
+    var haloTriggerCount = 0;
+    function triggerHalosViaKeyCombo(evt, keys) {
         if (keys === 'Command-Alt') haloTriggerCount++;
         else if (keys !== 'Command' && keys !== 'Alt') haloTriggerCount = 0;
-        if (haloTriggerCount == 2) {
-            evt.mousePoint = evt.hand.getPosition();
-            var target;
-            if (!evt.world.currentHaloTarget || !evt.world.currentHaloTarget.fullContainsWorldPoint(evt.getPosition()) || evt.world.currentHaloTarget === world) {
-                target = evt.hand.morphUnderMe();
-            } else {
-                target = evt.world.currentHaloTarget;
-            }
-            target.toggleHalos(evt);
-            haloTriggerCount = 0;
-            evt.stop(); return true;
+        if (haloTriggerCount !== 2) return false;
+        evt.mousePoint = evt.hand.getPosition();
+        var target;
+        if (!evt.world.currentHaloTarget
+         || !evt.world.currentHaloTarget.fullContainsWorldPoint(evt.getPosition())
+         || evt.world.currentHaloTarget === evt.world) {
+            target = evt.hand.morphUnderMe();
+        } else {
+            target = evt.world.currentHaloTarget;
         }
-        if (world.showPressedKeys) {
-            var keysNoModifier = evt.getKeyString({ignoreModifiersIfNoCombo: true});
-            keysNoModifier && keysNoModifier.length > 0 && lively.log(keysNoModifier);
-        }
-        return undefined;
-    });
+        target.toggleHalos(evt);
+        haloTriggerCount = 0;
+        evt.stop(); return true;
+    }
 })();
 
 (function eventHandlerRenderSystemSetup() {

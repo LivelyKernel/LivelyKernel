@@ -312,7 +312,8 @@ lively.morphic.Morph.addMethods(
                 new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomRight()),
                 new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomCenter()),
                 new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomLeft()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().leftCenter())
+                new lively.morphic.RelativeMagnet(this, this.innerBounds().leftCenter()),
+                new lively.morphic.RelativeMagnet(this, this.innerBounds().center())
             ]
         return this.magnets
     },

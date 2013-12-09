@@ -378,7 +378,7 @@ lively.ast.Node.subclass('lively.ast.ForIn',
 'conversion', {
 	asJS: function (depth) {
                 return Strings.format(
-                    'for (var %s in %s) {%s}',
+                    'for (%s in %s) {%s}',
                     this.name.asJS(depth), this.obj.asJS(depth), this.body.asJS(depth));
             },
 },

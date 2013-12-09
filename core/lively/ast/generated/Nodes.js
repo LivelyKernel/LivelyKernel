@@ -66,7 +66,7 @@ lively.ast.Node.subclass('lively.ast.Sequence',
     accept: function(visitor) {
         return visitor.visitSequence(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Number',
 'testing', {
@@ -90,7 +90,7 @@ lively.ast.Node.subclass('lively.ast.Number',
     accept: function(visitor) {
         return visitor.visitNumber(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.String',
 'testing', {
@@ -114,7 +114,7 @@ lively.ast.Node.subclass('lively.ast.String',
     accept: function(visitor) {
         return visitor.visitString(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Cond',
 'testing', {
@@ -148,7 +148,7 @@ lively.ast.Node.subclass('lively.ast.Cond',
     accept: function(visitor) {
         return visitor.visitCond(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.If',
 'testing', {
@@ -197,7 +197,7 @@ lively.ast.Node.subclass('lively.ast.If',
     accept: function(visitor) {
         return visitor.visitIf(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.While',
 'testing', {
@@ -246,7 +246,7 @@ lively.ast.Node.subclass('lively.ast.While',
     accept: function(visitor) {
         return visitor.visitWhile(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.DoWhile',
 'testing', {
@@ -295,7 +295,7 @@ lively.ast.Node.subclass('lively.ast.DoWhile',
     accept: function(visitor) {
         return visitor.visitDoWhile(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.For',
 'testing', {
@@ -350,7 +350,7 @@ lively.ast.Node.subclass('lively.ast.For',
     accept: function(visitor) {
         return visitor.visitFor(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.ForIn',
 'testing', {
@@ -386,7 +386,7 @@ lively.ast.Node.subclass('lively.ast.ForIn',
     accept: function(visitor) {
         return visitor.visitForIn(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Set',
 'testing', {
@@ -414,7 +414,7 @@ lively.ast.Node.subclass('lively.ast.Set',
     accept: function(visitor) {
         return visitor.visitSet(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.ModifyingSet',
 'testing', {
@@ -443,7 +443,7 @@ lively.ast.Node.subclass('lively.ast.ModifyingSet',
     accept: function(visitor) {
         return visitor.visitModifyingSet(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.BinaryOp',
 'testing', {
@@ -472,7 +472,7 @@ lively.ast.Node.subclass('lively.ast.BinaryOp',
     accept: function(visitor) {
         return visitor.visitBinaryOp(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.UnaryOp',
 'testing', {
@@ -499,7 +499,7 @@ lively.ast.Node.subclass('lively.ast.UnaryOp',
     accept: function(visitor) {
         return visitor.visitUnaryOp(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.PreOp',
 'testing', {
@@ -526,7 +526,7 @@ lively.ast.Node.subclass('lively.ast.PreOp',
     accept: function(visitor) {
         return visitor.visitPreOp(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.PostOp',
 'testing', {
@@ -553,7 +553,7 @@ lively.ast.Node.subclass('lively.ast.PostOp',
     accept: function(visitor) {
         return visitor.visitPostOp(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.This',
 'testing', {
@@ -576,7 +576,7 @@ lively.ast.Node.subclass('lively.ast.This',
     accept: function(visitor) {
         return visitor.visitThis(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Variable',
 'testing', {
@@ -602,7 +602,7 @@ lively.ast.Node.subclass('lively.ast.Variable',
     accept: function(visitor) {
         return visitor.visitVariable(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.GetSlot',
 'testing', {
@@ -634,29 +634,30 @@ lively.ast.Node.subclass('lively.ast.GetSlot',
     accept: function(visitor) {
         return visitor.visitGetSlot(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Break',
 'testing', {
 	isBreak: true,
 },
 'initializing', {
-	initialize: function($super, pos) {
-		this.pos = pos;
-
-	},
+	initialize: function ($super, pos, label) {
+            		this.pos = pos;
+            		this.label = label || new lively.ast.Label([pos[1], pos[1]], '');
+            		this.label.setParent(this);
+          	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos) },
+	printConstruction: function () { return this.printConstructorCall(this.pos, this.label) },
 },
 'conversion', {
-	asJS: function (depth) { return 'break' },
+	asJS: function (depth) { return 'break' + this.label.asJS(); },
 },
 'visiting', {
     accept: function(visitor) {
         return visitor.visitBreak(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Debugger',
 'testing', {
@@ -678,29 +679,30 @@ lively.ast.Node.subclass('lively.ast.Debugger',
     accept: function(visitor) {
         return visitor.visitDebugger(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Continue',
 'testing', {
 	isContinue: true,
 },
 'initializing', {
-	initialize: function($super, pos) {
-		this.pos = pos;
-
-	},
+	initialize: function ($super, pos, label) {
+            		this.pos = pos;
+            		this.label = label || new lively.ast.Label([pos[1], pos[1]], '');
+            		this.label.setParent(this);
+          	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos) },
+	printConstruction: function () { return this.printConstructorCall(this.pos, this.label) },
 },
 'conversion', {
-	asJS: function (depth) { return 'continue' },
+	asJS: function (depth) { return 'continue' + this.label.asJS(); },
 },
 'visiting', {
     accept: function(visitor) {
         return visitor.visitContinue(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.ArrayLiteral',
 'testing', {
@@ -726,7 +728,7 @@ lively.ast.Node.subclass('lively.ast.ArrayLiteral',
     accept: function(visitor) {
         return visitor.visitArrayLiteral(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Return',
 'testing', {
@@ -752,7 +754,7 @@ lively.ast.Node.subclass('lively.ast.Return',
     accept: function(visitor) {
         return visitor.visitReturn(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.With',
 'testing', {
@@ -780,7 +782,7 @@ lively.ast.Node.subclass('lively.ast.With',
     accept: function(visitor) {
         return visitor.visitWith(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Send',
 'testing', {
@@ -822,7 +824,7 @@ lively.ast.Node.subclass('lively.ast.Send',
     accept: function(visitor) {
         return visitor.visitSend(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Call',
 'testing', {
@@ -856,7 +858,7 @@ lively.ast.Node.subclass('lively.ast.Call',
     accept: function(visitor) {
         return visitor.visitCall(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.New',
 'testing', {
@@ -884,7 +886,7 @@ lively.ast.Node.subclass('lively.ast.New',
     accept: function(visitor) {
         return visitor.visitNew(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.VarDeclaration',
 'testing', {
@@ -913,7 +915,7 @@ lively.ast.Node.subclass('lively.ast.VarDeclaration',
     accept: function(visitor) {
         return visitor.visitVarDeclaration(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Throw',
 'testing', {
@@ -941,7 +943,7 @@ lively.ast.Node.subclass('lively.ast.Throw',
     accept: function(visitor) {
         return visitor.visitThrow(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 'testing', {
@@ -985,7 +987,7 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
     accept: function(visitor) {
         return visitor.visitTryCatchFinally(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Function',
 'testing', {
@@ -1040,7 +1042,7 @@ lively.ast.Node.subclass('lively.ast.Function',
     accept: function(visitor) {
         return visitor.visitFunction(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.ObjectLiteral',
 'testing', {
@@ -1070,7 +1072,7 @@ lively.ast.Node.subclass('lively.ast.ObjectLiteral',
     accept: function(visitor) {
         return visitor.visitObjectLiteral(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.ObjProperty',
 'testing', {
@@ -1100,7 +1102,7 @@ lively.ast.Node.subclass('lively.ast.ObjProperty',
     accept: function(visitor) {
         return visitor.visitObjProperty(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.ObjPropertyGet',
 'testing', {
@@ -1130,7 +1132,7 @@ lively.ast.Node.subclass('lively.ast.ObjPropertyGet',
     accept: function(visitor) {
         return visitor.visitObjPropertyGet(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.ObjPropertySet',
 'testing', {
@@ -1161,7 +1163,7 @@ lively.ast.Node.subclass('lively.ast.ObjPropertySet',
     accept: function(visitor) {
         return visitor.visitObjPropertySet(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Switch',
 'testing', {
@@ -1191,7 +1193,7 @@ lively.ast.Node.subclass('lively.ast.Switch',
     accept: function(visitor) {
         return visitor.visitSwitch(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Case',
 'testing', {
@@ -1222,7 +1224,7 @@ lively.ast.Node.subclass('lively.ast.Case',
     accept: function(visitor) {
         return visitor.visitCase(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Default',
 'testing', {
@@ -1248,7 +1250,7 @@ lively.ast.Node.subclass('lively.ast.Default',
     accept: function(visitor) {
         return visitor.visitDefault(this);
     }
- })
+ });
 
 lively.ast.Node.subclass('lively.ast.Regex',
 'testing', {
@@ -1273,7 +1275,57 @@ lively.ast.Node.subclass('lively.ast.Regex',
     accept: function(visitor) {
         return visitor.visitRegex(this);
     }
- })
+ });
+
+lively.ast.Node.subclass('lively.ast.Label',
+'testing', {
+	isLabel: true,
+},
+'initializing', {
+	initialize: function($super, pos, name) {
+		this.pos = pos;
+		this.name = name;
+
+	},
+},
+'debugging', {
+	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"') },
+	toString: function () { return Strings.format('%s(%s)', this.constructor.name, this.name) },
+},
+'conversion', {
+	asJS: function (depth) { return this.name; },
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitLabel(this);
+    }
+ });
+
+lively.ast.Node.subclass('lively.ast.LabelDeclaration',
+'testing', {
+	isLabelDeclaration: true,
+},
+'initializing', {
+	initialize: function($super, pos, name, expr) {
+		this.pos = pos;
+		this.name = name;
+		this.expr = expr;
+		expr.setParent(this);
+	},
+},
+'debugging', {
+	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.expr) },
+	toString: function () { return Strings.format('%s(%s is %s)', this.constructor.name, this.name, this.expr) },
+},
+'conversion', {
+	asJS: function (depth) { return this.name + ': ' + this.expr.asJS(depth) },
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitLabelDeclaration(this);
+    }
+ });
+
 Object.subclass('lively.ast.Visitor',
 'visiting', {
 	visit: function(node) { return node.accept(this) },
@@ -1316,6 +1368,8 @@ Object.subclass('lively.ast.Visitor',
 	visitCase: function(node) {},
 	visitDefault: function(node) {},
 	visitRegex: function(node) {},
+	visitLabel: function(node) {},
+	visitLabelDeclaration: function(node) {},
 
 })
 });

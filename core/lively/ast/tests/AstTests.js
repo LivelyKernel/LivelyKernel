@@ -1614,8 +1614,18 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
 
     test27LabeledExpression: function() {
         var src = 'label: true;',
-            aAST = this.acornParser.parse(src);
-        this.assertRaises(this.acornToLK.curry(aAST));
+            expected = {
+                isSequence: true,
+                children: [{
+                    isLabelDeclaration: true,
+                    name: 'label',
+                    expr: { isVariable: true, name: 'true' }
+                }],
+            },
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
     },
 
     test28FunctionExpression: function() {
@@ -1651,6 +1661,44 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
             },
             aAST = this.acornParser.parse(src),
             result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
+    },
+
+    test30LabeledStatements: function() {
+        var src = 'label: break label;',
+            expected = {
+                isSequence: true,
+                children: [{
+                    isLabelDeclaration: true,
+                    name: 'label',
+                    expr: { isBreak: true, label: { isLabel: true, name: 'label' } }
+                }],
+            },
+            aAST = this.acornParser.parse(src),
+            result = this.acornToLK(aAST);
+        this.assertMatches(expected, result);
+        this.assertPositions(result);
+
+        src = 'label: for (;;) { continue label; }',
+        expected = {
+            isSequence: true,
+            children: [{
+                isLabelDeclaration: true,
+                name: 'label',
+                expr: {
+                    isFor: true,
+                    body: {
+                        isSequence: true,
+                        children: [
+                            { isContinue: true, label: { isLabel: true, name: 'label' } }
+                        ]
+                    }
+                }
+            }],
+        },
+        aAST = this.acornParser.parse(src),
+        result = this.acornToLK(aAST);
         this.assertMatches(expected, result);
         this.assertPositions(result);
     },

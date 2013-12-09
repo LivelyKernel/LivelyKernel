@@ -308,7 +308,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
 },
 'settings', {
     customRules: function() { return ['trans = [:t apply(t):ans] -> ans,'] },
-    customClasses: function() { return ["Object.subclass('" + this.rootNodeClassName + "');"] },
+    customClasses: function() { return ["Object.subclass('" + this.rootNodeClassName + "')"] },
 
     translatorRules: function() {
         var names = this.constructor.categories['translator rules'],
@@ -702,12 +702,19 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     'break': {
-        className: 'Break', rules: [':pos'],
+        className: 'Break', rules: [':pos', 'trans:label'],
+        initializing: {
+          	initialize: function($super, pos, label) {
+            		this.pos = pos;
+            		this.label = label || new lively.ast.Label([pos[1], pos[1]], '');
+            		this.label.setParent(this);
+          	},
+        },
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.label) },
         },
         conversion: {
-            asJS: function(depth) { return 'break' },
+            asJS: function(depth) { return 'break' + this.label.asJS(); },
         },
     },
 
@@ -720,13 +727,21 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
             asJS: function(depth) { return 'debugger' },
         },
     },
+
     'continue': {
-        className: 'Continue', rules: [':pos'],
+        className: 'Continue', rules: [':pos', 'trans:label'],
+        initializing: {
+          	initialize: function($super, pos, label) {
+            		this.pos = pos;
+            		this.label = label || new lively.ast.Label([pos[1], pos[1]], '');
+            		this.label.setParent(this);
+          	},
+        },
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.label) },
         },
         conversion: {
-            asJS: function(depth) { return 'continue' },
+            asJS: function(depth) { return 'continue' + this.label.asJS(); },
         },
     },
 
@@ -1041,6 +1056,28 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
             asJS: function(depth) { return '/' + this.exprString + '/' + this.flags},
         },
     },
+
+    label: {
+        className: 'Label', rules: [':pos', ':name'],
+        debugging: {
+            printConstruction: function() { return this.printConstructorCall(this.pos, '"' + this.name + '"') },
+            toString: function() { return Strings.format('%s(%s)', this.constructor.name, this.name) },
+        },
+        conversion: {
+            asJS: function(depth) { return this.name; },
+        },
+    },
+
+    labelDcl: {
+        className: 'LabelDeclaration', rules: [':pos', ':name', 'trans:expr'],
+        debugging: {
+            printConstruction: function() { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.expr) },
+            toString: function() { return Strings.format('%s(%s is %s)', this.constructor.name, this.name, this.expr) },
+        },
+        conversion: {
+            asJS: function(depth) { return this.name + ': ' + this.expr.asJS(depth) },
+        },
+    },
 },
 'rule helper', {
 
@@ -1200,12 +1237,12 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         Properties.forEachOwn(this.translatorRules(), function(name, ruleSpec) {
             classDefs.push(this.createASTClass(ruleSpec));
         }, this);
-        return classDefs.join('\n\n')
+        return classDefs.join(';\n\n')
     },
 
     evalAndWriteClasses: function() {
         var src = this.createASTClassSourcesFromRules();
-        src += '\n';
+        src += ';\n\n';
         src += this.abstractVisitorClassSource();
         eval(src);
 
@@ -1221,7 +1258,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
 
     abstractVisitorClassSource: function() {
         var categories = [this.visitingCategoryForAbstractVisitor()/*, this.doubleDispatchCategoryForVisitor()*/];
-        return Strings.format('Object.subclass(\'%s\', %s)', this.visitorClassName, categories.join(',\n'));
+        return Strings.format('Object.subclass(\'%s\',%s)', this.visitorClassName, categories.join(',\n'));
     },
 
     visitingCategoryForAbstractVisitor: function(ruleSpec) {

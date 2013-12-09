@@ -340,16 +340,26 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 }
             },
             BreakStatement: function(n, c) {
-                if (n.label != null) {
-                    throw new Error('LK parser did not support labeled breaks!');
+                var label;
+                if (n.label == null) {
+                    label = new lively.ast.Label([n.end, n.end], '');
+                } else {
+                    label = new lively.ast.Label(
+                        [n.label.start, n.label.end], n.label.name
+                    );
                 }
-                return new lively.ast.Break([n.start, n.end]);
+                return new lively.ast.Break([n.start, n.end], label);
             },
             ContinueStatement: function(n, c) {
-                if (n.label != null) {
-                    throw new Error('LK parser did not support labeled continues!');
+                var label;
+                if (n.label == null) {
+                    label = new lively.ast.Label([n.end, n.end], '');
+                } else {
+                    label = new lively.ast.Label(
+                        [n.label.start, n.label.end], n.label.name
+                    );
                 }
-                return new lively.ast.Continue([n.start, n.end]);
+                return new lively.ast.Continue([n.start, n.end], label);
             },
             TryStatement: function(n, c) {
                 var errVar, catchSeq;
@@ -507,7 +517,9 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 return new lively.ast.Debugger([n.start, n.end]);
             },
             LabeledStatement: function(n, c) {
-                throw new Error('LK parser did not support labels!');
+                return new lively.ast.LabelDeclaration(
+                    [n.start, n.end], n.label.name, c(n.body)
+                );
             }
         }
         visitors.LogicalExpression = visitors.BinaryExpression;

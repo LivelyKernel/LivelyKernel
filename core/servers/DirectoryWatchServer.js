@@ -156,3 +156,6 @@ module.exports = dirWatcherDomain.bind(function(route, app) {
     });
 
 });
+
+module.exports.getChangesSince = getChangesSince;
+module.exports.getWatchedFiles = getWatchedFiles;

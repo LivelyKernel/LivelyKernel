@@ -286,7 +286,9 @@ Global.Objects = {
 
         // constructed objects
         if (obj.constructor.name != 'Object' && !Object.isArray(obj)) {
-            return obj.constructor.name;
+            if(obj.constructor.name) 
+                return obj.constructor.name; 
+            return Object.prototype.toString.call(obj).split(" ")[1].split("]")[0]; 
         }
 
         // arrays or plain objects

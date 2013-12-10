@@ -495,8 +495,12 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 },
         describe: function describe(obj) {
                     var str;
-                    if (obj && obj.name) {
-                        if(typeof obj.name.valueOf() == 'string')
+                    if ((typeof obj === 'object' || typeof obj === 'function') && obj !== null && 'name' in obj) { 
+                        if(obj.__lookupGetter__('name')) { 
+                            try { 
+                                str = obj.name; 
+                            } catch(e) {} 
+                        } else if(typeof obj.name.valueOf() == 'string')                             
                             str = obj.name;
                         else if(typeof obj.name == 'function' && obj.name.length == 0) {
                             try {    
@@ -520,7 +524,11 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         case 'Array':
                             return Strings.print(o);
                         case 'Function':
-                            return Function.prototype.toString.call(o); 
+                            try { 
+                                return Function.prototype.toString.call(o); 
+                            } catch(e) { 
+                                return o.toString(); 
+                            } 
                         case 'Object':
                             //We should try to be more specific
                             var c = o.constructor;

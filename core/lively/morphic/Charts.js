@@ -110,6 +110,25 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         });
     },
     
+    onDrag: function($super) {
+        $super();
+        this.triggerLayouting();
+    },
+    
+    onDropOn: function($super, aMorph) {
+        $super();
+        this.triggerLayouting();
+    },
+    
+    triggerLayouting: function() {
+        var layouts = $world.submorphs.select(function(ea) {
+            return ea.isDataFlowAlignment && ea.isDataFlowAlignment();
+        }, this);
+        layouts.each(function(ea) {
+            ea.layoutWorld();
+        })
+    },
+    
     createLabel: function() {
         var t = new lively.morphic.Text();
         t.setTextString("DataFlowComponent");
@@ -224,7 +243,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             
             // check for the nearest DF component straight above or below myPosition
             if (direction * elPosition.y < direction * myPosition.y &&
-                elPosition.x < myPosition.x && elPosition.x + el.getExtent().x > myPosition.x)
+                elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
                 
                 if (closestMorph == null || direction * elPosition.y > direction * closestMorph.getPositionInWorld().y)
                     closestMorph = el;

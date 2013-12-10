@@ -37,7 +37,7 @@ var global = (function() {
 })();
 
 
-if (!ACE_NAMESPACE && typeof requirejs !== "undefined")
+if (!global[ACE_NAMESPACE] && typeof requirejs !== "undefined")
     return;
 
 

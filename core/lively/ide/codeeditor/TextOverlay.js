@@ -125,6 +125,11 @@ require('lively.ide.CodeEditor').toRun(function() {
                 $overlay.add(overlay, ed.session); });
         },
 
+        redrawTextOverlays: function() {
+            this.withOverlaySupport(function(overlay, ed) {
+                overlay.redraw(ed.session);
+            });
+        },
         removeTextOverlay: function() {
             this.withOverlaySupport(function($overlay, ed) {
                 $overlay.detach(ed.session);
@@ -141,7 +146,8 @@ require('lively.ide.CodeEditor').toRun(function() {
         },
 
         setTextOverlaysEnabled: function(bool) {
-            if (!bool) this.removeTextOverlay();
+            if (bool) this.textString += ''; // force redraw
+            else this.removeTextOverlay();
             return this._TextOverlaysEnabled = bool;
         },
         getTextOverlaysEnabled: function() {

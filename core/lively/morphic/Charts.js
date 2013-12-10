@@ -1,4 +1,4 @@
-module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.morphic.Widgets').toRun(function() {
+module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets').toRun(function() {
 
 lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     

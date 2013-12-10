@@ -24,6 +24,39 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     
 } )
 
+lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
+{
+    initialize: function($super) {
+        $super();
+        this.disableGutter();
+    },
+    
+    updateScripts: function(){
+        this.addScript(function boundEval(codeStr) {
+    var ctx = this.getDoitContext() || this;
+    ctx.refreshData();
+    
+    var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+    
+    // see also $super
+    
+    // Evaluate the string argument in a context in which "this" is
+    // determined by the reuslt of #getDoitContext
+    var str,
+    interactiveEval = function() {
+        try { return eval(__evalStatement)} catch (e) { return eval(__evalStatement) }
+    };
+    
+    try {
+    var result = interactiveEval.call(ctx);
+    if (localStorage.getItem("LivelyChangesets:" + location.pathname))
+        ChangeSet.logDoit(str, ctx.lvContextPath());
+    return result;
+    } catch(e) {throw e}
+    
+    });
+    },
+});
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
         $super();

@@ -18,10 +18,14 @@ Object.extend(lively, {
             }
             for(i = 1; i < topParts.length; i = i + 2) {
                 spec = JSON.parse(topParts[i]);
+                if (!context)
+                    return null;
                 context = context[spec];
                 parts = topParts[i + 1].split('.');
                 for (var j = 1, len = parts.length; j < len; j++) {
                     spec = parts[j];
+					if (!context)
+						return null;
                     context = context[spec];
                 }
             }
@@ -605,7 +609,7 @@ Object.extend(lively.Module, {
     Object.extend(Global, {namespaceIdentifier: 'Global'});
     // let Global act like a namespace itself
     Object.extend(Global, Global.lively.Module.prototype);
-    Object.extend(Global, {isLoaded: Functions.True});
+    Global.isLoaded = Functions.True;
     // make "lively" a proper lively.Module
     var helper = Global.lively,
         lively = new Global.lively.Module(Global, 'lively');

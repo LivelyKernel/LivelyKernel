@@ -158,6 +158,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     onDropOn: function($super, aMorph) {
         $super();
         this.triggerLayouting();
+        this.notify();
     },
     
     triggerLayouting: function() {
@@ -197,7 +198,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             console.log("after updateComponent: ", this.data);
             this.setFill(Color.gray);
         } catch (e) {
-            this.setFill(Color.red);
+            // red
+            this.setFill(Color.rgb(210, 172, 172));
             if (!e.alreadyThrown){
                 throw e;
             }

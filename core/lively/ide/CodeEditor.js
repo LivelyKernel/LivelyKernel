@@ -1371,6 +1371,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!sm) {
             this._statusMorph = sm = new lively.morphic.Text(this.getExtent().withY(80).extentAsRectangle());
             sm.applyStyle({
+                fontFamily: 'Monaco,monospace',
                 borderWidth: 0, borderRadius: 6,
                 fill: Color.gray.lighter(),
                 fontSize: this.getFontSize() + 1,
@@ -1392,8 +1393,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 overlapY = sm.bounds().bottom() - visibleBounds.bottom();
             if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
         }).delay(0);
-        if (!sm.removeDebounced) sm.removeDebounced = Functions.debounce(1000*(delay||4), sm.remove.bind(sm));
-        sm.removeDebounced();
+        if (sm._removeTimer) clearTimeout(sm._removeTimer);
+        sm._removeTimer = setTimeout(sm.remove.bind(sm), 1000*(delay||4))
     },
     hideStatusMessage: function () {
         if (this._statusMorph && this._statusMorph.owner) this._statusMorph.remove();

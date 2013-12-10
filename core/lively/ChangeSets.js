@@ -103,11 +103,10 @@ Object.extend(Global, {
             return true;
         if(this.originalFunction)
             return this.getOriginal().lvIsConstructor();
-        return Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
+        return this.prototype && (Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
                     return name != 'lvContextPath' && name != 'caller' && name != 'originalFunction' &&
                             !obj.__lookupGetter__(name) && obj[name] instanceof Function}
-                ).length > 0 ||
-                this.prototype && Object.getOwnPropertyNames(this.prototype).length > 1});   //one of them is 'constructor'
+                ).length > 0 || Object.getOwnPropertyNames(this.prototype).length > 1)});   //one of them is 'constructor'
 
     addOwnPropertyIfAbsent(Object.prototype, 'lvOwnFunctionNames', function(){
         return Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
@@ -498,6 +497,7 @@ Object.extend(ChangeSet, {
                 (function() { eval(changeRecord.source) }).call(context);
             } catch(e) {
                 changeRecord.errors.push("Failed evaluating doit:\n" + changeRecord.source + "\in context " + changeRecord.contextPath + "\n"+ e.name + ": " + e.message);
+                return;
             }
             if(!existingTimestamp)
                 this.logDoit(changeRecord.source, changeRecord.contextPath);
@@ -744,16 +744,23 @@ ChangeSet.addMethods(
 
     applyChanges: function() {
         if(this.timestamps.length != this.changeRecords.length)
-            throw new Error("inconsistent changeset state");
+            alert("inconsistent changeset state");
         if(this.changeRecords.length == 0) {
             alertOK("No changes to apply");
             return;
         }
             
-        for (var i=0; i<this.timestamps.length; i++)
-            ChangeSet.applyChange(this.changeRecords[i], this.timestamps[i]);
+        for (var i=0; i<this.timestamps.length; i++) {
+            try {
+                ChangeSet.applyChange(this.changeRecords[i], this.timestamps[i]);
+            } catch(e) {
+                this.changeRecords[i].errors.push("Unexpected error " + e.name + ": " + e.message);
+            }
+        }
         if(!this.hasErrors())
-            alertOK("Changes succesfully applied")
+            alertOK("Changes succesfully applied");
+        else
+            alert("Some of the changes failed to apply, please check your changes browser for details");
         
     },
 
@@ -2666,11 +2673,11 @@ Object.extend(Global, {
                             addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
                             contextPath = name;
                         }
+                        if(!object.prototype)
+                            debugger;
                         var protoContextPath = object.prototype.lvContextPath();
                         if(!protoContextPath)
                             addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})
-                        else if(protoContextPath !== contextPath + ".prototype")
-                            debugger;
                 }
                 else if((pjo = this[name]) instanceof Object && pjo !== Global && 
                         pjo !== this.constructor && !(pjo instanceof lively.Module)) {
@@ -2695,9 +2702,7 @@ Object.extend(Global, {
                                 }
                                 var protoContextPath = object.prototype.lvContextPath();
                                 if(!protoContextPath)
-                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})
-                                else if(protoContextPath !== contextPath + ".prototype")
-                                    debugger;}})}
+                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})}})}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {
@@ -3070,8 +3075,6 @@ lively.Module.addMethods("iterating", {
                         var protoContextPath = object.prototype.lvContextPath();
                         if(!protoContextPath)
                             addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})
-                        else if(protoContextPath !== contextPath + ".prototype")
-                            debugger;
                 } else if((pjo = this[name]) instanceof Object && pjo !== Global && pjo !== this &&
                         pjo !== this.constructor && !(pjo instanceof lively.Module)) {
                     var parentPath = thisPath + "." + name;
@@ -3095,9 +3098,7 @@ lively.Module.addMethods("iterating", {
                                 }
                                 var protoContextPath = object.prototype.lvContextPath();
                                 if(!protoContextPath)
-                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})
-                                else if(protoContextPath !== contextPath + ".prototype")
-                                    debugger;}})}
+                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})}})}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {

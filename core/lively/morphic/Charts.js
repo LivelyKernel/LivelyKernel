@@ -161,6 +161,38 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     notify: function() {
         this.update();
+        alertOK("we are updating now")
+    },
+    
+    onComponentChanged: function() {
+      
+        var _throttle = function(func, wait) {
+            var context, args, timeout, result;
+            var previous = 0;
+            var later = function() {
+              previous = new Date;
+              timeout = null;
+              result = func.apply(context, args);
+            };
+            return function() {
+              var now = new Date;
+              var remaining = wait - (now - previous);
+              context = this;
+              args = arguments;
+              if (remaining <= 0) {
+                clearTimeout(timeout);
+                timeout = null;
+                previous = now;
+                result = func.apply(context, args);
+              } else if (!timeout) {
+                timeout = setTimeout(later, remaining);
+              }
+              return result;
+            };
+        };
+      
+        this.onComponentChange = _throttle(this.notify, 200);
+        this.onComponentChange();
     },
     
     refreshData: function() {

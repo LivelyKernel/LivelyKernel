@@ -1976,17 +1976,11 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
     },
 
     handleKeyEvent: function(evt, keyInputState) {
-        var wasInPrefixState = keyInputState.commandName === 'prefix',
-            prevKeys = keyInputState.prevKeys.clone();
         keyInputState = this.updateInputStateFromEvent(evt, keyInputState);
         if (keyInputState.commandName === 'prefix') {
             return true;
         } else if (keyInputState.commandName) {
             return lively.ide.commands.exec(keyInputState.commandName);
-        } else if (wasInPrefixState) {
-            // We found no command to execute and no prefix, maybe an active
-            // codeeditor can deal with the combo/prefix
-            this.transferPrefixToActiveCodeEditor(prevKeys);
         }
         return false;
     },
@@ -2019,6 +2013,20 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         if (!kbd || kbd.commmandKeyBinding[combo] === undefined) return;
         // the current key will be read in by the editor, just send the last ones
         focused.aceEditor.keyBinding.$data.keyChain = combo;
+    },
+
+    transferPrefixFromActiveCodeEditor: function(keyInputState) {
+        var focused = lively.morphic.Morph.focusedMorph();
+        // are we typing in a codeeditor?
+        if (!focused || !focused.isCodeEditor
+         || !focused.aceEditor
+         || !focused.aceEditor.keyBinding.$data
+         // does the codeEditor know about key combos?
+         || focused.aceEditor.keyBinding.$data.keyChain === undefined) return keyInputState;
+        var chain = focused.aceEditor.keyBinding.$data.keyChain;
+        if (!chain.length) return keyInputState;
+        chain = this.normalizeCombo([chain]).split(' ');
+        return Object.merge([keyInputState, {prevKeys: chain}]);
     },
 
     getEditorKeybindings: function(codeEditor) {
@@ -2126,6 +2134,7 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         if (doDefaultEscapeAction(evt, keys)) return true;
         if (ensureFocusedMorph(evt, keys)) return undefined;
         if (triggerHalosViaKeyCombo(evt, keys)) return true;
+        if (transferKeyPrefixFromCodeEditor(evt, keys)) return true;
         if (showPressedKeys(evt, keys)) return true;
         return undefined;
     }
@@ -2142,6 +2151,11 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         if (focused) return false;
         world.focus.bind(world).delay();
         return true;
+    }
+    // ---------------------
+    function transferKeyPrefixFromCodeEditor() {
+        var handler = lively.morphic.KeyboardDispatcher.global();
+        handler.keyInputState = handler.transferPrefixFromActiveCodeEditor(handler.keyInputState);
     }
     // ---------------------
     function showPressedKeys(evt, keys) {

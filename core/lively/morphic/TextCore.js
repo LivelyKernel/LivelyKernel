@@ -570,13 +570,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     onKeyDown: function(evt) {
         this.cachedTextString = null;
 
-        if (evt.isAltDown() && evt.isArrowKey()) {
-            // alt with arrow keys can trigger browser forward/backward actions
-            // that can just navigate away from the current world and thus
-            // causing data loss. this disables it
-            UserAgent.isWindows && evt.stop();
-        }
-
         var shortCutResults = this.shortcutHandlers.invoke('invoke', evt, this);
         if (shortCutResults.include(true)) {
             evt.stop();
@@ -588,9 +581,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             if (result) evt.stop();
             // return result;
         }
-
-        // Opera fix: evt.stop in onKeyPress does not seem to work
-        evt.stopPropagation();
 
         var c = evt.getKeyCode();
         if (c === Event.KEY_DELETE) return this.onDelPressed(evt);

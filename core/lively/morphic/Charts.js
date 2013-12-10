@@ -31,31 +31,71 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
         this.disableGutter();
     },
     
-    updateScripts: function(){
-        this.addScript(function boundEval(codeStr) {
-    var ctx = this.getDoitContext() || this;
-    ctx.refreshData();
-    
-    var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
-    
-    // see also $super
-    
-    // Evaluate the string argument in a context in which "this" is
-    // determined by the reuslt of #getDoitContext
-    var str,
-    interactiveEval = function() {
-        try { return eval(__evalStatement)} catch (e) { return eval(__evalStatement) }
-    };
-    
-    try {
-    var result = interactiveEval.call(ctx);
-    if (localStorage.getItem("LivelyChangesets:" + location.pathname))
-        ChangeSet.logDoit(str, ctx.lvContextPath());
-    return result;
-    } catch(e) {throw e}
-    
-    });
+    boundEval: function(codeStr) {
+        
+        var ctx = this.getDoitContext() || this;
+        ctx.refreshData();
+        
+        var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        
+        // see also $super
+        
+        // Evaluate the string argument in a context in which "this" is
+        // determined by the reuslt of #getDoitContext
+        var str,
+        interactiveEval = function() {
+            try { return eval(__evalStatement)} catch (e) { return eval(__evalStatement) }
+        };
+        
+        try {
+            var result = interactiveEval.call(ctx);
+            if (localStorage.getItem("LivelyChangesets:" + location.pathname))
+                ChangeSet.logDoit(str, ctx.lvContextPath());
+            return result;
+        } catch(e) {throw e}
+        
     },
+    
+    onKeyUp: function(evt) {
+        var _this = evt.getTargetMorph();
+        _this.onChanged.apply(_this, arguments);
+    },
+    
+    onChanged: function() {
+        if (!this.isValid())
+            return;
+        
+        
+        var newSession =  this.aceEditor.getSession().toString();
+        console.log("newSession", newSession);
+        debugger;
+        if (this.oldSession) {
+            if (this.oldSession == newSession)
+                return;
+        }
+        this.oldSession = newSession;
+        
+        var ownerChain = this.ownerChain();
+    
+        for (var i = 0; i < ownerChain.length; i++) {
+            if (ownerChain[i] instanceof lively.morphic.DataFlowComponent){
+                ownerChain[i].onComponentChanged();
+                break;
+            }
+        }
+    },
+    
+    isValid: function() {
+        var str = this.getSession();
+        try {
+            eval("throw 0;" + str);
+        } catch (e) {
+            if (e === 0)
+                return true;
+        }
+        return false;
+    }
+
 });
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
@@ -153,6 +193,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var promise;
         try {
             promise = this.updateComponent();
+            
+            console.log("after updateComponent: ", this.data);
             this.setFill(Color.gray);
         } catch (e) {
             this.setFill(Color.red);
@@ -161,14 +203,17 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             }
             return;
         }
-        
+    
         var _this = this;
         if (promise && typeof promise.done == "function") {
             promise.done(function() {
                 _this.notifyNextComponent();
             });
-        }else
+        } else {
+            console.log("data before notify: ", this.data);
             this.notifyNextComponent();
+        }
+            
     },
     
     notifyNextComponent: function() {
@@ -180,38 +225,38 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     notify: function() {
         this.update();
-        alertOK("we are updating now")
     },
     
     onComponentChanged: function() {
-      
-        var _throttle = function(func, wait) {
-            var context, args, timeout, result;
-            var previous = 0;
-            var later = function() {
-              previous = new Date;
-              timeout = null;
-              result = func.apply(context, args);
-            };
-            return function() {
-              var now = new Date;
-              var remaining = wait - (now - previous);
-              context = this;
-              args = arguments;
-              if (remaining <= 0) {
-                clearTimeout(timeout);
-                timeout = null;
-                previous = now;
-                result = func.apply(context, args);
-              } else if (!timeout) {
-                timeout = setTimeout(later, remaining);
-              }
-              return result;
-            };
-        };
-      
-        this.onComponentChange = _throttle(this.notify, 200);
-        this.onComponentChange();
+        var wait = 1000;
+        var now = new Date;
+        
+        var _this = this;
+        var doIt = function() {
+            _this.notify();
+            _this.previous = now;
+        }
+        
+        if (!this.previous) {
+            doIt();
+            return;
+        }
+        
+        var previous = this.previous;
+        
+        var remaining = wait - (now - previous);
+        
+        if (remaining <= 0) {
+            doIt();
+        } else {
+            // setTimeout and check that we only have one at a time
+            if (!this.currentTimeout){
+                this.currentTimeout = setTimeout(function() {
+                    doIt();
+                    _this.currentTimeout = null;
+                }, remaining);
+            }
+        }
     },
     
     refreshData: function() {

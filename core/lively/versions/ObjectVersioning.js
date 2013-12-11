@@ -115,7 +115,12 @@ Object.extend(Object, {
         var roots = [Object.prototype, Function.prototype, Array.prototype];
         return roots.include(obj);
     },
-    
+    isNativeCode: function(func) {
+        var isNativeCode = func.toString().include('[native code]') ||
+                Config.get('NativeCodeThatsPatched').include(func);
+        
+        return isNativeCode && !func.isNotNativeButBound;
+    },
     // there's no trap for the instanceOf operator. instead it always
     // works directly on the proxy's original target (dummyTarget for our
     // virtual object-proxies, but the proto-chain can also change).
@@ -335,14 +340,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return copy;
             },
             canFunctionHandleProxies: function(func) {
-                // note, however: the following [native code]-check also
-                // incorrectly matches functions that have been bound
-                // using, for example, (Function.protototype.bind())
                 
-                var isNativeCode = func.toString().include('[native code]') ||
-                    Config.get('NativeCodeThatsPatched').include(func);
-                
-                if (isNativeCode &&
+                if (Object.isNativeCode(func) &&
                     !Config.get('NativeCodeThatCanHandleProxies').include(func)) {
                     
                     return false;
@@ -886,6 +885,20 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         if (!lively.createObject) {
             this.wrapObjectCreate();
+        }
+        
+        // aFunction.bind(..) returns a function that prints to [native code]
+        // and is thus matched to be primitive code (that often can't handle
+        // proxies), but in this case might just be a bound function
+        var originalBind = Function.prototype.bind;
+        Function.prototype.bind = function() {
+          var bound = originalBind.apply(this, arguments);
+          
+          if (!Object.isNativeCode(this)) {
+              bound.isNotNativeButBound = true;
+          }
+          
+          return bound;
         }
         
         // 'aString'.match(regExp): regExp can't be a proxy

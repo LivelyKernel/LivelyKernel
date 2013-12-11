@@ -411,7 +411,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         // currently:
         this.assertInVersion(function() {return person.age === 25}, lively.CurrentVersion);
     },
-    test02VersionsOfAnArray: function() {
+    test02aVersionsOfAnArray_DirectAccess: function() {
         var arr, versionBefore;
         
         arr = lively.proxyFor([]);
@@ -430,7 +430,23 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         this.assertInVersion(function() {return arr[0] === 2}, lively.CurrentVersion);
         this.assertInVersion(function() {return arr[1] === 2}, lively.CurrentVersion);
     },
-    test03ChangesAfterCommitCanBeUndone: function() {
+    test02bVersionsOfAnArray_ModifyingMethod: function() {
+        var arr, versionBefore;
+        
+        arr = lively.proxyFor([]);
+        
+        arr[0] = 1;
+        
+        versionBefore = lively.commitVersion();
+        
+        arr.push(2);
+        
+        lively.versions.ObjectVersioning.undo();
+        
+        this.assertEquals(arr.length, 1);
+        this.assert(arr[1] === undefined);
+    },
+    test03aChangesCanBeUndone: function() {
         var app = lively.proxyFor({});
         app.counter = 1;
         

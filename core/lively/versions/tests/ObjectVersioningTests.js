@@ -747,32 +747,50 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test14TransformEvalCorrectly: function() {
+    test14TransformEval: function() {
         var input = 'eval(\"some string argument\");',
             expectedOutput = 'eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test15TransformGlobalEvalCorrectly: function() {
+    test15TransformGlobalEval: function() {
         var input = 'Global.eval(\"some string argument\");',
             expectedOutput = 'lively.proxyFor(Global).eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test16TransformWindowEvalCorrectly: function() {
+    test16TransformWindowEval: function() {
         var input = 'window.eval(\"some string argument\");',
             expectedOutput = 'lively.proxyFor(window).eval(lively.transformSource(\"some string argument\"));';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test17IndicatesFailureOnSyntaxError: function() {
+    test17TransformSetTimeout: function() {
+        var input = 'setTimeout(\"alert(1)\", 10);',
+            expectedOutput = 'lively.setTimeout(\"alert(1)\", 10);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test18TransformWindowSetTimeout: function() {
+        var input = 'window.setTimeout(\"alert(1)\", 10);',
+            expectedOutput = 'lively.setTimeout(\"alert(1)\", 10);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test19TransformGlobalSetTimeout: function() {
+        var input = 'Global.setTimeout(\"alert(1)\", 10);',
+            expectedOutput = 'lively.setTimeout(\"alert(1)\", 10);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test20IndicatesFailureOnSyntaxError: function() {
         var incorrectInput = '{ problem: "object misses a comma" before: "second property"';
        
         this.assertRaises((function() {
             this.transform(incorrectInput);
         }).bind(this));
     },
-    test18GenerateSourceWithMapping: function() {
+    test21GenerateSourceWithMapping: function() {
         var input = 'var obj = {};',
             expectedOutput = 'var obj=lively.proxyFor({});\n' +
                 '//@ sourceMappingURL=data:application/json;charset=utf-8;base64,' +
@@ -783,7 +801,7 @@ TestCase.subclass(
         
         this.assertEquals(output, expectedOutput);
     },
-    test19BiggerExample: function() {
+    test22BiggerExample: function() {
         var input =
             "var joe = {\n" +
             "    name: 'Joe',\n" +

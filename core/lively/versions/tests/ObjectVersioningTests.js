@@ -1,8 +1,8 @@
 module('lively.versions.tests.ObjectVersioningTests').requires('lively.TestFramework', 'lively.versions.ObjectVersioning').toRun(function() {
 
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests',
-// these test cases more or less resemble a spec for the proxies:
-// proxies should be transparent, they should behave just like regular objects
+// these test cases verify that the versioning proxies behave just like
+// ordinary objects
 'testing', {
     test01ProxyCreation: function() {
         var proxy = lively.proxyFor({});
@@ -395,7 +395,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
     },
 },
 'testing', {
-    test01CommitedVersion: function() {
+    test01VersionsOfObject: function() {
         var person, versionBefore;
         
         person = lively.proxyFor({});
@@ -458,7 +458,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         this.assertEquals(app.counter, 1);
     },
-    test04ChangesToCompoundPropertyCanBeUndone: function() {
+    test03bChangesCanBeUndone: function() {
         var app = lively.proxyFor({});
         app.view = lively.proxyFor({});
         app.view.color = 'red';
@@ -471,7 +471,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         this.assertEquals(app.view.color, 'red');
     },
-    test05PropertyCreationCanBeUndone: function() {
+    test03cChangesCanBeUndone: function() {
         var obj = lively.proxyFor({});
         
         lively.commitVersion();
@@ -482,7 +482,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         this.assert(obj.isPropertyDefined === undefined);
     },
-    test06UndoneChangesCanBeRedone: function() {
+    test04aUndoneChangesCanBeRedone: function() {
         var address = lively.proxyFor({});
         address.street = 'Meanstreet';
         address.city = 'Chicago';
@@ -490,11 +490,11 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         lively.commitVersion();
         
         lively.versions.ObjectVersioning.undo();
-        lively.redo();
+        lively.versions.ObjectVersioning.redo();
         
         this.assertEquals(address.city, 'Chicago');
     },
-    test07UndonePropertyAdditionCanBeRedone: function() {
+    test04bUndoneChangesCanBeRedone: function() {
         var address = lively.proxyFor({});
         lively.commitVersion();
         address.street = 'Meanstreet';
@@ -503,12 +503,12 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         lively.versions.ObjectVersioning.undo();
         lively.versions.ObjectVersioning.undo();
-        lively.redo();
+        lively.versions.ObjectVersioning.redo();
         
         this.assertEquals(address.street, 'Meanstreet');
         this.assert(address.city === undefined);
     },
-    test08UndoingAChangeOfProto: function() {
+    test05PrototypeChangeCanBeUndone: function() {
         var originalPrototype = lively.proxyFor({
                 method: lively.proxyFor(function() {return 1}),
             }),
@@ -536,6 +536,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         this.assert(!descendant.method);
     },
 });
+
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ExtensionTests',
 'testing', {
     test01ObjectInstanceOf_NullValues: function() {

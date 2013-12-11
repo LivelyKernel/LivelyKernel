@@ -60,7 +60,7 @@ Config.addOption('GlobalSymbolsToWrap', [
 // some functions should be handled as native code, but get patched elsewhere.
 // for example, anArray.concat and aDate.toString get patched by
 // reflect.js and thus wouldn't otherwise be recognized as [native code]
-Config.addOption('NativeCodeThatsPatched', [
+Config.addOption('PatchedNativeCode', [
     Array.prototype.concat, Function.prototype.toString, Date.prototype.toString
 ]);
 
@@ -75,6 +75,16 @@ Config.addOption('NativeCodeThatCanHandleProxies', [
     Array.prototype.reduceRight, Array.prototype.indexOf
 ]);
 
+// some functions expect objects with properties or arrays with some elements,
+// where these inner values also should not be proxied. we don't want to unwrap
+// everything by default, because we neither want to unwrap any objects
+// permanently nor copy every object or array passed to [native code]).
+// for example, WebWorker get some option objects which can't have proxied
+// properties. otherwise: DOM Exception 25, DATA_CLONE_ERR
+Config.addOption('NativeCodeWhereArgumentsNeedToBeUnwrappedRecursively', [
+    Worker.prototype.postMessage, JSON.stringify
+]);
+
 // native Array functions for whose application we might want to create new
 // versions of the array first, see Mutator methods here:
 // developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/prototype#Methods
@@ -84,14 +94,17 @@ Config.addOption('ModifyingArrayOperations', [
     Array.prototype.unshift
 ]);
 
-// some functions expect objects with properties or arrays with some elements,
-// where these inner values also should not be proxied. we don't want to unwrap
-// everything by default, because we neither want to unwrap any objects
-// permanently nor copy every object or array passed to [native code]).
-// for example, WebWorker get some option objects which can't have proxied
-// properties. otherwise: DOM Exception 25, DATA_CLONE_ERR
-Config.addOption('NativeCodeWhereArgumentsNeedToBeUnwrappedRecursively', [
-    Worker.prototype.postMessage, JSON.stringify
+// ++ TODO: if we really need to handle Nodes / CSSStyleDecs
+// differently here, then we might want to use a direct
+// reference instead of a versionid-to-version map
+
+// we don't create different versions of JavaScript objects for DOM elements
+// as we would have to manage which version of the element should be in the DOM
+// tree anyway and all information necessary to draw a Lively world is stored in
+// morphs. that is, we keep version of those graphical objects that also get
+// serialized with world and rerender the world whenever we undo/redo
+Config.addOption('DOMTypes', [
+    CSSStyleDeclaration, Node
 ]);
 
 
@@ -116,7 +129,6 @@ Object.extend(Object, {
     isProxy: function(obj) {
         return !!obj && !!obj.isProxy && obj.isProxy();
     },
-    
     isPrimitiveObject: function(obj) {
         return obj !== Object(obj);
     },
@@ -124,11 +136,26 @@ Object.extend(Object, {
         var roots = [Object.prototype, Function.prototype, Array.prototype];
         return roots.include(obj);
     },
+    isRegExp: function (obj) {
+        if (Object(obj).isProxy()) {
+            return obj.proxyTarget() instanceof RegExp;
+        } else {
+            return obj instanceof RegExp;
+        }
+    },
     isNativeCode: function(func) {
-        var isNativeCode = func.toString().include('[native code]') ||
-                Config.get('NativeCodeThatsPatched').include(func);
+        var isNativeCode,
+            isBoundFunction = func.isNotNativeButBound;
         
-        return isNativeCode && !func.isNotNativeButBound;
+        isNativeCode = func.toString().include('[native code]') ||
+            Config.get('PatchedNativeCode').include(func);
+        
+        // ((function NAME (..) { .. }).bind()) also prints to [native code],
+        // that's why isNotNativeButBound is added to such bound functions in
+        // bind
+        isBoundFunction = func.isNotNativeButBound;
+        
+        return isNativeCode && !isBoundFunction;
     },
     // there's no trap for the instanceOf operator. instead it always
     // works directly on the proxy's original target (dummyTarget for our
@@ -150,13 +177,75 @@ Object.extend(Object, {
         
         return realObj instanceof realType;
     },
-    isRegExp: function (obj) {
-        if (Object(obj).isProxy()) {
-            return obj.proxyTarget() instanceof RegExp;
-        } else {
-            return obj instanceof RegExp;
+    copyObject: function(originalObject) {
+        var hasOwn = Object.prototype.hasOwnProperty,
+            copy;
+            
+        if (originalObject instanceof Date) {
+            
+            // a Date object stores its data as a hidden member..
+            copy = new Date();
+            copy.setTime(originalObject.getTime());
+            
+        } else if (Object.isFunction(originalObject)) {
+            
+            // note: one limitation will be if the function needs to be
+            // copied (because properties of the function get changed
+            // in another version) and it was binding values via its
+            // closure that we can't access those bindings and
+            // ultimately can't copy the function with those closure
+            // bindings, except probably for the lively scripts
+            
+            // TODO: use lively script's closure bindings when possible
+            
+            eval('copy = ' + originalObject.toString());
+            
+            if (originalObject.hasOwnProperty('prototype')) {
+                copy.prototype = originalObject.prototype;
+            }
+            
+            for (var key in originalObject) {
+                copy[key] = originalObject[key];
+            }
+            
+        } else if (Object.isArray(originalObject)) {
+            
+            copy = [];
+            for (var i = 0; i < originalObject.length; i++) {
+                copy[i] = originalObject[i];
+            }
+            
+            Object.defineProperty(copy, '__protoProxy', {
+                value: originalObject.__protoProxy,
+                writable: true
+            });
+            
+        } else if (Object.isObject(originalObject)) {
+            
+            copy = Object.create(originalObject.__proto__);
+            
+            // copy non-enumerable properties explicitly
+            if (hasOwn.call(originalObject, 'constructor')) {
+                copy.constructor = originalObject.constructor;
+            }
+            Object.defineProperty(copy, '__protoProxy', {
+                value: originalObject.__protoProxy,
+                writable: true
+            });
+            
+            // copy all other values/references
+            for (var name in originalObject) {
+                if (hasOwn.call(originalObject, name) &&
+                    !hasOwn.call(copy, name)) {
+                    
+                    copy[name] = originalObject[name];
+                }
+            }
+            
         }
-    }
+        
+        return copy;
+    },
 });
 
 
@@ -190,6 +279,19 @@ Object.extend(lively.versions.ObjectVersioning, {
                 while(!targetObject && version) {
                     targetObject = this.__targetVersions[version.ID];
                     version = version.previousVersion;
+                }
+                
+                // FIXME: why is this necessary? is this only necessary for
+                // certain kinds of objects as, for example, for DOM Nodes
+                // and CSSStyleDeclarations?
+                if (!targetObject) {
+                    version = lively.CurrentVersion;
+                    
+                    while(!targetObject && version) {
+                        targetObject = this.__targetVersions[version.ID];
+                        version = version.nextVersion;
+                    }
+                    
                 }
                 
                 return targetObject;
@@ -263,97 +365,34 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return newObject;
             },
-            shouldObjectBeCopiedBeforeWrite: function(target, propertyName) {
-                // copy objects before writing into them, when there's not yet
-                // a version of the object (= a copy) for the current version
+            shouldObjectBeCopiedBeforeWrite: function(target) {
+                var isDOMElement;
                 
                 // don't create new versions of window or DOM or CSS objects
-                if (target === window ||
-                    target instanceof Node ||
-                    target instanceof CSSStyleDeclaration) {
+                isDOMElement = Config.get('DOMTypes').any(function(ea) {
+                    return target instanceof ea;
+                });
+                if (target === window || isDOMElement) {
                     
                     return false;
                 }
                 
+                // DEFAULT CASE:
+                // copy objects before writing into them, when there's not yet
+                // a version of the object (= a copy) for the current version
+                // of the runtime
                 return !this.__targetVersions.
                     hasOwnProperty(lively.CurrentVersion.ID);
             },
             shouldObjectBeCopiedBeforeApplication: function(thisArg, func) {
                 return Object.isProxy(thisArg) &&
-                    Object.isArray(thisArg) &&
-                    Config.get('ModifyingArrayOperations').include(func);
-            },
-            copyObjectForOtherVersion: function(originalObject) {
-                var copy,
-                    hasOwn = Object.prototype.hasOwnProperty;
-                
-                // a Date object stores its data as a hidden member..
-                if (originalObject instanceof Date) {
-                    
-                    copy = new Date();
-                    copy.setTime(originalObject.getTime());
-                    
-                } else if (Object.isFunction(originalObject)) {
-                    
-                    // note: one limitation will be if the function needs to be
-                    // copied (because properties of the function get changed
-                    // in another version) and it was binding values via its
-                    // closure that we can't access those bindings and
-                    // ultimately can't copy the function with those closure
-                    // bindings, except probably for the lively scripts
-                    
-                    // TODO: use lively script's closure bindings when possible
-                    
-                    eval('copy = ' + originalObject.toString());
-                    
-                    if (originalObject.hasOwnProperty('prototype')) {
-                        copy.prototype = originalObject.prototype;
-                    }
-                    
-                    for (var key in originalObject) {
-                        copy[key] = originalObject[key];
-                    }
-                    
-                } else if (Object.isArray(originalObject)) {
-                    
-                    copy = [];
-                    for (var i = 0; i < originalObject.length; i++) {
-                        copy[i] = originalObject[i];
-                    }
-                    Object.defineProperty(copy, '__protoProxy', {
-                        value: originalObject.__protoProxy,
-                        writable: true
-                    });
-                    
-                } else if (Object.isObject(originalObject)) {
-                    
-                    copy = Object.create(originalObject.__proto__);
-                    
-                    // copy non-enumerable properties explicitly
-                    if (hasOwn.call(originalObject, 'constructor')) {
-                        copy.constructor = originalObject.constructor;
-                    }
-                    Object.defineProperty(copy, '__protoProxy', {
-                        value: originalObject.__protoProxy,
-                        writable: true
-                    });
-                    
-                    // copy all other values/references
-                    for (var name in originalObject) {
-                        if (hasOwn.call(originalObject, name) &&
-                            !hasOwn.call(copy, name)) {
-                            
-                            copy[name] = originalObject[name];
-                        }
-                    }
-                    
-                }
-                
-                this.__targetVersions[lively.CurrentVersion.ID] = copy;
-                
-                return copy;
+                        Object.isArray(thisArg) &&
+                        Config.get('ModifyingArrayOperations').include(func);
             },
             canFunctionHandleProxies: function(func) {
+                // note, however: the following [native code]-check also
+                // incorrectly matches functions that have been bound
+                // using, for example, (Function.protototype.bind())
                 
                 if (Object.isNativeCode(func) &&
                     !Config.get('NativeCodeThatCanHandleProxies').include(func)) {
@@ -366,14 +405,20 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // === proxy handler traps ===
             set: function(dummyTarget, name, value, receiver) {
-                var targetObject, newObject, setter;
+                var targetObject, newObject, setter, copy;
                 
                 targetObject = this.targetObject();
                 
                 // copy-on-write: create and work on a new version of the target
                 // when target was commited with a previous version
-                if (this.shouldObjectBeCopiedBeforeWrite(targetObject)) {
-                    targetObject = this.copyObjectForOtherVersion(targetObject);
+                if (this.shouldObjectBeCopiedBeforeWrite(targetObject) &&
+                    name !== '__newVersionOfTarget') {
+                    
+                    copy = Object.copyObject(targetObject);
+                    this.__targetVersions[lively.CurrentVersion.ID] = copy;
+                    lively.ProxyTable.set(copy, receiver);
+                    
+                    targetObject = copy;
                 }
                 
                 // special cases
@@ -394,6 +439,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     }
                     return true;
                 }
+                
                 if (name === 'onreadystatechange' && Object.isProxy(value) &&
                     targetObject.constructor.name === 'XMLHttpRequest') {
                     value = value.proxyTarget();
@@ -490,7 +536,8 @@ Object.extend(lively.versions.ObjectVersioning, {
                     thisArg = suppliedThisArg,
                     targetObject = suppliedThisArg,
                     args = suppliedArgs,
-                    func = this.targetObject();
+                    func = this.targetObject(),
+                    copy;
                 
                 // when aFunc is Function.prototype.apply or .call, normalize
                 // the arguments as we apply the function below, removing the
@@ -524,9 +571,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 // copy-on-write: create and set a new version of the target
                 // before executing native functions that modify the target,
-                // --> the Array Mutator functions
+                // specifically the Array Mutator functions
                 if (this.shouldObjectBeCopiedBeforeApplication(thisArg, func)) {
+                    
                     thisArg.__createNewVersionOfTarget();
+                    
                 }
                 
                 // some primitive code can't handle proxies,
@@ -809,8 +858,6 @@ Object.extend(lively.versions.ObjectVersioning, {
     start: function() {
         this.init();
         
-        lively.versions.ObjectVersioning.isActive = true;
-        
         // Module System + Class System (Base.js)
         this.patchBaseCode();
         
@@ -857,15 +904,19 @@ Object.extend(lively.versions.ObjectVersioning, {
         lively.CurrentVersion = previousVersion;
         
         if (callback) callback();
+        
+        return lively.CurrentVersion;
     },
     redo: function(callback) {
         var followingVersion = this.followingVersion();
         if (!followingVersion) {
             throw new Error('Can\'t redo: No next version.');
         }
-        lively.CurrentVersion = this.followingVersion();
+        lively.CurrentVersion = followingVersion;
         
         if (callback) callback();
+        
+        return lively.CurrentVersion;
     },
     previousVersion: function() {
         return lively.CurrentVersion.previousVersion;
@@ -873,10 +924,11 @@ Object.extend(lively.versions.ObjectVersioning, {
     followingVersion: function() {
        return lively.CurrentVersion.nextVersion;
     },
-    
-    
     wrapObjectCreate: function() {
         var create = Object.create;
+        
+        if (lively.createObject)
+            return;
         
         var wrappedCreate = function(proto, propertiesObject) {
             // when proxies are used as prototypes of objects, the prototypes
@@ -911,12 +963,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     },
     patchBuiltInFunctions: function() {
         
-        // patch some methods of objects that aren't proxied, but also
-        // are native and can't handle proxies
-        
-        if (!lively.createObject) {
-            this.wrapObjectCreate();
-        }
+        this.wrapObjectCreate();
         
         // aFunction.bind(..) returns a function that prints to [native code]
         // and is thus matched to be primitive code (that often can't handle
@@ -931,6 +978,9 @@ Object.extend(lively.versions.ObjectVersioning, {
           
           return bound;
         }
+        
+        // patch some methods of objects that aren't proxied, but also
+        // are native and can't handle proxies
         
         // 'aString'.match(regExp): regExp can't be a proxy
         var originalStringMatch = String.prototype.match;
@@ -1019,17 +1069,17 @@ Object.extend(lively.versions.ObjectVersioning, {
     
     proxyBuiltInObjectsGlobally: function() {
         
-        // Note: we can only proxy global objects globally (instead of just
+        // Note: we can only proxy objects globally (instead of just
         // lexically via source transformations), when such Objects are
         // definitely not used in code that is loaded before the Object
         // Versioning code or in the Object Versioning code itself
+        // – or that code is definitely not affected by proxies objects
         
         Worker = lively.proxyFor(Worker);
         
     },
     
 });
-
 
 Object.extend(lively.versions.ObjectVersioning, {
     transformSource: function(source) {
@@ -1038,6 +1088,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     }
 });
 
+// ----- TICKING -----
 
 lively.timeouts = [];
 lively.intervals = [];
@@ -1071,7 +1122,7 @@ lively.killScriptsFromTheFuture = function() {
     lively.timeouts.forEach(function(each) {
         if (each.versionID > lively.CurrentVersion.ID) {
             Global.clearTimeout(each.id);
-           
+            
             killedTimeouts.push(each);
         }
     });
@@ -1088,11 +1139,13 @@ lively.killScriptsFromTheFuture = function() {
     
 };
 
-
 // ----- GLOBAL VERSIONING SHORTCUTS -----
 
-var livelyOV = lively.versions.ObjectVersioning,
-    redrawWorld = function() { $world.renderWithHTML(); };
+var livelyOV = lively.versions.ObjectVersioning;
+
+var redrawWorld = function() {
+    $world.renderWithHTML();
+}
 
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
 lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
@@ -1105,10 +1158,8 @@ lively.redo = livelyOV.redo.bind(livelyOV).curry(redrawWorld);
 
 lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 
-
 // ----- GLOBAL ACTIVATION -----
 
 lively.versions.ObjectVersioning.init();
 
 });
-

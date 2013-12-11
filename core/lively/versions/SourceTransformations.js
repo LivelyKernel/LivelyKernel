@@ -11,15 +11,23 @@ Object.extend(lively.versions.SourceTransformations, {
             return false;
         
         // eval('something')
+        // note: this assumes that there are no local functions named eval
         if (node.expression instanceof UglifyJS.AST_SymbolRef &&
-            node.expression.name === 'eval')
+            node.expression.name === 'eval') {
+            
             return true;
+        }
         
         // e.g. Global.eval('something') || window.eval('something')
         if (node.expression instanceof UglifyJS.AST_Dot &&
-            node.expression.property === 'eval')
-            return true;
+            node.expression.property === 'eval' ) {
             
+            // both global symbols are already wrapped into lively.proxyFor
+            // at this point
+            
+            return true;
+        }
+        
         return false;
     },
     isCallToDelayFunction: function(node) {
@@ -47,13 +55,13 @@ Object.extend(lively.versions.SourceTransformations, {
             
             // both Global and window are already wrapped into lively.proxyFor
             // at this point
-        
+            
             return true;
         }
         
         return false;
         
-    },    
+    },
     isCallToObjectCreate: function(node) {
         return node instanceof UglifyJS.AST_Dot &&
             node.property === 'create' &&
@@ -247,13 +255,8 @@ Object.extend(lively.versions.SourceTransformations, {
             // names. and it's syntactically legal to declare variables
             // multiple times (var declaration gets hoisted)
             
-            // TODO: function declarations get hoisted in JavaScript, so we
-            // need to move the func decs we transform to variable assignments
-            // of function expressions to the beginning of each function
-            // scope, while preserving the lexical order of function
-            // declarations, see javascriptweblog.wordpress.com/2010/07/06/function-declarations-vs-function-expressions/
-            
             return this.transformFunctionDeclaration(node);
+            
         } else if (node instanceof UglifyJS.AST_SymbolRef &&
             Config.get('GlobalSymbolsToWrap').include(node.name)) {
             
@@ -264,9 +267,11 @@ Object.extend(lively.versions.SourceTransformations, {
         } else if (this.isCallToEval(node)) {
             
             // rewrite: eval([code]) -> eval(lively.transformSource([code]))
+            
             node.args[0] = this.wrapInTransformSourceCall(node.args[0]);
             
             return node;
+        
         } else if (this.isCallToDelayFunction(node)) {
             var funcName, callNode, callString;
             
@@ -294,17 +299,21 @@ Object.extend(lively.versions.SourceTransformations, {
             // objects
             
             return this.wrapInObjectInstanceOfCall([node.left, node.right]);
-        } if (this.isAKeyValuePairWithAProxiedFunction(node)) {
+            
+        } else if (this.isAKeyValuePairWithAProxiedFunction(node)) {
             
             // use property keys as function names to have less anonymous
             // functions in the browser's developer tools
             
+            // rewrite:
             // obj = {myMethod: lively.proxyFor(function())}
             // -->
             // obj = {myMethod: lively.proxyFor(function myMethod())}
             
             this.addKeyAsFunctionNameForAnonymousFunctions(node);
+            
             return node;
+            
         } else {
             return node;
         }

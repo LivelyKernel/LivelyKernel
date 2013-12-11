@@ -1,9 +1,37 @@
-/*global __dirname*/
+/*global require, process, __dirname*/
+var path = require('path'),
+    fs = require('fs');
+
 function checkNPMPackages() {
-    var path = require("path");
     var exec = require("child_process").exec;
-    var fs = require("fs");
     var lkDir = path.join(__dirname, '..');
+
+    function ensureNodeBin(thenDo) {
+        // looks like not all platforms have a "node" binary. on kubuntu it
+        // seems to be called "nodejs". Lively is actually aware of those
+        // issues since we detect various kinds of nodejs bins in env.js.
+        // However, when installing the dependencies we can run into trouble b/c
+        // e.g. websocket directly references the node bin. in order to allow
+        // the install to succeed we but a "node" bin into PATH
+        console.log('Checking if "node" exists...');
+        exec("which node", function(code) {
+            if (!code) { /*node exists*/
+                thenDo(null);
+                console.log('... yes');
+                return;
+            }
+            console.log('... no');
+            var binPath = path.join(process.env.WORKSPACE_LK, 'bin'),
+                nodeBin = path.join(binPath, 'node'),
+                realNodeBin = process.env.npm_node_execpath || process.execPath,
+                nodeBinScript = "#!/usr/bin/env sh\n\n"
+                          + realNodeBin + " \"$@\"\n";
+            fs.writeFileSync(nodeBin, nodeBinScript);
+            fs.chmodSync(nodeBin, 0755);
+            process.env.PATH = binPath + ':' + process.env.PATH;
+            thenDo(null);
+        }).on("error", function(err) {});
+    }
 
     function findMissingNPMPackages() {
         var packageJson = path.join(lkDir, "package.json");
@@ -40,26 +68,25 @@ function checkNPMPackages() {
         exec("npm install " + pkgName, {cwd: lkDir}, thenDo);
     }
 
-
     var missingPackages = findMissingNPMPackages();
     if (!missingPackages || !missingPackages.length) return true;
     console.log('Not all required npm packages are installed! Installing packages %s', missingPackages);
     console.log('Please wait until the packages are installed and then restart the server.');
-    installAll(missingPackages, function(err) { process.exit(0); });
+    installAll(missingPackages, function(err) {
+        console.log("Finished installing dependencies, please restart.");
+        process.exit(0);
+    });
     return false;
 }
 
 if (checkNPMPackages()) {
 
-/*global require, process*/
-var args = require('./helper/args'),
-    async = require('async'),
+var async = require('async'),
     spawn = require('child_process').spawn,
     shelljs = require('shelljs'),
-    path = require('path'),
-    fs = require('fs'),
     env = require('./env'),
     life_star = require('life_star'),
+    args = require('./helper/args'),
     cmdAndArgs = [];
 
 // -=-=-=-=-=-=-=-=-=-=-

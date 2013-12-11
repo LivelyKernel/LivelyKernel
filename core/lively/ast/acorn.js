@@ -546,10 +546,48 @@ Object.extend(lively.ast.acorn, {
     parse: function(source) {
         return acorn.parse(source);
     },
+
+    parseLikeOMeta: function(src, rule) {
+        // only an approximation, _like_ OMeta
+        var self = this;
+        function parse(source) {
+            return acorn.walk.toLKObjects(self.parse(source));
+        }
+
+        var ast;
+        switch (rule) {
+        case 'expr':
+        case 'stmt':
+        case 'functionDef':
+            ast = parse(src);
+            if (ast.isSequence && (ast.children.length == 1)) {
+                ast = ast.children[0];
+                ast.setParent(undefined);
+            }
+            break;
+        case 'memberFragment':
+            src = '({' + src + '})'; // to make it valid
+            ast = parse(src);
+            ast = ast.children[0].properties[0];
+            ast.setParent(undefined);
+            break;
+        case 'categoryFragment':
+        case 'traitFragment':
+            src = '[' + src + ']'; // to make it valid
+            ast = parse(src);
+            ast = ast.children[0];
+            ast.setParent(undefined);
+            break;
+        default:
+            ast = parse(src);
+        }
+        ast.source = src;
+        return ast;
+    },
+
     tokenize: function(input) {
         return acorn.tokenize(input);
     },
-
 
     fuzzyParse: function(source, options) {
         // options: verbose, addSource, type

@@ -769,6 +769,14 @@ lively.morphic.World.addMethods(
             if (world && world.statusMessages) {
                 world.statusMessages.remove(this);
             }
+            if(RealTrait && this._traitConfig_ && this._traitConfig_.length > 0) {
+                var self = this;
+                for(var i=0; i < this._traitConfig_.length; i++)
+                    var trait = RealTrait.prototype.traitRegistry[this._traitConfig_[i].traitName];
+                    var holder = trait.extendedObjectsAndOptions.objects.detect(function(e){return e.object === self});
+                    if(holder)
+                        trait.extendedObjectsAndOptions.objects.remove(holder);
+            }
             return $super();
         })
         morph.align(morph.bounds().bottomRight(), this.visibleBounds().bottomRight().addXY(-20, -20));

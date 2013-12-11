@@ -999,22 +999,13 @@ Object.extend(lively.versions.ObjectVersioning, {
 // ----- GLOBAL VERSIONING SHORTCUTS -----
 
 var livelyOV = lively.versions.ObjectVersioning,
-    updateMorphs = function() {
-        $world.withAllSubmorphsDo(function(morph) {
-            var shape = morph.shape;
-            
-            morph.renderContextDispatch('init');
-            shape &&
-                shape.renderContextDispatch('init', shape.renderContext());
-        });
-    }
-
+    redrawWorld = function() { $world.renderWithHTML(); };
 
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
 lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
 
-lively.undo = livelyOV.undo.bind(livelyOV).curry(updateMorphs);
-lively.redo = livelyOV.redo.bind(livelyOV).curry(updateMorphs);
+lively.undo = livelyOV.undo.bind(livelyOV).curry(redrawWorld);
+lively.redo = livelyOV.redo.bind(livelyOV).curry(redrawWorld);
 
 lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 

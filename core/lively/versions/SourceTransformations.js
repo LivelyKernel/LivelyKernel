@@ -22,6 +22,38 @@ Object.extend(lively.versions.SourceTransformations, {
             
         return false;
     },
+    isCallToDelayFunction: function(node) {
+        
+        if (!(node instanceof UglifyJS.AST_Call)) {
+            return false;
+        }
+        
+        // setInterval() || setTimeout()
+        // note: this assumes that there are no local functions named eval
+        if (node.expression instanceof UglifyJS.AST_SymbolRef &&
+            (node.expression.name === 'setInterval' ||
+            node.expression.name === 'setTimeout')) {
+            
+            return true;
+        }
+        
+        // Global.setTimeout() || window.setTimeout() ||
+        // Global.setInterval() || window.setInterval()
+        if (node.expression instanceof UglifyJS.AST_Dot &&
+            (node.expression.property === 'setInterval' ||
+            node.expression.property === 'setTimeout') ) { // &&
+            // (node.expression.expression.name === 'Global' ||
+            // node.expression.expression.name === 'window')) {
+            
+            // both Global and window are already wrapped into lively.proxyFor
+            // at this point
+        
+            return true;
+        }
+        
+        return false;
+        
+    },    
     isCallToObjectCreate: function(node) {
         return node instanceof UglifyJS.AST_Dot &&
             node.property === 'create' &&
@@ -235,6 +267,25 @@ Object.extend(lively.versions.SourceTransformations, {
             node.args[0] = this.wrapInTransformSourceCall(node.args[0]);
             
             return node;
+        } else if (this.isCallToDelayFunction(node)) {
+            var funcName, callNode, callString;
+            
+            // rewrite: all global delay functions to their lively
+            // version-aware counterpart: e.g.
+            //     setTimeout(..) -> lively.setTimeout()
+            //     window.setInterval(..) -> lively.setInterval()
+            
+            funcName = (node.expression instanceof UglifyJS.AST_Dot &&
+                node.expression.property) ||
+                (node.expression instanceof UglifyJS.AST_SymbolRef &&
+                node.expression.name);
+            
+            callString = 'lively.' + funcName + '()';
+            callNode = UglifyJS.parse(callString).body[0].body;
+            callNode.args = node.args;
+            
+            return callNode;
+            
         } else if (node instanceof UglifyJS.AST_Binary &&
             node.operator === 'instanceof') {
             

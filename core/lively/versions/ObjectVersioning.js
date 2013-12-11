@@ -974,6 +974,18 @@ Object.extend(lively.versions.ObjectVersioning, {
             return originalStringsPrint.call(this, actualObj);
         }
         
+        // patches for Function.js
+        Object.extend(Function.prototype, {
+            delay: function() {
+                var __method = this,
+                    args = Array.from(arguments),
+                    timeout = args.shift() * 1000;
+                return lively.setTimeout(function delayed() {
+                    return __method.apply(__method, args);
+                }, timeout);
+            },
+        });
+        
         // patches for bootstrap.js:
         Object.extend(JSLoader, {
             runCode: function(code, url) {
@@ -1027,6 +1039,56 @@ Object.extend(lively.versions.ObjectVersioning, {
 });
 
 
+lively.timeouts = [];
+lively.intervals = [];
+
+lively.setTimeout = function() {
+    var timeoutID = lively.proxyFor(window).setTimeout.apply(window, arguments);
+    
+    lively.timeouts.push({
+        id: timeoutID,
+        versionID:lively.CurrentVersion.ID
+    });
+    
+    return timeoutID;
+};
+
+lively.setInterval = function() {
+    var intervalID = lively.proxyFor(window).setInterval.apply(window, arguments);
+    
+    lively.intervals.push({
+        id: intervalID,
+        versionID:lively.CurrentVersion.ID
+    });
+    
+    return intervalID;
+};
+
+lively.killScriptsFromTheFuture = function() {
+    var killedTimeouts = [],
+        killedIntervals = [];
+    
+    lively.timeouts.forEach(function(each) {
+        if (each.versionID > lively.CurrentVersion.ID) {
+            Global.clearTimeout(each.id);
+           
+            killedTimeouts.push(each);
+        }
+    });
+    lively.timeouts = lively.timeouts.withoutAll(killedTimeouts);
+    
+    lively.intervals.forEach(function(each) {
+        if (each.versionID > lively.CurrentVersion.ID) {
+            Global.clearInterval(each.id);
+            
+            killedIntervals.push(each);
+        }
+    });
+    lively.intervals = lively.intervals.withoutAll(killedIntervals);
+    
+};
+
+
 // ----- GLOBAL VERSIONING SHORTCUTS -----
 
 var livelyOV = lively.versions.ObjectVersioning,
@@ -1035,7 +1097,10 @@ var livelyOV = lively.versions.ObjectVersioning,
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
 lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
 
-lively.undo = livelyOV.undo.bind(livelyOV).curry(redrawWorld);
+lively.undo = livelyOV.undo.bind(livelyOV).curry(function() {
+    lively.killScriptsFromTheFuture();
+    redrawWorld();
+});
 lively.redo = livelyOV.redo.bind(livelyOV).curry(redrawWorld);
 
 lively.transformSource = livelyOV.transformSource.bind(livelyOV);

@@ -75,6 +75,15 @@ Config.addOption('NativeCodeThatCanHandleProxies', [
     Array.prototype.reduceRight, Array.prototype.indexOf
 ]);
 
+// native Array functions for whose application we might want to create new
+// versions of the array first, see Mutator methods here:
+// developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/prototype#Methods
+Config.addOption('ModifyingArrayOperations', [
+    Array.prototype.pop, Array.prototype.push, Array.prototype.reverse,
+    Array.prototype.shift, Array.prototype.sort, Array.prototype.splice,
+    Array.prototype.unshift
+]);
+
 // some functions expect objects with properties or arrays with some elements,
 // where these inner values also should not be proxied. we don't want to unwrap
 // everything by default, because we neither want to unwrap any objects
@@ -269,6 +278,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return !this.__targetVersions.
                     hasOwnProperty(lively.CurrentVersion.ID);
             },
+            shouldObjectBeCopiedBeforeApplication: function(thisArg, func) {
+                return Object.isProxy(thisArg) &&
+                    Object.isArray(thisArg) &&
+                    Config.get('ModifyingArrayOperations').include(func);
+            },
             copyObjectForOtherVersion: function(originalObject) {
                 var copy,
                     hasOwn = Object.prototype.hasOwnProperty;
@@ -404,7 +418,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return true;
             },
             get: function(dummyTarget, name, receiver) {
-                var result, nextAncestor, proto, targetObject,
+                var result, nextAncestor, proto, targetObject, copy,
                     descriptor, getter, OV = lively.versions.ObjectVersioning;
                 
                 // proxy meta-information
@@ -434,6 +448,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (name === 'prototype' && Object.isFunction(targetObject)) {
                     // prototype is already proxied or a root prototype
                     return targetObject.prototype;
+                }
+                
+                if (name === '__createNewVersionOfTarget') {
+                    return (function() {
+                        copy = Object.copyObject(targetObject);
+                        
+                        this.__targetVersions[lively.CurrentVersion.ID] = copy;
+                    
+                        lively.ProxyTable.set(copy, receiver);
+                    }).bind(this);
                 }
                 
                 descriptor =
@@ -496,6 +520,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                             normalizeArguments(func, args);
                         }
                     })(func, args);
+                }
+                
+                // copy-on-write: create and set a new version of the target
+                // before executing native functions that modify the target,
+                // --> the Array Mutator functions
+                if (this.shouldObjectBeCopiedBeforeApplication(thisArg, func)) {
+                    thisArg.__createNewVersionOfTarget();
                 }
                 
                 // some primitive code can't handle proxies,

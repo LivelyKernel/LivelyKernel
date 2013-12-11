@@ -212,7 +212,7 @@ Object.subclass('lively.PartsBin.PartItem',
         // be found, the revisionOnLoad is computed via the webresource
         if (rev) {
             this.rev = rev;
-        } else if (this.loadPartVersions && this.loadPartVersions().partVersions) {
+        } else if (this.loadPartVersions && this.loadPartVersions().partVersions && this.loadPartVersions().partVersions.length > 0) {
             this.rev = this.loadPartVersions().partVersions.first().rev;
         } else {
             this.rev = new WebResource(this.getFileURL()).getHeadRevision().headRevision;

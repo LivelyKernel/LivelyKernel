@@ -265,13 +265,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                     hasOwnProperty(lively.CurrentVersion.ID);
             },
             copyObjectForOtherVersion: function(originalObject) {
-                var hasOwn = Object.prototype.hasOwnProperty,
-                    copy;
+                var copy,
+                    hasOwn = Object.prototype.hasOwnProperty;
                 
                 // a Date object stores its data as a hidden member..
                 if (originalObject instanceof Date) {
                     
-                    var copy = new Date();
+                    copy = new Date();
                     copy.setTime(originalObject.getTime());
                     
                 } else if (Object.isFunction(originalObject)) {
@@ -297,10 +297,14 @@ Object.extend(lively.versions.ObjectVersioning, {
                     
                 } else if (Object.isArray(originalObject)) {
                     
-                    var copy = [];
+                    copy = [];
                     for (var i = 0; i < originalObject.length; i++) {
                         copy[i] = originalObject[i];
                     }
+                    Object.defineProperty(copy, '__protoProxy', {
+                        value: originalObject.__protoProxy,
+                        writable: true
+                    });
                     
                 } else if (Object.isObject(originalObject)) {
                     

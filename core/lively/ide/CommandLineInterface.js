@@ -617,8 +617,8 @@ Object.subclass("lively.ide.CommandLineSearch.FileInfo",
             return lineString.slice(idx+1).trim();
         },
         function group(lineString, fileInfo) {
-            var idx = Strings.peekRight(lineString, 0, /[0-9]/);
-            fileInfo.group = lineString.slice(0, idx-1).trim();
+            var idx = Strings.peekRight(lineString, 0, /\s\s+/);
+            fileInfo.group = lineString.slice(0, idx).trim();
             return lineString.slice(idx).trim();
         },
         function size(lineString, fileInfo) {
@@ -635,10 +635,10 @@ Object.subclass("lively.ide.CommandLineSearch.FileInfo",
         function fileName(lineString, fileInfo) {
             var string = lineString.replace(/^\.\/+/g, '').replace(/\/\//g, '/'),
                 nameAndLink = string && string.split(' -> '),
-                isLink = string && nameAndLink.length === 2,
+                isLink = string === '' ? false : string && nameAndLink.length === 2,
                 path = isLink ? nameAndLink[0] : string,
                 fileName = path && path.indexOf(fileInfo.rootDirectory) === 0 ? path.slice(fileInfo.rootDirectory.length) : path;
-            fileInfo.fileName = fileName;
+            fileInfo.fileName = string === '' ? '.' : fileName;
             fileInfo.path = path;
             fileInfo.isLink = isLink;
             return fileName;
@@ -788,6 +788,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         var result = [],
             cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
                 if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
+show(cmd.getStdout());
                 result = parseDirectoryList(cmd.getStdout(), rootDirectory);
                 callback && callback(result);
             });

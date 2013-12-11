@@ -441,7 +441,8 @@ TestCase.subclass("lively.ide.tests.CommandLineInterface.CommandLineSearch",
                 lastModified: new Date('Dec 17 14:04:02 2012 GMT'),
                 path: "test.html",
                 fileName: "test.html",
-                isDirectory: false
+                isDirectory: false,
+                rootDirectory: null
             }]
         }, {
             rootDirectory: null,
@@ -457,14 +458,32 @@ TestCase.subclass("lively.ide.tests.CommandLineInterface.CommandLineSearch",
                 lastModified: new Date('Aug 29 03:39 GMT'),
                 path: "bin",
                 fileName: "bin",
-                isDirectory: true
+                isDirectory: true,
+                rootDirectory: null
+            }]
+        }, {
+            rootDirectory: null,
+            string: "drwxrwxrwx  279 i834382  1824234391  9486 Dec 10 19:39:02 2013 ./",
+            expected: [{
+                mode: "drwxrwxrwx",
+                linkCount: 279,
+                isLink: false,
+                user: "i834382",
+                group: "1824234391",
+                size: 9486,
+                lastModified: new Date('Dec 10 19:39:02 2013 GMT'),
+                path: "",
+                fileName: ".",
+                isDirectory: true,
+                rootDirectory: null
             }]
         }];
         tests.forEach(function(spec) {
             var result = sut.parseDirectoryList(spec.string, spec.rootDirectory);
-            this.assertEqualState(spec.expected, result);
+            this.assertEqualOwnState(spec.expected, result);
         }, this);
     }
+
 });
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.SpellChecker',

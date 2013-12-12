@@ -221,9 +221,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
             this.setFill(Color.rgb(210, 172, 172));
             if (!e.alreadyThrown){
-                throw e;
+                this.throwError(e);
             }
-
             return;
         }
         

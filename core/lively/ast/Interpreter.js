@@ -800,9 +800,6 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor',
 });
 
 lively.ast.Node.addMethods('interpretation', {
-    position: function() {
-        return this.pos[0] + "-" + this.pos[1];
-    },
     startInterpretation: function(optMapping) {
         var interpreter = new lively.ast.InterpreterVisitor();
         return interpreter.run(this, optMapping);
@@ -833,7 +830,6 @@ lively.ast.GetSlot.addMethods('interpretation', {
 
 lively.ast.Function.addMethods('interpretation', {
     position: function() {
-        //return (this.pos[1] - 1) + "-" + this.pos[1];
         return this.pos[0] + "-" + this.pos[1];
     },
     basicApply: function(frame) {

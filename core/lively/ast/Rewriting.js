@@ -1,5 +1,11 @@
 module('lively.ast.Rewriting').requires('lively.ast.Parser').toRun(function() {
 
+lively.ast.Node.addMethods('interpretation', {
+    position: function() {
+        return this.pos[0] + "-" + this.pos[1];
+    },
+});
+
 Object.extend(lively.ast, {
     oldEval: eval
 });

@@ -150,6 +150,18 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         });
     },
     
+    remove: function($super) {
+        $super();
+        this.triggerLayouting();
+    },
+    
+    wantsDroppedMorph: function($super, morphToDrop) {
+        if (morphToDrop instanceof lively.morphic.DataFlowComponent) {
+            return false;
+        }
+        return $super(morphToDrop);
+    },
+    
     onDrag: function($super) {
         $super();
         this.triggerLayouting();

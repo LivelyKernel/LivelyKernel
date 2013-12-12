@@ -190,10 +190,10 @@ Object.subclass('lively.ide.CodeEditor.CodeMarker',
             if (range.pos) {
                 start = session.doc.indexToPosition(range.pos-1),
                 end = session.doc.indexToPosition(range.pos+1);
-            } else if (range.start && range.end) {
+            } else if (range.start != null && range.end != null) {
                 start = session.doc.indexToPosition(range.start);
                 end = session.doc.indexToPosition(range.end);
-            } else if (range.startPos &&range.endPos) {
+            } else if (range.startPos && range.endPos) {
                 start = range.startPos; end = range.endPos;
             } else {
                 console.warn('lively.morphic.CodeMarker cannot render %s', range);

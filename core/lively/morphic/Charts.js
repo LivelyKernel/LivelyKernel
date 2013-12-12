@@ -31,71 +31,31 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
         this.disableGutter();
     },
     
-    boundEval: function(codeStr) {
-        
-        var ctx = this.getDoitContext() || this;
-        ctx.refreshData();
-        
-        var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
-        
-        // see also $super
-        
-        // Evaluate the string argument in a context in which "this" is
-        // determined by the reuslt of #getDoitContext
-        var str,
-        interactiveEval = function() {
-            try { return eval(__evalStatement)} catch (e) { return eval(__evalStatement) }
-        };
-        
-        try {
-            var result = interactiveEval.call(ctx);
-            if (localStorage.getItem("LivelyChangesets:" + location.pathname))
-                ChangeSet.logDoit(str, ctx.lvContextPath());
-            return result;
-        } catch(e) {throw e}
-        
+    updateScripts: function(){
+        this.addScript(function boundEval(codeStr) {
+    var ctx = this.getDoitContext() || this;
+    ctx.refreshData();
+    
+    var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+    
+    // see also $super
+    
+    // Evaluate the string argument in a context in which "this" is
+    // determined by the reuslt of #getDoitContext
+    var str,
+    interactiveEval = function() {
+        try { return eval(__evalStatement)} catch (e) { return eval(__evalStatement) }
+    };
+    
+    try {
+    var result = interactiveEval.call(ctx);
+    if (localStorage.getItem("LivelyChangesets:" + location.pathname))
+        ChangeSet.logDoit(str, ctx.lvContextPath());
+    return result;
+    } catch(e) {throw e}
+    
+    });
     },
-    
-    onKeyUp: function(evt) {
-        var _this = evt.getTargetMorph();
-        _this.onChanged.apply(_this, arguments);
-    },
-    
-    onChanged: function() {
-        if (!this.isValid())
-            return;
-        
-        
-        var newSession =  this.aceEditor.getSession().toString();
-        console.log("newSession", newSession);
-        debugger;
-        if (this.oldSession) {
-            if (this.oldSession == newSession)
-                return;
-        }
-        this.oldSession = newSession;
-        
-        var ownerChain = this.ownerChain();
-    
-        for (var i = 0; i < ownerChain.length; i++) {
-            if (ownerChain[i] instanceof lively.morphic.DataFlowComponent){
-                ownerChain[i].onComponentChanged();
-                break;
-            }
-        }
-    },
-    
-    isValid: function() {
-        var str = this.getSession();
-        try {
-            eval("throw 0;" + str);
-        } catch (e) {
-            if (e === 0)
-                return true;
-        }
-        return false;
-    }
-
 });
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
@@ -150,6 +110,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         });
     },
     
+    onResizeEnd: function(){
+        alert("21234");
+        this.diffX=0;
+        this.diffY=0;
+    },
+    
+    gridWidth: 250,
+    
     remove: function($super) {
         $super();
         this.triggerLayouting();
@@ -170,7 +138,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     onDropOn: function($super, aMorph) {
         $super();
         this.triggerLayouting();
-        this.notify();
     },
     
     triggerLayouting: function() {
@@ -206,28 +173,22 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var promise;
         try {
             promise = this.updateComponent();
-            
-            console.log("after updateComponent: ", this.data);
             this.setFill(Color.gray);
         } catch (e) {
-            // red
-            this.setFill(Color.rgb(210, 172, 172));
+            this.setFill(Color.red);
             if (!e.alreadyThrown){
                 throw e;
             }
             return;
         }
-    
+        
         var _this = this;
         if (promise && typeof promise.done == "function") {
             promise.done(function() {
                 _this.notifyNextComponent();
             });
-        } else {
-            console.log("data before notify: ", this.data);
+        }else
             this.notifyNextComponent();
-        }
-            
     },
     
     notifyNextComponent: function() {
@@ -239,38 +200,38 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     notify: function() {
         this.update();
+        alertOK("we are updating now")
     },
     
     onComponentChanged: function() {
-        var wait = 1000;
-        var now = new Date;
-        
-        var _this = this;
-        var doIt = function() {
-            _this.notify();
-            _this.previous = now;
-        }
-        
-        if (!this.previous) {
-            doIt();
-            return;
-        }
-        
-        var previous = this.previous;
-        
-        var remaining = wait - (now - previous);
-        
-        if (remaining <= 0) {
-            doIt();
-        } else {
-            // setTimeout and check that we only have one at a time
-            if (!this.currentTimeout){
-                this.currentTimeout = setTimeout(function() {
-                    doIt();
-                    _this.currentTimeout = null;
-                }, remaining);
-            }
-        }
+      
+        var _throttle = function(func, wait) {
+            var context, args, timeout, result;
+            var previous = 0;
+            var later = function() {
+              previous = new Date;
+              timeout = null;
+              result = func.apply(context, args);
+            };
+            return function() {
+              var now = new Date;
+              var remaining = wait - (now - previous);
+              context = this;
+              args = arguments;
+              if (remaining <= 0) {
+                clearTimeout(timeout);
+                timeout = null;
+                previous = now;
+                result = func.apply(context, args);
+              } else if (!timeout) {
+                timeout = setTimeout(later, remaining);
+              }
+              return result;
+            };
+        };
+      
+        this.onComponentChange = _throttle(this.notify, 200);
+        this.onComponentChange();
     },
     
     refreshData: function() {
@@ -357,12 +318,49 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
         this.priorExtent = newExtent;
     },
+    
+    // setExtent: function($super, newExtent) {
+    //     alert("Resizing");
+    //     var clippedExtent = pt(Math.floor(newExtent.x/this.gridWidth) + this.gridWidth, Math.floor(newExtent.y/this.gridWidth) + this.gridWidth );
+    //     $super(clippedExtent);
+    // },
+    
+    onCreateFromPartsBin: function() {
+        this.diffX = 0;
+        this.diffY = 0;
+    },
+    
     setExtent: function($super, newExtent) {
         var oldExtent = this.getExtent();
-        $super(newExtent);
+        
+        // Save distance of mouse movement from last actual resizing
+        this.diffX = this.diffX + (newExtent.x - oldExtent.x);
+        this.diffY = this.diffY + (newExtent.y - oldExtent.y);
+        
+        // Do not do anything if the mouse movement distance reaches new grid field
+        if (Math.abs(this.diffX) < this.gridWidth && Math.abs(this.diffY) < this.gridWidth) {
+            return;
+        }
+        
+        // clippedExtent will be the extent to set
+        var clippedExtent = oldExtent.copy();
+        
+        // Set the clippedExtent, for each dimension that reached a new grid field
+        var sign;
+        if (this.diffX > this.gridWidth || this.diffX < -this.gridWidth) {
+            sign = this.diffX && this.diffX / Math.abs(this.diffX);
+            this.diffX = 0;
+            clippedExtent.x += sign * this.gridWidth;
+        }
+        if (this.diffY > this.gridWidth || this.diffY < -this.gridWidth) {
+            sign = this.diffY && this.diffY / Math.abs(this.diffY);
+            this.diffY = 0;
+            clippedExtent.y += sign * this.gridWidth;
+        }
+        $super(clippedExtent);
         this.adjustForNewBounds();
         var button = this.get("DoButton");
-        button.setPosition(button.getPosition().addPt(newExtent.subPt(oldExtent)));
+        button.setPosition(button.getPosition().addPt(clippedExtent.subPt(oldExtent)));
     }
 });
 }) // end of module

@@ -22,7 +22,7 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
         this.removeAllMorphs();
     }
     
-} )
+} );
 
 lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
 {
@@ -58,9 +58,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
         } catch(e) {throw e}
         
     },
-    
-    var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
-
+        
     onChanged: function() {
         if (!this.isValid())
             return;
@@ -73,7 +71,14 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
         this.oldSession = newSession;
         
         var ownerChain = this.ownerChain();
-    
+
+        for (var i = 0; i < ownerChain.length; i++) {       
+            if (ownerChain[i] instanceof lively.morphic.DataFlowComponent){     
+                ownerChain[i].onComponentChanged();     
+                break;      
+          }       
+        }
+    },
     isValid: function() {
         var str = this.getSession();
         try {
@@ -97,9 +102,13 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();
         return result;
+    },
+    
+    onKeyUp: function(evt) {
+        var _this = evt.getTargetMorph();
+        _this.onChanged.apply(_this, arguments);
     }
-
-
+ 
 });
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
@@ -136,7 +145,7 @@ lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     },
     
     
-} )
+} );
 
 lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     initialize: function($super) {
@@ -154,9 +163,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     onResizeEnd: function(){
-        alert("21234");
-        this.diffX=0;
-        this.diffY=0;
+        this.diffX = 0;
+        this.diffY = 0;
     },
     
     gridWidth: 250,
@@ -181,6 +189,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     onDropOn: function($super, aMorph) {
         $super();
         this.triggerLayouting();
+        this.notify();
     },
     
     triggerLayouting: function() {
@@ -245,38 +254,38 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     notify: function() {
         this.update();
-        alertOK("we are updating now")
     },
     
     onComponentChanged: function() {
-      
-        var _throttle = function(func, wait) {
-            var context, args, timeout, result;
-            var previous = 0;
-            var later = function() {
-              previous = new Date;
-              timeout = null;
-              result = func.apply(context, args);
-            };
-            return function() {
-              var now = new Date;
-              var remaining = wait - (now - previous);
-              context = this;
-              args = arguments;
-              if (remaining <= 0) {
-                clearTimeout(timeout);
-                timeout = null;
-                previous = now;
-                result = func.apply(context, args);
-              } else if (!timeout) {
-                timeout = setTimeout(later, remaining);
-              }
-              return result;
-            };
-        };
-      
-        this.onComponentChange = _throttle(this.notify, 200);
-        this.onComponentChange();
+        var wait = 1000;
+        var now = new Date;
+        
+        var _this = this;
+        var doIt = function() {
+            _this.notify();
+            _this.previous = now;
+        }
+        
+        if (!this.previous) {
+            doIt();
+            return;
+        }
+        
+        var previous = this.previous;
+        
+        var remaining = wait - (now - previous);
+        
+        if (remaining <= 0) {
+            doIt();
+        } else {
+            // setTimeout and check that we only have one at a time
+            if (!this.currentTimeout){
+                this.currentTimeout = setTimeout(function() {
+                    doIt();
+                    _this.currentTimeout = null;
+                }, remaining);
+            }
+        }
     },
     
     refreshData: function() {
@@ -363,12 +372,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
         this.priorExtent = newExtent;
     },
-    
-    // setExtent: function($super, newExtent) {
-    //     alert("Resizing");
-    //     var clippedExtent = pt(Math.floor(newExtent.x/this.gridWidth) + this.gridWidth, Math.floor(newExtent.y/this.gridWidth) + this.gridWidth );
-    //     $super(clippedExtent);
-    // },
     
     onCreateFromPartsBin: function() {
         this.diffX = 0;

@@ -735,7 +735,14 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             return;
         }
         browser.confirm('There are unsaved changes. Discard them?',
-            function(answer) { answer && callback.apply(browser); });
+            function(answer) {
+                if (answer) {
+                    // you anwsered it once, ...
+                    browser.disableSourceNotAccidentlyDeletedCheck = true;
+                    callback.apply(browser);
+                    browser.disableSourceNotAccidentlyDeletedCheck = false;
+                }
+            });
     }
 },
 'source pane', {

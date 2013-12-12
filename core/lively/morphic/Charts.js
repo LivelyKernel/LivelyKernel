@@ -31,31 +31,75 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
         this.disableGutter();
     },
     
-    updateScripts: function(){
-        this.addScript(function boundEval(codeStr) {
-    var ctx = this.getDoitContext() || this;
-    ctx.refreshData();
+    boundEval: function(codeStr) {
+        var ctx = this.getDoitContext() || this;
+        ctx.refreshData();
+        
+        var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        
+        // see also $super
+        
+        // Evaluate the string argument in a context in which "this" is
+        // determined by the reuslt of #getDoitContext
+        var str,
+        interactiveEval = function() {
+            try {
+                return eval(__evalStatement);
+            } catch (e) {
+                return eval(__evalStatement);
+            }
+        };
+        
+        try {
+            var result = interactiveEval.call(ctx);
+            if (localStorage.getItem("LivelyChangesets:" + location.pathname))
+                ChangeSet.logDoit(str, ctx.lvContextPath());
+            return result;
+        } catch(e) {throw e}
+        
+    },
     
     var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+
+    onChanged: function() {
+        if (!this.isValid())
+            return;
+        
+        var newSession =  this.aceEditor.getSession().toString();
+        if (this.oldSession) {
+            if (this.oldSession == newSession)
+                return;
+        }
+        this.oldSession = newSession;
+        
+        var ownerChain = this.ownerChain();
     
-    // see also $super
-    
-    // Evaluate the string argument in a context in which "this" is
-    // determined by the reuslt of #getDoitContext
-    var str,
-    interactiveEval = function() {
-        try { return eval(__evalStatement)} catch (e) { return eval(__evalStatement) }
-    };
-    
-    try {
-    var result = interactiveEval.call(ctx);
-    if (localStorage.getItem("LivelyChangesets:" + location.pathname))
-        ChangeSet.logDoit(str, ctx.lvContextPath());
-    return result;
-    } catch(e) {throw e}
-    
-    });
+    isValid: function() {
+        var str = this.getSession();
+        try {
+            eval("throw 0;" + str);
+        } catch (e) {
+            if (e === 0)
+                return true;
+        }
+        return false;
     },
+    
+    doit: function(printResult, editor) {
+        var text = this.getSelectionMaybeInComment(),
+            result = this.tryBoundEval(text);
+        if (printResult) { this.printObject(editor, result); return; }
+        
+        // if (result && result instanceof Error && lively.Config.get('showDoitErrorMessages') && this.world()) {
+        //     this.world().alert(String(result));
+        // }
+        
+        var sel = this.getSelection();
+        if (sel && sel.isEmpty()) sel.selectLine();
+        return result;
+    }
+
+
 });
 lively.morphic.Morph.subclass("lively.morphic.BarChart", {
     initialize: function($super) {
@@ -96,7 +140,6 @@ lively.morphic.Morph.subclass("lively.morphic.BarChart", {
 
 lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     initialize: function($super) {
-        debugger;
         $super();
         this.setExtent(pt(500, 250));
         this.setFill(Color.gray);
@@ -175,10 +218,12 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             promise = this.updateComponent();
             this.setFill(Color.gray);
         } catch (e) {
-            this.setFill(Color.red);
+
+            this.setFill(Color.rgb(210, 172, 172));
             if (!e.alreadyThrown){
                 throw e;
             }
+
             return;
         }
         
@@ -187,8 +232,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             promise.done(function() {
                 _this.notifyNextComponent();
             });
-        }else
+        } else {
             this.notifyNextComponent();
+        }
     },
     
     notifyNextComponent: function() {
@@ -360,7 +406,12 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super(clippedExtent);
         this.adjustForNewBounds();
         var button = this.get("DoButton");
+
         button.setPosition(button.getPosition().addPt(clippedExtent.subPt(oldExtent)));
+    },
+    
+    throwError: function(error) {
+        throw error;
     }
 });
 }) // end of module

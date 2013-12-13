@@ -311,7 +311,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
             new lively.ast.String(p, "isUnwindException"),
             new lively.ast.Variable(p, "e"));
         var classExpr = new lively.ast.GetSlot(p,
-            new lively.ast.String(p,"UnwindExecption"),
+            new lively.ast.String(p,"UnwindException"),
             new lively.ast.GetSlot(p,
                 new lively.ast.String(p,"Rewriting"),
                 new lively.ast.GetSlot(p,
@@ -395,7 +395,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     }
 });
 
-Object.subclass('lively.ast.Rewriting.UnwindExecption',
+Object.subclass('lively.ast.Rewriting.UnwindException',
 'settings', {
     isUnwindException: true
 },

@@ -29,11 +29,11 @@
 // invasive changes and simplifications without creating a complicated
 // tangle.
 
-(function(mod) {
+(function(root, mod) {
   if (typeof exports == "object" && typeof module == "object") return mod(exports, require("./acorn")); // CommonJS
   if (typeof define == "function" && define.amd) return define(["exports", "./acorn"], mod); // AMD
-  mod(this.acorn || (this.acorn = {}), this.acorn); // Plain browser env
-})(function(exports, acorn) {
+  mod(root.acorn || (root.acorn = {}), root.acorn); // Plain browser env
+})(this, function(exports, acorn) {
   "use strict";
 
   var tt = acorn.tokTypes;
@@ -168,10 +168,6 @@
     while (pos < input.length && !isNewline(input.charCodeAt(pos))) ++pos;
     return pos;
   }
-  function lineStart(pos) {
-    while (pos > 0 && !isNewline(input.charCodeAt(pos - 1))) --pos;
-    return pos;
-  }
   function indentationAfter(pos) {
     for (var count = 0;; ++pos) {
       var ch = input.charCodeAt(pos);
@@ -213,6 +209,8 @@
     var node = new node_t(token.start);
     if (options.locations)
       node.loc = new node_loc_t();
+    if (options.directSourceFile)
+      node.sourceFile = options.directSourceFile;
     return node;
   }
 
@@ -426,7 +424,7 @@
       return finishNode(node, "EmptyStatement");
 
     default:
-      var maybeName = token.value, expr = parseExpression();
+      var expr = parseExpression();
       if (isDummy(expr)) {
         next();
         if (token.type === tt.eof) return finishNode(node, "EmptyStatement");
@@ -485,6 +483,11 @@
       decl.init = eat(tt.eq) ? parseExpression(true, noIn) : null;
       node.declarations.push(finishNode(decl, "VariableDeclarator"));
       if (!eat(tt.comma)) break;
+    }
+    if (!node.declarations.length) {
+      var decl = startNode();
+      decl.id = dummyIdent();
+      node.declarations.push(finishNode(decl, "VariableDeclarator"));
     }
     return finishNode(node, "VariableDeclaration");
   }
@@ -582,8 +585,7 @@
   }
 
   function parseExprSubscripts() {
-    var indent = curIndent, line = curLineStart;
-    return parseSubscripts(parseExprAtom(), false, curIndent, line);
+    return parseSubscripts(parseExprAtom(), false, curIndent, curLineStart);
   }
 
   function parseSubscripts(base, noCalls, startIndent, line) {
@@ -757,6 +759,7 @@
   function parseExprList(close) {
     var indent = curIndent, line = curLineStart, elts = [], continuedLine = nextLineStart;
     next(); // Opening bracket
+    if (curLineStart > continuedLine) continuedLine = curLineStart;
     while (!closes(close, indent + (curLineStart <= continuedLine ? 1 : 0), line)) {
       var elt = parseExpression(true);
       if (isDummy(elt)) {

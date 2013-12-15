@@ -898,6 +898,12 @@ lively.morphic.Box.subclass('lively.morphic.List',
         this.updateView();
     },
 
+    deselectAll: function() {
+        this.selectedIndexes.forEach(function(i) {
+            this.deselectAt(i);
+        }, this);
+    },
+
     clearSelections: function() {
         this.removeAllSelectedIndexes();
         this.updateView();
@@ -1185,7 +1191,14 @@ lively.morphic.Box.subclass('lively.morphic.List',
         return itemMorphs;
     },
 
+    getVisibleIndexes: function() {
+        var scrollBounds = this.world() ? this.getScrollBounds() : this.innerBounds(),
+            startEnd = this.visibleIndexes(scrollBounds, this.itemList, this.layout);
+        return Array.range(startEnd[0], startEnd[1]);
+    },
+
     visibleIndexes: function(scrollBounds, items, layout) {
+        // private
         if (!items.length) return [0,0];
         var scrollTop = scrollBounds.top(),
             scrollBottom = scrollBounds.bottom() + layout.listItemHeight,

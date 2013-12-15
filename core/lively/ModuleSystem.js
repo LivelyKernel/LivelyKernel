@@ -640,8 +640,8 @@ Object.extend(lively.Module, {
 })(lively);
 
 (function testModuleLoad() {
-    require('lively.ChangeSets').toRun(function(){
-        if (localStorage.getItem("LivelyChangesets:" + location.pathname))
-            ChangeSet.loadAndcheckVsSystem()})
+    if (Config.changesetsExperiment && Global.localStorage && 
+        localStorage.getItem("LivelyChangesets:" + location.pathname))
+            lively.ChangeSet.loadAndcheckVsSystem();
     lively.Module.checkModuleLoadStates();
-}).delay(10);
+}).delay(3);

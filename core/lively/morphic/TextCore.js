@@ -1727,11 +1727,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         // Evaluate the string argument in a context in which "this" is
         // determined by the reuslt of #getDoitContext
         var ctx = this.getDoitContext() || this,
-            interactiveEval = function() { return eval(__evalStatement) };
+            str,
+            interactiveEval = function() {
+                try { return eval(str = "("+__evalStatement+")")} catch (e) { return eval(str = __evalStatement) }
+                };
         try {
             var result = interactiveEval.call(ctx);
-            if (localStorage.getItem("LivelyChangesets:" + location.pathname))
-                ChangeSet.logDoit(__evalStatement, ctx.lvContextPath());
+            if (Config.changesetsExperiment && localStorage.getItem("LivelyChangesets:" + location.pathname))
+                lively.ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
         } catch(e) {throw e}
     },

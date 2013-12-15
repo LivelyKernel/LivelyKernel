@@ -1016,12 +1016,22 @@ lively.morphic.Box.subclass('lively.morphic.List',
         evt.stop(); return true;
     },
 
-    onUpPressed: function($super, evt) {
+    onKeyDown: function($super, evt) {
         if (evt.isCommandKey()) return $super(evt);
-        this.selectPrev();
+        var keys = evt.getKeyString(), wasHandled = true;
+        switch (keys) {
+            case 'Control-N': case 'Down': this.selectNext(); break;
+            case 'Control-P': case 'Up': this.selectPrev(); break;
+            case "Alt-V": case "PageUp": this.scrollPage('up'); break;
+            case "Control-V": case "PageDown": this.scrollPage('down'); break;
+            case "Alt-Shift->": case "End": this.scrollToBottom(); break;
+            case "Alt-Shift-<": case "Home": this.scrollToTop(); break;
+            default: wasHandled = false;
+        }
+        if (!wasHandled) return $super(evt);
         evt.stop(); return true;
     },
-    
+
     textOnMouseDown: function onMouseDown(evt) {
         if (this.owner.owner.allowDeselectClick) {
             this.setIsSelected(!this.selected);
@@ -1029,15 +1039,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
             this.setIsSelected(true);
         }
         evt.stop(); return true;
-    },
-
-
-    onDownPressed: function($super, evt) {
-        if (evt.isCommandKey()) return $super(evt);
-        this.selectNext();
-        evt.stop(); return true;
     }
-
 },
 'scrolling', {
     scrollIndexIntoView: function(idx) {

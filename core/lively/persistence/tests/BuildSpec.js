@@ -113,15 +113,17 @@ Functions.timeToRun(function() {
 
     test09SubmorphFilter: function() {
         var m1 = new lively.morphic.Box(lively.rect(0,0,100,100)),
-            m2 = new lively.morphic.Box(lively.rect(20,20,10,10));
+            m2 = new lively.morphic.Box(lively.rect(20,20,10,10)),
+            m3 = new lively.morphic.Box(lively.rect(20,20,10,10));
         m1.addMorph(m2);
+        m1.addMorph(m3);
         m1.buildSpecProperties = {
             submorphs: {
                 filter: function(morph, submorphs) { return submorphs.without(m2); }
             }
         }
         var spec = m1.buildSpec();
-        this.assertEquals(0, spec.attributeStore.submorphs.length, 'submorph not filtered');
+        this.assertEquals(1, spec.attributeStore.submorphs.length, 'submorph not filtered');
     },
 
     test10DefaultValues: function() {
@@ -189,10 +191,8 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Spe
                      + "    _BorderColor: Color.rgb(204,0,0),\n"
                      + "    _Extent: lively.pt(100.0,100.0),\n"
                      + "    className: \"lively.morphic.Box\",\n"
-                     + "    doNotSerialize: [\"_renderContext\",\"halos\",\"_isRendered\",\"priorExtent\",\"cachedBounds\"],\n"
                      + "    droppingEnabled: true,\n"
                      + "    sourceModule: \"lively.morphic.Core\",\n"
-                     + "    submorphs: [],\n"
                      + "    foo: function foo() { return 123; }\n"
                      + "})"
         this.assertEquals(expected, spec);

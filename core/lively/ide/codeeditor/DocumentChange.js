@@ -187,14 +187,15 @@ Object.subclass('lively.ide.CodeEditor.CodeMarker',
         var screenStartRow = config.firstRow, screenEndRow = config.lastRow;
         this.markerRanges.forEach(function(range) {
             var start, end;
-            if (range.pos) {
+            if ("pos" in range) {
                 start = session.doc.indexToPosition(range.pos-1),
                 end = session.doc.indexToPosition(range.pos+1);
-            } else if (range.start != null && range.end != null) {
+            } else if ("start" in range && "end" in range) {
                 start = session.doc.indexToPosition(range.start);
                 end = session.doc.indexToPosition(range.end);
-            } else if (range.startPos && range.endPos) {
-                start = range.startPos; end = range.endPos;
+            } else if ("startPos" in range && "endPos" in range) {
+                start = range.startPos; 
+                end = range.endPos;
             } else {
                 console.warn('lively.morphic.CodeMarker cannot render %s', range);
                 return;

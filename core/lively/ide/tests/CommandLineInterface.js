@@ -420,7 +420,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunPersistentComma
 });
 
 
-TestCase.subclass("lively.ide.tests.CommandLineInterface.CommandLineSearch",
+TestCase.subclass("lively.ide.tests.CommandLineInterface.FileSystemSupport",
 "running", {
     setUp: function()  {},
     tearDown: function()  {}
@@ -482,7 +482,23 @@ TestCase.subclass("lively.ide.tests.CommandLineInterface.CommandLineSearch",
             var result = sut.parseDirectoryList(spec.string, spec.rootDirectory);
             this.assertEqualOwnState(spec.expected, result);
         }, this);
-    }
+    },
+
+    testJoinPaths: function() {
+        var sut = lively.ide.CommandLineInterface.path;
+        var tests = [
+            {input: ['/fooo/bar/baz'], expected: '/fooo/bar/baz'},
+            {input: ['/fooo/bar/baz', '.'], expected: '/fooo/bar/baz'},
+            {input: ['/fooo/bar/baz', 'zork'], expected: '/fooo/bar/baz/zork'},
+            {input: ['/fooo/bar/baz', '../zork'], expected: '/fooo/bar/zork'},
+            {input: ['/fooo/bar/baz/', '..'], expected: '/fooo/bar'},
+        ];
+        tests.forEach(function(spec) {
+            var result = sut.join.apply(sut, spec.input);
+            this.assertEqualOwnState(spec.expected, result);
+        }, this);
+    },
+
 
 });
 

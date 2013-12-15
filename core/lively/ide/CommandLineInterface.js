@@ -657,6 +657,26 @@ Object.subclass("lively.ide.CommandLineSearch.FileInfo",
     toString: function() { return this.path; }
 });
 
+Object.extend(lively.ide.CommandLineInterface, {
+    path: {
+        join: function(/*paths*/) {
+            var paths = Array.from(arguments);
+            return paths.reduce(append, paths.shift());
+            function append(path1, path2) {
+                path1 = path1 || '', path2 = path2 || '';
+                if (!path1.endsWith('/')) path1 += '/';
+                while (path2.startsWith('/')) path2 = path2.slice(1);
+                return (path1 + path2).split('/').reduce(function(parts, focus) {
+                    if (focus == '..') parts.pop();
+                    else if (focus == '.') ;/*ignore*/
+                    else parts.push(focus);
+                    return parts;
+                }, []).join('/');
+            }
+        }
+    }
+});
+
 Object.extend(lively.ide.CommandLineSearch, {
     doGrepFromWorkspace: function(string, path, thenDo) {
         // will automaticelly insert grep results into currently focused workspace

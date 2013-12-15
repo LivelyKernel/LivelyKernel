@@ -318,6 +318,30 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
         this.assertEquals(pt(50,50), clipped.getPosition(), 'pos in owner');
         owner.cachedBounds = null
         this.assertEquals(lively.rect(-150,-170,100,100), owner.bounds(), 'owner bounds');
+    },
+
+    testScrollOneScreen: function() {
+        var scroll;
+        var container = lively.newMorph({extent: pt(100,100),style: {clipMode: "scroll", fill: Color.gray}});
+        var inner = lively.newMorph({extent: pt(100,500),style: {fill: Color.yellow}})
+        var pageScrollHeight = container.getExtent().y - container.getScrollBarExtent().y;
+        container.addMorph(inner);
+        this.world.addMorph(container);
+
+        scroll = container.getScroll()[1];
+        this.assertEquals(0, scroll);
+
+        container.scrollPage('down');
+        scroll = container.getScroll()[1];
+        this.assertEquals(pageScrollHeight, scroll);
+
+        container.scrollPage('down');
+        scroll = container.getScroll()[1];
+        this.assertEquals(2*pageScrollHeight, scroll);
+
+        container.scrollPage('up')
+        scroll = container.getScroll()[1];
+        this.assertEquals(pageScrollHeight, scroll);
     }
 
 });

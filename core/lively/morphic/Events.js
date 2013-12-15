@@ -498,6 +498,14 @@ lively.morphic.Morph.addMethods(
 
         var scroll = this.getScroll();
         this.setScroll(scroll[0] + scrollDeltaX, scroll[1] + scrollDeltaY);
+    },
+
+    scrollPage: function(upOrDown) {
+        var page = this.getScrollExtent().y,
+            scroll = this.getScroll().clone();
+        if (upOrDown === 'up') scroll[1] -= page;
+        else if (upOrDown === 'down') scroll[1] += page;
+        this.setScroll(scroll[0], scroll[1]);
     }
 },
 'scroll event handling', {
@@ -546,6 +554,9 @@ lively.morphic.Morph.addMethods(
     },
     scrollToBottom: function() {
         this.setScroll(this.getScroll()[0], this.getMaxScrollExtent().y);
+    },
+    scrollToTop: function() {
+        this.setScroll(this.getScroll()[0], 0);
     }
 })
 

@@ -771,7 +771,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             commandString = timeFormatFix + Strings.format(
                 "env TZ=GMT LANG=en_US.UTF-8 "
               + "find %s %s \\( %s \\) -prune -o "
-              + "%s %s -exec ls -ld \"$timeformat\" {} \\;",
+              + "%s %s -exec ls -lLd \"$timeformat\" {} \\;",
                 rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth);
         return commandString;
     },
@@ -788,7 +788,6 @@ Object.extend(lively.ide.CommandLineSearch, {
         var result = [],
             cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
                 if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
-show(cmd.getStdout());
                 result = parseDirectoryList(cmd.getStdout(), rootDirectory);
                 callback && callback(result);
             });

@@ -3,7 +3,7 @@ module('lively.data.ImageUpload').requires('lively.data.FileUpload').toRun(funct
 lively.data.FileUpload.Handler.subclass('lively.Clipboard.ImageUploader', {
 
     handles: function(file) {
-        return file.type.match(/image.*/);
+        return file.type.match(/image\/.*/);
     },
     getUploadSpec: function(evt, file) {
         var altDown = evt.isAltDown();

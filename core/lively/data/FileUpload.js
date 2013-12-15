@@ -41,6 +41,7 @@ Object.subclass('lively.data.FileUpload.Handler',
         var reader = this.getFileReader();
         if (this.readMethod === 'asBinary') reader.readAsBinaryString(this.file);
         else if (this.readMethod === 'asText') reader.readAsText(this.file);
+        else if (this.readMethod === 'asArrayBuffer') reader.readAsArrayBuffer(this.file);
         else reader.readAsDataURL(this.file);
     },
 

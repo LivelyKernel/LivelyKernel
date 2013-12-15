@@ -97,7 +97,7 @@ Object.subclass('lively.persistence.SpecObject',
         if (properties.submorphs && properties.submorphs.filter) {
             submorphs = properties.submorphs.filter(morph, submorphs);
         }
-        this.set("submorphs", submorphs.invoke("buildSpec"));
+        submorphs.length && this.set("submorphs", submorphs.invoke("buildSpec"));
     },
 
     setConnections: function(sourceObj) {
@@ -340,8 +340,8 @@ lively.morphic.Morph.addMethods(
 
     buildSpecProperties: {
         name: {},
-        doNotSerialize: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
-        doNotCopyProperties: {getter: function(morph, val) { return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        doNotSerialize: {defaultValue: [], getter: function(morph, val) { if (!morph.hasOwnProperty("doNotSerialize")) return []; return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        doNotCopyProperties: {defaultValue: [], getter: function(morph, val) { if (!morph.hasOwnProperty("doNotCopyProperties")) return []; return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
         grabbingEnabled: {defaultValue: undefined},
         draggingEnabled: {defaultValue: undefined},
         droppingEnabled: {defaultValue: undefined},

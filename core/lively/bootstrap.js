@@ -500,6 +500,7 @@
         }
     };
 
+    Global.livelySources = {};
     Global.JSLoader = {
 
         SVGNamespace: 'http:\/\/www.w3.org/2000/svg',
@@ -591,6 +592,7 @@
             }
             var source = this.getSync(url);
             if (!source) { console.warn('Could not load %s', url); return; }
+            Global.livelySources[url] = source;
             try {
                 eval(source);
             } catch (e) {
@@ -606,7 +608,30 @@
                 script.setAttribute("href", url);
                 if (typeof onLoadCb === 'function') onLoadCb(); // huh?
             } else {
-                script.setAttributeNS(null, 'src', url);
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", url, true);
+                xhr.onload = function (e) {
+                  if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var source = xhr.responseText;
+                        if (!source) { console.warn('Could not load %s', url); return; }
+                        Global.livelySources[url] = source;
+                        try {
+                            eval.call(Global, source);
+                        } catch (e) {
+                            console.error('Error when loading %s: %s\n%s', url, e, e.stack);
+                        }
+                        if (typeof onLoadCb === 'function') onLoadCb();
+                    } else {
+                      console.error(xhr.statusText);
+                    }
+                  }
+                };
+                xhr.onerror = function (e) {
+                  console.error(xhr.statusText);
+                };
+                xhr.send(null);
+                return;
             }
 
             if (onLoadCb) script.onload = onLoadCb;

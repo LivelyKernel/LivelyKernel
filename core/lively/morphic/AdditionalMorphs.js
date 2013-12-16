@@ -1418,12 +1418,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         }
     },
 
-
     addMorph: function($super, aMorph) {
         var returnValue = $super(aMorph);
         this.adjustClipping(this.getExtent());
         return returnValue
     },
+
     removeMorph: function($super, aMorph) {
         $super(aMorph);
         this.adjustClipping(this.getExtent());

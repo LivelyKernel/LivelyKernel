@@ -187,7 +187,7 @@ Object.subclass('lively.ide.FileFragment',
             beforeString  = fileString.substring(0, this.startIndex),
             afterString   = fileString.substring(this.stopIndex+1),
             newFileString = beforeString.concat(newString, afterString);
-        return newFileString;
+        return newFileString.trim() + "\n";
     }
 },
 'parsing', {

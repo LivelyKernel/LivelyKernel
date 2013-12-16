@@ -644,4 +644,4 @@ Object.extend(lively.Module, {
         localStorage.getItem("LivelyChangesets:" + location.pathname))
             lively.ChangeSet.loadAndcheckVsSystem();
     lively.Module.checkModuleLoadStates();
-}).delay(3);
+}).delay(13);

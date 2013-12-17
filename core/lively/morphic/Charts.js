@@ -503,12 +503,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super(clippedExtent);
         this.adjustForNewBounds();
         
-        var button = this.get("DoButton");
-        button.setPosition(button.getPosition().addPt(clippedExtent.subPt(oldExtent)));
+        var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
+        if (errorText.length) {
+            errorText[0].setExtent(pt(this.getExtent().x - 150, errorText[0].getExtent().y));
+        }
         
         var codeEditor = this.getSubmorphsByAttribute("shouldResize", true);
         if (codeEditor.length) {
-            codeEditor[0].setExtent(pt(clippedExtent.x-15,clippedExtent.y-60));
+            codeEditor[0].setExtent(pt(clippedExtent.x-25,clippedExtent.y-70));
         }
     },
     

@@ -1194,7 +1194,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     testBuildNewSourceString: function() {
         var fragment = this.fragmentNamed('ClassA');
         var newString = 'Object.subclass(\'ClassXYZ\', {});\n';
-        var result = fragment.buildNewFileString(newString);
+        var result = fragment.buildNewFileString(newString).trim();
         var expected = 'module(\'foo.js\').requires(\'bar.js\').toRun(function() {\n' +
             'Object.subclass(\'ClassXYZ\', {});\n' +
             'ClassA.m3 = function() { 123 };\n' +
@@ -1215,10 +1215,10 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     testRemoveFragment: function() {
         var fragment = this.fragmentNamed('ClassA');
         var src = fragment.getSourceCode();
-        var expectedLength = fragment.getFileString().length - fragment.getSourceCode().length;
+        var expectedLength = fragment.getFileString().trim().length - fragment.getSourceCode().length;
         fragment.remove();
         this.assert(!this.root.flattened().include(fragment), 'root still includes fragment');
-        var fileString = this.db.getCachedText('foo.js');
+        var fileString = this.db.getCachedText('foo.js').trim();
         this.assert(!fileString.include(src), 'filestring includes fragments sourceCode');
         this.assertEquals(expectedLength, fileString.length, 'strange length');
     },
@@ -1238,9 +1238,9 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         var fragment = this.fragmentNamed('m2');
         var next = this.fragmentNamed('m1');
         var owner = this.fragmentNamed('ClassA');
-        var expectedLength = owner.getFileString().length + fragment.getSourceCode().length;
+        var expectedLength = owner.getFileString().trim().length + fragment.getSourceCode().length;
         next.addSibling(fragment.getSourceCode());
-        var string = owner.getFileString();
+        var string = owner.getFileString().trim();
         this.assertEquals(expectedLength+2, string.length, 'strange length');
         this.assertEquals(owner.subElements().length, 2);
         this.assertEquals(owner.subElements()[1].getSourceCode(), fragment.getSourceCode());
@@ -1288,7 +1288,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         var f = this.fragmentNamed('test2'); // first one
         f.moveTo(targetIndex);
         this.assertEquals(f.getSourceCode(), 'test2: 2,', 1);
-        this.assertEquals(f.getFileString(), 'Object.subclass("Dummy1", {test2: 2,});\n'+
+        this.assertEquals(f.getFileString().trim(), 'Object.subclass("Dummy1", {test2: 2,});\n'+
                           'Object.subclass("Dummy", {\ntest1: 1,\n\n\ntest2: 2,\n});');
     },
 

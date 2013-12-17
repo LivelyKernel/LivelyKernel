@@ -450,14 +450,14 @@ function isCompatibleDescriptor(extensible, current, desc) {
  *
  * Both target and handler must be proper Objects at initialization time.
  */
-function Validator(target, handler, hasVirtualTarget) {
+function Validator(target, handler, isTargetVirtual) {
   // for non-revokable proxies, these are const references
   // for revokable proxies, on revocation:
   // - this.target is set to null
   // - this.handler is set to a handler that throws on all traps
   this.target  = target;
   this.handler = handler;
-  this.hasVirtualTarget = hasVirtualTarget;
+  this.isTargetVirtual = isTargetVirtual;
 }
 
 Validator.prototype = {
@@ -506,7 +506,7 @@ Validator.prototype = {
     var desc = trap.call(this.handler, this.target, name);
     desc = normalizeAndCompletePropertyDescriptor(desc);
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
         return desc;
     }
     
@@ -651,7 +651,7 @@ Validator.prototype = {
     var success = trap.call(this.handler, this.target, name, desc);
     success = !!success; // coerce to Boolean
 
-    if (success === true && !this.hasVirtualTarget) {
+    if (success === true && !this.isTargetVirtual) {
             
       var targetDesc = Object.getOwnPropertyDescriptor(this.target, name);
       var extensible = Object.isExtensible(this.target);
@@ -702,7 +702,7 @@ Validator.prototype = {
     var success = trap.call(this.handler, this.target);
     success = !!success; // coerce to Boolean
     if (success) {
-      if (!this.hasVirtualTarget && !Object_isFrozen(this.target)) {
+      if (!this.isTargetVirtual && !Object_isFrozen(this.target)) {
         throw new TypeError("can't report non-frozen object as frozen: "+
                             this.target);
       }      
@@ -723,7 +723,7 @@ Validator.prototype = {
     var success = trap.call(this.handler, this.target);
     success = !!success; // coerce to Boolean
     if (success) {
-      if (!this.hasVirtualTarget && !Object_isSealed(this.target)) {
+      if (!this.isTargetVirtual && !Object_isSealed(this.target)) {
         throw new TypeError("can't report non-sealed object as sealed: "+
                             this.target);
       }      
@@ -744,7 +744,7 @@ Validator.prototype = {
     var success = trap.call(this.handler, this.target);
     success = !!success; // coerce to Boolean
     if (success) {
-      if (!this.hasVirtualTarget && Object_isExtensible(this.target)) {
+      if (!this.isTargetVirtual && Object_isExtensible(this.target)) {
         throw new TypeError("can't report extensible object as non-extensible: "+
                             this.target);
       }      
@@ -768,7 +768,7 @@ Validator.prototype = {
     res = !!res; // coerce to Boolean
     
     if (res === true) {
-      if (!this.hasVirtualTarget && isSealed(name, this.target)) {
+      if (!this.isTargetVirtual && isSealed(name, this.target)) {
         throw new TypeError("property '"+name+"' is non-configurable "+
                             "and can't be deleted");        
       }
@@ -812,7 +812,7 @@ Validator.prototype = {
         throw new TypeError("getOwnPropertyNames cannot list a "+
                             "duplicate property '"+s+"'");
       }
-      if (!this.hasVirtualTarget && !Object.isExtensible(this.target)
+      if (!this.isTargetVirtual && !Object.isExtensible(this.target)
           && !isFixed(s, this.target)) {
         // non-extensible proxies don't tolerate new own property names
         throw new TypeError("getOwnPropertyNames cannot list a new "+
@@ -823,7 +823,7 @@ Validator.prototype = {
       result[i] = s;
     }
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return result;
     }
     
@@ -865,7 +865,7 @@ Validator.prototype = {
     var result = trap.call(this.handler, this.target);
     result = !!result; // coerce to Boolean
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return result;
     }
     
@@ -894,7 +894,7 @@ Validator.prototype = {
 
     var allegedProto = trap.call(this.handler, this.target);
     
-    if (!this.hasVirtualTarget && !Object_isExtensible(this.target)) {
+    if (!this.isTargetVirtual && !Object_isExtensible(this.target)) {
       var actualProto = Object_getPrototypeOf(this.target);
       if (!sameValue(allegedProto, actualProto)) {
         throw new TypeError("prototype value does not match: " + this.target);
@@ -918,7 +918,7 @@ Validator.prototype = {
     var success = trap.call(this.handler, this.target, newProto);
     
     success = !!success;
-    if (!this.hasVirtualTarget && success && !Object_isExtensible(this.target)) {
+    if (!this.isTargetVirtual && success && !Object_isExtensible(this.target)) {
       var actualProto = Object_getPrototypeOf(this.target);
       if (!sameValue(newProto, actualProto)) {
         throw new TypeError("prototype value does not match: " + this.target);
@@ -959,7 +959,7 @@ Validator.prototype = {
     var res = trap.call(this.handler, this.target, name);
     res = !!res; // coerce to Boolean
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return res;
     }
     
@@ -1006,7 +1006,7 @@ Validator.prototype = {
     var res = trap.call(this.handler, this.target, name);
     res = !!res; // coerce to Boolean
     
-    if (!this.hasVirtualTarget && res === false) {
+    if (!this.isTargetVirtual && res === false) {
       if (isSealed(name, this.target)) {
         throw new TypeError("cannot report existing non-configurable own "+
                             "property '"+ name + "' as a non-existent "+
@@ -1072,7 +1072,7 @@ Validator.prototype = {
     name = String(name);
     var res = trap.call(this.handler, this.target, name, receiver);
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return res;
     }
     
@@ -1118,7 +1118,7 @@ Validator.prototype = {
     res = !!res; // coerce to Boolean
          
     // if success is reported, check whether property is truly assignable
-    if (!this.hasVirtualTarget && res === true) {
+    if (!this.isTargetVirtual && res === true) {
       var fixedDesc = Object.getOwnPropertyDescriptor(this.target, name);
       if (fixedDesc !== undefined) { // setting an existing property
         if (isDataDescriptor(fixedDesc) &&
@@ -1182,7 +1182,7 @@ Validator.prototype = {
       result[i] = s;
     }
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return result;
     }
 
@@ -1263,7 +1263,7 @@ Validator.prototype = {
        throw new TypeError("keys trap cannot list a "+
                            "duplicate property '"+s+"'");
      }
-     if (!this.hasVirtualTarget && !Object.isExtensible(this.target) &&
+     if (!this.isTargetVirtual && !Object.isExtensible(this.target) &&
         !isFixed(s, this.target)) {
        // non-extensible proxies don't tolerate new own property names
        throw new TypeError("keys trap cannot list a new "+
@@ -1274,7 +1274,7 @@ Validator.prototype = {
      result[i] = s;
     }
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return result;
     }
     
@@ -1381,7 +1381,7 @@ Validator.prototype = {
     var result = trap.call(this.handler, this.target);
     result = !!result; // coerce to Boolean
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return result;
     }
     
@@ -1412,7 +1412,7 @@ Validator.prototype = {
     var result = trap.call(this.handler, this.target);
     result = !!result; // coerce to Boolean
     
-    if (this.hasVirtualTarget) {
+    if (this.isTargetVirtual) {
       return result;
     }
     
@@ -2282,7 +2282,7 @@ if (typeof Proxy !== "undefined") {
     var primCreate = Proxy.create,
         primCreateFunction = Proxy.createFunction;
 
-    Reflect.Proxy = function(target, handler, hasVirtualTarget) {
+    Reflect.Proxy = function(target, handler, isTargetVirtual) {
       // check that target is an Object
       if (Object(target) !== target) {
         throw new TypeError("Proxy target must be an Object, given "+target);
@@ -2293,7 +2293,7 @@ if (typeof Proxy !== "undefined") {
         throw new TypeError("Proxy handler must be an Object, given "+handler);
       }
 
-      var vHandler = new Validator(target, handler, hasVirtualTarget);
+      var vHandler = new Validator(target, handler, isTargetVirtual);
       var proxy;
       // virtual objects might also want call and construct traps
       if (typeof target === "function") {

@@ -408,8 +408,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super(clippedExtent);
         this.adjustForNewBounds();
         var button = this.get("DoButton");
-
         button.setPosition(button.getPosition().addPt(clippedExtent.subPt(oldExtent)));
+        var codeEditor = this.get("CodeEditor");
+        codeEditor.setExtent(pt(clippedExtent.x-15,clippedExtent.y-50));
     },
     
     throwError: function(error) {

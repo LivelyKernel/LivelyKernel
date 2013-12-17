@@ -3,8 +3,9 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
 lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     initialize: function($super, aMorph, directionPt) {
+        this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
-        
+        this.isLayoutable = false;
         var controlPoints;
         this.directionPt = directionPt;
         if (directionPt.y == 1)
@@ -15,7 +16,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
         $super(controlPoints);
         this.setBorderColor(Color.rgba(0, 0, 0, 0));
         this.deactivate();
-        this.positionAtMorph(aMorph, directionPt);
+        this.positionAtMorph();
     },
     
     toggle: function() {
@@ -25,8 +26,8 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
             this.deactivate();
     },
     
-    positionAtMorph: function(aMorph) {
-        this.componentMorph = aMorph;
+    positionAtMorph: function() {
+        var aMorph = this.componentMorph;
         var extent = aMorph.getExtent();
         
         var offsetX, offsetY;
@@ -47,11 +48,13 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     activate: function() {
         this.activated = true;
+        this.componentMorph.propagationEnabled = true;
         this.setFill(Color.rgbHex("77D88B"));
     },
     
     deactivate: function() {
         this.activated = false;
+        this.componentMorph.propagationEnabled = false;
         this.setFill(Color.rgbHex("D8d8d8"));
     },
     

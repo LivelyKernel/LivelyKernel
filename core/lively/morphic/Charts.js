@@ -152,6 +152,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super();
         this.setExtent(pt(500, 250));
         this.setFill(Color.gray);
+        this.propagationEnabled = true;
         this.data = null;
         
         this.createLabel();
@@ -167,7 +168,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.diffY = 0;
     },
     
-    gridWidth: 250,
+    gridWidth: 50,
     
     remove: function($super) {
         $super();
@@ -222,6 +223,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     update: function() {
         this.refreshData();
+        
         var promise;
         try {
             promise = this.updateComponent();
@@ -235,13 +237,15 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             return;
         }
         
-        var _this = this;
-        if (promise && typeof promise.done == "function") {
-            promise.done(function() {
-                _this.notifyNextComponent();
-            });
-        } else {
-            this.notifyNextComponent();
+        if (this.propagationEnabled){
+            var _this = this;
+            if (promise && typeof promise.done == "function") {
+                promise.done(function() {
+                    _this.notifyNextComponent();
+                });
+            } else {
+                this.notifyNextComponent();
+            }
         }
     },
     

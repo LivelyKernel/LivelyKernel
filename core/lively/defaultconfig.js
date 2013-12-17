@@ -363,7 +363,8 @@ Config.addOptions(
     ["ignoreLoadingErrors", true],
     ["ignoreMissingModules", false],
     ["keepSerializerIds", false],
-    ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."]
+    ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."],
+    ["manuallyCreateWorld", false, "Loads up Lively and creates a complete new world from scratch instead of using a serialized one."]
 ],
 
 'lively.bindings', [

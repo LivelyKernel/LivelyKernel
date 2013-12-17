@@ -664,10 +664,9 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 'accessing', {
     world: function() { return this },
     firstHand: function() { return this.hands && this.hands[0] },
-    windowBounds:  function () {
+    windowBounds: function(optWorldDOMNode) {
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
-
-        var canvas = this.renderContext().getMorphNode(),
+        var canvas = optWorldDOMNode || this.renderContext().getMorphNode(),
             topmost = document.documentElement,
             body = document.body,
             scale = 1 / this.getScale(),
@@ -695,7 +694,9 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     },
 
     displayOnElement: function(el) {
-        this.renderContext().domInterface.removeAllChildrenOf(el);
+        if (lively.Config.get("removeDOMContentBeforeWorldLoad")) {
+            this.renderContext().domInterface.removeAllChildrenOf(el);
+        }
         this.renderContext().setParentNode(el);
         this.renderContextDispatch('append');
         this.withAllSubmorphsDo(function(ea) {
@@ -765,6 +766,11 @@ Object.extend(lively.morphic.World, {
 
     current: function() { return this.currentWorld },
 
+    registerWorld: function(world) {
+        // make it THE world
+        return this.currentWorld = world;
+    },
+
     createOn: function(domElement, bounds) {
         var world = new this();
         bounds = bounds || new Rectangle(0,0,400,400);
@@ -772,7 +778,7 @@ Object.extend(lively.morphic.World, {
         world.displayOnElement(domElement)
         world.applyStyle({fill: Color.gray.lighter()})
         world.addHandMorph();
-        this.currentWorld = world;
+        this.registerWorld(world);
         return world;
     }
 });

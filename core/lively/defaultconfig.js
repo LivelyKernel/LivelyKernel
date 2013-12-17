@@ -364,7 +364,8 @@ Config.addOptions(
     ["ignoreMissingModules", false],
     ["keepSerializerIds", false],
     ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."],
-    ["manuallyCreateWorld", false, "Loads up Lively and creates a complete new world from scratch instead of using a serialized one."]
+    ["manuallyCreateWorld", false, "Loads up Lively and creates a complete new world from scratch instead of using a serialized one."],
+    ["removeDOMContentBeforeWorldLoad", true, "Whether to remove all the DOM child nodes of the DOM element that is used to display the World."]
 ],
 
 'lively.bindings', [

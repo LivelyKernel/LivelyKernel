@@ -942,13 +942,10 @@
             require(bootstrapModules).toRun(function() {
                 lively.Config.loadUserConfigModule();
                 var loader = lively.Main.getLoader(doc);
-                lively.bindings.connect(loader, 'finishLoading',
-                                        LoadingScreen, 'remove');
-                if (startupFunc) {
-                    loader.startupFunc = startupFunc;
-                    lively.bindings.connect(loader, 'finishLoading',
-                                            loader, 'startupFunc');
-                }
+                lively.whenLoaded(function() {
+                    LoadingScreen.remove();
+                    startupFunc && startupFunc();
+                });
                 loader.systemStart(doc);
             });
         },
@@ -1161,7 +1158,8 @@
     if (browserDetector.isNodejs()) {
         domLoaded = true;
     } else {
-        domLoaded = false;
+        domLoaded = document.readyState === "complete"
+                 || document.readyState == "loaded";
         Global.addEventListener('DOMContentLoaded', function() { domLoaded = true; }, true);
     }
 
@@ -1346,6 +1344,9 @@
     // let it run
     // -=-=-=-=-=-=-=-
     (function startWorld(startupFunc) {
+        // don't load twice
+        if (lively.wasStarted) return;
+        lively.wasStarted = true;
         if (browserDetector.isNodejs()) {
             initNodejsBootstrap();
         } else if (lively.ApplicationCache.isActive) {

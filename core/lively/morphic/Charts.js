@@ -1,5 +1,92 @@
 module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets').toRun(function() {
 
+lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
+    
+    initialize: function($super, aMorph, directionPt) {
+        var arrowHeight = 10, arrowBase = 20;
+        
+        var controlPoints;
+        this.directionPt = directionPt;
+        if (directionPt.y == 1)
+            controlPoints = [pt(000, 000), pt(2 * arrowBase, 000), pt(arrowBase, arrowHeight), pt(000, 000)];
+        else
+            controlPoints = [pt(000, 000), pt(arrowHeight, arrowBase), pt(0, 2 * arrowBase), pt(000, 000)];
+        
+        $super(controlPoints);
+        this.setBorderColor(Color.rgba(0, 0, 0, 0));
+        this.deactivate();
+        this.positionAtMorph(aMorph, directionPt);
+    },
+    
+    toggle: function() {
+        if(!this.activated)
+            this.activate();
+        else
+            this.deactivate();
+    },
+    
+    positionAtMorph: function(aMorph) {
+        this.componentMorph = aMorph;
+        var extent = aMorph.getExtent();
+        
+        var offsetX, offsetY;
+        
+        if (this.directionPt.x == 1)
+            offsetX = extent.x;
+        else
+            offsetX = (extent.x - this.getExtent().x) / 2;
+        
+        if (this.directionPt.y == 1)
+            offsetY = extent.y;
+        else
+            offsetY = (extent.y - this.getExtent().y) / 2;
+        
+        this.setPosition(pt(offsetX, offsetY));
+        aMorph.addMorph(this);
+    },
+    
+    activate: function() {
+        this.activated = true;
+        this.setFill(Color.rgbHex("77D88B"));
+    },
+    
+    deactivate: function() {
+        this.activated = false;
+        this.setFill(Color.rgbHex("D8d8d8"));
+    },
+    
+    onMouseUp: function(e) {
+        if (e.isLeftMouseButtonDown()) {
+            this.toggle();
+            
+            if(this.activated) {
+                this.createComponentWithOffset();
+            }
+        }
+    },
+    
+    createComponentWithOffset: function() {
+        var directionPt = this.directionPt;
+        var newComponent = $world.loadPartItem('ScriptFlowComponent', 'PartsBin/BP2013H2');
+        var extent =  this.componentMorph.getExtent();
+        var offset = pt(
+            (extent.x + 20) * directionPt.x,
+            (extent.y + 20) * directionPt.y
+        );
+        
+        newComponent.setPosition(
+            this.componentMorph.getPosition().addPt(offset)
+        );
+        
+        // TODO
+        new lively.morphic.DataFlowArrow(newComponent, pt(0,1));
+        new lively.morphic.DataFlowArrow(newComponent, pt(1,0));
+        
+        $world.addMorph(newComponent);
+        newComponent.triggerLayouting();
+    }
+});
+
 lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     
     initialize: function($super,h,w) {
@@ -161,6 +248,10 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.addScript(function updateComponent() {
             // put your code here
         });
+        
+        var arrow = new lively.morphic.DataFlowArrow();
+        arrow.setName("arrow");
+        arrow.positionAtMorph(this);
     },
     
     onResizeEnd: function(){

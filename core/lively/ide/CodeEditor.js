@@ -737,6 +737,23 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return result;
     },
 
+    doDebugit: function() {
+        var text = this.getSelectionMaybeInComment(),
+            that = this;
+        require('lively.ast.Morphic').toRun(function() {
+            var str = "function(){\n" + text + "\n}",
+                fun = Function.fromString(str).forInterpretation(),
+                ctx = that.getDoitContext() || that;
+            try {
+                fun.startHalted().apply(ctx, []);
+            } catch(e) {
+                if (!e.isUnwindException) {
+                    that.showError(e);
+                }
+            }
+        });
+    },
+
     doListProtocol: function() {
         var pl = new lively.morphic.Text.ProtocolLister(this);
         pl.evalSelectionAndOpenNarrower();

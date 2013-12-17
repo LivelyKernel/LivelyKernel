@@ -65,7 +65,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 });
             }
         });
-    }
+    };
 
     acorn.walk.forEachNode = function(ast, func, state, options) {
         // note: func can get called with the same node for different
@@ -88,14 +88,14 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         });
         acorn.walk.recursive(ast, 0, null, visitors);
         return ast;
-    }
+    };
 
     acorn.walk.matchNodes = function(ast, visitor, state, options) {
         function visit(node, state, depth, type) {
             if (visitor[node.type]) visitor[node.type](node, state, depth, type);
         }
         return acorn.walk.forEachNode(ast, visit, state, options);
-    }
+    };
 
     acorn.walk.findNodesIncluding = function(ast, pos, test, base) {
         var nodes = [];
@@ -114,7 +114,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         });
         acorn.walk.findNodeAround(ast, pos, test, base);
         return nodes;
-    }
+    };
 
     acorn.walk.addSource = function(ast, source) {
         source = Object.isString(ast) ? ast : source;
@@ -122,14 +122,14 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
         return acorn.walk.forEachNode(ast, function(node) {
             node.source || (node.source = source.slice(node.start, node.end));
         });
-    }
+    };
 
     acorn.walk.inspect = function(ast, source) {
         source = Object.isString(ast) ? ast : null;
         ast = Object.isString(ast) ? acorn.parse(ast) : ast;
         source && acorn.walk.addSource(ast, source);
         return Objects.inspect(ast);
-    }
+    };
 
     acorn.walk.withParentInfo = function(ast, iterator, options) {
         // options = {visitAllNodes: BOOL}
@@ -193,7 +193,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
             nodeNameVal[0][nodeNameVal[1]] = nodeNameVal[2];
         });
         return result;
-    }
+    };
 
     acorn.walk.print = function(ast, source) {
         // acorn.walk.print('12+3')
@@ -208,9 +208,9 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                                     node.type, node.start, node.end, nodeSrc));
         });
         return result.join('\n');
-    },
+    };
 
-    acorn.walk.toLKObjects = function (ast) {
+    acorn.walk.toLKObjects = function(ast) {
         if (!!!ast.type) throw new Error('Given AST is not an Acorn AST.');
         function newUndefined(start, end) {
             start = start || -1;
@@ -527,7 +527,252 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
             return visitors[node.type](node, c);
         }
         return c(ast);
-    }
+    };
+
+    acorn.walk.copy = function(ast, override) {
+        visitors = Object.extend({
+            Program: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'Program',
+                    body: n.body.map(c)
+                };
+            },
+            FunctionDeclaration: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'FunctionDeclaration',
+                    id: c(n.id), params: n.params.map(c), body: c(n.body)
+                };
+            },
+            BlockStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'BlockStatement',
+                    body: n.body.map(c)
+                };
+            },
+            ExpressionStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ExpressionStatement',
+                    expression: c(n.expression)
+                };
+            },
+            CallExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'CallExpression',
+                    callee: c(n.callee), arguments: n.arguments.map(c)
+                };
+            },
+            MemberExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'MemberExpression',
+                    object: c(n.object), property: c(n.property), computed: n.computed
+                };
+            },
+            NewExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'NewExpression',
+                    callee: c(n.callee), arguments: n.arguments.map(c)
+                };
+            },
+            VariableDeclaration: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'VariableDeclaration',
+                    declarations: n.declarations.map(c), kind: n.kind
+                };
+            },
+            VariableDeclarator: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'VariableDeclarator',
+                    id: c(n.id), init: c(n.init)
+                };
+            },
+            FunctionExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'FunctionExpression',
+                    id: c(n.id), params: n.params.map(c), body: c(n.body)
+                };
+            },
+            IfStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'IfStatement',
+                    test: c(n.test), consequent: c(n.consequent),
+                    alternate: c(n.alternate)
+                };
+            },
+            ConditionalExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ConditionalExpression',
+                    test: c(n.test), consequent: c(n.consequent),
+                    alternate: c(n.alternate)
+                };
+            },
+            SwitchStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'SwitchStatement',
+                    discriminant: c(n.discriminant), cases: n.cases.map(c)
+                };
+            },
+            SwitchCase: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'SwitchCase',
+                    test: c(n.test), consequent: n.consequent.amp(c)
+                };
+            },
+            BreakStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'BreakStatement',
+                    label: n.label
+                };
+            },
+            ContinueStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ContinueStatement',
+                    label: n.label
+                };
+            },
+            TryStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'TryStatement',
+                    block: c(n.block), handler: c(n.handler), finalizer: c(n.finalizer),
+                    guardedHandlers: n.guardedHandlers.map(c)
+                };
+            },
+            ThrowStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ThrowStatement',
+                    argument: c(n.argument)
+                };
+            },
+            ForStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ForStatement',
+                    init: c(n.init), test: c(n.test), update: c(n.update),
+                    body: c(n.body)
+                };
+            },
+            ForInStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ForInStatement',
+                    left: c(n.left), right: c(n.right), body: c(n.body)
+                };
+            },
+            WhileStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'WhileStatement',
+                    test: c(n.test), body: c(n.body)
+                };
+            },
+            DoWhileStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'DoWhileStatement',
+                    test: c(n.test), body: c(n.body)
+                };
+            },
+            WithStatement: function(n ,c) {
+                return {
+                    start: n.start, end: n.end, type: 'WithStatement',
+                    object: c(n.object), body: c(n.body)
+                };
+            },
+            UnaryExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'UnaryExpression',
+                    argument: c(n.argument), operator: n.operator, prefix: n.prefix
+                };
+            },
+            BinaryExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'BinaryExpression',
+                    left: c(n.left), operator: n.operator, right: c(n.right)
+                };
+            },
+            LogicalExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'LogicalExpression',
+                    left: c(n.left), operator: n.operator, right: c(n.right)
+                };
+            },
+            AssignmentExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'AssignmentExpression',
+                    left: c(n.left), operator: n.operator, right: c(n.right)
+                };
+            },
+            UpdateExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'UpdateExpression',
+                    argument: c(n.argument), operator: n.operator, prefix: n.prefix
+                };
+            },
+            ReturnStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ReturnStatement',
+                    argument: c(n.argument)
+                };
+            },
+            Identifier: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'Identifier',
+                    name: n.name
+                };
+            },
+            Literal: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'Literal',
+                    value: n.value, raw: n.raw /* Acorn-specific */
+                };
+            },
+            ObjectExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ObjectExpression',
+                    properties: n.properties.map(function(prop) {
+                        return {
+                            key: c(prop.key), value: c(prop.value), kind: prop.kind
+                        };
+                    })
+                };
+            },
+            ArrayExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ArrayExpression',
+                    elements: n.elements.map(c)
+                };
+            },
+            SequenceExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'SequenceExpression',
+                    expressions: n.expressions.map(c)
+                };
+            },
+            EmptyStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'EmptyStatement'
+                };
+            },
+            ThisExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ThisExpression'
+                };
+            },
+            DebuggerStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'DebuggerStatement'
+                };
+            },
+            LabeledStatement: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'LabeledStatement',
+                    label: n.label, body: c(n.body)
+                };
+            }
+        }, override || {});
+
+        function c(node) {
+            if (node === null) return null;
+            return visitors[node.type](node, c);
+        }
+        return c(ast);
+    };
+
 })();
 
 lively.ide.ModuleWrapper.addMethods(

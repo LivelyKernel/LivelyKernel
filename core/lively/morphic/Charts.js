@@ -254,6 +254,12 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         arrow.positionAtMorph(this);
     },
     
+    onMouseUp: function onMouseUp() {
+        var pos = this.getPosition();
+        var newpos = pt(Math.floor(pos.x/50)*50,Math.floor(pos.y/50)*50);
+        this.setPosition(newpos);
+    },
+    
     onResizeEnd: function(){
         this.diffX = 0;
         this.diffY = 0;

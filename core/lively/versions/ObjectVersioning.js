@@ -267,6 +267,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return versions;
             })(),
+            __shouldVersion: !lively.currentlyInDontVersionScope,
             
             // === helpers ===
             isProxy: function() { return true },
@@ -368,6 +369,11 @@ Object.extend(lively.versions.ObjectVersioning, {
             shouldObjectBeCopiedBeforeWrite: function(target) {
                 var isDOMElement;
                 
+                // should this object store versions of itself?
+                if (!this.__shouldVersion) {
+                    return false;
+                }
+                
                 // don't create new versions of window or DOM or CSS objects
                 isDOMElement = Config.get('DOMTypes').any(function(ea) {
                     return target instanceof ea;
@@ -385,9 +391,11 @@ Object.extend(lively.versions.ObjectVersioning, {
                     hasOwnProperty(lively.CurrentVersion.ID);
             },
             shouldObjectBeCopiedBeforeApplication: function(thisArg, func) {
-                return Object.isProxy(thisArg) &&
+                var funcWillModifyTargetArray = Object.isProxy(thisArg) &&
                         Object.isArray(thisArg) &&
                         Config.get('ModifyingArrayOperations').include(func);
+                
+                return funcWillModifyTargetArray && thisArg.__shouldVersion;
             },
             canFunctionHandleProxies: function(func) {
                 // note, however: the following [native code]-check also
@@ -440,6 +448,12 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return true;
                 }
                 
+                if (name === '__shouldVersion') {
+                    this.__shouldVersion = value;
+                    
+                    return true;
+                }
+                
                 if (name === 'onreadystatechange' && Object.isProxy(value) &&
                     targetObject.constructor.name === 'XMLHttpRequest') {
                     value = value.proxyTarget();
@@ -473,6 +487,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 if (name === 'proxyTarget') {
                     return this.proxyTarget.bind(this);
+                }
+                if (name === '__shouldVersion') {
+                    return this.__shouldVersion;
                 }
                 
                 targetObject = this.targetObject();
@@ -1087,6 +1104,16 @@ Object.extend(lively.versions.ObjectVersioning, {
             {beautify: true});
     }
 });
+
+// ----- DO-WITHOUT-PROXYING EXPERIMENT -----
+
+lively.doWithoutProxying = function(func) {
+    lively.currentlyInDontVersionScope = true;
+    
+    func();
+    
+    lively.currentlyInDontVersionScope = false;
+}
 
 // ----- TICKING -----
 

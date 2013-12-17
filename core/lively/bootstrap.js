@@ -934,12 +934,12 @@
         loadMain: function(doc, startupFunc) {
             LoadingScreen.add('Loading');
             var bootstrapModules = [
+                'lively.ChangeSets',
                 'lively.lang.Closure',
                 'lively.lang.UUID',
                 'lively.bindings',
-                'lively.Main'
-            ];
-            require(bootstrapModules).toRun(function() {
+                'lively.Main'];
+            lively.require(bootstrapModules).toRun(function() {
                 lively.Config.loadUserConfigModule();
                 var loader = lively.Main.getLoader(doc);
                 lively.whenLoaded(function() {
@@ -1210,7 +1210,7 @@
                 loader.systemStart(document);
                 console.log('bootstrap done');
             } + ')');
-            Global.require(bootstrapModules).toRun(finished);
+            lively.require(bootstrapModules).toRun(finished);
         });
         module.exports.Global = Global;
     }

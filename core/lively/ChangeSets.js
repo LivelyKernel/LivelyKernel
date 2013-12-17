@@ -1,4 +1,4 @@
-module('lively.ChangeSets').requires('lively.Traits', 'lively.persistence.BuildSpec').requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
+module('lively.ChangeSets').requires('lively.Traits', 'lively.persistence.BuildSpec', 'lively.morphic.MorphAddons'/*for lively.morphic.Panel*/).requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
 
 Object.extend(Global, {
 

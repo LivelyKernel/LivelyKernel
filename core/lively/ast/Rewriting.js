@@ -208,7 +208,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     initialize: function($super) {
         $super();
         this.scopes = [];
-    }
+    },
 },
 'scoping', {
     enterScope: function() {
@@ -461,5 +461,342 @@ Object.extend(lively.ast.Rewriting, {
         if (cb) cb();
     }
 });
+
+(function extendAcorn() {
+    /*
+    // reimplementation of lively.ast.Rewriting.Rewriter for Parser API
+    // (without astIdx, so astIdx is always 1)
+    */
+    acorn.walk.rewrite = function(node) {
+        var scopes = [];
+
+        function newNode(type, node) {
+            node.type = type;
+            node.start = 0;
+            node.end = 0;
+            return node;
+        }
+
+        function enterScope() {
+            scopes.push([]);
+        }
+        function exitScope() {
+            scopes.pop();
+        }
+        function registerVars(vars) {
+            if (scopes.length == 0) return;
+            var scope = scopes.last();
+            return vars.map(function(varName) {
+                scope.push(varName);
+                return newNode('Identifier', { name: varName });
+            });
+        }
+        function wrapSequence(node, args) {
+            function newVariable(name, value) {
+                if (value == '{}') {
+                    value = newNode('ObjectExpression', { properties: [] });
+                } else if (Object.isArray(value)) {
+                    value = newNode('ArrayExpression', {
+                        elements: value.map(function(val) {
+                            if (Object.isNumber(val)) {
+                                return newNode('Literal', { value: val });
+                            } else if (Object.isString(val)) {
+                                return newNode('Identifier', { name: val });
+                            } else {
+                                throw new Error('Cannot interpret value in array.');
+                            }
+                        })
+                    });
+                } else if (Object.isObject(value) && (value.type != null)) {
+                    // expected to be valid Parser API object
+                } else
+                    throw new Error('Cannot interpret value for newVariable: ' + value + '!');
+
+                return newNode('VariableDeclarator', {
+                    id: newNode('Identifier', { name: name }),
+                    init: value
+                });
+            }
+            function newMemberExp(str) {
+                var parts = str.split('.');
+                parts = parts.map(function(part) {
+                    return newNode('Identifier', { name: part });
+                });
+                return parts.reduce(function(object, property) {
+                    return newNode('MemberExpression', {
+                        object: object,
+                        property: property
+                    });
+                });
+            }
+            function wrapArgs(args) {
+                return newNode('ObjectExpression', {
+                    properties: args.map(function(arg) {
+                        return {
+                            key: newNode('Literal', { value: arg.name }),
+                            kind: 'init',
+                            value: arg
+                        }
+                    })
+                });
+            }
+
+            var level = scopes.length;
+
+            // add preamblea
+            node.body.unshift(newNode('VariableDeclaration', {
+                kind: 'var',
+                declarations: [
+                    newVariable('_', '{}'),
+                    newVariable('_' + level, (args && args.length > 0) ? wrapArgs(args) : '{}'),
+                    newVariable('__' + level,
+                        ['_', '_' + level, 1, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
+                ]
+            }));
+
+            // add catch for UnwindException
+            node = newNode('TryStatement', {
+                block: newNode('BlockStatement', { body: node.body }),
+                handler: newNode('CatchClause', { guard: null,
+                    param: newNode('Identifier', { name: 'e' }),
+                    body: newNode('BlockStatement', { body: [
+                        newNode('VariableDeclaration', {
+                            kind: 'var',
+                            declarations: [
+                                newVariable('ex', newNode('ConditionalExpression', {
+                                    test: newMemberExp('e.isUnwindException'),
+                                    consequent: newNode('Identifier', { name: 'e' }),
+                                    alternate: newNode('NewExpression', {
+                                        arguments: [ newNode('Identifier', { name: 'e' }) ],
+                                        callee: newMemberExp('lively.ast.Rewriting.UnwindException')
+                                    })
+                                }))
+                            ]
+                        }),
+                        newNode('ExpressionStatement', {
+                            expression: newNode('CallExpression', {
+                                callee: newMemberExp('ex.shiftFrame'),
+                                arguments: [
+                                    newNode('Identifier', { name: 'this' }),
+                                    newNode('Identifier', { name: '__' + level })
+                                ]
+                            })
+                        }),
+                        newNode('ThrowStatement', { argument: newNode('Identifier', { name: 'ex' }) })
+                    ]}),
+                }),
+                guardedHandlers: [],
+                finalizer: null
+            });
+            node = newNode('Program', { body: [ node ] });
+
+            return node;
+        }
+        function wrapVar(name) {
+            var scope;
+            for (var i = scopes.length - 1; i >= 0; i--) {
+                if (scopes[i].include(name)) {
+                    scope = i;
+                    break;
+                }
+            }
+            if (scope == undefined) {
+                return newNode('Identifier', { name: name });
+            } else {
+                return newNode('MemberExpression', {
+                    object: newNode('Identifier', { name: '_' + scope }),
+                    property: newNode('Literal', { value: name }),
+                    computed: true
+                });
+            }
+        }
+        function wrapClosure(node, idx) {
+            return newNode('CallExpression', {
+                callee: newNode('Identifier', { name: '__createClosure' }),
+                arguments: [
+                    newNode('Literal', { value: idx }),
+                    newNode('Identifier', { name: '__' + (scopes.length - 1) }),
+                    node
+                ]
+            });
+        }
+        function storeComputationResult(node, start, end) {
+            function position(node) {
+                return (node.start || start) + '-' + (node.end || end);
+            }
+
+            if (scopes.length == 0) return node;
+
+            return newNode('AssignmentExpression', {
+                    left: newNode('MemberExpression', {
+                        object: newNode('Identifier', { name: '_' }),
+                        property: newNode('Literal', { value: position(node) }),
+                        computed: true
+                    }),
+                    operator: '=',
+                    right: node
+            });
+        }
+
+        function findLocalVariables(ast) {
+            var locals = [];
+            acorn.walk.matchNodes(ast, {
+                'VariableDeclaration': function(node, state, depth, type) {
+                    if ((type == 'Statement') || (type == 'Expression')) return;
+                    node.declarations.each(function(n) {
+                        state.push(n.id.name);
+                    });
+                },
+                'FunctionDeclaration': function(node, state, depth, type) {
+                    if ((type == 'Statement') || (type == 'Expression') || (type == 'Function')) return;
+                    state.push(node.id.name);
+                }
+            }, locals, { visitors: acorn.walk.make({
+                'Function': function() { /* stop descent */ }
+            })});
+            return locals;
+        }
+
+        var rewriteRules = {
+            FunctionDeclaration: function(node, c) { // Function
+                enterScope();
+                var args = registerVars(node.params.pluck('name')); // arguments
+                registerVars(findLocalVariables(node)); // locals
+                var rewritten = acorn.walk.copy(node.body, rewriteRules);
+                exitScope();
+                // FIXME: old rewriting reference
+                lively.ast.Rewriting.table.push(node);
+                var idx = lively.ast.Rewriting.table.length - 1;
+                // END FIXME
+                var wrapped = wrapClosure({
+                    start: node.start, end: node.end, type: 'FunctionExpression',
+                    body: wrapSequence(rewritten, args), id: null, params: node.params.map(c)
+                }, idx);
+                if (node.id) {
+                    wrapped = newNode('AssignmentExpression', {
+                        left: c(node.id),
+                        operator: '=',
+                        right: wrapped
+                    });
+                }
+                return newNode('ExpressionStatement', {
+                    expression: storeComputationResult(wrapped, node.start, node.end)
+                });
+            },
+            VariableDeclaration: function(n, c) { // VarDeclaration
+                var decls = n.declarations.map(function(decl) {
+                    var value = c(decl.init);
+                    value = newNode('AssignmentExpression', {
+                        left: c(decl.id),
+                        operator: '=',
+                        right: value
+                    });
+                    if (value.right == null) { // could be ignored
+                        value.right = newNode('Identifier', { name: 'undefined' });
+                    }
+                    return storeComputationResult(value, decl.start, decl.end);
+                });
+
+                if (decls.length == 1) {
+                    return newNode('ExpressionStatement', {
+                        expression: decls[0]
+                    });
+                } else {
+                    return newNode('ExpressionStatement', {
+                        expression: newNode('SequenceExpression', {
+                            expressions: decls
+                        })
+                    })
+                }
+            },
+            ForStatement: function(n, c) {
+                var init = c(n.init);
+                if ((init != null) && (init.type == 'ExpressionStatement')) // was VariableDefinition
+                    init = init.expression;
+                return {
+                    start: n.start, end: n.end, type: 'ForStatement',
+                    init: init, test: c(n.test), update: c(n.update),
+                    body: c(n.body)
+                };
+            },
+            ForInStatement: function(n, c) {
+                var left = c(n.left);
+                if (left.type == 'ExpressionStatement') // was VariableDefinition
+                    left = left.expression;
+                return {
+                    start: n.start, end: n.end, type: 'ForInStatement',
+                    left: left, right: c(n.right), body: c(n.body)
+                };
+            },
+            CallExpression: function(n, c) { // Call
+                return storeComputationResult({
+                    start: n.start, end: n.end, type: 'CallExpression',
+                    callee: c(n.callee), arguments: n.arguments.map(c)
+                });
+            },
+            NewExpression: function(n, c) { // New
+                var callee = c(n.callee);
+                return storeComputationResult({
+                    start: n.start, end: n.end, type: 'NewExpression',
+                    callee: callee, arguments: n.arguments.map(c)
+                });
+            },
+            AssignmentExpression: function(n, c) { // Set, ModifyingSet
+                return storeComputationResult({
+                    start: n.start, end: n.end, type: 'AssignmentExpression',
+                    left: c(n.left), operator: n.operator, right: c(n.right)
+                });
+            },
+            UpdateExpression: function(n, c) { // PreOp, PostOp
+                return storeComputationResult({
+                    start: n.start, end: n.end, type: 'UpdateExpression',
+                    argument: c(n.argument), operator: n.operator, prefix: n.prefix
+                });
+            },
+            Identifier: function(n, c) { // Var
+                return wrapVar(n.name);
+            },
+            CatchClause: function(n, c) { // TryCatchFinally (catch)
+                // TODO: rewrite, store param
+                return {
+                    start: n.start, end: n.end, type: 'CatchClause',
+                    param: c(n.param), guard: c(n.guard), body: c(n.body)
+                };
+            },
+            DebuggerStatement: function(n, c) { // Debugger
+                // do something to trigger the debugger
+                var fn = newNode('FunctionExpression', {
+                    body: newNode('BlockStatement', {
+                        body: [newNode('ReturnStatement', {
+                            argument: newNode('Literal', { value: 'Debugger' })
+                        })]
+                    }), id: null, params: []
+                });
+                fn.start = n.start;
+                fn.end = n.end;
+                // FIXME: storeComputationResult(fn) is not possible for value
+                return newNode('ThrowStatement', {
+                    argument: newNode('ObjectExpression', {
+                        properties: [{
+                            key: newNode('Identifier', { name: 'toString' }),
+                            kind: 'init', value: fn
+                        }]
+                    })
+                });
+            }
+        };
+
+        enterScope();
+        if (node.type == 'FunctionDeclaration') {
+            var args = registerVars(node.params.pluck('name')); // arguments
+        }
+        registerVars(findLocalVariables(node)); // locals
+        var rewritten = acorn.walk.copy(node, rewriteRules);
+        exitScope();
+        var wrapped = wrapSequence(rewritten, args);
+        // storeComputationResult ?
+        return wrapped;
+    }
+})();
 
 }) // end of module

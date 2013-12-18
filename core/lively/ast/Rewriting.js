@@ -757,10 +757,16 @@ Object.extend(lively.ast.Rewriting, {
                 return wrapVar(n.name);
             },
             CatchClause: function(n, c) { // TryCatchFinally (catch)
-                // TODO: rewrite, store param
+                var body = c(n.body);
+                var param = c(n.param);
+                if (body != null) {
+                    body.body.unshift(newNode('ExpressionStatement', {
+                        expression: storeComputationResult(param, n.param.start, n.param.end)
+                    }));
+                }
                 return {
                     start: n.start, end: n.end, type: 'CatchClause',
-                    param: c(n.param), guard: c(n.guard), body: c(n.body)
+                    param: param, guard: c(n.guard), body: body
                 };
             },
             DebuggerStatement: function(n, c) { // Debugger

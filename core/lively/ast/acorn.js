@@ -614,7 +614,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
             SwitchCase: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'SwitchCase',
-                    test: c(n.test), consequent: n.consequent.amp(c)
+                    test: c(n.test), consequent: n.consequent.map(c)
                 };
             },
             BreakStatement: function(n, c) {
@@ -634,6 +634,12 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     start: n.start, end: n.end, type: 'TryStatement',
                     block: c(n.block), handler: c(n.handler), finalizer: c(n.finalizer),
                     guardedHandlers: n.guardedHandlers.map(c)
+                };
+            },
+            CatchClause: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'CatchClause',
+                    param: c(n.param), guard: c(n.guard), body: c(n.body)
                 };
             },
             ThrowStatement: function(n, c) {

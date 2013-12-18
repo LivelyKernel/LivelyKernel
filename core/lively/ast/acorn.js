@@ -530,7 +530,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
     };
 
     acorn.walk.copy = function(ast, override) {
-        visitors = Object.extend({
+        var visitors = Object.extend({
             Program: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'Program',

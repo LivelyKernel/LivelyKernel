@@ -1,0 +1,17 @@
+--- 
+extends: http://vwf.example.com/node.vwf
+properties:
+  p: "test"
+children:
+  morph:
+    extends: http://vwf.example.com/morph.vwf
+    properties:
+      classname: "lively.morphic.Box"
+      position: "lively.pt(10,10)"
+      rotation: 0
+      opacity: 1
+      extent: "lively.pt(100,50)"
+      fill: "Color.blue"
+      borderWidth: 2
+scripts:
+- |

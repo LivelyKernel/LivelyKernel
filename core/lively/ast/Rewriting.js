@@ -621,7 +621,7 @@ Object.extend(lively.ast.Rewriting, {
         }
         function storeComputationResult(node, start, end) {
             function position(node) {
-                return (node.start || start) + '-' + (node.end || end);
+                return (node.start || start || 0) + '-' + (node.end || end || 0);
             }
 
             if (scopes.length == 0) return node;

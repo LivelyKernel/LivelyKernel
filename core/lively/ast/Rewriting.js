@@ -669,9 +669,10 @@ Object.extend(lively.ast.Rewriting, {
                 // END FIXME
                 var wrapped = wrapClosure({
                     start: node.start, end: node.end, type: 'FunctionExpression',
-                    body: wrapSequence(rewritten, args), id: null, params: node.params.map(c)
+                    body: newNode('BlockStatement', { body: [ wrapSequence(rewritten, args) ] }),
+                    id: null, params: args
                 }, idx);
-                if (node.id) {
+                if (node.id && node.type == 'FunctionDeclaration') {
                     wrapped = newNode('AssignmentExpression', {
                         left: c(node.id),
                         operator: '=',
@@ -682,13 +683,24 @@ Object.extend(lively.ast.Rewriting, {
                     expression: storeComputationResult(wrapped, node.start, node.end)
                 });
             },
+            ReturnStatement: function(n, c) {
+                var arg = c(n.argument);
+                if ((arg != null) && (arg.type == 'ExpressionStatement'))
+                    arg = arg.expression; // unwrap
+                return {
+                    start: n.start, end: n.end, type: 'ReturnStatement',
+                    argument: arg
+                };
+            },
             VariableDeclaration: function(n, c) { // VarDeclaration
                 var decls = n.declarations.map(function(decl) {
                     var value = c(decl.init);
                     value = newNode('AssignmentExpression', {
                         left: c(decl.id),
                         operator: '=',
-                        right: value
+                        right: (decl.init && decl.init.type == 'FunctionExpression') ?
+                            value.expression : // unwrap
+                            value
                     });
                     if (value.right == null) { // could be ignored
                         value.right = newNode('Identifier', { name: 'undefined' });
@@ -719,32 +731,103 @@ Object.extend(lively.ast.Rewriting, {
                 };
             },
             ForInStatement: function(n, c) {
-                var left = c(n.left);
-                if (left.type == 'ExpressionStatement') // was VariableDefinition
-                    left = left.expression;
+                var left;
+                if (n.left.type == 'VariableDeclaration')
+                    left = c(n.left.declarations[0].id);
+                else
+                    left = c(n.left);
+                // TODO: push storeComputationResult for loop assignment into body
                 return {
                     start: n.start, end: n.end, type: 'ForInStatement',
                     left: left, right: c(n.right), body: c(n.body)
                 };
             },
+            ConditionalExpression: function(n, c) {
+                var consequent = c(n.consequent);
+                if (consequent.type == 'ExpressionStatement')
+                    consequent = consequent.expression; // unwrap;
+                var alternate = c(n.alternate);
+                if (alternate.type == 'ExpressionStatement')
+                    alternate = alternate.expression; // unwrap;
+                return {
+                    start: n.start, end: n.end, type: 'ConditionalExpression',
+                    test: c(n.test), consequent: consequent,
+                    alternate: alternate
+                };
+            },
+            MemberExpression: function(n, c) {
+                var property;
+                if (n.computed)
+                    property = c(n.property);
+                else {
+                    property = { // original identifier rule
+                        start: n.property.start, end: n.property.end, type: 'Identifier',
+                        name: n.property.name
+                    };
+                }
+                var object = c(n.object);
+                if (object.type == 'ExpressionStatement')
+                    object = object.expression;
+                return {
+                    start: n.start, end: n.end, type: 'MemberExpression',
+                    object: object, property: property, computed: n.computed
+                };
+            },
             CallExpression: function(n, c) { // Call
+                var callee = c(n.callee);
+                if (callee.type == 'ExpressionStatement')
+                    callee = callee.expression; // unwrap
                 return storeComputationResult({
                     start: n.start, end: n.end, type: 'CallExpression',
-                    callee: c(n.callee), arguments: n.arguments.map(c)
+                    callee: callee, arguments: n.arguments.map(function(n) {
+                        var n = c(n);
+                        return (n.type == 'ExpressionStatement') ?
+                            n.expression : // unwrap
+                            n;
+                    })
                 });
             },
             NewExpression: function(n, c) { // New
                 var callee = c(n.callee);
                 return storeComputationResult({
                     start: n.start, end: n.end, type: 'NewExpression',
-                    callee: callee, arguments: n.arguments.map(c)
+                    callee: callee, arguments: n.arguments.map(function(n) {
+                        var n = c(n);
+                        return (n.type == 'ExpressionStatement') ?
+                            n.expression : // unwrap
+                            n;
+                    })
                 });
             },
             AssignmentExpression: function(n, c) { // Set, ModifyingSet
+                var right = c(n.right);
+                if (right.type == 'ExpressionStatement')
+                    right = right.expression; // unwrap
                 return storeComputationResult({
                     start: n.start, end: n.end, type: 'AssignmentExpression',
-                    left: c(n.left), operator: n.operator, right: c(n.right)
+                    left: c(n.left), operator: n.operator, right: right
                 });
+            },
+            ExpressionStatement: function(n, c) {
+                var expr = c(n.expression);
+                if (expr.type == 'ExpressionStatement')
+                    expr = expr.expression; // unwrap
+                return {
+                    start: n.start, end: n.end, type: 'ExpressionStatement',
+                    expression: expr
+                };
+            },
+            LogicalExpression: function(n, c) {
+                var left = c(n.left);
+                if (left.type == 'ExpressionStatement')
+                    left = left.expression; // unwrap
+                var right = c(n.right);
+                if (right.type == 'ExpressionStatement')
+                    right = right.expression; //unwrap
+                return {
+                    start: n.start, end: n.end, type: 'LogicalExpression',
+                    left: left, operator: n.operator, right: right
+                };
             },
             UpdateExpression: function(n, c) { // PreOp, PostOp
                 return storeComputationResult({
@@ -766,6 +849,33 @@ Object.extend(lively.ast.Rewriting, {
                 return {
                     start: n.start, end: n.end, type: 'CatchClause',
                     param: param, guard: c(n.guard), body: body
+                };
+            },
+            ObjectExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ObjectExpression',
+                    properties: n.properties.map(function(prop) {
+                        var value = c(prop.value);
+                        if (prop.kind != 'init') { // set or get
+                            // function cannot be replace by a closure directly
+                            value = value.expression.right.arguments[2]; // unwrap
+                        }
+                        var key;
+                        if (prop.key.type == 'Identifier') {
+                            key = { // original identifier rule
+                                start: prop.key.start, end: prop.key.end, type: 'Identifier',
+                                name: prop.key.name
+                            };
+                        } else
+                            key = c(prop.key);
+                        return {
+                            key: key,
+                            value: (value.type == 'ExpressionStatement') ?
+                                value.expression : // unwrap
+                                value,
+                            kind: prop.kind
+                        };
+                    })
                 };
             },
             DebuggerStatement: function(n, c) { // Debugger
@@ -790,6 +900,7 @@ Object.extend(lively.ast.Rewriting, {
                 });
             }
         };
+        rewriteRules.FunctionExpression = rewriteRules.FunctionDeclaration;
 
         enterScope();
         if (node.type == 'FunctionDeclaration') {

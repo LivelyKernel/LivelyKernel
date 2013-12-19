@@ -532,7 +532,7 @@ Object.extend(lively.Module, {
             i++;
             var canBeLoaded = modules.select(function(module) {
                 if (!module.privateRequirements) return true;
-                return lively.module.privateRequirements.all(function(requirement) {
+                return module.privateRequirements.all(function(requirement) {
                     return sortedModules.include(requirement) })
             })
             sortedModules = sortedModules.concat(canBeLoaded);

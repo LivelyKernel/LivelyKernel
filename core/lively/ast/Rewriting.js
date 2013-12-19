@@ -588,7 +588,6 @@ Object.extend(lively.ast.Rewriting, {
                 guardedHandlers: [],
                 finalizer: null
             });
-            node = newNode('Program', { body: [ node ] });
 
             return node;
         }
@@ -801,7 +800,7 @@ Object.extend(lively.ast.Rewriting, {
         exitScope();
         var wrapped = wrapSequence(rewritten, args);
         // storeComputationResult ?
-        return wrapped;
+        return newNode('Program', { body: [ wrapped ] });
     }
 })();
 

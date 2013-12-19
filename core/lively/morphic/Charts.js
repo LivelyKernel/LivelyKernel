@@ -244,14 +244,28 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         
         this.createLabel();
         this.createButton();
-        // this.openInWindow();
         this.addScript(function updateComponent() {
             // put your code here
         });
         
-        var arrow = new lively.morphic.DataFlowArrow();
-        arrow.setName("arrow");
-        arrow.positionAtMorph(this);
+        // Commented this out, since it doesn't seem to work yet - Felix
+        // var arrow = new lively.morphic.DataFlowArrow();
+        // arrow.setName("arrow");
+        // arrow.positionAtMorph(this);
+    },
+    
+    addResizePreviewMorph: function() {
+        // adds the preview morph directly behind the component
+        morph = new lively.morphic.Box(rect(0,0,0,0));
+        morph.setName("ResizePreview");
+        morph.setPosition(this.getPosition());
+        morph.setExtent(this.getExtent());
+        morph.setFill(Color.blue);
+        $world.addMorph(morph,this);
+    },
+    
+    removeResizePreviewMorph: function() {
+        $morph("ResizePreview").remove();
     },
     
     onMouseUp: function onMouseUp() {
@@ -260,9 +274,17 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.setPosition(newpos);
     },
     
-    onResizeEnd: function(){
-        this.diffX = 0;
-        this.diffY = 0;
+    onResizeStart: function() {
+        this.addResizePreviewMorph();
+    },
+    
+    onResizeEnd: function() {
+        var oldExtent = this.getExtent();
+        var x = Math.floor(oldExtent.x / this.gridWidth) * this.gridWidth + this.gridWidth;
+        var y = Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + this.gridWidth;
+        var newExtent = pt(x,y);
+        this.setExtent(newExtent);
+        this.removeResizePreviewMorph();
     },
     
     gridWidth: 50,
@@ -475,39 +497,18 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     onCreateFromPartsBin: function() {
-        this.diffX = 0;
-        this.diffY = 0;
+        // Maybe some useful stuff could be done here.
+        // To not forget the function's name, it's still in here. ;)
     },
     
     setExtent: function($super, newExtent) {
-        var oldExtent = this.getExtent();
-        
-        // Save distance of mouse movement from last actual resizing
-        this.diffX = this.diffX + (newExtent.x - oldExtent.x);
-        this.diffY = this.diffY + (newExtent.y - oldExtent.y);
-        
-        // Do not do anything if the mouse movement distance reaches new grid field
-        if (Math.abs(this.diffX) < this.gridWidth && Math.abs(this.diffY) < this.gridWidth) {
-            return;
-        }
-        
-        // clippedExtent will be the extent to set
-        var clippedExtent = oldExtent.copy();
-        
-        // Set the clippedExtent, for each dimension that reached a new grid field
-        var sign;
-        if (this.diffX > this.gridWidth || this.diffX < -this.gridWidth) {
-            sign = this.diffX && this.diffX / Math.abs(this.diffX);
-            this.diffX = 0;
-            clippedExtent.x += sign * this.gridWidth;
-        }
-        if (this.diffY > this.gridWidth || this.diffY < -this.gridWidth) {
-            sign = this.diffY && this.diffY / Math.abs(this.diffY);
-            this.diffY = 0;
-            clippedExtent.y += sign * this.gridWidth;
-        }
-        $super(clippedExtent);
+        $super(newExtent);
         this.adjustForNewBounds();
+        
+        var x = Math.floor(newExtent.x / this.gridWidth) * this.gridWidth + this.gridWidth;
+        var y = Math.floor(newExtent.y / this.gridWidth) * this.gridWidth + this.gridWidth;
+        var previewExtent = pt(x,y);
+        $morph("ResizePreview").setExtent(previewExtent);
         
         var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
         if (errorText.length) {
@@ -516,7 +517,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         
         var codeEditor = this.getSubmorphsByAttribute("shouldResize", true);
         if (codeEditor.length) {
-            codeEditor[0].setExtent(pt(clippedExtent.x-25,clippedExtent.y-70));
+            codeEditor[0].setExtent(pt(newExtent.x-25,newExtent.y-70));
         }
     },
     

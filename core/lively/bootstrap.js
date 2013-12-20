@@ -590,50 +590,29 @@
                 if (typeof onLoadCb === 'function') onLoadCb();
                 return;
             }
-            var source = this.getSync(url);
+            this.doLoadJS(url, onLoadCb, this.getSync(url));
+        },
+
+        doLoadJS: function(url, onLoadCb, source) {
             if (!source) { console.warn('Could not load %s', url); return; }
             Global.livelySources[url] = source;
             try {
-                eval(source);
+                eval.call(Global, source + "\n//# sourceURL=" + url);
             } catch (e) {
                 console.error('Error when loading %s: %s\n%s', url, e, e.stack);
             }
             if (typeof onLoadCb === 'function') onLoadCb();
         },
-
+        
         loadAsync: function(url, onLoadCb, script) {
             if (script.namespaceURI === this.SVGNamespace) {
                 script.setAttributeNS(this.XLINKNamespace, 'href', url);
             } else if (this.isCSS(url)) {
                 script.setAttribute("href", url);
                 if (typeof onLoadCb === 'function') onLoadCb(); // huh?
-            } else {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", url, true);
-                xhr.onload = function (e) {
-                  if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        var source = xhr.responseText;
-                        if (!source) { console.warn('Could not load %s', url); return; }
-                        Global.livelySources[url] = source;
-                        try {
-                            eval.call(Global, source);
-                        } catch (e) {
-                            console.error('Error when loading %s: %s\n%s', url, e, e.stack);
-                        }
-                        if (typeof onLoadCb === 'function') onLoadCb();
-                    } else {
-                      console.error(xhr.statusText);
-                    }
-                  }
-                };
-                xhr.onerror = function (e) {
-                  console.error(xhr.statusText);
-                };
-                xhr.send(null);
-                return;
-            }
-
+            } else
+                return this.getAsync(url, onLoadCb, this.doLoadJS);
+                
             if (onLoadCb) script.onload = onLoadCb;
             script.setAttributeNS(null, 'async', true);
         },
@@ -827,6 +806,24 @@
             }
         },
 
+        getAsync: function(url, onLoadCb, onSuccess) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.onload = function (e) {
+              if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    onSuccess(url, onLoadCb, xhr.responseText);
+                } else {
+                  console.error(xhr.statusText);
+                }
+              }
+            };
+            xhr.onerror = function (e) {
+              console.error(xhr.statusText);
+            };
+            xhr.send(null);
+        },
+        
         getSyncReq: function(url, forceUncached) {
             if (typeof WebResource !== "undefined") {
                 var webR = new WebResource(url);

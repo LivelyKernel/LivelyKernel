@@ -543,7 +543,7 @@ Object.extend(lively.ast.Rewriting, {
 
             var level = scopes.length;
 
-            // add preamblea
+            // add preamble
             node.body.unshift(newNode('VariableDeclaration', {
                 kind: 'var',
                 declarations: [

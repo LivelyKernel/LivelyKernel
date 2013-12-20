@@ -878,6 +878,17 @@ Object.extend(lively.ast.Rewriting, {
                     })
                 };
             },
+            ArrayExpression: function(n, c) {
+                return {
+                    start: n.start, end: n.end, type: 'ArrayExpression',
+                    elements: n.elements.map(function(element) {
+                        var elem = c(element);
+                        if (elem.type == 'ExpressionStatement')
+                            elem = elem.expression; // unwrap
+                        return elem;
+                    })
+                };
+            },
             DebuggerStatement: function(n, c) { // Debugger
                 // do something to trigger the debugger
                 var fn = newNode('FunctionExpression', {

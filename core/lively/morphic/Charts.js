@@ -254,37 +254,62 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         // arrow.positionAtMorph(this);
     },
     
-    addResizePreviewMorph: function() {
+    calculateSnappingPosition: function() {
+        // snap to the grid
+        var pos = this.getPositionInWorld();
+        var offsetX = 0;
+        var offsetY = 0;
+        
+        // Find the nearest fitting snapping point
+        if (pos.x % this.gridWidth > this.gridWidth / 2) {
+            offsetX = this.gridWidth;
+        }
+        if (pos.y % this.gridWidth > this.gridWidth / 2) {
+            offsetY = this.gridWidth;
+        }
+        return pt(Math.floor(pos.x/this.gridWidth)*this.gridWidth + offsetX,Math.floor(pos.y/this.gridWidth)*this.gridWidth + offsetY);
+    },
+    
+    addPreviewMorph: function() {
         // adds the preview morph directly behind the component
         morph = new lively.morphic.Box(rect(0,0,0,0));
-        morph.setName("ResizePreview");
-        morph.setPosition(this.getPosition());
+        morph.setName("PreviewMorph");
+        morph.setPosition(this.getPositionInWorld());
         morph.setExtent(this.getExtent());
-        morph.setFill(Color.blue);
+        morph.setBorderWidth(1);
+        morph.setBorderColor(Color.black);
+        morph.setBorderStyle('dashed');
+        // morph.setFill(Color.blue);
         $world.addMorph(morph,this);
     },
     
-    removeResizePreviewMorph: function() {
-        $morph("ResizePreview").remove();
-    },
-    
-    onMouseUp: function onMouseUp() {
-        var pos = this.getPosition();
-        var newpos = pt(Math.floor(pos.x/50)*50,Math.floor(pos.y/50)*50);
-        this.setPosition(newpos);
+    removePreviewMorph: function() {
+        $morph("PreviewMorph").remove();
     },
     
     onResizeStart: function() {
-        this.addResizePreviewMorph();
+        this.addPreviewMorph();
+        this.setOpacity(0.7);
     },
     
     onResizeEnd: function() {
-        var oldExtent = this.getExtent();
-        var x = Math.floor(oldExtent.x / this.gridWidth) * this.gridWidth + this.gridWidth;
-        var y = Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + this.gridWidth;
-        var newExtent = pt(x,y);
+        var newExtent = this.calculateSnappingExtent();
         this.setExtent(newExtent);
-        this.removeResizePreviewMorph();
+        this.removePreviewMorph();
+        this.setOpacity(1);
+    },
+    
+    onDragStart: function($super, evt) {
+        $super(evt);
+        this.addPreviewMorph();
+        this.setOpacity(0.7);
+    },
+    
+    onDragEnd: function($super, evt) {
+        $super(evt);
+        // positioning is done in onDropOn
+        this.removePreviewMorph();
+        this.setOpacity(1);
     },
     
     gridWidth: 50,
@@ -303,11 +328,17 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     onDrag: function($super) {
         $super();
+        var previewPos = this.calculateSnappingPosition();
+        $morph("PreviewMorph").setPosition(previewPos);
         this.triggerLayouting();
     },
     
     onDropOn: function($super, aMorph) {
         $super();
+        if (aMorph == $world) {
+            var newpos = this.calculateSnappingPosition();
+            this.setPosition(newpos);
+        }
         this.triggerLayouting();
         this.notify();
     },
@@ -410,6 +441,24 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             }
         }
     },
+    calculateSnappingExtent: function() {
+        var oldExtent = this.getExtent();
+        var offsetX = 0;
+        var offsetY = 0;
+        
+        // Find the nearest fitting snapping extent
+        if (oldExtent.x % this.gridWidth > this.gridWidth / 2) {
+            offsetX = this.gridWidth;
+        }
+        if (oldExtent.y % this.gridWidth > this.gridWidth / 2) {
+            offsetY = this.gridWidth;
+        }
+        
+        var x = Math.floor(oldExtent.x / this.gridWidth) * this.gridWidth + offsetX;
+        var y = Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + offsetY;
+        return pt(x,y);
+    },
+
     
     refreshData: function() {
         var morphAbove = this.getMorphInDirection(1);
@@ -499,16 +548,15 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     onCreateFromPartsBin: function() {
         // Maybe some useful stuff could be done here.
         // To not forget the function's name, it's still in here. ;)
+        debugger;
     },
     
     setExtent: function($super, newExtent) {
         $super(newExtent);
         this.adjustForNewBounds();
         
-        var x = Math.floor(newExtent.x / this.gridWidth) * this.gridWidth + this.gridWidth;
-        var y = Math.floor(newExtent.y / this.gridWidth) * this.gridWidth + this.gridWidth;
-        var previewExtent = pt(x,y);
-        $morph("ResizePreview").setExtent(previewExtent);
+        var previewExtent = this.calculateSnappingExtent();
+        $morph("PreviewMorph").setExtent(previewExtent);
         
         var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
         if (errorText.length) {

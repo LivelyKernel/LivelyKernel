@@ -285,9 +285,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
                 return lively.ide.BuildSpecFragmentNode;
             return lively.ide.ObjectFragmentNode;
         }
+        var self = this;
         return this.target.subElements(2)
             .select(function(ea) { return acceptedTypes.include(ea.type) })
-            .collect(function(ff) { return new (typeToClass(ff.type))(ff, browser) });
+            .collect(function(ff) { return new (typeToClass(ff.type))(ff, browser, self) });
     },
 
     sourceString: function($super) {

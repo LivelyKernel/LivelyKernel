@@ -96,7 +96,15 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
                 $world.getUserDir() :
                 URL.source.getDirectory());
     },
-
+    start: function($super) {
+        $super();
+        this.mySourceControl().registerBrowser(this);
+    },
+    stop: function($super) {
+        $super();
+        this.mySourceControl().unregisterBrowser(this);
+    },
+    
     switchToLivelyCodebase: function() {
         this.setTargetURL(URL.codeBase.withFilename('lively/'));
     },
@@ -125,7 +133,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     openIn: function($super, world, position, extent, optTargetURL) {
         var lastOpened = lively.ide.sourceDB().registeredBrowsers.last();
         var win = $super(world, position, extent);
-        var url = optTargetURL || (lastOpened && lastOpened.getTargetURL());
+        var url = optTargetURL || (lastOpened && lastOpened.getTargetURL && lastOpened.getTargetURL());
         url && this.setTargetURL(url);
         return win;
     },

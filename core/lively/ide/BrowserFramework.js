@@ -4,7 +4,25 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 'settings', {
     documentation: 'Abstract widget with three list panes and one text pane. Uses nodes to display and manipulate content.',
     emptyText: '-----',
-    connections: ['targetURL', 'sourceString', 'pane1Selection', 'pane2Selection', 'pane3Selection', 'pane4Selection']
+    connections: ['targetURL', 'sourceString', 'pane1Selection', 'pane2Selection', 'pane3Selection', 'pane4Selection'],
+    readme: function() {
+        // scb = new lively.ide.SystemBrowser();
+        // scb.openIn(lively.morphic.World.current());
+
+        // var browser = new lively.ide.BasicBrowser(),
+        //     rootNode = new lively.ide.BrowserNode();
+        // browser.rootNode = function() { return rootNode };
+        // var morph = browser.buildView();
+        // morph.openInWindow()
+        
+        return 'The class BasicBrowser is meant to be subclassed. It basically presents a tree of' +
+            ' depth five, starting with this.rootNode() (The only function which requires' + 
+            ' implementation to create a view (this.buildView()). Each of the nodes should' + 
+            ' implement the lively.ide.BrowserNode interface, providing children, a string' + 
+            ' for the listItem which represents it, and a sourceString, when it is selected.' + 
+            ' All queries into the tree structure are synchronous. Example code is provided' + 
+            ' in this methods comments.'
+    },
 },
 'initializing', {
 
@@ -109,6 +127,9 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
 
     buildView: function (optExtent) {
+        if (this.panel) {
+            throw Error("Building more than one panel for a browser will break it. You can access this browsers morph at this.panel.");
+        }
         var extent = optExtent || this.initialViewExtent;
         var panel = new lively.ide.BrowserPanel(extent);
         lively.morphic.Panel.makePanedPanel(extent, this.panelSpec, panel);
@@ -157,11 +178,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
     start: function() {
         this.setPane1Content(this.childsFilteredAndAsListItems(this.rootNode(), this.getRootFilters()));
-        this.mySourceControl().registerBrowser(this);
     },
 
     stop: function() {
-        this.mySourceControl().unregisterBrowser(this);
+        // called when the browser is closed
     },
     morphMenuItems: function() {
         var cmds = this.commands()
@@ -428,7 +448,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     paneNameOfNode: function(node) {
         return this.allPaneNames.detect(function(pane) {
             // FIXME quality
-            return this.nodesInPane(pane).any(function(otherNode) { return otherNode.target == node.target })
+            return this.nodesInPane(pane).any(function(otherNode) { return otherNode && otherNode.target == node.target })
         }, this);
     },
 

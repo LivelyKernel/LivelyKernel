@@ -5413,23 +5413,25 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         var self = this;
         this.get('filter').textString = ''
         this.get('fileList').setList(['Loading...']);
-        lively.ide.CommandLineSearch.findFiles('*', {cwd: this.dirState.path, depth: 1}, function(files) {
-            var parentDir = {
-              fileName: "..",
-              group: null,
-              isDirectory: true,
-              isLink: false,
-              lastModified: null,
-              linkCount: 0,
-              mode: null,
-              path: "..",
-              rootDirectory: null,
-              size: null,
-              user: null
-            }
-            self.dirState.files = [parentDir].concat(files);
-            self.renderDebounced();
-        });
+        var parentDir = {
+          fileName: "..",
+          group: null,
+          isDirectory: true,
+          isLink: false,
+          lastModified: null,
+          linkCount: 0,
+          mode: null,
+          path: "..",
+          rootDirectory: null,
+          size: null,
+          user: null
+        };
+        lively.ide.CommandLineSearch.findFiles('*',
+            {cwd: this.dirState.path, excludes: '-false', depth: 1},
+            function(files) {
+                self.dirState.files = [parentDir].concat(files);
+                self.renderDebounced();
+            });
     },
         focusChanged: function focusChanged(newFocus) {
         if (newFocus === this.get('targetDir')) {

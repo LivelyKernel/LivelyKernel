@@ -446,6 +446,18 @@ Object.subclass('Rectangle',
                 this.rightEdge(),
                 this.bottomEdge(),
                 this.leftEdge()];
+    },
+
+    allPoints: function() {
+        // take rectangle as discrete grid and return all points in the grid
+        // rect(3,4,2,3).allPoints() == [pt(3,4),pt(4,4),pt(3,5),pt(4,5),pt(3,6),pt(4,6)]
+        // if you want to convert points to indices use
+        // var w = 5, h = 7; lively.rect(3,4,2,3).allPoints().map(function(p) { return p.y * w + p.x; }) == [23,24,28,29,33,34]
+        var x = this.x, y = this.y, w = this.width, h = this.height, points = [];
+        for (var j = y; j < y+h; j++)
+            for (var i = x; i < x+w; i++)
+                points.push(pt(i,j));
+        return points;
     }
 },
 'testing', {
@@ -625,8 +637,7 @@ Object.subclass('Rectangle',
 
         return nearest;
     }
-}
-);
+});
 
 Object.extend(lively.Point, {
     ensure: function(duck) {
@@ -1169,6 +1180,9 @@ Object.subclass("Color",
     toTuple: function() {
         return [this.r, this.g, this.b, this.a];
     },
+    toTuple8Bit: function() {
+        return [this.r*255, this.g*255, this.b*255, this.a*255];
+    },
     toHSB: function() {
         var max = Math.max(this.r, this.g, this.b),
             min = Math.min(this.r, this.g, this.b),
@@ -1274,6 +1288,10 @@ Object.extend(Color, {
 
     fromTuple: function(tuple) {
         return new Color(tuple[0], tuple[1], tuple[2], tuple[3]);
+    },
+
+    fromTuple8Bit: function(tuple) {
+        return new Color(tuple[0]/255, tuple[1]/255, tuple[2]/255, tuple[3]/255);
     },
 
     fromString: function(str) {

@@ -356,6 +356,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 'menu', {
     morphMenuItems: function($super) {
         var items = $super();
+        items.push(['open as canvas morph', function() { lively.morphic.CanvasMorph.fromImageMorph(this).openInHand(); }.bind(this)]);
         items.push(['set to original extent', this.setNativeExtent.bind(this)]);
         items.push(['inline image data', this.convertToBase64.bind(this)]);
         return items;

@@ -2,10 +2,10 @@ module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'live
 
 lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
 'canvas', {
-    defaultBounds: pt(300, 300),
-    initialize: function($super, optBounds) {
+    defaultExtent: pt(300, 300),
+    initialize: function($super, optExtent) {
         $super(this.createShape());
-        this.setExtent(optBounds || this.defaultBounds);
+        this.setExtent(optExtent || this.defaultExtent);
         this.disableDropping();    // because children are not shown
     },
     createShape: function() {
@@ -36,6 +36,214 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     }
 
 },
+'serialization', {
+    onstore: function($super) {
+        $super();
+        this._canvasSerializationDataURI = this.toDataURI();
+    },
+
+    onrestore: function($super) {
+        $super();
+        if (this._canvasSerializationDataURI) {
+            this.whenOpenedInWorld(function() {
+                this.fromDataURI(this._canvasSerializationDataURI);
+            }.bind(this));
+        }
+    },
+
+    getGrabShadow: function() {
+        return null
+    },
+
+    toDataURI: function() { return this.getContext().canvas.toDataURL(); },
+
+    fromDataURI: function(uri) {
+        var ctx = this.getContext();
+        var img = new Image();
+        img.onload = function() { ctx.drawImage(img,0,0); };
+        img.src = uri;
+    },
+
+    fromImageMorph: function(imgMorph) {
+        var imgNode = imgMorph.renderContext().imgNode;
+        var ext = pt(imgNode.naturalWidth, imgNode.naturalHeight);
+        this.setExtent(ext);
+        this.getContext().drawImage(imgNode, 0,0);
+        return this;
+    },
+
+    toImage: function() {
+        return lively.morphic.Image.fromURL(this.toDataURI(), this.getExtent().extentAsRectangle());
+    },
+
+    toImageDataArray: function(optBounds) {
+        return Array.from(this.getImageData(optBounds).data);
+    }
+
+},
+'image data', {
+    getImageData: function(optBounds) {
+        optBounds = optBounds || this.innerBounds();
+        return this.getContext().getImageData(
+            optBounds.left(),optBounds.top(),
+            optBounds.width, optBounds.height);
+    },
+
+    putImageData: function(data, width, height) {
+        // accepts real image dat aobject or simple array with rgba-quad-tuples
+        var ctx = this.getContext();
+        if (data.constructor === ImageData) {
+            ctx.putImageData(data, 0,0);
+            var ext = this.getExtent();
+            if (width === undefined || height === undefined) {
+                width = ext.x; height = ext.y;
+            }
+            if (ext.x !== width || ext.y !== height) this.setExtent(pt(width,height));
+        } else {
+            var imgData = ctx.createImageData(width, height);
+            for (var i = 0; i < data.length; i++) imgData.data[i] = data[i];
+            this.putImageData(imgData, width, height);
+        }
+    },
+
+    colorAt: function(i, pixelArr) {
+        pixelArr = pixelArr || this.getImageData().data;
+        return [pixelArr[i], pixelArr[i+1], pixelArr[i+2], pixelArr[i+3]];
+    },
+
+    positionToColor: function(pos, pixelArr) {
+        var width = this.getContext().canvas.width;
+        return this.colorAt(4*pos.y*width + 4*pos.x, pixelArr);
+    },
+
+    getColors: function() {
+        var d = this.getImageData().data;
+        return Array.range(0, d.length-1, 4)
+            .map(function(i) { return this.colorAt(i, d); }, this)
+            .reduce(function(colors, col) {
+                if (!colors.any(function(col2) {
+                    return col[0] === col2[0]
+                        && col[1] === col2[1]
+                        && col[2] === col2[2]
+                        && col[3] === col2[3]; })) colors.push(col);
+                return colors;
+            }, []);
+    },
+
+    getRow: function(n, width, height, pixelArr) {
+        var ctx = this.getContext();
+        width = width || ctx.canvas.width;
+        height = height || ctx.canvas.height;
+        pixelArr = pixelArr || this.getImageData().data;
+        var startIndex = width * n * 4;
+        return Array.range(startIndex, startIndex + (width-1) * 4, 4).map(function(i) {
+            return this.colorAt(i, pixelArr); }, this);
+    },
+
+    getRows: function(width, height, pixelArr) {
+        width = width || this.getContext().canvas.width;
+        height = height || this.getContext().canvas.height;
+        pixelArr = pixelArr || this.getImageData().data;
+        return Array.range(0, height-1).map(function(n) {
+            return this.getRow(n, width, height, pixelArr); }, this);
+    },
+
+    getCol: function(n, width, height, pixelArr) {
+        width = width || this.getContext().canvas.width;
+        height = height || this.getContext().canvas.height;
+        pixelArr = pixelArr || this.getImageData().data;
+        var realN = n * 4;
+        return Array.range(0, height-1).map(function(rowI) {
+            return this.colorAt(realN + (rowI*4*width), pixelArr); }, this);
+    },
+
+    getCols: function(width, height, pixelArr) {
+        width = width || this.getContext().canvas.width;
+        height = height || this.getContext().canvas.height;
+        pixelArr = pixelArr || this.getImageData().data;
+        return Array.range(0, width-1).map(function(n) {
+            return this.getCol(n, width, height, pixelArr); }, this);
+    },
+
+    isSameColor: function(colorA, colorB) {
+        if (colorA.isColor) colorA = colorA.toTuple8Bit();
+        if (colorB.isColor) colorB = colorB.toTuple8Bit();
+        // FIXME helper
+        return colorA[0] === colorB[0]
+            && colorA[1] === colorB[1]
+            && colorA[2] === colorB[2]
+            && colorA[3] === colorB[3];
+    },
+
+    findFirstIndex: function(testFunc, rowsOrCols, reverse) {
+        // apply testFunc to each row or col. If testFunc returns truthy return the
+        // row/col index that was matched. if reverse is truthy, start from the back
+        if (reverse) rowsOrCols = rowsOrCols.clone().reverse();
+        var index, found = rowsOrCols.detect(function(rowOrCol, i) {
+            index = i; return testFunc(rowOrCol); });
+        if (!found) return -1;
+        return reverse ? rowsOrCols.length - index : index;
+    }
+
+},
+'image editing', {
+    crop: function(cropRect) {
+        var ctx = this.getContext(),
+            l = Math.max(cropRect.left(), 0),
+            t = Math.max(cropRect.top(), 0),
+            w = Math.min(cropRect.width, ctx.canvas.width),
+            h = Math.min(cropRect.height, ctx.canvas.height),
+            imgData = ctx.getImageData(l,t,w,h);
+        this.clear();
+        ctx.putImageData(imgData, 0, 0);
+        this.setExtent(pt(w,h));
+    },
+
+    cropColor: function(color, padding) {
+        // crop image rectangular so that all rows/columns that only have
+        // `color` are removed.
+        if (color.isColor) color = color.toTuple8Bit();
+        padding = padding || lively.rect(0,0,0,0);
+        var self = this;
+        function hasOtherColor(rowOrCol) {
+            return !rowOrCol.all(function(color2) {
+                return self.isSameColor(color, color2); });
+        }
+        var rows     = this.getRows(),
+            cols     = this.getCols(),
+            top      = this.findFirstIndex(hasOtherColor, rows),
+            bottom   = this.findFirstIndex(hasOtherColor, rows, true),
+            left     = this.findFirstIndex(hasOtherColor, cols),
+            right    = this.findFirstIndex(hasOtherColor, cols, true),
+            cropRect = lively.rect(
+                pt(left, top).subPt(padding.topLeft()),
+                pt(right, bottom).addPt(padding.bottomRight()));
+        this.crop(cropRect);
+    },
+
+    replaceColor: function(fromColor, toColor, replacementBounds) {
+        replacementBounds = replacementBounds || this.innerBounds();
+        if (fromColor.isColor) fromColor = fromColor.toTuple8Bit();
+        if (toColor.isColor) toColor = toColor.toTuple8Bit();
+        var ctx = this.getContext(),
+            w = ctx.canvas.width, h = ctx.canvas.height,
+            imgData = this.getImageData(), newImgData = new Array(imgData.length);
+        replacementBounds.allPoints()
+            .map(function(p) { return 4 * (p.y * w + p.x); })
+            .forEach(function(i) {
+                if (imgData.data[i] === fromColor[0]
+                 && imgData.data[i+1] === fromColor[1]
+                 && imgData.data[i+2] === fromColor[2]
+                 && imgData.data[i+3] === fromColor[3]) {
+                    imgData.data[i] = toColor[0];
+                    imgData.data[i+1] = toColor[1];
+                    imgData.data[i+2] = toColor[2];
+                    imgData.data[i+3] = toColor[3];
+                }
+            });
+        this.putImageData(imgData);
+    }
+},
 'HTML rendering', {
     htmlDispatchTable: {
        createCanvasNode: 'createCanvasNodeHTML',
@@ -53,12 +261,60 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         return XHTMLNS.create('canvas');
     },
     adaptCanvasSizeHTML: function(ctx) {
-        var $node = $(ctx.shapeNode),
-            x = $node.width(),
-            y = $node.height();
-        $node.attr('width', x);
-        $node.attr('height', y);
-        this.onCanvasChanged();
+        if (this._adaptCanvasSizeHTMLInProgress) return;
+        this._adaptCanvasSizeHTMLInProgress = true;
+        try {
+            var $node = lively.$(ctx.shapeNode),
+                x = $node.width(),
+                y = $node.height(),
+                imgData = this.getImageData();
+            $node.attr('width', x);
+            $node.attr('height', y);
+            this.onCanvasChanged();
+            this.putImageData(imgData, x, y);
+        } finally {
+            this._adaptCanvasSizeHTMLInProgress = false;
+        }
+    }
+},
+'menu', {
+    morphMenuItems: function($super) {
+        var items = $super(), self = this;
+        items.push(['open as image morph', function() { self.toImage().openInHand(); }]);
+        items.push(['replace color', function() {
+            var colorToReplace = [0,0,0,0], replacementColor = [0,0,0,0];
+            [function(next) {
+                self.world().prompt('Color to replace', function(input) {
+                    try { colorToReplace = eval(input); next(); } catch (e) { show(e); }
+                }, Strings.print(colorToReplace));
+            },
+            function(next) {
+                self.world().prompt('Replace with', function(input) {
+                    try { replacementColor = eval(input); next(); } catch (e) { show(e); }
+                }, Strings.print(replacementColor));
+            },
+            function(next) { self.replaceColor(colorToReplace, replacementColor); }].doAndContinue();
+        }]);
+        items.push(['pick color', function() { self._pickColorOnNextClick = true; }]);
+        return items;
+    }
+},
+'events', {
+    onMouseDown: function($super, evt) {
+        if (this._pickColorOnNextClick) {
+            delete this._pickColorOnNextClick;
+            var pos = evt.getPositionIn(this),
+                col = this.positionToColor(pos);
+            show("color: [%s]", col);
+            evt.stop(); return true;
+        }
+        return $super(evt);
+    }
+});
+
+Object.extend(lively.morphic.CanvasMorph, {
+    fromImageMorph: function(imgMorph) {
+        return (new this()).fromImageMorph(imgMorph);
     }
 });
 

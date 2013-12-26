@@ -25,10 +25,10 @@ Object.extend(lively.ast, {
                     nodeCode.truncate(40).replace(/\n/g, '').replace(/([\{\}><])/g, '\\$1'))
             }, subgraphAttrs[subgraphId] || {})));
 
-            if (info.parentNode) {
+            if (info.parentState && info.parentState.node) {
                 var ref = info.referencedAs, propName = ref.join('.');
                 nodesAndEdges.push(
-                    renderer.vizEdge(printNode(info.parentNode), printNode(node),
+                    renderer.vizEdge(printNode(info.parentState.node), printNode(node),
                     {label: propName}))
             }
         });

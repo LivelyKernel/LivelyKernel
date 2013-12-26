@@ -44,7 +44,6 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.morphic.World.save': {
         description: 'save world',
-        isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function() {
             $world.saveWorld(); return true;
         }

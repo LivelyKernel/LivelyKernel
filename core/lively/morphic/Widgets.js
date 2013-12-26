@@ -1850,6 +1850,7 @@ openReferencingMethodFinder: function () {
             modalBounds = modalOwner.innerBounds(),
             blockMorph = lively.morphic.Morph.makeRectangle(modalBounds),
             transparentMorph = lively.morphic.Morph.makeRectangle(blockMorph.innerBounds());
+        blockMorph.isModalMorph = true;
         blockMorph.isEpiMorph = true;
         blockMorph.applyStyle({
             fill: null,
@@ -1871,6 +1872,7 @@ openReferencingMethodFinder: function () {
             modalOwner.visibleBounds() : modalOwner.innerBounds();
         morph.align(morph.bounds().center(), alignBounds.center());
         modalOwner.modalMorph = modalOwner.addMorph(blockMorph);
+        blockMorph.modalTarget = morph;
         lively.bindings.connect(morph, 'remove', blockMorph, 'remove');
         morph.focus();
         return morph;
@@ -2761,10 +2763,23 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         lively.bindings.connect(this, 'result', this, 'triggerCallback');
     },
     triggerCallback: function(resultBool) {
+        var nextFocus = this.lastFocusedMorph,
+            modal = this.panel.ownerChain().detect(function(ea) { return ea.isModalMorph; }),
+            modalOwner = modal && modal.owner;
         this.removeTopLevel();
         if (this.callback && this.callbackCount === 0) this.callback(resultBool);
-        if (this.lastFocusedMorph) this.lastFocusedMorph.focus();
-    },
+        // when multiple dialogs are chained: test whether there is a new modal
+        // morph after this dialog was closed. If so, remember the original morph
+        // that was focused (this.lastFocusedMorph), focus the new dialog and pass
+        // the lastFocusedMorph along. Otherwise just focus on lastFocusedMorph.
+        var modalTarget = modalOwner && modalOwner.modalMorph && modalOwner.modalMorph.modalTarget;
+        if (modalTarget && modalTarget != this.panel) {
+            if (modalTarget.ownerApp) modalTarget.ownerApp.lastFocusedMorph = this.lastFocusedMorph;
+            nextFocus = modalTarget;
+        }
+        nextFocus && nextFocus.show()
+        if (nextFocus) nextFocus.focus.bind(nextFocus).delay(0);
+    }
 });
 
 lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',

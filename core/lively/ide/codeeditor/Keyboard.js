@@ -415,6 +415,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     // Alt-G = gotoline will insert © in Mac OS, this prevents it
                 }
             }]);
+            kbd.bindKey("Alt-Shift-.", 'gotoend');
     },
 
     setupSearchBindings: function(kbd) {

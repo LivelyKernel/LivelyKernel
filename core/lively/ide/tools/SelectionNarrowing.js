@@ -239,8 +239,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         state = state || this.state;
         candidate = candidate || this.getSelecteddCandidate(state);
         actionIndex = actionIndex || 0;
-        var action = this.runAction(state, actionIndex, candidate);
         lively.bindings.signal(this, 'confirmedSelection', candidate);
+        this.runAction(state, actionIndex, candidate);
     },
     valueFromListItem: function valueFromListItem(item) {
         return item && typeof item.value !== "undefined" ? item.value : item;
@@ -319,7 +319,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 completeInputOnRightArrow: spec.completeInputOnRightArrow,
                 filters: [],
                 focusedMorph: focusedMorph,
-                refocusOnClose: spec.refocusOnClose || false
+                refocusOnClose: spec.refocusOnClose || true
             });
         }
         if (spec.init) spec.init(this, run); else run();

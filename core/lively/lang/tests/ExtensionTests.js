@@ -617,6 +617,21 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
         this.assertEqualState([["a", "b", "c"], ["d", "e", "f"]], Strings.tableize('a b c\nd e f'));
         this.assertEqualState([["a", 1, "c"], ["d", 2, "f"]], Strings.tableize('a 1 c\nd 2 f'));
         this.assertEqualState([["Date"], [new Date('06/11/2013')]], Strings.tableize('Date\n06/11/2013'));
+    },
+
+    testLineLookupByIndex: function() {
+        var string = 'test\n123\nfo\nbarbaz\nzork\n';
+        var lookupFunc = Strings.lineIndexComputer(string);
+        this.assertEquals(0, lookupFunc(0), "char pos: 0");
+        this.assertEquals(0, lookupFunc(1), "char pos: 1");
+        this.assertEquals(0, lookupFunc(4), "char pos: 4");
+        this.assertEquals(1, lookupFunc(5), "char pos: 5");
+        this.assertEquals(1, lookupFunc(7), "char pos: 7");
+        this.assertEquals(1, lookupFunc(8), "char pos: 8");
+        this.assertEquals(2, lookupFunc(9), "char pos: 9");
+        this.assertEquals(4, lookupFunc(23), "char pos: 2");
+        this.assertEquals(5, lookupFunc(24), "char pos: 2");
+        this.assertEquals(-1, lookupFunc(99), "char pos: 9");
     }
 });
 

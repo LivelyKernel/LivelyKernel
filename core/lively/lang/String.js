@@ -579,6 +579,25 @@ Global.Strings = {
             return matches.last() ? matches.last().start : null;
         }
         return null;
-    }
+    },
 
+    lineIndexComputer: function(string) {
+        // returns a function that will accept a character position and return
+        // its line number in string. If the char pos is outside of the line
+        // ranges -1 is returned
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // line ranges: list of numbers, each line has two entries:
+        // i -> start of line, i+1 -> end of line
+        var lineRanges = Strings.lines(string).reduce(function(lineIndexes, line) {
+            var lastPos = lineIndexes.last() || -1;
+            return lineIndexes.concat([lastPos+1, lastPos + 1 + line.length]);
+        }, []);
+        // FIXME, this is O(n). Make cumputation more efficient, binary lookup?
+        return function(pos) {
+            for (var line = 0; line < lineRanges.length; line+=2)
+                if (pos >= lineRanges[line] && pos <= lineRanges[line+1])
+                    return line / 2;
+            return -1;
+        }
+    }
 };

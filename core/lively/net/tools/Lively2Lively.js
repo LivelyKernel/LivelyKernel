@@ -239,12 +239,12 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
 },
 
     showNotificationIcon: function showNotificationIcon() {
-        try {
-            var icon = lively.PartsBin.getPart('NotificationRectangle', 'PartsBin/Collaboration');
+        var icon = lively.PartsBin.getPart('NotificationRectangle', 'PartsBin/Collaboration');
+        if (icon) {
             this.addMorph(icon);
             this.alignNotificationIcon();
-        } catch(e) {
-            console.warn("wiki notificications not available: ", e);
+        } else {
+            console.warn("wiki notificications not available");
         }
     },
     

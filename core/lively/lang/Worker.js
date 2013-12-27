@@ -92,11 +92,16 @@ lively.Worker = {
                 // 1) establish required objects
                 Global = this;
                 Global.window = Global;
-                Global.lively={};
-                Global.console = {
+                Global.lively = {
+                    whenLoaded: function(callback) {
+                        // currently ignored in worker
+                        Global.Config.finishLoadingCallbacks.push(callback);
+                    }
+                };
+                Global.console = Global.console || {
                     log: function() {}, error: function() {}, warn: function() {}
                 }
-                if (!Global.Config) Global.Config = {codeBase: options.codeBase, rootPath: options.rootPath};
+                if (!Global.Config) Global.Config = {codeBase: options.codeBase, rootPath: options.rootPath, finishLoadingCallbacks: []};
                 if (!Global.document) Global.document = {location: self.location, URL: self.location.toString()}
                 var loadedURLs = [];
                 Global.JSLoader = {

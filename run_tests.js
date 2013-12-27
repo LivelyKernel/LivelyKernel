@@ -116,6 +116,7 @@ var browserTests = [
     'lively.ide.tools.tests.CommandLine',
 
     // morphic
+    "lively.morphic.tests.Canvas",
     "lively.morphic.tests.Connectors",
     "lively.morphic.tests.CoreToolsTests",
     "lively.morphic.tests.DataGridTests",

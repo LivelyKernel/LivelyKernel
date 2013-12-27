@@ -636,8 +636,11 @@ Object.extend(lively.Module, {
 })(lively);
 
 (function testModuleLoad() {
-    if (Config.changesetsExperiment && Global.localStorage && 
-        localStorage.getItem("LivelyChangesets:" + location.pathname))
-            lively.ChangeSet.loadAndcheckVsSystem();
+    if (Config.changesetsExperiment
+     && Global.localStorage
+     && localStorage.getItem("LivelyChangesets:" + location.pathname)) {
+            require('lively.ChangeSets').toRun(function() {
+                ChangeSet.loadAndcheckVsSystem(); })
+    }
     lively.Module.checkModuleLoadStates();
 }).delay((Global.location && location.hostname === "localhost") ? 3 : 14);

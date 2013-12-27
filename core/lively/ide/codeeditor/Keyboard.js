@@ -381,7 +381,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: true
             }, {
                 name: 'gotoNextParagraph',
-                bindKey: 'Ctrl-Up',
+                bindKey: 'Ctrl-Down',
                 exec: function(ed) {
                     var pos = ed.getCursorPosition(), found = -1;
                     function isEmptyLine(line) { return /^\s*$/.test(line); }
@@ -395,7 +395,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: true
             }, {
                 name: 'gotoPrevParagraph',
-                bindKey: 'Ctrl-Down',
+                bindKey: 'Ctrl-Up',
                 exec: function(ed) {
                     function isEmptyLine(line) { return /^\s*$/.test(line); }
                     var pos = ed.getCursorPosition(), found = -1,

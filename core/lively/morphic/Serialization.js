@@ -381,7 +381,7 @@ Object.extend(lively.morphic.World, {
             isDoc = !domElementOrDocument.ownerDocument;
         if (isDoc) world.displayOnDocument(domElementOrDocument);
         else world.displayOnElement(domElementOrDocument);
-        this.currentWorld = world;
+        this.registerWorld(world)
         return world;
     },
     fromJSO: function(jso) {

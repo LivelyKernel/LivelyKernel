@@ -1,23 +1,40 @@
 // FIXME rk 2013-06-10
 // we need the right order of libs to be loaded, this should eventually be
 // supported by lively.Module>>requireLib
-var allDependenciesLoaded = false;
-var dependencies = [
-    {url: Config.codeBase + 'lib/acorn/acorn.js', loadTest: function() { return typeof acorn !== 'undefined'; }},
-    {url: Config.codeBase + 'lib/acorn/acorn-loose.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
-    {url: Config.codeBase + 'lib/acorn/acorn-walk.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }}
-];
+// also: when requirejs is present the acorn library files try to use it for
+// loading and don't expose the acorn global. the current solution for this
+// right now is to support both schemes here
+var acornLibsLoaded = false;
+(function loadAcornLibs() {
+    if (typeof requirejs !== "undefined") loadAcornWithRequireJS()
+    else loadAcornManually();
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    function loadAcornManually() {
+        var dependencies = [
+            {url: Config.codeBase + 'lib/acorn/acorn.js',       loadTest: function() { return typeof acorn !== 'undefined'; }},
+            {url: Config.codeBase + 'lib/acorn/acorn-loose.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
+            {url: Config.codeBase + 'lib/acorn/acorn-walk.js',  loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }}
+        ];
+        dependencies.doAndContinue(function(next, lib) {
+            JSLoader.loadJs(lib.url);
+            var interval = Global.setInterval(function() {
+                if (!lib.loadTest()) return;
+                Global.clearInterval(interval);
+                next();
+            }, 50);
+        }, function() { acornLibsLoaded = true; });
+    }
+    function loadAcornWithRequireJS() {
+        // FIXME how to access requirejs' require cleanly?
+        requirejs.s.contexts._.require(['core/lib/acorn/acorn.js', 'core/lib/acorn/acorn-loose.js', 'core/lib/acorn/acorn-walk.js'], function(acorn, acornLoose, acornWalk) {
+            Global.acorn = acorn;
+            Object.extend(acorn, acornLoose);
+            acorn.walk = acornWalk;
+            acornLibsLoaded = true; });
+    }
+})();
 
-dependencies.doAndContinue(function(next, lib) {
-    JSLoader.loadJs(lib.url);
-    var interval = Global.setInterval(function() {
-        if (!lib.loadTest()) return;
-        Global.clearInterval(interval);
-        next();
-    }, 50);
-}, function() { allDependenciesLoaded = true; });
-
-module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({loadTest: function() { return !!allDependenciesLoaded; }}).toRun(function() {
+module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({loadTest: function() { return !!acornLibsLoaded; }}).toRun(function() {
 
 (function extendAcorn() {
 

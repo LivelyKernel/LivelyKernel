@@ -636,11 +636,7 @@ Object.extend(lively.Module, {
 })(lively);
 
 (function testModuleLoad() {
-    if (Config.changesetsExperiment
-     && Global.localStorage
-     && localStorage.getItem("LivelyChangesets:" + location.pathname)) {
-            require('lively.ChangeSets').toRun(function() {
-                ChangeSet.loadAndcheckVsSystem(); })
-    }
+    // note that with slow network connections it is possible that the module load
+    // test will fail although the modules will load eventually
     lively.Module.checkModuleLoadStates();
-}).delay((Global.location && location.hostname === "localhost") ? 3 : 14);
+}).delay(10);

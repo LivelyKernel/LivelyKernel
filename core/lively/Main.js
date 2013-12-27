@@ -43,6 +43,11 @@ Object.subclass('lively.Main.WorldDataAccessor',
 });
 
 Object.extend(lively.Main.WorldDataAccessor, {
+
+    fromScratch: function(doc) {
+        return new lively.Main.WorldBuilder(doc);
+    },
+
     forDoc: function(doc) {
         return doc.xmlVersion ? this.forXMLDoc(doc) : this.forHTMLDoc(doc);
     },
@@ -58,13 +63,6 @@ Object.extend(lively.Main.WorldDataAccessor, {
         // get the first script tag with the x-lively-world type
         var json = lively.$(doc).find('script[type="text/x-lively-world"]').text();
         return new lively.Main.JSONMorphicData(doc, json);
-    }
-});
-
-lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
-'accessing and creation', {
-    getWorld: function() {
-        return this.world ? this.world : this.world = new lively.morphic.World(this.getDoc());
     }
 });
 
@@ -93,6 +91,16 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
 
 });
 
+lively.Main.WorldDataAccessor.subclass('lively.Main.WorldBuilder',
+'accessing and creation', {
+    getWorld: function() {
+        if (this.world) return this.world;
+        var d = this.getDoc(),
+            bounds = lively.morphic.World.prototype.windowBounds(d);
+        return this.world = lively.morphic.World.createOn(d.body, bounds);
+    }
+});
+
 // The loader defines what should happen after the bootstrap phase to get a
 // lively.morphic.World running
 Object.subclass('lively.Main.Loader',
@@ -103,7 +111,9 @@ Object.subclass('lively.Main.Loader',
     getDoc: function() { return this.doc },
     getWorldData: function() {
         if (!this.worldData) {
-            this.worldData = lively.Main.WorldDataAccessor.forDoc(this.getDoc());
+            this.worldData = lively.Main.WorldDataAccessor[
+                    Config.get("manuallyCreateWorld") ?
+                        'fromScratch' : 'forDoc'](this.getDoc());
         }
         return this.worldData;
     }

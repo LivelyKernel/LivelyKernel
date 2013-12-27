@@ -1,4 +1,4 @@
-module('lively.ChangeSets').requires('lively.Traits', 'lively.persistence.BuildSpec').requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
+module('lively.ChangeSets').requires('lively.Traits', 'lively.persistence.BuildSpec', 'lively.morphic.MorphAddons'/*for lively.morphic.Panel*/).requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
 
 Object.extend(Global, {
 
@@ -3332,11 +3332,15 @@ alignSubmorphs: function alignSubmorphs() {
 }
 });
 
-(function openChangesetsFlap() {
+(function loadChangeSets() {
+    if (!lively.Config.get("changesetsExperiment")
+     || !lively.LocalStorage.isAvailable()) return;
+    var hasChangeSet = Global.localStorage.getItem("LivelyChangesets:" + Global.location.pathname);
+    if (hasChangeSet) ChangeSet.loadAndcheckVsSystem();
     lively.whenLoaded(function(world) {
         if (Config.changesetsExperiment)
             lively.BuildSpec('ChangesetsFlap').createMorph().openInWorld();
     });
-})();
+}).delay((Global.location && location.hostname === "localhost") ? 3 : 14);
 
 }) // end of module

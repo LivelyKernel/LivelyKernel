@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.Snippets').requires('lively.ide.codeeditor.ace').toRun(function() {
+module('lively.ide.codeeditor.Snippets').requires('lively.ide.codeeditor.ace', 'lively.Network').toRun(function() {
 
 Object.subclass('lively.morphic.CodeEditorSnippets',
 'accessing', {

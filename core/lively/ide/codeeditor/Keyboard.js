@@ -348,11 +348,64 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
-                name: "selectAllLikeThis",
-                bindKey: "Ctrl-Shift-/",
+                name: 'moveCursorToScreenTop',
+                bindKey: 'Alt-Ctrl-,'/*Alt-Ctrl-<*/,
                 exec: function(ed) {
-                    ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
-                    ed.findAll(ed.$morph.getTextRange()); },
+                    var currentPos = ed.getCursorPosition(),
+                        firstRow = ed.renderer.getFirstFullyVisibleRow(),
+                        lastRow = ed.renderer.getLastFullyVisibleRow(),
+                        middleRow = firstRow+Math.floor((lastRow - firstRow)/2),
+                        newPos = currentPos;
+                    if (currentPos.row <= firstRow) return;
+                    if (currentPos.row <= middleRow) newPos.row = firstRow;
+                    else if (currentPos.row <= lastRow) newPos.row = middleRow;
+                    else newPos.row = lastRow;
+                    ed.selection.moveCursorToPosition(newPos)
+                },
+                readOnly: true
+            }, {
+                name: 'moveCursorToScreenBottom',
+                bindKey: 'Alt-Ctrl-.'/*Alt-Ctrl->*/,
+                exec: function(ed) {
+                    var currentPos = ed.getCursorPosition(),
+                        firstRow = ed.renderer.getFirstFullyVisibleRow(),
+                        lastRow = ed.renderer.getLastFullyVisibleRow(),
+                        middleRow = firstRow+Math.floor((lastRow - firstRow)/2),
+                        newPos = currentPos;
+                    if (currentPos.row < firstRow) newPos.row = firstRow;
+                    else if (currentPos.row < middleRow) newPos.row = middleRow;
+                    else if (currentPos.row < lastRow) newPos.row = lastRow;
+                    else return;
+                    ed.selection.moveCursorToPosition(newPos);
+                },
+                readOnly: true
+            }, {
+                name: 'gotoNextParagraph',
+                bindKey: 'Ctrl-Up',
+                exec: function(ed) {
+                    var pos = ed.getCursorPosition(), found = -1;
+                    function isEmptyLine(line) { return /^\s*$/.test(line); }
+                    var lines = ed.session.getLines(pos.row, ed.session.getLength()), found = -1;
+                    for (var i = 1; i < lines.length; i++) {
+                        found = i;
+                        if (!isEmptyLine(lines[i-1]) && isEmptyLine(lines[i])) break;
+                    }
+                    ed.selection.moveCursorToPosition({row: pos.row+found, column: 0});
+                },
+                readOnly: true
+            }, {
+                name: 'gotoPrevParagraph',
+                bindKey: 'Ctrl-Down',
+                exec: function(ed) {
+                    function isEmptyLine(line) { return /^\s*$/.test(line); }
+                    var pos = ed.getCursorPosition(), found = -1,
+                        lines = ed.session.getLines(0, pos.row);
+                    for (var i = lines.length-2; i >= 0; i--) {
+                        found = i;
+                        if (!isEmptyLine(lines[i+1]) && isEmptyLine(lines[i])) break;
+                    }
+                    ed.selection.moveCursorToPosition({row: found, column: 0});
+                },
                 readOnly: true
             }, {
                 bindKey: {mac: "©"},
@@ -412,6 +465,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 name: "multiSelectPrev",
                 bindKey: "Ctrl-Shift-,",
                 exec: function(ed) { ed.$morph.multiSelectPrev(); },
+                readOnly: true
+            }, {
+                name: "selectAllLikeThis",
+                bindKey: "Ctrl-Shift-/",
+                exec: function(ed) {
+                    ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
+                    ed.findAll(ed.$morph.getTextRange()); },
                 readOnly: true
             }]);
     },

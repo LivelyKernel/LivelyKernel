@@ -134,7 +134,7 @@ Object.extend(lively, {
 
     require: function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
         var getUniqueName = function() { return 'anonymous_module_' + require.counter },
-            args = $A(arguments);
+            args = Array.from(arguments);
         require.counter !== undefined ? require.counter++ : require.counter = 0;
         var m = module(getUniqueName()).beAnonymous();
         if (lively.Config.showModuleDefStack)
@@ -633,10 +633,6 @@ Object.extend(lively.Module, {
         resetDebuggingStack: Functions.Null,
         installStackTracers: Functions.Null
     };
-    lively.lang.let = function(/** **/) {
-        // lively.lang.let(y, function(x) { body }) is equivalent to { let y = x; body; }
-        return arguments[arguments.length - 1].apply(this, arguments);
-    }
 })(lively);
 
 (function testModuleLoad() {

@@ -314,7 +314,11 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-    commandLineServerURL: URL.create(Config.nodeJSURL).asDirectory().withFilename('CommandLineServer/'),
+    commandLineServerURL: (function() {
+        try {
+            return URL.create(Config.nodeJSURL).asDirectory().withFilename('CommandLineServer/');
+        } catch (e) { console.error(e + '\n' + e.stack); }
+    })(),
 
     parseCommandIntoCommandAndArgs: function(cmd) {
         // lively.ide.CommandLineInterface.parseCommandIntoCommandAndArgs('grep o -')
@@ -581,7 +585,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // file search related
-module("lively.ide.CommandLineSearch");
+lively.module("lively.ide.CommandLineSearch");
 
 Object.subclass("lively.ide.CommandLineSearch.FileInfo",
 // see lively.ide.CommandLineSearch.parseDirectoryList
@@ -1057,7 +1061,6 @@ Object.subclass("lively.ide.FilePatchHunk",
 Object.extend(lively.ide.FilePatchHunk, {
     read: function(patchString) { return new this().read(patchString); }
 });
-
 
 lively.ide.CommandLineInterface.GitSupport = {
     getScriptBaseName: function(sessionId) {

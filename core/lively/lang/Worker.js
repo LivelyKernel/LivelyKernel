@@ -43,8 +43,15 @@ lively.Worker = {
                 options: {
                     locationDirectory: JSLoader.currentDir(),
                     bootstrapFiles: bootstrapFiles,
-                    codeBase: Config.codeBase,
-                    rootPath: Config.rootPath
+                    codeBase: lively.Config.codeBase,
+                    rootPath: lively.Config.rootPath,
+                    nodeJSURL: lively.Config.nodeJSURL,
+                    location: (function() {
+                        var loc = {};
+                        ["hash","host","hostname","href","origin","pathname","port","protocol","search"].forEach(function(name) {
+                            loc[name] = lively.Config.location[name]; });
+                        return loc;
+                    })()
                 }
             });
             worker.onmessage = function(evt) {
@@ -98,21 +105,38 @@ lively.Worker = {
                         Global.Config.finishLoadingCallbacks.push(callback);
                     }
                 };
-                Global.console = Global.console || {
-                    log: function() {}, error: function() {}, warn: function() {}
-                }
-                if (!Global.Config) Global.Config = {codeBase: options.codeBase, rootPath: options.rootPath, finishLoadingCallbacks: []};
-                if (!Global.document) Global.document = {location: self.location, URL: self.location.toString()}
+                Global.console = Global.console || (function() {
+                    var c = {};
+                    ['log', 'error', 'warn'].forEach(function(name) {
+                        c[name] = function(/*args*/) {
+                            var string = arguments[0];
+                            for (var i = 1; i < arguments.length; i++)
+                                string = string.replace('%s', arguments[i]);
+                            postMessage({
+                                type: name,
+                                message: ['[', name.toUpperCase(), '] ', string].join('')
+                            });
+                        };
+                    });
+                    return c;
+                })();
+                if (!Global.Config) Global.Config = lively.Config = {
+                    codeBase: options.codeBase,
+                    rootPath: options.rootPath,
+                    nodeJSURL: options.nodeJSURL,
+                    location: options.location,
+                    finishLoadingCallbacks: []
+                };
+                Config.location.toString = function() { return this.href; }
+                if (!Global.document) Global.document = {location: Config.location, URL: Config.location.toString()}
                 var loadedURLs = [];
                 Global.JSLoader = {
                     loadJs: function(url, callback) {
                         // var match = url.match(/http:\/\/[^\/]+(\/?.*)/);
                         // if (match && match[1]) url = match[1];
                         loadedURLs.push(url);
-                        try {
-                            importScripts(url);
-                        } catch(e) {
-                            postMessage({type: 'warning', message: url + ' could not be loaded in worker: '+ e});
+                        try { importScripts(url); } catch(e) {
+                            console.error(url + ' could not be loaded in worker: ' + e);
                         }
                     },
                     currentDir: function () { return options.locationDirectory; },

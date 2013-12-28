@@ -472,8 +472,8 @@ Global.Functions = {
         var worker = lively.Worker.createInPool(null, Config.get('lively.Worker.idleTimeOfPoolWorker'));
         worker.onMessage = function(evt) {
             switch (evt.data.type) {
-                case 'warning':
-                    console.warn("[WORKER warn] %s", evt.data.message);
+                case 'log': case 'error': case 'warn':
+                    console[evt.data.type]("[WORKER] %s", evt.data.message);
                     break;
                 case 'runResponse':
                     options.whenDone && options.whenDone(evt.data.error, evt.data.result);
@@ -485,7 +485,11 @@ Global.Functions = {
                     console.log("[WORKER unknown message] %s", evt.data.type || evt.data);
             }
         }
-        worker.basicRun({func: workerFunc, args: options.args || [], useWhenDone: true});
+        worker.basicRun({
+            func: workerFunc,
+            args: options.args || [],
+            useWhenDone: true
+        });
         return worker;
     },
 

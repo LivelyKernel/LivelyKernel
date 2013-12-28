@@ -67,7 +67,9 @@ Global.UserAgent = {
     touchIsMouse: false,
 
     isNodejs: (Global.process && !!Global.process.versions.node)
-        || Global.navigator.userAgent.indexOf("Node.js") !== -1
+            || Global.navigator.userAgent.indexOf("Node.js") !== -1,
+
+    isWorker: typeof importScripts !== 'undefined'
 }
 
 })(typeof Global !== 'undefined' ? Global : window);
@@ -307,6 +309,9 @@ Global.Config = {
 (function addConfigOptions(Config, UserAgent, ExistingConfig) {
 
 // support for loading from blob urls, e.g. in workers
+// note that workers can also get the location spec passed in as an option so
+// that blob parsing shouldn't be necessary. Also, in Firefox blob parsing
+// doesn't work.
 if (Config.location.protocol.indexOf('blob') > -1) {
     var isEncoded = !!Config.location.pathname.match(/https?%3A/);
     var decoded = Config.location.pathname;
@@ -354,7 +359,7 @@ Config.addOptions(
 
 'server.nodejs', [
     ["nodeJSURL", Config.location.protocol + '//' + Config.location.host + '/nodejs'],
-    ["nodeJSPath", '/home/nodejs/']
+    [/*This is deprecated*/"nodeJSPath", '/home/nodejs/']
 ],
 
 'lively.persistence', [

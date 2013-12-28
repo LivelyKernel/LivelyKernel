@@ -82,7 +82,6 @@ AsyncTestCase.subclass('lively.lang.tests.WorkerTests.FunctionInterface',
                 test.assertEquals('3 true', whenDoneResult);
                 this.assertEquals(1, lively.Worker.pool.length, 'worker pool size with worker running.');
                 this.delay(function() {
-    show('...'+lively.Worker.pool[0] === worker)
                     this.assertEquals(0, lively.Worker.pool.length, 'worker pool size with worker stopped.');
                     this.done();
                 }, 200);

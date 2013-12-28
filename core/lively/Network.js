@@ -232,7 +232,6 @@ Object.subclass('URL', {
         return this.hostname === url.hostname ? this.relativePathFrom(url) : this.pathname.replace(/^\/?/, '');
     },
 
-
     svnWorkspacePath: function() {
         // heuristics to figure out the Subversion path
         var path = this.pathname;
@@ -295,6 +294,7 @@ Object.subclass('URL', {
     },
 
     asWebResource: function() { return new WebResource(this) },
+
     asModuleName: function() {
         var urlString = this.withRelativePartsResolved().toString(),
             basePrefix = urlString.substring(0, Config.codeBase.length),
@@ -418,6 +418,7 @@ Object.extend(URL, {
         Global.URL[name] = Global._URL[name];
     });
 })();
+
 Object.subclass('NetRequestStatus',
 'documentation', {
     documentation: "nice parsed status information, returned by NetRequest.getStatus when request done",
@@ -1004,8 +1005,6 @@ Resource.subclass('SVNResource', {
         }
     },
 
-
-
     withBaselineUriDo: function(rev, doFunc) {
         var tempUrl = this.getURL();
         this.setURL(this.createVersionURLString(rev));
@@ -1015,7 +1014,7 @@ Resource.subclass('SVNResource', {
 
     createVersionURLString: function(rev) {
         return this.repoUrl + '/!svn/bc/' + rev + '/' + this.getLocalUrl();
-    },
+    }
 
 });
 
@@ -1073,9 +1072,10 @@ Object.subclass('SVNVersionInfo', {
         return Strings.format('new SVNVersionInfo({rev: %s, url: %s, date: %s, author: %s, change: %s, fileSize: %s})',
         this.rev, toExpression(this.url), toExpression(this.date),
         toExpression(this.author), toExpression(this.change), toExpression(this.fileSize));
-    },
+    }
 
 });
+
 Object.extend(SVNVersionInfo, {
     fromPropfindNode: function(node) {
         // FIXME cleanup --> Similar code exists  in lively.Network -> pvtSetMeta...sth
@@ -1256,16 +1256,16 @@ Object.subclass('WebResource',
 
         function onProgress(evt) {
             webR.progressEvent = evt;
-            // var percentComplete = (e.position / e.totalSize)*100;
+            // var percentComplete = (e.position / e.totalSize)*100;
         };
         // register event handlers
         req.onreadystatechange = onReadyStateChange;
 
         if (method === 'PUT' || method === 'POST') {
             req.upload.addEventListener("progress", onProgress, false);
-            // req.upload.addEventListener("load", transferComplete, false);
-            // req.upload.addEventListener("error", transferFailed, false);
-            // req.upload.addEventListener("abort", transferCanceled, false);
+            // req.upload.addEventListener("load", transferComplete, false);
+            // req.upload.addEventListener("error", transferFailed, false);
+            // req.upload.addEventListener("abort", transferCanceled, false);
         } else {
             req.addEventListener("progress", onProgress, false);
         }
@@ -1366,9 +1366,9 @@ Object.subclass('WebResource',
         // var labelFunc = Object.isString(labelOrFunc) ?
             // function() { return labelOrFunc } : labelOrFunc;
         var progressBar = lively.morphic.World.current().addStatusProgress(label);
-        connect(this, 'progressEvent', progressBar, 'setValue',
+        lively.bindings.connect(this, 'progressEvent', progressBar, 'setValue',
             {converter: function(rpe) { return (rpe.loaded / rpe.total) }});
-        connect(this, 'status', progressBar, 'remove', {
+        lively.bindings.connect(this, 'status', progressBar, 'remove', {
             updater: function($upd, status) { if (status.isDone()) $upd() }});
         return this;
     }
@@ -1453,7 +1453,7 @@ Object.subclass('WebResource',
         // location XML is written to content/contentDocument
         var helper = new WebResource(this.getURL());
         helper.setSync(this.isSync())
-        connect(helper, 'revAndLocations', this, 'get', {
+        lively.bindings.connect(helper, 'revAndLocations', this, 'get', {
             updater: function($upd, revAndPath) { $upd(rev, contentType, revAndPath[rev]) },
             varMapping: {rev: rev, contentType: contentType}});
         helper.getLocationInRev(rev, this.headRevision);
@@ -1478,7 +1478,7 @@ Object.subclass('WebResource',
         // location XML is written to content/contentDocument
         var helper = new WebResource(this.getURL());
         helper.setSync(this.isSync())
-        connect(helper, 'revAndLocations', this, 'get', {
+        lively.bindings.connect(helper, 'revAndLocations', this, 'get', {
             updater: function($upd, revAndPath) { $upd(rev, contentType, revAndPath[rev]) },
             varMapping: {rev: rev, contentType: contentType}});
         helper.getLocationInRev(rev, this.headRevision);
@@ -1590,8 +1590,8 @@ Object.subclass('WebResource',
                 // would not be updated but its URL would not point to the file in the
                 // history. Using the global headRev fixes this.
                 var repoWebR = new WebResource(res.repoUrl);
-                connect(repoWebR, 'headRevision', this, 'headRevision', {removeAfterUpdate: true});
-                connect(this, 'headRevision', this, 'getVersions', {removeAfterUpdate: true});
+                lively.bindings.connect(repoWebR, 'headRevision', this, 'headRevision', {removeAfterUpdate: true});
+                lively.bindings.connect(this, 'headRevision', this, 'getVersions', {removeAfterUpdate: true});
                 repoWebR.getHeadRevision();
                 return this;
             }
@@ -1636,7 +1636,7 @@ Object.subclass('WebResource',
                             '<S:peg-revision>%s</S:peg-revision>' +
                             '<S:location-revision>%s</S:location-revision>' +
                         '</S:get-locations>', headRev, rev);
-                    connect(self, 'contentDocument', self, 'pvtProcessForLocationRequest', {
+                    lively.bindings.connect(self, 'contentDocument', self, 'pvtProcessForLocationRequest', {
                         removeAfterUpdate: true});
                     self.report(content);
                 }
@@ -1644,7 +1644,7 @@ Object.subclass('WebResource',
         if (this.headRevision) {
             reportRequester.action(this.headRevision)
         } else {
-            connect(self, 'headRevision', reportRequester, 'action', {removeAfterUpdate: true});
+            lively.bindings.connect(self, 'headRevision', reportRequester, 'action', {removeAfterUpdate: true});
             this.getHeadRevision();
         }
         return this;

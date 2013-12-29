@@ -605,7 +605,6 @@
 
         evalJavaScriptFromURL: function(url, source, onLoadCb) {
             if (!source) { console.warn('Could not load %s', url); return; }
-            Global.livelySources[url] = source;
             try {
                 // adding sourceURL improves debugging as it will be used
                 // in stack traces by some debuggers

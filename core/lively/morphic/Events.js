@@ -392,6 +392,85 @@ Object.extend(Event, {
             function(evt) { return evt.which === 3 }
     })(),
 
+    manualKeyIdentifierLookup: (function() {
+        // this is a fallback for browsers whose key events do not have a
+        // "keyIdentifier" property.
+        // FIXME: as of 12/30/2013 this is only tested on MacOS
+        var keyCodeIdentifiers = {
+            8: {identifier: "Backspace"},
+            9: {identifier: "Tab"},
+            13: {identifier: "Enter"},
+            16: {identifier: "Shift"},
+            17: {identifier: "Control"},
+            18: {identifier: "Alt"},
+            27: {identifier: "Esc"},
+            32: {identifier: "Space"},
+            37: {identifier: "Left"},
+            38: {identifier: "Up"},
+            39: {identifier: "Right"},
+            40: {identifier: "Down"},
+            46: {identifier: "Del"},
+            48: {identifier: "0", shifted: ")"},
+            49: {identifier: "1", shifted: "!"},
+            50: {identifier: "2", shifted: "@"},
+            51: {identifier: "3", shifted: "#"},
+            52: {identifier: "4", shifted: "$"},
+            53: {identifier: "5", shifted: "%"},
+            54: {identifier: "6", shifted: "^"},
+            55: {identifier: "7", shifted: "&"},
+            56: {identifier: "8", shifted: "*"},
+            57: {identifier: "9", shifted: "("},
+            91: {identifier: "Command"},
+            93: {identifier: "Command"},
+            112: {identifier: "F1"},
+            113: {identifier: "F2"},
+            114: {identifier: "F3"},
+            115: {identifier: "F4"},
+            116: {identifier: "F5"},
+            117: {identifier: "F6"},
+            118: {identifier: "F7"},
+            119: {identifier: "F8"},
+            120: {identifier: "F9"},
+            121: {identifier: "F10"},
+            122: {identifier: "F11"},
+            123: {identifier: "F12"},
+            186: {identifier: ";", shifted:":"},
+            187: {identifier: "=", shifted:"+"},
+            188: {identifier: ",", shifted:"<"},
+            189: {identifier: "-", shifted:"_"},
+            190: {identifier: ".", shifted:">"},
+            191: {identifier: "/", shifted:"?"},
+            192: {identifier: "`", shifted:"~"},
+            219: {identifier: "[", shifted:"{"},
+            220: {identifier: "\\", shifted:"|"},
+            221: {identifier: "]", shifted:"}"},
+            222: {identifier: "'", shifted:"\""},
+            224: {identifier: "Command"},
+        }
+        return function(evt) {
+            var id, c = evt.keyCode,
+                shifted = evt.isShiftDown(),
+                ctrl = evt.isCtrlDown(),
+                cmd = evt.isCommandKey(),
+                alt = evt.isAltDown();
+            if ((c >= 65 && c <= 90)) {
+                id = String.fromCharCode(c).toUpperCase();
+            } else {
+                var codeId = keyCodeIdentifiers[c];
+                if (codeId === undefined) id = "???";
+                else {
+                    id = shifted && codeId.shifted ?
+                        codeId.shifted : codeId.identifier
+                }
+            }
+            if (shifted && c !== 16) id = 'Shift-' + id;
+            if (alt && c !== 18) id = 'Alt-' + id;
+            if (ctrl) id = 'Control-' + id;
+            if (cmd && c !== 91 && c !== 93 && c !== 224) id = 'Command-' + id;
+            return id
+        }
+    })(),
+
     decodeKeyIdentifier: function(keyEvt) {
         // trying to find out what the String representation of the key pressed
         // in key event is.
@@ -414,6 +493,14 @@ Object.extend(Event, {
         //   ignoreKeys: Array // list of strings -- key(combos) to ignore
         // }
         options = options || {};
+        if (evt.keyIdentifier === undefined) {
+            var id = this.manualKeyIdentifierLookup(evt);
+            if (options.ignoreModifiersIfNoCombo
+             && [16,17,18,91,93,224].include(evt.keyCode)
+             && !id.include('-')) return "";
+            if (options.ignoreKeys && options.ignoreKeys.include(id)) return '';
+            return id;
+        }
         var keyParts = [];
         // modifiers
         if (evt.metaKey || evt.keyIdentifier === 'Meta') keyParts.push('Command');

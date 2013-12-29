@@ -407,7 +407,7 @@ Config.addOptions(
 
     // Modules
     ["modulesBeforeWorldLoad", ["lively.morphic.HTML"], "evaluated before all changes"],
-    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki", "lively.ide.codeeditor.Completions", "lively.ChangeSets"], "evaluated before world is setup"],
+    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki", "lively.ChangeSets"], "evaluated before world is setup"],
     ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
     ["showModuleDefStack", true, "so modules know where they were required from"],
     ["loadUserConfig", true, "for sth like jens/config.js, used in lively.bootstrap"],
@@ -492,6 +492,7 @@ Config.addOptions(
     ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
+    ['computeCodeEditorCompletionsOnStartup', true, 'when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions'],
     ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."],
     ['improvedJavaScriptEval', false, "Eval that changes semantics of how object literals and if statements are evaluated."],
 ],

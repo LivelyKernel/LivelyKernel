@@ -1598,4 +1598,11 @@ Object.extend(lively.ide, {
     });
 })();
 
+// startup hooks
+(function setupCodeEditorCompletions() {
+    if (lively.Config.get('computeCodeEditorCompletionsOnStartup')) {
+        module("lively.ide.codeeditor.Completions").load();
+    }
+})();
+
 }); // end of module

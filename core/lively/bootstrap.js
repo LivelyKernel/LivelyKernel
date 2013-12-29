@@ -553,10 +553,12 @@
                 if (this.scriptInDOM(url)) {
                     var msg = 'script ' + url + ' already loaded or loading';
                     console.log(msg);
+                // Deprecation: loading css files via loadJs is no longer
+                // supported
+                if (url.match(/\.css$/) || url.match(/\.css\?/)) {
+                    console.error('JSLoader.loadJs called with css URL?! %s', url);
                     return null;
                 }
-                // it's called loadJs, not loadCSS !!!
-                var css = this.isCSS(url);
 
                 // adapt URL
                 var exactUrl = url;
@@ -850,10 +852,8 @@
         getSyncStatus: function(url, forceUncached) {
             return this.getSyncReq(url, forceUncached).status;
         },
-
-        isCSS: function(url) {
-            return url.match(/\.css$/) || url.match(/\.css\?/);
         }
+
     };
 
     // TODO: Something is wrong with the lively-libs, use debug only to

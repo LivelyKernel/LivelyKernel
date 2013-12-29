@@ -507,6 +507,8 @@
         XLINKNamespace: 'http:\/\/www.w3.org/1999/xlink',
         LIVELYNamespace: 'http:\/\/www.experimentalstuff.com/Lively',
 
+        loadedURLs: [],
+
         require: function(relPath) {
             // for use with NodeJS
             var pathLib = require('path'),
@@ -535,24 +537,21 @@
                 }
             };
         },
+
         loadJs: browserDetector.isNodejs() ?
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+                if (this.isLoading(url)) return null;
+                this.markAsLoading(url);
                 console.log('loading ' + url);
                 var path = url;
                 //var path = url.match(/(^http|^file):\/\/(.*)/)[2];
                 var scriptEl = window.document.createElement("script");
                 scriptEl.src = path;
                 window.document.body.appendChild(scriptEl);
-                if (onLoadCb) {
-                    scriptEl.onload = onLoadCb;
-                }
+                if (onLoadCb) scriptEl.onload = onLoadCb;
                 return Global;
             } :
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
-                if (okToUseCache === undefined) okToUseCache = true;
-                if (this.scriptInDOM(url)) {
-                    var msg = 'script ' + url + ' already loaded or loading';
-                    console.log(msg);
                 // Deprecation: loading css files via loadJs is no longer
                 // supported
                 if (url.match(/\.css$/) || url.match(/\.css\?/)) {
@@ -560,63 +559,64 @@
                     return null;
                 }
 
-                // adapt URL
+                if (this.isLoading(url)) return null;
+                this.markAsLoading(url);
+
+                if (okToUseCache === undefined) okToUseCache = true;
+
+                // DEPRECATED: adapt URL, for SVN-WebDAV support
                 var exactUrl = url;
                 if ((exactUrl.indexOf('!svn') <= 0) && !okToUseCache) {
                     exactUrl = this.makeUncached(exactUrl, cacheQuery);
                 }
 
+                return this.loadViaXHR(loadSync, exactUrl, onLoadCb);
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                // FIXME script loading currently not used
                 // create and configure script tag
-                var parentNode = this.findParentScriptNode(),
-                    xmlNamespace = parentNode.namespaceURI, el;
-
-                if (css) {
-                    el = document.createElementNS(xmlNamespace, 'link');
-                    el.setAttributeNS(null, "rel", "stylesheet");
-                    el.setAttributeNS(null, "type", "text/css");
-                } else { //assuming js
+                /*var parentNode = this.findParentScriptNode(),
+                    xmlNamespace = parentNode.namespaceURI,
                     el = document.createElementNS(xmlNamespace, 'script');
-                    el.setAttributeNS(null, 'type', 'text/ecmascript');
-                }
+                el.setAttributeNS(null, 'type', 'text/ecmascript');
                 parentNode.appendChild(el);
                 el.setAttributeNS(null, 'id', url);
-                console.log(exactUrl);
                 return loadSync ?
-                    this.loadSync(exactUrl, onLoadCb, el) :
-                    this.loadAsync(exactUrl, onLoadCb, el);
+                    this.loadSync(, el) :
+                    this.loadAsync(exactUrl, onLoadCb, el);*/
             },
 
-        loadSync: function(url, onLoadCb, script) {
-            if (this.isCSS(url)) {
-                console.log('skipping eval for css: ' + url);
-                if (typeof onLoadCb === 'function') onLoadCb();
-                return;
-            }
-            this.doLoadJS(url, onLoadCb, this.getSync(url));
+        loadViaXHR: function(beSync, url, onLoadCb) {
+            this.getViaXHR(beSync, url, function(err, content) {
+                if (err) {
+                    console.error('error loading %s: %s', url, err);
+                } else {
+                    JSLoader.evalJavaScriptFromURL(url, content, onLoadCb);
+                }
+            });
+            return null;
         },
 
-        doLoadJS: function(url, onLoadCb, source) {
+        loadViaScript: function(url, onLoadCb, script) {
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // FIXME script loading currently not used
+            /*if (script.namespaceURI === this.SVGNamespace) {
+                script.setAttributeNS(this.XLINKNamespace, 'href', url);
+            } else {
+                //...
+            }
+            if (onLoadCb) script.onload = onLoadCb;
+            script.setAttributeNS(null, 'async', true);*/
+        },
+
+        evalJavaScriptFromURL: function(url, source, onLoadCb) {
             if (!source) { console.warn('Could not load %s', url); return; }
             Global.livelySources[url] = source;
             try {
                 eval.call(Global, source + "\n//# sourceURL=" + url);
             } catch (e) {
-                console.error('Error when loading %s: %s\n%s', url, e, e.stack);
+                console.error('Error when evaluating %s: %s\n%s', url, e, e.stack);
             }
             if (typeof onLoadCb === 'function') onLoadCb();
-        },
-        
-        loadAsync: function(url, onLoadCb, script) {
-            if (script.namespaceURI === this.SVGNamespace) {
-                script.setAttributeNS(this.XLINKNamespace, 'href', url);
-            } else if (this.isCSS(url)) {
-                script.setAttribute("href", url);
-                if (typeof onLoadCb === 'function') onLoadCb(); // huh?
-            } else
-                return this.getAsync(url, onLoadCb, this.doLoadJS);
-                
-            if (onLoadCb) script.onload = onLoadCb;
-            script.setAttributeNS(null, 'async', true);
         },
 
         loadCombinedModules: function(combinedFileUrl, callback, hash) {
@@ -624,11 +624,9 @@
             // with this method. The method will ensure that all included
             // modules are loaded. If they have required modules that are not
             // included in the combined file, those will be loaded as well.
-
             var lively = Global.lively,
                 originalLoader = this,
                 combinedLoader = {
-
                     expectToLoadModules: function(relativePaths) {
                         // urls like http://foo.org/lively/Text.js
                         var i, len = relativePaths.length;
@@ -694,8 +692,7 @@
 
             // while loading the combined file we replace the loader
             Global.JSLoader = combinedLoader;
-            this.loadJs(combinedFileUrl, callCallback,
-                        false, false, hash);
+            this.loadJs(combinedFileUrl, callCallback, false, false, hash);
         },
 
         loadAll: function(urls, cb) {
@@ -726,18 +723,25 @@
             return document.getElementsByTagName('script');
         },
 
+        isLoading: function(url) {
+            url = this.makeAbsolute(url);
+            return this.loadedURLs.indexOf(url) > -1
+                || this.scriptInDOM(url);
+        },
+
+        markAsLoading: function(url) {
+            this.loadedURLs.push(this.makeAbsolute(url));
+        },
+
         scriptInDOM: function(url) {
             return this.scriptsThatLinkTo(url).length > 0;
         },
 
         scriptsThatLinkTo: function(url) {
-            var scriptsFound = [],
-                allScripts = this.getScripts();
-            for (var i = 0; i < allScripts.length; i++) {
-                if (this.scriptElementLinksTo(allScripts[i], url)) {
+            var scriptsFound = [], allScripts = this.getScripts();
+            for (var i = 0; i < allScripts.length; i++)
+                if (this.scriptElementLinksTo(allScripts[i], url))
                     scriptsFound.push(allScripts[i]);
-                }
-            }
             return scriptsFound;
         },
 
@@ -782,10 +786,12 @@
 
         dirOfURL: function(url) {
             return this.removeQueries(url)
-                       .substring(0, url.lastIndexOf('/') + 1);
+               .substring(0, url.lastIndexOf('/') + 1);
         },
 
         makeAbsolute: function(urlString) {
+            // if urlString points to a relative resource then prepend the
+            // current protocol, port, path to it to make it absolute
             urlString = this.removeQueries(urlString);
             if (!urlString.match(/^http|^file/)) {
                 // make absolute
@@ -795,6 +801,7 @@
         },
 
         makeUncached: function(urlString, cacheQuery) {
+            // append a timestamp to the url to force a reload
             cacheQuery = cacheQuery || new Date().getTime();
             return urlString
                  + (urlString.indexOf('?') === -1 ? '?' : '&')
@@ -808,50 +815,19 @@
             }
         },
 
-        getAsync: function(url, onLoadCb, onSuccess) {
+        getViaXHR: function(beSync, url, callback) {
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-            xhr.onload = function (e) {
-              if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    onSuccess(url, onLoadCb, xhr.responseText);
-                } else {
-                  console.error(xhr.statusText);
-                }
-              }
+            xhr.open("GET", url, !beSync);
+            xhr.onload = function() {
+                if (xhr.readyState !== 4) return;
+                callback(
+                    xhr.status >= 400 ? xhr.statusText : null,
+                    xhr.responseText)
             };
-            xhr.onerror = function (e) {
-              console.error(xhr.statusText);
+            xhr.onerror = function(e) {
+                callback(xhr.statusText, null);
             };
             xhr.send(null);
-        },
-        
-        getSyncReq: function(url, forceUncached) {
-            if (typeof WebResource !== "undefined") {
-                var webR = new WebResource(url);
-                if (forceUncached) webR.forceUncached();
-                var webRGet = webR.get();
-                return {
-                    status: webRGet.status.code(),
-                    responseText: webRGet.content
-                };
-            }
-
-            var req = new XMLHttpRequest();
-            if (forceUncached) url = this.makeUncached(url);
-            req.open('GET', url, false/*sync*/);
-            req.send();
-            return req;
-        },
-
-        getSync: function(url, forceUncached) {
-            var req = this.getSyncReq(url, forceUncached);
-            return req.status < 400 ? req.responseText : null;
-        },
-
-        getSyncStatus: function(url, forceUncached) {
-            return this.getSyncReq(url, forceUncached).status;
-        },
         }
 
     };

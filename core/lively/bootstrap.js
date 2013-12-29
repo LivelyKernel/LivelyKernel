@@ -500,7 +500,6 @@
         }
     };
 
-    Global.livelySources = {};
     Global.JSLoader = {
 
         SVGNamespace: 'http:\/\/www.w3.org/2000/svg',
@@ -570,19 +569,9 @@
                     exactUrl = this.makeUncached(exactUrl, cacheQuery);
                 }
 
-                return this.loadViaXHR(loadSync, exactUrl, onLoadCb);
-                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-                // FIXME script loading currently not used
-                // create and configure script tag
-                /*var parentNode = this.findParentScriptNode(),
-                    xmlNamespace = parentNode.namespaceURI,
-                    el = document.createElementNS(xmlNamespace, 'script');
-                el.setAttributeNS(null, 'type', 'text/ecmascript');
-                parentNode.appendChild(el);
-                el.setAttributeNS(null, 'id', url);
                 return loadSync ?
-                    this.loadSync(, el) :
-                    this.loadAsync(exactUrl, onLoadCb, el);*/
+                    this.loadViaXHR(loadSync, exactUrl, onLoadCb) :
+                    this.loadViaScript(exactUrl, onLoadCb);
             },
 
         loadViaXHR: function(beSync, url, onLoadCb) {
@@ -596,22 +585,30 @@
             return null;
         },
 
-        loadViaScript: function(url, onLoadCb, script) {
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // FIXME script loading currently not used
-            /*if (script.namespaceURI === this.SVGNamespace) {
+        loadViaScript: function(url, onLoadCb) {
+            // load JS code by inserting a <script src="..." /> tag into the
+            // DOM. This allows cross domain script loading and JSONP
+            var parentNode = this.findParentScriptNode(),
+                xmlNamespace = parentNode.namespaceURI,
+                script = document.createElementNS(xmlNamespace, 'script');
+            script.setAttributeNS(null, 'type', 'text/ecmascript');
+            parentNode.appendChild(script);
+            script.setAttributeNS(null, 'id', url);
+            if (script.namespaceURI === this.SVGNamespace) {
                 script.setAttributeNS(this.XLINKNamespace, 'href', url);
             } else {
-                //...
+                script.setAttribute('src', url);
             }
             if (onLoadCb) script.onload = onLoadCb;
-            script.setAttributeNS(null, 'async', true);*/
+            script.setAttributeNS(null, 'async', true);
         },
 
         evalJavaScriptFromURL: function(url, source, onLoadCb) {
             if (!source) { console.warn('Could not load %s', url); return; }
             Global.livelySources[url] = source;
             try {
+                // adding sourceURL improves debugging as it will be used
+                // in stack traces by some debuggers
                 eval.call(Global, source + "\n//# sourceURL=" + url);
             } catch (e) {
                 console.error('Error when evaluating %s: %s\n%s', url, e, e.stack);

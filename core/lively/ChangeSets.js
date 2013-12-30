@@ -1,4 +1,4 @@
-module('lively.ChangeSets').requires('lively.Traits', 'lively.persistence.BuildSpec', 'lively.morphic.MorphAddons'/*for lively.morphic.Panel*/).requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
+module('lively.ChangeSets').requires('lively.Traits', 'lively.persistence.BuildSpec', 'lively.morphic.MorphAddons').requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
 
 Object.extend(Global, {
 
@@ -213,10 +213,7 @@ Object.extend(Global, {
         });
 })();
 
-Object.subclass('lively.ChangeSet');
-var ChangeSet = lively.ChangeSet;
-
-ChangeSet.addMethods(
+Object.subclass('lively.ChangeSet',
 'initialize-release', {
 
 	reinitialize: function() {
@@ -229,7 +226,7 @@ ChangeSet.addMethods(
 
     initialize: function(aName, optDoNotStoreName) {
         if(!aName) {
-            aName = ChangeSet.defaultName();
+		    throw new Error('All changeSets must be named and registered');
         }
         this.name = aName;
         this.changeRecords = [];
@@ -240,70 +237,31 @@ ChangeSet.addMethods(
 	        this.storeName(aName);
     },
 
-
-
 	clear: function() {
 
 		this.changeRecords = [];
         this.timestamps = [];
 	},
 
-
-
-	isMoribond: function() {
-
-		return !this.name;
-
-	},
-
-	wither: function() {
-
-		this.clear();
-		this.name = null;
-
-	},
     copy: function() {
-        return new ChangeSet(this.name, true);
+        return new lively.ChangeSet(this.name, true);
     }
 
 });
 
 
-Object.extend(ChangeSet, {
+Object.extend(lively.ChangeSet, {
 
-
-    
-	assureChangeSetNamed: function(aName) {
+	existingOrNewChangeSetNamed: function(aName) {
 	    var existing = this.named(aName);
 	    if(existing)
 	        return existing;
-	    return this.basicNewChangeSet(aName);
+	    return new lively.ChangeSet(aName);
 	},
 
-	basicNewChangeSet: function(aName) {
-	    if(!aName)
-	        return null;
-	    var existing = this.named(aName);
-	    if(existing) {
-	        alert('Sorry, that name is already in use');
-	        return null;
-	    }
-	    return new ChangeSet(aName);
-	},
-	existingOrNewChangeSetNamed: function(aName) {
-	    var existing = this.named(aName);
-	    if(existing) {
-	        return existing;
-	    }
-	    return new ChangeSet(aName);
-	},
-
-
-
-	
 	current: function() {
-	    if(!this.CurrentChangeSet || this.CurrentChangeSet.isMoribond())
-	        this.newChanges(this.assureChangeSetNamed(this.defaultName()));
+	    if(!this.CurrentChangeSet)
+	        this.newChanges(new this(this.defaultName()));
 		return this.CurrentChangeSet;
 	},
 
@@ -317,11 +275,14 @@ Object.extend(ChangeSet, {
         })
     },
 
-
-
     newChanges: function(aChangeSet) {
         this.CurrentChangeSet = aChangeSet;
         localStorage.setItem(this.userStorageRoot + ":defaultChangeSet", aChangeSet.name)
+        var changesetNames = this.changeSetNames();
+        if(!changesetNames.include(aChangeSet.name)) {
+            changesetNames.push(aChangeSet.name);
+            localStorage.setItem(this.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
+        }
     },
     
     uniqueNameLike: function(aString) {
@@ -335,31 +296,31 @@ Object.extend(ChangeSet, {
         
     },
     
-
-    
     CurrentChangeSet: null
 
 });
 
-Object.extend(ChangeSet, {
+Object.extend(lively.ChangeSet, {
+
 	loadAndcheckVsSystem: function() {
+	    
+	    var changeSet = this.CurrentChangeSet;
+	    if(!changeSet)	        return;
+        if(!changeSet.hasErrors())
+            changeSet.applyChanges();
+        if(changeSet.hasErrors())
+            alert("Some of the changes in your current changeset could not be applied.\nOpen the changes browser for details");
+	},
+    initialize: function() {
 
 		this.userStorageRoot = "LivelyChanges:" + location.pathname + ":author:" + $world.getUserName();
 		var storedNameForDefaultChangeSet = this.defaultChangeSetName();
 		if(!storedNameForDefaultChangeSet)
 		    return;
-        var changeSet = new ChangeSet(storedNameForDefaultChangeSet, true);
+        var changeSet = new lively.ChangeSet(storedNameForDefaultChangeSet, true);
         this.newChanges(changeSet);
-        var changesetNames = this.changeSetNames();
-        if(!changesetNames.include(storedNameForDefaultChangeSet)) {
-            changesetNames.push(storedNameForDefaultChangeSet);
-            localStorage.setItem(this.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
-        }
-        if(!changeSet.hasErrors() && Config.automaticChangesReplay)
-            changeSet.applyChanges();
-        if(changeSet.hasErrors())
-            $world.openInspectorFor(changeSet);
-	},
+    },
+
     changeSetNames: function() {
         var namesString = localStorage.getItem(this.userStorageRoot + ":changesetNames");
         if(namesString)
@@ -391,13 +352,8 @@ Object.extend(ChangeSet, {
         this.storeArray(storageArray, this.nextTimestamp());
     },
 
-
-    
-    
-
-
     logChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousChangeStamp) {
-
+debugger;
         return this.current().logChange(sourceOrNil, contextPath, propertyName, categoryOrNil, previousChangeStamp);
     },
 
@@ -410,12 +366,12 @@ Object.extend(ChangeSet, {
         this.current().logFirstRemoval(source, contextPath, propertyName, categoryOrNil);
     },
 
-
     logRemoval: function(contextPath, propertyName, categoryOrNil, previousChangeStamp) {
  
         this.current().logRemoval(contextPath, propertyName, categoryOrNil, previousChangeStamp);
     },
-    removeAllFromPersistentStorage: function() {// ChangeSet.removeAllFromPersistentStorage()
+
+    removeAllFromPersistentStorage: function() {// lively.ChangeSet.removeAllFromPersistentStorage()
     
 		var storageRoot = "LivelyChanges:" + location.pathname + ":author:" + $world.getUserName();
 
@@ -442,6 +398,7 @@ Object.extend(ChangeSet, {
             localStorage.removeItem(storageRoot + ":timestamps");
         }
     },
+
     storeArray: function(array, timestamp) {
 
         //Step 1: store the actual change
@@ -456,10 +413,6 @@ Object.extend(ChangeSet, {
         localStorage.setItem(this.userStorageRoot + ":timestamps", allTimestampsString);
 
     },
-    installFlap: function() {
-        // enter comment here
-    },
-
 
     nextTimestamp: function() {
         var current = performance.now();
@@ -476,18 +429,19 @@ Object.extend(ChangeSet, {
                 return;
             }
             if(changeRecord.originalPropertyName && !originalContext[changeRecord.originalPropertyName]) {
-                changeRecord.errors.push("Failed to apply change. The original context "+changeRecord.originalContextPath+"\n does not have the original property named '"+changeRecord.originalPropertyName+"' anymore");
+                changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+" does not have the  property '"+changeRecord.originalPropertyName+"' anymore");
                 return;
             }
             if(changeRecord.originalPropertyName && changeRecord.originalSource != originalContext[changeRecord.originalPropertyName].toString()) {
-                changeRecord.errors.push("Failed to apply change. "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+"\n does not have the original source anymore");
+                changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the original source anymore");
                 return;
             }
             if(changeRecord.originalCategory) {
                 var originalContainer = originalContext.lvCategoriesContainer();
                 if(changeRecord.originalCategory != originalContainer.lvCategoryForMethod(changeRecord.originalPropertyName))
 {
-                    changeRecord.errors.push("Failed to apply change. "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+"\n does not have the original category "+changeRecord.originalCategory+" anymore");
+    debugger;
+                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the category '"+changeRecord.originalCategory+"' anymore");
                     return;
                 }
             }
@@ -512,7 +466,7 @@ Object.extend(ChangeSet, {
         var kindOfChange, 
             timestamp,
             oldFunc = context[changeRecord.propertyName];
-        switch(changeRecord.type.valueOf()) {
+        switch(changeRecord.type) {
             case "removed":
                 delete context[changeRecord.propertyName];
                 if(!existingTimestamp)
@@ -525,7 +479,7 @@ Object.extend(ChangeSet, {
             case "added":
                 if(oldFunc) {
                     if(oldFunc.toString() != changeRecord.source)
-                        changeRecord.errors.push("Failed to add property. The context "+changeRecord.contextPath+"\n already has the property named "+changeRecord.propertyName+" and it is different from what we are trying to add");
+                        changeRecord.errors.push("Failed to add property. "+changeRecord.contextPath+" already has the property '"+changeRecord.propertyName+"' and it is different from what we are trying to add");
                     return;
                 }
                 if(!existingTimestamp)
@@ -535,7 +489,7 @@ Object.extend(ChangeSet, {
             case "moved":
                 if(oldFunc) {
                     if(oldFunc.toString() != changeRecord.source)
-                        changeRecord.errors.push("Failed to move property. The target context "+changeRecord.contextPath+"\n already has the property named "+changeRecord.propertyName+" and it is different from what we are trying to move there");
+                        changeRecord.errors.push("Failed to move property. "+changeRecord.contextPath+" already has the property '"+changeRecord.propertyName+"' and it is different from what we are trying to move there");
                     return;
                 }
                 kindOfChange = "moved from "+changeRecord.originalContextPath;
@@ -553,7 +507,7 @@ Object.extend(ChangeSet, {
             case "renamed":
                 if(oldFunc) {
                     if(oldFunc.toString() != changeRecord.source)
-                        changeRecord.errors.push("Failed to rename property. The context "+changeRecord.contextPath+"\n already has the target property named "+changeRecord.propertyName+" and it is different from what we are trying to set there");
+                        changeRecord.errors.push("Failed to rename property. "+changeRecord.contextPath+" already has the target property '"+changeRecord.propertyName+"' and it is different from what we are trying to set");
                     return;
                 }
                 kindOfChange = "renamed from "+changeRecord.originalPropertyName;
@@ -570,7 +524,7 @@ Object.extend(ChangeSet, {
                 break;
             case "changed source":
                 if(!oldFunc) {
-                    changeRecord.errors.push("Failed to change source. The context "+changeRecord.contextPath+"\n does not have the property named "+changeRecord.propertyName);
+                    changeRecord.errors.push("Failed to change source. "+changeRecord.contextPath+" does not have the property '"+changeRecord.propertyName+"'");
                     return;
                 }
                 kindOfChange = "changed source";
@@ -584,7 +538,7 @@ Object.extend(ChangeSet, {
                 break;
             case "changed category":
                 if(!oldFunc) {
-                    changeRecord.errors.push("Failed to change category. The context "+changeRecord.contextPath+"\n does not have the property named "+changeRecord.propertyName);
+                    changeRecord.errors.push("Failed to change category. "+changeRecord.contextPath+" does not have the property '"+changeRecord.propertyName+"'");
                     return;
                 }
                 kindOfChange = "changed category from "+changeRecord.originalCategory+" to "+changeRecord.category;
@@ -597,6 +551,7 @@ Object.extend(ChangeSet, {
                         timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, null, null, null);
                 break;
             default:
+            debugger;
                 throw new Error("Applying "+changeRecord.type+ " not implemented yet");
             }
             if(!oldFunc || changeRecord.source != oldFunc.toString())
@@ -636,14 +591,22 @@ Object.extend(ChangeSet, {
         if(firstChangeStamp) {
             //this is not a first change
             var firstChangeRecord = this.getChangeRecord(firstChangeStamp);
-			if(firstChangeRecord.type == "added")
-                if(changeRecord.type == "removed")
-                    //added then removed, not a "real" change
-                    return null;
-                else {
-                    changeRecord.type = "added";    //this may also include added to category
+            if(firstChangeRecord.type == "added") {
+                if(changeRecord.type == "removed" || changeRecord.type == "added")
                     return changeRecord;
-                }
+                if(firstChangeRecord.contextPath !== changeRecord.contextPath)
+                    changeRecord.type = "moved";    //this may also include renamed, changed category and changed source
+                else if(firstChangeRecord.propertyName !== changeRecord.propertyName)
+                    changeRecord.type = "renamed";  //this may also include changed category and changed source
+                else if(firstChangeRecord.source !== changeRecord.source)
+                    changeRecord.type = "changed source";  //this may also include changed category
+                else if(firstChangeRecord.category !== changeRecord.category &&
+                    (firstChangeRecord.category || changeRecord.category)) {
+                        changeRecord.type = "changed category";
+                } else
+                    changeRecord.type = "added";
+                return changeRecord;
+            }
             changeRecord.originalContextPath = firstChangeRecord.originalContextPath;
             changeRecord.originalPropertyName = firstChangeRecord.originalPropertyName;
             changeRecord.originalCategory = firstChangeRecord.originalCategory;
@@ -652,26 +615,19 @@ Object.extend(ChangeSet, {
                 
         if(changeRecord.type == "removed" || changeRecord.type == "added")
             return changeRecord;
-        if(changeRecord.originalContextPath !== changeRecord.contextPath) {
+        if(changeRecord.originalContextPath !== changeRecord.contextPath)
             changeRecord.type = "moved";    //this may also include renamed, changed category and changed source
-            return changeRecord;
-        }
-        if(changeRecord.originalPropertyName !== changeRecord.propertyName) {
+        else if(changeRecord.originalPropertyName !== changeRecord.propertyName)
             changeRecord.type = "renamed";  //this may also include changed category and changed source
-            return changeRecord;
-        }
-        if(changeRecord.originalSource !== changeRecord.source) {
+        else if(changeRecord.originalSource !== changeRecord.source)
             changeRecord.type = "changed source";  //this may also include changed category
-            return changeRecord;
-        }
-        if(changeRecord.originalCategory !== changeRecord.category) {
-            changeRecord.type = "changed category";
-        }
+        else if(changeRecord.originalCategory !== changeRecord.category &&
+            (changeRecord.originalCategory || changeRecord.category))
+                changeRecord.type = "changed category";
+        else
+            throw new Error("invalid change");
         return changeRecord;
     },
-
-
-
 
     changeDataFromStorage: function(array) {
 // There are four main formats for the array. The first 4 elements in each of them, when present, represent the same aspect:
@@ -702,7 +658,7 @@ Object.extend(ChangeSet, {
 			entry.propertyName = propertyName;
 			if(!entry.source)
                 entry.type = "removed";
-			entry.category = array[3];
+			entry.category = array[3] === 'default category' ? null : array[3];
 			var previous = array[4];
 			if(previous && typeof previous.valueOf() == "number") {
 				//not a first change
@@ -714,7 +670,7 @@ Object.extend(ChangeSet, {
 				entry.type = "added";
 				return entry;
 			}
-			entry.originalCategory = previous;
+			entry.originalCategory = previous === 'default category' ? null: previous;
 			entry.originalSource = array[5] || entry.source;
 			entry.originalContextPath = array[6] || array[1] || "Global";
 			entry.originalPropertyName = array[7] || propertyName;
@@ -724,6 +680,7 @@ Object.extend(ChangeSet, {
 		}
 		return entry;
     },
+
     getChangeRecord: function(t) {
         var dataString = localStorage.getItem(this.userStorageRoot + ":allChanges:" + t);
         if(!dataString)
@@ -731,22 +688,21 @@ Object.extend(ChangeSet, {
         return this.changeDataFromStorage(JSON.parse(dataString));
     },
 
-
-
     logAddition: function(source, contextPath, propertyName, optCategory) {
 
         return this.current().logAddition(source, contextPath, propertyName, optCategory);
     }
 
-    
 });
     
-ChangeSet.addMethods(
+lively.ChangeSet.addMethods(
     "actions", {
 
     applyChanges: function() {
-        if(this.timestamps.length != this.changeRecords.length)
+        if(this.timestamps.length != this.changeRecords.length) {
             alert("inconsistent changeset state");
+            return;
+        }
         if(this.changeRecords.length == 0) {
             alertOK("No changes to apply");
             return;
@@ -754,87 +710,106 @@ ChangeSet.addMethods(
             
         for (var i=0; i<this.timestamps.length; i++) {
             try {
-                ChangeSet.applyChange(this.changeRecords[i], this.timestamps[i]);
+                lively.ChangeSet.applyChange(this.changeRecords[i], this.timestamps[i]);
             } catch(e) {
                 this.changeRecords[i].errors.push("Unexpected error " + e.name + ": " + e.message);
             }
         }
         if(!this.hasErrors())
             alertOK("Changes succesfully applied");
-        else
-            alert("Some of the changes failed to apply, please check your changes browser for details");
-        
+
     },
 
     hasErrors: function() {
-        return this.changeRecords.detect(function(e){e.errors.length > 0})
+        return this.changeRecords.detect(function(e){ return e.errors.length > 0})
     },
+    
     addChange: function(t) {
         this.timestamps.push(t);
-        this.changeRecords.push(ChangeSet.hydrateChange(t));
+        this.changeRecords.push(lively.ChangeSet.hydrateChange(t));
     },
-
-
-
 
     logAddition: function(source, contextPath, propertyName, optCategory) {
 
-
         //make sure this is really a new addition (within the current changeset)
         var replacedRemoval;
-        this.timestamps.each(function(t){
-            var changeRecord = ChangeSet.getChangeRecord(t);
-            if(changeRecord.contextPath == contextPath) {
-                if(changeRecord.propertyName == propertyName) {
-                    if(changeRecord.type != "removed")
-                        throw new Error("should not happen");
+        this.timestamps.slice().reverse().each(function(t){
+            var changeRecord = lively.ChangeSet.getChangeRecord(t);
+            if( changeRecord.contextPath == contextPath &&
+                changeRecord.propertyName == propertyName &&
+                changeRecord.type === "removed") {
                     //it is not really a new add
                     this.removeTimestamp(t);
-                    var firstChangeRecord = ChangeSet.getChangeRecord(changeRecord.firstChangeStamp);
-                    replacedRemoval = this.logFirstChange(source, contextPath, propertyName, optCategory,
-                        firstChangeRecord.originalCategory, firstChangeRecord.originalSource, firstChangeRecord.originalContextPath, firstChangeRecord.originalPropertyName);
+                    if(changeRecord.firstChangeStamp) {
+                        replacedRemoval = this.logChange(source, contextPath, propertyName, optCategory, changeRecord.previousChangeStamp);
+                    } else
+                        replacedRemoval = this.logFirstChange(source, contextPath, propertyName, optCategory,
+                        changeRecord.originalCategory, changeRecord.originalSource, changeRecord.originalContextPath, changeRecord.originalPropertyName);
                     return;
-                }
             }
         })
         if(replacedRemoval)
             return replacedRemoval;
-        var timestamp = ChangeSet.nextTimestamp();
+        var timestamp = lively.ChangeSet.nextTimestamp();
         var array = [source, contextPath, propertyName];
         if(optCategory)
-            array.push(optCategory);
+            array.push(optCategory);[]
         this.storeArray(array, timestamp);
         return timestamp
     },
+
     removeTimestamp: function(t) {
 
         this.timestamps.remove(t);
-        localStorage.setItem(ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
+        localStorage.setItem(lively.ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
     },
 
     logChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousChangeStamp) {
 
         //Get the previous change
-        var previousChangeRecord = ChangeSet.getChangeRecord(previousChangeStamp);
+        var previousChangeRecord = lively.ChangeSet.hydrateChange(previousChangeStamp);
         var firstTimestamp = previousChangeRecord.firstChangeStamp || previousChangeStamp;
-        var timestamp = ChangeSet.nextTimestamp();
+        var timestamp = lively.ChangeSet.nextTimestamp();
         this.storeArray([sourceOrNil, contextPath, propertyName, categoryOrNil, firstTimestamp, previousChangeStamp], timestamp);
-        this.removeTimestamp(previousChangeStamp);
+        if(previousChangeRecord.type === "changed source" || previousChangeRecord.type === "changed category")
+            this.removeTimestamp(previousChangeStamp);
 
         if( previousChangeRecord.originalSource == sourceOrNil &&
             previousChangeRecord.originalContextPath == contextPath &&
             previousChangeRecord.originalPropertyName == propertyName &&
-            previousChangeRecord.originalCategory == categoryOrNil) {
+            (previousChangeRecord.originalCategory == categoryOrNil || !previousChangeRecord.originalCategory && !categoryOrNil)) {
                 //this is not really a change, we are reverting to the original
-                this.removeTimestamp(timestamp);
+                this.timestamps = this.timestamps.reject(function(t){
+                    var changeRecord = lively.ChangeSet.getChangeRecord(t);
+                    return changeRecord.contextPath == contextPath &&
+                        changeRecord.propertyName == propertyName})
+                localStorage.setItem(lively.ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
                 return null;
-            }
+        } else if(!previousChangeRecord.originalSource) {
+            //first record is an addition
+            var firstChangeRecord = lively.ChangeSet.getChangeRecord(firstTimestamp);
+            if(firstChangeRecord.type !== "added")
+                throw new Error("Should not happen");
+            if( firstChangeRecord.source == sourceOrNil &&
+                firstChangeRecord.contextPath == contextPath &&
+                firstChangeRecord.propertyName == propertyName &&
+                (firstChangeRecord.category == categoryOrNil || !firstChangeRecord.category && !categoryOrNil)) {
+                    //this is not really a change, we are reverting to the initial
+                    this.timestamps = this.timestamps.reject(function(t){
+                        var changeRecord = lively.ChangeSet.getChangeRecord(t);
+                        return changeRecord.contextPath == contextPath &&
+                            changeRecord.propertyName == propertyName &&
+                            t !== firstTimestamp})
+                    localStorage.setItem(lively.ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
+                    return null;
+            }            
+        }
         return timestamp
     },
 
     logFirstChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame) {
  
-        var timestamp = ChangeSet.nextTimestamp();
+        var timestamp = lively.ChangeSet.nextTimestamp();
         var array = [sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil];
         if(previousSourceOrNilIfSame && sourceOrNil != previousSourceOrNilIfSame) {
             array.push(previousSourceOrNilIfSame);
@@ -856,23 +831,23 @@ ChangeSet.addMethods(
         this.storeArray(array, timestamp);
         return timestamp
     },
+
     logFirstRemoval: function(source, contextPath, propertyName, categoryOrNil) {
  
-        this.storeArray([null, contextPath, propertyName, categoryOrNil, null, source], ChangeSet.nextTimestamp());
+        this.storeArray([null, contextPath, propertyName, categoryOrNil, null, source], lively.ChangeSet.nextTimestamp());
     },
-
 
     logRemoval: function(contextPath, propertyName, categoryOrNil, previousChangeStamp) {
  
         //Get the previous change
-        var previousChangeRecord = ChangeSet.getChangeRecord(previousChangeStamp);
+        var previousChangeRecord = lively.ChangeSet.getChangeRecord(previousChangeStamp);
         var firstTimestamp = previousChangeRecord.firstChangeStamp || previousChangeStamp;
-        var timestamp = ChangeSet.nextTimestamp();
+        var timestamp = lively.ChangeSet.nextTimestamp();
         this.storeArray([null, contextPath, propertyName, categoryOrNil, firstTimestamp, previousChangeStamp], timestamp);
         this.removeTimestamp(previousChangeStamp);
 
-        var firstChangeRecord = firstTimestamp === previousChangeStamp ? previousChangeRecord : ChangeSet.getChangeRecord(firstTimestamp);
-        if(firstChangeRecord.type == "added")
+        var firstChangeRecord = firstTimestamp === previousChangeStamp ? previousChangeRecord : lively.ChangeSet.getChangeRecord(firstTimestamp);
+        if(firstChangeRecord.type == "added" && this.timestamps.indexOf(timestamp) > -1)
             //this is not really a removal, we are only removing something temporarily added
             this.removeTimestamp(timestamp);
     },
@@ -880,13 +855,14 @@ ChangeSet.addMethods(
 
     storeArray: function(array, timestamp) {
 
-        ChangeSet.storeArray(array, timestamp);
+        lively.ChangeSet.storeArray(array, timestamp);
 
         this.addTimestamp(timestamp);
     },
+
     storeName: function() {
         
-        if(!ChangeSet.userStorageRoot) {
+        if(!lively.ChangeSet.userStorageRoot) {
             var username = $world.getUserName();
             var storageRoot = "LivelyChanges:" + location.pathname;
             var authorsString = localStorage.getItem(storageRoot + ":authors");
@@ -897,32 +873,30 @@ ChangeSet.addMethods(
                 authorsString = JSON.stringify(authors.push(username))
                 localStorage.setItem(storageRoot + ":authors", authorsString);
             }
-    		ChangeSet.userStorageRoot = storageRoot + ":author:" + username;
+    		lively.ChangeSet.userStorageRoot = storageRoot + ":author:" + username;
         }
-        var changesetNames = ChangeSet.changeSetNames();
+        var changesetNames = lively.ChangeSet.changeSetNames();
         if(changesetNames.include(this.name))
             throw new Error("Changeset name "+ this.name+" already stored");
         changesetNames.push(this.name);
-        localStorage.setItem(ChangeSet.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
+        localStorage.setItem(lively.ChangeSet.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
     },
+
     reorderTimestamp: function(index, newIndex) {
 
         var ts = this.timestamps.splice(index, 1)[0];
         this.timestamps.splice(newIndex, 0, ts);
-        localStorage.setItem(ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
+        localStorage.setItem(lively.ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
     },
 
     addTimestamp: function(t) {
 
         this.timestamps.push(t);
-        localStorage.setItem(ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
+        localStorage.setItem(lively.ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
     },
 
-
-
-	
     hydrate: function() {
-        var storageRoot = ChangeSet.userStorageRoot;
+        var storageRoot = lively.ChangeSet.userStorageRoot;
         var changesetTimestampsString = localStorage.getItem(storageRoot + ":changesetTimestamps:" + this.name);
         if(!changesetTimestampsString)
             //empty changeset
@@ -930,18 +904,15 @@ ChangeSet.addMethods(
         this.timestamps = JSON.parse(changesetTimestampsString);
         var self = this;
         this.timestamps.each(function(t){
-            self.changeRecords.push(ChangeSet.hydrateChange(t));
+            self.changeRecords.push(lively.ChangeSet.hydrateChange(t));
         });
     }
 
 });
 
-lively.morphic.Panel.subclass('lively.ide.ChangesBrowser');
-var ChangesBrowser = lively.ide.ChangesBrowser;
+lively.morphic.Panel.subclass('lively.ide.ChangesBrowser',
 
-ChangesBrowser.addMethods(
-
-// new ChangesBrowser(pt(1024, 384)).openIn($world, 'Changes Browser')
+// new lively.ide.ChangesBrowser(pt(1024, 384)).openIn($world, 'Changes Browser')
 
 'default category', {
     buildView: function buildView() {  // this.buildView()
@@ -1001,7 +972,7 @@ ChangesBrowser.addMethods(
         	    var record = self.changeSet.changeRecords[index];
         	    if(record.type != "doIt")
         	        prop = " '" + record.propertyName + "'";
-        	    return new Date(e).toUTCString() + ' ' + record.type + 
+        	    return record.errors.length > 0 ? '!!! ' + record.errors[0] : new Date(e).toUTCString() + ' ' + record.type + 
         	                    prop +" in " + record.contextPath;
     	    } else 
     	        return new Date(e).toUTCString();
@@ -1017,7 +988,7 @@ ChangesBrowser.addMethods(
         connect(this.systemVsChangeButton, "fire", this, "nextSystemVsChange", {});
         connect(this.changeVsOriginalButton, "fire", this, "nextChangeVsOriginal", {});
     
-    	this.changeSetPane.setSelection(ChangeSet.defaultChangeSetName());
+    	this.changeSetPane.setSelection(lively.ChangeSet.defaultChangeSetName());
     },
     nextChangeVsOriginal: function() {
         if(this.nextOriginalVsSystemImpl) {
@@ -1035,7 +1006,7 @@ ChangesBrowser.addMethods(
                 [this.changeCategory, this.originalCategory],
                 [this.changeName, this.originalName]
                 ];
-            this.nextChangeVsOriginalImpl = new Differator(this.changeCodePane, this.originalCodePane, style, style, extra);
+            this.nextChangeVsOriginalImpl = new lively.ide.Differator(this.changeCodePane, this.originalCodePane, style, style, extra);
         }
         this.nextChangeVsOriginalImpl.next();
     },
@@ -1055,7 +1026,7 @@ ChangesBrowser.addMethods(
                 [this.originalCategory, this.systemCategory],
                 [this.originalName, this.systemName]
                 ];
-            this.nextOriginalVsSystemImpl = new Differator(this.originalCodePane, this.systemCodePane, style, style, extra);
+            this.nextOriginalVsSystemImpl = new lively.ide.Differator(this.originalCodePane, this.systemCodePane, style, style, extra);
         }
         this.nextOriginalVsSystemImpl.next();
     },
@@ -1075,7 +1046,7 @@ ChangesBrowser.addMethods(
                 [this.systemCategory, this.changeCategory],
                 [this.systemName, this.changeName]
                 ];
-            this.nextSystemVsChangeImpl = new Differator(this.systemCodePane, this.changeCodePane, style, style, extra);
+            this.nextSystemVsChangeImpl = new lively.ide.Differator(this.systemCodePane, this.changeCodePane, style, style, extra);
         }
         this.nextSystemVsChangeImpl.next();
     },
@@ -1090,13 +1061,16 @@ ChangesBrowser.addMethods(
         var selected = this.changeSetPane.selection;
         if(!selected)
             return items;
-        items.push(['refresh', function() {self.setChangeSet(selected)}]);
+        items.push(['refresh', function() {
+            if(self.changeSet)
+                self.changeSet.clear();
+            self.setChangeSet(selected)}]);
         if(this.changeSet)
             items.push(['publish', function() {self.publish()}]);
         return items;
     },
     publish: function() {
-        var browser = new SharedChangeSetBrowser(pt(1024, 384));
+        var browser = new lively.ide.SharedChangeSetBrowser(pt(1024, 384));
         var title = this.changeSet.name + '_' + $world.getUserName();
         var window = browser.openIn($world, title);
         browser.setChangeSetContents(this.changeSet.name);
@@ -1122,9 +1096,6 @@ ChangesBrowser.addMethods(
         this.changePane.setList(this.changeSet.timestamps.concat([]));
     },
 
-
-
-
     setChange: function(t) {
         delete this.nextOriginalVsSystemImpl;
         delete this.nextSystemVsChangeImpl;
@@ -1148,7 +1119,7 @@ ChangesBrowser.addMethods(
             return;
         }
         
-        var changeRecord = ChangeSet.hydrateChange(t);
+        var changeRecord = lively.ChangeSet.hydrateChange(t);
         if(changeRecord.type != "doIt") {
             this.originalCodePane.setTextString(changeRecord.originalSource);
             this.originalContext.setTextString(changeRecord.originalContextPath);
@@ -1159,11 +1130,13 @@ ChangesBrowser.addMethods(
                 contextPath = changeRecord.contextPath;
             system = lively.lookup(contextPath);
             if(!system) {
-                contextPath = changeRecord.originalContextPath;
-                system = lively.lookup(contextPath);
+                if(changeRecord.originalContextPath) {
+                    contextPath = changeRecord.originalContextPath;
+                    system = lively.lookup(changeRecord.originalContextPath);
+                }
             }
             if(!system) {
-                this.systemCodePane.setTextString("//Neither the current context: "+ changeRecord.contextPath + "\n//nor the original one: "+ changeRecord.originalContextPath+"//seem to be loaded");
+                this.systemCodePane.setTextString("//Neither the current context: "+ changeRecord.contextPath + "\n//nor the original one: "+ changeRecord.originalContextPath+"\n//seem to be loaded");
                 this.systemContext.setTextString('');
                 this.systemCategory.setTextString('');
                 this.systemName.setTextString('');
@@ -1209,10 +1182,12 @@ ChangesBrowser.addMethods(
     },
 
     setChangeSet: function(name) {
-        var storageRoot = ChangeSet.userStorageRoot;
     	this.setActive(this.originalVsSystemButton, false);
     	this.setActive(this.systemVsChangeButton, false);
     	this.setActive(this.changeVsOriginalButton, false);
+    	if(!name)
+    	    return;
+        var storageRoot = lively.ChangeSet.userStorageRoot;
         if(name == "-- ALL CHANGES --") {
             this.changeSet = null;
             var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
@@ -1223,7 +1198,10 @@ ChangesBrowser.addMethods(
             }
             this.changePane.setList(JSON.parse("["+ allTimestampsString +"]"));
         } else {
-            this.changeSet = new ChangeSet(name, true);
+            if(name === lively.ChangeSet.current().name)
+                this.changeSet = lively.ChangeSet.current();
+            if(this.changeSet.name !== name || this.changeSet.timestamps.length === 0)
+                this.changeSet = new lively.ChangeSet(name, true);
             var oldTimestamp = this.changePane.selection;
             this.changePane.setList(this.changeSet.timestamps.concat([]));
             if(oldTimestamp && this.changePane.selection == oldTimestamp)
@@ -1231,17 +1209,12 @@ ChangesBrowser.addMethods(
         }
     },
 
-
-
-
-
-
     getChangeMenu: function() {
         var selected = this.changePane.selection;
         var items = [];
         if(!this.changeSet) {
             if(selected) {
-                var changeSet = new ChangeSet(ChangeSet.defaultChangeSetName(), true);
+                var changeSet = new lively.ChangeSet(lively.ChangeSet.defaultChangeSetName(), true);
                 if(changeSet.timestamps.include(selected))
                     return items;
                 else
@@ -1259,7 +1232,7 @@ ChangesBrowser.addMethods(
             items.push(
                 ['apply all', function() {
                     self.changePane.getList().each(function(e){
-                        ChangeSet.applyChange(changeRecords[timestamps.indexOf(e)], e);
+                        lively.ChangeSet.applyChange(changeRecords[timestamps.indexOf(e)], e);
                     })
                     if(selected)
                         self.setChange(selected);
@@ -1268,7 +1241,7 @@ ChangesBrowser.addMethods(
             return items;
         items.push(
             ['apply selected', function() {
-                ChangeSet.applyChange(changeRecords[timestamps.indexOf(selected)], selected);
+                lively.ChangeSet.applyChange(changeRecords[timestamps.indexOf(selected)], selected);
                 self.setChange(selected)}]);
         if(timestamps.indexOf(selected) < timestamps.length - 1)
             items.push(
@@ -1285,48 +1258,31 @@ ChangesBrowser.addMethods(
         return items;
     },
 
-
     removeFromChangeSet: function(t) {
         this.changeSet.changeRecords.removeAt(this.changeSet.timestamps.indexOf(t));
         this.changeSet.removeTimestamp(t);
         this.changePane.setList(this.changeSet.timestamps.concat([]));
     },
 
-
-
-
     removeAllChanges: function() {
         var self = this;
         $world.confirm('Are you sure you want to permanently remove all changes?', function(answer){
             if(answer) {
-                ChangeSet.removeAllFromPersistentStorage();
+                lively.ChangeSet.removeAllFromPersistentStorage();
                 self.changeSetPane.setList(["-- ALL CHANGES --"]);
             	self.setChangeSet("-- ALL CHANGES --");
             }
         });        
     },
 
-
-
-
-
-
-
-
-
-
-
     changeSetPaneContents: function() {
-        return ["-- ALL CHANGES --"].concat(ChangeSet.changeSetNames());
+        return ["-- ALL CHANGES --"].concat(lively.ChangeSet.changeSetNames());
     },
 
 
 });
 
-lively.morphic.Panel.subclass('lively.ide.SharedChangeSetBrowser');
-var SharedChangeSetBrowser = lively.ide.SharedChangeSetBrowser;
-
-SharedChangeSetBrowser.addMethods(
+lively.morphic.Panel.subclass('lively.ide.SharedChangeSetBrowser',
 'default category', {
     buildView: function buildView() {  // this.buildView()
         this.withAllSubmorphsDo(function(m) {disconnectAll(m)});
@@ -1386,7 +1342,7 @@ SharedChangeSetBrowser.addMethods(
         if(!selected)
             return items;
         items.push(['apply selected', function() {
-                        ChangeSet.applyChange(selected);
+                        lively.ChangeSet.applyChange(selected);
                         self.setChange(selected)}]);
         return items;
     },
@@ -1394,7 +1350,7 @@ SharedChangeSetBrowser.addMethods(
     applyAllChanges: function() {
         var self = this;
         this.changePane.getList().each(function(e){
-            ChangeSet.applyChange(e);
+            lively.ChangeSet.applyChange(e);
         })
     },
 
@@ -1410,11 +1366,13 @@ SharedChangeSetBrowser.addMethods(
                 contextPath = changeRecord.contextPath;
             system = lively.lookup(contextPath);
             if(!system) {
-                contextPath = changeRecord.originalContextPath;
-                system = lively.lookup(contextPath);
+                if(changeRecord.originalContextPath) {
+                    contextPath = changeRecord.originalContextPath;
+                    system = lively.lookup(changeRecord.originalContextPath);
+                }
             }
             if(!system) {
-                this.systemCodePane.setTextString("//Neither the current context: "+ changeRecord.contextPath + "\n//nor the original one: "+ changeRecord.originalContextPath+"//seem to be loaded");
+                this.systemCodePane.setTextString("//Neither the current context: "+ changeRecord.contextPath + "\n//nor the original one: "+ changeRecord.originalContextPath+"\n//seem to be loaded");
                 this.systemContext.setTextString('');
                 this.systemCategory.setTextString('');
                 this.systemName.setTextString('');
@@ -1434,7 +1392,7 @@ SharedChangeSetBrowser.addMethods(
                     category = systemContainer.lvCategoryForMethod(name);
                 this.systemCategory.setTextString(category);
             }
-            this.changeCategory.setTextString(changeRecord.category);
+            this.changeCategory.setTextString(changeRecord.category || null);
             this.changeName.setTextString(changeRecord.propertyName);
         } else {
             this.originalCodePane.setTextString('');
@@ -1453,7 +1411,7 @@ SharedChangeSetBrowser.addMethods(
     },
 
     setChangeSetContents: function(name) {
-        this.changePane.setList(new ChangeSet(name, true).changeRecords);
+        this.changePane.setList(new lively.ChangeSet(name, true).changeRecords);
     },
     onLoad: function() {
     	this.changePane.renderFunction = function(e) {
@@ -1477,10 +1435,6 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             return null;
         var category = this.selectedFunctionKind && 
                 this.selectedFunctionKind.substring(0, this.selectedFunctionKind.indexOf(' - '));
-                
-        var categoriesContainer = this.codePane.doitContext.lvCategoriesContainer();
-        if(categoriesContainer && categoriesContainer.categories[category])
-            return category;
         return category == 'default category' ? null : category;
     },
 },
@@ -1651,11 +1605,22 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                     var func = lively.lookup(superclassName).subclass(className, 'default category', {initialize: Functions.Empty});
                     var shortName = lively.Class.unqualifiedNameFor(className);
 
-                    func.timestamp = ChangeSet.logAddition(superclassName + ".subclass('" + className + "', 'default category', {initialize: " + Functions.Empty + "})", contextPath, shortName);
-                    ChangeSet.logAddition(Functions.Empty.toString(), contextPath + "." + shortName + ".prototype", "initialize");
+                    func.timestamp = lively.ChangeSet.logAddition(superclassName + ".subclass('" + className + "', 'default category', {initialize: " + Functions.Empty + "})", contextPath, shortName);
                     func.kindOfChange = "added";
                     func.user = $world.getUserName();
-        
+
+                    contextPath = contextPath === "Global" ? shortName : contextPath + "." + shortName;
+                    
+                    var toString = func.toString;
+                    toString.timestamp = lively.ChangeSet.logAddition(toString.toString(), contextPath, "toString");
+                    toString.user = func.user;
+                    toString.kindOfChange = "added";
+
+                    var initialize = func.prototype.initialize;
+                    initialize.timestamp = lively.ChangeSet.logAddition(initialize.toString(), contextPath + ".prototype", "initialize");
+                    initialize.user = func.user;
+                    initialize.kindOfChange = "added";
+
                     panel.setFunctionContainerKind(panel.selectedContainerKind);
                     classesPane.setSelectionMatching(shortName);
                 });
@@ -1671,13 +1636,13 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
     },
 
     browseVersions: function(timestamp) {
-        var current = ChangeSet.getChangeRecord(timestamp);
+        var current = lively.ChangeSet.getChangeRecord(timestamp);
         var propertyName = current.propertyName;
         current.string = new Date(timestamp).toUTCString() + ' (current)';
         var versions = [current];
         var firstChangeStamp = current.firstChangeStamp;
         if(firstChangeStamp) {
-            var firstChangeRecord = ChangeSet.getChangeRecord(firstChangeStamp);
+            var firstChangeRecord = lively.ChangeSet.getChangeRecord(firstChangeStamp);
             if(firstChangeRecord.type != "added") {
                 var previouslyInTheSystem = {string: 'previously in the system'};
                 previouslyInTheSystem.contextPath = firstChangeRecord.originalContextPath;
@@ -1689,7 +1654,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         var t = current.previousChangeStamp;
         var changeRecord = current;
         while(t) {
-            changeRecord = ChangeSet.getChangeRecord(t);
+            changeRecord = lively.ChangeSet.getChangeRecord(t);
             changeRecord.string = new Date(t).toUTCString();
             versions.push(changeRecord);
             t = changeRecord.previousChangeStamp;
@@ -1697,14 +1662,14 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         if(previouslyInTheSystem)
             versions.push(previouslyInTheSystem);
 
-        var browser = new VersionsBrowser(pt(640, 384));
+        var browser = new lively.ide.VersionsBrowser(pt(640, 384));
         var window = browser.openIn($world, propertyName + ' versions ');
         browser.setContents(versions);
         browser.codeBrowser = this;
     },
     browseDifferences: function() {
         var selections = this.functionPane.getSelectedItems();
-        var browser = new FunctionComparer(pt(1024, 384));
+        var browser = new lively.ide.FunctionComparer(pt(1024, 384));
         browser.openIn($world, 'Browse differences');
         var context = this.codePane.doitContext;
         browser.setContents(selections.collect(function(e){
@@ -1717,11 +1682,6 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
     reset: function reset() {  // this.reset()
         this.functionContainerKindPane.setList([])
     },
-
-
-
-
-
 
     onLoad: function onLoad() {  // this.onLoad()
         this.codePane.doSave = this.codePaneDoSave;
@@ -1748,10 +1708,10 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                     var category = panel.selectedCategory();
                     if(oldFunc.user && oldFunc.timestamp)
                         //already modified
-                        func.timestamp = ChangeSet.logChange(text, contextPath, functionName, category, oldFunc.timestamp);
+                        func.timestamp = lively.ChangeSet.logChange(text, contextPath, functionName, category, oldFunc.timestamp);
                     else
                         //first change
-                        func.timestamp =  ChangeSet.logFirstChange(text, contextPath, functionName, category, null, oldFunc.toString(), null, null);
+                        func.timestamp =  lively.ChangeSet.logFirstChange(text, contextPath, functionName, category, null, oldFunc.toString(), null, null);
                     if(func.timestamp) {
                         func.user = $world.getUserName();
                         func.kindOfChange = "changed source";
@@ -1849,9 +1809,6 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                 nonStaticContainer: function(e){return null}} 
         ]
     },
-
-
-
 
     getFunctionContainerMenu: function getFunctionContainerMenu() {
         if(this.selectedContainerKind.string != "classes")
@@ -1953,13 +1910,15 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                         newContainer.lvAddMethodToExistingCategory(func, functionName, category);
                     }
                 }
-                
+                else
+                    selectedContainer.lvRemoveMethodFromExistingCategory(functionName, 'default category');
+               
                 if(func.user && func.timestamp)
                     //already modified
-                    func.timestamp = ChangeSet.logChange(func.toString(), newContextPath, functionName, category, func.timestamp);
+                    func.timestamp = lively.ChangeSet.logChange(func.toString(), newContextPath, functionName, category, func.timestamp);
                 else
                     //first change
-                    func.timestamp =  ChangeSet.logFirstChange(func.toString(), newContextPath, functionName, category, category, null, contextPath);
+                    func.timestamp =  lively.ChangeSet.logFirstChange(func.toString(), newContextPath, functionName, category, category, null, contextPath);
                 if(func.timestamp) {
                     func.user = $world.getUserName();
                     func.kindOfChange = "moved";
@@ -2021,7 +1980,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                 if (category)
                     selectedContainer.lvAddMethodToExistingCategory(func, functionName, category);
                 
-                func.timestamp = ChangeSet.logAddition("function(){}", contextPath, functionName, category);
+                func.timestamp = lively.ChangeSet.logAddition("function(){}", contextPath, functionName, category);
                 func.kindOfChange = "added";
                 func.user = $world.getUserName();
                 func.sourceModule = currentModule;
@@ -2068,13 +2027,15 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                     selectedContainer.lvRemoveMethodFromExistingCategory(oldFunctionName, category);
                     selectedContainer.lvAddMethodToExistingCategory(func, functionName, category);
                 }
+                else
+                    selectedContainer.lvRemoveMethodFromExistingCategory(functionName, 'default category');
                 
                 if(func.user && func.timestamp)
                     //already modified
-                    func.timestamp = ChangeSet.logChange(func.toString(), contextPath, functionName, category, func.timestamp);
+                    func.timestamp = lively.ChangeSet.logChange(func.toString(), contextPath, functionName, category, func.timestamp);
                 else
                     //first change
-                    func.timestamp =  ChangeSet.logFirstChange(func.toString(), contextPath, functionName, category, category, null, null, oldFunctionName);
+                    func.timestamp =  lively.ChangeSet.logFirstChange(func.toString(), contextPath, functionName, category, category, null, null, oldFunctionName);
                 if(func.timestamp) {
                     func.user = $world.getUserName();
                     func.kindOfChange = "renamed";
@@ -2099,6 +2060,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             var categories = functionKindPane.getList().collect(function(e){return e.string.substring(0, e.string.indexOf(' - '))});
 
             categories.remove(category);
+            categories.remove('');
             categories.remove('default category');  //one for static
             categories.remove('default category');  //one for proto
             categories.unshift('<new category>');
@@ -2109,14 +2071,16 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                     throw new Error("Should not happen");
                 if(category)
                     container.lvRemoveMethodFromExistingCategory(functionName, category);
+                else
+                    container.lvRemoveMethodFromExistingCategory(functionName, 'default category');
                 container.lvAddMethodToExistingCategory(func, functionName, otherCategory);
     
                 if(func.user && func.timestamp)
                     //already modified
-                    func.timestamp = ChangeSet.logChange(func.toString(), contextPath, functionName, otherCategory, func.timestamp);
+                    func.timestamp = lively.ChangeSet.logChange(func.toString(), contextPath, functionName, otherCategory, func.timestamp);
                 else {
                     //first change
-                    func.timestamp = ChangeSet.logFirstChange(func.toString(), contextPath, functionName, otherCategory, category, null, null, null);
+                    func.timestamp = lively.ChangeSet.logFirstChange(func.toString(), contextPath, functionName, otherCategory, category, null, null, null);
                     if(func.timestamp)
                         func.user = $world.getUserName();
                 }
@@ -2162,12 +2126,14 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             var category = panel.selectedCategory();
             if (category)
                 selectedContainer.lvRemoveMethodFromExistingCategory(functionName, category);
+            else
+                selectedContainer.lvRemoveMethodFromExistingCategory(functionName, 'default category');
             
             if(func.user && func.timestamp)
                 //modified
-                ChangeSet.logRemoval(contextPath, functionName, category, func.timestamp);
+                lively.ChangeSet.logRemoval(contextPath, functionName, category, func.timestamp);
             else
-                ChangeSet.logFirstRemoval(func.toString(), contextPath, functionName, category);
+                lively.ChangeSet.logFirstRemoval(func.toString(), contextPath, functionName, category);
     
             panel.setFunctionContainer(selectedContainer);          //recompute the categories' contents
             panel.functionKindPane.setSelectionMatching(panel.selectedFunctionKind);                //reselect current category
@@ -2176,10 +2142,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
 }
 );
 
-lively.morphic.Panel.subclass('lively.ide.VersionsBrowser');
-var VersionsBrowser = lively.ide.VersionsBrowser;
-
-VersionsBrowser.addMethods(
+lively.morphic.Panel.subclass('lively.ide.VersionsBrowser',
 'default category', {
     buildView: function buildView() {  // this.buildView()
         this.withAllSubmorphsDo(function(m) {disconnectAll(m)});
@@ -2239,14 +2202,11 @@ VersionsBrowser.addMethods(
                 holders.push({func: e.source, string: e.propertyName + " " + e.string});
             });
 
-        var browser = new FunctionComparer(pt(1024, 384));
+        var browser = new lively.ide.FunctionComparer(pt(1024, 384));
         browser.openIn($world, 'Browse differences');
         browser.setContents(holders);
         browser.codeBrowser = this;
     },
-
-
-
 
     revertCurrentSourceToSelected: function() {
         var changes = this.changePane.getList();
@@ -2264,9 +2224,9 @@ VersionsBrowser.addMethods(
             return;
         }
         var func = lively.lookup(current.contextPath + '.' + current.propertyName);
-        func.timestamp = ChangeSet.logChange(selected.source, current.contextPath, current.propertyName, current.category, oldFunc.timestamp);
+        func.timestamp = lively.ChangeSet.logChange(selected.source, current.contextPath, current.propertyName, current.category, oldFunc.timestamp);
         if(func.timestamp) {
-            var newChange = ChangeSet.getChangeRecord(func.timestamp);
+            var newChange = lively.ChangeSet.getChangeRecord(func.timestamp);
             newChange.string = new Date(func.timestamp).toUTCString() + ' (current)';
             func.user = $world.getUserName();
             func.kindOfChange = "changed source";
@@ -2285,10 +2245,7 @@ VersionsBrowser.addMethods(
     },
 });
 
-Object.subclass('lively.ide.Differator');
-var Differator = lively.ide.Differator;
-
-Differator.addMethods(
+Object.subclass('lively.ide.Differator',
 'default category', {
 
     initialize: function(text1, text2, styleSpec1, styleSpec2, optExtraTexts) {
@@ -2403,15 +2360,10 @@ Differator.addMethods(
         this.cursor = -1;
     }
 
-
-
 }
 );
     
-lively.morphic.Panel.subclass('lively.ide.FunctionComparer');
-var FunctionComparer = lively.ide.FunctionComparer;
-
-FunctionComparer.addMethods(
+lively.morphic.Panel.subclass('lively.ide.FunctionComparer',
 'default category', {
     buildView: function buildView() {  // this.buildView()
         this.withAllSubmorphsDo(function(m) {disconnectAll(m)});
@@ -2434,7 +2386,7 @@ FunctionComparer.addMethods(
     nextDifference: function() {
         if(!this.nextDiffImpl) {
             var style = {fontWeight: 'bold', color: Color.red};
-            this.nextDiffImpl = new Differator(this.codePane1, this.codePane2, style, style);
+            this.nextDiffImpl = new lively.ide.Differator(this.codePane1, this.codePane2, style, style);
         }
         this.nextDiffImpl.next();
     },
@@ -2514,10 +2466,7 @@ lively.persistence.SpecObject.addMethods("iterating", {
     },
 });
 
-lively.morphic.Panel.subclass('lively.ide.FunctionListBrowser');
-var FunctionListBrowser = lively.ide.FunctionListBrowser;
-
-FunctionListBrowser.addMethods(
+lively.morphic.Panel.subclass('lively.ide.FunctionListBrowser',
 'default category', {
     buildView: function buildView() {  // this.buildView()
         this.withAllSubmorphsDo(function(m) {disconnectAll(m)});
@@ -2601,13 +2550,13 @@ FunctionListBrowser.addMethods(
     cycle: function() {
         if(!this.cycleImpl) {
             var style = {fontWeight: 'bold', color: Color.red};
-            this.cycleImpl = new ReferencesCycler(this.codePane, this.owner.getTitle().split(/\s/).last(), style);
+            this.cycleImpl = new lively.ide.ReferencesCycler(this.codePane, this.owner.getTitle().split(/\s/).last(), style);
         }
         this.cycleImpl.next();
     },
 
     browseDifferences: function() {
-        var browser = new FunctionComparer(pt(1024, 384));
+        var browser = new lively.ide.FunctionComparer(pt(1024, 384));
         browser.openIn($world, 'Browse differences');
         browser.setContents(this.functionPane.getSelectedItems().collect(function(e){
             return {context: e.context, string: e.name}
@@ -2621,10 +2570,7 @@ FunctionListBrowser.addMethods(
     },
 });
 
-Object.subclass('lively.ide.ReferencesCycler');
-var ReferencesCycler = lively.ide.ReferencesCycler;
-
-ReferencesCycler.addMethods(
+Object.subclass('lively.ide.ReferencesCycler',
 'default category', {
 
     initialize: function(text, reference) {
@@ -2673,8 +2619,6 @@ ReferencesCycler.addMethods(
         this.removeEmphasis();
         this.cursor = -1;
     }
-
-
 
 }
 );
@@ -2963,7 +2907,7 @@ Object.extend(Global, {
         return containers
     },
     openFunctionList: function(kind, searchString, cycleThroughResults) {
-        var browser = new FunctionListBrowser(pt(640, 480), cycleThroughResults);
+        var browser = new lively.ide.FunctionListBrowser(pt(640, 480), cycleThroughResults);
         browser.openIn($world, kind + ' of ' + searchString);
         var searchResults = Global[kind](searchString);
         var sortList = [];
@@ -3248,14 +3192,26 @@ alignSubmorphs: function alignSubmorphs() {
     expand: function expand() {
     var self = this;
     var items = [];
+    var world = $world;
     var y;
-    if(!localStorage.getItem("LivelyChangesets:" + location.pathname)) {
+    if(localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) === "off" || !world.getUserName()) {
         items.push(
             ['Turn changesets on', function(){
-                if(!$world.getUserName()) 
-                    $world.askForUserName();
-                if($world.getUserName()) 
-                    localStorage.setItem("LivelyChangesets:" + location.pathname, "on");
+                if(world.getUserName()) {
+                    localStorage.setItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname, "on");
+                    lively.ChangeSet.initialize();
+                } else
+                    world.prompt("Please enter your username", function(name) {
+                        if (name && name.length > 0) {
+                            world.setCurrentUser(name);
+                            localStorage.setItem("LivelyChangesets:" +  name + ":" + location.pathname, "on");
+                            lively.ChangeSet.initialize();
+                            alertOK("set username to: " + name);
+                        } else {
+                            alertOK("removing username")
+                            world.setCurrentUser(undefined);
+                        }
+                    }, world.getUserName(true));
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }]
@@ -3264,17 +3220,17 @@ alignSubmorphs: function alignSubmorphs() {
     } else {
         items.push(
             ['Turn changesets off', function(){
-                localStorage.removeItem("LivelyChangesets:" + location.pathname);
+                localStorage.setItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname, "off");
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }],
             ["Open changes browser", function(){
-                new lively.ide.ChangesBrowser(pt(1024, 384)).openIn($world, 'Changes Browser');
+                new lively.ide.ChangesBrowser(pt(1024, 384)).openIn(world, 'Changes Browser');
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }],
             ["Open simple code browser", function(){
-                new lively.ide.SimpleCodeBrowser(pt(640, 480)).openIn($world, 'Simple Code Browser');
+                new lively.ide.SimpleCodeBrowser(pt(640, 480)).openIn(world, 'Simple Code Browser');
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }]
@@ -3332,15 +3288,21 @@ alignSubmorphs: function alignSubmorphs() {
 }
 });
 
-(function loadChangeSets() {
-    if (!lively.Config.get("changesetsExperiment")
-     || !lively.LocalStorage.isAvailable()) return;
-    var hasChangeSet = Global.localStorage.getItem("LivelyChangesets:" + Global.location.pathname);
-    if (hasChangeSet) ChangeSet.loadAndcheckVsSystem();
+(function openChangesetsFlap() {
     lively.whenLoaded(function(world) {
         if (Config.changesetsExperiment)
             lively.BuildSpec('ChangesetsFlap').createMorph().openInWorld();
     });
-}).delay((Global.location && location.hostname === "localhost") ? 3 : 14);
+})();
+
+
+(function loadChangeSets() {
+    if (Config.changesetsExperiment && $world.getUserName() && 
+        localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off") {
+            lively.ChangeSet.initialize();
+            if(Config.automaticChangesReplay)
+                lively.ChangeSet.loadAndcheckVsSystem();
+        }
+}).delay(location.hostname === 'localhost' ? 3 : 13);
 
 }) // end of module

@@ -1733,7 +1733,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 };
         try {
             var result = interactiveEval.call(ctx);
-            if (Config.changesetsExperiment && localStorage.getItem("LivelyChangesets:" + location.pathname))
+            if (Config.changesetsExperiment && $world.getUserName() && 
+        localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off")
                 lively.ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
         } catch(e) {throw e}

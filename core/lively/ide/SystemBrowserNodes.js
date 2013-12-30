@@ -408,9 +408,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
 'evaluation', {
     evalSource: function(newSource) {
         if (!this.browser.evaluate) return false;
+        var url = this.url().toString();
         this.browser.withCurrentModuleActiveDo(function() {
             try {
-                Global.eval(newSource);
+                eval.call(Global, newSource + "\n//# sourceURL=" + url);
             } catch (er) {
                 console.log("error evaluating module:" + er);
                 throw(er);

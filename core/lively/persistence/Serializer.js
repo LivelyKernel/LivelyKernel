@@ -195,6 +195,12 @@ Object.subclass('ObjectGraphLinearizer',
         // take the registered object (which has unresolveed references) and
         // create a new similiar object with patched references
         var registeredObj = this.getRegisteredObjectFromId(id);
+        if (!registeredObj) {
+            console.error('Error when trying to deserialize object registered\n'
+                        + 'with id %s (%s). No object was recorded. The serializer will try to\n'
+                        + 'fix things but things might end up to be broken.', id, this.path.last());
+            return null; // oha
+        }
         recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
         this.setRecreatedObject(recreated, id); // important to set recreated before patching refs!
         for (var key in registeredObj) {
@@ -342,6 +348,8 @@ Object.extend(ObjectGraphLinearizer, {
     },
     allRegisteredObjectsDo: function(registryObj, func, context) {
         for (var id in registryObj) {
+            if (id === 'isSimplifiedRegistry') continue;
+            if (!registryObj.hasOwnProperty(id)) continue;
             var registeredObject = registryObj[id];
             if (!registryObj.isSimplifiedRegistry)
                 registeredObject = registeredObject.registeredObject;

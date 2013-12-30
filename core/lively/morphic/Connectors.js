@@ -353,7 +353,7 @@ lively.morphic.Morph.addMethods(
     },
 
     createConnectorTo: function(otherMorph, lineStyle, update) {
-        if (!otherMorph) throw new Error('Cannot to nothing');
+        if (!otherMorph) throw new Error('Cannot point to nothing');
 
         var line = new lively.morphic.Path([pt(0,0), pt(0,0)]);
         if (lineStyle) line.applyStyle(lineStyle);

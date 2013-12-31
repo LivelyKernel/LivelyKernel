@@ -1,6 +1,6 @@
 module('lively.ide.SystemCodeBrowserAddons').requires('lively.ide.SystemCodeBrowser').toRun(function() {
 
-Config.addOption({name: 'historyBrowserMaxLength', value: 15, docString: 'Upper bound for navigating back in a browser with history addon.', group: 'lively.ide.tools', type: 'number'});
+lively.Config.addOption({name: 'historyBrowserMaxLength', value: 15, docString: 'Upper bound for navigating back in a browser with history addon.', group: 'lively.ide.tools', type: 'number'});
 
 Object.subclass('lively.ide.SCBAddons.History',
 'settings', {
@@ -225,20 +225,41 @@ Object.subclass('lively.ide.SCBAddons.History',
     },
 }); // end of class
 
-Config.addOption({name: 'useHistoryTracking', value: false, docString: 'When loading lively.ide.SystemCodeBrowserAddons, install history browsing for all future Browsers, or not.', group: 'lively.ide.tools', type: 'boolean'});
-if(Config.get('useHistoryTracking')) {
-'setupLocationInput'
-    var browserPrototype = lively.ide.BasicBrowser.prototype,
-        setupFn = browserPrototype.setupLocationInput;
-    if (setupFn.oldSetup) { return; }
-    browserPrototype.setupLocationInput = function($super) {
-        var value = $super.apply(this, arguments);
-        new lively.ide.SCBAddons.History(this);
-        return value
-    }.bind(setupFn);
-    browserPrototype.setupLocationInput.oldSetup = setupFn;
-    
-}
+Object.extend(lively.ide.SCBAddons.History, {
+    install: function() {
+        var browserPrototype = lively.ide.BasicBrowser.prototype,
+            setupFn = browserPrototype.setupLocationInput;
+        if (setupFn.oldSetup) { return; }
+        browserPrototype.setupLocationInput = function() {
+            var value = setupFn.apply(this, arguments);
+            new lively.ide.SCBAddons.History(this);
+            return value
+        };
+        browserPrototype.setupLocationInput.oldSetup = setupFn;
+    },
+    deinstall: function() {
+        var browserPrototype = lively.ide.BasicBrowser.prototype,
+            setupFn = browserPrototype.setupLocationInput;
+        if (!setupFn.oldSetup) { return; }
+        browserPrototype.setupLocationInput = setupFn.oldSetup
+    },
+});
 
+lively.Config.addOption({
+    name: 'useHistoryTracking', 
+    value: false, 
+    docString: 'When loading lively.ide.SystemCodeBrowserAddons, install history browsing for all future browsers, or not.', 
+    group: 'lively.ide.tools', 
+    type: 'boolean', 
+    get: function() {
+        return !!lively.ide.BasicBrowser.prototype.setupLocationInput.oldSetup
+    }, 
+    set: function(value) {
+        if(value){
+            lively.ide.SCBAddons.History.install();
+        } else {
+            lively.ide.SCBAddons.History.deinstall();
+        }
+    },});
 
 }) // end of module

@@ -403,13 +403,15 @@ lively.morphic.Morph.addMethods(
         var nearestMagnetDist = Infinity,
             selected = null,
             magnets = this.getMagnets();
-        magnets.forEach(function(magnet) {
-            var dist = magnet.getGlobalPosition().dist(globalPos);
-            if (dist < nearestMagnetDist) {
-                nearestMagnetDist = dist;
-                selected = magnet;
-            }
-        });
+        if(globalPos) {
+            magnets.forEach(function(magnet) {
+                var dist = magnet.getGlobalPosition().dist(globalPos);
+                if (dist < nearestMagnetDist) {
+                    nearestMagnetDist = dist;
+                    selected = magnet;
+                }
+            });
+        };
         return selected || magnets[0];
 
     },
@@ -554,6 +556,12 @@ Object.extend(lively.bindings, {
         con.visualConnector = visualConnector;
         con.visualConnector.con = con; // FIXME
         visualConnector.showsMorphMenu = true; // FIX ... MEE !!!!!
+        
+        visualConnector.hidePermanently = function() {
+            this.hide && this.hide();
+            this.con.autoShowAndHideConnections && this.con.autoShowAndHideConnections.invoke('disconnect');
+            delete this.con.visualConnector;
+        };
 
         visualConnector.addScript(function morphMenuItems() {
             var visualConnector = this, con = this.con, world = $world;
@@ -567,10 +575,7 @@ Object.extend(lively.bindings, {
                     lively.morphic.inspect(con.getSourceValue());
                 }],
                 ['Hide', function() {
-                    visualConnector.disconnectFromMagnets();
-                    visualConnector.remove();
-                    visualConnector.hide && visualConnector.hide();
-                    con.autoShowAndHideConnections && con.autoShowAndHideConnections.invoke('disconnect');
+                    visualConnector.hidePermanently();
                 }],
                 ['Disconnect', function() {
                     alertOK('Disconnected ' + visualConnector.con);

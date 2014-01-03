@@ -5464,9 +5464,10 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             }
         };
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    if (!item) return [];
     var j = lively.ide.CommandLineInterface.path.join;
     var fullPath = j(this.dirState.path, item.path);
-    if (!item || item.isDirectory) return [copyPath];
+    if (item.isDirectory) return [copyPath];
     return [copyPath, openInSCB, openInTextEditor];
 },
     execItemAction: function execItemAction(item, n) {
@@ -5475,7 +5476,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
     action.exec();
 },
         getMenuItemsFor: function getMenuItemsFor(fileItem) {
-        this.getItemActionsFor(fileItem).map(function(ac) {
+        return this.getItemActionsFor(fileItem).map(function(ac) {
             return [ac.description, ac.exec]; })
     },
         goto: function goto(dir) {

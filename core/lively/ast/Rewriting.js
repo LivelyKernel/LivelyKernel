@@ -660,7 +660,7 @@ Object.extend(lively.ast.Rewriting, {
             FunctionDeclaration: function(node, c) { // Function
                 enterScope();
                 var args = registerVars(node.params.pluck('name')); // arguments
-                registerVars(findLocalVariables(node)); // locals
+                registerVars(findLocalVariables(node.body)); // locals
                 var rewritten = acorn.walk.copy(node.body, rewriteRules);
                 exitScope();
                 // FIXME: old rewriting reference

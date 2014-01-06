@@ -56,12 +56,12 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
     },
 
     testAssertEqualsFailsNot: function() {
-        this.assertEquals(3,3, 'This should not fail');
+        this.assertEquals(3, 3, 'This should not fail');
     },
 
     testAssertEqualsEpsilonFails: function() {
         try {
-            this.assertEquals(3,3.6, 'This should fail');
+            this.assertEquals(3, 3.6, 'This should fail');
         } catch(e) {
             return;
         };

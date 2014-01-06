@@ -636,14 +636,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                 } catch (e) {
                     // FIXME: temporary to ease debugging - remove this later
                     
-                    // don't debug the following error as that error occurs
+                    // don't debug the following errors. first error occurs
                     // when trying the first of two XPath query alternatives
-                    // and is then caught immediately..
+                    // and is then caught immediately.. second error is a valid
+                    // exception indicating that ACE's syntax check found issues
                     if (e.message !== 'An attempt was made to create or ' +
                         'change an object in a way which is incorrect with ' +
-                        'regard to namespaces.') {
+                        'regard to namespaces.' &&
+                        !e.message.startsWith('Unexpected ')) {
                         
-                        debugger;
+                        // debugger;
                         
                         // result = func.apply(targetObject, args);
                     }

@@ -187,6 +187,14 @@ Object.extend(Object, {
             copy = new Date();
             copy.setTime(originalObject.getTime());
             
+        } else if (originalObject instanceof RegExp) {
+            
+            copy = new RegExp(originalObject.source,
+                originalObject.global ? 'g' : '' +
+                originalObject.ignoreCase ? 'i' : '' +
+                originalObject.multiline ? 'm' : ''
+            );
+            
         } else if (Object.isFunction(originalObject)) {
             
             // note: one limitation will be if the function needs to be

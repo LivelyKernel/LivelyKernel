@@ -230,7 +230,8 @@ Object.extend(Object, {
             
         } else if (Object.isObject(originalObject)) {
             
-            copy = Object.create(originalObject.__proto__);
+            copy = Object.create(originalObject.__proto__ ?
+                originalObject.__proto__ : null);
             
             // copy non-enumerable properties explicitly
             if (hasOwn.call(originalObject, 'constructor')) {

@@ -1114,6 +1114,33 @@ Object.extend(lively.versions.ObjectVersioning, {
     }
 });
 
+
+// ----- TOOL SUPPORT -----
+
+Object.extend(lively.versions.ObjectVersioning, {
+    versionAutomatically: function() {
+        cop.create('ObjectVersioningLayer').
+            refineClass(lively.morphic.CodeEditor, {
+                boundEval: function(__evalStatement) {
+                    
+                    lively.commitVersion();
+                    
+                    return cop.proceed(__evalStatement);
+                }
+            }).
+            refineClass(lively.morphic.Halo, {
+                onMouseDown: function(evt) {
+                    lively.commitVersion();
+                    
+                    return cop.proceed(evt);
+                },
+            })
+        
+        ObjectVersioningLayer.beGlobal();
+    }
+});
+
+
 // ----- DO-WITHOUT-PROXYING EXPERIMENT -----
 
 lively.doWithoutProxying = function(func) {

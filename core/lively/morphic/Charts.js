@@ -256,19 +256,29 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     calculateSnappingPosition: function() {
-        // snap to the grid
-        var pos = this.getPositionInWorld();
-        var offsetX = 0;
-        var offsetY = 0;
+        // Snap to position below component above, if there is one
         
-        // Find the nearest fitting snapping point
-        if (pos.x % this.gridWidth > this.gridWidth / 2) {
-            offsetX = this.gridWidth;
+        var componentAbove = this.getMorphInDirection(pt(0,-1));
+        
+        if (componentAbove) {
+            var snappingPoint = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
+            return snappingPoint;
+        } else {
+            // snap to the grid
+        
+            var pos = this.getPositionInWorld();
+            var offsetX = 0;
+            var offsetY = 0;
+            
+            // Find the nearest fitting snapping point
+            if (pos.x % this.gridWidth > this.gridWidth / 2) {
+                offsetX = this.gridWidth;
+            }
+            if (pos.y % this.gridWidth > this.gridWidth / 2) {
+                offsetY = this.gridWidth;
+            }
+            return pt(Math.floor(pos.x/this.gridWidth)*this.gridWidth + offsetX,Math.floor(pos.y/this.gridWidth)*this.gridWidth + offsetY);
         }
-        if (pos.y % this.gridWidth > this.gridWidth / 2) {
-            offsetY = this.gridWidth;
-        }
-        return pt(Math.floor(pos.x/this.gridWidth)*this.gridWidth + offsetX,Math.floor(pos.y/this.gridWidth)*this.gridWidth + offsetY);
     },
     
     addPreviewMorph: function() {
@@ -314,6 +324,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     gridWidth: 50,
+    
+    componentOffset: 20,
     
     remove: function($super) {
         $super();

@@ -401,7 +401,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     notifyNextComponent: function() {
-        var nextComponent = this.getMorphInDirection(-1);
+        var nextComponent = this.getMorphInDirection(pt(0,1));
         if (nextComponent){
             nextComponent.notify();
         }
@@ -462,7 +462,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
     
     refreshData: function() {
-        var morphAbove = this.getMorphInDirection(1);
+        var morphAbove = this.getMorphInDirection(pt(0,-1));
         if (morphAbove)
             this.data = morphAbove.data;
         else
@@ -470,7 +470,17 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     getMorphInDirection: function(direction, point) {
-        // direction should be 1 or -1 for above or below
+        // direction should be a vector, where x is the horizontal and y is the vertical direction
+        // (-1,0) would be the left morph, (0,1) the bottom morph
+        // diagonal requests return null
+        
+        var horizontalDir = direction.x;
+        var verticalDir = direction.y;
+        
+        if (Math.abs(horizontalDir) == Math.abs(verticalDir)) {
+            // diagonal or (0,0) requested
+            return null;
+        }
         
         var parentMorph = $world;
         
@@ -478,23 +488,46 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             return el instanceof lively.morphic.DataFlowComponent;
         });
         
+        
         var closestMorph = null;
+        
+        if (verticalDir != 0) {
+            // search in vertical direction
 
-        // choose the top middle point as myPosition as default
-        var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
-        allDFComponents.forEach(function(el) {
-            if (el == this)
-                return;
-            
-            var elPosition = el.getPositionInWorld();
-            
-            // check for the nearest DF component straight above or below myPosition
-            if (direction * elPosition.y < direction * myPosition.y &&
-                elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
+            // choose the top middle point as myPosition as default
+            var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
+            allDFComponents.forEach(function(el) {
+                if (el == this)
+                    return;
                 
-                if (closestMorph == null || direction * elPosition.y > direction * closestMorph.getPositionInWorld().y)
-                    closestMorph = el;
-        });
+                var elPosition = el.getPositionInWorld();
+                
+                // check for the nearest DF component straight above or below myPosition
+                if (-verticalDir * elPosition.y < -verticalDir * myPosition.y &&
+                    elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
+                    
+                    if (closestMorph == null || -verticalDir * elPosition.y > -verticalDir * closestMorph.getPositionInWorld().y)
+                        closestMorph = el;
+            });
+        } else {
+            // search in horizontal direction
+            
+            // choose the right middle point as myPosition as default
+            var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x, this.getExtent().y / 2));
+            allDFComponents.forEach(function(el) {
+                if (el == this)
+                    return;
+                
+                var elPosition = el.getPositionInWorld();
+                
+                // check for the nearest DF component straight above or below myPosition
+                if (-horizontalDir * elPosition.x < -horizontalDir * myPosition.x &&
+                    elPosition.y <= myPosition.y && elPosition.y + el.getExtent().y >= myPosition.y)
+                    
+                    if (closestMorph == null || -horizontalDir * elPosition.x > -horizontalDir * closestMorph.getPositionInWorld().x)
+                        closestMorph = el;
+            });
+        }
 
         return closestMorph;
         

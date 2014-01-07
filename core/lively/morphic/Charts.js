@@ -601,6 +601,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         if (codeEditor.length) {
             codeEditor[0].setExtent(pt(newExtent.x-25,newExtent.y-70));
         }
+        
+        this.bottomArrow.positionAtMorph();
+        this.rightArrow.positionAtMorph();
     },
     
     throwError: function(error) {

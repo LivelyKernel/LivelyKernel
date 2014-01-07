@@ -323,7 +323,8 @@ Object.extend(ObjectGraphLinearizer, {
             new DoWeakSerializePlugin(),
             new StoreAndRestorePlugin(),
             new LayerPlugin(),
-            new lively.persistence.DatePlugin()
+            new lively.persistence.DatePlugin(),
+            new lively.persistence.TypedArrayPlugin(),
         ]);
     },
     forLivelyCopy: function() {
@@ -1135,6 +1136,17 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
     }
 });
 
+ObjectLinearizerPlugin.subclass('lively.persistence.TypedArrayPlugin',
+'interface', {
+    serializeObj: function(obj) {
+        return obj && obj.buffer && obj.buffer instanceof ArrayBuffer && obj.constructor.name.match(/Array$/) ?
+            {isTypedArray: true, arrayClass: obj.constructor.name, array: Array.from(obj)} : null;
+    },
+    deserializeObj: function(copy) {
+        return copy && copy.isTypedArray ? new window[copy.arrayClass](copy.array) : null;
+    },
+});
+
 Object.extend(lively.persistence.Serializer, {
 
     jsonWorldId: 'LivelyJSONWorld',
@@ -1412,6 +1424,7 @@ Object.extend(lively.persistence, {
         IgnoreDOMElementsPlugin,
         LayerPlugin,
         lively.persistence.DatePlugin,
+        lively.persistence.TypedArrayPlugin,
         lively.persistence.ExprPlugin]
 });
 

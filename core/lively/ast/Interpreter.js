@@ -861,7 +861,7 @@ lively.ast.Function.addMethods('interpretation', {
         return this.basicApply(newFrame);
     },
     asFunction: function(optFunc) {
-        if (this._chachedFunction) return this._chachedFunction;
+        if (this._cachedFunction) return this._cachedFunction;
         var that = this;
         function fn(/*args*/) {
             return that.apply(this, Array.from(arguments));
@@ -883,7 +883,7 @@ lively.ast.Function.addMethods('interpretation', {
             if (optFunc.declaredObject) fn.declaredObject = optFunc.declaredObject;
             if (optFunc.name) fn.methodName = optFunc.name;
         }
-        return this._chachedFunction = fn;
+        return this._cachedFunction = fn;
     }
 },
 'continued interpretation', {

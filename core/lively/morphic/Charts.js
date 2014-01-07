@@ -374,7 +374,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     update: function() {
         this.refreshData();
-        
+
         var promise;
         try {
             promise = this.updateComponent();
@@ -534,7 +534,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     adjustForNewBounds: function() {
         // resizeVertical, resizeHorizontal, moveVertical, moveHorizontal
-
         if (this.getLayouter()) {
             this.applyLayout();
             return;
@@ -587,6 +586,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     setExtent: function($super, newExtent) {
         $super(newExtent);
+        
         this.adjustForNewBounds();
         
         var previewExtent = this.calculateSnappingExtent();
@@ -594,13 +594,11 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         
         var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
         if (errorText.length) {
-            errorText[0].setExtent(pt(this.getExtent().x - 150, errorText[0].getExtent().y));
+            errorText[0].setExtent(pt(this.getExtent().x - 10, errorText[0].getExtent().y));
         }
         
-        var codeEditor = this.getSubmorphsByAttribute("shouldResize", true);
-        if (codeEditor.length) {
-            codeEditor[0].setExtent(pt(newExtent.x-25,newExtent.y-70));
-        }
+        this.layoutCodeEditor(newExtent);
+
         
         this.bottomArrow.positionAtMorph();
         this.rightArrow.positionAtMorph();
@@ -608,6 +606,13 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     throwError: function(error) {
         throw error;
+    },
+    
+    layoutCodeEditor: function(newExtent) {
+        var codeEditor = this.getSubmorphsByAttribute("shouldResize", true);
+        if (codeEditor.length) {
+            codeEditor[0].setExtent(pt(newExtent.x - 25,newExtent.y - 70));
+        }
     }
 });
 }) // end of module

@@ -251,10 +251,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             // put your code here
         });
         
-        // Commented this out, since it doesn't seem to work yet - Felix
-        // var arrow = new lively.morphic.DataFlowArrow();
-        // arrow.setName("arrow");
-        // arrow.positionAtMorph(this);
+        this.bottomArrow = new lively.morphic.DataFlowArrow(this, pt(1, 0));
+        this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(0, 1));
     },
     
     calculateSnappingPosition: function() {

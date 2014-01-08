@@ -1148,10 +1148,17 @@ ObjectLinearizerPlugin.subclass('lively.persistence.TypedArrayPlugin',
 'interface', {
     serializeObj: function(obj) {
         return obj && obj.buffer && obj.buffer instanceof ArrayBuffer && obj.constructor.name.match(/Array$/) ?
-            {isTypedArray: true, arrayClass: obj.constructor.name, array: Array.from(obj)} : null;
+            {__TypedArrayClass__: obj.constructor.name, __TypedArrayData__: Array.from(obj)} : null;
     },
     deserializeObj: function(copy) {
-        return copy && copy.isTypedArray ? new window[copy.arrayClass](copy.array) : null;
+        return (copy && copy.__TypedArrayClass__) ?
+            new window[copy.__TypedArrayClass__](copy.__TypedArrayData__) : null;
+    },
+    afterDeserializeObj: function(obj) {
+        if (obj.__TypedArrayClass__)
+            delete obj.__TypedArrayClass__;
+        if (obj.__TypedArrayData__)
+            delete obj.__TypedArrayData__;
     },
 });
 

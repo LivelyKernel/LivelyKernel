@@ -418,7 +418,7 @@ Object.subclass('lively.Module',
     isLoading: function() {
         if (this.isLoaded()) return false;
         if (this.uri().include('anonymous')) return true;
-        return JSLoader.scriptInDOM(this.uri());
+        return JSLoader.isLoading(this.uri());
     },
 
     isAnonymous: function() {
@@ -533,9 +533,14 @@ Object.extend(lively.Module, {
             var canBeLoaded = modules.select(function(module) {
                 if (!module.privateRequirements) return true;
                 return module.privateRequirements.all(function(requirement) {
-                    return sortedModules.include(requirement) })
-            })
-            sortedModules = sortedModules.concat(canBeLoaded);
+                    return sortedModules.include(requirement) }); });
+            var modulesAndLibs = canBeLoaded.reduce(function(modulesAndLibs, module) {
+                if (module.requiredLibs)
+                    modulesAndLibs.pushAll(module.requiredLibs.map(function(libSpec) {
+                        return libSpec.url || libSpec.urls || []; }).flatten());
+                modulesAndLibs.push(module);
+                return modulesAndLibs; }, []);
+            sortedModules = sortedModules.concat(modulesAndLibs);
             modules = modules.withoutAll(canBeLoaded);
         }
         if (modules.length > 0) {
@@ -547,11 +552,21 @@ Object.extend(lively.Module, {
 
     bootstrapModules: function() {
         // return a string to include in bootstrap.js
-        var moduleFiles = this.topologicalSortLoadedModules()
-            .collect(function(ea) { return new URL(ea.uri()).relativePathFrom(URL.codeBase) })
+        var baseURL = URL.root;
+        return LivelyLoader.libsFiles.concat(LivelyLoader.bootstrapFiles).concat(this.topologicalSortLoadedModules()).reduce(function(uris, ea) {
+            if (typeof ea === 'string') {
+                if (ea.startsWith('lively/')) {
+                    uris.push("core/" + ea);
+                } else if (ea.startsWith(baseURL.toString())) {
+                    uris.push(new URL(ea).relativePathFrom(baseURL));
+                } else { uris.push(ea); }
+                return uris;
+            }
+            var path = new URL(ea.uri()).relativePathFrom(baseURL);
             // omit modules outside of core
-            .reject(function(path) { return path.startsWith('..') });
-        return LivelyLoader.bootstrapFiles.concat(moduleFiles);
+            if (!path.startsWith('..')) uris.push(path);
+            return uris;
+        }, []);
     },
 
     bootstrapModulesString: function() {

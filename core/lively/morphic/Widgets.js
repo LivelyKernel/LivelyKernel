@@ -2777,7 +2777,6 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
             if (modalTarget.ownerApp) modalTarget.ownerApp.lastFocusedMorph = this.lastFocusedMorph;
             nextFocus = modalTarget;
         }
-        nextFocus && nextFocus.show()
         if (nextFocus) nextFocus.focus.bind(nextFocus).delay(0);
     }
 });

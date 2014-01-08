@@ -84,7 +84,7 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
         this.originalJSLoader = Global.JSLoader;
         Global.JSLoader = {
             loadJs: Functions.Null,
-            scriptInDOM: Functions.True,
+            isLoading: Functions.True,
             removeAllScriptsThatLinkTo: Functions.Null
         }
         $super();

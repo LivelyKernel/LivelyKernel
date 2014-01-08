@@ -1,4 +1,4 @@
-/*global Config, require, Class, WebResource, $A*/
+/*global Config, require, Class, WebResource*/
 /*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true, regexp: false*/
 
 (function bootstrapLively(Global) {
@@ -271,6 +271,7 @@
             addWrappers();
             consumers.push(c);
         };
+
         platformConsole.removeConsumer = function(c) {
             var idx = consumers.indexOf(c);
             if (idx >= 0) consumers.splice(idx, 1);
@@ -620,71 +621,70 @@
             // with this method. The method will ensure that all included
             // modules are loaded. If they have required modules that are not
             // included in the combined file, those will be loaded as well.
-            var lively = Global.lively,
-                originalLoader = this,
-                combinedLoader = {
-                    expectToLoadModules: function(relativePaths) {
-                        // urls like http://foo.org/lively/Text.js
-                        var i, len = relativePaths.length;
-                        this.expectedModuleURLs = new Array(len);
-                        for (i = 0; i < len; i++) {
-                            this.expectedModuleURLs[i] =
-                                Global.LivelyLoader.codeBase + relativePaths[i];
-                        }
-
-                        // modules like lively.Text
-                        this.expectedModules = new Array(len);
-                        for (i = 0; i < len; i++) {
-                            var moduleName = relativePaths[i]
-                                             .replace(/\//g, '.')
-                                             .replace(/\.js$/g, '');
-                            this.expectedModules[i] = moduleName;
-                        }
-
-                        // create script tags that are found when tested if a
-                        // file is already loaded
-                        this.expectedModuleURLs.forEach(function(url) {
-                            var script = document.createElement('script');
-                            script.setAttribute('id', url);
-                            document.getElementsByTagName('head')[0]
-                                .appendChild(script);
-                        });
-                    },
-
-                    includedInCombinedFile: function(url) {
-                        return this.expectedModuleURLs
-                            && this.expectedModuleURLs.indexOf(url) >= 0;
-                    },
-
-                    loadJs: function(url) {
-                        console.log('load file that is not in'
-                                   + ' combined modules: ' + url);
-                        if (!this.includedInCombinedFile(url)) {
-                            originalLoader.loadJs(url);
-                        }
-                    },
-
-                    scriptInDOM: function(url) {
-                        return originalLoader.scriptInDOM(url)
-                            || this.includedInCombinedFile(url);
+            var lively = Global.lively, originalLoader = this;
+            var combinedLoader = {
+                expectToLoadModules: function(relativePaths) {
+                    // urls like http://foo.org/lively/Text.js
+                    var i, len = relativePaths.length;
+                    this.expectedModuleURLs = new Array(len);
+                    for (i = 0; i < len; i++) {
+                        this.expectedModuleURLs[i] =
+                            Global.LivelyLoader.rootPath + relativePaths[i];
                     }
 
+                    // modules like lively.Text
+                    this.expectedModules = new Array(len);
+                    for (i = 0; i < len; i++) {
+                        var moduleName = relativePaths[i]
+                                         .replace(/\//g, '.')
+                                         .replace(/\.js$/g, '');
+                        this.expectedModules[i] = moduleName;
+                    }
+
+                    // FIXME: remove "core." part
+                    this.expectedModules = this.expectedModules.map(function(name) {
+                        return name.replace(/^core\./, ''); });
+
+                    this.expectedModuleURLs.forEach(function(url) {
+                        originalLoader.markAsLoading(url); });
                 },
 
-                callCallback = function() {
-                    Global.JSLoader = originalLoader;
-                    // FIXME
-                    // Filter out the modules already loaded
-                    var allModules = combinedLoader.expectedModules,
-                        realModules = allModules.select(function(ea) {
-                            // FIXME, better now throw error in lively.Class.forName
-                            return !ea.include('lively-libs')
-                                && lively.Class.forName(ea) !== undefined;
-                        });
-                    lively.require(realModules).toRun(callback);
-                };
+                includedInCombinedFile: function(url) {
+                    return this.expectedModuleURLs
+                        && this.expectedModuleURLs.indexOf(url) >= 0;
+                },
 
-            if (this.scriptInDOM(combinedFileUrl)) { callCallback(); return; }
+                loadJs: function(url) {
+                    console.log('load file that is not in'
+                               + ' combined modules: ' + url);
+                    if (!this.includedInCombinedFile(url)) {
+                        originalLoader.loadJs(url);
+                    }
+                },
+
+                isLoading: function(url) {
+                    return originalLoader.isLoading(url)
+                        || this.includedInCombinedFile(url);
+                },
+
+                currentDir: function() { return originalLoader.currentDir(); }
+
+            };
+
+            function callCallback() {
+                Global.JSLoader = originalLoader;
+                // FIXME
+                // Filter out the modules already loaded
+                var allModules = combinedLoader.expectedModules,
+                    realModules = allModules.select(function(ea) {
+                        // FIXME, better now throw error in lively.Class.forName
+                        return !ea.include('lively-libs')
+                            && lively.Class.forName(ea) !== undefined;
+                    });
+                lively.require(realModules).toRun(callback);
+            };
+
+            if (this.isLoading(combinedFileUrl)) { callCallback(); return; }
 
             // while loading the combined file we replace the loader
             Global.JSLoader = combinedLoader;
@@ -830,22 +830,22 @@
 
     // TODO: Something is wrong with the lively-libs, use debug only to
     // activate loading on ios 5
-    var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
+    var libsFile = /*useMinifiedLibs ? 'core/lib/lively-libs.js' :*/ 'core/lib/lively-libs-debug.js',
         libsFiles = [libsFile],
         bootstrapFiles = [
-            'lively/Migration.js',
-            'lively/JSON.js',
-            'lively/lang/Object.js',
-            'lively/lang/Function.js',
-            'lively/lang/String.js',
-            'lively/lang/Array.js',
-            'lively/lang/Number.js',
-            'lively/lang/Date.js',
-            'lively/lang/Worker.js',
-            'lively/lang/LocalStorage.js',
-            'lively/defaultconfig.js',
-            'lively/Base.js',
-            'lively/ModuleSystem.js'
+            'core/lively/Migration.js',
+            'core/lively/JSON.js',
+            'core/lively/lang/Object.js',
+            'core/lively/lang/Function.js',
+            'core/lively/lang/String.js',
+            'core/lively/lang/Array.js',
+            'core/lively/lang/Number.js',
+            'core/lively/lang/Date.js',
+            'core/lively/lang/Worker.js',
+            'core/lively/lang/LocalStorage.js',
+            'core/lively/defaultconfig.js',
+            'core/lively/Base.js',
+            'core/lively/ModuleSystem.js'
         ],
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
@@ -952,36 +952,28 @@
         bootstrap: function(thenDoFunc) {
             var url = Global.JSLoader.currentDir(),
                 dontBootstrap = Config.standAlone
-                             || url.indexOf('dontBootstrap=true') >= 0;
+                             || url.indexOf('dontBootstrap=true') >= 0,
+                base = this.rootPath,
+                optimizedLoading = !url.match('quickLoad=false');
+
             if (dontBootstrap) { thenDoFunc(); return }
 
-            var cb = this.codeBase,
-                optimizedLoading = !url.match('quickLoad=false')
-                                && !url.match('!svn')
-                                && url.match('webwerkstatt')
-                                && url.match('lively-kernel.org');
-
+            optimizedLoading=false;/*not yet*/
             if (optimizedLoading) {
                 console.log('optimized loading enabled');
-                var hashUrl = cb + 'generated/combinedModulesHash.txt',
-                    combinedModulesUrl = cb + 'generated/combinedModules.js',
-                    hash = Global.JSLoader.getSync(hashUrl, true/*uncached*/);
-                Global.JSLoader.loadCombinedModules(
-                    combinedModulesUrl, thenDoFunc, hash);
+                var hashUrl = base + 'generated/combinedModulesHash.txt',
+                    combinedModulesUrl = base + 'generated/combinedModules.js';
+                Global.JSLoader.getViaXHR(true/*sync*/, hashUrl, function(err, hash) {
+                    if (err) { console.log(err); return; }
+                    Global.JSLoader.loadCombinedModules(
+                        combinedModulesUrl, thenDoFunc, hash);
+                });
                 return;
             }
 
-            Global.JSLoader.resolveAndLoadAll(cb, [this.libsFiles], function() {
-                (function setupjQuery(Global) {
-                    var lively = Global.lively,
-                        jQuery = Global.jQuery;
-                    // we still are adding jQuery to Global but this is DEPRECATED
-                    // We need to be able to run with libraries requiring different jQuery versions
-                    // so we will restrict "our" to lively.$ in the future
-                    Global.$ = lively.$ = jQuery.noConflict(/*true -- really removes $*/);
-                })(Global);
-                Global.JSLoader.resolveAndLoadAll(cb, Global.LivelyLoader.bootstrapFiles, thenDoFunc);
-            });
+            Global.JSLoader.resolveAndLoadAll(
+                base, this.libsFiles.concat(Global.LivelyLoader.bootstrapFiles),
+                thenDoFunc);
         }
 
     };
@@ -1005,7 +997,7 @@
             this.convertCDATASections(doc.documentElement);
             var canvas = document.importNode(
                 doc.getElementById('canvas'), true);
-            $A(canvas.getElementsByTagName('script')).forEach(function(e) {
+            Array.from(canvas.getElementsByTagName('script')).forEach(function(e) {
                 e.parentElement.removeChild(e);
             });
             var div = document.createElement('div');

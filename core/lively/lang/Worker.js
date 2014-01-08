@@ -36,8 +36,8 @@ lively.Worker = {
         // creation of the worker and sends the setup message to the worker
         // for initializing it.
         function init(worker) {
-            var bootstrapFiles = LivelyLoader.bootstrapFiles/*.map(function(url) {
-                return '/' + URL.create(url).relativePathFrom(URL.root); });*/
+            var bootstrapFiles = LivelyLoader.bootstrapFiles.map(function(url) {
+                return url.startsWith('http:') ? url : URL.codeBase.toString() + url; });
             worker.postMessage({
                 command: 'setup',
                 options: {

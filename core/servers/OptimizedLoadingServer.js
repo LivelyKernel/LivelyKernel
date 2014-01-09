@@ -1,4 +1,3 @@
-var crypto = require("crypto");
 var fs = require("fs");
 var path = require("path");
 var zlib = require('zlib');

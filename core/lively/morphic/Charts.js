@@ -67,16 +67,27 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     onMouseUp: function(e) {
         if (e.isLeftMouseButtonDown()) {
             this.toggle();
-            
             if(this.activated) {
                 // this.createComponentWithOffset();
             }
+        } else if (e.isRightMouseButtonDown()) {
+            // TODO: only create menu once
+            var _this = this;
+            
+            var componentNames = ["ScriptFlowComponent", "MergeScript", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher"];
+            
+            var contextItems = componentNames.map(function(ea) {
+                return [ea, function() { _this.createComponentWithOffset(ea) }];
+            });
+            
+            var menu = new lively.morphic.Menu("Add new data flow component", contextItems);
+            menu.openIn($world, e.scaledPos);
         }
     },
     
-    createComponentWithOffset: function() {
+    createComponentWithOffset: function(componentName) {
         var directionPt = this.directionPt;
-        var newComponent = $world.loadPartItem('ScriptFlowComponent', 'PartsBin/BP2013H2');
+        var newComponent = $world.loadPartItem(componentName, 'PartsBin/BP2013H2');
         var extent =  this.componentMorph.getExtent();
         var offset = pt(
             (extent.x + 20) * directionPt.x,

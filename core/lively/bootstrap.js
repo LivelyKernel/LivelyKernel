@@ -654,11 +654,11 @@
                         && this.expectedModuleURLs.indexOf(url) >= 0;
                 },
 
-                loadJs: function(url) {
+                loadJs: function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                     console.log('load file that is not in'
                                + ' combined modules: ' + url);
                     if (!this.includedInCombinedFile(url)) {
-                        originalLoader.loadJs(url);
+                        originalLoader.loadJs(url, onLoadCb, loadSync, okToUseCache, cacheQuery);
                     }
                 },
 
@@ -976,7 +976,7 @@
 
             if (dontBootstrap) { thenDoFunc(); return }
 
-            optimizedLoading=false;/*not yet*/
+            optimizedLoading=true;/*not yet*/
             if (optimizedLoading) {
                 console.log('optimized loading enabled');
                 var hashUrl = base + 'generated/combinedModulesHash.txt',

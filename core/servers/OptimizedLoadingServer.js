@@ -84,8 +84,17 @@ function determineCoreFiles() {
 
     coreFiles = bootstrapModules.map(moduleToFile).reverse();
     var i = 0;
+    var dependencies = {};
     while (i < coreFiles.length) {
         var filename = coreFiles[i];
+        if (dependencies[filename]) {
+            dependencies[filename].forEach(function(dep) {
+                coreFiles.splice(i + 1, 0, dep);
+            });
+            i++;
+            continue;
+        }
+        dependencies[filename] = [];
         try {
             var content = fs.readFileSync(filename).toString();
             // FIXME: do real parsing, evil eval
@@ -93,9 +102,11 @@ function determineCoreFiles() {
             var moduleDefs = modRegEx.exec(content);
             if (moduleDefs) {
                 var req = eval('[' + moduleDefs[2] + ']');
+                var deps = dependencies[filename];
                 req.forEach(function(module) {
                     var filename = moduleToFile(module);
                     coreFiles.splice(i + 1, 0, filename);
+                    deps.push(filename);
                 });
             }
         } catch (e) {

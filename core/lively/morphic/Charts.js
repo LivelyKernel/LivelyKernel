@@ -255,17 +255,36 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(0, 1));
     },
     
+    setPropagateResizing: function(bool) {
+        this.propagateResizing = bool;
+    },
+    
+    shouldPropagateResizing: function() {
+        return this.propagateResizing;
+    },
+    
+    setPropagatedExtent: function(newExtent, resizeType) {
+        // just use the x-component for setting the propagated extent
+        this.setExtent(pt(newExtent.x,this.getExtent().y), resizeType);
+    },
+    
     calculateSnappingPosition: function() {
         // Snap to position below component above, if there is one
         
         var componentAbove = this.getMorphInDirection(pt(0,-1));
         
+        var preview = $morph("PreviewMorph" + this);
         if (componentAbove) {
-            var snappingPoint = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
-            return snappingPoint;
+            // snap below component above
+            if (preview) {
+                preview.setExtent(this.calculateSnappingExtent());
+            }
+            return componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
         } else {
             // snap to the grid
-        
+            if (preview) {
+                preview.setExtent(this.getExtent());
+            }
             var pos = this.getPositionInWorld();
             var offsetX = 0;
             var offsetY = 0;
@@ -284,30 +303,47 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     addPreviewMorph: function() {
         // adds the preview morph directly behind the component
         morph = new lively.morphic.Box(rect(0,0,0,0));
-        morph.setName("PreviewMorph");
+        morph.setName("PreviewMorph" + this);
         morph.setPosition(this.getPositionInWorld());
         morph.setExtent(this.getExtent());
         morph.setBorderWidth(1);
         morph.setBorderColor(Color.black);
         morph.setBorderStyle('dashed');
-        // morph.setFill(Color.blue);
         $world.addMorph(morph,this);
+        this.previewAdded = true;
     },
     
     removePreviewMorph: function() {
-        $morph("PreviewMorph").remove();
+        if (this.previewAdded) {
+            $morph("PreviewMorph" + this).remove();
+            this.previewAdded = false;
+        }
     },
     
     onResizeStart: function() {
-        this.addPreviewMorph();
-        this.setOpacity(0.7);
+        // nothing to do for now
     },
     
     onResizeEnd: function() {
+        this.setPropagateResizing(false);
         var newExtent = this.calculateSnappingExtent();
-        this.setExtent(newExtent);
+        this.setExtent(newExtent, this.resizingFrom);
+        if (this.resizingFrom === "propagatedFromAbove" || this.resizingFrom === "active") {
+            var componentBelow = this.getMorphInDirection(pt(0,1));
+            if (componentBelow) {
+                componentBelow.onResizeEnd();
+            }
+        }
+        if (this.resizingFrom === "propagatedFromBelow" || this.resizingFrom === "active") {
+            var componentAbove = this.getMorphInDirection(pt(0,-1));
+            if (componentAbove) {
+                componentAbove.onResizeEnd();
+            }
+        }
+        
         this.removePreviewMorph();
         this.setOpacity(1);
+        this.setPropagateResizing(true);
     },
     
     onDragStart: function($super, evt) {
@@ -318,6 +354,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     onDragEnd: function($super, evt) {
         $super(evt);
+        debugger;
         // positioning is done in onDropOn
         this.removePreviewMorph();
         this.setOpacity(1);
@@ -342,7 +379,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     onDrag: function($super) {
         $super();
         var previewPos = this.calculateSnappingPosition();
-        $morph("PreviewMorph").setPosition(previewPos);
+        $morph("PreviewMorph" + this).setPosition(previewPos);
         this.triggerLayouting();
     },
     
@@ -351,6 +388,11 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         if (aMorph == $world) {
             var newpos = this.calculateSnappingPosition();
             this.setPosition(newpos);
+            this.setPropagateResizing(false);
+            this.resizingFrom = "snapping";
+            var newext = this.calculateSnappingExtent();
+            this.setExtent(newext, "snapping");
+            this.setPropagateResizing(true);
         }
         this.triggerLayouting();
         this.notify();
@@ -454,7 +496,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             }
         }
     },
-    calculateSnappingExtent: function() {
+    calculateSnappingExtent: function(forPreview) {
+        
+        var componentAbove = this.getMorphInDirection(pt(0,-1));
         var oldExtent = this.getExtent();
         var offsetX = 0;
         var offsetY = 0;
@@ -467,9 +511,15 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             offsetY = this.gridWidth;
         }
         
-        var x = Math.floor(oldExtent.x / this.gridWidth) * this.gridWidth + offsetX;
-        var y = Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + offsetY;
-        return pt(x,y);
+        if (componentAbove && !forPreview && (this.shouldPropagateResizing() || this.draggingFromPartsBin || this.resizingFrom === "snapping")) {
+            // calculate extent depending on the extent of some other component
+            return pt(componentAbove.getExtent().x, Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + offsetY);
+        } else {
+            // calculate new extent depending on raster
+            var x = Math.floor(oldExtent.x / this.gridWidth) * this.gridWidth + offsetX;
+            var y = Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + offsetY;
+            return pt(x,y);
+        }
     },
 
     
@@ -593,16 +643,44 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     onCreateFromPartsBin: function() {
         // Maybe some useful stuff could be done here.
         // To not forget the function's name, it's still in here. ;)
-        debugger;
+        this.draggingFromPartsBin = true;
     },
     
-    setExtent: function($super, newExtent) {
+    setExtent: function($super, newExtent, resizeType) {
         $super(newExtent);
+        if (!this.previewAdded && !this.draggingFromPartsBin && this.shouldPropagateResizing()) {
+            this.addPreviewMorph();
+            this.setOpacity(0.7);
+        }
+        this.draggingFromPartsBin = false;
         
+        // resizeType defines what issued the setExtent request.
+        // If it is not set, the component itself was resized using the halo,
+        // so we try to inform both neighbors. Therefore we set it to "active".
+        // If it is "propagatedFromAbove", the request came from above, so we inform the component
+        // below, if it is "propagatedFromBelow" the other way around.
+        if (!resizeType) {
+            resizeType = "active";
+        }
+        if ((resizeType === "propagatedFromAbove" || resizeType === "active") && this.shouldPropagateResizing()) {
+            var componentBelow = this.getMorphInDirection(pt(0,1));
+            if (componentBelow) {
+                componentBelow.setPropagatedExtent(newExtent, "propagatedFromAbove");
+            }
+        }
+        if ((resizeType === "propagatedFromBelow" || resizeType === "active") && this.shouldPropagateResizing()) {
+            var componentAbove = this.getMorphInDirection(pt(0,-1));
+            if (componentAbove) {
+                componentAbove.setPropagatedExtent(newExtent, "propagatedFromBelow");
+            }
+        }
+        this.resizingFrom = resizeType;
         this.adjustForNewBounds();
         
-        var previewExtent = this.calculateSnappingExtent();
-        $morph("PreviewMorph").setExtent(previewExtent);
+        if ($morph("PreviewMorph" + this)) {
+            var previewExtent = this.calculateSnappingExtent(true);
+            $morph("PreviewMorph" + this).setExtent(previewExtent);
+        }
         
         var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
         if (errorText.length) {

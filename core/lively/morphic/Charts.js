@@ -682,9 +682,15 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             $morph("PreviewMorph" + this).setExtent(previewExtent);
         }
         
+        // get the width of the description text to adjust the width of the error text
+        var description = this.getSubmorphsByAttribute("name", "Description");
+        var descriptionWidth = 150;
+        if (description.length) {
+            descriptionWidth = description[0].getExtent().x + 50;
+        }
         var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
         if (errorText.length) {
-            errorText[0].setExtent(pt(this.getExtent().x - 10, errorText[0].getExtent().y));
+            errorText[0].setExtent(pt(this.getExtent().x - descriptionWidth, errorText[0].getExtent().y));
         }
         
         this.layoutCodeEditor(newExtent);

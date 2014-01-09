@@ -19,6 +19,10 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
         this.positionAtMorph();
     },
     
+    isActive: function() {
+        return this.activated;
+    },
+    
     toggle: function() {
         if(!this.activated)
             this.activate();
@@ -48,13 +52,15 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     activate: function() {
         this.activated = true;
-        this.componentMorph.propagationEnabled = true;
+        // this.componentMorph.propagationEnabled = true;
+        this.componentMorph.onArrowActivated();
         this.setFill(Color.rgbHex("77D88B"));
     },
     
     deactivate: function() {
         this.activated = false;
-        this.componentMorph.propagationEnabled = false;
+        // this.componentMorph.propagationEnabled = false;
+        this.componentMorph.onArrowDeactivated(this);
         this.setFill(Color.rgbHex("D8d8d8"));
     },
     
@@ -63,7 +69,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
             this.toggle();
             
             if(this.activated) {
-                this.createComponentWithOffset();
+                // this.createComponentWithOffset();
             }
         }
     },
@@ -251,8 +257,62 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             // put your code here
         });
         
-        this.bottomArrow = new lively.morphic.DataFlowArrow(this, pt(1, 0));
-        this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(0, 1));
+        this.bottomArrow = new lively.morphic.DataFlowArrow(this, pt(0, 1));
+        this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(1, 0));
+    },
+    
+    notifyNeighborsOfDragStart: function() {
+        
+        this.neighbors = [];
+        var neighbor;
+        if (this.rightArrow.isActive()) {
+            neighbor = this.getMorphInDirection(pt(1,0));
+            if (neighbor) {
+                this.neighbors.push(neighbor);
+            }
+        }
+        if (this.bottomArrow.isActive()) {
+            neighbor = this.getMorphInDirection(pt(0,1));
+            if (neighbor) {
+                this.neighbors.push(neighbor);
+            }
+        }
+    },
+    
+    notifyNeighborsOfDragEnd: function() {
+        debugger;
+        var neighbor;
+        if (this.rightArrow.isActive()) {
+            neighbor = this.getMorphInDirection(pt(1,0));
+            if (neighbor) {
+                neighbor.notify();
+            }
+        }
+        if (this.bottomArrow.isActive()) {
+            neighbor = this.getMorphInDirection(pt(0,1));
+            if (neighbor) {
+                neighbor.notify();
+            }
+        }
+        this.neighbors.each(function(ea) {
+            ea.notify();
+        })
+    },
+    
+    onArrowActivated: function() {
+        this.update();
+    },
+    
+    onArrowDeactivated: function(arrow) {
+        var component;
+        if (this.rightArrow === arrow) {
+            component = this.getMorphInDirection(pt(1,0));
+        } else {
+            component = this.getMorphInDirection(pt(0,1));
+        }
+        if (component) {
+            component.notify();
+        }
     },
     
     setPropagateResizing: function(bool) {
@@ -350,12 +410,13 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super(evt);
         this.addPreviewMorph();
         this.setOpacity(0.7);
+        this.notifyNeighborsOfDragStart();
     },
     
     onDragEnd: function($super, evt) {
         $super(evt);
-        debugger;
         // positioning is done in onDropOn
+        this.notifyNeighborsOfDragEnd();
         this.removePreviewMorph();
         this.setOpacity(1);
     },
@@ -441,7 +502,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             }
             return;
         }
-        
         if (this.propagationEnabled){
             var _this = this;
             if (promise && typeof promise.done == "function") {
@@ -455,9 +515,19 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     notifyNextComponent: function() {
-        var nextComponent = this.getMorphInDirection(pt(0,1));
-        if (nextComponent){
-            nextComponent.notify();
+        var dependentComponent;
+        
+        if (this.bottomArrow.isActive()) {
+            dependentComponent = this.getMorphInDirection(pt(0,1));
+            if (dependentComponent) {
+                dependentComponent.notify();
+            }
+        }
+        if (this.rightArrow.isActive()) {
+            dependentComponent = this.getMorphInDirection(pt(1,0));
+            if (dependentComponent) {
+                dependentComponent.notify();
+            }
         }
     },
     
@@ -525,10 +595,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     refreshData: function() {
         var morphAbove = this.getMorphInDirection(pt(0,-1));
-        if (morphAbove)
+        var morphLeft = this.getMorphInDirection(pt(-1,0));
+        if (morphAbove && morphAbove.bottomArrow.isActive())
             this.data = morphAbove.data;
-        else
+        else if (morphLeft && morphLeft.rightArrow.isActive()) {
+            this.data = morphLeft.data;
+        } else {
             this.data = null;
+        }
     },
     
     getMorphInDirection: function(direction, point) {
@@ -574,8 +648,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         } else {
             // search in horizontal direction
             
-            // choose the right middle point as myPosition as default
-            var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x, this.getExtent().y / 2));
+            var myPosition;
+            if (horizontalDir == -1) {
+                // choose the left middle point as myPosition as default if looking to the left
+                myPosition = point || this.getPositionInWorld().addPt(pt(0, this.getExtent().y / 2));
+            } else {
+                // choose the right middle point as myPosition as default if looking to the right
+                myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x, this.getExtent().y / 2));
+            }
             allDFComponents.forEach(function(el) {
                 if (el == this)
                     return;
@@ -641,8 +721,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     onCreateFromPartsBin: function() {
-        // Maybe some useful stuff could be done here.
-        // To not forget the function's name, it's still in here. ;)
         this.draggingFromPartsBin = true;
     },
     

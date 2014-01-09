@@ -335,7 +335,10 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     deactivate: function deactivate() {
         lively.ide.tools.SelectionNarrowing.lastActive = this;
         $world.activateTopMostWindow();
-        if (this.state.refocusOnClose && this.state.focusedMorph) this.state.focusedMorph.focus();
+        var shouldRefocus = this.state.refocusOnClose
+                         && this.state.focusedMorph
+                         && lively.morphic.Morph.focusedMorph() === this.get('inputLine');
+        if (shouldRefocus) this.state.focusedMorph.focus();
         this.setVisible(false);
     },
     renderContainer: function renderContainer(layout) {

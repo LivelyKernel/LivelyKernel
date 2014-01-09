@@ -1358,6 +1358,7 @@ lively.morphic.World.addMethods(
         inspector.inspect(object);
         return inspector;
     },
+
     openStyleEditorFor: function(morph, evt) {
         module('lively.ide.tools.StyleEditor').load(true);
         var styleEditorWindow = lively.BuildSpec('lively.ide.tools.StyleEditor').createMorph().openInWorld();
@@ -1370,8 +1371,24 @@ lively.morphic.World.addMethods(
         } else {
             styleEditorWindow.setPositionCentered(visibleBounds.center());
         }
+        if (lively.Config.get('useAceEditor')) {
+            var oldEditor = styleEditorWindow.get("CSSCodePane"),
+                newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
+            newEditor.applyStyle({
+                fontSize: lively.Config.get('defaultCodeFontSize')-1,
+                gutter: false,
+                textMode: 'css',
+                lineWrapping: false,
+                printMargin: false,
+                resizeWidth: true, resizeHeight: true
+            });
+            lively.bindings.connect(newEditor, "savedTextString", oldEditor.get("CSSApplyButton"), "onFire");
+            newEditor.replaceTextMorph(oldEditor);
+        }
+        styleEditorWindow.comeForward();
         return styleEditorWindow;
     },
+
     openObjectEditor: function() {
         module('lively.ide.tools.ObjectEditor').load(true);
         return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter();
@@ -1381,24 +1398,87 @@ lively.morphic.World.addMethods(
             lively.BuildSpec('lively.ide.tools.Terminal').createMorph().openInWorldCenter().comeForward(); });
     },
     openObjectEditorFor: function(morph) {
-        var part = this.openObjectEditor();
-        part.setTarget(morph);
-        part.comeForward();
-        return part;
+        var objectEditor = this.openObjectEditor(),
+            textMorph = objectEditor.get('ObjectEditorScriptPane');
+        objectEditor.setTarget(morph);
+        objectEditor.comeForward();
+        if (!lively.Config.get('useAceEditor') || textMorph.isAceEditor) return objectEditor;
+        // This whole thing needs some serious cleanup
+        // FIXME!!!
+        objectEditor.withAllSubmorphsDo(function(ea) { ea.setScale(1) });
+        // replace the normal text morph of the object editor with a
+        // CodeEditor
+        var owner = textMorph.owner,
+            textString = textMorph.textString,
+            bounds = textMorph.bounds(),
+            name = textMorph.getName(),
+            objectEditorPane = textMorph.objectEditorPane,
+            scripts = textMorph.scripts,
+            codeMorph = new lively.morphic.CodeEditor(bounds, textString || '');
+    
+        lively.bindings.connect(codeMorph, 'textString',
+                                owner.get('ChangeIndicator'), 'indicateUnsavedChanges');
+        codeMorph.setName(name);
+        codeMorph.objectEditorPane = objectEditorPane;
+        codeMorph.applyStyle({resizeWidth: true, resizeHeight: true});
+        codeMorph.accessibleInInactiveWindow = true;
+    
+        Functions.own(textMorph).forEach(function(scriptName) {
+            textMorph[scriptName].asScriptOf(codeMorph);
+        });
+    
+        codeMorph.addScript(function displayStatus(msg, color, delay) {
+            if (!this.statusMorph) {
+                this.statusMorph = new lively.morphic.Text(pt(100,25).extentAsRectangle());
+                this.statusMorph.applyStyle({borderWidth: 1, strokeOpacity: 0, borderColor: Color.gray});
+                this.statusMorph.setFill(this.owner.getFill());
+                this.statusMorph.setFontSize(11);
+                this.statusMorph.setAlign('center');
+                this.statusMorph.setVerticalAlign('center');
+            }
+            this.statusMorph.setTextString(msg);
+            this.statusMorph.centerAt(this.innerBounds().center());
+            this.statusMorph.setTextColor(color || Color.black);
+            this.addMorph(this.statusMorph);
+            (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
+        });
+    
+        objectEditor.targetMorph.addScript(function onWindowGetsFocus() {
+            this.get('ObjectEditorScriptPane').focus();
+        });
+    
+        objectEditor.addScript(function onKeyDown(evt) {
+            var sig = evt.getKeyString(),
+                scriptList = this.get('ObjectEditorScriptList'),
+                sourcePane = this.get('ObjectEditorScriptPane');
+            switch(sig) {
+                case 'F1': scriptList.focus(); evt.stop(); return true;
+                case 'F2': sourcePane.focus(); evt.stop(); return true;
+                default: $super(evt);
+            }
+        });
+    
+        owner.addMorphBack(codeMorph);
+        lively.bindings.disconnectAll(textMorph);
+        textMorph.remove();
+        owner.reset();
+        objectEditor.comeForward();
+        return objectEditor;
     },
+
     openMethodFinder: function() {
         this.prompt("find implementors: ", function(s) {
             if (!s) { alertOK('nothing to search...'); return; }
             this.openMethodFinderFor(s, '__implementor');
         }.bind(this));
     },
-openReferencingMethodFinder: function () {
-    this.prompt("find source: ", function(s) {
-        if (!s) { alertOK('nothing to search...'); return; }
-        this.openMethodFinderFor(s);
-    }.bind(this));
-},
 
+    openReferencingMethodFinder: function () {
+        this.prompt("find source: ", function(s) {
+            if (!s) { alertOK('nothing to search...'); return; }
+            this.openMethodFinderFor(s);
+        }.bind(this));
+    },
 
     openMethodFinderFor: function(searchString, searchType) {
         var toolPane = this.get('ToolTabPane');
@@ -1420,6 +1500,7 @@ openReferencingMethodFinder: function () {
         part.owner.layout.adjustForNewBounds = true;
         return part;
     },
+
     openVersionViewer: function(evt) {
         return this.openPartItem('VersionViewer', 'PartsBin/Wiki');
     },
@@ -1471,12 +1552,23 @@ openReferencingMethodFinder: function () {
     },
 
     openWorkspace: function(evt) {
-        var text = this.addTextWindow({title: 'Workspace',
-            content: '3 + 4', syntaxHighlighting: true})
-        text.accessibleInInactiveWindow = true;
-        text.setFontFamily('Monaco,monospace');
-        text.selectAll();
-        return text;
+        var editor;
+        if (lively.Config.get('useAceEditor')) {
+            editor = this.addCodeEditor({
+                title: "Workspace",
+                content: "3 + 4",
+                syntaxHighlighting: true,
+                theme: lively.Config.get("aceWorkspaceTheme")
+            });
+        } else {
+            editor = this.addTextWindow({title: 'Workspace',
+                content: '3 + 4', syntaxHighlighting: true})
+            editor.accessibleInInactiveWindow = true;
+            editor.setFontFamily('Monaco,monospace');
+        }
+        editor.owner.comeForward();
+        editor.selectAll();
+        return editor;
     },
     openAboutBox: function() {
         var text = this.addTextWindow({title: 'About Lively Kernel'});
@@ -1553,6 +1645,20 @@ openReferencingMethodFinder: function () {
 
     bugReport: function() {
         window.open(lively.Config.get('bugReportWorld'));
+    },
+
+    addCodeEditor: function(options) {
+        options = Object.isString(options) ? {content: options} : (options || {}); // convenience
+        var bounds = (options.extent || lively.pt(500, 200)).extentAsRectangle(),
+            title = options.title || 'Code editor',
+            editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
+            pane = this.internalAddWindow(editor, options.title, options.position);
+        if (Object.isString(options.position)) delete options.position;
+        editor.applyStyle({resizeWidth: true, resizeHeight: true, gutter: false});
+        editor.accessibleInInactiveWindow = true;
+        editor.applyStyle(options);
+        editor.focus();
+        return pane;
     }
 
 },
@@ -1787,10 +1893,7 @@ openReferencingMethodFinder: function () {
             if (!s) { alertOK('nothing to search...'); return; }
             this.openMethodFinderFor(s, '__sender');
         }.bind(this));
-    },
-
-
-
+    }
 
 },
 'positioning', {

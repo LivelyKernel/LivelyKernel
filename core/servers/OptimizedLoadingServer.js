@@ -40,23 +40,20 @@ module.exports = function(route, app) {
         }
         fuser.withCombinedFileStreamDo(function(err, stream) {
             if (err) { res.status(500).end(String(err)); return; }
-            var acceptEncoding = req.headers['accept-encoding'] || '';
-            var header = {
-                // indefinitely?
-                "Cache-Control": "max-age=" + 60/*secs*/*60/*mins*/*24/*h*/*30/*days*/
-            }
+            var acceptEncoding = req.headers['accept-encoding'] || '',
+                header = {
+                    // indefinitely?
+                    "Cache-Control": "max-age=" + 60/*secs*/*60/*mins*/*24/*h*/*30/*days*/
+                }
             if (acceptEncoding.match(/\bdeflate\b/)) {
                 header['content-encoding'] = 'deflate';
-                res.writeHead(200, header);
-                stream.pipe(zlib.createDeflate()).pipe(res);
+                stream = stream.pipe(zlib.createDeflate());
             } else if (acceptEncoding.match(/\bgzip\b/)) {
                 header['content-encoding'] = 'gzip';
-                res.writeHead(200, header);
-                stream.pipe(zlib.createGzip()).pipe(res);
-            } else {
-                res.writeHead(200, header);
-                stream.pipe(res);
+                stream = stream.pipe(zlib.createGzip());
             }
+            res.writeHead(200, header);
+            stream.pipe(res);
         });
     });
 }

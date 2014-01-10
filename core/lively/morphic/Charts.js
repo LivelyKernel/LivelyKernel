@@ -14,7 +14,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
             controlPoints = [pt(000, 000), pt(arrowHeight, arrowBase), pt(0, 2 * arrowBase), pt(000, 000)];
         
         $super(controlPoints);
-        this.setBorderColor(Color.rgba(0, 0, 0, 0));
+        this.setBorderColor(Color.rgb(94,94,94));
         this.deactivate();
         this.positionAtMorph();
     },
@@ -61,7 +61,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
         this.activated = false;
         // this.componentMorph.propagationEnabled = false;
         this.componentMorph.onArrowDeactivated(this);
-        this.setFill(Color.rgbHex("D8d8d8"));
+        this.setFill(Color.rgb(94,94,94));
     },
     
     onMouseUp: function(e) {
@@ -280,7 +280,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(1, 0));
         
         this.setExtent(pt(500, 250));
-        this.setFill(Color.gray);
+        this.setFill(this.backgroundColor);
+        this.setBorderColor(this.borderColor);
+        this.setBorderWidth(3);
         this.propagationEnabled = true;
         this.data = null;
         
@@ -289,6 +291,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             // put your code here
         });
     },
+    
+    backgroundColor: Color.rgb(207,225,229),
+    borderColor: Color.rgb(94,94,94),
     
     notifyNeighborsOfDragStart: function() {
         
@@ -505,6 +510,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         t.setPosition(pt(10, 10));
         t.setFontSize(12);
         t.setFillOpacity(0);
+        t.setFill(this.backgroundColor);
         t.setBorderWidth(0);
         this.addMorph(t);
     },
@@ -524,12 +530,12 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var promise;
         try {
             promise = this.updateComponent();
-            this.setFill(Color.gray);
-            //this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.gray);
+            this.setFill(this.backgroundColor);
+            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(this.backgroundColor);
         } catch (e) {
 
-            this.setFill(Color.rgb(210, 172, 172));
-            //this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.rgb(210, 172, 172));
+            this.setFill(this.backgroundColor);
+            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(this.backgroundColor);
             if (!e.alreadyThrown){
                 this.throwError(e);
             }

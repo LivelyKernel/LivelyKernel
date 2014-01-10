@@ -1706,8 +1706,16 @@ Object.subclass('WebResource',
             var urlNode = urlQ.findFirst(nodes[i]),
                 url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
             if (/!svn/.test(url)) continue;// ignore svn dirs
-            var child = new WebResource(this.getURL().withPath(url)),
-                revNode = nodes[i].getElementsByTagName('version-name')[0];
+            try {
+                // Try to fix url in case it was proxied
+                URL.root.relativePathFrom(this.getURL()); // may throw error
+                var child = new WebResource(URL.root.withFilename(
+                    url.startsWith('/') ? url.substr(1) : url
+                ));
+            } catch (e) {
+                var child = new WebResource(this.getURL().withPath(url));
+            }
+            var revNode = nodes[i].getElementsByTagName('version-name')[0];
             if (revNode) child.headRevision = Number(revNode.textContent);
             result.push(child);
         }

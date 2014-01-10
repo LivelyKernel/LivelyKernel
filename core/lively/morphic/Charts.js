@@ -505,9 +505,11 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         try {
             promise = this.updateComponent();
             this.setFill(Color.gray);
+            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.gray);
         } catch (e) {
 
             this.setFill(Color.rgb(210, 172, 172));
+            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.rgb(210, 172, 172));
             if (!e.alreadyThrown){
                 this.throwError(e);
             }
@@ -737,7 +739,10 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     setExtent: function($super, newExtent, resizeType) {
         $super(newExtent);
-        if (!this.previewAdded && !this.draggingFromPartsBin && this.shouldPropagateResizing()) {
+        this.bottomArrow.positionAtMorph(); 
+        this.rightArrow.positionAtMorph();
+        
+        if (resizeType != "maximized" && !this.previewAdded && !this.draggingFromPartsBin && this.shouldPropagateResizing()) {
             this.addPreviewMorph();
             this.setOpacity(0.7);
         }
@@ -783,10 +788,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         }
         
         this.layoutCodeEditor(newExtent);
-
-        
-        this.bottomArrow.positionAtMorph();
-        this.rightArrow.positionAtMorph();
     },
     
     throwError: function(error) {
@@ -797,6 +798,42 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var codeEditor = this.getSubmorphsByAttribute("shouldResize", true);
         if (codeEditor.length) {
             codeEditor[0].setExtent(pt(newExtent.x - 25,newExtent.y - 70));
+        }
+    }
+});
+lively.morphic.Morph.subclass("lively.morphic.DataFlowMinimizer",
+{
+    initialize: function($super) {
+        $super();
+        this.isLayoutable = false;
+        this.setFill(Color.gray);
+        this.setExtent(pt(50, 40));
+        var vertices = [];
+        vertices.push(pt(10,13));
+        vertices.push(pt(25,25));
+        var vertices2 = [];
+        vertices2.push(pt(25,25));
+        vertices2.push(pt(40,13));
+        this.addMorph(new lively.morphic.Path(vertices));
+        this.addMorph(new lively.morphic.Path(vertices2));
+    },
+    
+    onMouseUp: function(e) {
+        if (e.isLeftMouseButtonDown() && !e.isCtrlDown()) {
+            
+            if (this.owner.getExtent().y == 50) {
+                this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY),"maximized")
+                var prototype = this.owner.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
+                if (prototype)
+                    prototype.setVisible(true);
+            }
+            else {
+                this.oldY = this.owner.getExtent().y;
+                this.owner.setExtent(pt(this.owner.getExtent().x, 50), "maximized");
+                var prototype = this.owner.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
+                if (prototype)
+                    prototype.setVisible(false);
+            }
         }
     }
 });

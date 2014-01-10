@@ -257,19 +257,19 @@ lively.morphic.Morph.subclass("lively.morphic.BarChart", {
 lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     initialize: function($super) {
         $super();
+
+        this.bottomArrow = new lively.morphic.DataFlowArrow(this, pt(0, 1));
+        this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(1, 0));
+        
         this.setExtent(pt(500, 250));
         this.setFill(Color.gray);
         this.propagationEnabled = true;
         this.data = null;
         
         this.createLabel();
-        this.createButton();
         this.addScript(function updateComponent() {
             // put your code here
         });
-        
-        this.bottomArrow = new lively.morphic.DataFlowArrow(this, pt(0, 1));
-        this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(1, 0));
     },
     
     notifyNeighborsOfDragStart: function() {
@@ -732,6 +732,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
         this.priorExtent = newExtent;
     },
+
+
     
     onCreateFromPartsBin: function() {
         this.draggingFromPartsBin = true;

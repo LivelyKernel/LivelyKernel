@@ -109,7 +109,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
 
 lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     
-    initialize: function($super,h,w) {
+    initialize: function($super, w, h) {
         $super();
         this.setFill(Color.white);
         this.setExtent(pt(w, h));
@@ -126,6 +126,24 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     
     clear: function(){
         this.currentX = this.OFFSET;
+        this.removeAllMorphs();
+    }
+    
+} );
+
+lively.morphic.Morph.subclass("lively.morphic.FreeLayout", {
+    
+    initialize: function($super, w, h) {
+        $super();
+        this.setFill(Color.white);
+        this.setExtent(pt(w, h));
+    },
+    
+    addElement: function(element){
+        this.addMorph(element);
+    },
+    
+    clear: function(){
         this.removeAllMorphs();
     }
     
@@ -507,11 +525,11 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         try {
             promise = this.updateComponent();
             this.setFill(Color.gray);
-            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.gray);
+            //this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.gray);
         } catch (e) {
 
             this.setFill(Color.rgb(210, 172, 172));
-            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.rgb(210, 172, 172));
+            //this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.rgb(210, 172, 172));
             if (!e.alreadyThrown){
                 this.throwError(e);
             }

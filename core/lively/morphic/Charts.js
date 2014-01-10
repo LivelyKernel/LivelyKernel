@@ -482,9 +482,11 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     createLabel: function() {
         var t = new lively.morphic.Text();
         t.setTextString("DataFlowComponent");
-        t.setName("DataFlowComponentLabel");
+        t.setName("Description");
         t.setExtent(pt(140, 20));
-        t.setFill(Color.gray);
+        t.setPosition(pt(10, 10));
+        t.setFontSize(12);
+        t.setFillOpacity(0);
         t.setBorderWidth(0);
         this.addMorph(t);
     },

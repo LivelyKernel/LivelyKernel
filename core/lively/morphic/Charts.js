@@ -530,12 +530,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var promise;
         try {
             promise = this.updateComponent();
-            this.setFill(this.backgroundColor);
-            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(this.backgroundColor);
+            this.setFill(this.backgroundColor); 
+            if (this.getSubmorphsByAttribute("name", "Minimizer")[0])
+                this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(this.backgroundColor);
         } catch (e) {
 
-            this.setFill(this.backgroundColor);
-            this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(this.backgroundColor);
+            this.setFill(Color.rgb(210, 172, 172));
+            if (this.getSubmorphsByAttribute("name", "Minimizer")[0])
+                this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.rgb(210, 172, 172));
             if (!e.alreadyThrown){
                 this.throwError(e);
             }
@@ -825,7 +827,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     layoutCodeEditor: function(newExtent) {
         var codeEditor = this.getSubmorphsByAttribute("shouldResize", true);
         if (codeEditor.length) {
-            codeEditor[0].setExtent(pt(newExtent.x - 25,newExtent.y - 70));
+            codeEditor[0].setExtent(pt(newExtent.x - 7,newExtent.y - 52));
         }
     }
 });

@@ -3,7 +3,7 @@ var path = require("path");
 var zlib = require('zlib');
 var ffuser = require('file-fuser');
 
-var coreFiles = determineCoreFiles;
+var coreFiles = determineCoreFiles();
 var dir = process.env.WORKSPACE_LK;
 var combinedFile = "combined.js"
 var fuser;
@@ -70,20 +70,15 @@ function determineCoreFiles() {
             console.log('Problems processing: ' + filename);
         }
         i++;
-    };
+    }
 
     // remove duplicates
     coreFiles = coreFiles.reverse().reduce(function(res, file) {
-        if (res.indexOf(file) == -1)
-            res.push(file);
+        if (res.indexOf(file) == -1) res.push(file);
         return res;
     }, []);
 
-    bootstrapFiles.reverse().forEach(function(file) {
-        coreFiles.unshift(file);
-    });
-    coreFiles.unshift(libsFile);
-
+    coreFiles = [libsFile].concat(bootstrapFiles).concat(bootstrapFiles);
     return coreFiles;
 }
 

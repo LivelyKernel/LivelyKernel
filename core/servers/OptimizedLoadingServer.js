@@ -78,7 +78,7 @@ function determineCoreFiles() {
         return res;
     }, []);
 
-    coreFiles = [libsFile].concat(bootstrapFiles).concat(bootstrapFiles);
+    coreFiles = [libsFile].concat(bootstrapFiles).concat(coreFiles);
     return coreFiles;
 }
 

@@ -3,6 +3,7 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
 lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     initialize: function($super, aMorph, directionPt) {
+        debugger;
         this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
         this.isLayoutable = false;
@@ -52,6 +53,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     activate: function() {
         this.activated = true;
+        debugger;
         // this.componentMorph.propagationEnabled = true;
         this.componentMorph.onArrowActivated();
         this.setFill(Color.rgbHex("77D88B"));
@@ -97,10 +99,6 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
         newComponent.setPosition(
             this.componentMorph.getPosition().addPt(offset)
         );
-        
-        // TODO
-        new lively.morphic.DataFlowArrow(newComponent, pt(0,1));
-        new lively.morphic.DataFlowArrow(newComponent, pt(1,0));
         
         $world.addMorph(newComponent);
         newComponent.triggerLayouting();
@@ -638,9 +636,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var morphAbove = this.getMorphInDirection(pt(0,-1));
         var morphLeft = this.getMorphInDirection(pt(-1,0));
         if (morphAbove && morphAbove.bottomArrow.isActive())
-            this.data = morphAbove.data;
+            this.data = JSON.parse(JSON.stringify(morphAbove.data));
         else if (morphLeft && morphLeft.rightArrow.isActive()) {
-            this.data = morphLeft.data;
+            this.data = JSON.parse(JSON.stringify(morphLeft.data));
         } else {
             this.data = null;
         }

@@ -3,7 +3,6 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
 lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     initialize: function($super, aMorph, directionPt) {
-        debugger;
         this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
         this.isLayoutable = false;
@@ -53,7 +52,6 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     activate: function() {
         this.activated = true;
-        debugger;
         // this.componentMorph.propagationEnabled = true;
         this.componentMorph.onArrowActivated();
         this.setFill(Color.rgbHex("77D88B"));
@@ -501,10 +499,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
                 // if the dropped component lays on top of another component,
                 // move all following components further down
                 if (morphsBelow[0].getPosition().y <= this.getPosition().y + this.getExtent().y) {
+                    var lastPosition = 0;
                     morphsBelow.each(function (ea) {
                         // move it a little bit down so the snapping calculation will work
-                        ea.setPosition(pt(ea.getPosition().x, ea.getPosition().y + 5))
-                        ea.setPosition(ea.calculateSnappingPosition());
+                        if (!lastPosition)
+                            lastPosition = ea.getPosition();
+                        ea.setPosition(pt(lastPosition.x, lastPosition.y + 5))
+                        lastPosition = ea.calculateSnappingPosition();
+                        ea.setPosition(lastPosition);
                     })
                 }
             }

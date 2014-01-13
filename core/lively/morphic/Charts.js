@@ -312,7 +312,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     notifyNeighborsOfDragEnd: function() {
-        debugger;
         var neighbor;
         if (this.rightArrow.isActive()) {
             neighbor = this.getMorphInDirection(pt(1,0));
@@ -364,7 +363,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         // Snap to position below component above, if there is one
         
         var componentAbove = this.getMorphInDirection(pt(0,-1));
-        
+
         var preview = $morph("PreviewMorph" + this);
         if (componentAbove) {
             // snap below component above
@@ -394,7 +393,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     addPreviewMorph: function() {
         // adds the preview morph directly behind the component
-        morph = new lively.morphic.Box(rect(0,0,0,0));
+        var morph = new lively.morphic.Box(rect(0,0,0,0));
         morph.setName("PreviewMorph" + this);
         morph.setPosition(this.getPositionInWorld());
         morph.setExtent(this.getExtent());
@@ -443,6 +442,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.addPreviewMorph();
         this.setOpacity(0.7);
         this.notifyNeighborsOfDragStart();
+        
+        // move all morphs below further up and close the gap
+        var morphsBelow = this.getMorphsBelow();
+        // begin with the top most of them
+        morphsBelow.sort(function (a, b) {return a.getPosition().y - b.getPosition().y});
+        morphsBelow.each( function (ea) {
+            ea.setPosition(ea.calculateSnappingPosition());
+        })
     },
     
     onDragEnd: function($super, evt) {
@@ -486,6 +493,22 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             var newext = this.calculateSnappingExtent();
             this.setExtent(newext, "snapping");
             this.setPropagateResizing(true);
+            
+            // move all components below
+            var morphsBelow = this.getMorphsBelow();
+            if (morphsBelow.length) {
+                morphsBelow.sort(function (a, b) {return a.getPosition().y - b.getPosition().y});
+                // if the dropped component lays on top of another component,
+                // move all following components further down
+                if (morphsBelow[0].getPosition().y <= this.getPosition().y + this.getExtent().y) {
+                    morphsBelow.each(function (ea) {
+                        // move it a little bit down so the snapping calculation will work
+                        ea.setPosition(pt(ea.getPosition().x, ea.getPosition().y + 5))
+                        ea.setPosition(ea.calculateSnappingPosition());
+                    })
+                }
+            }
+            
         }
         this.triggerLayouting();
         this.notify();
@@ -672,7 +695,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             // choose the top middle point as myPosition as default
             var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
             allDFComponents.forEach(function(el) {
-                if (el == this)
+                if (el == this || el.isBeingDragged)
                     return;
                 
                 var elPosition = el.getPositionInWorld();
@@ -696,7 +719,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
                 myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x, this.getExtent().y / 2));
             }
             allDFComponents.forEach(function(el) {
-                if (el == this)
+                if (el == this || el.isBeingDragged)
                     return;
                 
                 var elPosition = el.getPositionInWorld();
@@ -827,6 +850,30 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         if (codeEditor.length) {
             codeEditor[0].setExtent(pt(newExtent.x - 7,newExtent.y - 52));
         }
+    },
+    
+    getMorphsBelow: function() {
+        var allDFComponents = $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.DataFlowComponent;
+        });
+        var morphsBelow = [];
+        var myPosition = this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
+        
+        allDFComponents.each(function(el) {
+            if (el == this)
+                return;
+
+            var elPosition = el.getPositionInWorld();
+            
+            // check for all DF components equal to and below my position
+            if (elPosition.y >= myPosition.y &&
+                elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
+            {
+                morphsBelow.push(el);
+            }
+        }, this);
+        
+        return morphsBelow;
     }
 });
 lively.morphic.Morph.subclass("lively.morphic.DataFlowMinimizer",

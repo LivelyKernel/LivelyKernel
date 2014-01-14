@@ -368,7 +368,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             }
             var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
             if (this.getPositionInWorld().y < componentAbove.getPosition().y + componentAbove.getExtent().y + this.componentOffset + 200) {
-                debugger;
                 // snap directly below component above
                 return posBelowComponent;
             }
@@ -464,7 +463,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     componentOffset: 20,
     
-
+    isMerger: function() {
+        return false;
+    },
     
     wantsDroppedMorph: function($super, morphToDrop) {
         if (morphToDrop instanceof lively.morphic.DataFlowComponent) {
@@ -472,6 +473,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         }
         return $super(morphToDrop);
     },
+    
     
     onDrag: function($super) {
         $super();
@@ -888,6 +890,117 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             ea.setPosition(lastPosition);
         })
     }
+});
+lively.morphic.DataFlowComponent.subclass('lively.morphic.DataFlowMergeComponent',
+'default category', {
+    onResizeEnd : function($super) {
+        $super();
+        console.log("this", this);
+    },
+    getMorphsInDirection : function($super, direction) {
+        var morphs = [];
+        var pxInterval = 50;
+        
+        // choose upper left corner as point
+        var currentPoint = this.getPositionInWorld();
+        
+        var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
+        while (currentPoint.x < rightBoundary) {
+            
+            var morph = this.getMorphInDirection(direction, currentPoint)
+    
+            if (morph)
+                morphs.pushIfNotIncluded(morph);
+                
+            currentPoint = currentPoint.addPt(pt(pxInterval, 0));
+        }
+    
+        return morphs;
+    },
+    // shouldPropagateResizing: function() {
+    //     return false;
+    // },
+    isMerger: function() {
+        return true;
+    },
+    calculateSnappingExtent: function($super, forPreview) {
+        
+        var componentsAbove = this.getMorphsInDirection(pt(0,-1));
+        var oldExtent = this.getExtent();
+        var offsetX = 0;
+        var offsetY = 0;
+        
+        // Find the nearest fitting snapping extent
+        if (oldExtent.x % this.gridWidth > this.gridWidth / 2) {
+            offsetX = this.gridWidth;
+        }
+        if (oldExtent.y % this.gridWidth > this.gridWidth / 2) {
+            offsetY = this.gridWidth;
+        }
+        
+        if (componentsAbove.length > 0  /*&& !forPreview && (this.shouldPropagateResizing() || this.draggingFromPartsBin || this.resizingFrom === "snapping")*/) {
+            // calculate extent depending on the extent of some other component
+            
+            if (componentsAbove.length == 1) {
+                width = componentsAbove[0].getExtent().x;
+            } else {
+                var componentXes = componentsAbove.map(function(ea) { return ea.getPosition().x });
+                var width = componentXes.max() - componentXes.min();
+                width += componentsAbove.last().getExtent().x;
+                width = Math.max(100, width);
+            }
+            return pt(width, Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + offsetY);
+        } else {
+            // calculate new extent depending on raster
+            var x = Math.floor(oldExtent.x / this.gridWidth) * this.gridWidth + offsetX;
+            var y = Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + offsetY;
+            return pt(x,y);
+        }
+    },
+    calculateSnappingPosition: function() {
+        var componentsAbove = this.getMorphsInDirection(pt(0,-1));
+        var componentAbove;
+        if (componentsAbove.length> 0)
+            componentAbove = componentsAbove.first();
+        
+        var preview = $morph("PreviewMorph" + this);
+        if (componentAbove) {
+            // snap below components above
+            if (preview) {
+                preview.setExtent(this.calculateSnappingExtent());
+            }
+            var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
+            if (this.getPositionInWorld().y < componentAbove.getPosition().y + componentAbove.getExtent().y + this.componentOffset + 200) {
+                // snap directly below component above
+                return posBelowComponent;
+            }
+            // snap into column of component above
+            var yGrid = this.calculateSnappingPositionInGrid().y;
+            return pt(posBelowComponent.x, yGrid);
+        } else {
+            // snap to the grid
+            if (preview) {
+                preview.setExtent(this.getExtent());
+            }
+            return this.calculateSnappingPositionInGrid();
+        }
+    },
+    onDropOn: function($super, aMorph) {
+        $super();
+        if (aMorph == $world) {
+            var newext = this.calculateSnappingExtent();
+            var newpos = this.calculateSnappingPosition();
+            this.setPosition(newpos);
+            this.setPropagateResizing(false);
+            this.resizingFrom = "snapping";
+            
+            
+            this.setExtent(newext, "snapping");
+            this.setPropagateResizing(true);
+        }
+        this.notify();
+    },
+    
 });
 lively.morphic.Morph.subclass("lively.morphic.DataFlowMinimizer",
 {

@@ -98,7 +98,6 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
         );
         
         $world.addMorph(newComponent);
-        newComponent.triggerLayouting();
     }
 });
 
@@ -451,14 +450,6 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.addPreviewMorph();
         this.setOpacity(0.7);
         this.notifyNeighborsOfDragStart();
-        
-        // move all morphs below further up and close the gap
-        var morphsBelow = this.getMorphsBelow();
-        // begin with the top most of them
-        morphsBelow.sort(function (a, b) {return a.getPosition().y - b.getPosition().y});
-        morphsBelow.each( function (ea) {
-            ea.setPosition(ea.calculateSnappingPosition());
-        })
     },
     
     onDragEnd: function($super, evt) {
@@ -473,10 +464,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     componentOffset: 20,
     
-    remove: function($super) {
-        $super();
-        this.triggerLayouting();
-    },
+
     
     wantsDroppedMorph: function($super, morphToDrop) {
         if (morphToDrop instanceof lively.morphic.DataFlowComponent) {
@@ -489,7 +477,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         $super();
         var previewPos = this.calculateSnappingPosition();
         $morph("PreviewMorph" + this).setPosition(previewPos);
-        this.triggerLayouting();
+        
+        this.realignAllComponentsInColumn();
     },
     
     onDropOn: function($super, aMorph) {
@@ -502,39 +491,11 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             var newext = this.calculateSnappingExtent();
             this.setExtent(newext, "snapping");
             this.setPropagateResizing(true);
-            
-            // move all components below
-            var morphsBelow = this.getMorphsBelow();
-            if (morphsBelow.length) {
-                morphsBelow.sort(function (a, b) {return a.getPosition().y - b.getPosition().y});
-                // if the dropped component lays on top of another component,
-                // move all following components further down
-                if (morphsBelow[0].getPosition().y <= this.getPosition().y + this.getExtent().y) {
-                    var lastPosition = 0;
-                    morphsBelow.each(function (ea) {
-                        // move it a little bit down so the snapping calculation will work
-                        if (!lastPosition)
-                            lastPosition = ea.getPosition();
-                        ea.setPosition(pt(lastPosition.x, lastPosition.y + 5))
-                        lastPosition = ea.calculateSnappingPosition();
-                        ea.setPosition(lastPosition);
-                    })
-                }
-            }
-            
         }
-        this.triggerLayouting();
         this.notify();
     },
     
-    triggerLayouting: function() {
-        var layouts = $world.submorphs.select(function(ea) {
-            return ea.isDataFlowAlignment && ea.isDataFlowAlignment();
-        }, this);
-        layouts.each(function(ea) {
-            ea.layoutWorld();
-        })
-    },
+
     
     createLabel: function() {
         var t = new lively.morphic.Text();
@@ -874,52 +835,72 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         }
     },
     
-    getMorphsBelow: function() {
+    getMorphsInColumn: function(point) {
         var allDFComponents = $world.withAllSubmorphsSelect(function(el) {
             return el instanceof lively.morphic.DataFlowComponent;
         });
-        var morphsBelow = [];
-        var myPosition = this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
+        var morphs = [];
+        var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
         
         allDFComponents.each(function(el) {
-            if (el == this)
+            if (el.isBeingDragged)
                 return;
 
             var elPosition = el.getPositionInWorld();
             
             // check for all DF components equal to and below my position
-            if (elPosition.y >= myPosition.y &&
-                elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
-            {
-                morphsBelow.push(el);
-            }
+            if (elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
+                morphs.push(el);
         }, this);
         
-        return morphsBelow;
+        return morphs;
+    },
+    
+    realignAllComponentsInColumn : function() {
+        var previewMorph = $morph("PreviewMorph" + this);
+        
+        // move all morphs below further up and close the eventual existing gap
+        var morphs = this.getMorphsInColumn();
+        // begin with the top most of them
+        morphs.sort(function (a, b) {return a.getPosition().y - b.getPosition().y});
+
+        var lastPosition = 0;
+        morphs.each( function (ea) {
+            if (!lastPosition)
+                lastPosition = ea.calculateSnappingPosition();
+            
+            // move the component a little bit down and snap to its position
+            ea.setPosition(pt(lastPosition.x, lastPosition.y + 5));
+            lastPosition = ea.calculateSnappingPosition();
+
+            // if there is a preview morph, move the next component below it
+            if (previewMorph && lastPosition.y <= previewMorph.getPosition().y + previewMorph.getExtent().y &&
+                lastPosition.y >= previewMorph.getPosition().y) {
+                lastPosition = lastPosition.addPt(pt(0, previewMorph.getExtent().y + ea.componentOffset));
+            }
+            ea.setPosition(lastPosition);
+        })
     }
 });
 lively.morphic.Morph.subclass("lively.morphic.DataFlowMinimizer",
 {
     initialize: function($super) {
         $super();
-        this.isLayoutable = false;
-        this.setFill(Color.gray);
+        this.setFillOpacity(0);
         this.setExtent(pt(50, 40));
+        this.setName("Minimizer");
         var vertices = [];
         vertices.push(pt(10,13));
         vertices.push(pt(25,25));
-        var vertices2 = [];
-        vertices2.push(pt(25,25));
-        vertices2.push(pt(40,13));
+        vertices.push(pt(40,13));
         this.addMorph(new lively.morphic.Path(vertices));
-        this.addMorph(new lively.morphic.Path(vertices2));
     },
     
     onMouseUp: function(e) {
         if (e.isLeftMouseButtonDown() && !e.isCtrlDown()) {
             
             if (this.owner.getExtent().y == 50) {
-                this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY),"maximized")
+                this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY),"maximized");
                 var prototype = this.owner.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
                 if (prototype)
                     prototype.setVisible(true);
@@ -931,6 +912,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowMinimizer",
                 if (prototype)
                     prototype.setVisible(false);
             }
+            this.owner.realignAllComponentsInColumn();
         }
     }
 });

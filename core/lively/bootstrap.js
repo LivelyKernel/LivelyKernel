@@ -749,7 +749,7 @@
             function(option) {
                 if (option == null) return null;
                 var queryString = document.location.search.toString();
-                option = option.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+                option = option.replace(/[\[]/g, "\\\[").replace(/[\]]/g, "\\\]");
                 var regex = new RegExp("[\\?&]" + option + "=([^&#]*)"),
                     result = regex.exec(queryString);
                 if (result != null) {
@@ -969,14 +969,14 @@
 
         bootstrap: function(thenDoFunc) {
             var url = Global.JSLoader.currentDir(),
-                dontBootstrap = Config.standAlone
-                             || url.indexOf('dontBootstrap=true') >= 0,
+                dontBootstrap = Config.standAlone || url.indexOf('dontBootstrap=true') >= 0,
                 base = this.rootPath,
-                optimizedLoading = Global.JSLoader.getOption('quickLoad');
+                timemachineActive = /timemachine/.test(Config.rootPath),
+                urlOption = Global.JSLoader.getOption('quickLoad'),
+                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive;
 
-            if (dontBootstrap) { thenDoFunc(); return }
+            if (dontBootstrap) { thenDoFunc(); return; }
 
-            optimizedLoading=true;/*not yet*/
             if (optimizedLoading) {
                 console.log('optimized loading enabled');
                 var hashUrl = base + 'generated/combinedModulesHash.txt',

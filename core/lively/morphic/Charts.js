@@ -814,7 +814,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var description = this.getSubmorphsByAttribute("name", "Description");
         var descriptionWidth = 150;
         if (description.length) {
-            descriptionWidth = description[0].getExtent().x + 50;
+            descriptionWidth = description[0].getExtent().x + 65;
         }
         var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
         if (errorText.length) {

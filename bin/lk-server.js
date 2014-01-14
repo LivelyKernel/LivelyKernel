@@ -148,7 +148,7 @@ function getServerInfo(callback) {
     readPid(function(err, pid) {
         if (err) { callback(err); return; }
         processExists(pid, function(err, isAlive) {
-            callback(err, {alive: err ? false : isAlive, pid: String(pid)});
+            callback(null, {alive: err ? false : isAlive, pid: String(pid)});
         });
     });
 }
@@ -213,6 +213,9 @@ if (options.defined('info')) {
             killOldServer, // Ensure that only one server for the given port is running
             startServer,
             writePid
-        ]);
+        ], function(err) {
+            if (err) console.error('Error starting Lively server: %s', err);
+            else console.log('Lively server starting...');
+        });
     });
 }

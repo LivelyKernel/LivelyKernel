@@ -660,10 +660,19 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     refreshData: function() {
         var morphAbove = this.getMorphInDirection(pt(0,-1));
         var morphLeft = this.getMorphInDirection(pt(-1,0));
-        if (morphAbove && morphAbove.bottomArrow.isActive())
-            this.data = JSON.parse(JSON.stringify(morphAbove.data));
-        else if (morphLeft && morphLeft.rightArrow.isActive()) {
-            this.data = JSON.parse(JSON.stringify(morphLeft.data));
+        if (morphAbove && morphAbove.bottomArrow.isActive()) {
+        
+            // terribly slow and shallow
+            // this.data = jQuery.extend({}, morphAbove.data);
+            
+            // throws methods away 
+            // this.data = JSON.parse(JSON.stringify(morphAbove.data));
+            
+            this.data = morphAbove.data;
+        } else if (morphLeft && morphLeft.rightArrow.isActive()) {
+            // this.data = jQuery.extend({}, morphLeft.data);
+            // this.data = JSON.parse(JSON.stringify(morphLeft.data));
+            this.data = morphLeft.data;
         } else {
             this.data = null;
         }

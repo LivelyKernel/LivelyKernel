@@ -866,8 +866,14 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
         var lastPosition = 0;
         morphs.each( function (ea) {
-            if (!lastPosition)
-                lastPosition = ea.calculateSnappingPosition();
+            // initialize lastPosition to the one of the first component
+            // or the previewMorphs one, if it's at the very top
+            if (!lastPosition) {
+                if (previewMorph && previewMorph.getPosition().y < ea.getPosition().y)
+                    lastPosition = pt(ea.calculateSnappingPosition().x, previewMorph.getPosition().y);
+                else
+                    lastPosition = ea.calculateSnappingPosition();
+            }
             
             // move the component a little bit down and snap to its position
             ea.setPosition(pt(lastPosition.x, lastPosition.y + 5));
@@ -876,7 +882,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             // if there is a preview morph, move the next component below it
             if (previewMorph && lastPosition.y <= previewMorph.getPosition().y + previewMorph.getExtent().y &&
                 lastPosition.y >= previewMorph.getPosition().y) {
-                lastPosition = lastPosition.addPt(pt(0, previewMorph.getExtent().y + ea.componentOffset));
+                lastPosition = pt(lastPosition.x, previewMorph.getPosition().y + previewMorph.getExtent().y + ea.componentOffset);
             }
             ea.setPosition(lastPosition);
         })

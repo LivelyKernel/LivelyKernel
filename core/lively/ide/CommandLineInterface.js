@@ -348,22 +348,12 @@ Object.extend(lively.ide.CommandLineInterface, {
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
         if (thenDo) options.whenDone = thenDo;
-        var cmd = new lively.ide.CommandLineInterface.Command(commandString, options);
-        this.scheduleCommand(cmd, options.group);
-        return cmd;
-    },
-
-    runPersistent: function(commandString, options, thenDo) {
-        /*
-        Uses an improved command backend (via websockets) that will output
-        stdout/err while the command is running and will first invoke thenDo
-        when the command is really done (no cutoofs). This will replace the
-        current default command in the future.
-        */
-        thenDo = Object.isFunction(options) ? options : thenDo;
-        options = !options || Object.isFunction(options) ? {} : options;
-        if (thenDo) options.whenDone = thenDo;
-        var cmd = new lively.ide.CommandLineInterface.PersistentCommand(commandString, options);
+        var session = lively.net.SessionTracker.getSession(),
+            lively2LivelyShellAvailable = session && session.isConnected(),
+            commandClass = lively2LivelyShellAvailable ?
+                lively.ide.CommandLineInterface.PersistentCommand :
+                lively.ide.CommandLineInterface.Command,
+            cmd = new commandClass(commandString, options);
         this.scheduleCommand(cmd, options.group);
         return cmd;
     },
@@ -378,24 +368,13 @@ Object.extend(lively.ide.CommandLineInterface, {
         options = !options || Object.isFunction(options) ? {} : options;
         if (thenDo) options.whenDone = thenDo;
         options.exec = true;
-        var cmd = new lively.ide.CommandLineInterface.Command(commandString, options);
-        this.scheduleCommand(cmd, options.group);
-        return cmd;
+        return this.run(commandString, options);
     },
 
     execSync: function(commandString, options) {
         options = options || {};
         options.sync = true;
         return this.exec(commandString, options, null);
-    },
-
-    kill: function(cmd, thenDo) {
-        // FIXME just kills the running command, not looking for pid...
-        /*
-        lively.ide.CommandLineInterface.kill();
-        */
-        this.commandLineServerURL.asWebResource().beAsync().withJSONWhenDone(function(json) {
-            thenDo && thenDo(json.message ? json.message : json); }).del();
     },
 
     runAll: function(commands, thenDo) {
@@ -434,6 +413,15 @@ Object.extend(lively.ide.CommandLineInterface, {
         }, thenDo.curry(results), this);
     },
 
+    kill: function(cmd, thenDo) {
+        // FIXME just kills the running command, not looking for pid...
+        /*
+        lively.ide.CommandLineInterface.kill();
+        */
+        this.commandLineServerURL.asWebResource().beAsync().withJSONWhenDone(function(json) {
+            thenDo && thenDo(json.message ? json.message : json); }).del();
+    },
+
     getWorkingDirectory: function() {
         // the directory the commandline server runs with
         var webR = this.commandLineServerURL.asWebResource().beSync();
@@ -459,7 +447,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     readFile: function(path, options, thenDo) {
         options = options || {};
         path = '"' + path + '"';
-        var cmd = this.runPersistent('cat ' + path);
+        var cmd = this.run('cat ' + path);
         if (options.onInput) lively.bindings.connect(cmd, 'stdout', options, 'onInput');
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
@@ -579,6 +567,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         var serverEval= URL.create(Config.nodeJSURL+'/NodeJSEvalServer/').asWebResource();
         return this._serverPlatform = serverEval.beSync().post('process.platform').content;
     }
+
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

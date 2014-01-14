@@ -1,10 +1,10 @@
 var spawn = require('child_process').spawn,
-    exec = require('child_process').exec,
-    util = require('util'),
-    i = util.inspect,
-    dir = process.env.WORKSPACE_LK,
+    exec  = require('child_process').exec,
+    util  = require('util'),
+    i     = util.inspect,
+    dir   = process.env.WORKSPACE_LK,
     debug = false,
-    d = require("domain").create();
+    d     = require("domain").create();
 
 d.on('error', function(err) {
     console.error('CommandLinerServer error:', err);
@@ -88,7 +88,7 @@ function startSpawn(cmdInstructions) {
             return process.env[match.slice(1,match.length)] || match; }); });
     command = args.shift();
 
-    if (debug) console.log('Running command: %s', [command].concat(args));
+    if (debug) console.log('Running command: "%s"', [command].concat(args).join(' '));
     var proc = spawn(command, args, options);
     d.add(proc);
     if (stdin) {
@@ -162,6 +162,7 @@ function formattedResponseText(type, data) {
  * Lively2Lively services
  */
 var shellServices = {
+
     runShellCommand: function(sessionServer, connection, msg) {
         // spawn/exec
         function answer(hasMore, data) {
@@ -179,6 +180,7 @@ var shellServices = {
             debug && console.log('Shell command %s exited %s', pid, exit);
             answer(false, exit); });
     },
+
     stopShellCommand: function(sessionServer, connection, msg) {
         // kill
         function answer(data) {
@@ -198,6 +200,7 @@ var shellServices = {
                 out: String(out), err: String(err)});
         });
     },
+
     writeToShellCommand: function(sessionServer, connection, msg) {
         // sends input (stdin) to running processes
         function answer(data) {

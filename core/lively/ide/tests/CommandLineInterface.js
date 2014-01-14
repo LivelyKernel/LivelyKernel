@@ -376,7 +376,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
     }
 });
 
-AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunPersistentCommand',
+AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunCommand',
 'testing', {
     testRunSimpleCommand: function() {
         var cmd = new lively.ide.CommandLineInterface.PersistentCommand('echo 1; sleep 0.5; echo 2', {});
@@ -396,7 +396,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunPersistentComma
 
     testInterface: function() {
         var cmdString = 'echo 4; sleep 0.1; echo 2', result = '',
-            cmd = lively.ide.CommandLineInterface.runPersistent(cmdString,{}, function() { result += cmd.resultString(); });
+            cmd = lively.ide.CommandLineInterface.run(cmdString,{}, function() { result += cmd.resultString(); });
         this.waitFor(function() { return cmd.isDone(); }, 10, function() {
             this.assertEquals('4\n2', result);
             this.done();
@@ -406,7 +406,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunPersistentComma
     testRead: function() {
         this.onTearDown(function() { cmd.isRunning() && cmd.kill(); });
         var cmdString = 'echo "Enter stuff:"; read input; echo "input was $input"', result = '',
-            cmd = lively.ide.CommandLineInterface.runPersistent(cmdString,{}, function() {});
+            cmd = lively.ide.CommandLineInterface.run(cmdString,{}, function() {});
         this.delay(function() {
             this.assertEquals("Enter stuff:", cmd.getStdout().trim());
             cmd.write('aha\n');

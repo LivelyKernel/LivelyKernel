@@ -1,4 +1,4 @@
-module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets').toRun(function() {
+module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets', 'cop.Layers').toRun(function() {
 
 lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
@@ -124,6 +124,17 @@ lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
     }
     
 } );
+cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
+    basicLayout: function(container, submorphs) {
+        try {
+        var result = cop.proceed(container, submorphs);
+        } catch(e){
+            console.log("Error during layout: " + e);
+            return null;
+        }
+        return result
+undefined},
+}).beGlobal();
 
 lively.morphic.Morph.subclass("lively.morphic.FreeLayout", {
     

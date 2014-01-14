@@ -367,25 +367,37 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             if (preview) {
                 preview.setExtent(this.calculateSnappingExtent());
             }
-            return componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
+            var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
+            if (this.getPositionInWorld().y < componentAbove.getPosition().y + componentAbove.getExtent().y + this.componentOffset + 200) {
+                debugger;
+                // snap directly below component above
+                return posBelowComponent;
+            }
+            // snap into column of component above
+            var yGrid = this.calculateSnappingPositionInGrid().y;
+            return pt(posBelowComponent.x, yGrid);
         } else {
             // snap to the grid
             if (preview) {
                 preview.setExtent(this.getExtent());
             }
-            var pos = this.getPositionInWorld();
-            var offsetX = 0;
-            var offsetY = 0;
-            
-            // Find the nearest fitting snapping point
-            if (pos.x % this.gridWidth > this.gridWidth / 2) {
-                offsetX = this.gridWidth;
-            }
-            if (pos.y % this.gridWidth > this.gridWidth / 2) {
-                offsetY = this.gridWidth;
-            }
-            return pt(Math.floor(pos.x/this.gridWidth)*this.gridWidth + offsetX,Math.floor(pos.y/this.gridWidth)*this.gridWidth + offsetY);
+            return this.calculateSnappingPositionInGrid();
         }
+    },
+    
+    calculateSnappingPositionInGrid: function() {
+        var pos = this.getPositionInWorld();
+        var offsetX = 0;
+        var offsetY = 0;
+        
+        // Find the nearest fitting snapping point
+        if (pos.x % this.gridWidth > this.gridWidth / 2) {
+            offsetX = this.gridWidth;
+        }
+        if (pos.y % this.gridWidth > this.gridWidth / 2) {
+            offsetY = this.gridWidth;
+        }
+        return pt(Math.floor(pos.x/this.gridWidth)*this.gridWidth + offsetX,Math.floor(pos.y/this.gridWidth)*this.gridWidth + offsetY);
     },
     
     addPreviewMorph: function() {

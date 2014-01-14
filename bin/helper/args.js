@@ -5,8 +5,14 @@
  * Simpler version of optparse
  *
  */
-
-var optparse = require('optparse');
+try {
+    var optparse = require('optparse');
+    exports.options = switchOptions;
+} catch(e) {
+    exports.options = function() {
+        return {defined: function() { return false; }};
+    };
+}
 
 function switchNames(switches) {
     var switchRe = /^\-\-([a-zA-Z0-9_\-]+).*/;
@@ -55,5 +61,3 @@ function switchOptions(switches, defaultOptions, banner) {
     parser.parse(process.argv);
     return options;
 }
-
-exports.options = switchOptions;

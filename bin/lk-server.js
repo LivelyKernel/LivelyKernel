@@ -1,93 +1,20 @@
 /*global require, process, __dirname*/
-var path = require('path'),
-    fs = require('fs');
+var path             = require('path'),
+    fs               = require('fs'),
+    exec             = require('child_process').exec,
+    checkNPMPackages = require("./helper/check-modules"),
+    env              = require('./env'),
+    args             = require('./helper/args'),
+    cmdAndArgs       = [];
 
-function checkNPMPackages() {
-    var exec = require("child_process").exec;
-    var lkDir = path.join(__dirname, '..');
-
-    function ensureNodeBin(thenDo) {
-        // looks like not all platforms have a "node" binary. on kubuntu it
-        // seems to be called "nodejs". Lively is actually aware of those
-        // issues since we detect various kinds of nodejs bins in env.js.
-        // However, when installing the dependencies we can run into trouble b/c
-        // e.g. websocket directly references the node bin. in order to allow
-        // the install to succeed we but a "node" bin into PATH
-        console.log('Checking if "node" exists...');
-        exec("which node", function(code) {
-            if (!code) { /*node exists*/
-                thenDo(null);
-                console.log('... yes');
-                return;
-            }
-            console.log('... no');
-            var binPath = path.join(process.env.WORKSPACE_LK, 'bin'),
-                nodeBin = path.join(binPath, 'node'),
-                realNodeBin = process.env.npm_node_execpath || process.execPath,
-                nodeBinScript = "#!/usr/bin/env sh\n\n"
-                          + realNodeBin + " \"$@\"\n";
-            fs.writeFileSync(nodeBin, nodeBinScript);
-            fs.chmodSync(nodeBin, 0755);
-            process.env.PATH = binPath + ':' + process.env.PATH;
-            thenDo(null);
-        }).on("error", function(err) {});
-    }
-
-    function findMissingNPMPackages() {
-        var packageJson = path.join(lkDir, "package.json");
-        var packageJsonContent = fs.readFileSync(packageJson);
-        var packageJso = JSON.parse(packageJsonContent);
-        var requiredDepNames = Object.keys(packageJso.dependencies);
-
-        var nodeModulesDir = path.join(lkDir, "node_modules");
-        var actualDepNames = fs.existsSync(nodeModulesDir) ? fs.readdirSync(nodeModulesDir) : [];
-
-        var uninstalled = requiredDepNames.reduce(function(reqDeps, name) {
-            if (actualDepNames.indexOf(name) == -1) reqDeps.push(name);
-            return reqDeps;
-        }, []);
-
-        return uninstalled;
-    }
-
-    function installAll(pkgNames, thenDo) {
-        if (!pkgNames.length) { thenDo(null); return; }
-        var pkgName = pkgNames.pop();
-        console.log("Installing package %s...", pkgName);
-        install(pkgName, function(code, out, err) {
-            if (code) {
-                console.warn('Problem installing npm package %s:\n%s\n%s', pkgName, out, err);
-            } else {
-                console.log("Package %s successfully installed.", pkgName);
-            }
-            installAll(pkgNames, thenDo);
-        });
-    }
-
-    function install(pkgName, thenDo) {
-        exec("npm install " + pkgName, {cwd: lkDir}, thenDo);
-    }
-
-    var missingPackages = findMissingNPMPackages();
-    if (!missingPackages || !missingPackages.length) return true;
-    console.log('Not all required npm packages are installed! Installing packages %s', missingPackages);
-    console.log('Please wait until the packages are installed and then restart the server.');
-    installAll(missingPackages, function(err) {
-        console.log("Finished installing dependencies, please restart.");
-        process.exit(0);
-    });
-    return false;
-}
-
-if (checkNPMPackages()) {
-
-var async = require('async'),
-    spawn = require('child_process').spawn,
-    shelljs = require('shelljs'),
-    env = require('./env'),
-    life_star = require('life_star'),
-    args = require('./helper/args'),
-    cmdAndArgs = [];
+/*
+ * This script starts up a node.js server for lively. The server itself is
+ * implemented in the life_star module.
+ * Note that we check node_module dependencies in this script (comparing the
+ * package.json and node_modules folder). When you edit this script please keep
+ * in mind that we cannot rely on external modules being available Until this
+ * has happened!
+ */
 
 // -=-=-=-=-=-=-=-=-=-=-
 // script options
@@ -132,14 +59,14 @@ var port = options.port || env.LIFE_STAR_PORT,
     subservers = {};
 
 if (!options.lkDir && env.WORKSPACE_LK_EXISTS) {
-    options.lkDir = env.WORKSPACE_LK;
+    options.lkDir = env.WORKSPACE_LK || path.resolve(__dirname, "..");
 } else {
     env.WORKSPACE_LK = options.lkDir;
 }
 
 if (!options.defined('lkDir')) {
     console.log("Cannot find the Lively core repository. "
-               + "Please start the server with --lk-dir PATH/TO/LK-REPO")
+               + "Please start the server with --lk-dir PATH/TO/LK-REPO");
 }
 
 var dbConfig;
@@ -185,13 +112,17 @@ if (!options.defined('noSubservers') && options.defined('subserver')) {
 var pidFile = path.join(env.SERVER_PID_DIR, 'server.' + port + '.pid');
 
 function removePidFile() {
-    try { fs.unlink(pidFile) } catch(e) {}
+    try { fs.unlink(pidFile); } catch(e) {}
 }
 
 function writePid(proc, callback) {
-    shelljs.mkdir('-p', env.SERVER_PID_DIR);
-    if (proc.pid) { fs.writeFileSync(pidFile, String(proc.pid)); }
-    callback();
+    if (!proc.pid) { callback(); return; }
+    fs.exists(env.SERVER_PID_DIR, function(exists) {
+        fs.mkdir(env.SERVER_PID_DIR, function(err) {
+            if (err) callback(err);
+            fs.writeFile(pidFile, String(proc.pid), callback);
+        });
+    });
 }
 
 function readPid(callback) {
@@ -201,7 +132,7 @@ function readPid(callback) {
 function isPidInOutput(pid, out, callback) {
     var lines = out.split('\n'),
         regexp = new RegExp(pid),
-        result = lines.some(function(line) { return regexp.test(line) });
+        result = lines.some(function(line) { return regexp.test(line); });
     callback(null, result, pid);
 }
 
@@ -209,32 +140,29 @@ function processExists(pid, callback) {
     if (!pid || !pid.length) { callback({err: 'No pid'}); return; }
     var isWindows = /^win/i.test(process.platform),
         cmd = isWindows ? 'tasklist.exe' : 'ps -A';
-    shelljs.exec(cmd, {async: true, silent: true}, function(err, data) {
-        isPidInOutput(pid, data || '', callback);
-    });
+    exec(cmd, {}, function(code, out, err) {
+        isPidInOutput(pid, out || '', callback); });
 }
 
 function getServerInfo(callback) {
-    async.waterfall([
-        readPid,
-        processExists
-    ], function(err, isAlive, pid) {
-        if (err) isAlive = false;
-        var info = {alive: isAlive, pid: String(pid)};
-        callback(null, info);
+    readPid(function(err, pid) {
+        if (err) { callback(err); return; }
+        processExists(pid, function(err, isAlive) {
+            callback(err, {alive: err ? false : isAlive, pid: String(pid)});
+        });
     });
 }
 
 function killOldServer(infoAboutOldServer, callback) {
     if (infoAboutOldServer.alive) {
         console.log('Stopping lk server process with pid ' + infoAboutOldServer.pid);
-        try { process.kill(infoAboutOldServer.pid) } catch(e) {}
+        try { process.kill(infoAboutOldServer.pid); } catch(e) {}
     }
     callback();
 }
 
 function startServer(callback) {
-    life_star({
+    require("life_star")({
         host:                host,
         port:                port,
         fsNode:              options.lkDir, // LivelyKernel directory to serve from
@@ -265,16 +193,26 @@ if (options.defined('info')) {
         console.log(info ? JSON.stringify(info) : '{}');
     });
 } else if (options.defined('kill')) {
-    async.waterfall([getServerInfo, killOldServer]);
+    var onError = function(err) {
+        console.error('Error stopping server: %s', err);
+    };
+    getServerInfo(function(err, serverInfo) {
+        if (err) onError(err);
+        else killOldServer(serverInfo, function(err) {
+            if (err) onError(err);
+            else console.log('server stopped %s', serverInfo);
+        });
+    });
 } else {
     // let it fly!
-    async.waterfall([
-        require("./download-partsbin.js"),
-        getServerInfo,
-        killOldServer, // Ensure that only one server for the given port is running
-        startServer,
-        writePid
-    ]);
-}
-
+    checkNPMPackages(function(err) {
+        if (err) { console.error('error on server start: %s', err); return; }
+        require("async").waterfall([
+            require("./helper/download-partsbin.js"),
+            getServerInfo,
+            killOldServer, // Ensure that only one server for the given port is running
+            startServer,
+            writePid
+        ]);
+    });
 }

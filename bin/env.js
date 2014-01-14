@@ -2,10 +2,43 @@
 
 var fs        = require('fs'),
     path      = require('path'),
-    shelljs   = require('shelljs'),
-    which     = shelljs.which,
     env       = process.env,
     isWindows = /^win/i.test(process.platform);
+
+function which(command) {
+    var _which;
+    try {
+        _which = require('shelljs').which;
+    } catch(e) {
+        // no shelljs available
+        _which = function(command) {
+            // find the full path to the argument command, e.g. which("node") ->
+            // /usr/bin/node. This works synchronously by busy-waiting on a result
+            // file. (The sleepfile trick below is taken from shelljs, apparently this
+            // is as CPU-friendly as it gets)
+            var util            = require("util"),
+                exec            = require("child_process").exec,
+                whichOutputFile = "which_output",
+                sleepFile       = "which_sleep",
+                output = '';
+            try {
+                if (fs.existsSync(whichOutputFile)) fs.unlinkSync(whichOutputFile);
+                var execWhich = util.format("which %s > %s", command, whichOutputFile);
+                exec(execWhich);
+                while (!fs.existsSync(whichOutputFile))
+                    fs.writeFileSync(sleepFile, 'sleeeeeep');
+                output = String(fs.readFileSync(whichOutputFile)).trim();
+            } finally {
+                try {
+                    fs.existsSync(sleepFile) && fs.unlinkSync(sleepFile);
+                    fs.existsSync(whichOutputFile) && fs.unlinkSync(whichOutputFile);
+                } catch(e) { console.error(e); }
+            }
+            return output;
+        };
+    }
+    return _which(command);
+}
 
 function join(pathA, pathB) {
     pathA = pathA || ''; pathB = pathB || '';

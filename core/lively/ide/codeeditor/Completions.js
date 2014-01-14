@@ -1,9 +1,12 @@
 module('lively.ide.codeeditor.Completions').requires('lively.ide.codeeditor.ace').toRun(function() {
 
-module('lively.ide');
-
 (function setupCompletions() {
-    if (UserAgent.isNodejs || UserAgent.isWorker) return;
+    if (UserAgent.isNodejs
+     || UserAgent.isWorker
+     || !lively.Config.get('computeCodeEditorCompletionsOnStartup'))
+     return;
+
+    module('lively.ide');
 
     var words = {};
     function wordsFromFiles(next) {
@@ -65,7 +68,7 @@ module('lively.ide');
 
     function done(next) { alertOK('Word completion installed!'); next(); }
 
-    [wordsFromFiles, installCompleter, done].doAndContinue()
+    [wordsFromFiles, installCompleter, done].doAndContinue();
 })();
 
 }) // end of module

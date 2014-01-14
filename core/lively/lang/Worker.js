@@ -36,8 +36,8 @@ lively.Worker = {
         // creation of the worker and sends the setup message to the worker
         // for initializing it.
         function init(worker) {
-            var bootstrapFiles = LivelyLoader.bootstrapFiles/*.map(function(url) {
-                return '/' + URL.create(url).relativePathFrom(URL.root); });*/
+            var bootstrapFiles = LivelyLoader.bootstrapFiles.map(function(url) {
+                return url.startsWith('http:') ? url : URL.root.toString() + url; });
             worker.postMessage({
                 command: 'setup',
                 options: {
@@ -128,7 +128,10 @@ lively.Worker = {
                     finishLoadingCallbacks: []
                 };
                 Config.location.toString = function() { return this.href; }
-                if (!Global.document) Global.document = {location: Config.location, URL: Config.location.toString()}
+                if (!Global.document) Global.document = {
+                    location: Config.location,
+                    URL: Config.location.toString()
+                }
                 var loadedURLs = [];
                 Global.JSLoader = {
                     loadJs: function(url, callback) {
@@ -140,7 +143,7 @@ lively.Worker = {
                         }
                     },
                     currentDir: function () { return options.locationDirectory; },
-                    scriptInDOM: function(url) { return loadedURLs.indexOf(url) !== -1; },
+                    isLoading: function(url) { return loadedURLs.indexOf(url) !== -1; }
                 }
                 Global.LivelyMigrationSupport = {
                     fixModuleName: function(n) { return n; },

@@ -24,7 +24,7 @@ dependencies.doAndContinue(function(next, lib) {
 }, function() { allOMetaDependenciesLoaded = true; });
 
 module('ometa.lively').requires()
-.requiresLib({loadTest: function() { return !!allOMetaDependenciesLoaded; }})
+.requiresLib({urls: dependencies.pluck('url'), loadTest: function() { return !!allOMetaDependenciesLoaded; }})
 .toRun(function() {
 
 });

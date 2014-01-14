@@ -336,11 +336,11 @@ Object.extend(Array.prototype, {
         // as a function as first parameter. This allows to wait arbitrarily
         // between operation steps, great for synchronous dependent steps
         endFunc = endFunc || Functions.Null;
-        conext = context || Global;
+        context = context || Global;
         iterator = iterator || function(next, ea, idx) { ea.call(context, next, idx); };
-        return this.reverse().inject(endFunc, function(nextFunc, ea, idx) {
+        return this.clone().reverse().reduce(function(nextFunc, ea, idx) {
             return function() { iterator.call(context, nextFunc, ea, idx); }
-        })();
+        }, endFunc)();
     },
 
     forEachShowingProgress: function(progressBar, iterator, labelFunc, whenDoneFunc, context) {

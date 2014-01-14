@@ -5,16 +5,18 @@
 // loading and don't expose the acorn global. the current solution for this
 // right now is to support both schemes here
 var acornLibsLoaded = false;
+var acornLibs =  [Config.codeBase + 'lib/acorn/acorn.js',
+                  Config.codeBase + 'lib/acorn/acorn-loose.js',
+                  Config.codeBase + 'lib/acorn/acorn-walk.js'];
 (function loadAcornLibs() {
     if (typeof requirejs !== "undefined") loadAcornWithRequireJS()
     else loadAcornManually();
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     function loadAcornManually() {
         var dependencies = [
-            {url: Config.codeBase + 'lib/acorn/acorn.js',       loadTest: function() { return typeof acorn !== 'undefined'; }},
-            {url: Config.codeBase + 'lib/acorn/acorn-loose.js', loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
-            {url: Config.codeBase + 'lib/acorn/acorn-walk.js',  loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }}
-        ];
+            {url: acornLibs[0], loadTest: function() { return typeof acorn !== 'undefined'; }},
+            {url: acornLibs[1], loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
+            {url: acornLibs[2],  loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }}];
         dependencies.doAndContinue(function(next, lib) {
             JSLoader.loadJs(lib.url);
             var interval = Global.setInterval(function() {
@@ -34,7 +36,7 @@ var acornLibsLoaded = false;
     }
 })();
 
-module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({loadTest: function() { return !!acornLibsLoaded; }}).toRun(function() {
+module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({urls: acornLibs, loadTest: function() { return !!acornLibsLoaded; }}).toRun(function() {
 
 (function extendAcorn() {
 

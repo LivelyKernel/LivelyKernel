@@ -1,6 +1,9 @@
 # Cruft #
 .DS_Store
 
+# optimized loading #
+combined.js
+
 # Scripts #
 workspace/
 localconfig.js
@@ -8,10 +11,12 @@ localconfig.js
 # Worlds #
 *.html
 !blank.html
+!welcome.html
 !run_tests.html
 
 # Node #
 node_modules
+*.pid
 
 # Parts #
 PartsBin

@@ -1,4 +1,4 @@
-module('lively.net.SessionTracker').requires('lively.Network', 'lively.persistence.BuildSpec').toRun(function() {
+module('lively.net.SessionTracker').requires('lively.Network').toRun(function() {
 
 Object.subclass('lively.net.SessionTrackerConnection',
 'initializing', {
@@ -435,7 +435,7 @@ Object.extend(lively.net.SessionTracker, {
 });
 
 (function setupSessionTrackerConnection() {
-    if (UserAgent.isNodejs) return;
+    if (UserAgent.isNodejs || UserAgent.isWorker) return;
     lively.whenLoaded(function(world) {
         if (!Config.get('lively2livelyAutoStart')) return;
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

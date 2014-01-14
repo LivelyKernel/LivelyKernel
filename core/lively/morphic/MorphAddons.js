@@ -912,9 +912,10 @@ lively.morphic.World.addMethods(
     },
 
     requestUserName: function() {
-        if (!Config.userNameURL) return null;
-        var webR = new WebResource(Config.userNameURL).get();
-        return webR.status.isSuccess() ? webR.content.replace(/\n|\"/g, '') : null;
+        // use a server request to determine the user name. Used to be a cgi
+        // script, could be a DB lookup followed by a login screen or something.
+        // currently disabled
+        return null;
     },
     askToRegisterAnAccount: function() {
         var msg = 'Cannot retrieve your user name. Register an account now?';

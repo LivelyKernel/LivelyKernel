@@ -1,4 +1,4 @@
-module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.morphic.Graphics').toRun(function() {
+module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.net.SessionTracker', 'lively.morphic.Graphics').toRun(function() {
 
 Object.subclass('lively.ide.CommandLineInterface.Command',
 "initializing", {

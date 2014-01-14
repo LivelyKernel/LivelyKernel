@@ -115,7 +115,7 @@ module.exports = function(route, app) {
             if (err) { res.status(500).end(String(err)); return; }
             var acceptEncoding = req.headers['accept-encoding'] || '',
                 header = {
-                    // indefinitely?
+                    'Content-Type': 'application/javascript',
                     "Cache-Control": "max-age=" + 60/*secs*/*60/*mins*/*24/*h*/*30/*days*/
                 }
             if (acceptEncoding.match(/\bdeflate\b/)) {

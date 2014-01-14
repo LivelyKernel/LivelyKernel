@@ -578,7 +578,7 @@
         loadViaXHR: function(beSync, url, onLoadCb) {
             this.getViaXHR(beSync, url, function(err, content) {
                 if (err) {
-                    console.error('error loading %s: %s', url, err);
+                    console.warn('cannot load %s: %s', url, err);
                 } else {
                     JSLoader.evalJavaScriptFromURL(url, content, onLoadCb);
                 }

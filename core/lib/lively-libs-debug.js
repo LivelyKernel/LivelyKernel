@@ -1,5 +1,5 @@
 /*
- * This file was compiled with "lk build-libs" on Sat, 07 Sep 2013 03:44:55 GMT with the libs:
+ * This file was compiled with "lk build-libs" on Wed, 08 Jan 2014 00:35:23 GMT with the libs:
  * jquery-2.0.3.js
  * jquery-bounds.js
  * es5-shim.js
@@ -8841,6 +8841,17 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 })( window );
 
 
+;(function setupjQuery(Global) {
+    var lively = Global.lively || {}, jQuery = Global.jQuery;
+    // we still are adding jQuery to Global but this is DEPRECATED.
+    // We need to be able to run with libraries requiring
+    // different jQuery versions so we will restrict "our" to
+    // lively.$ in the future
+    Global.$ = lively.$ = jQuery.noConflict(/*true -- really removes $*/);
+})(window);
+
+
+
 //! https://raw.github.com/rksm/jquery-bounds/master/jquery-bounds.js
 /*!
  * jQuery.bounds
@@ -8923,22 +8934,13 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 })(jQuery);
 
 
-//! https://raw.github.com/kriskowal/es5-shim/v2.0.5/es5-shim.js
+//! https://raw.github.com/es-shims/es5-shim/v2.0.5/es5-shim.js
 // Copyright 2009-2012 by contributors, MIT License
 // vim: ts=4 sts=4 sw=4 expandtab
 
-// Module systems magic dance
+// Module systems magic dance -- disabled by lively
 (function (definition) {
-//     // RequireJS
-//     if (typeof define == "function") {
-//         define(definition);
-//     // YUI3
-//     } else if (typeof YUI == "function") {
-//         YUI.add("es5", definition);
-//     // CommonJS and <script>
-    // } else {
-        definition();
-    // }
+    definition();
 })(function () {
 
 /**

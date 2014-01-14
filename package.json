@@ -15,7 +15,9 @@
     "shelljs": "~0.2",
     "optparse": "~1.0",
     "colorize": "~0.1",
-    "websocket": "1.0.8"
+    "websocket": "1.0.8",
+    "file-fuser": ">=0.0.4",
+    "watch": "~0.8.0"
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",

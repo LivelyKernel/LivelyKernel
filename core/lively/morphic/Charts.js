@@ -774,9 +774,16 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     setExtent: function($super, newExtent, resizeType) {
-        $super(newExtent);
-        this.bottomArrow.positionAtMorph(); 
-        this.rightArrow.positionAtMorph();
+        // if it is a merger: resize this
+        // else: only resize if directly initiated
+        
+        if (!(this.isMerger() && (resizeType == "propagatedFromAbove" || resizeType == "propagatedFromBelow"))) {
+            $super(newExtent);
+            
+            this.bottomArrow.positionAtMorph(); 
+            this.rightArrow.positionAtMorph();
+            this.layoutCodeEditor(newExtent);
+        }
         
         if (resizeType != "maximized" && !this.previewAdded && !this.draggingFromPartsBin && this.shouldPropagateResizing()) {
             this.addPreviewMorph();
@@ -789,16 +796,16 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         // so we try to inform both neighbors. Therefore we set it to "active".
         // If it is "propagatedFromAbove", the request came from above, so we inform the component
         // below, if it is "propagatedFromBelow" the other way around.
-        if (!resizeType) {
+        if (!resizeType && !this.isMerger()) {
             resizeType = "active";
         }
-        if ((resizeType === "propagatedFromAbove" || resizeType === "active") && this.shouldPropagateResizing()) {
+        if ((resizeType === "propagatedFromAbove" || resizeType === "active") && this.shouldPropagateResizing() && !this.isMerger()) {
             var componentBelow = this.getMorphInDirection(pt(0,1));
             if (componentBelow) {
                 componentBelow.setPropagatedExtent(newExtent, "propagatedFromAbove");
             }
         }
-        if ((resizeType === "propagatedFromBelow" || resizeType === "active") && this.shouldPropagateResizing()) {
+        if ((resizeType === "propagatedFromBelow" || resizeType === "active") && this.shouldPropagateResizing() && !this.isMerger()) {
             var componentAbove = this.getMorphInDirection(pt(0,-1));
             if (componentAbove) {
                 componentAbove.setPropagatedExtent(newExtent, "propagatedFromBelow");
@@ -823,8 +830,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         if (errorText.length) {
             errorText[0].setExtent(pt(this.getExtent().x - descriptionWidth, errorText[0].getExtent().y));
         }
-        
-        this.layoutCodeEditor(newExtent);
+
     },
     
     throwError: function(error) {

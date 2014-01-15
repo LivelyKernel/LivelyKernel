@@ -3,11 +3,6 @@ var path = require("path");
 var zlib = require('zlib');
 var ffuser = require('file-fuser');
 
-var coreFiles = determineCoreFiles();
-var dir = process.env.WORKSPACE_LK;
-var combinedFile = "combined.js"
-var fuser;
-
 function determineCoreFiles() {
     // bootstrap.js - libsFile
     var libsFile = 'core/lib/lively-libs-debug.js';
@@ -29,11 +24,13 @@ function determineCoreFiles() {
     function moduleToFile(module) {
         // TODO: Adapt module load logic
         var relFile = 'core/' + module.replace(/\./g, '/') + '.js';
-        var absFile = path.join(dir, relFile);
+      console.log(directory)
+      console.log(relFile)
+        var absFile = path.join(directory, relFile);
         if (fs.existsSync(absFile))
             return absFile;
         relFile = module.replace(/\./g, '/') + '.js';
-        absFile = path.join(dir, relFile);
+        absFile = path.join(directory, relFile);
         return absFile;
     }
 
@@ -81,14 +78,17 @@ function determineCoreFiles() {
     return coreFiles;
 }
 
+var directory = process.env.WORKSPACE_LK || path.resolve(__dirname, '../..');
+var combinedFile = "combined.js"
 // FIXME!!! Currently some coreFiles have absolute paths, make them relative here
-coreFiles = coreFiles.map(function(fn) {
-    return fn.indexOf(dir) === 0 ?
-        fn.replace(new RegExp(dir + '[\/\\\\]?'), '') : fn;
+var coreFiles = determineCoreFiles().map(function(fn) {
+    return fn.indexOf(directory) === 0 ?
+        fn.replace(new RegExp(directory + '[\/\\\\]?'), '') : fn;
 });
 
+var fuser;
 ffuser({
-    baseDirectory: dir,
+    baseDirectory: directory,
     files: coreFiles,
     combinedFile: combinedFile
 }, function(err, _fuser) { global.fuser = fuser = _fuser; });

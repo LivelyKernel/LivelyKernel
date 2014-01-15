@@ -655,9 +655,9 @@
                 },
 
                 loadJs: function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
-                    console.log('load file that is not in'
-                               + ' combined modules: ' + url);
                     if (!this.includedInCombinedFile(url)) {
+                        console.log('load file that is not in'
+                                   + ' combined modules: ' + url);
                         originalLoader.loadJs(url, onLoadCb, loadSync, okToUseCache, cacheQuery);
                     }
                 },
@@ -672,16 +672,28 @@
             };
 
             function callCallback() {
-                Global.JSLoader = originalLoader;
-                // FIXME
-                // Filter out the modules already loaded
-                var allModules = combinedLoader.expectedModules,
-                    realModules = allModules.select(function(ea) {
-                        // FIXME, better now throw error in lively.Class.forName
-                        return !ea.include('lively-libs')
-                            && lively.Class.forName(ea) !== undefined;
-                    });
-                lively.require(realModules).toRun(callback);
+                // we first replace the combined loader with the original
+                // JSLoader when all the modules in the combined file are loaded
+                // (this is not just when the combined file was transported
+                // + evaluated in the browser b/c module bodies load async). This
+                // is why we wait here using a require
+                // FIXME: cleanup "waitForModules" computation
+                var waitForModules = combinedLoader.expectedModules.withoutAll(LivelyLoader.bootstrapFiles.map(function(fn) {
+                    return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.')
+                }).concat(['lib.lively-libs-debug']));
+
+                lively.require(waitForModules).toRun(function() {
+                    Global.JSLoader = originalLoader;
+                    // FIXME
+                    // Filter out the modules already loaded
+                    var allModules = combinedLoader.expectedModules,
+                        realModules = allModules.select(function(ea) {
+                            // FIXME, better now throw error in lively.Class.forName
+                            return !ea.include('lively-libs')
+                                && lively.Class.forName(ea) !== undefined;
+                        });
+                    lively.require(realModules).toRun(callback);
+                });
             };
 
             if (this.isLoading(combinedFileUrl)) { callCallback(); return; }
@@ -689,7 +701,7 @@
             // while loading the combined file we replace the loader
             Global.JSLoader = combinedLoader;
             Global.JSLoader.__proto__ = originalLoader;
-            this.loadJs(combinedFileUrl, callCallback, false, false, hash);
+            this.loadJs(combinedFileUrl, callCallback);
         },
 
         loadAll: function(urls, cb) {
@@ -979,12 +991,12 @@
 
             if (optimizedLoading) {
                 console.log('optimized loading enabled');
-                var hashUrl = base + 'generated/combinedModulesHash.txt',
-                    combinedModulesUrl = base + 'generated/combinedModules.js';
+                var hashUrl = base + 'generated/combinedModulesHash.txt';
                 Global.JSLoader.getViaXHR(true/*sync*/, hashUrl, function(err, hash) {
                     if (err) { console.log(err); return; }
+                    var combinedModulesUrl = base + 'generated/' + hash + '/combinedModules.js';
                     Global.JSLoader.loadCombinedModules(
-                        combinedModulesUrl, thenDoFunc, hash);
+                        combinedModulesUrl, thenDoFunc);
                 });
                 return;
             }

@@ -28,13 +28,12 @@ function determineCoreFiles() {
 
     function moduleToFile(module) {
         // TODO: Adapt module load logic
-        var absDir = dir || './';
         var relFile = 'core/' + module.replace(/\./g, '/') + '.js';
-        var absFile = path.join(absDir, relFile);
+        var absFile = path.join(dir, relFile);
         if (fs.existsSync(absFile))
             return absFile;
         relFile = module.replace(/\./g, '/') + '.js';
-        absFile = path.join(absDir, relFile);
+        absFile = path.join(dir, relFile);
         return absFile;
     }
 
@@ -82,6 +81,12 @@ function determineCoreFiles() {
     return coreFiles;
 }
 
+// FIXME!!! Currently some coreFiles have absolute paths, make them relative here
+coreFiles = coreFiles.map(function(fn) {
+    return fn.indexOf(dir) === 0 ?
+        fn.replace(new RegExp(dir + '[\/\\\\]?'), '') : fn;
+});
+
 ffuser({
     baseDirectory: dir,
     files: coreFiles,
@@ -106,27 +111,38 @@ module.exports = function(route, app) {
         });
     });
 
-    app.get('/generated/combinedModules.js', function(req, res) {
+    app.get('/generated/:hash/combinedModules.js', function(req, res) {
         if (!fuser) {
             res.status(500).end(String('file-fuser could not be started'));
             return;
         }
-        fuser.withCombinedFileStreamDo(function(err, stream) {
+        // FIXME get hash and file stream together, getting those seperately
+        // requires two file reads
+        fuser.withHashDo(function(err, hash) {
             if (err) { res.status(500).end(String(err)); return; }
-            var acceptEncoding = req.headers['accept-encoding'] || '',
-                header = {
-                    'Content-Type': 'application/javascript',
-                    "Cache-Control": "max-age=" + 60/*secs*/*60/*mins*/*24/*h*/*30/*days*/
-                }
-            if (acceptEncoding.match(/\bdeflate\b/)) {
-                header['content-encoding'] = 'deflate';
-                stream = stream.pipe(zlib.createDeflate());
-            } else if (acceptEncoding.match(/\bgzip\b/)) {
-                header['content-encoding'] = 'gzip';
-                stream = stream.pipe(zlib.createGzip());
+            if (req.headers['if-none-match'] === hash) {
+                res.status(304); res.end(); return;
             }
-            res.writeHead(200, header);
-            stream.pipe(res);
+            fuser.withCombinedFileStreamDo(function(err, stream) {
+                if (err) { res.status(500).end(String(err)); return; }
+                var oneYear = 1000*60*60*24*30*12;
+                var acceptEncoding = req.headers['accept-encoding'] || '',
+                    header = {
+                        'Content-Type': 'application/javascript',
+                        'Expires': new Date(Date.now() + oneYear).toGMTString(),
+                        "Cache-Control": "public",
+                        'ETag': hash
+                    }
+                if (acceptEncoding.match(/\bdeflate\b/)) {
+                    header['content-encoding'] = 'deflate';
+                    stream = stream.pipe(zlib.createDeflate());
+                } else if (acceptEncoding.match(/\bgzip\b/)) {
+                    header['content-encoding'] = 'gzip';
+                    stream = stream.pipe(zlib.createGzip());
+                }
+                res.writeHead(200, header);
+                stream.pipe(res);
+            });
         });
     });
 }

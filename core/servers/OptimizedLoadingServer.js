@@ -24,8 +24,6 @@ function determineCoreFiles() {
     function moduleToFile(module) {
         // TODO: Adapt module load logic
         var relFile = 'core/' + module.replace(/\./g, '/') + '.js';
-      console.log(directory)
-      console.log(relFile)
         var absFile = path.join(directory, relFile);
         if (fs.existsSync(absFile))
             return absFile;

@@ -338,9 +338,46 @@ Object.extend(Array.prototype, {
         endFunc = endFunc || Functions.Null;
         context = context || Global;
         iterator = iterator || function(next, ea, idx) { ea.call(context, next, idx); };
-        return this.clone().reverse().reduce(function(nextFunc, ea, idx) {
+        return this.reduceRight(function(nextFunc, ea, idx) {
             return function() { iterator.call(context, nextFunc, ea, idx); }
         }, endFunc)();
+    },
+    
+    reduceRight: Array.prototype.reduceRight || function(callback, opt_initialValue) {
+        'use strict';
+        //This function is provided by the MDN as polyfill for reduceRight
+        if (null === this || 'undefined' === typeof this) {
+          // At the moment all modern browsers, that support strict mode, have
+          // native implementation of Array.prototype.reduceRight. For instance,
+          // IE8 does not support strict mode, so this check is actually useless.
+          throw new TypeError(
+              'Array.prototype.reduceRight called on null or undefined');
+        }
+        if ('function' !== typeof callback) {
+          throw new TypeError(callback + ' is not a function');
+        }
+        var index, value,
+            length = this.length >>> 0,
+            isValueSet = false;
+        if (1 < arguments.length) {
+          value = opt_initialValue;
+          isValueSet = true;
+        }
+        for (index = length - 1; -1 < index; --index) {
+          if (this.hasOwnProperty(index)) {
+            if (isValueSet) {
+              value = callback(value, this[index], index, this);
+            }
+            else {
+              value = this[index];
+              isValueSet = true;
+            }
+          }
+        }
+        if (!isValueSet) {
+          throw new TypeError('Reduce of empty array with no initial value');
+        }
+        return value;
     },
 
     forEachShowingProgress: function(progressBar, iterator, labelFunc, whenDoneFunc, context) {

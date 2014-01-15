@@ -309,6 +309,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
     }
 
 });
+
 lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection',
 'testing', {
 

@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Meta', 'lively.ast.Rewriting').toRun(function() {
+module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Rewriting').toRun(function() {
 
 Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
@@ -1085,6 +1085,28 @@ Function.addMethods(
     containsDebugger: function() {
         return new lively.ast.ContainsDebuggerVisitor().visit(this.ast());
     }
+},
+'meta programming interface', {
+    toSource: function() {
+        if (!this.source) {
+            var name = this.methodName || this.name || "anonymous";
+            this.source = this.toString()
+                .replace(/^function[^\(]*/, "function " + name);
+        }
+        return this.source;
+    },
+    browse: function() {
+        if (this.sourceModule && this.methodName && this.declaredClass) {
+            require('lively.ide.SystemCodeBrowser').toRun(function() {
+                return lively.ide.browse(
+                    this.declaredClass,
+                    this.methodName,
+                    this.sourceModule.name());
+            }.bind(this));
+        }
+        //TODO: Add browse implementation for Morphic scripts with ObjectEditor
+        throw new Error('Cannot browse anonymous function ' + this);
+    },
 });
 
 }); // end of module

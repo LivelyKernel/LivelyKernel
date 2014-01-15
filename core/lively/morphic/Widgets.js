@@ -1779,19 +1779,6 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
-        if (module('lively.ast.IDESupport').isEnabled) {
-            items.push(['[X] Advanced Syntax Highlighting', function() {
-                require('lively.ast.IDESupport').toRun(function() {
-                    lively.ast.IDESupport.disable();
-                });
-            }]);
-        } else {
-            items.push(['[  ] Advanced Syntax Highlighting', function() {
-                require('lively.ast.IDESupport').toRun(function() {
-                    lively.ast.IDESupport.enable();
-                })
-            }]);
-        }
         if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {
             items.push(['[X] Auto Indent', function() {
                 AutoIndentLayer.beNotGlobal();

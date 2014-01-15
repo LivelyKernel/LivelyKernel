@@ -3,20 +3,13 @@ module('lively.ide.tools.ObjectEditor').requires('lively.persistence.BuildSpec')
 lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(822.0,457.8),
-    _Position: lively.pt(238.0,106.6),
-    _StyleClassNames: ["Morph","Window"],
-    cameForward: false,
     className: "lively.morphic.Window",
     contentOffset: lively.pt(4.0,22.0),
     draggingEnabled: true,
-    highlighted: false,
     isCopyMorphRef: true,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: {adjustForNewBounds: true},
     morphRefId: 2,
     name: "ObjectEditor",
-    sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _Extent: lively.pt(814.0,431.8),
@@ -32,14 +25,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
         currentCategory: null,
         currentTag: null,
-        doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
         droppingEnabled: true,
         isCopyMorphRef: true,
-        layout: {
-            adjustForNewBounds: true,
-            resizeHeight: true,
-            resizeWidth: true
-        },
+        layout: {adjustForNewBounds: true,resizeHeight: true,resizeWidth: true},
         morphRefId: 1,
         morphSelector: {
             isMorphRef: true,
@@ -54,7 +42,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             isMorphRef: true,
             name: "ObjectEditorScriptPane"
         },
-        sourceModule: "lively.morphic.Core",
         submorphs: [{
             _AutocompletionEnabled: true,
             _BorderColor: Color.rgb(189,190,192),
@@ -224,7 +211,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderWidth: 1,
             _Extent: lively.pt(8.6,9.7),
             _Fill: Color.rgb(0,0,0),
-            _Position: lively.pt(788.0,40.0),
+            _Position: lively.pt(803.0,40.0),
             alarmColor: Color.rgb(240,0,0),
             className: "lively.morphic.Box",
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
@@ -973,305 +960,17 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     name: "ObjectEditor"
                 },
                 droppingEnabled: true,
-                itemList: ["-- ALL --","initiateShutdown","onKeyDown","reset","setTarget"],
+                itemList: [],
                 layout: {
                     adjustForNewBounds: true,
-                    extent: lively.pt(180.0,268.0),
-                    listItemHeight: 19,
-                    maxExtent: lively.pt(180.0,268.0),
-                    maxListItems: 15,
-                    noOfCandidatesShown: 6,
                     padding: 0,
                     resizeHeight: true
                 },
                 name: "ObjectEditorScriptList",
-                selectedIndexes: [0],
-                selection: "-- ALL --",
+                selectedIndexes: [],
+                selection: null,
                 sourceModule: "lively.morphic.Lists",
-                submorphs: [{
-                    _BorderColor: Color.rgb(204,0,0),
-                    _Extent: lively.pt(180.0,99.0),
-                    className: "lively.morphic.Box",
-                    droppingEnabled: true,
-                    layout: {
-                        adjustForNewBounds: true,
-                        resizeWidth: true
-                    },
-                    sourceModule: "lively.morphic.Core",
-                    submorphs: [{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(180.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "auto",
-                        _StyleClassNames: ["Morph","Text","list-item","selected"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,9,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        index: 0,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "0",
-                        selected: true,
-                        sourceModule: "lively.morphic.TextCore",
-                        textString: "-- ALL --",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorScriptList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(176.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "auto",
-                        _Position: lively.pt(0.0,19.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,16,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        index: 1,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "1",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        textString: "initiateShutdown",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorScriptList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(152.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "auto",
-                        _Position: lively.pt(0.0,38.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,9,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        index: 2,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "2",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        textString: "onKeyDown",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorScriptList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(180.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "auto",
-                        _Position: lively.pt(0.0,57.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,5,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        index: 3,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "3",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        textString: "reset",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorScriptList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(180.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "auto",
-                        _Position: lively.pt(0.0,76.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,9,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        index: 4,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "4",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        textString: "setTarget",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorScriptList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    }]
-                }],
+                submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {updater: 
             function ($upd, value) {
@@ -1979,300 +1678,17 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 _Position: lively.pt(0.2,18.7),
                 className: "lively.morphic.List",
                 droppingEnabled: true,
-                itemList: ["-- ALL --"],
+                itemList: [],
                 layout: {
                     adjustForNewBounds: true,
-                    extent: lively.pt(180.0,82.0),
-                    listItemHeight: 19,
-                    maxExtent: lively.pt(180.0,82.0),
-                    maxListItems: 5,
                     moveVertical: true,
-                    noOfCandidatesShown: 2,
                     padding: 0,
                     resizeHeight: false
                 },
                 name: "ObjectEditorConnectionList",
-                selectedIndexes: [0],
-                selection: "-- ALL --",
-                sourceModule: "lively.morphic.Lists",
-                submorphs: [{
-                    _BorderColor: Color.rgb(204,0,0),
-                    _Extent: lively.pt(180.0,23.0),
-                    className: "lively.morphic.Box",
-                    droppingEnabled: true,
-                    layout: {
-                        adjustForNewBounds: true,
-                        resizeWidth: true
-                    },
-                    sourceModule: "lively.morphic.Core",
-                    submorphs: [{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(694.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "auto",
-                        _StyleClassNames: ["Morph","Text","list-item","selected"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,9,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        index: 0,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "0",
-                        selected: true,
-                        sourceModule: "lively.morphic.TextCore",
-                        textString: "-- ALL --",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorConnectionList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(734.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "none",
-                        _Position: lively.pt(0.0,19.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,0,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "1",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorConnectionList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(734.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "none",
-                        _Position: lively.pt(0.0,38.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,0,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "2",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorConnectionList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(668.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "none",
-                        _Position: lively.pt(0.0,57.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,0,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "3",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorConnectionList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    },{
-                        _ClipMode: "hidden",
-                        _Extent: lively.pt(180.0,19.0),
-                        _FontFamily: "Helvetica",
-                        _HandStyle: "default",
-                        _InputAllowed: false,
-                        _PointerEvents: "none",
-                        _Position: lively.pt(0.0,76.0),
-                        _StyleClassNames: ["Morph","Text","list-item"],
-                        _TextColor: Color.rgb(64,64,64),
-                        _TextStylingMode: true,
-                        _WhiteSpaceHandling: "pre",
-                        allowInput: false,
-                        className: "lively.morphic.Text",
-                        draggingEnabled: true,
-                        emphasis: [[0,0,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreIgnored: false,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        isLabel: true,
-                        isListItemMorph: true,
-                        layout: {
-                            resizeWidth: true
-                        },
-                        name: "4",
-                        selected: false,
-                        sourceModule: "lively.morphic.TextCore",
-                        connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selected", this.get("ObjectEditorConnectionList"), "selectionChanged", {updater: 
-                    function ($upd, selected) { $upd(this.sourceObj.index, selected); }});
-                    },
-                        onMouseDown: function onMouseDown(evt) {
-                            if (this.owner.owner.allowDeselectClick) {
-                                this.setIsSelected(!this.selected);
-                            } else {
-                                this.setIsSelected(true);
-                            }
-                            evt.stop(); return true;
-                        },
-                        setIsSelected: function setIsSelected(bool, suppressUpdate) {
-                                if (!bool && this.selected) {
-                                    this.removeStyleClassName('selected');
-                                } else if (bool && !this.selected){
-                                    this.addStyleClassName('selected');
-                                }
-                                var self = this;
-                                function setState() { self.selected = bool; }
-                                if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
-                            }
-                    }]
-                }],
+                selectedIndexes: [],
+                selection: null,
+                submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForConnection", {converter: 
             function (value) {

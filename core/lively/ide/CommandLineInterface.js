@@ -693,7 +693,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             fullPath = rootDirectory ? rootDirectory + path : path;
         if (!fullPath.length) fullPath = '.';
         if (fullPath.endsWith('/')) fullPath = fullPath.slice(0,-1);
-        var excludes = '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
+        var excludes = '-iname ".svn" -o -iname ".git" -o -iname "node_modules" -o -iname "combined.js"',
             baseCmd = 'find %s ( %s ) -prune -o -iname "*js" -exec grep -inH %s "{}" ; ',
             platform = lively.ide.CommandLineInterface.getServerPlatform();
         if (platform !== 'win32') {

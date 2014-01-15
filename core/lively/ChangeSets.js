@@ -3664,22 +3664,16 @@ alignSubmorphs: function alignSubmorphs() {
 
 (function openChangesetsFlap() {
     lively.whenLoaded(function(world) {
-        if (Config.changesetsExperiment)
-            lively.BuildSpec('ChangesetsFlap').createMorph().openInWorld();
+        if (!Config.changesetsExperiment) return;       
+        lively.BuildSpec('ChangesetsFlap').createMorph().openInWorld();
+		if (world.getUserName() && 
+			localStorage.getItem("LivelyChangesets:" +  world.getUserName() + ":" + location.pathname) !== "off")
+				(function loadChangeSets() {
+					lively.ChangeSet.initialize();
+					if (Config.automaticChangesReplay)
+						lively.ChangeSet.loadAndcheckVsSystem();
+				}).delay(location.hostname === 'localhost' ? 1 : 10);
     });
 })();
-
-
-(function loadChangeSets() {
-    if (!Config.changesetsExperiment)
-        return;
-    while(!("$world" in Global)) setTimeout(function(){}, 500);
-    if($world.getUserName() && 
-        localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off") {
-            lively.ChangeSet.initialize();
-            if(Config.automaticChangesReplay)
-                lively.ChangeSet.loadAndcheckVsSystem();
-        }
-}).delay(location.hostname === 'localhost' ? 2 : 12);
 
 }) // end of module

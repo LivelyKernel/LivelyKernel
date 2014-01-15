@@ -28,6 +28,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         droppingEnabled: true,
         isCopyMorphRef: true,
         layout: {adjustForNewBounds: true,resizeHeight: true,resizeWidth: true},
+        droppingEnabled: false,
+        draggingEnabled: false,
+        grabbingEnabled: false,
         morphRefId: 1,
         morphSelector: {
             isMorphRef: true,
@@ -58,97 +61,29 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _ShowPrintMargin: false,
             _ShowWarnings: true,
             _SoftTabs: true,
-            _TextMode: "javascript",
-            _Theme: "",
             _aceInitialized: true,
             accessibleInInactiveWindow: true,
+            droppingEnabled: false,
+            draggingEnabled: false,
+            grabbingEnabled: false,
             allowInput: true,
             className: "lively.morphic.CodeEditor",
             doitContext: {
                 isMorphRef: true,
                 name: "ObjectEditor"
             },
-            lastSaveSource: "this.addScript(function initiateShutdown(force) {\n\
-            if (force || !this.targetMorph.scriptPane.hasChanged()) {\n\
-                $super();\n\
-            } else {\n\
-                this.targetMorph.confirmShutdown(function(answer) {\n\
-                    answer && this.initiateShutdown(true);\n\
-                }.bind(this));\n\
-            }\n\
-        }).tag([]);\n\
-        \n\
-        \n\
-        this.addScript(function onKeyDown(evt) {\n\
-            var sig = evt.getKeyString(),\n\
-                scriptList = this.get('ObjectEditorScriptList'),\n\
-                sourcePane = this.get('ObjectEditorScriptPane');\n\
-            switch(sig) {\n\
-                case 'F1': scriptList.focus(); evt.stop(); return true;\n\
-                case 'F2': sourcePane.focus(); evt.stop(); return true;\n\
-                default: $super(evt);        \n\
-            }\n\
-        }).tag([]);\n\
-        \n\
-        \n\
-        this.addScript(function reset() {\n\
-            this.targetMorph.reset();\n\
-        }).tag([]);\n\
-        \n\
-        \n\
-        this.addScript(function setTarget(t) {\n\
-            this.targetMorph.setTarget(t);\n\
-        }).tag([])",
-            layout: {
-                resizeHeight: true,
-                resizeWidth: true
-            },
+            lastSaveSource: "",
+            layout: { resizeHeight: true, resizeWidth: true },
             name: "ObjectEditorScriptPane",
             objectEditorPane: {
                 isMorphRef: true,
                 name: "ObjectEditorPane"
             },
             sourceModule: "lively.ide.CodeEditor",
-            storedString: "AttributeConnection(<lively.morphic.List#5EAB1... - Pane4>.selection --> [object Object].setPane4Selection)\n\
-        \n\
-        AttributeConnection(<lively.morphic.List#5EAB1... - Pane4>.getSelection --> [object Object].getPane4Selection)\n\
-        \n\
-        AttributeConnection(<lively.morphic.List#5EAB1... - Pane4>.getList --> [object Object].getPane4Content)\n\
-        \n\
-        AttributeConnection(<lively.morphic.List#5EAB1... - Pane4>.getMenu --> [object Object].getPane4Menu",
+            storedString: "",
             storedTextString: "",
             textMode: "javascript",
-            textString: "this.addScript(function initiateShutdown(force) {\n\
-            if (force || !this.targetMorph.scriptPane.hasChanged()) {\n\
-                $super();\n\
-            } else {\n\
-                this.targetMorph.confirmShutdown(function(answer) {\n\
-                    answer && this.initiateShutdown(true);\n\
-                }.bind(this));\n\
-            }\n\
-        }).tag([]);\n\
-        \n\
-        \n\
-        this.addScript(function onKeyDown(evt) {\n\
-            var sig = evt.getKeyString(),\n\
-                scriptList = this.get('ObjectEditorScriptList'),\n\
-                sourcePane = this.get('ObjectEditorScriptPane');\n\
-            switch(sig) {\n\
-                case 'F1': scriptList.focus(); evt.stop(); return true;\n\
-                case 'F2': sourcePane.focus(); evt.stop(); return true;\n\
-                default: $super(evt);        \n\
-            }\n\
-        }).tag([]);\n\
-        \n\
-        \n\
-        this.addScript(function reset() {\n\
-            this.targetMorph.reset();\n\
-        }).tag([]);\n\
-        \n\
-        \n\
-        this.addScript(function setTarget(t) {\n\
-            this.targetMorph.setTarget(t);\n\
-        }).tag([])",
+            textString: "",
             theme: "",
             boundEval: function boundEval(str) {
                     var result;
@@ -204,7 +139,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     this.enableSyntaxHighlighting();
                 },
             updateTarget: function updateTarget(target) {
-                    module('lively.ide.SyntaxHighlighting').load(true);
                     this.doitContext = this.owner.target;
                 }
         },{
@@ -490,123 +424,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             name: "ObjectEditorScriptsText2",
             sourceModule: "lively.morphic.TextCore",
             textString: "Tag:"
-        },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
-            _Extent: lively.pt(60.0,20.0),
-            _Position: lively.pt(35.0,9.0),
-            className: "lively.morphic.Button",
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
-            isPressed: false,
-            label: "all",
-            list: [],
-            listMorph: null,
-            name: "ObjectEditorTagChooser",
-            padding: lively.rect(5,0,0,0),
-            savedTextString: "all",
-            selection: "",
-            setTargetToListSelection: "all",
-            showsMorphMenu: true,
-            sourceModule: "lively.morphic.Widgets",
-            style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
-                enableDropping: false,
-                enableGrabbing: false,
-                label: {
-                    align: "center",
-                    allowInput: false,
-                    borderWidth: 0,
-                    clipMode: "hidden",
-                    emphasize: {
-                        textShadow: {
-                            color: Color.rgb(255,255,255),
-                            offset: lively.pt(0.0,1.0)
-                        }
-                    },
-                    fill: null,
-                    fixedHeight: true,
-                    fixedWidth: true,
-                    fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
-                },
-                padding: lively.rect(0,3,0,0)
-            },
-            textString: "PartsBinBrowser",
-            toggle: false,
-            value: true,
-            createListMorph: function createListMorph() {
-                    var items = this.getList();
-                
-                    var height = Math.min(this.owner.getExtent().y, items.length * 17);
-                    var extent = new Rectangle(0, this.getExtent().y, this.getExtent().x, height);
-                
-                    var listMorph = new lively.morphic.List(extent);
-                    listMorph.setList(items);
-                
-                    listMorph.disableGrabbing();
-                    listMorph.disableDragging();
-                    
-                    connect(listMorph, 'selection', this, 'setTag');
-                    
-                    return listMorph;
-                },
-            getList: function getList() {
-                    if (!this.owner.target) return [''];
-                
-                    var target = this.owner.target;
-                
-                    var tags = Functions.own(target).collect(function (each) {
-                        return target[each].tags || [];
-                    }).flatten().uniq();
-                
-                    var sortedTags = tags.sortBy(function(name) { 
-                        return name.toLowerCase() 
-                    });
-                    
-                    sortedTags.unshift('all'); 
-                    return sortedTags;
-                },
-            onBlur: function onBlur(evt) {
-                    $super(evt);
-                    
-                    // workaround - otherwise other morphs get this event
-                    var clickedMorph = evt && evt.world && evt.world.clickedOnMorph;
-                    if (clickedMorph && (clickedMorph !== this && clickedMorph !== this.listMorph)) {
-                        this.removeList();
-                    }
-                },
-            onMouseUp: function onMouseUp(evt) {
-                    if (evt.isCommandKey() || evt.isRightMouseButtonDown()) return $super(evt);
-                    if (this.listMorph) {
-                        this.removeList.bind(this).delay(0);
-                        return true;
-                    } 
-                    if (this.getList().size() < 2) return;
-                    var list = this.createListMorph();
-                    this.addMorph(list);
-                    this.listMorph = list;
-                    return true;
-                },
-            removeList: function removeList() {
-                    this.listMorph && this.listMorph.remove()
-                    this.listMorph = null;
-                },
-            reset: function reset() {
-                    this.list = [];
-                    this.setLabel('all');
-                    this.label.setAlign('left');
-                    this.removeList();
-                    this.applyStyle({fixedWidth: true, fixedHeight: true, borderWidth: 1, overflow: 'visible'})
-                },
-            setTag: function setTag(tag) {
-                    this.setLabel(tag || '');
-                    this.label.setAlign('left');
-                    this.owner.setTag(tag);
-                }
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 3,
@@ -946,10 +763,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             submorphs: [{
                 _BorderColor: Color.rgb(189,190,192),
                 _BorderWidth: 1,
-                _ClipMode: {
-                    x: "hidden",
-                    y: "scroll"
-                },
+                _ClipMode: { x: "hidden", y: "scroll" },
                 _Extent: lively.pt(180.0,268.0),
                 _Fill: Color.rgb(255,255,255),
                 _Position: lively.pt(0.0,19.0),
@@ -959,7 +773,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     isMorphRef: true,
                     name: "ObjectEditor"
                 },
-                droppingEnabled: true,
+                droppingEnabled: false,
+                draggingEnabled: false,
+                grabbingEnabled: false,
                 itemList: [],
                 layout: {
                     adjustForNewBounds: true,
@@ -1669,15 +1485,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },{
                 _BorderColor: Color.rgb(189,190,192),
                 _BorderWidth: 1,
-                _ClipMode: {
-                    x: "hidden",
+                _ClipMode: {x: "hidden",
                     y: "scroll"
                 },
                 _Extent: lively.pt(180.0,82.0),
                 _Fill: Color.rgb(255,255,255),
                 _Position: lively.pt(0.2,18.7),
                 className: "lively.morphic.List",
-                droppingEnabled: true,
+                droppingEnabled: false,
+                draggingEnabled: false,
+                grabbingEnabled: false,
                 itemList: [],
                 layout: {
                     adjustForNewBounds: true,
@@ -2058,6 +1875,121 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     this.connectionList.setList(connectionListItems);
                 }
             }
+        }, {
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 3,
+            _BorderWidth: 1,
+            _Extent: lively.pt(60.0,20.0),
+            _Position: lively.pt(35.0,9.0),
+            className: "lively.morphic.Button",
+            isPressed: false,
+            label: "all",
+            list: [],
+            listMorph: null,
+            name: "ObjectEditorTagChooser",
+            padding: lively.rect(5,0,0,0),
+            savedTextString: "all",
+            selection: "",
+            setTargetToListSelection: "all",
+            showsMorphMenu: true,
+            style: {
+                borderColor: Color.rgb(189,190,192),
+                borderRadius: 0,
+                borderWidth: 1,
+                enableDropping: false,
+                enableGrabbing: false,
+                label: {
+                    align: "center",
+                    allowInput: false,
+                    borderWidth: 0,
+                    clipMode: "hidden",
+                    emphasize: {
+                        textShadow: {
+                            color: Color.rgb(255,255,255),
+                            offset: lively.pt(0.0,1.0)
+                        }
+                    },
+                    fill: null,
+                    fixedHeight: true,
+                    fixedWidth: true,
+                    fontSize: 10,
+                    padding: lively.rect(0,3,0,0),
+                    textColor: Color.rgb(0,0,0)
+                },
+                padding: lively.rect(0,3,0,0)
+            },
+            textString: "",
+            toggle: false,
+            value: true,
+            createListMorph: function createListMorph() {
+                    var items = this.getList();
+                
+                    var height = Math.min(this.owner.getExtent().y, items.length * 17);
+                    var extent = new Rectangle(0, this.getExtent().y, this.getExtent().x, height);
+                
+                    var listMorph = new lively.morphic.List(extent);
+                    listMorph.setList(items);
+                
+                    listMorph.disableGrabbing();
+                    listMorph.disableDragging();
+                    
+                    connect(listMorph, 'selection', this, 'setTag');
+                    
+                    return listMorph;
+                },
+            getList: function getList() {
+                    if (!this.owner.target) return [''];
+                
+                    var target = this.owner.target;
+                
+                    var tags = Functions.own(target).collect(function (each) {
+                        return target[each].tags || [];
+                    }).flatten().uniq();
+                
+                    var sortedTags = tags.sortBy(function(name) { 
+                        return name.toLowerCase() 
+                    });
+                    
+                    sortedTags.unshift('all'); 
+                    return sortedTags;
+                },
+            onBlur: function onBlur(evt) {
+                    $super(evt);
+                    
+                    // workaround - otherwise other morphs get this event
+                    var clickedMorph = evt && evt.world && evt.world.clickedOnMorph;
+                    if (clickedMorph && (clickedMorph !== this && clickedMorph !== this.listMorph)) {
+                        this.removeList();
+                    }
+                },
+            onMouseUp: function onMouseUp(evt) {
+                    if (evt.isCommandKey() || evt.isRightMouseButtonDown()) return $super(evt);
+                    if (this.listMorph) {
+                        this.removeList.bind(this).delay(0);
+                        return true;
+                    } 
+                    if (this.getList().size() < 2) return;
+                    var list = this.createListMorph();
+                    this.addMorph(list);
+                    this.listMorph = list;
+                    return true;
+                },
+            removeList: function removeList() {
+                    this.listMorph && this.listMorph.remove()
+                    this.listMorph = null;
+                },
+            reset: function reset() {
+                    this.list = [];
+                    this.setLabel('all');
+                    this.label.setAlign('left');
+                    this.removeList();
+                    this.applyStyle({fixedWidth: true, fixedHeight: true, borderWidth: 1, overflow: 'visible'})
+                },
+            setTag: function setTag(tag) {
+                    this.setLabel(tag || '');
+                    this.label.setAlign('left');
+                    this.owner.setTag(tag);
+                }
         }],
         tagChooser: {
             isMorphRef: true,

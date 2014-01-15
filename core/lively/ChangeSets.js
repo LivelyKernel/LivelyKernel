@@ -3297,12 +3297,14 @@ alignSubmorphs: function alignSubmorphs() {
 
 
 (function loadChangeSets() {
-    if (Config.changesetsExperiment && $world.getUserName() && 
-        localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off") {
-            lively.ChangeSet.initialize();
-            if(Config.automaticChangesReplay)
-                lively.ChangeSet.loadAndcheckVsSystem();
-        }
+    lively.whenLoaded(function(world) {
+        if (Config.changesetsExperiment && world.getUserName() && 
+            localStorage.getItem("LivelyChangesets:" +  world.getUserName() + ":" + location.pathname) !== "off") {
+                lively.ChangeSet.initialize();
+                if (Config.automaticChangesReplay)
+                    lively.ChangeSet.loadAndcheckVsSystem();
+            }
+    });
 }).delay(location.hostname === 'localhost' ? 3 : 13);
 
 }) // end of module

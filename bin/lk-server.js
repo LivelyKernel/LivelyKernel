@@ -117,11 +117,11 @@ function removePidFile() {
 
 function writePid(proc, callback) {
     if (!proc.pid) { callback(); return; }
+    function writePID() { fs.writeFile(pidFile, String(proc.pid), callback); }
     fs.exists(env.SERVER_PID_DIR, function(exists) {
+        if (exists) { writePID(); return; }
         fs.mkdir(env.SERVER_PID_DIR, function(err) {
-            if (err) callback(err);
-            fs.writeFile(pidFile, String(proc.pid), callback);
-        });
+            if (err) callback(err); else writePID(); });
     });
 }
 

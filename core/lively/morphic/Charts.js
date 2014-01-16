@@ -2,16 +2,12 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
 
 lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
-    initialize: function($super, aMorph, directionPt) {
+    initialize: function($super, aMorph) {
         this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
         this.isLayoutable = false;
         var controlPoints;
-        this.directionPt = directionPt;
-        if (directionPt.y == 1)
-            controlPoints = [pt(000, 000), pt(2 * arrowBase, 000), pt(arrowBase, arrowHeight), pt(000, 000)];
-        else
-            controlPoints = [pt(000, 000), pt(arrowHeight, arrowBase), pt(0, 2 * arrowBase), pt(000, 000)];
+        controlPoints = [pt(000, 000), pt(2 * arrowBase, 000), pt(arrowBase, arrowHeight), pt(000, 000)];
         
         $super(controlPoints);
         this.setBorderColor(Color.rgb(94,94,94));
@@ -34,17 +30,8 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
         var aMorph = this.componentMorph;
         var extent = aMorph.getExtent();
         
-        var offsetX, offsetY;
-        
-        if (this.directionPt.x == 1)
-            offsetX = extent.x;
-        else
-            offsetX = (extent.x - this.getExtent().x) / 2;
-        
-        if (this.directionPt.y == 1)
-            offsetY = extent.y;
-        else
-            offsetY = (extent.y - this.getExtent().y) / 2;
+        var offsetX = (extent.x - this.getExtent().x) / 2;
+        var offsetY = extent.y;
         
         this.setPosition(pt(offsetX, offsetY));
         aMorph.addMorph(this);
@@ -52,14 +39,12 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     
     activate: function() {
         this.activated = true;
-        // this.componentMorph.propagationEnabled = true;
         this.componentMorph.onArrowActivated();
         this.setFill(Color.rgbHex("77D88B"));
     },
     
     deactivate: function() {
         this.activated = false;
-        // this.componentMorph.propagationEnabled = false;
         this.componentMorph.onArrowDeactivated(this);
         this.setFill(Color.rgb(94,94,94));
     },
@@ -76,6 +61,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
                 return [ea, function() {
                     _this.activate();
                     _this.createComponentWithOffset(ea);
+                    _this.componentMorph.notifyNextComponent();
                 }];
             });
             
@@ -85,13 +71,9 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     },
     
     createComponentWithOffset: function(componentName) {
-        var directionPt = this.directionPt;
         var newComponent = $world.loadPartItem(componentName, 'PartsBin/BP2013H2');
         var extent =  this.componentMorph.getExtent();
-        var offset = pt(
-            (extent.x + 20) * directionPt.x,
-            (extent.y + 20) * directionPt.y
-        );
+        var offset = pt(0,extent.y + 20);
         
         newComponent.setPosition(
             this.componentMorph.getPosition().addPt(offset)
@@ -281,9 +263,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     initialize: function($super) {
         $super();
 
-        this.bottomArrow = new lively.morphic.DataFlowArrow(this, pt(0, 1));
-        this.rightArrow = new lively.morphic.DataFlowArrow(this, pt(1, 0));
-        
+        this.arrows = [new lively.morphic.DataFlowArrow(this)];
+         
         this.setExtent(pt(500, 250));
         this.setFill(this.backgroundColor);
         this.setBorderColor(this.borderColor);
@@ -301,40 +282,35 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     borderColor: Color.rgb(94,94,94),
     
     notifyNeighborsOfDragStart: function() {
-        
         this.neighbors = [];
         var neighbor;
-        if (this.rightArrow.isActive()) {
-            neighbor = this.getMorphInDirection(pt(1,0));
-            if (neighbor) {
-                this.neighbors.push(neighbor);
+        
+        var _this = this;
+        this.arrows.each(function(arrow){
+            if (arrow.isActive()) {
+                neighbor = _this.getMorphInDirection(1, arrow.getPosition());
+                if (neighbor) {
+                    _this.neighbors.push(neighbor);
+                }
             }
-        }
-        if (this.bottomArrow.isActive()) {
-            neighbor = this.getMorphInDirection(pt(0,1));
-            if (neighbor) {
-                this.neighbors.push(neighbor);
-            }
-        }
+        });
     },
     
     notifyNeighborsOfDragEnd: function() {
         var neighbor;
-        if (this.rightArrow.isActive()) {
-            neighbor = this.getMorphInDirection(pt(1,0));
-            if (neighbor) {
-                neighbor.notify();
+        
+        var _this = this;
+        this.arrows.each(function (arrow){
+            if (arrow.isActive()) {
+                neighbor = _this.getMorphInDirection(1, arrow.getPosition());
+                if (neighbor) {
+                    neighbor.notify();
+                }
             }
-        }
-        if (this.bottomArrow.isActive()) {
-            neighbor = this.getMorphInDirection(pt(0,1));
-            if (neighbor) {
-                neighbor.notify();
-            }
-        }
-        this.neighbors.each(function(ea) {
-            ea.notify();
-        })
+            _this.neighbors.each(function(ea) {
+                ea.notify();
+            });
+        });
     },
     
     onArrowActivated: function() {
@@ -342,12 +318,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     onArrowDeactivated: function(arrow) {
-        var component;
-        if (this.rightArrow === arrow) {
-            component = this.getMorphInDirection(pt(1,0));
-        } else {
-            component = this.getMorphInDirection(pt(0,1));
-        }
+        var component = this.getMorphInDirection(1, arrow.getPosition());
+       
         if (component) {
             component.notify();
         }
@@ -369,7 +341,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     calculateSnappingPosition: function() {
         // Snap to position below component above, if there is one
         
-        var componentAbove = this.getMorphInDirection(pt(0,-1));
+        var componentAbove = this.getMorphInDirection(-1);
 
         var preview = $morph("PreviewMorph" + this);
         if (componentAbove) {
@@ -438,13 +410,13 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var newExtent = this.calculateSnappingExtent();
         this.setExtent(newExtent, this.resizingFrom);
         if (this.resizingFrom === "propagatedFromAbove" || this.resizingFrom === "active") {
-            var componentBelow = this.getMorphInDirection(pt(0,1));
+            var componentBelow = this.getMorphInDirection(1);
             if (componentBelow) {
                 componentBelow.onResizeEnd();
             }
         }
         if (this.resizingFrom === "propagatedFromBelow" || this.resizingFrom === "active") {
-            var componentAbove = this.getMorphInDirection(pt(0,-1));
+            var componentAbove = this.getMorphInDirection(-1);
             if (componentAbove) {
                 componentAbove.onResizeEnd();
             }
@@ -539,13 +511,8 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         try {
             promise = this.updateComponent();
             this.setFill(this.backgroundColor); 
-            if (this.getSubmorphsByAttribute("name", "Minimizer")[0])
-                this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(this.backgroundColor);
         } catch (e) {
-
             this.setFill(Color.rgb(210, 172, 172));
-            if (this.getSubmorphsByAttribute("name", "Minimizer")[0])
-                this.getSubmorphsByAttribute("name", "Minimizer")[0].setFill(Color.rgb(210, 172, 172));
             if (!e.alreadyThrown){
                 this.throwError(e);
             }
@@ -566,18 +533,15 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     notifyNextComponent: function() {
         var dependentComponent;
         
-        if (this.bottomArrow.isActive()) {
-            dependentComponent = this.getMorphInDirection(pt(0,1));
-            if (dependentComponent) {
-                dependentComponent.notify();
-            }
-        }
-        if (this.rightArrow.isActive()) {
-            dependentComponent = this.getMorphInDirection(pt(1,0));
-            if (dependentComponent) {
-                dependentComponent.notify();
-            }
-        }
+        var _this = this;
+        this.arrows.each(function (arrow){
+            if (arrow.isActive()) {
+                dependentComponent = _this.getMorphInDirection(1, arrow.getPosition());
+                if (dependentComponent) {
+                    dependentComponent.notify();
+                }
+            }  
+        });
     },
     
     notify: function() {
@@ -617,7 +581,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     calculateSnappingExtent: function(forPreview) {
         
-        var componentAbove = this.getMorphInDirection(pt(0,-1));
+        var componentAbove = this.getMorphInDirection(-1);
         var oldExtent = this.getExtent();
         var offsetX = 0;
         var offsetY = 0;
@@ -643,38 +607,17 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
 
     
     refreshData: function() {
-        var morphAbove = this.getMorphInDirection(pt(0,-1));
-        var morphLeft = this.getMorphInDirection(pt(-1,0));
-        if (morphAbove && morphAbove.bottomArrow.isActive()) {
-        
-            // terribly slow and shallow
-            // this.data = jQuery.extend({}, morphAbove.data);
-            
-            // throws methods away 
-            // this.data = JSON.parse(JSON.stringify(morphAbove.data));
-            
-            this.data = morphAbove.data;
-        } else if (morphLeft && morphLeft.rightArrow.isActive()) {
-            // this.data = jQuery.extend({}, morphLeft.data);
-            // this.data = JSON.parse(JSON.stringify(morphLeft.data));
-            this.data = morphLeft.data;
+        var morphAbove = this.getMorphInDirection(-1);
+        if (morphAbove){
+            this.data = morphAbove.getData(this);
         } else {
             this.data = null;
         }
     },
     
     getMorphInDirection: function(direction, point) {
-        // direction should be a vector, where x is the horizontal and y is the vertical direction
-        // (-1,0) would be the left morph, (0,1) the bottom morph
-        // diagonal requests return null
-        
-        var horizontalDir = direction.x;
-        var verticalDir = direction.y;
-        
-        if (Math.abs(horizontalDir) == Math.abs(verticalDir)) {
-            // diagonal or (0,0) requested
-            return null;
-        }
+        // direction should be an int, which indicates the vertical direction
+        // -1 is up and 1 is down
         
         var parentMorph = $world;
         
@@ -682,55 +625,25 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             return el instanceof lively.morphic.DataFlowComponent;
         });
         
-        
         var closestMorph = null;
         
-        if (verticalDir != 0) {
-            // search in vertical direction
-
-            // choose the top middle point as myPosition as default
-            var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
-            allDFComponents.forEach(function(el) {
-                if (el == this || el.isBeingDragged)
-                    return;
-                
-                var elPosition = el.getPositionInWorld();
-                
-                // check for the nearest DF component straight above or below myPosition
-                if (-verticalDir * elPosition.y < -verticalDir * myPosition.y &&
-                    elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
-                    
-                    if (closestMorph == null || -verticalDir * elPosition.y > -verticalDir * closestMorph.getPositionInWorld().y)
-                        closestMorph = el;
-            });
-        } else {
-            // search in horizontal direction
+        // choose the top middle point as myPosition as default
+        var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
+        allDFComponents.forEach(function(el) {
+            if (el == this || el.isBeingDragged)
+                return;
             
-            var myPosition;
-            if (horizontalDir == -1) {
-                // choose the left middle point as myPosition as default if looking to the left
-                myPosition = point || this.getPositionInWorld().addPt(pt(0, this.getExtent().y / 2));
-            } else {
-                // choose the right middle point as myPosition as default if looking to the right
-                myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x, this.getExtent().y / 2));
-            }
-            allDFComponents.forEach(function(el) {
-                if (el == this || el.isBeingDragged)
-                    return;
+            var elPosition = el.getPositionInWorld();
+            
+            // check for the nearest DF component straight above or below myPosition
+            if (-direction * elPosition.y < -direction * myPosition.y &&
+                elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x)
                 
-                var elPosition = el.getPositionInWorld();
-                
-                // check for the nearest DF component straight above or below myPosition
-                if (-horizontalDir * elPosition.x < -horizontalDir * myPosition.x &&
-                    elPosition.y <= myPosition.y && elPosition.y + el.getExtent().y >= myPosition.y)
-                    
-                    if (closestMorph == null || -horizontalDir * elPosition.x > -horizontalDir * closestMorph.getPositionInWorld().x)
-                        closestMorph = el;
-            });
-        }
+                if (closestMorph == null || -direction * elPosition.y > -direction * closestMorph.getPositionInWorld().y)
+                    closestMorph = el;
+        });
 
         return closestMorph;
-        
     },
     adjustForNewBounds: function() {
         // resizeVertical, resizeHorizontal, moveVertical, moveHorizontal
@@ -790,9 +703,9 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         
         if (!(this.isMerger() && (resizeType == "propagatedFromAbove" || resizeType == "propagatedFromBelow"))) {
             $super(newExtent);
-            
-            this.bottomArrow.positionAtMorph(); 
-            this.rightArrow.positionAtMorph();
+        	this.arrows.each(function (arrow){
+            	arrow.positionAtMorph();
+        	});
             this.layoutCodeEditor(newExtent);
         }
         
@@ -810,14 +723,18 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         if (!resizeType && !this.isMerger()) {
             resizeType = "active";
         }
+
         if ((resizeType === "propagatedFromAbove" || resizeType === "active") && this.shouldPropagateResizing() && !this.isMerger()) {
-            var componentBelow = this.getMorphInDirection(pt(0,1));
+            var componentBelow = this.getMorphInDirection(1);
+
             if (componentBelow) {
                 componentBelow.setPropagatedExtent(newExtent, "propagatedFromAbove");
             }
         }
+        
         if ((resizeType === "propagatedFromBelow" || resizeType === "active") && this.shouldPropagateResizing() && !this.isMerger()) {
-            var componentAbove = this.getMorphInDirection(pt(0,-1));
+            var componentAbove = this.getMorphInDirection(-1);
+
             if (componentAbove) {
                 componentAbove.setPropagatedExtent(newExtent, "propagatedFromBelow");
             }
@@ -906,14 +823,23 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
             }
             ea.setPosition(lastPosition);
         })
+    },
+    
+    getData : function(target){
+        var arrowToTarget = this.arrows.detect(function (arrow){
+            var arrowX =  arrow.getPosition().x;
+            return target.getPosition().x < arrowX && 
+                arrowX < target.getPosition().x + target.getExtent().x;
+        });
+        if (arrowToTarget.isActive()) {
+            return this.data;
+        }
+        return null;
     }
 });
 lively.morphic.DataFlowComponent.subclass('lively.morphic.DataFlowMergeComponent',
 'default category', {
-    onResizeEnd : function($super) {
-        $super();
-        console.log("this", this);
-    },
+
     getMorphsInDirection : function($super, direction) {
         var morphs = [];
         var pxInterval = 50;
@@ -942,7 +868,7 @@ lively.morphic.DataFlowComponent.subclass('lively.morphic.DataFlowMergeComponent
     },
     calculateSnappingExtent: function($super, forPreview) {
         
-        var componentsAbove = this.getMorphsInDirection(pt(0,-1));
+        var componentsAbove = this.getMorphsInDirection(-1);
         var oldExtent = this.getExtent();
         var offsetX = 0;
         var offsetY = 0;
@@ -975,7 +901,7 @@ lively.morphic.DataFlowComponent.subclass('lively.morphic.DataFlowMergeComponent
         }
     },
     calculateSnappingPosition: function() {
-        var componentsAbove = this.getMorphsInDirection(pt(0,-1));
+        var componentsAbove = this.getMorphsInDirection(-1);
         var componentAbove;
         if (componentsAbove.length> 0)
             componentAbove = componentsAbove.first();

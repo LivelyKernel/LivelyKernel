@@ -1,6 +1,6 @@
 module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets', 'cop.Layers').toRun(function() {
 
-lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
+lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
     initialize: function($super, aMorph) {
         this.componentMorph = aMorph;
@@ -83,7 +83,7 @@ lively.morphic.Path.subclass("lively.morphic.DataFlowArrow", {
     }
 });
 
-lively.morphic.Morph.subclass("lively.morphic.LinearLayout", {
+lively.morphic.Morph.subclass("lively.morphic.Charts.LinearLayout", {
     
     initialize: function($super, w, h) {
         $super();
@@ -118,7 +118,7 @@ cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
 undefined},
 }).beGlobal();
 
-lively.morphic.Morph.subclass("lively.morphic.FreeLayout", {
+lively.morphic.Morph.subclass("lively.morphic.Charts.FreeLayout", {
     
     initialize: function($super, w, h) {
         $super();
@@ -136,7 +136,7 @@ lively.morphic.Morph.subclass("lively.morphic.FreeLayout", {
     
 } );
 
-lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
+lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
 {
     initialize: function($super) {
         $super();
@@ -185,7 +185,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
         var ownerChain = this.ownerChain();
 
         for (var i = 0; i < ownerChain.length; i++) {       
-            if (ownerChain[i] instanceof lively.morphic.DataFlowComponent){     
+            if (ownerChain[i] instanceof lively.morphic.Charts.Component){
                 ownerChain[i].onComponentChanged();     
                 break;      
           }       
@@ -222,48 +222,12 @@ lively.morphic.CodeEditor.subclass('lively.morphic.DataFlowCodeEditor',
     }
  
 });
-lively.morphic.Morph.subclass("lively.morphic.BarChart", {
-    initialize: function($super) {
-        $super();
-        this.setExtent(pt(500,500));
-        this.setFill(Color.blue);
-        this.linearLayout = new lively.morphic.LinearLayout(500,500);
-        this.addMorph(this.linearLayout);
-        this.data = [4,6,2,7,1];
-        this.draw(this.data);
-    },
-    
-    draw: function(data){
-        var WIDTH = 20, MARGIN_TOP=10;
-        this.linearLayout.clear();
-        
-        var max = Object.values(data).max();
-        for (var element in data) {
-            if (data.hasOwnProperty(element)) {
-                var rect = new lively.morphic.Morph.makeRectangle(0,0,WIDTH,data[element]/max*this.linearLayout.getExtent().y-MARGIN_TOP);
-                rect.setFill(Color.blue);
-                rect.setBorderWidth(0);
-                var text = new lively.morphic.Text();
-                text.setTextString(element);
-                text.setExtent(pt(50, 20));
-                text.setFill(Color.gray);
-                text.setBorderWidth(0);
-                text.setPosition(pt(text.getPosition().x-rect.getExtent().x/2,
-                    text.getPosition().y+rect.getExtent().y));
-                rect.addMorph(text);
-                this.linearLayout.addElement(rect);
-            }
-        }
-    },
-    
-    
-} );
 
-lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
+lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     initialize: function($super) {
         $super();
 
-        this.arrows = [new lively.morphic.DataFlowArrow(this)];
+        this.arrows = [new lively.morphic.Charts.Arrow(this)];
          
         this.setExtent(pt(500, 250));
         this.setFill(this.backgroundColor);
@@ -273,9 +237,15 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         this.data = null;
         
         this.createLabel();
+        this.createErrorText();
+        this.createMinimizer();
+
         this.addScript(function updateComponent() {
             // put your code here
         });
+
+        this.setLayouter(new lively.morphic.Layout.TileLayout());
+        this.layout.layouter.spacing = 3;
     },
     
     backgroundColor: Color.rgb(207,225,229),
@@ -449,11 +419,30 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     },
     
     wantsDroppedMorph: function($super, morphToDrop) {
-        if (morphToDrop instanceof lively.morphic.DataFlowComponent) {
+        if (morphToDrop instanceof lively.morphic.Charts.Component) {
             return false;
         }
         return $super(morphToDrop);
     },
+    createErrorText: function() {
+        var t = new lively.morphic.Text();
+        t.setTextString("");
+        t.setName("ErrorText");
+        t.setExtent(pt(140, 20));
+        t.setPosition(pt(200, 12));
+        t.setOrigin(pt(-5, -5));
+        t.setFontSize(10);
+        t.setFillOpacity(0);
+        t.setBorderWidth(0);
+        this.addMorph(t);
+    },
+
+    createMinimizer: function() {
+        var minimizer = new lively.morphic.Charts.Minimizer();
+        minimizer.setPosition(pt(this.getExtent().x - 60, 15));
+        this.addMorph(minimizer);
+    },
+
     
     
     onDrag: function($super) {
@@ -484,23 +473,16 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var t = new lively.morphic.Text();
         t.setTextString("DataFlowComponent");
         t.setName("Description");
-        t.setExtent(pt(140, 20));
+        t.setExtent(pt(160, 20));
         t.setPosition(pt(10, 10));
+        t.setOrigin(pt(-5, -5));
         t.setFontSize(12);
         t.setFillOpacity(0);
-        t.setFill(this.backgroundColor);
         t.setBorderWidth(0);
         this.addMorph(t);
     },
     
-    createButton: function() {
-        var b = new lively.morphic.Button();
-        connect(b, "fire", this, "update", {});
-        b.setLabel("Do");
-        b.setExtent(pt(100, 20));
-        b.setPosition(pt(400, 230));
-        this.addMorph(b);
-    },
+
     
     update: function() {
         this.refreshData();
@@ -620,7 +602,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         var parentMorph = $world;
         
         var allDFComponents = parentMorph.withAllSubmorphsSelect(function(el) {
-            return el instanceof lively.morphic.DataFlowComponent;
+            return el instanceof lively.morphic.Charts.Component;
         });
         
         var closestComponent = null;
@@ -773,7 +755,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
     
     getMorphsInColumn: function(point) {
         var allDFComponents = $world.withAllSubmorphsSelect(function(el) {
-            return el instanceof lively.morphic.DataFlowComponent;
+            return el instanceof lively.morphic.Charts.Component;
         });
         var morphs = [];
         var myPosition = point || this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, 0));
@@ -836,7 +818,7 @@ lively.morphic.Morph.subclass("lively.morphic.DataFlowComponent", {
         return null;
     }
 });
-lively.morphic.DataFlowComponent.subclass('lively.morphic.DataFlowMergeComponent',
+lively.morphic.Charts.Component.subclass('lively.morphic.Charts.FanIn',
 'default category', {
 
     getComponentsInDirection : function($super, direction) {
@@ -977,12 +959,12 @@ lively.morphic.DataFlowComponent.subclass('lively.morphic.DataFlowMergeComponent
     },
     
 });
-lively.morphic.Morph.subclass("lively.morphic.DataFlowMinimizer",
+lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
 {
     initialize: function($super) {
         $super();
         this.setFillOpacity(0);
-        this.setExtent(pt(50, 40));
+        this.setExtent(pt(50, 43));
         this.setName("Minimizer");
         var vertices = [];
         vertices.push(pt(10,13));

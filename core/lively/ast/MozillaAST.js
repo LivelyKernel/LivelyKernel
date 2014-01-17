@@ -47,7 +47,7 @@ lively.ast.MozillaAST.Cache = {
         "interface Function <: Node {\n"
       + "    id: Identifier | null;\n"
       + "    params: [ Pattern ];\n"
-      + "    defaults: [ Expression ];\n"
+      + "    defaults: [ Expression ] | null;\n"
       + "    rest: Identifier | null;\n"
       + "    body: BlockStatement | Expression;\n"
       + "    generator: boolean;\n"
@@ -152,7 +152,7 @@ lively.ast.MozillaAST.Cache = {
       + "    type: \"FunctionDeclaration\";\n"
       + "    id: Identifier;\n"
       + "    params: [ Pattern ];\n"
-      + "    defaults: [ Expression ];\n"
+      + "    defaults: [ Expression ] | null;\n"
       + "    rest: Identifier | null;\n"
       + "    body: BlockStatement | Expression;\n"
       + "    generator: boolean;\n"
@@ -183,7 +183,7 @@ lively.ast.MozillaAST.Cache = {
         + "    type: \"FunctionExpression\";\n"
       + "    id: Identifier | null;\n"
       + "    params: [ Pattern ];\n"
-      + "    defaults: [ Expression ];\n"
+      + "    defaults: [ Expression ] | null;\n"
       + "    rest: Identifier | null;\n"
       + "    body: BlockStatement | Expression;\n"
       + "    generator: boolean;\n"
@@ -192,7 +192,7 @@ lively.ast.MozillaAST.Cache = {
         "interface ArrowExpression <: Function, Expression {\n"
       + "    type: \"ArrowExpression\";\n"
       + "    params: [ Pattern ];\n"
-      + "    defaults: [ Expression ];\n"
+      + "    defaults: [ Expression ] | null;\n"
       + "    rest: Identifier | null;\n"
       + "    body: BlockStatement | Expression;\n"
       + "    generator: boolean;\n"
@@ -555,16 +555,16 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
     },
 
     printMemberCode: function(indent, enumSpecs, memberSpec) {
-        var code = '';
-        var f = Strings.format;
-        var singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent;
-        var choices = memberSpec.choices;
-        var choiceTypes = choices.pluck('type').uniq();
-        var canBeNull = choiceTypes.include("null");
-        choiceTypes = choiceTypes.without("null");
+        var code = '',
+            f = Strings.format,
+            singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent;
+        var nullChoice = memberSpec.choices.detect(function(ea) { return ea.type === 'null'; }),
+            choices = memberSpec.choices.without(nullChoice),
+            choiceTypes = choices.pluck('type').uniq(),
+            canBeNull = !!nullChoice;
         // not all "node" types are actual nodes, there are also enums
-        var nodeExceptions = enumSpecs.pluck('name');
-        var isEnum = choiceTypes.include('node') && nodeExceptions.intersect(choices.pluck('value')).length > 0;
+        var nodeExceptions = enumSpecs.pluck('name'),
+            isEnum = choiceTypes.include('node') && nodeExceptions.intersect(choices.pluck('value')).length > 0;
 
         // 1. null guard
         if (canBeNull) { code += f("%sif (node.%s) {\n", indent, memberSpec.key); indent += singleIndent; }
@@ -597,7 +597,7 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
         } else if (choiceTypes.include('array')) {
             code += f('%snode.%s.forEach(function(ea) {\n%s%s}, this);\n',
                 indent, memberSpec.key,
-                memberSpec.choices.map(function(ea) {
+                choices.map(function(ea) {
                     return lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberArrayCode(ea, 'ea', indent + singleIndent); })
                         .join('\n' + indent),
                 indent);

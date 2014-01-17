@@ -1,4 +1,4 @@
-module('lively.ast.tests.InterpreterTests').requires('lively.ast.Interpreter', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.InterpreterTests').requires('lively.ast.AcornInterpreter', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
 'helper', {

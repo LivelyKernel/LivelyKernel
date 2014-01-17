@@ -1383,13 +1383,27 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         // hook for applications
     },
     adjustClipping: function(aPoint) {
-        var submorphsExtent = this.getBounds().bottomRight().subPt(this.getBounds().topLeft());
-        if (submorphsExtent.x > aPoint.x || submorphsExtent.y > aPoint.y) {
-            this.setClipMode('scroll');
+        // The subBounds are recomputed, because the cached bounds (this.getBounds()) are
+        // cropped if we already are in scroll mode, and wrong if one of our submorphs
+        // moved due to a setPosition call
+        var tfm = this.getTransform(),
+            bounds = this.innerBounds();
+
+        bounds = tfm.transformRectToRect(bounds);
+        var subBounds = this.submorphBounds(tfm);
+
+        var sbBr = subBounds && subBounds.bottomRight(),
+            thisBr = bounds.bottomRight();
+        if (subBounds && !sbBr.leqPt(thisBr)) {
+            this.setClipMode({
+                x: sbBr.x > thisBr.x ? 'scroll': 'visible', 
+                y: sbBr.y > thisBr.y ? 'scroll': 'visible'});
         } else {
             this.setClipMode('visible');
         }
     },
+
+
     addMorph: function($super, aMorph) {
         var returnValue = $super(aMorph);
         this.adjustClipping(this.getExtent());

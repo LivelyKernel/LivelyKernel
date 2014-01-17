@@ -555,26 +555,20 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
     },
 
     printMemberCode: function(indent, enumSpecs, memberSpec) {
+        var code = '';
         var f = Strings.format;
         var singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent;
         var choices = memberSpec.choices;
         var choiceTypes = choices.pluck('type').uniq();
-        var canBeNull = choices.pluck('type').include("null");
-        var code = '';
+        var canBeNull = choiceTypes.include("null");
+        choiceTypes = choiceTypes.without("null");
         // not all "node" types are actual nodes, there are also enums
         var nodeExceptions = enumSpecs.pluck('name');
         var isEnum = choiceTypes.include('node') && nodeExceptions.intersect(choices.pluck('value')).length > 0;
 
-        // 1. type that member can be
-        if (!isEnum)
-            code += f("%s// %s %s\n", indent,
-                memberSpec.key,
-                choiceTypes.length === 1 ?
-                    'is a ' + choiceTypes[0] :
-                    'can be ' + choiceTypes.join(', '));
-        // 2. null guard
+        // 1. null guard
         if (canBeNull) { code += f("%sif (node.%s) {\n", indent, memberSpec.key); indent += singleIndent; }
-        // 3. choices
+        // 2. choices
         if (choiceTypes[0] === 'string') {
             code += f('%s// node.%s is %s\n', indent,
                 memberSpec.key,
@@ -594,6 +588,11 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
                 indent, memberSpec.key, enumS.name,
                 indent, enumS.body.split('\n').invoke('trim').join(' | '));
         } else if (choiceTypes.include('node')) {
+            if (choiceTypes.length === 1) {
+                code += f("%s// %s is a node of type %s\n", indent, memberSpec.key, choices[0].value);
+            } else {
+                code += f("%s// %s %s\n", indent, memberSpec.key, 'can be ' + choiceTypes.join(' or '));
+            }
             code += f('%sthis.accept(node.%s);\n', indent, memberSpec.key);
         } else if (choiceTypes.include('array')) {
             code += f('%snode.%s.forEach(function(ea) {\n%s%s}, this);\n',
@@ -602,7 +601,6 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
                     return lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberArrayCode(ea, 'ea', indent + singleIndent); })
                         .join('\n' + indent),
                 indent);
-
         }
         if (canBeNull) { indent = indent.slice(0,-(singleIndent.length));  code += f("%s}\n", indent); }
         return code;
@@ -633,13 +631,8 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
 
 Object.extend(lively.ast.MozillaAST, {
 
-    fetchSpecDocument: function() {
-        alertOK('Reloading Mozilla parser API from developer.mozilla.org page...');
-        
-    },
-
     createVisitorCode: function(loadFromMozillaPage) {
-        // lively.ast.MozillaAST.createVisitorCode();
+        // lively.ast.MozillaAST.createVisitorCode(false);
         var doc, interfaces, enums, nodeSpecs, enumSpecs, visitor, visitorCode;
         [loadFromMozillaPage ?
             function(next) {

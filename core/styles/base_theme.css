@@ -134,7 +134,7 @@
 }
 
 .List .list-item.selected {
-	background: blue !important;
+	background: rgb(42, 87, 192) !important;
 	color: white !important;
 }
 

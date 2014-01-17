@@ -1,7 +1,10 @@
-var fs = require("fs");
-var path = require("path");
-var zlib = require('zlib');
-var ffuser = require('file-fuser');
+var fs           = require("fs"),
+    path         = require("path"),
+    zlib         = require('zlib'),
+    ffuser       = require('file-fuser'),
+    directory    = process.env.WORKSPACE_LK || path.resolve(__dirname, '../..'),
+    combinedFile = "combined.js",
+    fuser;
 
 function determineCoreFiles() {
     // bootstrap.js - libsFile
@@ -76,20 +79,27 @@ function determineCoreFiles() {
     return coreFiles;
 }
 
-var directory = process.env.WORKSPACE_LK || path.resolve(__dirname, '../..');
-var combinedFile = "combined.js"
-// FIXME!!! Currently some coreFiles have absolute paths, make them relative here
-var coreFiles = determineCoreFiles().map(function(fn) {
-    return fn.indexOf(directory) === 0 ?
-        fn.replace(new RegExp(directory + '[\/\\\\]?'), '') : fn;
-});
+(function setup() {
+    // if the combined file exists when we are starting then delete it. This
+    // way we make sure that we pick up changes that happended while the server
+    // wasn't running
+    var combinedFilePath = path.join(directory, combinedFile);
+    if (fs.existsSync(combinedFilePath)) fs.unlinkSync(combinedFilePath);
 
-var fuser;
-ffuser({
-    baseDirectory: directory,
-    files: coreFiles,
-    combinedFile: combinedFile
-}, function(err, _fuser) { global.fuser = fuser = _fuser; });
+    // FIXME!!! Currently some coreFiles have absolute paths, make them relative here
+    var coreFiles = determineCoreFiles().map(function(fn) {
+        return fn.indexOf(directory) === 0 ?
+            fn.replace(new RegExp(directory + '[\/\\\\]?'), '') : fn;
+    });
+
+    // Start the file fuser that takes care of watching the core files,
+    // generating the combinedFile from them and provides a hash for it
+    ffuser({
+        baseDirectory: directory,
+        files: coreFiles,
+        combinedFile: combinedFile
+    }, function(err, _fuser) { global.fuser = fuser = _fuser; });
+})();
 
 module.exports = function(route, app) {
 

@@ -626,22 +626,24 @@ lively.morphic.Text.subclass('lively.morphic.FrameRateMorph', {
 lively.morphic.Box.subclass('lively.morphic.Menu',
 'settings', {
     style: {
-        fill: Color.gray.lighter(3),
+        fill: Color.white,
         borderColor: Color.gray.lighter(),
         borderWidth: 1,
-        borderStyle: 'outset',
         borderRadius: 4,
         opacity: 0.95
     },
+    paddingLeft: 20,
+
     isEpiMorph: true,
     isMenu: true,
     removeOnMouseOut: false
 },
 'initializing', {
     initialize: function($super, title, items) {
-        $super(new Rectangle(0,0, 120, 10));
+        $super(new Rectangle(0,0, 20, 10));
         this.items = [];
         this.itemMorphs = [];
+        this.setStyleClass('Menu');
 
         if (title) this.setupTitle(title);
         if (items) this.addItems(items);
@@ -651,25 +653,14 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.title = new lively.morphic.Text(
             new Rectangle(0,0, this.getExtent().x, 25),
             String(title).truncate(26)).beLabel({
-                borderRadius: this.getBorderRadius(),
-                borderColor: this.getBorderColor(),
                 borderWidth: 0,
-                fill: new lively.morphic.LinearGradient([{offset: 0, color: Color.white},
-                                                         {offset: 1, color: Color.gray}]),
-                textColor: CrayonColors.lead,
                 clipMode: 'hidden',
                 fixedWidth: false,
                 fixedHeight: true,
-                borderColor: Color.gray.lighter(2),
-                borderWidth: 1,
-                borderStyle: 'outset',
-                borderRadius: 4,
-                padding: Rectangle.inset(5,5,5,5),
-                emphasize: {fontWeight: 'bold'}
+                padding: Rectangle.inset(20,5,5,5),
+                fontWeight: 'bold',
             });
-        this.title.align(this.title.bounds().bottomLeft(), pt(0,0));
         this.addMorph(this.title);
-        this.fitToItems()
     }
 },
 'mouse events', {
@@ -774,7 +765,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     addItems: function(items) {
         this.removeAllItems();
         this.items = this.createMenuItems(items);
-        var y = 0, x = 0;
+        var y = this.yStartForItems(), x = 0;
+        
         this.items.forEach(function(item) {
             var itemMorph = new lively.morphic.MenuItem(item);
             this.itemMorphs.push(this.addMorph(itemMorph));
@@ -890,6 +882,10 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         }
         this.setBounds(bounds);
     },
+    yStartForItems: function() {
+        return this.title ? this.title.getExtent().y : 0
+    },
+
 
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
@@ -903,20 +899,21 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     },
 
     fitToItems: function() {
+        var paddingLeft = (new lively.morphic.MenuItem({})).getPadding().left();
         var offset = 10 + 20,
             morphs = this.itemMorphs;
         if (this.title) morphs = morphs.concat([this.title]);
         var widths = morphs.invoke('getTextExtent').pluck('x'),
-            width = Math.max.apply(Global, widths) + offset,
+            width = Math.max.apply(Global, widths) + offset + paddingLeft,
             newExtent = this.getExtent().withX(width);
         this.setExtent(newExtent);
         morphs.forEach(function(ea) {
             ea.setExtent(ea.getExtent().withX(newExtent.x));
             if (ea.submorphs.length > 0) {
                 var arrow = ea.submorphs.first();
-                arrow.setPosition(arrow.getPosition().withX(newExtent.x-17));
+                arrow.setPosition(arrow.getPosition().withX(newExtent.x-17 - paddingLeft));
             }
-        })
+        });
     }
 
 });
@@ -944,7 +941,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         enableGrabbing: false,
         allowInput: false,
         fontSize: 10.5,
-        padding: Rectangle.inset(3,2),
+        padding: Rectangle.inset(20,3),
         textColor: Config.get('textColor') || Color.black,
         whiteSpaceHandling: 'nowrap'
     },
@@ -952,7 +949,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
 },
 'initializing', {
     initialize: function($super, item) {
-        $super(new Rectangle(0,0, 100, 23), item.string);
+        $super(new Rectangle(0,0, 20, 23), item.string);
         this.item = item;
         if (item.isSubMenu) this.addArrowMorph();
     },
@@ -1029,8 +1026,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         this.owner.itemMorphs.without(this).invoke('deselect');
         this.applyStyle({
             fill: new lively.morphic.LinearGradient([
-                {offset: 0, color: Color.rgb(100,131,248)},
-                {offset: 1, color: Color.rgb(34,85,245)}]),
+                {offset: 0, color: Color.rgb(43, 88, 255)},
+                {offset: 1, color: Color.rgb(42, 87, 192)}]),
             textColor: Color.white,
             borderRadius: 4
         });

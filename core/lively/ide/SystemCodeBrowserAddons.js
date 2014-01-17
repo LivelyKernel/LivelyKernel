@@ -245,21 +245,25 @@ Object.extend(lively.ide.SCBAddons.History, {
     },
 });
 
-lively.Config.addOption({
-    name: 'useHistoryTracking', 
-    value: false, 
-    docString: 'When loading lively.ide.SystemCodeBrowserAddons, install history browsing for all future browsers, or not.', 
-    group: 'lively.ide.tools', 
-    type: 'boolean', 
-    get: function() {
-        return !!lively.ide.BasicBrowser.prototype.setupLocationInput.oldSetup
-    }, 
-    set: function(value) {
-        if(value){
-            lively.ide.SCBAddons.History.install();
-        } else {
-            lively.ide.SCBAddons.History.deinstall();
-        }
-    },});
+if (lively.Config.get('useHistoryTracking', true) === undefined) {
+    lively.Config.addOption({
+        name: 'useHistoryTracking', 
+        value: false, 
+        docString: 'When loading lively.ide.SystemCodeBrowserAddons, install history browsing for all future browsers, or not.', 
+        group: 'lively.ide.tools', 
+        type: 'boolean', 
+        get: function() {
+            return !!lively.ide.BasicBrowser.prototype.setupLocationInput.oldSetup
+        }, 
+        set: function(value) {
+            if(value){
+                lively.ide.SCBAddons.History.install();
+            } else {
+                lively.ide.SCBAddons.History.deinstall();
+            }
+        },});
+} else if (lively.Config.get('useHistoryTracking') === true){
+    lively.ide.SCBAddons.History.install();
+}
 
 }) // end of module

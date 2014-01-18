@@ -359,6 +359,38 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var result = func.forInterpretation().call();
         this.assertEquals("object", result);
     }, */
+    test39aDeleteExistingVar: function() {
+        var node = this.parse('delete x;'),
+            mapping = { x: 1 };
+        this.assertEquals(false, this.interpret(node, mapping));
+        this.assertEquals(1, mapping.x);
+    },
+    test39bDeleteNonExistingVar: function() {
+        var node = this.parse('delete x;');
+        this.assertEquals(true, this.interpret(node));
+    },
+    test39cDeleteExistingMember: function() {
+        var node = this.parse('delete x.a;'),
+            mapping = { x: { a: 1 } };
+        this.assertEquals(true, this.interpret(node, mapping));
+        this.assertEquals(false, mapping.x.hasOwnProperty('a'));
+    },
+    test39cDeleteNonExistingMember: function() {
+        var node = this.parse('delete x.b;'),
+            mapping = { x: { a: 1 } };
+        this.assertEquals(true, this.interpret(node, mapping));
+        this.assertEquals(false, mapping.x.hasOwnProperty('b'));
+    },
+    test39dDeleteDeepMember: function() {
+        var node = this.parse('delete x.y.z;'),
+            mapping = { x: { y: { z: 1 } } };
+        this.assertEquals(true, this.interpret(node, mapping));
+        this.assertEquals(false, mapping.x.y.hasOwnProperty('z'));
+    },
+    test39eDeleteNonExisting: function() {
+        var node = this.parse('delete x.y;');
+        this.assertRaises(this.interpret.curry(node));
+    },
 });
 
 }) // end of module

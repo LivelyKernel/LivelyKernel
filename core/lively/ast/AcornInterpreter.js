@@ -541,6 +541,31 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     visitUnaryExpression: function(node, state) {
+        if (node.operator == 'delete') {
+            node = node.argument;
+            if (node.type == 'Identifier') {
+                // do not delete
+                try {
+                    state.currentFrame.findFrame(node.name);
+                    state.result = false;
+                } catch (e) { // should be ReferenceError
+                    state.result = true;
+                }
+            } else if (node.type == 'MemberExpression') {
+                this.accept(node.object, state);
+                var obj = state.result, prop;
+                if ((node.property.type == 'Identifier') && !node.computed)
+                    prop = node.property.name;
+                else {
+                    this.accept(node.property, state);
+                    prop = state.result;
+                }
+                state.result = delete obj[prop];
+            } else
+                throw new Error('Delete not yet implemented for ' + node.type + '!');
+            return;
+        }
+
         this.accept(node.argument, state);
         switch (node.operator) {
         case '-':       state.result = -state.result; break;
@@ -549,7 +574,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         case '~':       state.result = ~state.result; break;
         case 'typeof':  state.result = typeof state.result; break;
         case 'void':    state.result = void state.result; break; // or undefined?
-        case 'delete':  throw new Error('Delete not yet implemented!'); // TODO: implement
         default: throw new Error('No semantics for UnaryExpression with ' + node.operator + ' operator!');
         }
     },
@@ -865,7 +889,9 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         //         return { val: val, frame: this };
         // }
         var containingScope = this.getContainingScope();
-        return containingScope ? containingScope.findFrame(name) : null;
+        if (!containingScope)
+            throw new ReferenceError(name + ' is not defined');
+        return containingScope.findFrame(name);
     },
     lookup: function(name) {
         if (name === 'undefined') return undefined;

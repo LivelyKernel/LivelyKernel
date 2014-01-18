@@ -1464,27 +1464,6 @@ Object.extend(lively.ide, {
     }
 });
 
-(function toolingPatches() {
-    module('lively.morphic.Widgets').runWhenLoaded(function() {
-        lively.morphic.World.addMethods(
-        'tools', {
-            openPartItem: lively.morphic.World.prototype.openPartItem.getOriginal().wrap(function($proceed, name, partsbinCat) {
-                var part = $proceed(name, partsbinCat);
-                if (!Config.get('useAceEditor')) { return part; }
-                if (name === 'MethodFinderPane' && partsbinCat === 'PartsBin/Dialogs') {
-                    var oldEditor = part.get("sourceText"),
-                        newEditor = new lively.morphic.CodeEditor(oldEditor.bounds(), oldEditor.textString);
-                    newEditor.applyStyle({
-                        resizeWidth: true, resizeHeight: true
-                    });
-                    newEditor.replaceTextMorph(oldEditor);
-                }
-                return part;
-            })
-        });
-    });
-})();
-
 // startup hooks
 (function setupCodeEditorCompletions() {
     if (lively.Config.get('computeCodeEditorCompletionsOnStartup')) {

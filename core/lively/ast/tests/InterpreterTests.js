@@ -5,8 +5,9 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
     parse: function(src) {
         return lively.ast.acorn.parse(src);
     },
-    interpret: function(ast, optMapping) {
-        return acorn.walk.interpret(ast, optMapping);
+    interpret: function(node, optMapping) {
+        var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        return interpreter.run(node, optMapping);
     },
 },
 'testing', {
@@ -22,15 +23,23 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('1 + 2');
         this.assertEquals(3, this.interpret(node));
     },
-    test03LookupVar: function() {
-        var node = this.parse('a + 2');
-        this.assertEquals(3, this.interpret(node, { a: 1 }));
+    test03aLookupVar: function() {
+        var node = this.parse('a + 1');
+        this.assertEquals(2, this.interpret(node, { a: 1 }));
     },
-    test04aIf: function() {
+    test03bLookupMember: function() {
+        var node = this.parse('a.b + 2');
+        this.assertEquals(3, this.interpret(node, { a: { b: 1 } }));
+    },
+    test04aIfTrue: function() {
+        var node = this.parse('if (true) 1; else 2;');
+        this.assertEquals(1, this.interpret(node));
+    },
+    test04bIfFalse: function() {
         var node = this.parse('if (false) 1; else 2;');
         this.assertEquals(2, this.interpret(node));
     },
-    test04aIfWithoutElse: function() {
+    test04cIfWithoutElse: function() {
         var node = this.parse('if (false) 1;');
         this.assertEquals(undefined, this.interpret(node));
     },
@@ -74,8 +83,16 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parseJS('var obj = {foo: function() {this.x=3}}; obj.foo(); obj.x');
         this.assertEquals(3, node.startInterpretation());
     }, */
-    test13ModifyingVar: function() {
-        var node = this.parse('var x = 1; x = 3; x');
+    test13aModifyingVar: function() {
+        var node = this.parse('var x = 1; x = 3; x;');
+        this.assertEquals(3, this.interpret(node));
+    },
+    test13bModifyingMember: function() {
+        var node = this.parse('var x = { y: 1 }; x.y = 3; x.y;');
+        this.assertEquals(3, this.interpret(node));
+    },
+    test13cCreateMember: function() {
+        var node = this.parse('var x = {}; x.y = 3; x.y;');
         this.assertEquals(3, this.interpret(node));
     },
 /*    test14NoDynamicScop: function() {
@@ -119,10 +136,9 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         this.assertEqualState('b', this.interpret(node));
     },
     test19ModifyingSet: function() {
-        var node    = this.parse('a += 2'),
-            mapping = { a: 3 },
-            result  = this.interpret(node, mapping);
-        this.assertEquals(5, result);
+        var node    = this.parse('a += 2;'),
+            mapping = { a: 3 };
+        this.assertEquals(5, this.interpret(node, mapping));
         this.assertEquals(5, mapping.a);
     },
     test20UnaryOp: function() {
@@ -199,6 +215,19 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         this.assertRaises(this.interpret.curry(node), function(e) {
             return (typeof e == 'object') && (e.a == 1);
         });
+    },
+    test24eMultipleTry: function() {
+        var node = this.parse('try { ' +
+                'try { throw 1; } finally { inner.finalizer = true; } ' +
+            '} catch (e) { outer.catcher = true; } finally { outer.finalizer = true; }'),
+            mapping = {
+                inner: {},
+                outer: {}
+            };
+        this.interpret(node, mapping);
+        this.assertEquals(true, mapping.outer.finalizer);
+        this.assertEquals(true, mapping.outer.catcher);
+        this.assertEquals(true, mapping.inner.finalizer);
     },
 /*    test24eTryCatchMultipleLevels: function() {
         var src = 'function m1() { for (var i = 0; i < 10; i++) if (i == 3) throw i }; ' +
@@ -295,7 +324,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
             result  = ast.startInterpretation(Global);
         this.assert(result, 'instanceof not working');
     }, */
-    test33ForWithMultipleExpr: function() {
+    test33ForWithSequenceExpr: function() {
         var node = this.parse('var i, j; for (i = 0, j = 1; i < 10; i++, j*=2) { }; [i, j]');
         this.assertEqualState([10, 1024], this.interpret(node));
     },

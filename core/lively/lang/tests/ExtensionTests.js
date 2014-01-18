@@ -632,7 +632,31 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
         this.assertEquals(4, lookupFunc(23), "char pos: 2");
         this.assertEquals(5, lookupFunc(24), "char pos: 2");
         this.assertEquals(-1, lookupFunc(99), "char pos: 9");
+    },
+
+    testPrintTree: function() {
+        var tree = {
+            name: 'foo',
+            children: [
+                {name: "bar", children: [
+                    {name: 'baz', children: [{name: 'baz2'}]}]},
+                {name: "zork", children: [
+                    {name: 'baz4', children: [{name: 'baz6'}]},
+                    {name: 'baz3', children: [{name: 'baz5'}]}]}]
+        };
+        var expected = "foo\n"
+                     + "|---bar\n"
+                     + "|   \\---baz\n"
+                     + "\\---zork\n"
+                     + "    |---baz4\n"
+                     + "    \\---baz3\n"
+                     + "        \\---baz5";
+        var actual = Strings.printTree(tree,
+                function(n) { return n.name; },
+                function(n) { return n.children; }, '    ');
+        this.assertEquals(expected, actual);
     }
+
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayProjection', {

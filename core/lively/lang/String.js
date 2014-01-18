@@ -333,6 +333,47 @@ Global.Strings = {
         }).join('\n');
     },
 
+    printTree: function(rootNode, nodePrinter, childGetter, indent) {
+        var nodeList = [];
+        indent = indent || '  ';
+        iterator(0, 0, rootNode);
+        return nodeList.join('\n');
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function iterator(depth, index, node) {
+            // 1. Create stringified representation of node
+            nodeList[index] = (indent.times(depth)) + nodePrinter(node);
+            var children = childGetter(node);
+            if (!children || !children.length) return index;
+            // 2. If there are children then assemble those linear inside nodeList
+            // The childIndex is the pointer of the current items of childList into
+            // nodeList. 
+            var childIndex = index + 1,
+                lastIndex = childIndex,
+                lastI = children.length - 1;
+            children.forEach(function(ea, i) {
+                childIndex = iterator(depth+1, childIndex, ea);
+                // 3. When we have printed the recursive version then augment the
+                // printed version of the direct children with horizontal slashes
+                // directly in front of the represented representation
+                var isLast = lastI === i,
+                    cs = nodeList[lastIndex].split(''),
+                    fromSlash = (depth*indent.length)+1,
+                    toSlash = (depth*indent.length)+indent.length;
+                for (var i = fromSlash; i < toSlash; i++) cs[i] = '-';
+                if (isLast) cs[depth*indent.length] = '\\';
+                nodeList[lastIndex] = cs.join('');
+                // 4. For all children 
+                if (!isLast)
+                    nodeList.slice(lastIndex, childIndex).forEach(function(ea, i) {
+                        var cs2 = ea.split('');
+                        cs2[depth*indent.length] = '|';
+                        nodeList[lastIndex+i] = cs2.join(''); });
+                lastIndex = childIndex;
+            });
+            return childIndex;
+        }
+    },
+
     newUUID: function() {
         // copied from Martin's UUID class
         var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -600,4 +641,5 @@ Global.Strings = {
             return -1;
         }
     }
+
 };

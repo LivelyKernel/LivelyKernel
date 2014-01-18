@@ -512,9 +512,10 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
 
     singleIndent: '    ',
 
-    printMemberArrayCode: function(arrayMember, iteratorName, indent) {
-        var f = Strings.format;
-        var singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent;
+    printMemberArrayCode: function(options, arrayPropName, arrayMember, iteratorName, indent) {
+        var f = Strings.format,
+            singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent,
+            parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '';
         var values = arrayMember.values,
             types = values.pluck('type'),
             canBeNull = types.include('null'),
@@ -523,9 +524,10 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
         if (types.without('null').length !== 1) {
             throw new Error('Invalid array member: ' + Objects.inspect(arrayMember, {maxDepth: 3}));
         } else  if (types[0] === 'node') {
+            var path = options.pathAsParameter ? ', ["' + arrayPropName + '", i]' : '';
             code += f('%s// %s %s of type %s\n',
                 indent, iteratorName, canBeNull ? "can be" : "is", values.pluck('value').join(' or '));
-            code += f("%sthis.accept(%s, state);\n", indent, iteratorName);
+            code += f("%sthis.accept(%s%s%s);\n", indent, iteratorName, parameterString, path);
         } else if (types[0] === 'object') {
             if (arrayMember.values.length !== 1)
                 throw new Error('Array member has more than one object value?');
@@ -541,9 +543,10 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
                         iteratorName, fieldSpec.key,
                         fieldSpec.value.pluck('value').map(Strings.print).join(' or '))
                 } else if (fieldTypes[0] === 'node') {
+                    var path = options.pathAsParameter ? ', ["' + arrayPropName + '", i, "' + fieldSpec.key + '"]' : '';
                     code += f('%s// %s.%s %s of type %s\n',
                         indent, iteratorName, fieldSpec.key, fieldCanBeNull ? "can be" : "is", fieldTypes.join(' or '));
-                    code += f('%sthis.accept(%s.%s, state);\n', indent, iteratorName, fieldSpec.key)
+                    code += f('%sthis.accept(%s.%s%s%s);\n', indent, iteratorName, fieldSpec.key, parameterString, path);
                 }
                 if (fieldCanBeNull) { indent = indent.slice(0, -singleIndent.length); code += f('%s}\n', indent); }
             });
@@ -554,10 +557,11 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
         return code;
     },
 
-    printMemberCode: function(indent, enumSpecs, memberSpec) {
+    printMemberCode: function(options, indent, enumSpecs, memberSpec) {
         var code = '',
             f = Strings.format,
-            singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent;
+            singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent,
+            parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '';
         var nullChoice = memberSpec.choices.detect(function(ea) { return ea.type === 'null'; }),
             choices = memberSpec.choices.without(nullChoice),
             choiceTypes = choices.pluck('type').uniq(),
@@ -593,12 +597,15 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
             } else {
                 code += f("%s// %s %s\n", indent, memberSpec.key, 'can be ' + choiceTypes.join(' or '));
             }
-            code += f('%sthis.accept(node.%s, state);\n', indent, memberSpec.key);
+            var path = options.pathAsParameter ? ', ["' + memberSpec.key + '"]' : '';
+            code += f('%sthis.accept(node.%s%s%s);\n', indent, memberSpec.key, parameterString, path);
         } else if (choiceTypes.include('array')) {
-            code += f('%snode.%s.forEach(function(ea) {\n%s%s}, this);\n',
+            var index = options.pathAsParameter ? ', i' : '';
+            code += f('%snode.%s.forEach(function(ea%s) {\n%s%s}, this);\n',
                 indent, memberSpec.key,
+                index,
                 choices.map(function(ea) {
-                    return lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberArrayCode(ea, 'ea', indent + singleIndent); })
+                    return lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberArrayCode(options, memberSpec.key, ea, 'ea', indent + singleIndent); })
                         .join('\n' + indent),
                 indent);
         }
@@ -606,37 +613,62 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
         return code;
     },
 
-    printNodeSpec: function(enumSpecs, nodeSpec) {
+    printNodeSpec: function(options, enumSpecs, nodeSpec) {
         var f = Strings.format,
             methodName = 'visit' + nodeSpec.name.capitalize(),
             singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent,
             indent = singleIndent,
-            memberPrint = lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberCode.curry(indent + singleIndent, enumSpecs);
-        return f('%s%s: function(node, state) {\n%s%s}',
+            parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '',
+            pathParam = options.pathAsParameter ? ', path' : '',
+            memberPrint = lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberCode.curry(options, indent + singleIndent, enumSpecs);
+        return f('%s%s: function(node%s%s) {\n%s%s}',
             indent, methodName,
+            parameterString,
+            pathParam,
             nodeSpec.members.map(memberPrint).join('\n'),
             indent);
     },
 
-    printVisitorSpec: function(nodeSpecs, enumSpecs, name) {
+    printVisitorSpec: function(options, nodeSpecs, enumSpecs) {
         var singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent,
-            acceptMethod = Strings.format("%saccept: function(node, state) {\n%sreturn this['visit' + node.type.capitalize()](node, state);\n%s}",
-                singleIndent, singleIndent+singleIndent, singleIndent),
-            visitorMethods = nodeSpecs.map(lively.ast.MozillaAST.NodeSpecVisitorGenerator.printNodeSpec.curry(enumSpecs)),
+            parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '',
+            pathParam = options.pathAsParameter ? ', path' : '',
+            acceptMethod = Strings.format("%saccept: function(node%s%s) {\n%sreturn this['visit' + node.type.capitalize()](node%s%s);\n%s}",
+                singleIndent,
+                parameterString,
+                pathParam,
+                singleIndent+singleIndent,
+                parameterString,
+                pathParam,
+                singleIndent),
+            visitorMethods = nodeSpecs.map(lively.ast.MozillaAST.NodeSpecVisitorGenerator.printNodeSpec.curry(options, enumSpecs)),
             methods = [acceptMethod].concat(visitorMethods);
-        return Strings.format("%s = {\n%s\n}", name, methods.join(',\n\n'));
+        return options.asLivelyClass ?
+            Strings.format('Object.subclass("%s",\n"visiting", {\n%s\n});', options.name, methods.join(',\n\n')) :
+            Strings.format('%s = {\n%s\n};', options.name, methods.join(',\n\n'));
     }
 
 }
 
 Object.extend(lively.ast.MozillaAST, {
 
-    createVisitorCode: function(loadFromMozillaPage) {
-        // lively.ast.MozillaAST.createVisitorCode(false);
+    createVisitorCode: function(options, thenDo) {
+        // options = {
+        //   loadFromMozillaPage: BOOL, -- reload spec from developer.mozilla.org,
+        //   openWindow: BOOL, -- open generated code in a window
+        //   asLivelyClass: BOOL, -- generate visitor as a lively class
+        //   name: STRING, -- how to name the visitor, defaults to "Visitor"
+        //   parameters: [STRING], -- parameters to pass to visitor methods, defaults to ['state']
+        //   pathAsParameter: BOOL -- when true then the path how the node was
+        //                            accessed in its parent is passed into the visitors
+        // }
+        options = options || {};
+        options.name = options.name || "Visitor";
+        options.parameters = options.parameters || ['state'];
+        // lively.ast.MozillaAST.createVisitorCode({openWindow: true, asLivelyClass: true});
         var doc, interfaces, enums, nodeSpecs, enumSpecs, visitor, visitorCode;
-        [loadFromMozillaPage ?
+        [options.loadFromMozillaPage ?
             function(next) {
-                if (loadFromMozillaPage)
                 lively.ast.MozillaAST.SpiderMonkeyParserAPI.withDocument(function(err, _doc) {
                     if (err) { show(err); return; }
                     Global.doc = doc = _doc;
@@ -655,17 +687,18 @@ Object.extend(lively.ast.MozillaAST, {
             next();
         },
         function(next) {
-            visitorCode = lively.ast.MozillaAST.NodeSpecVisitorGenerator.printVisitorSpec(nodeSpecs, enumSpecs, 'visitor')
+            visitorCode = lively.ast.MozillaAST.NodeSpecVisitorGenerator.printVisitorSpec(options, nodeSpecs, enumSpecs);
             next();
         },
         function(next) {
-            $world.addCodeEditor({
+            options.openWindow && $world.addCodeEditor({
                 title: 'Mozilla AST node visitor',
                 content: visitorCode
             });
-            Global.visitorCode = visitorCode;
             next();
-        }].doAndContinue();
+        }].doAndContinue(null, function() {
+            thenDo && thenDo(null, visitorCode);
+        });
     }
 });
 

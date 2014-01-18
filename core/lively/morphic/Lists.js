@@ -1179,6 +1179,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
                     text.removeStyleClassName("selected");
                     text.selected = false;
                     text.setHandStyle("default");
+                    text.remove();
                 });
                 itemMorphs = itemMorphs.slice(0,requiredLength);
             });

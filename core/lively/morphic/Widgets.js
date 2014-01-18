@@ -1876,7 +1876,7 @@ lively.morphic.World.addMethods(
                 ["On short cuts", this.openShortcutDocumentation.bind(this)],
                 ["On connect data bindings", this.openConnectDocumentation.bind(this)],
                 ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
-                ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
+                ["More ...", function() { window.open('http://lively-web.org/documentation/'); }]
             ]],
             ['Report a bug', this.bugReport.bind(this)],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],

@@ -512,7 +512,7 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
 
     singleIndent: '    ',
 
-    printMemberArrayCode: function(options, arrayMember, iteratorName, indent) {
+    printMemberArrayCode: function(options, arrayPropName, arrayMember, iteratorName, indent) {
         var f = Strings.format,
             singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent,
             parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '';
@@ -524,9 +524,10 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
         if (types.without('null').length !== 1) {
             throw new Error('Invalid array member: ' + Objects.inspect(arrayMember, {maxDepth: 3}));
         } else  if (types[0] === 'node') {
+            var path = options.pathAsParameter ? ', ["' + arrayPropName + '", i]' : '';
             code += f('%s// %s %s of type %s\n',
                 indent, iteratorName, canBeNull ? "can be" : "is", values.pluck('value').join(' or '));
-            code += f("%sthis.accept(%s%s);\n", indent, iteratorName, parameterString);
+            code += f("%sthis.accept(%s%s%s);\n", indent, iteratorName, parameterString, path);
         } else if (types[0] === 'object') {
             if (arrayMember.values.length !== 1)
                 throw new Error('Array member has more than one object value?');
@@ -542,9 +543,10 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
                         iteratorName, fieldSpec.key,
                         fieldSpec.value.pluck('value').map(Strings.print).join(' or '))
                 } else if (fieldTypes[0] === 'node') {
+                    var path = options.pathAsParameter ? ', ["' + arrayPropName + '", i, "' + fieldSpec.key + '"]' : '';
                     code += f('%s// %s.%s %s of type %s\n',
                         indent, iteratorName, fieldSpec.key, fieldCanBeNull ? "can be" : "is", fieldTypes.join(' or '));
-                    code += f('%sthis.accept(%s.%s%s);\n', indent, iteratorName, fieldSpec.key, parameterString);
+                    code += f('%sthis.accept(%s.%s%s%s);\n', indent, iteratorName, fieldSpec.key, parameterString, path);
                 }
                 if (fieldCanBeNull) { indent = indent.slice(0, -singleIndent.length); code += f('%s}\n', indent); }
             });
@@ -595,12 +597,15 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
             } else {
                 code += f("%s// %s %s\n", indent, memberSpec.key, 'can be ' + choiceTypes.join(' or '));
             }
-            code += f('%sthis.accept(node.%s%s);\n', indent, memberSpec.key, parameterString);
+            var path = options.pathAsParameter ? ', ["' + memberSpec.key + '"]' : '';
+            code += f('%sthis.accept(node.%s%s%s);\n', indent, memberSpec.key, parameterString, path);
         } else if (choiceTypes.include('array')) {
-            code += f('%snode.%s.forEach(function(ea) {\n%s%s}, this);\n',
+            var index = options.pathAsParameter ? ', i' : '';
+            code += f('%snode.%s.forEach(function(ea%s) {\n%s%s}, this);\n',
                 indent, memberSpec.key,
+                index,
                 choices.map(function(ea) {
-                    return lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberArrayCode(options, ea, 'ea', indent + singleIndent); })
+                    return lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberArrayCode(options, memberSpec.key, ea, 'ea', indent + singleIndent); })
                         .join('\n' + indent),
                 indent);
         }
@@ -614,10 +619,12 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
             singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent,
             indent = singleIndent,
             parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '',
+            pathParam = options.pathAsParameter ? ', path' : '',
             memberPrint = lively.ast.MozillaAST.NodeSpecVisitorGenerator.printMemberCode.curry(options, indent + singleIndent, enumSpecs);
-        return f('%s%s: function(node%s) {\n%s%s}',
+        return f('%s%s: function(node%s%s) {\n%s%s}',
             indent, methodName,
             parameterString,
+            pathParam,
             nodeSpec.members.map(memberPrint).join('\n'),
             indent);
     },
@@ -625,11 +632,14 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
     printVisitorSpec: function(options, nodeSpecs, enumSpecs) {
         var singleIndent = lively.ast.MozillaAST.NodeSpecVisitorGenerator.singleIndent,
             parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '',
-            acceptMethod = Strings.format("%saccept: function(node%s) {\n%sreturn this['visit' + node.type.capitalize()](node%s);\n%s}",
+            pathParam = options.pathAsParameter ? ', path' : '',
+            acceptMethod = Strings.format("%saccept: function(node%s%s) {\n%sreturn this['visit' + node.type.capitalize()](node%s%s);\n%s}",
                 singleIndent,
                 parameterString,
+                pathParam,
                 singleIndent+singleIndent,
                 parameterString,
+                pathParam,
                 singleIndent),
             visitorMethods = nodeSpecs.map(lively.ast.MozillaAST.NodeSpecVisitorGenerator.printNodeSpec.curry(options, enumSpecs)),
             methods = [acceptMethod].concat(visitorMethods);
@@ -649,6 +659,8 @@ Object.extend(lively.ast.MozillaAST, {
         //   asLivelyClass: BOOL, -- generate visitor as a lively class
         //   name: STRING, -- how to name the visitor, defaults to "Visitor"
         //   parameters: [STRING], -- parameters to pass to visitor methods, defaults to ['state']
+        //   pathAsParameter: BOOL -- when true then the path how the node was
+        //                            accessed in its parent is passed into the visitors
         // }
         options = options || {};
         options.name = options.name || "Visitor";

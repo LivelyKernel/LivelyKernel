@@ -635,24 +635,33 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
     },
 
     testPrintTree: function() {
-        var tree = {
-            name: 'foo',
-            children: [
-                {name: "bar", children: [
-                    {name: 'baz', children: [{name: 'baz2'}]}]},
-                {name: "zork", children: [
-                    {name: 'baz4', children: [{name: 'baz6'}]},
-                    {name: 'baz3', children: [{name: 'baz5'}]}]}]
+        var tree = tree = {
+            string: "root",
+            children: [{
+                string: "a",
+                children: [{
+                    string: "b",
+                    children: [{string: "c"},{string: "d"}]
+                }],
+            },{
+                string: "e",
+                children: [{
+                    string: "f",
+                    children: [{ string: "g" },{ string: "h" }]
+                }]
+            }]
         };
-        var expected = "foo\n"
-                     + "|---bar\n"
-                     + "|   \\---baz\n"
-                     + "\\---zork\n"
-                     + "    |---baz4\n"
-                     + "    \\---baz3\n"
-                     + "        \\---baz5";
+        var expected = "root\n"
+                     + "|---a\n"
+                     + "|   \\---b\n"
+                     + "|       |---c\n"
+                     + "|       \\---d\n"
+                     + "\\---e\n"
+                     + "    \\---f\n"
+                     + "        |---g\n"
+                     + "        \\---h";
         var actual = Strings.printTree(tree,
-                function(n) { return n.name; },
+                function(n) { return n.string; },
                 function(n) { return n.children; }, '    ');
         this.assertEquals(expected, actual);
     }

@@ -342,13 +342,13 @@ Global.Strings = {
         function iterator(depth, index, node) {
             // 1. Create stringified representation of node
             nodeList[index] = (indent.times(depth)) + nodePrinter(node);
-            var children = childGetter(node);
-            if (!children || !children.length) return index;
+            var children = childGetter(node),
+                childIndex = index + 1;
+            if (!children || !children.length) return childIndex;
             // 2. If there are children then assemble those linear inside nodeList
             // The childIndex is the pointer of the current items of childList into
             // nodeList. 
-            var childIndex = index + 1,
-                lastIndex = childIndex,
+            var lastIndex = childIndex,
                 lastI = children.length - 1;
             children.forEach(function(ea, i) {
                 childIndex = iterator(depth+1, childIndex, ea);
@@ -362,7 +362,11 @@ Global.Strings = {
                 for (var i = fromSlash; i < toSlash; i++) cs[i] = '-';
                 if (isLast) cs[depth*indent.length] = '\\';
                 nodeList[lastIndex] = cs.join('');
-                // 4. For all children 
+                // 4. For all children (direct and indirect) except for the
+                // last one (itself and all its children) add vertical bars in
+                // front of each at position of the current nodes depth. This
+                // makes is much easier to see which child node belongs to which
+                // parent
                 if (!isLast)
                     nodeList.slice(lastIndex, childIndex).forEach(function(ea, i) {
                         var cs2 = ea.split('');

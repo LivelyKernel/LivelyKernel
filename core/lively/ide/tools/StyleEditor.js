@@ -1123,7 +1123,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                 
             }
     
-            this.get('TargetName').textString = morph.name;
+            this.get('TargetName').textString = morph.getName() || morph.toString();
     
     	// layout
     	var layout = morph.layout;

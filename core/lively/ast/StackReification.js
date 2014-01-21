@@ -133,6 +133,8 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
 'initializing', {
     initialize: function(error) {
         this.error = error;
+        this.topFrame = null; // frame in which the unwind starts
+        this.lastFrame = null; // bottom most frame
     }
 },
 'printing', {
@@ -142,18 +144,18 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
 },
 'frames', {
     shiftFrame: function(thiz, frame) {
-        var computationFrame = frame[0];
-        var localFrame = frame[1];
-        localFrame["this"] = thiz;
-        var astIndex = frame[2];
-        var scope = frame[3];
-        var stackFrame = [computationFrame, localFrame, astIndex, Global, scope];
+        var computationFrame = frame[0],
+            localFrame       = frame[1],
+            astIndex         = frame[2],
+            scope            = frame[3],
+            stackFrame       = [computationFrame, localFrame, astIndex, Global, scope];
+        localFrame["this"]   = thiz;
         if (!this.top) {
             this.top = this.last = stackFrame;
-            return;
+        } else {
+            this.last[3] = stackFrame;
+            this.last = stackFrame;
         }
-        this.last[3] = stackFrame;
-        this.last = stackFrame;
     }
 });
 

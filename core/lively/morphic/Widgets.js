@@ -2648,11 +2648,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             if (self.expandedPosition) self.setPosition(self.expandedPosition);
             self.addMorph(self.targetMorph);
             self.helperMorphs.forEach(function(ea) { self.addMorph(ea); });
-            // Bring this window forward if it wasn't already
+        }
+        this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {
             self.comeForward();
             self.targetMorph.onWindowExpand && self.targetMorph.onWindowExpand();
-        }
-        this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {});
+        });
     }
 
 });

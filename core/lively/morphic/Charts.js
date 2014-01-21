@@ -565,7 +565,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         var oldExtent = this.getExtent();
         var offsetX = 0;
         var offsetY = 0;
-        debugger;
+        
         // Find the nearest fitting snapping extent
         if (oldExtent.x % this.gridWidth > this.gridWidth / 2) {
             offsetX = this.gridWidth;

@@ -8,9 +8,7 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
     name: 'ServerLog',
     contentOffset: lively.pt(4.0,22.0),
     draggingEnabled: true,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: { adjustForNewBounds: true },
     sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
@@ -19,14 +17,9 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(4.0,22.0),
         className: "lively.morphic.Box",
-        doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
         droppingEnabled: true,
         isUpdating: false,
-        layout: {
-            adjustForNewBounds: true,
-            resizeHeight: true,
-            resizeWidth: true
-        },
+        layout: {adjustForNewBounds: true, resizeHeight: true, resizeWidth: true },
         name: "ServerLogPanel",
         prevLog: null,
         sourceModule: "lively.morphic.Core",
@@ -40,17 +33,13 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
             _ShowGutter: false,
             _TextMode: "text",
             accessibleInInactiveWindow: true,
-            allowInput: false,
+            allowInput: true,
             className: "lively.morphic.CodeEditor",
             doNotSerialize: ["whenOpenedInWorldCallbacks"],
-            layout: {
-                resizeHeight: false,
-                resizeWidth: true
-            },
+            layout: { resizeHeight: false, resizeWidth: true },
             name: "serverState",
             sourceModule: "lively.ide.CodeEditor",
             storedString: "",
-            submorphs: [],
             textString: ""
         },{
             _BorderColor: Color.rgb(95,94,95),
@@ -62,44 +51,23 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
             _ShowGutter: false,
             _TextMode: "text",
             accessibleInInactiveWindow: true,
-            allowInput: false,
+            allowInput: true,
             className: "lively.morphic.CodeEditor",
-            doNotSerialize: ["whenOpenedInWorldCallbacks"],
-            layout: {
-                resizeHeight: true,
-                resizeWidth: true
-            },
+            layout: { resizeHeight: true, resizeWidth: true },
             name: "stdout",
             sourceModule: "lively.ide.CodeEditor",
-            storedString: "",
-            submorphs: []
+            storedString: ""
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
             _BorderWidth: 1,
             _Extent: lively.pt(100.0,20.0),
             _Position: lively.pt(3.0,410.0),
-            _StyleClassNames: ["Morph","Button"],
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            isPressed: false,
             label: "clear log",
-            layout: {
-                moveVertical: true
-            },
+            layout: { moveVertical: true },
             name: "clearButton",
-            pinSpecs: [{
-                accessor: "fire",
-                location: 1.5,
-                modality: "output",
-                pinName: "fire",
-                type: "Boolean"
-            }],
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this, "doAction", {});
         },
@@ -112,24 +80,11 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
             _BorderWidth: 1,
             _Extent: lively.pt(100.0,20.0),
             _Position: lively.pt(104.0,410.0),
-            _StyleClassNames: ["Morph","Button"],
             className: "lively.morphic.Button",
-            doNotCopyProperties: [],
-            doNotSerialize: [],
-            isPressed: false,
             label: "start updating",
+            layout: { moveVertical: true },
             name: "stopStartButton",
-            pinSpecs: [{
-                accessor: "fire",
-                location: 1.5,
-                modality: "output",
-                pinName: "fire",
-                type: "Boolean"
-            }],
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this, "doAction", {});
         },
@@ -162,8 +117,19 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
         if (string === '') return;
         var logText = this.get('stdout')
         logText.withAceDo(function(ed) {
-            var atBottom = ed.getCursorPosition().row >= (ed.session.getLength()-2);
-            logText.textString += string;
+            var maxLength = 500000,
+                length = ed.getValue().length,
+                atBottom = ed.getCursorPosition().row >= length-2;
+            if (length + string.length > maxLength) {
+                var cutoff = Math.max(0, length - string.length - 100000),
+                    snip1 = logText.indexToPosition(0),
+                    snip2 = logText.indexToPosition(cutoff),
+                    snip = lively.ide.ace.require('ace/range').Range(snip1.row, snip1.column, snip2.row, snip2.column);
+                logText.replace(snip, '');
+            }
+            ed.session.insert(
+                ed.session.screenToDocumentPosition(Number.MAX_VALUE, Number.MAX_VALUE),
+                string);
             atBottom && ed.selection.moveCursorFileEnd(); })
     },
         reset: function reset() {

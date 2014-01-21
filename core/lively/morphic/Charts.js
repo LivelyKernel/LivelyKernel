@@ -284,6 +284,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     onArrowActivated: function() {
+        debugger;
         this.update();
     },
     
@@ -305,7 +306,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         // snap to position below component above, if there is one
         var componentAbove = this.getComponentInDirection(-1);
 
-        if (componentAbove) {
+        if (componentAbove && !componentAbove.isMerger()) {
             // snap below component above
             var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
             var snappingThreshold = 200;
@@ -390,7 +391,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.setOpacity(1);
     },
     
-    gridWidth: 50,
+    gridWidth: 20,
     
     componentOffset: 20,
     
@@ -558,7 +559,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             offsetY = this.gridWidth;
         }
 
-        if (componentAbove && !ignoreComponentAbove) {
+        if (componentAbove && !ignoreComponentAbove && !componentAbove.isMerger()) {
             // calculate extent depending on the extent of some other component
             return pt(componentAbove.getExtent().x, Math.floor(oldExtent.y / this.gridWidth) * this.gridWidth + offsetY);
         } else {
@@ -686,8 +687,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
     },
     
-    throwError: function(error) {
-        throw error;
+    throwError: function(e) {
+        var text = this.get("ErrorText");
+        text.setTextString(e.toString());
+        text.error = e;
+        e.alreadyThrown = true;
+        throw e;
     },
     
     resizeMainContent: function(newExtent) {
@@ -760,52 +765,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         return null;
     }
 });
-lively.morphic.Charts.Component.subclass('lively.morphic.Charts.FanIn',
+lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
 'default category', {
 
-    getComponentsInDirection : function($super, direction) {
-        var components = [];
-        var pxInterval = 50;
-        
-        // choose upper left corner as point
-        var currentPoint = this.getPositionInWorld();
-        
-        var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
-        while (currentPoint.x < rightBoundary) {
-            
-            var component = this.getComponentInDirection(direction, currentPoint)
-    
-            if (component)
-                components.pushIfNotIncluded(component);
-                
-            currentPoint = currentPoint.addPt(pt(pxInterval, 0));
-        }
-    
-        return components;
-    },
-    updateComponent: function() {
-        var c = this.get("CodeEditor");
-        c.doitContext = this;
-        
-        if (!c.getSelectionRangeAce())
-            return;
-        
-        var text = this.get("ErrorText");
-        text.setTextString("");
-        text.error = null;
-        
-        var returnValue = c.evalAll();
-        
-        if (returnValue instanceof Error) {
-            this.throwError(returnValue);
-        }
-    },
-    throwError: function(e) {
-        var text = this.get("ErrorText");
-        text.setTextString(e.toString());
-        text.error = e;
-        e.alreadyThrown = true;
-        throw e;
+    initialize : function($super){
+        $super();
+        var label = this.getSubmorphsByAttribute("name","Description")[0];
+        label.setTextString("FanIn");
+        this.setExtent(pt(this.getExtent().x,50));
     },
 
     refreshData: function() {
@@ -818,13 +785,6 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.FanIn',
         }
     },
 
-
-    // shouldPropagateResizing: function() {
-    //     return false;
-    // },
-    isMerger: function() {
-        return true;
-    },
     calculateSnappingExtent: function($super, forPreview) {
         
         var componentsAbove = this.getComponentsInDirection(-1);
@@ -859,6 +819,7 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.FanIn',
             return pt(x,y);
         }
     },
+    
     calculateSnappingPosition: function() {
         var componentsAbove = this.getComponentsInDirection(-1);
         var componentAbove;
@@ -887,21 +848,43 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.FanIn',
             return this.calculateSnappingPositionInGrid();
         }
     },
-    onDropOn: function($super, aMorph) {
+    
+});
+lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
+'default category', {
+    
+    initialize : function($super){
         $super();
-        if (aMorph == $world) {
-            var newext = this.calculateSnappingExtent();
-            var newpos = this.calculateSnappingPosition();
-            this.setPosition(newpos);
-            this.setPropagateResizing(false);
-            this.resizingFrom = "snapping";
-            
-            
-            this.setExtent(newext, "snapping");
-            this.setPropagateResizing(true);
-        }
-        this.notify();
+
+        var label = this.getSubmorphsByAttribute("name","Description")[0];
+        label.setTextString("FanOut");
+        this.setExtent(pt(this.getExtent().x,50));
     },
+    
+    getData : function(target){
+        var arrowToTarget = this.arrows.detect(function (arrow){
+            var arrowX =  arrow.getPosition().x;
+            return target.getPosition().x <= arrowX &&
+                arrowX <= target.getPosition().x + target.getExtent().x;
+        });
+        
+        if (!arrowToTarget){
+            //create new new arrow for this target
+            var newArrow = new lively.morphic.Charts.Arrow(this);
+            var offset = this.getPosition().x;
+            newArrow.setPosition(pt(target.getExtent().x/2+target.getPosition().x-newArrow.getExtent().x/2-offset,newArrow.getPosition().y));
+            newArrow.activate();
+            this.arrows.push(newArrow);
+            return this.data;
+        }
+        
+        if (arrowToTarget.isActive()) {
+            return this.data;
+        }
+        
+        return null;
+    }
+   
     
 });
 lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
@@ -936,5 +919,82 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
             this.owner.realignAllComponentsInColumn();
         }
     }
+});
+lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
+'default category', {
+    
+    initialize : function($super){
+        $super();
+        //delete Minimizer
+        if (this.getSubmorphsByAttribute("name","Minimizer"))
+        {
+            this.getSubmorphsByAttribute("name","Minimizer")[0].remove();
+        }
+    },
+
+    getComponentsInDirection : function($super, direction) {
+        var components = [];
+        var pxInterval = 50;
+        
+        // choose upper left corner as point
+        var currentPoint = this.getPositionInWorld();
+        
+        var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
+        while (currentPoint.x < rightBoundary) {
+            
+            var component = this.getComponentInDirection(direction, currentPoint)
+    
+            if (component)
+                components.pushIfNotIncluded(component);
+                
+            currentPoint = currentPoint.addPt(pt(pxInterval, 0));
+        }
+    
+        return components;
+    },
+    
+    updateComponent: function() {
+        c = this.get("CodeEditor");
+        c.doitContext = this;
+        
+        var text = this.get("ErrorText");
+        text.setTextString("");
+        text.error = null;
+        
+        var returnValue = c.evalAll();
+        
+        if (returnValue instanceof Error) {
+            this.throwError(returnValue);
+        }
+    },
+    
+    throwError: function(e) {
+        var text = this.get("ErrorText");
+        text.setTextString(e.toString());
+        text.error = e;
+        e.alreadyThrown = true;
+        throw e;
+    },
+
+    isMerger: function() {
+        return true;
+    },
+    
+    onDropOn: function($super, aMorph) {
+        $super();
+        if (aMorph == $world) {
+            var newext = this.calculateSnappingExtent();
+            var newpos = this.calculateSnappingPosition();
+            this.setPosition(newpos);
+            this.setPropagateResizing(false);
+            this.resizingFrom = "snapping";
+            
+            
+            this.setExtent(newext, "snapping");
+            this.setPropagateResizing(true);
+        }
+        this.notify();
+    },
+    
 });
 }) // end of module

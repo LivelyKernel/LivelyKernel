@@ -5,7 +5,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     setUp: function($super) {
         $super();
         this.parser = lively.ast.acorn;
-        this.rewrite = acorn.walk.rewrite;
+        this.rewrite = Global.rewrite;
     },
 },
 'helping', {
@@ -191,7 +191,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                         left: this.localVarRef('fn'),
                         operator: '=',
                         right: this.closureWrapper({
-                            type: 'FunctionExpression', id: null,
+                            type: 'FunctionExpression', id: {type: "Identifier", name: 'fn'},
                             params: [
                                 { type: 'Identifier', name: 'k' },
                                 { type: 'Identifier', name: 'l' }
@@ -329,7 +329,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                             left: this.storedValue(),
                             operator: '=',
                             right: this.closureWrapper({
-                                type: 'FunctionExpression', id: null,
+                                type: 'FunctionExpression',
+                                id: {type: "Identifier", name: "bar"},
                                 params: [],
                                 body: {}
                             })

@@ -15,6 +15,45 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         });
     },
     
+    testNotify: function() {
+        var components = this.helper.createComponents(3);
+        components[0].arrows[0].activate();
+        components[1].arrows[0].activate();
+        components[0].data = 42;
+        components[0].notifyNextComponent();
+        
+        this.assertEquals(components[1].data, 42);
+        this.assertEquals(components[2].data, 42);
+    },
+    
+    testNoNotifyWhenError: function() {
+        var components = this.helper.createComponents(3);
+        components[0].arrows[0].activate();
+        components[1].arrows[0].activate();
+        components[1].updateComponent = function() {
+            throw "Error";
+        }
+        
+        components[0].data = 123;
+        components[1].data = 142;
+        components[2].data = 42;
+        
+        try {
+            components[0].notifyNextComponent();
+        } catch(e) {}
+        
+        this.assertEquals(components[2].data, 42);
+        
+    },
+    
+    testNoNotifyWhenDeactivated: function() {
+        var components = this.helper.createComponents(2);
+        components[0].data = "newData";
+        components[0].notifyNextComponent();
+        
+        this.assertEquals(components[1].data, null);
+    },
+    
     testResizeOnDropBelow: function() {
         var components = this.helper.createComponents(2, [pt(0,0), pt(1,1)]);
         
@@ -32,21 +71,18 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
     
     testPreviewResizeOnDropBelow: function() {
         var components = this.helper.createComponents(2, [pt(0,0), pt(1,1)]);
-        
+        debugger;
         components[1].setExtent(components[1].getExtent().subPt(pt(100,0)));
         
-        debugger;
         this.mouseEvent('down', pt(20,20), components[1]);
         this.mouseEvent('move', pt(-300,20), components[1]);
         this.mouseEvent('move', pt(-305,20), components[1]);
-        this.mouseEvent('move', pt(-310,20), components[1]);
         
         var extent0 = components[0].getExtent();
         var extentPrev = $morph("PreviewMorph" + components[1]).getExtent();
         
-        this.assertEquals(extent0.x, extentPrev.x);
-        
         this.mouseEvent('up', pt(-310,20), components[1]);
+        this.assertEquals(extent0.x, extentPrev.x);
     },
     
 
@@ -105,6 +141,13 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         this.assertEquals(position.x % component.gridWidth, 0);
         this.assertEquals(position.y % component.gridWidth, 0);
     },
+    testNoInput: function() {
+        var component = this.helper.createComponent();
+        component.notify();
+        
+        this.assertEquals(component.data, null);
+    },
+
     
     testDragBetween: function() {
         var components = this.helper.createComponents(2);

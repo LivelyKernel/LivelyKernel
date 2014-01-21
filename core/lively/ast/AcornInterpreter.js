@@ -1,7 +1,7 @@
 module('lively.ast.AcornInterpreter').requires('lively.ast.acorn').toRun(function() {
 
 /*
-// reimplementation of lively.ast.InterpreterVisitor for Parser API
+// reimplementation of lively.ast.InterpreterVisitor for Mozilla Parser API
 // TODO: implement strict mode ?!
 */
 Object.subclass('lively.ast.AcornInterpreter.Interpreter',
@@ -42,9 +42,62 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         state.result = value;
     },
 },
+'invoking', {
+    invoke: function(node, recv, func, argValues, frame, isNew) {
+        // TODO: reactivate
+        // frame.setPC(node);
+
+        // if we send apply to a function (recv) we want to interpret it
+        // although apply is a native function
+        if (recv && Object.isFunction(recv) && func === Function.prototype.apply) {
+            func = recv; // The function object is what we want to run
+            recv = argValues.shift(); // thisObj is first parameter
+            argValues = argValues[0]; // the second arg are the arguments (as an array)
+        }
+        if (this.shouldInterpret(frame, func))
+            func = func.forInterpretation();
+        if (isNew) {
+            if (this.isNative(func))
+                return new func();
+            recv = this.newObject(func);
+        }
+
+        var result = func.apply(recv, argValues);
+        if (isNew) {// && !Object.isObject(result)) {
+            // FIXME: Cannot distinguish real result from (accidental) last result
+            //        which might also be an object but which should not be returned
+            // 13.2.2 ECMA-262 3rd. Edition Specification
+            return recv;
+        }
+        return result;
+    },
+
+    isNative: function(func) {
+        if (!this._nativeFuncRegex) this._nativeFuncRegex = /\{\s+\[native\scode\]\s+\}$/;
+        return this._nativeFuncRegex.test(func.toString());
+    },
+
+    shouldInterpret: function(frame, func) {
+        if (this.isNative(func))
+            return false;
+        return func.hasOwnProperty('forInterpretation');
+        // TODO: reactivate when necessary
+            // || frame.breakAtCalls
+            // || func.containsDebugger();
+    },
+
+    newObject: function(func) {
+        var proto = func.prototype;
+        function constructor() {};
+        constructor.prototype = proto;
+        var newObj = new constructor();
+        newObj.constructor = func;
+        return newObj;
+    },
+},
 'visiting', {
     accept: function(node, state) {
-        return this['visit' + node.type.capitalize()](node, state);
+        return this['visit' + node.type](node, state);
     },
 
     visitProgram: function(node, state) {
@@ -55,39 +108,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 return;
         }
     },
-
-    // visitFunction: function(node, state) {
-    //     if (node.id) {
-    //         // id is a node of type Identifier
-    //         this.accept(node.id, state);
-    //     }
-
-    //     node.params.forEach(function(ea) {
-    //         // ea is of type Pattern
-    //         this.accept(ea, state);
-    //     }, this);
-
-    //     if (node.defaults) {
-    //         node.defaults.forEach(function(ea) {
-    //             // ea is of type Expression
-    //             this.accept(ea, state);
-    //         }, this);
-    //     }
-
-    //     if (node.rest) {
-    //         // rest is a node of type Identifier
-    //         this.accept(node.rest, state);
-    //     }
-
-    //     // body is a node of type BlockStatement
-    //     this.accept(node.body, state);
-
-    //     // node.generator has a specific type that is boolean
-    //     if (node.generator) {/*do stuff*/}
-
-    //     // node.expression has a specific type that is boolean
-    //     if (node.expression) {/*do stuff*/}
-    // },
 
     visitEmptyStatement: function(node, state) {
         // do nothing, not even change the result
@@ -200,12 +220,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         return result;
     },
 
-    // visitReturnStatement: function(node, state) {
-    //     if (node.argument) {
-    //         // argument is a node of type Expression
-    //         this.accept(node.argument, state);
-    //     }
-    // },
+    visitReturnStatement: function(node, state) {
+        if (node.argument)
+            this.accept(node.argument, state);
+        else
+            state.result = undefined;
+        state.currentFrame.triggerReturn();
+    },
 
     visitTryStatement: function(node, state) {
         try {
@@ -384,37 +405,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     // visitDebuggerStatement: function(node, state) {
     // },
 
-    // visitFunctionDeclaration: function(node, state) {
-    //     // id is a node of type Identifier
-    //     this.accept(node.id, state);
-
-    //     node.params.forEach(function(ea) {
-    //         // ea is of type Pattern
-    //         this.accept(ea, state);
-    //     }, this);
-
-    //     if (node.defaults) {
-    //         node.defaults.forEach(function(ea) {
-    //             // ea is of type Expression
-    //             this.accept(ea, state);
-    //         }, this);
-    //     }
-
-    //     if (node.rest) {
-    //         // rest is a node of type Identifier
-    //         this.accept(node.rest, state);
-    //     }
-
-    //     // body is a node of type BlockStatement
-    //     this.accept(node.body, state);
-
-    //     // node.generator has a specific type that is boolean
-    //     if (node.generator) {/*do stuff*/}
-
-    //     // node.expression has a specific type that is boolean
-    //     if (node.expression) {/*do stuff*/}
-    // },
-
     visitVariableDeclaration: function(node, state) {
         var oldResult = state.result;
         if (node.kind == 'var') {
@@ -436,8 +426,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         state.result = oldResult;
     },
 
-    // visitThisExpression: function(node, state) {
-    // },
+    visitThisExpression: function(node, state) {
+        state.result = state.currentFrame.getThis();
+    },
 
     visitArrayExpression: function(node, state) {
         var result = new Array(node.elements.length);
@@ -465,46 +456,37 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 this.accept(prop.value, state);
                 result[propName] = state.result;
                 break;
-            // case 'get':
-            // case 'set':
+            // case 'get': TODO - implement
+            // case 'set': TODO - implement
             default: throw new Error('Invalid kind for ObjectExpression!');
             }
         }, this);
         state.result = result;
     },
 
-    // visitFunctionExpression: function(node, state) {
-    //     if (node.id) {
-    //         // id is a node of type Identifier
-    //         this.accept(node.id, state);
-    //     }
+    visitFunctionDeclaration: function(node, state) {
+        // FIXME: declare functions in the beginning of the context
+        var result = state.result;
+        this.visitFunctionExpression(node, state);
+        state.currentFrame.addToMapping(node.id.name, state.result);
+        state.result = result;
+    },
 
-    //     node.params.forEach(function(ea) {
-    //         // ea is of type Pattern
-    //         this.accept(ea, state);
-    //     }, this);
+    visitFunctionExpression: function(node, state) {
+        var fn = new lively.ast.AcornInterpreter.Function(node, state.currentFrame);
+        state.result = fn.asFunction();
 
-    //     if (node.defaults) {
-    //         node.defaults.forEach(function(ea) {
-    //             // ea is of type Expression
-    //             this.accept(ea, state);
-    //         }, this);
-    //     }
-
-    //     if (node.rest) {
-    //         // rest is a node of type Identifier
-    //         this.accept(node.rest, state);
-    //     }
-
-    //     // body is a node of type BlockStatement
-    //     this.accept(node.body, state);
-
-    //     // node.generator has a specific type that is boolean
-    //     if (node.generator) {/*do stuff*/}
-
-    //     // node.expression has a specific type that is boolean
-    //     if (node.expression) {/*do stuff*/}
-    // },
+        // if (node.defaults) {
+        //     node.defaults.forEach(function(ea) {
+        //         // ea is of type Expression
+        //         this.accept(ea, state);
+        //     }, this);
+        // }
+        // if (node.rest) {
+        //     // rest is a node of type Identifier
+        //     this.accept(node.rest, state);
+        // }
+    },
 
     // visitArrowExpression: function(node, state) {
     //     node.params.forEach(function(ea) {
@@ -526,9 +508,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     //     // body is a node of type BlockStatement
     //     this.accept(node.body, state);
-
-    //     // node.generator has a specific type that is boolean
-    //     if (node.generator) {/*do stuff*/}
 
     //     // node.expression has a specific type that is boolean
     //     if (node.expression) {/*do stuff*/}
@@ -662,53 +641,56 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             state.result = oldVal;
     },
 
-    // visitLogicalExpression: function(node, state) {
-    //     // node.operator is an LogicalOperator enum:
-    //     // "||" | "&&"
+    visitLogicalExpression: function(node, state) {
+        this.accept(node.left, state);
+        var left = state.result;
+        if (((node.operator == '||') && !left) ||
+            ((node.operator == '&&') && left))
+            this.accept(node.right, state);
+    },
 
-    //     // left is a node of type Expression
-    //     this.accept(node.left, state);
+    visitConditionalExpression: function(node, state) {
+        this.visitIfStatement(node, state);
+    },
 
-    //     // right is a node of type Expression
-    //     this.accept(node.right, state);
-    // },
+    visitNewExpression: function(node, state) {
+        state.isNew = true;
+        this.visitCallExpression(node, state);
+        delete state.isNew; // FIXME: nested NewExpressions?
+    },
 
-    // visitConditionalExpression: function(node, state) {
-    //     // test is a node of type Expression
-    //     this.accept(node.test, state);
+    visitCallExpression: function(node, state) {
+        var recv, prop, fn;
+        if (node.callee.type == 'MemberExpression') {
+            // send
+            this.accept(node.callee.object, state);
+            recv = state.result;
 
-    //     // alternate is a node of type Expression
-    //     this.accept(node.alternate, state);
-
-    //     // consequent is a node of type Expression
-    //     this.accept(node.consequent, state);
-    // },
-
-    // visitNewExpression: function(node, state) {
-    //     // callee is a node of type Expression
-    //     this.accept(node.callee, state);
-
-    //     node.arguments.forEach(function(ea) {
-    //         // ea is of type Expression
-    //         this.accept(ea, state);
-    //     }, this);
-    // },
-
-    // visitCallExpression: function(node, state) {
-    //     // callee is a node of type Expression
-    //     this.accept(node.callee, state);
-
-    //     node.arguments.forEach(function(ea) {
-    //         // ea is of type Expression
-    //         this.accept(ea, state);
-    //     }, this);
-    // },
+            if ((node.callee.property.type == 'Identifier') && !node.callee.computed)
+                prop = node.callee.property.name;
+            else {
+                this.accept(node.callee.property, state);
+                prop = state.result;
+            }
+            fn = recv[prop];
+        } else {
+            // simple call
+            this.accept(node.callee, state);
+            fn = state.result;
+        }
+        var args = [];
+        node.arguments.forEach(function(arg) {
+            this.accept(arg, state);
+            args.push(state.result);
+        }, this);
+        state.result = this.invoke(node, recv, fn, args, state.currentFrame, state.isNew);
+    },
 
     visitMemberExpression: function(node, state) {
         this.accept(node.object, state);
         var object = state.result,
             property;
-        if (node.property.type == 'Identifier')
+        if ((node.property.type == 'Identifier') && !node.computed)
             property = node.property.name;
         else {
             this.accept(node.property, state);
@@ -716,24 +698,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
         state.result = object[property];
     },
-
-    // visitObjectPattern: function(node, state) {
-    //     node.properties.forEach(function(ea) {
-    //         // ea.key is of type node
-    //         this.accept(ea.key, state);
-    //         // ea.value is of type node
-    //         this.accept(ea.value, state);
-    //     }, this);
-    // },
-
-    // visitArrayPattern: function(node, state) {
-    //     node.elements.forEach(function(ea) {
-    //         if (ea) {
-    //             // ea can be of type Pattern or 
-    //             this.accept(ea, state);
-    //         }
-    //     }, this);
-    // },
 
     visitSwitchCase: function(node, state) {
         var frame = state.currentFrame;
@@ -743,17 +707,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 return;
         }
     },
-
-    // visitComprehensionBlock: function(node, state) {
-    //     // left is a node of type Pattern
-    //     this.accept(node.left, state);
-
-    //     // right is a node of type Expression
-    //     this.accept(node.right, state);
-
-    //     // node.each has a specific type that is boolean
-    //     if (node.each) {/*do stuff*/}
-    // },
 
     visitIdentifier: function(node, state) {
         state.result = state.currentFrame.lookup(node.name);
@@ -765,87 +718,94 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 });
 
-(function extendAcorn() {
-    /*
-    // reimplementation of lively.ast.InterpreterVisitor for Parser API
-    // TODO: implement strict mode ?!
-    */
-    acorn.walk.interpret = function acornWalkInterpret(ast, frameOrMapping) {
-        var currentFrame;
-        if (frameOrMapping instanceof lively.ast.AcornInterpreter.Frame)
-            var currentFrame = frameOrMapping;
-        else
-            var currentFrame = lively.ast.AcornInterpreter.Frame.create(null, frameOrMapping);
+Object.subclass('lively.ast.AcornInterpreter.Function',
+'initialization', {
+    initialize: function(node, scope, optFunc) {
+        this.lexicalScope = scope;
+        this.node = node;
 
-        function invoke(node, recv, fn, args) {
-            // TODO: check whether it is 'new'
-            // var isNew = node._parent && node._parent.isNew;
-            currentFrame.setPC(node);
+        this.prepareFunction(optFunc);
+    },
 
-            // if we send apply to a function (recv) we want to interpret it
-            // although apply is a native function
-            // fn.apply(obj, args) => obj.fn(arg1, ..., argN)
-            if (recv && Object.isFunction(recv) && fn === Function.prototype.apply) {
-                fn = recv;
-                recv = args.shift();
-                args = args[0];
-            }
-            if (shouldInterpret(currentFrame, fn)) {
-                fn = fn.forInterpretation();
-            }
-            // TODO: see above
-            // if (isNew) {
-            //     if (this.isNative(func)) return new func();
-            //     recv = this.newObject(func)
-            // }
-            var result = fn.apply(recv, args);
-            // TODO: see above
-            // if (isNew) {// && !Object.isObject(result)) {
-            //     //FIXME: Cannot distinguish real result from (accidental) last result
-            //     //       which might also be an object but which should not be returned
-            //     // 13.2.2 ECMA-262 3rd. Edition Specification:
-            //     return recv;
-            // }
-            return result;
-        }
-        function shouldInterpret(frame, fn) {
-            if (isNative(fn)) return false;
-            // TODO: reimplement parts
-            return fn.hasOwnProperty('forInterpretation') || frame.breakAtCalls || fn.containsDebugger;
-        }
-        function isNative(fn) {
-            var nativeFuncRegex = /\{\s+\[native\scode\]\s+\}$/;
-            return nativeFuncRegex.test(fn.toString());
-        }
-        function astToFunction(node) {
-            // TODO
-            throw new Error('TODO!');
-        }
+    prepareFunction: function(optFunc) {
+        if (this._cachedFunction)
+            return this._cachedFunction;
 
-        var visitors = {
-            FunctionExpression: function(node, visit) {
-                var frame = currentFrame;
-                if (node.id !== null)
-                    frame.addToMapping(node.id.name, node);
-                // TODO: What is this?
-                // if (!node.prototype) node.prototype = {};
-                node.lexicalScope = frame;
-                return astToFunction(node);
-            },
-            CallExpression: function(node, visit) {
-                var fn = visit(node.callee),
-                    args = node.arguments.collect(function(arg) {
-                        return visit(arg);
-                    });
-                return invoke(node, undefined, fn, args);
-            }
+        var that = this;
+        function fn(/*args*/) {
+            return that.apply(this, Array.from(arguments));
+        }
+        fn.forInterpretation = function() {
+            return fn;
         };
-        function visit(node) {
-            return visitors[node.type](node, visit);
+        fn.ast = function() {
+            return that.node;
+        };
+        // TODO: reactivate when necessary
+        // why is this wrapped!? (context)
+        // fn.startHalted = function() {
+        //     return function(/*args*/) { return that.apply(this, Array.from(arguments), true); }
+        // };
+        // fn.evaluatedSource = function() { return ...; };
+
+        // custom Lively stuff
+        fn.methodName = this.name();
+
+        // TODO: prepare more stuff from optFunc
+
+        this._cachedFunction = fn;
+    },
+},
+'accessing', {
+    argNames: function() {
+        return this.node.params.map(function(param) {
+            // params are supposed to be of type Identifier
+            return param.name;
+        });
+    },
+
+    name: function() {
+        return this.node.id ? this.node.id.name : undefined;
+    },
+},
+'interpretation', {
+    apply: function(thisObj, argValues, startHalted) {
+        var // mapping = Object.extend({}, this.getVarMapping()),
+            argNames = this.argNames();
+        // work-around for $super
+        // if (mapping['$super'] && argNames[0] == '$super')
+        //     argValues.unshift(mapping['$super']);
+
+        var scope = this.lexicalScope ? this.lexicalScope : lively.ast.Interpreter.Frame.global(),
+            newFrame = scope.newScope(this /* FIXME: , mapping */);
+        if (thisObj !== undefined)
+            newFrame.setThis(thisObj);
+        newFrame.setArguments(argValues);
+        // TODO: reactivate when necessary
+        // newFrame.setCaller(lively.ast.Interpreter.Frame.top);
+        // if (startHalted) newFrame.breakAtFirstStatement();
+        return this.basicApply(newFrame);
+    },
+
+    basicApply: function(frame) {
+        var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        try {
+            // TODO: reactivate?!
+            // lively.ast.AcornInterpreter.Frame.top = frame;
+            // important: lively.ast.Interpreter.Frame.top is only valid
+            // during the native VM-execution time. When the execution
+            // of the interpreter is stopped, there is no top frame anymore.
+            return interpreter.runWithFrame(this.node.body, frame);
+        } finally {
+            // TODO: reactivate?!
+            // lively.ast.AcornInterpreter.Frame.top = null;
         }
-        return visit(ast);
-    }
-})();
+    },
+
+    asFunction: function() {
+        return this.prepareFunction() && this._cachedFunction;
+    },
+});
 
 Object.subclass('lively.ast.AcornInterpreter.Frame',
 'initialization', {
@@ -857,8 +817,8 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.continueTriggered = false;
         this.containingScope = null;
     },
-    newScope: function(mapping) {
-        var newFrame = new lively.ast.AcornInterpreter.Frame(mapping);
+    newScope: function(func, mapping) {
+        var newFrame = new lively.ast.AcornInterpreter.Frame(func, mapping);
         newFrame.setContainingScope(this);
         return newFrame;
     },
@@ -893,6 +853,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
             throw new ReferenceError(name + ' is not defined');
         return containingScope.findFrame(name);
     },
+
     lookup: function(name) {
         if (name === 'undefined') return undefined;
         if (name === 'NaN') return NaN;
@@ -901,8 +862,29 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         if (frame) return frame.val;
         return undefined;
     },
+
     addToMapping: function(name, value) {
         return this.mapping[name] = value;
+    },
+
+    setArguments: function(argValues) {
+        var argNames = this.func.argNames();
+        argNames.forEach(function(arg, idx) {
+            this.addToMapping(arg, argValues[idx]);
+        }, this);
+        return this.arguments = argValues;
+    },
+
+    getArguments: function(args) {
+        return this.arguments;
+    },
+
+    setThis: function(thisObj) {
+        return this.thisObj = thisObj;
+    },
+
+    getThis: function() {
+        return this.thisObj ? this.thisObj : Global;
     },
 },
 'control-flow', {
@@ -924,8 +906,8 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 });
 
 Object.extend(lively.ast.AcornInterpreter.Frame, {
-    create: function(func, mapping) {
-        return new lively.ast.AcornInterpreter.Frame(func, mapping || {});
+    create: function(ast, mapping) {
+        return new lively.ast.AcornInterpreter.Frame(ast, mapping || {});
     },
     global: function() {
         return this.create(null, Global);

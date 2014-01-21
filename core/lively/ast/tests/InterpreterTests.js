@@ -19,9 +19,13 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('1');
         this.assertEquals(1, this.interpret(node));
     },
-    test02AddNumbers: function() {
+    test02aAddNumbers: function() {
         var node = this.parse('1 + 2');
         this.assertEquals(3, this.interpret(node));
+    },
+    test02bOrBooleans: function() {
+        var node = this.parse('false || true');
+        this.assertEquals(true, this.interpret(node));
     },
     test03aLookupVar: function() {
         var node = this.parse('a + 1');
@@ -43,46 +47,62 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('if (false) 1;');
         this.assertEquals(undefined, this.interpret(node));
     },
-/*    test05FunctionInvocation: function() {
-        var node = this.parse('(function() { return 1; })()');
+    test05aFunctionInvocation: function() {
+        var node = this.parse('1; (function() { })();');
+        this.assertEquals(undefined, this.interpret(node));
+    },
+    test05bFunctionInvocationWithReturn: function() {
+        var node = this.parse('(function() { return 1; })();');
         this.assertEquals(1, this.interpret(node));
     },
-    test06FunctionInvocationWithArgs: function() {
-        var node = this.parseJS('(function(a) { return a + 1 })(2)', 'expr');
-        this.assertEquals(3, node.startInterpretation());
+    test06aFunctionInvocationWithArgs: function() {
+        var node = this.parse('(function(a) { return a + 1; })(2);');
+        this.assertEquals(3, this.interpret(node));
     },
-    test07Closue: function() {
-        var node = this.parseJS('var a = 6; (function(b) { return a / b })(3)');
-        this.assertEquals(2, node.startInterpretation());
+    test06bFunctionInvocationWithArgsAndOuterVar: function() {
+        var node = this.parse('var a = 1; (function(a) { return a + 1; })(2);');
+        this.assertEquals(3, this.interpret(node));
     },
-    test08RealClosue: function() {
-        var node = this.parseJS('var foo = function(){var a = 1; return function() {return a}}; foo()()');
-        this.assertEquals(1, node.startInterpretation());
+    test07Closure: function() {
+        var node = this.parse('var a = 6; (function(b) { return a / b; })(3);');
+        this.assertEquals(2, this.interpret(node));
+    },
+    test08RealClosure: function() {
+        var node = this.parse('var foo = function() { var a = 1; return function() { return a; } }; foo()();');
+        this.assertEquals(1, this.interpret(node));
     },
     test09aEarlyReturn: function() {
-        var node = this.parseJS('(function() { return 1; 2; })()');
-        this.assertEquals(1, node.startInterpretation());
+        var node = this.parse('(function() { return 1; 2; })();');
+        this.assertEquals(1, this.interpret(node));
     },
     test09bEarlyReturnInFor: function() {
-        var node = this.parseJS('(function() { for (var i=0;i<10;i++) if (i==5) return i; })()');
-        this.assertEquals(5, node.startInterpretation());
+        var node = this.parse('(function() { for (var i = 0; i < 10; i++) if (i == 5) return i; })();');
+        this.assertEquals(5, this.interpret(node));
     },
     test09cEarlyReturnInWhile: function() {
-        var node = this.parseJS('(function() { var i = 0; while (i<10) { i++; if (i==5) return i; } })()');
-        this.assertEquals(5, node.startInterpretation());
+        var node = this.parse('(function() { var i = 0; while (i < 10) { i++; if (i==5) return i; } })();');
+        this.assertEquals(5, this.interpret(node));
+    },
+    test09dEarlyReturnInDoWhile: function() {
+        var node = this.parse('(function() { var i = 0; do { i++; if (i==5) return i; } while (i < 10); })();');
+        this.assertEquals(5, this.interpret(node));
+    },
+    test09eEarlyReturnInForIn: function() {
+        var node = this.parse('(function() { for (var name in { a: 1, b: 2 }) { return name; } })();');
+        this.assertEquals('a', this.interpret(node));
     },
     test10Recursion: function() {
-        var node = this.parseJS('function foo(n) { return n == 1 ? 1 : foo(n - 1)}; foo(10)');
-        this.assertEquals(1, node.startInterpretation());
+        var node = this.parse('function foo(n) { return n == 1 ? 1 : foo(n - 1); } foo(10);');
+        this.assertEquals(1, this.interpret(node));
     },
     test11MethodCall: function() {
-        var node = this.parseJS('var obj = {foo: function() {return 3}}; obj.foo()');
-        this.assertEquals(3, node.startInterpretation());
+        var node = this.parse('var obj = { foo: function() { return 3; } }; obj.foo();');
+        this.assertEquals(3, this.interpret(node));
     },
     test12UsingThis: function() {
-        var node = this.parseJS('var obj = {foo: function() {this.x=3}}; obj.foo(); obj.x');
-        this.assertEquals(3, node.startInterpretation());
-    }, */
+        var node = this.parse('var obj = { foo: function() { this.x = 3; } }; obj.foo(); obj.x;');
+        this.assertEquals(3, this.interpret(node));
+    },
     test13aModifyingVar: function() {
         var node = this.parse('var x = 1; x = 3; x;');
         this.assertEquals(3, this.interpret(node));
@@ -95,14 +115,13 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('var x = {}; x.y = 3; x.y;');
         this.assertEquals(3, this.interpret(node));
     },
-/*    test14NoDynamicScop: function() {
-        var ast = this.parseJS('var a = 1; ' +
-            'function bar () { return a }; ' +
-            'function foo() { var a = 2; return bar() }; ' +
-            'foo()')
-            result  = ast.startInterpretation();
-        this.assertIdentity(1, result, 'function barr can access dynamic scope of foo');
-    }, */
+    test14NoDynamicScope: function() {
+        var node = this.parse('var a = 1; ' +
+            'function bar () { return a; }; ' +
+            'function foo() { var a = 2; return bar(); }; ' +
+            'foo();');
+        this.assertIdentity(1, this.interpret(node));
+    },
     test15ForLoop: function() {
         var node = this.parse('var arr = []; for (var i = 0; i < 5; i++) arr[i] = i; arr;');
         this.assertEqualState([0, 1, 2, 3, 4], this.interpret(node));
@@ -124,8 +143,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         this.assertEquals(1, this.interpret(node));
     },
     test18aForIn: function() {
-        // var node = this.parse('var obj = { a: 1, b: 2 }, result = []; ' +
-        //         'for (var name in obj) result.push(name); result;');
         var node = this.parse('var obj = { a: 1, b: 2 }, result; ' +
                 'for (result in obj); result;');
         this.assertEqualState('b', this.interpret(node));
@@ -229,50 +246,37 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         this.assertEquals(true, mapping.outer.catcher);
         this.assertEquals(true, mapping.inner.finalizer);
     },
-/*    test24eTryCatchMultipleLevels: function() {
-        var src = 'function m1() { for (var i = 0; i < 10; i++) if (i == 3) throw i }; ' +
-                'function m2() { m1(); return 2 }; try { m2() } catch(e) { e }',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation();
-        this.assertEquals(3, result, 'wrong result');
+    test24fTryCatchMultipleLevels: function() {
+        var src = 'function m1() { for (var i = 0; i < 10; i++) if (i == 3) throw i; } ' +
+                'function m2() { m1(); return 2 }; try { m2(); } catch(e) { e; }',
+            node = this.parse(src);
+        this.assertEquals(3, this.interpret(node), 'wrong result');
     },
     test25aNewWithFunc: function() {
-        var src = 'function m() { this.a = 2 }; var obj = new m(); obj.a',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation();
-        this.assertEquals(2, result);
+        var node = this.parse('function m() { this.a = 2; } var obj = new m(); obj.a;');
+        this.assertEquals(2, this.interpret(node));
     },
     test25bNewThenObjAccess: function() {
-        var src = 'function m() { this.a = 2 }; new m().a',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation();
-        this.assertEquals(2, result);
+        var node = this.parse('function m() { this.a = 2; } new m().a;');
+        this.assertEquals(2, this.interpret(node));
     },
     test25cNewPrototypeInheritence: function() {
-        var src = 'function m() { this.a = 1 }; m.prototype.b = 2; new m().b',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation();
-        this.assertEquals(2, result);
+        var node = this.parse('function m() { this.a = 1; } m.prototype.b = 2; new m().b;');
+        this.assertEquals(2, this.interpret(node));
     },
     test25dFunctionPrototypeNotChanged: function() {
-        var src = 'function m() { this.a = 1 }; m.prototype.a = 2; new m(); m.prototype.a',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation();
-        this.assertEquals(2, result);
+        var node = this.parse('function m() { this.a = 1; } m.prototype.a = 2; new m(); m.prototype.a;');
+        this.assertEquals(2, this.interpret(node));
     },
     test25eObjReallyInherits: function() {
-        var src = 'function m() {}; m.prototype.a = 2; var obj = new m(); m.prototype.a = 1; obj.a',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation();
-        this.assertEquals(1, result);
+        var node = this.parse('function m() {} m.prototype.a = 2; var obj = new m(); m.prototype.a = 1; obj.a;');
+        this.assertEquals(1, this.interpret(node));
     },
-    test25eFuncCallInNewExpr: function() {
-        var src = 'function m() { this.a = (function() { return 1 })() }; new m().a',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation();
-        this.assertEquals(1, result);
+    test25fFuncCallInNewExpr: function() {
+        var node = this.parse('function m() { this.a = (function() { return 1; })() }; new m().a;');
+        this.assertEquals(1, this.interpret(node));
     },
-    test26InstantiateClass: function() {
+/*    test26InstantiateClass: function() {
         Config.deepInterpretation = true
         var className = 'Dummy_test25InstantiateClass';
         try {
@@ -297,33 +301,28 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         } finally {
             delete Global.Dummy_test26ArgumentsOfConstructorAreUsed
         }
-    },
-    test28SpecialVarArguments: function() {
-        var src = 'function x() { return arguments[0] }; x(1)',
-            ast = this.parseJS(src),
-            result  = ast.startInterpretation(Global);
-        this.assertEquals(1, result);
     }, */
+    test28SpecialVarArguments: function() {
+        var node = this.parse('function x() { return arguments[0]; } x(1);');
+        this.assertEquals(1, this.interpret(node));
+    },
     test29NullisNull: function() {
         var node = this.parse('null');
         this.assertIdentity(null, this.interpret(node));
     },
-/*    test30SimpleRegex: function() {
+    test30SimpleRegex: function() {
         var node = this.parse('/aaa/.test("aaa")');
         this.assertIdentity(true, this.interpret(node));
     },
     test31FunctionReturnsRealFunction: function() {
-        var src = 'function m() {}',
-            ast = this.parseJS(src, 'expr'),
-            result  = ast.startInterpretation();
-        this.assert(Object.isFunction(result), 'not a real function');
+        var node = this.parse('function m() {} m;'),
+            result = this.interpret(node);
+        this.assert(Object.isFunction(result));
     },
     test32InstanceOf: function() {
-        var src = 'pt(0,0) instanceof lively.Point',
-            ast = this.parseJS(src, 'expr'),
-            result  = ast.startInterpretation(Global);
-        this.assert(result, 'instanceof not working');
-    }, */
+        var node = this.parse('pt(0,0) instanceof lively.Point;');
+        this.assert(this.interpret(node, Global), 'instanceof not working');
+    },
     test33ForWithSequenceExpr: function() {
         var node = this.parse('var i, j; for (i = 0, j = 1; i < 10; i++, j*=2) { }; [i, j]');
         this.assertEqualState([10, 1024], this.interpret(node));
@@ -332,62 +331,66 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('"a" in ({ a: 23 })');
         this.assertIdentity(true, this.interpret(node));
     },
-/*    test35WhileTrue: function() {
-        var src = '(function() { while(true) return 23; return 24; })()',
-            ast = this.parseJS(src, 'topLevel'),
-            result  = ast.startInterpretation();
-        this.assertIdentity(result, 23, 'while(true) not working');
+    test35WhileTrue: function() {
+        var node = this.parse('(function() { while(true) return 23; return 24; })()');
+        this.assertEquals(23, this.interpret(node));
     },
-    test36IfMultipleExpr: function() {
-        var src = 'if (2,3,4) 5;',
-            ast = this.parseJS(src, 'stmt'),
-            result = ast.startInterpretation();
-        this.assertEqualState(5, result, 'multiple expressions in if not working');
+    test36IfSequenceExpr: function() {
+        var node = this.parse('if (2,3,4) 5;');
+        this.assertEqualState(5, this.interpret(node));
     },
-    test37AssignVarsOfOuterScope: function() {
-        var func = function m(){var a=2;(function(){a++})(); return a};
-        var result = func.forInterpretation().call();
-        this.assertEquals(3, result);
+    test37aAssignVarsOfOuterScope: function() {
+        var node = this.parse('(function() { var a = 2; (function() { a++; })(); return a; })();');
+        this.assertEquals(3, this.interpret(node));
     },
-    test37AlternativeMethodSend: function() {
-        var func = function(){var obj = {a:23,foo:function(){return this.a}};return obj["foo"]()};
-        var result = func.forInterpretation().call();
-        this.assertEquals(23, result);
+    test37bAssignVarsOfInnerScope: function() {
+        var node = this.parse('(function() { var a = 2; (function() { var a = 3; })(); return a; })();');
+        this.assertEquals(2, this.interpret(node));
     },
-    test38NativeConstructor: function() {
-        var func = function(){return typeof new Date()};
-        var result = func.forInterpretation().call();
-        this.assertEquals("object", result);
-    }, */
-    test39aDeleteExistingVar: function() {
+    test38aAlternativeMethodSend: function() {
+        var node = this.parse('(function(){ var obj = { foo: function() { return 23; } }; return obj["foo"](); })();');
+        this.assertEquals(23, this.interpret(node));
+    },
+    test38bAlternativeMemberAccess: function() {
+        var node = this.parse('var obj = { foo: 1, bar: 2 }, bar = "foo"; obj.bar;');
+        this.assertEquals(2, this.interpret(node));
+
+        var node = this.parse('var obj = { foo: 1, bar: 2 }, bar = "foo"; obj[bar]');
+        this.assertEquals(1, this.interpret(node));
+    },
+    // test39NativeConstructor: function() {
+    //     var node = '(function() { return typeof new Date(); })();';
+    //     this.assertEquals('object', this.interpret(node));
+    // },
+    test40aDeleteExistingVar: function() {
         var node = this.parse('delete x;'),
             mapping = { x: 1 };
         this.assertEquals(false, this.interpret(node, mapping));
         this.assertEquals(1, mapping.x);
     },
-    test39bDeleteNonExistingVar: function() {
+    test40bDeleteNonExistingVar: function() {
         var node = this.parse('delete x;');
         this.assertEquals(true, this.interpret(node));
     },
-    test39cDeleteExistingMember: function() {
+    test40cDeleteExistingMember: function() {
         var node = this.parse('delete x.a;'),
             mapping = { x: { a: 1 } };
         this.assertEquals(true, this.interpret(node, mapping));
         this.assertEquals(false, mapping.x.hasOwnProperty('a'));
     },
-    test39cDeleteNonExistingMember: function() {
+    test40dDeleteNonExistingMember: function() {
         var node = this.parse('delete x.b;'),
             mapping = { x: { a: 1 } };
         this.assertEquals(true, this.interpret(node, mapping));
         this.assertEquals(false, mapping.x.hasOwnProperty('b'));
     },
-    test39dDeleteDeepMember: function() {
+    test40eDeleteDeepMember: function() {
         var node = this.parse('delete x.y.z;'),
             mapping = { x: { y: { z: 1 } } };
         this.assertEquals(true, this.interpret(node, mapping));
         this.assertEquals(false, mapping.x.y.hasOwnProperty('z'));
     },
-    test39eDeleteNonExisting: function() {
+    test40fDeleteNonExisting: function() {
         var node = this.parse('delete x.y;');
         this.assertRaises(this.interpret.curry(node));
     },

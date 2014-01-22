@@ -1,4 +1,4 @@
-module('lively.ast.tests.RewriterTests').requires('lively.ast.Parser', 'lively.ast.Rewriting', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.RewriterTests').requires('lively.ast.Rewriting', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 'running', {
@@ -658,6 +658,48 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             result = this.rewrite(ast);
         this.assertMatches(expected, result.body[0].block.body[1]);
     }
+});
+
+TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
+'testing', {
+
+    test01LoopResult: function() {
+        function code() {
+            var result = 0;
+            for (var i = 0; i < 10; i++) result += i;
+            return result;
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(rewrite(lively.ast.acorn.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    }
+
+});
+
+TestCase.subclass('lively.ast.tests.ContinuationTest',
+'testing', {
+
+    test01LinearFlow: function() {
+        function code() {
+            var x = 1;
+            debugger;
+            var y = 2;
+            return x + y;
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(rewrite(lively.ast.acorn.parse(src))),
+            continuation;
+        try {
+            eval(src).call();
+        } catch(stackInfo) {
+            continuation = lively.ast.Continuation.from(stackInfo);
+        }
+        this.assertEquals(1, continuation.getVarValue('x'), 'val of x');
+        this.assertEquals(undefined, continuation.getVarValue('y'), 'val of x');
+        var result = continuation.resume();
+        this.assertEquals(3, result, 'result when resuming continuation');
+    }
+
 });
 
 }) // end of module

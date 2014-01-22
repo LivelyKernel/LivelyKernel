@@ -774,7 +774,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             y += itemMorph.getExtent().y;
             x = Math.max(x, itemMorph.getExtent().x);
         }, this);
-        if (this.title) y += this.title.bounds().height;
         this.setExtent(pt(x, y));
     }
 },
@@ -874,9 +873,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 
     offsetForWorld: function(pos) {
         var bounds = this.innerBounds().translatedBy(pos);
-        if (this.title) {
-            bounds = bounds.withTopLeft(bounds.topLeft().addXY(0, this.title.getExtent().y));
-        }
         if (this.owner.visibleBounds) {
             bounds = this.moveBoundsForVisibility(bounds, this.owner.visibleBounds());
         }

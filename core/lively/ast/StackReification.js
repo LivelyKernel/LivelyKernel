@@ -14,7 +14,9 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
     getRewrittenFunc: function() {
         // FIXME: should be:
         // return this.recreateFuncFromSource(this.getRewrittenSource());
-        return eval(this.getRewrittenSource());
+        var func = eval(this.getRewrittenSource());
+        func.livelyDebuggingEnabled = true;
+        return func;
     },
 
     getRewrittenSource: function() {
@@ -43,14 +45,10 @@ Object.extend(lively.ast.StackReification, {
     },
 
     run: function(func) {
-        try {
-            return func();
-        } catch(e) {
-            if (e.isUnwindException) {
-                e.lastFrame.setContainingScope(lively.ast.Interpreter.Frame.global());
-                return lively.ast.Continuation.fromUnwindException(e);
-            }
-            throw e;
+        if (!func.livelyDebuggingEnabled) func = func.stackCaptureMode();
+        try { return func(); } catch(e) {
+            return e.isUnwindException ?
+                lively.ast.Continuation.fromUnwindException(e) : e;
         }
     }
 });
@@ -120,6 +118,7 @@ Object.subclass('lively.ast.Continuation',
 
 Object.extend(lively.ast.Continuation, {
     fromUnwindException: function(e) {
+        if (!e.isUnwindException) console.error("No unwind exception?");
         return new this(e.top);
     }
 });

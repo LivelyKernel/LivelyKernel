@@ -662,9 +662,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     setExtent: function($super, newExtent) {
         $super(newExtent);
-        this.arrows.each(function (arrow){
-             arrow.positionAtMorph();
-        });
+        
+        if (!this.isMerger()) {
+            this.arrows.each(function (arrow){
+                 arrow.positionAtMorph();
+            });
+        }
         this.resizeMainContent(newExtent);
         this.draggingFromPartsBin = false;
         
@@ -799,13 +802,7 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
         return components;
     },
     
-    throwError: function(e) {
-        var text = this.get("ErrorText");
-        text.setTextString(e.toString());
-        text.error = e;
-        e.alreadyThrown = true;
-        throw e;
-    },
+
     updateComponent: function() {
         // do nothing
     },
@@ -837,7 +834,6 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
             this.data = this.data || [];
             this.data.push(componentsAbove[i].getData(this));
         }
-        debugger;
     },
 
     calculateSnappingExtent: function(ignoreComponentAbove) {
@@ -915,21 +911,31 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         label.setTextString("FanOut");
         this.setExtent(pt(this.getExtent().x,50));
     },
+    refreshData: function() {
+        this.data = null;
+
+        // take the first component from the left
+        var componentsAbove = this.getComponentsInDirection(-1);
+        if (componentsAbove.length) {
+            this.data = componentsAbove[0].getData(this);
+        }
+    },
+
     
     getData : function(target){
         var arrowToTarget = this.arrows.detect(function (arrow){
-            var arrowX =  arrow.getPosition().x;
+            var arrowX =  arrow.getPositionInWorld().x;
             return target.getPosition().x <= arrowX &&
                 arrowX <= target.getPosition().x + target.getExtent().x;
         });
         
         if (!arrowToTarget){
-            //create new new arrow for this target
+            //create new arrow for this target
             var newArrow = new lively.morphic.Charts.Arrow(this);
             var offset = this.getPosition().x;
             newArrow.setPosition(pt(target.getExtent().x/2+target.getPosition().x-newArrow.getExtent().x/2-offset,newArrow.getPosition().y));
-            newArrow.activate();
             this.arrows.push(newArrow);
+            newArrow.activate();
             return this.data;
         }
         
@@ -939,8 +945,6 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         
         return null;
     }
-   
-    
 });
 lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
 {

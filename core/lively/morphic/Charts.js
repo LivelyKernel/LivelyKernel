@@ -385,6 +385,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     onDragEnd: function($super, evt) {
         $super(evt);
+        debugger;
         // positioning is done in onDropOn
         this.notifyNeighborsOfDragEnd();
         this.removePreviewMorph();
@@ -687,13 +688,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             errorText[0].setExtent(pt(this.getExtent().x - descriptionWidth, errorText[0].getExtent().y));
         }
     },
-    
-    throwError: function(e) {
+    throwError: function(error) {
         var text = this.get("ErrorText");
-        text.setTextString(e.toString());
-        text.error = e;
-        e.alreadyThrown = true;
-        throw e;
+        text.setTextString(error.toString());
+        text.error = error;
+        error.alreadyThrown = true;
+        throw error;
     },
     
     resizeMainContent: function(newExtent) {
@@ -779,7 +779,6 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
     },
 
     getComponentsInDirection : function($super, direction) {
-        debugger;
         var components = [];
         var pxInterval = 50;
         
@@ -800,51 +799,23 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
         return components;
     },
     
-    updateComponent: function() {
-        debugger;
-        c = this.get("CodeEditor");
-        c.doitContext = this;
-        
-        var text = this.get("ErrorText");
-        text.setTextString("");
-        text.error = null;
-        
-        var returnValue = c.evalAll();
-        
-        if (returnValue instanceof Error) {
-            this.throwError(returnValue);
-        }
-    },
-    
     throwError: function(e) {
-        debugger;
         var text = this.get("ErrorText");
         text.setTextString(e.toString());
         text.error = e;
         e.alreadyThrown = true;
         throw e;
     },
+    updateComponent: function() {
+        // do nothing
+    },
+
 
     isMerger: function() {
         return true;
     },
     
-    onDropOn: function($super, aMorph) {
-        debugger;
-        $super();
-        if (aMorph == $world) {
-            var newext = this.calculateSnappingExtent();
-            var newpos = this.calculateSnappingPosition();
-            this.setPosition(newpos);
-            this.setPropagateResizing(false);
-            this.resizingFrom = "snapping";
-            
-            
-            this.setExtent(newext, "snapping");
-            this.setPropagateResizing(true);
-        }
-        this.notify();
-    },
+
     
 });
 
@@ -864,11 +835,12 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
         var componentsAbove = this.getComponentsInDirection(-1);
         for (var i = 0; i < componentsAbove.length; i++) {
             this.data = this.data || [];
-            this.data.push(componentsAbove[i].data);
+            this.data.push(componentsAbove[i].getData(this));
         }
+        debugger;
     },
 
-    calculateSnappingExtent: function($super, forPreview) {
+    calculateSnappingExtent: function(ignoreComponentAbove) {
         
         var componentsAbove = this.getComponentsInDirection(-1);
         var oldExtent = this.getExtent();
@@ -883,7 +855,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
             offsetY = this.gridWidth;
         }
         
-        if (componentsAbove.length > 0  /*&& !forPreview && (this.shouldPropagateResizing() || this.draggingFromPartsBin || this.resizingFrom === "snapping")*/) {
+        if (componentsAbove.length > 0  && !ignoreComponentAbove) {
             // calculate extent depending on the extent of some other component
             
             if (componentsAbove.length == 1) {
@@ -906,11 +878,11 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
     calculateSnappingPosition: function() {
         var componentsAbove = this.getComponentsInDirection(-1);
         var componentAbove;
-        if (componentsAbove.length> 0)
+        if (componentsAbove.length > 0)
             componentAbove = componentsAbove.first();
         
         var preview = $morph("PreviewMorph" + this);
-        if (componentAbove) {
+        if (componentAbove && !componentAbove.isMerger()) {
             // snap below components above
             if (preview) {
                 preview.setExtent(this.calculateSnappingExtent());
@@ -945,7 +917,6 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
     },
     
     getData : function(target){
-        debugger;
         var arrowToTarget = this.arrows.detect(function (arrow){
             var arrowX =  arrow.getPosition().x;
             return target.getPosition().x <= arrowX &&

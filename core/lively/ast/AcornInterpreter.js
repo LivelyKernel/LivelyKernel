@@ -12,8 +12,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     runWithFrame: function(node, frame) {
         var state = {
-            currentFrame: frame
+            currentFrame: frame,
+            labels: {}
         };
+        this.evaluateDeclarations(node, frame);
         this.accept(node, state);
         return state.result;
     },
@@ -43,6 +45,25 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 },
 'invoking', {
+    evaluateDeclarations: function(node, frame) {
+        var self = this;
+        // lookup all the declarations but stop at new function scopes
+        acorn.walk.matchNodes(node, {
+            VariableDeclaration: function(node, state, depth, type) {
+                if (type != 'VariableDeclaration') return;
+                node.declarations.forEach(function(decl) {
+                    frame.addToMapping(decl.id.name);
+                });
+            },
+            FunctionDeclaration: function(node, state, depth, type) {
+                if (type != 'FunctionDeclaration') return;
+                self.visitFunctionDeclaration(node, { currentFrame: frame });
+            }
+        }, null, { visitors: acorn.walk.make({
+            'Function': function() { /* stop descent */ }
+        })});
+    },
+
     invoke: function(node, recv, func, argValues, frame, isNew) {
         // TODO: reactivate
         // frame.setPC(node);
@@ -95,8 +116,18 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         return newObj;
     },
 },
+'helper', {
+    findNodeLabel: function(node, state) {
+        return Object.getOwnPropertyNames(state.labels).reduce(function(res, label) {
+            if (state.labels[label] === node)
+                res = label;
+            return res;
+        }, undefined);
+    },
+},
 'visiting', {
     accept: function(node, state) {
+        if (node.type == 'FunctionDeclaration') return;
         return this['visit' + node.type](node, state);
     },
 
@@ -104,7 +135,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var frame = state.currentFrame;
         for (var i = 0; i < node.body.length; i++) {
             this.accept(node.body[i], state);
-            if (frame.returnTriggered || frame.breakTriggered || frame.continueTriggered)
+            if (frame.returnTriggered) // frame.breakTriggered || frame.continueTriggered
                 return;
         }
     },
@@ -138,39 +169,36 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
     },
 
-    // visitLabeledStatement: function(node, state) {
-    //     // label is a node of type Identifier
-    //     this.accept(node.label, state);
-
-    //     // body is a node of type Statement
-    //     this.accept(node.body, state);
-    // },
+    visitLabeledStatement: function(node, state) {
+        var frame = state.currentFrame,
+            label = node.label.name;
+        state.labels[label] = node.body;
+        this.accept(node.body, state);
+        delete state.labels[label];
+        if (frame.breakTriggered)
+            frame.stopBreak(label);
+        if (frame.continueTriggered)
+            frame.stopContinue(label);
+    },
 
     visitBreakStatement: function(node, state) {
-        // TODO: consider label references
-        // if (node.label) {
-        //     // label is a node of type Identifier
-        //     this.accept(node.label, state);
-        // }
-        state.currentFrame.triggerBreak();
+        state.currentFrame.triggerBreak(node.label ? node.label.name : undefined);
     },
 
     visitContinueStatement: function(node, state) {
-        // TODO: consider label references
-        // if (node.label) {
-        //     // label is a node of type Identifier
-        //     this.accept(node.label, state);
-        // }
-        state.currentFrame.triggerContinue();
+        state.currentFrame.triggerContinue(node.label ? node.label.name : undefined);
     },
 
-    // visitWithStatement: function(node, state) {
-    //     // object is a node of type Expression
-    //     this.accept(node.object, state);
-
-    //     // body is a node of type Statement
-    //     this.accept(node.body, state);
-    // },
+    visitWithStatement: function(node, state) {
+        var frame = state.currentFrame,
+            oldResult = state.result;
+        this.accept(node.object, state);
+        var lexicalObj = state.result;
+        state.result = oldResult;
+        state.currentFrame = frame.newScope(undefined, lexicalObj);
+        this.accept(node.body, state);
+        state.currentFrame = frame;
+    },
 
     visitSwitchStatement: function(node, state) {
         var result = state.result,
@@ -196,7 +224,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 caseMatched = true;
 
                 if (frame.breakTriggered) {
-                    frame.stopBreak();
+                    frame.stopBreak(); // only non-labled break
                     return;
                 }
                 if (frame.continueTriggered || frame.returnTriggered)
@@ -210,7 +238,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 caseMatched = true;
 
                 if (frame.breakTriggered) {
-                    frame.stopBreak();
+                    frame.stopBreak(); // only non-labled break
                     return;
                 }
                 if (frame.continueTriggered || frame.returnTriggered)
@@ -266,13 +294,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.body, state);
             result = state.result;
 
-            if (frame.continueTriggered)
-                // TODO: consider labeled continue
-                frame.stopContinue();
             if (frame.breakTriggered) {
-                // TODO: consider labeled break
-                frame.stopBreak();
+                frame.stopBreak(); // only non-labled break
                 break;
+            }
+            if (frame.continueTriggered) {
+                frame.stopContinue(this.findNodeLabel(node, state)); // try a labled continue
+                if (frame.continueTriggered) // still on: different labeled continue
+                    break;
             }
             if (frame.returnTriggered)
                 return;
@@ -295,13 +324,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.body, state);
             result = state.result;
 
-            if (frame.continueTriggered)
-                // TODO: consider labeled continue
-                frame.stopContinue();
             if (frame.breakTriggered) {
-                // TODO: consider labeled break
-                frame.stopBreak();
+                frame.stopBreak(); // only non-labled break
                 break;
+            }
+            if (frame.continueTriggered) {
+                frame.stopContinue(this.findNodeLabel(node, state)); // try a labled continue
+                if (frame.continueTriggered) // still on: different labeled continue
+                    break;
             }
             if (frame.returnTriggered)
                 return;
@@ -331,13 +361,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.body, state);
             result = state.result;
 
-            if (frame.continueTriggered)
-                // TODO: consider labeled continue
-                frame.stopContinue();
             if (frame.breakTriggered) {
-                // TODO: consider labeled break
-                frame.stopBreak();
+                frame.stopBreak(); // only non-labled break
                 break;
+            }
+            if (frame.continueTriggered) {
+                frame.stopContinue(this.findNodeLabel(node, state)); // try a labled continue
+                if (frame.continueTriggered) // still on: different labeled continue
+                    break;
             }
             if (frame.returnTriggered)
                 return;
@@ -376,13 +407,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
             this.accept(node.body, state);
 
-            if (frame.continueTriggered)
-                // TODO: consider labeled continue
-                frame.stopContinue();
             if (frame.breakTriggered) {
-                // TODO: consider labeled break
-                frame.stopBreak();
+                frame.stopBreak(); // only non-labled break
                 break;
+            }
+            if (frame.continueTriggered) {
+                frame.stopContinue(this.findNodeLabel(node, state)); // try a labled continue
+                if (frame.continueTriggered) // still on: different labeled continue
+                    break;
             }
             if (frame.returnTriggered)
                 return;
@@ -402,8 +434,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     //     this.accept(node.body, state);
     // },
 
-    // visitDebuggerStatement: function(node, state) {
-    // },
+    visitDebuggerStatement: function(node, state) {
+        // do nothing, yet
+    },
 
     visitVariableDeclaration: function(node, state) {
         var oldResult = state.result;
@@ -418,11 +451,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     visitVariableDeclarator: function(node, state) {
         var oldResult = state.result, val;
-        if (node.init) {
+        if (node.init)
             this.accept(node.init, state);
-            val = state.result;
-        }
-        state.currentFrame.addToMapping(node.id.name, val);
+        else
+            state.result = undefined;
+        // addToMapping is done in evaluateDeclarations()
+        this.setVariable(node.id.name, state);
         state.result = oldResult;
     },
 
@@ -456,8 +490,22 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 this.accept(prop.value, state);
                 result[propName] = state.result;
                 break;
-            // case 'get': TODO - implement
-            // case 'set': TODO - implement
+            case 'get':
+                this.accept(prop.value, state);
+                Object.defineProperty(result, propName, {
+                    get: state.result,
+                    enumerable : true,
+                    configurable : true
+                });
+                break;
+            case 'set':
+                this.accept(prop.value, state);
+                Object.defineProperty(result, propName, {
+                    set: state.result,
+                    enumerable : true,
+                    configurable : true
+                });
+                break;
             default: throw new Error('Invalid kind for ObjectExpression!');
             }
         }, this);
@@ -465,7 +513,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     visitFunctionDeclaration: function(node, state) {
-        // FIXME: declare functions in the beginning of the context
+        // IS NOT CALLED DIRECTLY FROM THE accept()
         var result = state.result;
         this.visitFunctionExpression(node, state);
         state.currentFrame.addToMapping(node.id.name, state.result);
@@ -813,8 +861,8 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.func = func;
         this.mapping = mapping || {};
         this.returnTriggered = false;
-        this.breakTriggered = false;
-        this.continueTriggered = false;
+        this.breakTriggered = null;     // null, true or string (labeled break)
+        this.continueTriggered = null;  // null, true or string (labeled continue)
         this.containingScope = null;
     },
     newScope: function(func, mapping) {
@@ -891,17 +939,21 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     triggerReturn: function() {
         this.returnTriggered = true;
     },
-    triggerBreak: function() {
-        this.breakTriggered = true;
+    triggerBreak: function(label) {
+        this.breakTriggered = label ? label : true;
     },
-    stopBreak: function() {
-        this.breakTriggered = false;
+    stopBreak: function(label) {
+        if (label === undefined) label = true;
+        if (this.breakTriggered === label)
+            this.breakTriggered = null;
     },
-    triggerContinue: function() {
-        this.continueTriggered = true;
+    triggerContinue: function(label) {
+        this.continueTriggered = label ? label : true;
     },
-    stopContinue: function() {
-        this.continueTriggered = false;
+    stopContinue: function(label) {
+        if (label === undefined) label = true;
+        if (this.continueTriggered === label)
+            this.continueTriggered = false;
     },
 });
 

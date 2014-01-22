@@ -252,6 +252,12 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
             node = this.parse(src);
         this.assertEquals(3, this.interpret(node), 'wrong result');
     },
+    test24gTryCatchVariableDecl: function() {
+        var node = this.parse('try { throw 1; } catch (e) { var x = 1; }; x;'),
+            mapping = {};
+        this.assertEquals(1, this.interpret(node, mapping));
+        this.assertEquals(1, mapping.x, 'x was not created in the right scope');
+    },
     test25aNewWithFunc: function() {
         var node = this.parse('function m() { this.a = 2; } var obj = new m(); obj.a;');
         this.assertEquals(2, this.interpret(node));
@@ -276,32 +282,31 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('function m() { this.a = (function() { return 1; })() }; new m().a;');
         this.assertEquals(1, this.interpret(node));
     },
-/*    test26InstantiateClass: function() {
-        Config.deepInterpretation = true
-        var className = 'Dummy_test25InstantiateClass';
+    test26InstantiateClass: function() {
+        var className = 'Dummy_test26InstantiateClass';
         try {
-        var klass = Object.subclass(className, { a: 1 }),
-            src = Strings.format('var obj = new %s(); obj.a', className),
-            ast = this.parseJS(src),
-            mapping = {Dummy_test25InstantiateClass: klass},
-            result  = ast.startInterpretation(mapping);
-        this.assertEquals(1, result);
-        this.assert(lively.Class.isClass(Global[className]), 'Class changed!')
+            var klass = Object.subclass(className, { a: 1 }),
+                src = Strings.format('var obj = new %s(); obj.a;', className),
+                node = this.parse(src),
+                mapping = {};
+            mapping[className] = klass;
+            this.assertEquals(1, this.interpret(node, mapping));
+            this.assert(lively.Class.isClass(Global[className]), 'Class changed!')
         } finally {
             delete Global[className];
         }
     },
     test27ArgumentsOfConstructorAreUsed: function() {
+        var className = 'Dummy_test27ArgumentsOfConstructorAreUsed';
         try {
-            Object.subclass('Dummy_test26ArgumentsOfConstructorAreUsed', { initialize: function(n) { this.n = n }})
-            var src = 'var obj = new Dummy_test26ArgumentsOfConstructorAreUsed(1); obj.n',
-                ast = this.parseJS(src),
-                result  = ast.startInterpretation(Global);
-            this.assertEquals(1, result);
+            Object.subclass(className, { initialize: function(n) { this.n = n } });
+            var src = Strings.format('var obj = new %s(1); obj.n;', className),
+                node = this.parse(src);
+            this.assertEquals(1, this.interpret(node, Global));
         } finally {
-            delete Global.Dummy_test26ArgumentsOfConstructorAreUsed
+            delete Global[className];
         }
-    }, */
+    },
     test28SpecialVarArguments: function() {
         var node = this.parse('function x() { return arguments[0]; } x(1);');
         this.assertEquals(1, this.interpret(node));
@@ -347,6 +352,12 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('(function() { var a = 2; (function() { var a = 3; })(); return a; })();');
         this.assertEquals(2, this.interpret(node));
     },
+    test37cAssignVarsFallThrough: function() {
+        var node = this.parse('(function() { var a = b = 1; })();'),
+            mapping = { b: 0 };
+        this.interpret(node, mapping);
+        this.assertEquals(1, mapping.b);
+    },
     test38aAlternativeMethodSend: function() {
         var node = this.parse('(function(){ var obj = { foo: function() { return 23; } }; return obj["foo"](); })();');
         this.assertEquals(23, this.interpret(node));
@@ -358,10 +369,10 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('var obj = { foo: 1, bar: 2 }, bar = "foo"; obj[bar]');
         this.assertEquals(1, this.interpret(node));
     },
-    // test39NativeConstructor: function() {
-    //     var node = '(function() { return typeof new Date(); })();';
-    //     this.assertEquals('object', this.interpret(node));
-    // },
+    test39NativeConstructor: function() {
+        var node = this.parse('(function() { return typeof new Date(); })();');
+        this.assertEquals('object', this.interpret(node, Global));
+    },
     test40aDeleteExistingVar: function() {
         var node = this.parse('delete x;'),
             mapping = { x: 1 };
@@ -376,22 +387,66 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornTests',
         var node = this.parse('delete x.a;'),
             mapping = { x: { a: 1 } };
         this.assertEquals(true, this.interpret(node, mapping));
-        this.assertEquals(false, mapping.x.hasOwnProperty('a'));
+        this.assert(!mapping.x.hasOwnProperty('a'));
     },
     test40dDeleteNonExistingMember: function() {
         var node = this.parse('delete x.b;'),
             mapping = { x: { a: 1 } };
         this.assertEquals(true, this.interpret(node, mapping));
-        this.assertEquals(false, mapping.x.hasOwnProperty('b'));
+        this.assert(!mapping.x.hasOwnProperty('b'));
     },
     test40eDeleteDeepMember: function() {
         var node = this.parse('delete x.y.z;'),
             mapping = { x: { y: { z: 1 } } };
         this.assertEquals(true, this.interpret(node, mapping));
-        this.assertEquals(false, mapping.x.y.hasOwnProperty('z'));
+        this.assert(!mapping.x.y.hasOwnProperty('z'));
     },
     test40fDeleteNonExisting: function() {
         var node = this.parse('delete x.y;');
+        this.assertRaises(this.interpret.curry(node));
+    },
+    test41aLabeledBreak: function() {
+        var node = this.parse('outer: for (i = 0; i < 3; i++) { for (j = 0; j < 3; j++) break outer; } i += 5;'),
+            mapping = { i: 0, j: 0 };
+        this.interpret(node, mapping);
+        this.assertEquals(5, mapping.i, 'labeled break did not break outer for');
+        this.assertEquals(0, mapping.j, 'labeled break did not break to outer for');
+    },
+    test41bLabeledContinue: function() {
+        var node = this.parse('outer: for (i = 0; i < 3; i++) { for (j = 0; j < 3; j++) continue outer; } i += 5;'),
+            mapping = { i: 0, j: 0 };
+        this.interpret(node, mapping);
+        this.assertEquals(8, mapping.i, 'labeled continue did not continue at outer for');
+        this.assertEquals(0, mapping.j, 'labeled continue did not stop at inner for');
+    },
+    test42aLateVariableDeclaration: function() {
+        var node = this.parse('x; var x;');
+        this.assertEquals(undefined, this.interpret(node)); // should not raise an error
+    },
+    test42bLateFunctionDeclaration: function() {
+        var node = this.parse('var bar = foo(); function foo() { return 1; } bar;');
+        this.assertEquals(1, this.interpret(node));
+    },
+    test43aUseGetter: function() {
+        var node = this.parse('var obj = { get prop() { return 123; } }; obj.prop;');
+        this.assertEquals(123, this.interpret(node));
+    },
+    test43bUseSetter: function() {
+        var node = this.parse('var bar, obj = { set foo(val) { bar = val; } }; obj.foo = 123; bar;');
+        this.assertEquals(123, this.interpret(node));
+    },
+    test44aWithStatement: function() {
+        var node = this.parse('with({ a: 1 }) { a; }'),
+            mapping = {};
+        this.assertEquals(1, this.interpret(node, mapping));
+        this.assert(!mapping.hasOwnProperty('a'));
+    },
+    test44bWithStatementFallThrough: function() {
+        var node = this.parse('var a = 1; with({ b: 2 }) { a; }');
+        this.assertEquals(1, this.interpret(node));
+    },
+    test44cWithStatementWithDelete: function() {
+        var node = this.parse('var obj = { a: 1 }; with(obj) { delete obj.a; a; }');
         this.assertRaises(this.interpret.curry(node));
     },
 });

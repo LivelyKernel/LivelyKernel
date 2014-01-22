@@ -472,6 +472,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     update: function() {
+        debugger;
         this.refreshData();
 
         var promise;
@@ -765,6 +766,88 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         return null;
     }
 });
+lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
+'default category', {
+    
+    initialize : function($super){
+        $super();
+        //delete Minimizer
+        if (this.getSubmorphsByAttribute("name","Minimizer"))
+        {
+            this.getSubmorphsByAttribute("name","Minimizer")[0].remove();
+        }
+    },
+
+    getComponentsInDirection : function($super, direction) {
+        debugger;
+        var components = [];
+        var pxInterval = 50;
+        
+        // choose upper left corner as point
+        var currentPoint = this.getPositionInWorld();
+        
+        var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
+        while (currentPoint.x < rightBoundary) {
+            
+            var component = this.getComponentInDirection(direction, currentPoint)
+    
+            if (component)
+                components.pushIfNotIncluded(component);
+                
+            currentPoint = currentPoint.addPt(pt(pxInterval, 0));
+        }
+    
+        return components;
+    },
+    
+    updateComponent: function() {
+        debugger;
+        c = this.get("CodeEditor");
+        c.doitContext = this;
+        
+        var text = this.get("ErrorText");
+        text.setTextString("");
+        text.error = null;
+        
+        var returnValue = c.evalAll();
+        
+        if (returnValue instanceof Error) {
+            this.throwError(returnValue);
+        }
+    },
+    
+    throwError: function(e) {
+        debugger;
+        var text = this.get("ErrorText");
+        text.setTextString(e.toString());
+        text.error = e;
+        e.alreadyThrown = true;
+        throw e;
+    },
+
+    isMerger: function() {
+        return true;
+    },
+    
+    onDropOn: function($super, aMorph) {
+        debugger;
+        $super();
+        if (aMorph == $world) {
+            var newext = this.calculateSnappingExtent();
+            var newpos = this.calculateSnappingPosition();
+            this.setPosition(newpos);
+            this.setPropagateResizing(false);
+            this.resizingFrom = "snapping";
+            
+            
+            this.setExtent(newext, "snapping");
+            this.setPropagateResizing(true);
+        }
+        this.notify();
+    },
+    
+});
+
 lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
 'default category', {
 
@@ -862,6 +945,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
     },
     
     getData : function(target){
+        debugger;
         var arrowToTarget = this.arrows.detect(function (arrow){
             var arrowX =  arrow.getPosition().x;
             return target.getPosition().x <= arrowX &&
@@ -920,81 +1004,5 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
         }
     }
 });
-lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
-'default category', {
-    
-    initialize : function($super){
-        $super();
-        //delete Minimizer
-        if (this.getSubmorphsByAttribute("name","Minimizer"))
-        {
-            this.getSubmorphsByAttribute("name","Minimizer")[0].remove();
-        }
-    },
 
-    getComponentsInDirection : function($super, direction) {
-        var components = [];
-        var pxInterval = 50;
-        
-        // choose upper left corner as point
-        var currentPoint = this.getPositionInWorld();
-        
-        var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
-        while (currentPoint.x < rightBoundary) {
-            
-            var component = this.getComponentInDirection(direction, currentPoint)
-    
-            if (component)
-                components.pushIfNotIncluded(component);
-                
-            currentPoint = currentPoint.addPt(pt(pxInterval, 0));
-        }
-    
-        return components;
-    },
-    
-    updateComponent: function() {
-        c = this.get("CodeEditor");
-        c.doitContext = this;
-        
-        var text = this.get("ErrorText");
-        text.setTextString("");
-        text.error = null;
-        
-        var returnValue = c.evalAll();
-        
-        if (returnValue instanceof Error) {
-            this.throwError(returnValue);
-        }
-    },
-    
-    throwError: function(e) {
-        var text = this.get("ErrorText");
-        text.setTextString(e.toString());
-        text.error = e;
-        e.alreadyThrown = true;
-        throw e;
-    },
-
-    isMerger: function() {
-        return true;
-    },
-    
-    onDropOn: function($super, aMorph) {
-        $super();
-        if (aMorph == $world) {
-            var newext = this.calculateSnappingExtent();
-            var newpos = this.calculateSnappingPosition();
-            this.setPosition(newpos);
-            this.setPropagateResizing(false);
-            this.resizingFrom = "snapping";
-            
-            
-            this.setExtent(newext, "snapping");
-            this.setPropagateResizing(true);
-        }
-        this.notify();
-    },
-    
-});
 }) // end of module

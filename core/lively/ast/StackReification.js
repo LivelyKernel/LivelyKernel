@@ -86,6 +86,7 @@ Object.subclass('lively.ast.Continuation',
     initialize: function(frame) {
         this.currentFrame = frame; // the frame in which the the unwind was triggered
     },
+
     copy: function() {
         return new this.constructor(this.currentFrame.copy());
     }
@@ -93,10 +94,7 @@ Object.subclass('lively.ast.Continuation',
 'accessing', {
     frames: function() {
         var frame = this.currentFrame, result = [];
-        while (frame) {
-            result.push(frame);
-            frame = frame.getContainingScope();
-        }
+        do { result.push(frame); } while (frame = frame.parentScope);
         return result;
     }
 },
@@ -122,7 +120,7 @@ Object.subclass('lively.ast.Continuation',
 
 Object.extend(lively.ast.Continuation, {
     fromUnwindException: function(e) {
-        return new this(e.topFrame.getContainingScope());
+        return new this(e.top);
     }
 });
 
@@ -144,17 +142,18 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
 },
 'frames', {
     shiftFrame: function(thiz, frame) {
-        var computationFrame = frame[0],
-            localFrame       = frame[1],
-            astIndex         = frame[2],
-            scope            = frame[3],
-            stackFrame       = [computationFrame, localFrame, astIndex, Global, scope];
-        localFrame["this"]   = thiz;
+        var frameState = {
+            astValueRanges: frame[0],
+            varMapping: frame[1],
+            calledFrame: null,
+            parentScope: frame[2]
+        }
+        frameState.varMapping["this"] = thiz;
         if (!this.top) {
-            this.top = this.last = stackFrame;
+            this.top = this.last = frameState;
         } else {
-            this.last[3] = stackFrame;
-            this.last = stackFrame;
+            this.last.calledFrame = frameState;
+            this.last = frameState;
         }
     }
 });

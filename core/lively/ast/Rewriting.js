@@ -1,4 +1,4 @@
-module('lively.ast.Rewriting').requires().toRun(function() {
+module('lively.ast.Rewriting').requires('lively.ast.acorn').toRun(function() {
 
 (function DEPRECATED() {
 
@@ -48,7 +48,7 @@ exitScope = function exitScope() {
 }
 
 registerVars = function registerVars(vars) {
-    if (scopes.length == 0) return;
+    if (!scopes.length) return;
     var scope = scopes.last();
     return vars.map(function(varName) {
         scope.push(varName);
@@ -56,7 +56,7 @@ registerVars = function registerVars(vars) {
     });
 }
 
-wrapSequence = function wrapSequence(node, args) {
+wrapSequence = function wrapSequence(node, args, vars) {
     function newVariable(name, value) {
         if (value == '{}') {
             value = newNode('ObjectExpression', { properties: [] });
@@ -94,16 +94,22 @@ wrapSequence = function wrapSequence(node, args) {
             });
         });
     }
-    function wrapArgs(args) {
-        return newNode('ObjectExpression', {
-            properties: args.map(function(arg) {
-                return {
-                    key: newNode('Literal', { value: arg.name }),
-                    kind: 'init',
-                    value: arg
-                }
-            })
-        });
+    function wrapArgsAndVars(args, vars) {
+        if ((!args || !args.length) && (!vars || !vars.length)) return '{}';
+        var wArgs = args ? args.map(function(ea) {
+                    return {
+                        key: newNode('Literal', {value: ea.name}),
+                        kind: 'init', value: ea
+                    }
+                }) : [],
+            wVars = vars ? vars.map(function(ea) {
+                    return {
+                        key: newNode('Literal', {value: ea.name}),
+                        kind: 'init',
+                        value: newNode('Identifier', {name: 'undefined'})
+                    }
+                }) : [];
+        return newNode('ObjectExpression', {properties: wArgs.concat(wVars)});
     }
 
     var level = scopes.length;
@@ -113,9 +119,9 @@ wrapSequence = function wrapSequence(node, args) {
         kind: 'var',
         declarations: [
             newVariable('_', '{}'),
-            newVariable('_' + level, (args && args.length > 0) ? wrapArgs(args) : '{}'),
+            newVariable('_' + level, wrapArgsAndVars(args, vars)),
             newVariable('__' + level,
-                ['_', '_' + level, 1, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
+                ['_', '_' + level, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
         ]
     }));
 
@@ -160,20 +166,14 @@ wrapSequence = function wrapSequence(node, args) {
 wrapVar = function wrapVar(name) {
     var scope;
     for (var i = scopes.length - 1; i >= 0; i--) {
-        if (scopes[i].include(name)) {
-            scope = i;
-            break;
-        }
+        if (scopes[i].include(name)) { scope = i; break; }
     }
-    if (scope == undefined) {
-        return newNode('Identifier', { name: name });
-    } else {
-        return newNode('MemberExpression', {
-            object: newNode('Identifier', { name: '_' + scope }),
-            property: newNode('Literal', { value: name }),
-            computed: true
-        });
-    }
+    if (scope === undefined) return newNode('Identifier', { name: name });
+    return newNode('MemberExpression', {
+        object: newNode('Identifier', { name: '_' + scope }),
+        property: newNode('Literal', { value: name }),
+        computed: true
+    });
 }
 
 wrapClosure = function wrapClosure(node, idx) {
@@ -181,26 +181,22 @@ wrapClosure = function wrapClosure(node, idx) {
         scopeIdentifier = scopeId < 0 ?
             newNode('Literal', {value: null}) :
             newNode('Identifier', { name: '__' + (scopes.length - 1) });
-    return newNode('CallExpression', {callee: newNode('Identifier', { name: '__createClosure' }),
-        arguments: [newNode('Literal', { value: idx }), scopeIdentifier, node]
+    return newNode('CallExpression', {
+        callee: newNode('Identifier', {name: '__createClosure'}),
+        arguments: [newNode('Literal', {value: idx}), scopeIdentifier, node]
     });
 }
 
 storeComputationResult = function storeComputationResult(node, start, end) {
-    function position(node) {
-        return (node.start || start || 0) + '-' + (node.end || end || 0);
-    }
-
     if (scopes.length == 0) return node;
-
+    var pos = (node.start || start || 0) + '-' + (node.end || end || 0);
     return newNode('AssignmentExpression', {
-            left: newNode('MemberExpression', {
-                object: newNode('Identifier', { name: '_' }),
-                property: newNode('Literal', { value: position(node) }),
-                computed: true
-            }),
-            operator: '=',
-            right: node
+        operator: '=', right: node,
+        left: newNode('MemberExpression', {
+            object: newNode('Identifier', {name: '_'}),
+            property: newNode('Literal', {value: pos}),
+            computed: true
+        }),
     });
 }
 
@@ -209,17 +205,15 @@ findLocalVariables = function findLocalVariables(ast) {
     acorn.walk.matchNodes(ast, {
         'VariableDeclaration': function(node, state, depth, type) {
             if ((type == 'Statement') || (type == 'Expression')) return;
-            node.declarations.each(function(n) {
-                state.push(n.id.name);
-            });
+            node.declarations.each(function(n) { state.push(n.id.name); });
         },
         'FunctionDeclaration': function(node, state, depth, type) {
             if ((type == 'Statement') || (type == 'Expression') || (type == 'Function')) return;
             state.push(node.id.name);
         }
-    }, locals, { visitors: acorn.walk.make({
-        'Function': function() { /* stop descent */ }
-    })});
+    }, locals, {
+        visitors: acorn.walk.make({'Function': function() { /* stop descent */ }})
+    });
     return locals;
 }
 
@@ -238,16 +232,17 @@ Object.extend(Global, {
 });
 
 Global.rewrite = function rewrite(node) {
+    // FIXME!
+    lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
     enterScope();
     if (node.type == 'FunctionDeclaration') {
         var args = registerVars(node.params.pluck('name')); // arguments
     }
-    registerVars(findLocalVariables(node)); // locals
+    var vars = registerVars(findLocalVariables(node)); // locals
     var rewritten = (new lively.ast.Rewriting.RewriteVisitor()).accept(node);
     exitScope();
-    var wrapped = wrapSequence(rewritten, args);
-    // storeComputationResult ?
-    return newNode('Program', { body: [ wrapped ] });
+    var wrapped = wrapSequence(rewritten, args, vars);
+    return newNode('Program', {body: [wrapped]});
 }
 
 Global.rewriteFunction = function(node) {
@@ -710,7 +705,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         });
         fn.start = n.start;
         fn.end = n.end;
-        // FIXME: storeComputationResult(fn) is not possible for value
+        // TODO: storeComputationResult(fn) is not possible for value
         return newNode('ThrowStatement', {
             argument: newNode('ObjectExpression', {
                 properties: [{
@@ -730,17 +725,17 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // n.generator has a specific type that is boolean
         // n.expression has a specific type that is boolean
         enterScope();
-        var args = registerVars(n.params.pluck('name')); // arguments
-        registerVars(findLocalVariables(n.body)); // locals
-        var rewritten = this.accept(n.body, st);
-        exitScope();
         // TODO: old rewriting reference
-        lively.ast.Rewriting.table.push(n);
+        lively.ast.Rewriting.table.push(acorn.walk.copy(n));
         var idx = lively.ast.Rewriting.table.length - 1;
         // END FIXME
+        var args = registerVars(n.params.pluck('name')); // arguments
+        var vars = registerVars(findLocalVariables(n.body)); // locals
+        var rewritten = this.accept(n.body, st);
+        exitScope();
         var wrapped = wrapClosure({
             start: n.start, end: n.end, type: 'FunctionExpression',
-            body: newNode('BlockStatement', { body: [ wrapSequence(rewritten, args) ] }),
+            body: newNode('BlockStatement', {body: [wrapSequence(rewritten, args, vars)]}),
             id: n.id || null, params: args
         }, idx);
         if (n.id && n.type == 'FunctionDeclaration') {

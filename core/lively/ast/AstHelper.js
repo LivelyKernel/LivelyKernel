@@ -5,7 +5,8 @@ Object.subclass("lively.ast.MozillaAST.AstPrinter",
 // lively.ast.MozillaAST.createVisitorCode({pathAsParameter: true, asLivelyClass: true, parameters: ["depth","state"], name: "lively.ast.MozillaAST.AstPrinter"});
 "visiting", {
     accept: function(node, depth, state, path) {
-        return this['visit' + node.type.capitalize()](node, depth, state, path);
+        if (!node || !node.type) debugger;
+        return this['visit' + node.type](node, depth, state, path);
     },
 
     visitProgram: function(node, depth, state, path) {

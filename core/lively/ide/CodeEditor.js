@@ -653,8 +653,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return [ed.session.getScrollLeft(), ed.session.getScrollTop()];
         });
     },
+
     scrollToRow: function(row) {
         return this.withAceDo(function(ed) { return ed.scrollToRow(row); })
+    },
+
+    onFocus: function($super, evt) {
+        $super(evt);
+        var scroll = evt.world.getScroll();
+        (function() { evt.world.scrollTo(scroll[0], scroll[1]); }).delay(0);
     },
 
     doKeyCopy: Functions.Null,

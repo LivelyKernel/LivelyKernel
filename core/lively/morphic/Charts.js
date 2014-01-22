@@ -244,7 +244,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.createMinimizer();
 
         this.addScript(function updateComponent() {
-            alert("Please override updateComponent!");
+            console.log("Please override updateComponent!");
         });
 
         this.setLayouter(new lively.morphic.Layout.TileLayout());
@@ -369,6 +369,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.removePreviewMorph();
         this.setOpacity(1);
     },
+    onResizeStart: function() {
+        this.addPreviewMorph();
+        this.setOpacity(0.7);
+    },
+
     
     onDragStart: function($super, evt) {
         $super(evt);
@@ -443,7 +448,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             var newpos = this.calculateSnappingPosition();
             this.setPosition(newpos);
             var newext = this.calculateSnappingExtent();
-            this.setExtent(newext, true);
+            this.setExtent(newext);
         }
         this.notify();
     },
@@ -652,17 +657,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.draggingFromPartsBin = true;
     },
     
-    setExtent: function($super, newExtent, hidePreview) {
+    setExtent: function($super, newExtent) {
         $super(newExtent);
         this.arrows.each(function (arrow){
              arrow.positionAtMorph();
         });
         this.resizeMainContent(newExtent);
-
-        if (!hidePreview && !this.previewAdded && !this.draggingFromPartsBin) {
-            this.addPreviewMorph();
-            this.setOpacity(0.7);
-        }
         this.draggingFromPartsBin = false;
         
         this.adjustForNewBounds();

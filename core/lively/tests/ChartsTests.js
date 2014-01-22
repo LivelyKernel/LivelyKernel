@@ -160,7 +160,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         // there is no preview
         var component = this.helper.createComponents(1).first();
         this.assertEquals($morph("PreviewMorph" + component), null);
-        
+
         // preview appears
         this.mouseEvent('down', pt(20,20), component);
         this.mouseEvent('move', pt(300,300), component);

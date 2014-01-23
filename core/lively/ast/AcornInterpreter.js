@@ -127,8 +127,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 },
 'visiting', {
     accept: function(node, state) {
-        if (node.type == 'FunctionDeclaration') return;
         return this['visit' + node.type](node, state);
+        if (node.type == 'FunctionDeclaration') return; // is done in evaluateDeclarations()
     },
 
     visitProgram: function(node, state) {
@@ -865,6 +865,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.continueTriggered = null;  // null, true or string (labeled continue)
         this.containingScope = null;
     },
+
     newScope: function(func, mapping) {
         var newFrame = new lively.ast.AcornInterpreter.Frame(func, mapping);
         newFrame.setContainingScope(this);
@@ -875,6 +876,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     setContainingScope: function(frame) {
         return this.containingScope = frame;
     },
+
     getContainingScope: function() {
         return this.containingScope;
     },
@@ -939,17 +941,21 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     triggerReturn: function() {
         this.returnTriggered = true;
     },
+
     triggerBreak: function(label) {
         this.breakTriggered = label ? label : true;
     },
+
     stopBreak: function(label) {
         if (label === undefined) label = true;
         if (this.breakTriggered === label)
             this.breakTriggered = null;
     },
+
     triggerContinue: function(label) {
         this.continueTriggered = label ? label : true;
     },
+
     stopContinue: function(label) {
         if (label === undefined) label = true;
         if (this.continueTriggered === label)
@@ -961,6 +967,7 @@ Object.extend(lively.ast.AcornInterpreter.Frame, {
     create: function(ast, mapping) {
         return new lively.ast.AcornInterpreter.Frame(ast, mapping || {});
     },
+
     global: function() {
         return this.create(null, Global);
     },

@@ -365,7 +365,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     onResizeEnd: function() {
-        var newExtent = this.calculateSnappingExtent();
+        var newExtent = this.calculateSnappingExtent(true);
         this.setExtent(newExtent, this.resizingFrom);
         this.removePreviewMorph();
         this.setOpacity(1);
@@ -385,7 +385,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     onDragEnd: function($super, evt) {
         $super(evt);
-        debugger;
         // positioning is done in onDropOn
         this.notifyNeighborsOfDragEnd();
         this.removePreviewMorph();
@@ -440,7 +439,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         var previewExtent = this.calculateSnappingExtent();
         previewMorph.setPosition(previewPos);
         previewMorph.setExtent(previewExtent);
-        
+
         this.realignAllComponentsInColumn();
     },
     
@@ -473,7 +472,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     update: function() {
-        debugger;
         this.refreshData();
 
         var promise;
@@ -658,6 +656,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     onCreateFromPartsBin: function() {
         this.draggingFromPartsBin = true;
+        this.onDragStart({hand: $world.firstHand()});
+        $world.draggedMorph = this;
     },
     
     setExtent: function($super, newExtent) {
@@ -675,7 +675,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         var previewMorph = $morph("PreviewMorph" + this);
         if (previewMorph) {
-            var previewExtent = this.calculateSnappingExtent();
+            var previewExtent = this.calculateSnappingExtent(true);
             previewMorph.setExtent(previewExtent);
         }
         

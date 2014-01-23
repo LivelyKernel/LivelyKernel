@@ -898,18 +898,29 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitCallExpression: function(n, st) {
         // callee is a node of type Expression
         // each of n.arguments is of type Expression
+        var thisIsBound = n.callee.type == 'MemberExpression'; // like foo.bar();
         var callee = this.accept(n.callee, st);
-        if (callee.type == 'ExpressionStatement')
-            callee = callee.expression; // unwrap
+        if (callee.type == 'ExpressionStatement') callee = callee.expression; // unwrap
+        var args = n.arguments.map(function(n) {
+            var n = this.accept(n, st);
+            return n.type == 'ExpressionStatement' ? n.expression : /*unwrap*/ n;
+        }, this);
+        if (!thisIsBound) {
+            // something like "foo();". we can't just rewrite it as _123['foo']()
+            // as this would bind this to the scope object. Instead we ensure
+            // that .call is used for invocation
+            callee = {
+                type: 'MemberExpression',
+                computed: false,
+                property: {name: "call", type: "Identifier"},
+                object: callee
+            }
+            args.unshift({type: 'Identifier', name: 'Global'});
+        }
         return storeComputationResult({
-            start: n.start, end: n.end, type: 'CallExpression',
-            callee: callee,
-            arguments: n.arguments.map(function(n) {
-                var n = this.accept(n, st);
-                return (n.type == 'ExpressionStatement') ?
-                    n.expression : // unwrap
-                    n;
-            }, this)
+            start: n.start, end: n.end,
+            type: 'CallExpression', callee: callee,
+            arguments: args
         });
     },
 

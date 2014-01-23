@@ -12,6 +12,12 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 },
 'helping', {
 
+    assertAstNodesEqual: function(node1, node2, msg) {
+        var notEqual = lively.ast.acorn.compareAst(node1, node2);
+        if (!notEqual) return;
+        this.assert(false, 'nodes not equal: ' + (msg ? '\n  ' + msg : '') + '\n  ' + notEqual.join('\n  '));
+    },
+
     assertTryWrapper: function(ast, level, vars) {
         if (level == undefined)
             level = 0;
@@ -22,6 +28,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                     type: 'BlockStatement',
                     body: [{
                         type: 'VariableDeclaration',
+                        kind: 'var',
                         declarations: [{
                             type: 'VariableDeclarator',
                             id: {type: 'Identifier', name: '_'},
@@ -60,6 +67,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                         type: 'BlockStatement',
                         body: [{
                             type: 'VariableDeclaration',
+                            kind: 'var',
                             declarations: [{
                                 type: 'VariableDeclarator',
                                 id: {type: 'Identifier', name: 'ex'},
@@ -110,7 +118,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 },
                 finalizer: null
         };
-        this.assertMatches(expected, ast);
+        this.assertAstNodesEqual(expected, ast, 'try wrapper');
     },
 
     storedValue: function(range) {
@@ -418,7 +426,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             },
             ast = this.parser.parse(src),
             result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+        this.assertAstNodesEqual(expected, result.body[0].block.body[1]);
     },
 
     test13FunctionAsPropertyTest: function() {
@@ -657,7 +665,33 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src),
             result = this.rewrite(ast);
         this.assertMatches(expected, result.body[0].block.body[1]);
+    },
+
+    test22FunctionCall: function() {
+        // test if the "return g();" is translated to "return _1["g"].call();"
+        var func = function() { function g() {}; return g(); };
+        func.stackCaptureMode();
+        var expected = {
+              arguments: [],
+              type: "CallExpression",
+              callee: {
+                computed: false,
+                object: {
+                  computed: true,
+                  object: { name: "_1", type: "Identifier" },
+                  property: { type: "Literal", value: "g" },
+                  type: "MemberExpression"
+                },
+                property: { name: "call", type: "Identifier" },
+                type: "MemberExpression"
+              },
+            },
+            returnStmt;
+        acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
+show(escodegen.generate(returnStmt));
+        this.assertAstNodesEqual(expected, returnStmt.argument.right);
     }
+
 });
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
@@ -682,13 +716,18 @@ TestCase.subclass('lively.ast.tests.ContinuationTest',
     test01LinearFlow: function() {
         function code() {
             var x = 1;
-            debugger;
-            var y = 2;
-            return x + y;
+            var f = function() {
+                debugger;
+                return x * 2;
+            };
+            var y = x + f();
+            return y;
         }
         var continuation = lively.ast.StackReification.run(code);
-        this.assertEquals(1, continuation.frames()[0].varMapping.x, 'val of x');
-        this.assertEquals(undefined, continuation.frames()[0].varMapping.y, 'val of y');
+        this.assertEquals(2, continuation.frames().length, 'number of captured frames');
+        this.assertEquals(1, continuation.currentFrame.lookup("x"), 'val of x');
+        this.assertEquals(undefined, continuation.currentFrame.lookup("y"), 'val of y');
+        this.assertEquals(Global, continuation.currentFrame.getThis(), 'val of this');
         // var result = continuation.resume();
         // this.assertEquals(3, result, 'result when resuming continuation');
     }

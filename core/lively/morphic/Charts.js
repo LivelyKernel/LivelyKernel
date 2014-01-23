@@ -231,7 +231,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         $super();
 
         this.arrows = [new lively.morphic.Charts.Arrow(this)];
-         
+        
+        
         this.setExtent(pt(500, 250));
         this.setFill(this.backgroundColor);
         this.setBorderColor(this.borderColor);
@@ -242,17 +243,33 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.createLabel();
         this.createErrorText();
         this.createMinimizer();
+        this.createContainer();
 
         this.addScript(function updateComponent() {
             console.log("Please override updateComponent!");
         });
 
-        this.setLayouter(new lively.morphic.Layout.TileLayout());
-        this.layout.layouter.spacing = 3;
+        this.layout = {adjustForNewBounds: true};
     },
     
     backgroundColor: Color.rgb(207,225,229),
     borderColor: Color.rgb(94,94,94),
+    createContainer: function() {
+        var container = new lively.morphic.Box(new rect(0,0,10,10));
+        container.setBorderWidth(3);
+        container.setFill(this.backgroundColor);
+        container.setBorderColor(this.borderColor);
+        container.setName("Container");
+        this.addMorph(container);
+        container.setPosition(pt(0,50));
+        container.setExtent(pt(this.getExtent().x,this.getExtent().y-50));
+        container.layout = {
+              adjustForNewBounds: true,
+              resizeHeight: true,
+              resizeWidth: true
+            };
+    },
+
     errorColor: Color.rgb(210, 172, 172),
     
     notifyNeighborsOfDragStart: function() {
@@ -415,18 +432,19 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         var t = new lively.morphic.Text();
         t.setTextString("");
         t.setName("ErrorText");
-        t.setExtent(pt(140, 20));
-        t.setPosition(pt(200, 12));
-        t.setOrigin(pt(-5, -5));
+        t.setExtent(pt(240, 20));
+        t.setPosition(pt(200, 10));
         t.setFontSize(10);
         t.setFillOpacity(0);
         t.setBorderWidth(0);
+        t.layout = {resizeWidth: true};
         this.addMorph(t);
     },
 
     createMinimizer: function() {
         var minimizer = new lively.morphic.Charts.Minimizer();
-        minimizer.setPosition(pt(this.getExtent().x - 60, 15));
+        minimizer.setPosition(pt(this.getExtent().x - 60, 10));
+        minimizer.layout = {moveHorizontal: true}
         this.addMorph(minimizer);
     },
 
@@ -462,7 +480,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         t.setName("Description");
         t.setExtent(pt(160, 20));
         t.setPosition(pt(10, 10));
-        t.setOrigin(pt(-5, -5));
         t.setFontSize(12);
         t.setFillOpacity(0);
         t.setBorderWidth(0);
@@ -747,9 +764,39 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             return this.data;
         }
         return null;
+    },
+    
+    migrateFrom : function(oldComponent){
+        this.arrows = oldComponent.arrows;
+        this.propagationEnabled = oldComponent.propagationEnabled;
+        this.data = oldComponent.data;
+        this.setExtent(oldComponent.getExtent);
+        this.setPosition(oldComponent.getPosition);
     }
 });
-lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
+lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
+'default category', {
+    
+    initialize : function($super){
+        $super();
+        this.getSubmorphsByAttribute("name","Description")[0].setTextString("Prototype Component");
+        var container = this.getSubmorphsByAttribute("name","Container")[0];
+        
+        var codeEditor = new lively.morphic.Charts.CodeEditor();
+        codeEditor.setPosition(pt(3,3));
+        codeEditor.setTextString("// Use the data, Luke! \n function map(morph, datum) { \n var e = morph.getExtent(); \n    morph.setExtent(pt(e.x, datum * 100\n))}");
+        codeEditor.setExtent(pt(container.getExtent().x-150,container.getExtent().y-6));
+        codeEditor.layout = {resizeWidth: true, resizeHeight: true};
+        container.addMorph(codeEditor);
+        
+        var prototypeMorph = new lively.morphic.Box(new rect(0,0,100,100));
+        prototypeMorph.setFill(Color.blue);
+        prototypeMorph.setName("PrototypeMorph");
+        prototypeMorph.layout = {moveHorizontal: true, moveVertical: true};
+        container.addMorph(prototypeMorph);
+        prototypeMorph.setPosition(pt(container.getExtent().x-125,container.getExtent().y-150));
+    }
+});lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
 'default category', {
     
     initialize : function($super){
@@ -939,9 +986,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
         this.setFillOpacity(0);
         this.setExtent(pt(50, 43));
         this.setName("Minimizer");
-        this.disableEvents();
         var vertices = [pt(10,13), pt(25,25), pt(40,13)];
         this.addMorph(new lively.morphic.Path(vertices));
+        this.submorphs[0].disableEvents();
     },
     
     onMouseUp: function(e) {

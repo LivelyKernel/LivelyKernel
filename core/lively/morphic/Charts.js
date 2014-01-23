@@ -12,6 +12,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         this.setBorderColor(Color.rgb(94,94,94));
         this.deactivate();
         this.positionAtMorph();
+        this.setBorderWidth(0);
     },
     
     isActive: function() {
@@ -672,8 +673,13 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     onCreateFromPartsBin: function() {
-        this.onDragStart({hand: $world.firstHand()});
-        $world.draggedMorph = this;
+        var _this = this;
+        setTimeout(function () {
+            if ($world.firstHand().isPressed()) {
+                _this.onDragStart({hand: $world.firstHand()});
+                $world.draggedMorph = _this;
+            }
+        }, 10);
     },
     
     setExtent: function($super, newExtent) {
@@ -784,7 +790,7 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
         
         var codeEditor = new lively.morphic.Charts.CodeEditor();
         codeEditor.setPosition(pt(3,3));
-        codeEditor.setTextString("// Use the data, Luke! \n function map(morph, datum) { \n var e = morph.getExtent(); \n    morph.setExtent(pt(e.x, datum * 100\n))}");
+        codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100\n))}");
         codeEditor.setExtent(pt(container.getExtent().x-150,container.getExtent().y-6));
         codeEditor.layout = {resizeWidth: true, resizeHeight: true};
         container.addMorph(codeEditor);
@@ -796,7 +802,44 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
         container.addMorph(prototypeMorph);
         prototypeMorph.setPosition(pt(container.getExtent().x-125,container.getExtent().y-150));
     }
-});lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
+});
+lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Script',
+'default category', {
+    
+    initialize : function($super){
+        $super();
+        this.getSubmorphsByAttribute("name","Description")[0].setTextString("Script");
+        var container = this.getSubmorphsByAttribute("name","Container")[0];
+        
+        var codeEditor = new lively.morphic.Charts.CodeEditor();
+        codeEditor.setPosition(pt(3,3));
+        codeEditor.setTextString("// Use the data, Luke!");
+        codeEditor.setName("CodeEditor");
+        codeEditor.setExtent(pt(container.getExtent().x-6,container.getExtent().y-6));
+        codeEditor.layout = {resizeWidth: true, resizeHeight: true};
+        container.addMorph(codeEditor);
+        
+        this.addScript(function updateComponent() {
+            var c = this.getSubmorphsByAttribute("name","CodeEditor")[0];
+            c.doitContext = this;
+            
+            if (!c.getSelectionRangeAce())
+                return;
+            
+            var text = this.get("ErrorText");
+            text.setTextString("");
+            text.error = null;
+            
+            var returnValue = c.evalAll();
+            
+            if (returnValue instanceof Error) {
+                this.throwError(returnValue);
+            }
+        });
+    }
+});
+
+lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
 'default category', {
     
     initialize : function($super){

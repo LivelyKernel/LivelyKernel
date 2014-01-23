@@ -660,8 +660,8 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
             visitorMethods = nodeSpecs.map(lively.ast.MozillaAST.NodeSpecVisitorGenerator.printNodeSpec.curry(options, enumSpecs)),
             methods = [acceptMethod].concat(visitorMethods);
         return options.asLivelyClass ?
-            Strings.format('Object.subclass("%s",%s\n"visiting", {\n%s\n});', options.name, creationComment, methods.join(',\n\n')) :
-            Strings.format('%s = {\n%s\n};', options.name, methods.join(',\n\n'));
+            Strings.format('Object.subclass("%s",%s\n"visiting", {\n%s\n})', options.name || 'Visitor', creationComment, methods.join(',\n\n')) :
+            Strings.format('%s{\n%s\n}', options.name ? options.name + ' = ' : '', methods.join(',\n\n'));
     }
 
 }
@@ -685,7 +685,6 @@ Object.extend(lively.ast.MozillaAST, {
         // EXAMPLE:
         // lively.ast.MozillaAST.createVisitorCode({openWindow: true, asLivelyClass: true, parameters: ['state'], useReturn: true});
         options = options || {};
-        options.name = options.name || "Visitor";
         options.parameters = options.parameters || ['state'];
         var doc, interfaces, enums, nodeSpecs, enumSpecs, visitor, visitorCode;
         [options.loadFromMozillaPage ?
@@ -720,7 +719,17 @@ Object.extend(lively.ast.MozillaAST, {
         }].doAndContinue(null, function() {
             thenDo && thenDo(null, visitorCode);
         });
+    },
+
+    createVisitor: function(options, thenDo) {
+        var code = this.createVisitorCode(options, function(err, code) {
+            if (err) { thenDo(err, null); return; }
+            var visitor;
+            try { visitor = eval('(' + code + ')'); } catch (e) { thenDo(e, null); return; }
+            thenDo(null, visitor);
+        });
     }
+
 });
 
 }) // end of module

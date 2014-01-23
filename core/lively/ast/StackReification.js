@@ -1,4 +1,4 @@
-module('lively.ast.StackReification').requires('lively.ast.Interpreter', 'lively.ast.acorn').toRun(function() {
+module('lively.ast.StackReification').requires('lively.ast.AcornInterpreter').toRun(function() {
 
 lively.Closure.subclass('lively.ast.RewrittenClosure',
 'initializing', {
@@ -75,7 +75,7 @@ Object.extend(Function.prototype, {
     },
 
     stackCaptureSource: function(varMapping) {
-        this.asRewrittenClosure().getRewrittenSource();
+        return this.asRewrittenClosure().getRewrittenSource();
     }
 });
 
@@ -92,7 +92,7 @@ Object.subclass('lively.ast.Continuation',
 'accessing', {
     frames: function() {
         var frame = this.currentFrame, result = [];
-        do { result.push(frame); } while (frame = frame.parentScope);
+        do { result.push(frame); } while (frame = frame.getContainingScope());
         return result;
     }
 },
@@ -130,30 +130,29 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
 'initializing', {
     initialize: function(error) {
         this.error = error;
-        this.topFrame = null; // frame in which the unwind starts
-        this.lastFrame = null; // bottom most frame
     }
 },
 'printing', {
     toString: function() {
-        return this.error.toString();
+        return '[UNWIND] ' + this.error.toString();
     }
 },
 'frames', {
     shiftFrame: function(thiz, frame) {
-        var frameState = {
-            astValueRanges: frame[0],
-            varMapping: frame[1],
-            calledFrame: null,
-            parentScope: frame[2]
-        }
-        frameState.varMapping["this"] = thiz;
+        var varMapping = frame[1],
+            astValueRanges = frame[0],
+            calledFrame = null,
+            parentScope = frame[2];
+        var frame = lively.ast.AcornInterpreter.Frame.create(null, varMapping);
+        frame.setThis(thiz);
         if (!this.top) {
-            this.top = this.last = frameState;
+            this.top = this.last = frame;
         } else {
-            this.last.calledFrame = frameState;
-            this.last = frameState;
+            // this.last.calledFrame = frameState;
+            this.last.setContainingScope(frame);
+            this.last = frame;
         }
+        return frame;
     }
 });
 

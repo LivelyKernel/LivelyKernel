@@ -655,7 +655,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     onCreateFromPartsBin: function() {
-        this.draggingFromPartsBin = true;
         this.onDragStart({hand: $world.firstHand()});
         $world.draggedMorph = this;
     },
@@ -668,9 +667,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
                  arrow.positionAtMorph();
             });
         }
+
         this.resizeMainContent(newExtent);
-        this.draggingFromPartsBin = false;
-        
         this.adjustForNewBounds();
         
         var previewMorph = $morph("PreviewMorph" + this);
@@ -783,7 +781,7 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
 
     getComponentsInDirection : function($super, direction) {
         var components = [];
-        var pxInterval = 50;
+        var pxInterval = 150;
         
         // choose upper left corner as point
         var currentPoint = this.getPositionInWorld();
@@ -793,8 +791,10 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
             
             var component = this.getComponentInDirection(direction, currentPoint)
     
-            if (component)
+            if (component) {
                 components.pushIfNotIncluded(component);
+                currentPoint = pt(component.getBounds().right(), currentPoint.y);
+            }
                 
             currentPoint = currentPoint.addPt(pt(pxInterval, 0));
         }
@@ -914,9 +914,13 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
     refreshData: function() {
         this.data = null;
 
-        // take the first component from the left
+        // take the first component to the top
+        // if there are multiple ones take the first from the left
         var componentsAbove = this.getComponentsInDirection(-1);
         if (componentsAbove.length) {
+            componentsAbove.sort(function (a, b) {
+                return b.getPosition().y - a.getPosition().y
+            })
             this.data = componentsAbove[0].getData(this);
         }
     },

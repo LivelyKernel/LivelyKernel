@@ -668,25 +668,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             });
         }
 
-        this.resizeMainContent(newExtent);
         this.adjustForNewBounds();
         
         var previewMorph = $morph("PreviewMorph" + this);
         if (previewMorph) {
             var previewExtent = this.calculateSnappingExtent(true);
             previewMorph.setExtent(previewExtent);
-        }
-        
-        // get the width of the description text to adjust the width of the error text
-        var description = this.getSubmorphsByAttribute("name", "Description");
-        var descriptionWidth = 150;
-        if (description.length) {
-            descriptionWidth = description[0].getExtent().x + 70;
-        }
-        
-        var errorText = this.getSubmorphsByAttribute("name", "ErrorText");
-        if (errorText.length) {
-            errorText[0].setExtent(pt(this.getExtent().x - descriptionWidth, errorText[0].getExtent().y));
         }
     },
     throwError: function(error) {
@@ -697,12 +684,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         throw error;
     },
     
-    resizeMainContent: function(newExtent) {
-        var morphToResize = this.getSubmorphsByAttribute("shouldResize", true);
-        if (morphToResize.length) {
-            morphToResize[0].setExtent(pt(newExtent.x - 7,newExtent.y - 52));
-        }
-    },
+
     
     getComponentsInColumn: function(point) {
         var allComponents = this.getAllComponents();
@@ -964,19 +946,21 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
     
     onMouseUp: function(e) {
         if (e.isLeftMouseButtonDown() && !e.isCtrlDown()) {
-            var isMinimized = this.owner.getExtent().y == 50;
+            var isMinimized = this.owner.getExtent().y == 60;
             if (isMinimized) {
                 this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY), true);
+                var container = this.owner.getSubmorphsByAttribute("name","Container");
+                if (container.length > 0){
+                    container[0].setVisible(true);
+                }
             }
             else {
                 this.oldY = this.owner.getExtent().y;
-                this.owner.setExtent(pt(this.owner.getExtent().x, 50), true);
-            }
-
-            // TODO: Why is the prototype morph not hidden on minimize?
-            var prototype = this.owner.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
-            if (prototype){
-                prototype.setVisible(!isMinimized);
+                var container = this.owner.getSubmorphsByAttribute("name","Container");
+                if (container.length > 0){
+                    container[0].setVisible(false);
+                }
+                this.owner.setExtent(pt(this.owner.getExtent().x, 60), true);
             }
 
             this.owner.realignAllComponentsInColumn();

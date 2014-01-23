@@ -451,4 +451,83 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     },
 });
 
+TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
+'helper', {
+    parse: function(src) {
+        return lively.ast.acorn.parse(src);
+    },
+    resumeWithMapping: function(resumeNode, contextNode, mapping) {
+        var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        var frame = lively.ast.AcornInterpreter.Frame.create(null, mapping);
+        frame.setPC(resumeNode);
+        return interpreter.runWithFrame(contextNode, frame);
+    },
+    resumeWithFrame: function(node, frame) {
+        var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        return interpreter.runWithFrame(node, frame);
+    },
+},
+'testing', {
+    test01SimpleResumeFromStart: function() {
+        var node = this.parse('var x = 1; x;'),
+            resumeNode = node,
+            mapping = { x: undefined };
+
+        this.assertEquals(1, this.resumeWithMapping(resumeNode, node, mapping), 'did not fully resume');
+        this.assertEquals(1, mapping.x);
+    },
+    test02SimpleResume: function() {
+        var node = this.parse('var x = 1; var y = 2; y;'),
+            resumeNode = node.body[1],
+            mapping = { y: undefined };
+
+        // make sure resume node is: var y = 2;
+        this.assertMatches({
+            type: 'VariableDeclaration',
+            declarations: [{ type: 'VariableDeclarator',
+                id: { type: 'Identifier', name: 'y' },
+                init: { type: 'Literal', value: 2 }
+            }]
+        }, resumeNode, 'resume node was incorrect');
+
+        this.assertEquals(2, this.resumeWithMapping(resumeNode, node, mapping), 'did not fully resume');
+        this.assertEquals(2, mapping.y);
+        this.assertEquals(undefined, mapping.x, 'did not resume but restart');
+    },
+    test03InnerResume: function() {
+        var node = this.parse('var x = 1 + 2; x;'),
+            resumeNode = node.body[0].declarations[0].init,
+            mapping = { x: undefined };
+
+        // make sure resume node is: 1 + 2
+        this.assertMatches({
+            type: 'BinaryExpression',
+            operator: '+',
+            left: { type: 'Literal', value: 1 },
+            right: { type: 'Literal', value: 2 }
+        }, resumeNode, 'resume node was incorrect');
+
+        this.assertEquals(3, this.resumeWithMapping(resumeNode, node, mapping), 'did not fully resume');
+        this.assertEquals(3, mapping.x);
+    },
+    test04ResumeFunction: function() {
+        var node = this.parse('(function() { var x = 1; return x; })();'),
+            funcNode = node.body[0].expression.callee,
+            resumeNode = funcNode.body.body[1];
+
+        // make sure resume node is: return x;
+        this.assertMatches({
+            type: 'ReturnStatement',
+            argument: { type: 'Identifier', name: 'x' }
+        }, resumeNode, 'resume node was incorrect');
+
+        // construct frames but change x in mapping
+        var outerFrame = lively.ast.AcornInterpreter.Frame.create(null, {}),
+            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
+        innerFrame.setPC(resumeNode);
+
+        this.assertEquals(2, this.resumeWithFrame(funcNode.body, innerFrame), 'did not correctly resume');
+    },
+});
+
 }) // end of module

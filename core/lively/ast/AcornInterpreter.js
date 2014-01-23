@@ -15,7 +15,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             currentFrame: frame,
             labels: {}
         };
-        this.evaluateDeclarations(node, frame);
+        if (!frame.isResuming())
+            this.evaluateDeclarations(node, frame);
         this.accept(node, state);
         return state.result;
     },
@@ -124,11 +125,31 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             return res;
         }, undefined);
     },
+
+    wantsInterpretation: function(node, frame) {
+        if (!frame.isResuming())
+            return true;
+        if (node === frame.pc) {
+            frame.resumesNow();
+            return true;
+        }
+        return acorn.walk.findNodeAt(node, frame.pc.start, frame.pc.end, null, Object.extend({
+            VariableDeclaration: function(node, st, c) {
+                for (var i = 0; i < node.declarations.length; ++i) {
+                    c(node.declarations[i], st, 'VariableDeclarator');
+                }
+            },
+            VariableDeclarator: function(node, st, c) {
+                if (node.init)
+                    c(node.init, st, 'Expression');
+            },
+        }, acorn.walk.base));
+    },
 },
 'visiting', {
     accept: function(node, state) {
-        return this['visit' + node.type](node, state);
         if (node.type == 'FunctionDeclaration') return; // is done in evaluateDeclarations()
+        this.wantsInterpretation(node, state.currentFrame) && this['visit' + node.type](node, state);
     },
 
     visitProgram: function(node, state) {
@@ -853,6 +874,11 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     asFunction: function() {
         return this.prepareFunction() && this._cachedFunction;
     },
+},
+'continued interpretation', {
+    resume: function(frame) {
+        return this.basicApply(frame);
+    },
 });
 
 Object.subclass('lively.ast.AcornInterpreter.Frame',
@@ -864,6 +890,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.breakTriggered = null;     // null, true or string (labeled break)
         this.continueTriggered = null;  // null, true or string (labeled continue)
         this.containingScope = null;
+        this.pc = null;                 // program counter, actually an AST node
     },
 
     newScope: function(func, mapping) {
@@ -960,6 +987,19 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         if (label === undefined) label = true;
         if (this.continueTriggered === label)
             this.continueTriggered = false;
+    },
+},
+'resuming', {
+    setPC: function(node) {
+        this.pc = node;
+    },
+
+    isResuming: function() {
+        return this.pc !== null;
+    },
+
+    resumesNow: function() {
+        this.pc = null;
     },
 });
 

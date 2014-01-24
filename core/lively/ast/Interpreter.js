@@ -37,8 +37,8 @@ Object.subclass('lively.ast.Interpreter.Frame',
         this.bp = null; // "break point", actually an AST node
         this.values = {}; // stores the results of computed expressions and statements
     },
-    newScope: function(mapping) {
-        var newFrame = new lively.ast.Interpreter.Frame(mapping);
+    newScope: function(func, mapping) {
+        var newFrame = new lively.ast.Interpreter.Frame(func, mapping);
         newFrame.setContainingScope(this);
         return newFrame;
     },

@@ -905,6 +905,18 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         newFrame.setContainingScope(this);
         return newFrame;
     },
+
+	copy: function() {
+        var copy = new this.constructor(this.func, Object.extend({}, this.mapping));
+        copy.returnTriggered = this.returnTriggered;
+        copy.breakTriggered = this.breakTriggered;
+        copy.continueTriggered = this.continueTriggered;
+        var parentFrame = this.getContainingScope();
+        if (parentFrame) copy.setContainingScope(parentFrame.copy());
+        copy.pc = this.pc;
+        copy.pcComputed = this.pcComputed;
+        return copy;
+	},
 },
 'accessing', {
     setContainingScope: function(frame) {

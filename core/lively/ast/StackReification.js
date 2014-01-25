@@ -99,20 +99,27 @@ Object.subclass('lively.ast.Continuation',
 'resuming', {
     resume: function() {
         throw new Error('TODO');
-    //     if (!this.currentFrame.getFunc())
-    //         throw new Error('Cannot resume because frame has no function!');
-    //     if (!this.currentFrame.pc)
-    //         throw new Error('Cannot resume because frame has no pc!');
-    //     var frame = this.currentFrame, result;
-    //     // go through all frames on the stack. beginning with the top most, resume each of them
-    //     while (frame && frame.getFunc()) { // !frame.func means we reached the last frame
-    //         if (frame.hasNextStatement()) { // dont repeat halt!
-    //             frame.jumpToNextStatement();
-    //             result = frame.resume();
-    //         } else { result = undefined } // FIXME
-    //         frame = frame.getContainingScope();
-    //     }
-    //     return result;
+        // FIXME: outer context usually does not have func
+        // attaching the program node would possibly be right (otherwise the pc's context is missing)
+        // rename to getContextNode ??
+        // if (!this.currentFrame.getFunc())
+        //     throw new Error('Cannot resume because frame has no function!');
+        if (!this.currentFrame.pc)
+            throw new Error('Cannot resume because frame has no pc!');
+
+        var frame = this.currentFrame,
+            isComputed = false,
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            node, result;
+        // go through all frames on the stack. beginning with the top most, resume each of them
+        while (frame && frame.getContainingScope()) { // !frame.getContainingScope() means we reached the last frame
+            node = frame.getFunc(); // FIXME
+            frame.setComputedPC(isComputed)
+            result = interpreter.runWithFrameAndResult(node, frame, result);
+            frame = frame.getContainingScope();
+            isComputed = true; // all outer scopes should not recompute
+        }
+        return result;
     }
 });
 

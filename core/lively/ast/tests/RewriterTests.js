@@ -1,4 +1,4 @@
-module('lively.ast.tests.RewriterTests').requires('lively.ast.Rewriting', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.RewriterTests').requires('lively.ast.Rewriting', 'lively.ast.StackReification', 'lively.ast.AstHelper', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 'running', {
@@ -10,688 +10,358 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     }
 
 },
+'matching code', {
+
+    tryCatch: function(level, varMapping, inner) {
+        level = level || 0;
+        return Strings.format("try {\n"
+            + "var _ = {}, _%s = %s, __%s = [\n"
+            + "        _,\n"
+            + "        _%s,\n"
+            + "        %s\n"
+            + "    ];\n"
+            + "%s"
+            + "} catch (e) {\n"
+            + "    var ex = e.isUnwindException ? e : new lively.ast.Rewriting.UnwindException(e);\n"
+            + "    ex.shiftFrame(this, __%s);\n"
+            + "    throw ex;\n"
+            + "}\n",
+            level, generateVarMappingString(), level, level,
+            level-1 < 0 ? 'Global' : '__' + (level-1),
+            inner, level);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function generateVarMappingString() {
+            if (!varMapping) return '{}';
+            var ast = {
+                type: "ObjectExpression",
+                properties: Object.keys(varMapping).map(function(k) {
+                    return {
+                        kind: "init",
+                        key: {type: "Literal",value: k},
+                        value: {name: varMapping[k],type: "Identifier"}
+                    }
+                })
+            };
+            return escodegen.generate(ast);
+        }
+    },
+    
+    closureWrapper: function(level, name, args, innerVarDecl, inner) {
+        // something like:
+        // __createClosure(333, __0, function () {
+        //     try {
+        //         var _ = {}, _1 = {}, __1 = [_,_1,__0];
+        //     ___ DO INNER HERE ___
+        //     } catch (e) {...}
+        // })
+        var argDecl = innerVarDecl || {};
+        args.forEach(function(argName) { argDecl[argName] = argName; });
+        return Strings.format(
+            "__createClosure(__/[0-9]+/__, __%s, function %s(%s) {\n"
+          + this.tryCatch(level+1, argDecl, inner)
+          + "})", level, name, args.join(', '));
+    },
+    
+    intermediateResult: function(expression) {
+        // like _['0-15'] = 42;
+        return "_['__/[0-9]+\-[0-9]+/__'] = " + expression;
+    },
+
+    setVar: function(level, varName, inner) {
+        return Strings.format("_%s['%s'] = %s", level, varName, inner);
+    },
+
+    getVar: function(level, varName) {
+        return Strings.format("_%s['%s']", level, varName);
+    }
+
+},
 'helping', {
+
+    assertASTMatchesCode: function(ast, code, msg) {
+        var genCode = escodegen.generate(ast);
+        var match = Strings.stringMatch(genCode.trim(), code.trim(), {ignoreIndent: true});
+        if (match.matched) return;
+        this.assert(false,
+            'ast does not match code:\n  '
+           + (msg ? msg + '\n' : '')
+           + '\npattern:\n  ' + Strings.print(match.pattern) + '\nerror:\n  ' + Strings.print(match.error));
+    },
 
     assertAstNodesEqual: function(node1, node2, msg) {
         var notEqual = lively.ast.acorn.compareAst(node1, node2);
         if (!notEqual) return;
         this.assert(false, 'nodes not equal: ' + (msg ? '\n  ' + msg : '') + '\n  ' + notEqual.join('\n  '));
-    },
-
-    assertTryWrapper: function(ast, level, vars) {
-        if (level == undefined)
-            level = 0;
-        var prevLevel = (level > 0) ? '__' + (level - 1) : 'Global';
-        var expected = {
-                type: 'TryStatement',
-                block: {
-                    type: 'BlockStatement',
-                    body: [{
-                        type: 'VariableDeclaration',
-                        kind: 'var',
-                        declarations: [{
-                            type: 'VariableDeclarator',
-                            id: {type: 'Identifier', name: '_'},
-                            init: {type: 'ObjectExpression', properties: []}
-                        }, {
-                            type: 'VariableDeclarator',
-                            id: {type: 'Identifier', name: '_' + level},
-                            init: {
-                                type: 'ObjectExpression',
-                                properties: vars ?
-                                vars.map(function(ea) {
-                                    return {
-                                        key: {type: 'Literal', value: ea},
-                                        kind: 'init',
-                                        value: {type: 'Identifier', name: 'undefined'}
-                                    };
-                                }) : []
-                            }
-                        }, {
-                            type: 'VariableDeclarator',
-                            id: {type: 'Identifier', name: '__' + level},
-                            init: {
-                                type: 'ArrayExpression',
-                                elements: [
-                                    {type: 'Identifier', name: '_'},
-                                    {type: 'Identifier', name: '_' + level},
-                                    {type: 'Identifier', name: prevLevel}]
-                            }
-                        }]
-                    }]
-                },
-                handler: {
-                    type: 'CatchClause',
-                    param: {type: 'Identifier', name: 'e'},
-                    body: {
-                        type: 'BlockStatement',
-                        body: [{
-                            type: 'VariableDeclaration',
-                            kind: 'var',
-                            declarations: [{
-                                type: 'VariableDeclarator',
-                                id: {type: 'Identifier', name: 'ex'},
-                                init: {
-                                    type: 'ConditionalExpression',
-                                    test: {
-                                        type: 'MemberExpression',
-                                        object: {type: 'Identifier', name: 'e'},
-                                        property: {type: 'Identifier', name: 'isUnwindException'},
-                                    },
-                                    consequent: {type: 'Identifier', name: 'e'},
-                                    alternate: {
-                                        type: 'NewExpression',
-                                        arguments: [{type: 'Identifier', name: 'e'}],
-                                        callee: {
-                                            type: 'MemberExpression',
-                                            object: {
-                                                type: 'MemberExpression',
-                                                object: {
-                                                    type: 'MemberExpression',
-                                                    object: {type: 'Identifier', name: 'lively'},
-                                                    property: {type: 'Identifier', name: 'ast'}
-                                                },
-                                                property: {type: 'Identifier', name: 'Rewriting'}
-                                            },
-                                            property: {type: 'Identifier', name: 'UnwindException'},
-                                        },
-                                    }
-                                }
-                            }]
-                        }, {
-                            type: 'ExpressionStatement',
-                            expression: {
-                                type: 'CallExpression',
-                                callee: {
-                                    type: 'MemberExpression',
-                                    object: {type: 'Identifier', name: 'ex'},
-                                    property: {type: 'Identifier', name: 'shiftFrame'},
-                                },
-                                arguments: [
-                                    {type: 'Identifier', name: 'this'},
-                                    {type: 'Identifier', name: '__' + level}]
-                            }
-                        }, {type: 'ThrowStatement',
-                            argument: {type: 'Identifier', name: 'ex'}
-                        }]
-                    }
-                },
-                finalizer: null
-        };
-        this.assertAstNodesEqual(expected, ast, 'try wrapper');
-    },
-
-    storedValue: function(range) {
-        var expr = {
-            type: 'MemberExpression',
-            object: {type: 'Identifier', name: '_'},
-            property: {type: 'Literal'},
-            computed: true
-        };
-        if (range) expr.property.value = range;
-        return expr;
-    },
-
-    localVarRef: function(name, level) {
-        level = level || 0;
-        return {
-            type: 'MemberExpression',
-            object: {type: 'Identifier', name: '_' + level},
-            property: {type: 'Literal', value: name},
-            computed: true
-        };
-    },
-
-    closureWrapper: function(functionAST, level) {
-        functionAST = functionAST || {};
-        if (level == undefined) level = 0;
-        return {
-            type: 'CallExpression',
-            callee: {type: 'Identifier', name: '__createClosure'},
-            arguments: [
-                {type: 'Literal'}, // a AST number
-                {type: 'Identifier', name: '__' + level},
-                functionAST]
-        };
     }
+
 },
 'testing', {
 
     test01WrapperTest: function() {
-        var expected1 = {type: 'Program', body: []}, // body checked by assertTryWrapper
-            expected2 = {type: 'ExpressionStatement', expression: {type: 'Literal', value: '12345'}},
-            ast = this.parser.parse('12345;'),
+        var ast = this.parser.parse('12345;'),
             result = this.rewrite(ast);
-        this.assertMatches(expected1, result);
-        this.assertTryWrapper(result.body[0]);
-        this.assertMatches(expected2, result.body[0].block.body[1]);
+        this.assertASTMatchesCode(result, this.tryCatch(0, null, '12345;\n'))
     },
 
     test02LocalVarTest: function() {
         var src = 'var i = 0; i;',
-            expected = [{
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue('4-9'),
-                    operator: '=',
-                    right: {
-                        type: 'AssignmentExpression',
-                        left: this.localVarRef('i'),
-                        operator: '=',
-                        right: {type: 'Literal', value: 0}
-                    }
-                }
-            }, {type: 'ExpressionStatement', expression: this.localVarRef('i')}],
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected[0], result.body[0].block.body.slice(1)[0]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'i': 'undefined'},
+                        this.intermediateResult(
+                            this.setVar(0, 'i', '0;\n')
+                          + this.getVar(0, 'i')
+                          + ';\n'));
+        this.assertASTMatchesCode(result, expected);
     },
 
     test03GlobalVarTest: function() {
         var src = 'i;',
-            expected = [{type: 'ExpressionStatement', expression: {type: 'Identifier', name: 'i'}}],
             ast = this.parser.parse(src),
             result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body.slice(1));
+        this.assertASTMatchesCode(result, this.tryCatch(0, null, 'i;\n'));
     },
 
     test04MultiVarDeclarationTest: function() {
         var src = 'var i = 0, j;',
-            expected = [{
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'SequenceExpression',
-                    expressions: [{
-                        type: 'AssignmentExpression',
-                        left: this.storedValue(),
-                        operator: '=',
-                        right: {
-                            type: 'AssignmentExpression',
-                            left: this.localVarRef('i'),
-                            operator: '=',
-                            right: {type: 'Literal', value: 0}
-                        }
-                    }, {
-                        type: 'AssignmentExpression',
-                        left: this.storedValue(),
-                        operator: '=',
-                        right: {
-                            type: 'AssignmentExpression',
-                            left: this.localVarRef('j'),
-                            operator: '=',
-                            right: {type: 'Identifier', name: 'undefined'}
-                        }
-                    }]
-                }
-            }],
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body.slice(1));
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'i': 'undefined', 'j': 'undefined'},
+                this.intermediateResult(
+                    this.setVar(0, 'i', '0, ')
+                  + this.intermediateResult(this.setVar(0, 'j', 'undefined;\n'))));
+        this.assertASTMatchesCode(result, expected);
     },
 
     test05FunctionDeclarationTest: function() {
         var src = 'function fn(k, l) {}',
-            expected = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {
-                        type: 'AssignmentExpression',
-                        left: this.localVarRef('fn'),
-                        operator: '=',
-                        right: this.closureWrapper({
-                            type: 'FunctionExpression', id: {type: "Identifier", name: 'fn'},
-                            params: [
-                                {type: 'Identifier', name: 'k'},
-                                {type: 'Identifier', name: 'l'}
-                            ],
-                            body: {}  // body checked by assertTryWrapper
-                        })
-                    }
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
-        this.assertTryWrapper(
-            result.body[0].block.body[1].   // body statement
-            expression.right.right.         // closure wrapper
-            arguments[2].                   // rewritten function
-            body.body[0], 1);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'fn': 'undefined'},
+                this.intermediateResult(
+                    this.setVar(0, 'fn',
+                        this.closureWrapper(0, 'fn', ['k', 'l'], {}, "") + ';\n')));
+        this.assertASTMatchesCode(result, expected);
     },
 
     test06ScopedVariableTest: function() {
         var src = 'var i = 0; function fn() {var i = 1;}',
-            expected1 = {type: 'ExpressionStatement',
-                expression: {type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {type: 'AssignmentExpression',
-                        left: this.localVarRef('i'),
-                        operator: '=',
-                        right: {type: 'Literal', value: 0}
-                }
-            }
-        },
-            expected2 = {type: 'ExpressionStatement',
-                expression: {type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {type: 'AssignmentExpression',
-                        left: this.localVarRef('i', 1),
-                        operator: '=',
-                        right: {type: 'Literal', value: 1}
-                }
-            }
-        },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected1, result.body[0].block.body[1]);
-        this.assertMatches(expected2,
-            result.body[0].block.body[2].   // second body statement
-            expression.right.right.         // closure wrapper
-            arguments[2].                   // rewritten function
-            body.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'i': 'undefined', 'fn': 'undefined'},
+                this.intermediateResult(
+                    this.setVar(0, 'i', '0;\n'))
+              + this.intermediateResult(
+                    this.setVar(0, 'fn',
+                        this.closureWrapper(0, 'fn', [], {i: 'undefined'}, 
+                            this.intermediateResult(
+                                this.setVar(1, 'i', '1;\n'))))) + ';\n');
+        this.assertASTMatchesCode(result, expected);
     },
 
     test07UpperScopedVariableTest: function() {
         var src = 'var i = 0; function fn() {i;}',
-            expected1 = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {
-                        type: 'AssignmentExpression',
-                        left: this.localVarRef('i'),
-                        operator: '=',
-                        right: {type: 'Literal', value: 0}
-                    }
-                }
-            },
-            expected2 = {type: 'ExpressionStatement', expression: this.localVarRef('i')},
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected1, result.body[0].block.body[1]);
-        this.assertMatches(expected2,
-            result.body[0].block.body[2].   // second body statement
-            expression.right.right.         // closure wrapper
-            arguments[2].                   // rewritten function
-            body.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'i': 'undefined', 'fn': 'undefined'},
+                this.intermediateResult(
+                    this.setVar(0, 'i', '0;\n'))
+              + this.intermediateResult(
+                    this.setVar(0, 'fn',
+                        this.closureWrapper(0, 'fn', [], {},
+                            this.getVar(0, 'i') + ';\n'))) + ';\n');
+        this.assertASTMatchesCode(result, expected);
     },
 
     test08ForWithVarDeclarationTest: function() {
         var src = 'for (var i = 0; i < 10; i++) {}',
-            expected = {
-                type: 'ForStatement',
-                init: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {
-                        type: 'AssignmentExpression',
-                        left: this.localVarRef('i'),
-                        operator: '=',
-                        right: {type: 'Literal', value: 0}
-                    }
-                },
-                test: {
-                    type: 'BinaryExpression',
-                    left: this.localVarRef('i'),
-                    operator: '<',
-                    right: {type: 'Literal', value: 10}
-                },
-                update: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {type: 'UpdateExpression', argument: this.localVarRef('i')}
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'i': 'undefined'},
+                "for ("
+              + this.intermediateResult(this.setVar(0, 'i', "0; "))
+              + this.getVar(0, 'i') + ' < 10; '
+              + this.intermediateResult(this.getVar(0, 'i') + '++')
+              + ") {\n}\n");
+// FIXME current rewriting inits i twice
+expected = expected.replace("{ 'i': undefined }", "{\n'i': undefined,\n'i': undefined\n }");
+        this.assertASTMatchesCode(result, expected);
     },
 
     test09ForInWithVarDeclarationTest: function() {
         var src = 'for (var key in obj) {}',
-            expected = {type: 'ForInStatement',
-                left: this.localVarRef('key'),
-                right: {type: 'Identifier', name: 'obj'}
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'key': 'undefined'},
+                "for ("
+              + this.getVar(0, 'key') + ' in obj'
+              + ") {\n}\n");
+// FIXME current rewriting inits key twice
+expected = expected.replace("{ 'key': undefined }", "{\n'key': undefined,\n'key': undefined\n }")
+        this.assertASTMatchesCode(result, expected);
     },
 
     test10EmptyForTest: function() {
         var src = 'for (;;) {}',
-            expected = {type: 'ForStatement', init: null, test: null, update: null},
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {}, "for (;;) {\n}\n");
+        this.assertASTMatchesCode(result, expected);
     },
 
     test11FunctionAssignmentTest: function() {
         var src = 'var foo = function bar() {}',
-            expected = {type: 'ExpressionStatement',
-                expression: {type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {
-                        type: 'AssignmentExpression',
-                        left: this.localVarRef('foo'),
-                        operator: '=',
-                        right: {
-                            type: 'AssignmentExpression',
-                            left: this.storedValue(),
-                            operator: '=',
-                            right: this.closureWrapper({
-                                type: 'FunctionExpression',
-                                id: {type: "Identifier", name: "bar"},
-                                params: [], body: {}})
-                        }
-                    }
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'foo': 'undefined'},
+                this.intermediateResult(
+                    this.setVar(0, 'foo', 
+                        this.intermediateResult(
+                            this.closureWrapper(0, 'bar', [], {}, "")))) + ';\n');
+// FIXME: inner function should be declared local');
+// expected = this.tryCatch(0, {'foo': 'undefined', 'bar': 'undefined'},
+//     this.intermediateResult(
+//         this.setVar(0, 'foo',
+//             this.intermediateResult(
+//             this.setVar(0, 'bar',
+//                 this.closureWrapper(0, 'bar', [], {},""))))) + ';\n');
+        this.assertASTMatchesCode(result, expected);
     },
 
     test12FunctionAsParameterTest: function() {
         var src = 'fn(function () {});',
-            expected = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {type: 'CallExpression',
-                        callee: {type: 'Identifier', name: 'fn'},
-                        arguments: [{
-                            type: 'AssignmentExpression',
-                            left: this.storedValue(),
-                            operator: '=',
-                            right: this.closureWrapper({
-                                type: 'FunctionExpression', id: null,
-                                params: [], body: {}})
-                        }]
-                    }
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertAstNodesEqual(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+                this.intermediateResult(
+                    "fn.call(Global, "
+                  + this.intermediateResult(
+                      this.closureWrapper(0, '', [], {}, "") + ');\n')));
+        this.assertASTMatchesCode(result, expected);
     },
 
     test13FunctionAsPropertyTest: function() {
         var src = '({fn: function () {}});',
-            expected = {type: 'ExpressionStatement',
-                expression: {type: 'ObjectExpression',
-                    properties: [{
-                        key: {type: 'Identifier', name: 'fn'},
-                        kind: 'init',
-                        value: {
-                            type: 'AssignmentExpression',
-                            left: this.storedValue(),
-                            operator: '=',
-                            right: this.closureWrapper({
-                                type: 'FunctionExpression', id: null,
-                                params: [], body: {}})
-                        }
-                    }]
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+                "({\nfn: "
+                + this.intermediateResult(
+                      this.closureWrapper(0, '', [], {}, "") + '\n')
+                + "});\n");
+        this.assertASTMatchesCode(result, expected);
     },
 
     test14FunctionAsSetterGetterTest: function() {
         var src = '({get foo() {}, set bar(val) {val++;}});',
-            expected = {type: 'ExpressionStatement',
-                expression: {type: 'ObjectExpression',
-                    properties: [{
-                        key: {type: 'Identifier', name: 'foo'},
-                        kind: 'get',
-                        value: {
-                            type: 'FunctionExpression',
-                            id: null, params: [],
-                            body: {type: 'BlockStatement', body: [] /*original body wrapped in try*/}
-                        }
-                    }, {
-                        key: {type: 'Identifier', name: 'bar'},
-                        kind: 'set',
-                        value: {
-                            type: 'FunctionExpression',
-                            id: null, params: [{type: 'Identifier', name: 'val'}],
-                            body: {type: 'BlockStatement', body: [] /*original body wrapped in try*/}
-                        }
-                    }]
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
-        this.assertTryWrapper(
-            result.body[0].block.body[1].   // body statement
-            expression.properties[0].       // getter
-            value.body.body[0], 1);
-        this.assertTryWrapper(
-            result.body[0].block.body[1].   // body statement
-            expression.properties[1].       // setter
-            value.body.body[0], 1);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+                "({\n"
+                + "get foo() {\n" + this.tryCatch(1, {}, "") + "},\n"
+                + "set bar(val) {\n" + this.tryCatch(1, {val: 'val'},
+                        this.intermediateResult(
+                            this.getVar(1, 'val') + '++;\n')) + '}\n'
+                + "});\n");
+        this.assertASTMatchesCode(result, expected);
     },
 
     test15FunctionAsReturnArgumentTest: function() {
         var src = '(function () {return function() {};});',
-            expected = {
-                type: 'ReturnStatement',
-                argument: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: this.closureWrapper({
-                        type: 'FunctionExpression', id: null,
-                        params: [], body: {}}, 1)
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected,
-            result.body[0].block.body[1].expression.right.arguments[2]. // outer function
-            body.body[0].                                               // try wrapper
-            block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+                this.intermediateResult(
+                      this.closureWrapper(0, '', [], {},
+                      "return " + this.intermediateResult(
+                          this.closureWrapper(1, '', [], {}, "") + ';\n')) + ';\n'));
+        this.assertASTMatchesCode(result, expected);
     },
 
     test16FunctionInConditionalTest: function() {
         var src = 'true ? function() {} : 23;',
-            expected = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'ConditionalExpression',
-                    test: {
-                        type: 'Literal', value: true},
-                    consequent: {
-                        type: 'AssignmentExpression',
-                        left: this.storedValue(),
-                        operator: '=',
-                        right: this.closureWrapper({
-                            type: 'FunctionExpression', id: null,
-                            params: [], body: {}})
-                    },
-                    alternate: {type: 'Literal', value: 23}
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+                "true ? "
+              + this.intermediateResult(
+                  this.closureWrapper(0, '', [], {},"") + ' : 23;\n'));
+        this.assertASTMatchesCode(result, expected);
     },
 
     test17ClosureCallTest: function() {
         var src = '(function() {})();',
-            expected = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {
-                        type: 'CallExpression',
-                        arguments: [],
-                        callee: {
-                            type: 'AssignmentExpression',
-                            left: this.storedValue(),
-                            operator: '=',
-                            right: this.closureWrapper({
-                                type: 'FunctionExpression', id: null,
-                                params: [], body: {}})
-                        }
-                    }
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
-        this.assertTryWrapper(
-            result.body[0].block.body[1].   // body statement
-            expression.right.               // call
-            callee.right.                   // closure wrapper
-            arguments[2].body.body[0], 1);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+                this.intermediateResult(
+                    '('
+                    + this.intermediateResult(
+                        this.closureWrapper(0, '', [], {},""))
+                    + ").call(Global);\n"));
+        this.assertASTMatchesCode(result, expected);
     },
 
     test18MemberChainSolvingTest: function() {
         var src = 'var lively, ast, morphic; lively.ast.morphic;',
-            expected = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'MemberExpression',
-                    property: {type: 'Identifier', name: 'morphic'},
-                    object: {
-                        type: 'MemberExpression',
-                        object: this.localVarRef('lively'),
-                        property: {type: 'Identifier', name: 'ast'} 
-                    }
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[2]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {lively: 'undefined', ast: 'undefined', morphic: 'undefined'},
+            // FIXME vars are initialized twice?!
+                this.intermediateResult(
+                    this.setVar(0, 'lively', 'undefined, '))
+              + this.intermediateResult(
+                    this.setVar(0, 'ast', 'undefined, '))
+              + this.intermediateResult(
+                    this.setVar(0, 'morphic', 'undefined;\n'))
+              + this.getVar(0, 'lively') + '.ast.morphic;\n');
+        this.assertASTMatchesCode(result, expected);
     },
 
     test19FunctionInMemberChainTest: function() {
         var src = '(function() {}).toString();',
-            expected = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    right: {
-                        type: 'CallExpression',
-                        arguments: [],
-                        callee: {
-                            type: 'MemberExpression',
-                            property: {type: 'Identifier', name: 'toString'},
-                            object: {
-                                type: 'AssignmentExpression',
-                                left: this.storedValue(),
-                                operator: '=',
-                                right: this.closureWrapper({
-                                    type: 'FunctionExpression', id: null,
-                                    params: [], body: {}})
-                            }
-                        }
-                    }
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+              this.intermediateResult(
+                    "("
+                  + this.intermediateResult(
+                        this.closureWrapper(0, '', [], {}, "")))
+                  + ").toString();\n");
+        this.assertASTMatchesCode(result, expected);
     },
+
+
+
+
 
     test20ObjectPropertyNamingTest: function() {
         var src = 'var foo; ({foo: foo});',
-            expected = [{
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'AssignmentExpression',
-                    left: this.storedValue(),
-                    operator: '=',
-                    right: {
-                        type: 'AssignmentExpression',
-                        left: this.localVarRef('foo'),
-                        operator: '=',
-                        right: {type: 'Identifier', value: undefined}
-                    }
-                }
-            }, {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'ObjectExpression',
-                    properties: [{
-                        key: {type: 'Identifier', name: 'foo'},
-                        kind: 'init',
-                        value: this.localVarRef('foo')
-                    }]
-                }
-            }],
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body.slice(1));
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {foo: 'undefined'},
+                this.intermediateResult(this.setVar(0, 'foo', 'undefined;\n'))
+              + "({ foo: " + this.getVar(0, 'foo') + ' });\n');
+        this.assertASTMatchesCode(result, expected);
     },
 
     test21FunctionAsArrayElementTest: function() {
         var src = '[function() {}];',
-            expected = {
-                type: 'ExpressionStatement',
-                expression: {
-                    type: 'ArrayExpression',
-                    elements: [{
-                        type: 'AssignmentExpression',
-                        left: this.storedValue(),
-                        operator: '=',
-                        right: this.closureWrapper({
-                            type: 'FunctionExpression', id: null,
-                            params: [], body: {}
-                        })
-                    }]
-                }
-            },
             ast = this.parser.parse(src),
-            result = this.rewrite(ast);
-        this.assertMatches(expected, result.body[0].block.body[1]);
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {},
+                "[" + this.intermediateResult(this.closureWrapper(0, '', [], {}, "")) + '];\n');
+        this.assertASTMatchesCode(result, expected);
     },
 
     test22FunctionCall: function() {
         // test if the "return g();" is translated to "return _1["g"].call();"
-        var func = function() { function g() {}; return g(); };
+        var func = function() { function g() {}; return g(); }, returnStmt;
         func.stackCaptureMode();
-        var expected = {
-              arguments: [],
-              type: "CallExpression",
-              callee: {
-                computed: false,
-                object: {
-                  computed: true,
-                  object: { name: "_1", type: "Identifier" },
-                  property: { type: "Literal", value: "g" },
-                  type: "MemberExpression"
-                },
-                property: { name: "call", type: "Identifier" },
-                type: "MemberExpression"
-              },
-            },
-            returnStmt;
         acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
-show(escodegen.generate(returnStmt));
-        this.assertAstNodesEqual(expected, returnStmt.argument.right);
+        var expected = "return " + this.intermediateResult(this.getVar(1, 'g')) + '.call(Global);'
+        this.assertASTMatchesCode(returnStmt, expected);
     }
-
 });
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',

@@ -347,7 +347,7 @@ Global.Strings = {
             if (!children || !children.length) return childIndex;
             // 2. If there are children then assemble those linear inside nodeList
             // The childIndex is the pointer of the current items of childList into
-            // nodeList. 
+            // nodeList.
             var lastIndex = childIndex,
                 lastI = children.length - 1;
             children.forEach(function(ea, i) {
@@ -600,6 +600,107 @@ Global.Strings = {
         string.replace(re, function(match, idx) {
             matches.push({match: match, start: idx, end: idx + match.length}); });
         return matches;
+    },
+
+    stringMatch: function(string, patternString, options) {
+        // example: Strings.stringMatch("foo 123 bar", "foo __/[0-9]+/__ bar")
+        // returns {matched: true} if success otherwise
+        // {matched: false, error: EXPLANATION, pattern: STRING|RE, pos: NUMBER}
+        options = options || {};
+        if (!!options.normalizeWhiteSpace) string = string.replace(/\s+/g, ' ');
+        if (!!options.ignoreIndent) {
+            string = string.replace(/^\s+/gm, '');
+            patternString = patternString.replace(/^\s+/gm, '');
+        }
+        return string == patternString ?
+            {matched: true} : embeddedReMatch(string , patternString);
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function splitInThree(string, start, end, startGap, endGap) {
+            // split string at start and end
+            // return (0, start), (start, end), (end, ...)
+            startGap = startGap || 0; endGap = endGap || 0;
+            return [string.slice(0, start),
+                    string.slice(start+startGap, end-endGap),
+                    string.slice(end)]
+        }
+
+        function matchStringForward(string, pattern) {
+            // try to match pattern at beginning of string. if matched, return
+            // result object with {
+            //     match: STRING,
+            //     REST: STRING -- remaining string after pattern was consumed
+            // }
+            if (!Object.isRegExp(pattern)) {
+                var idx = string.indexOf(pattern);
+                if (idx === 0) return {match: pattern, rest: string.slice(pattern.length)}
+                // no match
+                for (var i = 0; i < pattern.length; i++) // figure out where we failed
+                    if (pattern[i] != string[i])
+                        return {match: null, pos: i};
+                return {match: null};
+            }
+            var matches = Strings.reMatches(string, pattern);
+            // show(matches)
+            // show(string.slice(matches[0].end));
+            return (!matches || !matches.length || matches[0].start !== 0) ?
+                {match: null} :
+                {match: matches[0].match, rest: string.slice(matches[0].end)};
+        }
+
+        function matchStringForwardWithAllPatterns(string, patterns) {
+            // like matchStringForward, just apply list of patterns
+            var pos = 0;
+            for (var i = 0; i < patterns.length; i++) {
+                var p = patterns[i],
+                    result = matchStringForward(string, p);
+                if (!result.match) return {matched: false, pos: pos + (result.pos || 0), pattern: p}
+                pos += result.match.length;
+                string = result.rest;
+            }
+            return string.length ? {matched: false, pos: pos} : {matched: true}
+        }
+
+        function splitIntoPatterns(matcher) {
+            var starts = Strings.reMatches(matcher, /__\//g),
+                ends = Strings.reMatches(matcher, /\/__/g);
+            if (starts.length !== ends.length) {
+                throw new Error("pattern invalid: "
+                              + matcher
+                              + " cannot be split into __/.../__ embedded RegExps"
+                              + "\nstarts: " + Objects.inspect(starts)
+                              + '\nvs ends:\n' + Objects.inspect(ends));
+            }
+            var consumed = 0;
+            return starts.zip(ends).reduce(function(patterns, startEnd) {
+                var matcher = patterns.pop();
+                var splitted = splitInThree(
+                    matcher,
+                    startEnd[0].start-consumed,
+                    startEnd[1].end-consumed,
+                    3, 3);
+                if (splitted[0].length) { patterns.push(splitted[0]); consumed += splitted[0].length; }
+                try {
+                    if (splitted[1].length) {
+                        patterns.push(new RegExp(splitted[1]));
+                        consumed += splitted[1].length + 3 + 3;
+                    }
+                } catch(e) {
+                    throw new Error("Cannot create pattern re from: " + Objects.inspect(splitted))
+                }
+                if (splitted[2].length) { patterns.push(splitted[2]); }
+                return patterns;
+            }, [matcher]);
+        }
+
+        function embeddedReMatch(string, patternString) {
+            // the main match func
+            var patterns = splitIntoPatterns(patternString)
+            var result = matchStringForwardWithAllPatterns(string, patterns);
+            if (result.matched) return result;
+            result.error = string.slice(0, result.pos) + '<--UNMATCHED-->' + string.slice(result.pos)
+            return result;
+        }
     },
 
     peekRight: function(string, start, needle) {

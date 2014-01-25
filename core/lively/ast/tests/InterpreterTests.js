@@ -543,11 +543,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var outerFrame = lively.ast.AcornInterpreter.Frame.create(null, {}),
             innerFrame = outerFrame.newScope(funcNode, { x: 2 });
         outerFrame.setPC(node.body[0].expression.left);
+        outerFrame.setComputedPC(true);
         innerFrame.setPC(resumeNode);
 
         var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
         this.assertEquals(2, result, 'did not resume inner correctly');
-        outerFrame.isDone = true;
         this.assertEquals(7, this.resumeWithFrameAndResult(node, outerFrame, result), 'did not resume outer correctly');
     },
     test06ResumeFunctionWithOuterAndMore: function() {
@@ -565,11 +565,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var outerFrame = lively.ast.AcornInterpreter.Frame.create(null, { y: 10 }),
             innerFrame = outerFrame.newScope(funcNode, { x: 2 });
         outerFrame.setPC(node.body[1].expression.left);
+        outerFrame.setComputedPC(true);
         innerFrame.setPC(resumeNode);
 
         var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
         this.assertEquals(2, result, 'did not resume inner correctly');
-        outerFrame.isDone = true;
         this.assertEquals(12, this.resumeWithFrameAndResult(node, outerFrame, result), 'did not resume outer correctly');
     },
 });

@@ -135,8 +135,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         if (!frame.isResuming())
             return true;
         if (node === frame.pc) {
+            var isComputed = frame.pcComputed;
             frame.resumesNow();
-            return true;
+            return !isComputed;
         }
         return acorn.walk.findNodeAt(node, frame.pc.start, frame.pc.end, null, Object.extend({
             VariableDeclaration: function(node, st, c) {
@@ -896,6 +897,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.continueTriggered = null;  // null, true or string (labeled continue)
         this.containingScope = null;
         this.pc = null;                 // program counter, actually an AST node
+        this.pcComputed = false;        // has the current pc (node) been computed?
     },
 
     newScope: function(func, mapping) {
@@ -999,12 +1001,17 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.pc = node;
     },
 
+    setComputedPC: function(bool) {
+        this.pcComputed = !!bool;
+    },
+
     isResuming: function() {
         return this.pc !== null;
     },
 
     resumesNow: function() {
         this.pc = null;
+        this.pcComputed = false;
     },
 });
 

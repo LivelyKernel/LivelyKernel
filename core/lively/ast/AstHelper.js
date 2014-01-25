@@ -1,4 +1,4 @@
-module('lively.AST.AstHelper').requires("lively.ast.acorn").toRun(function() {
+module('lively.ast.AstHelper').requires("lively.ast.acorn").toRun(function() {
 
 Object.subclass("lively.ast.MozillaAST.AstVisitor",
 // This code was generated with:
@@ -603,7 +603,7 @@ lively.ast.MozillaAST.AstVisitor.subclass('lively.ast.MozillaAST.ASTPrinter', {
         var pathString = path
             .map(function(ea) { return typeof ea === 'string' ? '.' + ea : '[' + ea + ']'})
             .join('')
-        var treeEntry = {type: pathString + ':' + node.type, children: []};
+        var treeEntry = {type: pathString + ':' + node.type, source: node.source, children: []};
         tree.push(treeEntry);
         var res = $super(node, depth+1, treeEntry.children, path);
         return res;
@@ -627,10 +627,11 @@ lively.ast.MozillaAST.AstVisitor.subclass("lively.ast.MozillaAST.Compare",
 
     compareField: function(field, node1, node2, state, path) {
         if (node1 && node2 && node1[field] === node2[field]) return true;
-        var fullPath = path.join('.') + '.' + field,
-            msg = node2 ?
-                fullPath + ' is not equal: ' + node1[field] + ' vs. ' + node2[field] :
-                'node2 not defined but node1 (' + fullPath + ') is: '+ node1[field];
+        if ((node1 && node1[field] === '*') || (node2 && node2[field] === '*')) return true;
+        var fullPath = path.join('.') + '.' + field, msg;
+        if (!node1) msg = "node1 on " + fullPath + " not defined";
+        else if (!node2) msg = 'node2 not defined but node1 (' + fullPath + ') is: '+ node1[field];
+        else msg = fullPath + ' is not equal: ' + node1[field] + ' vs. ' + node2[field];
         this.recordNotEqual(node1, node2, state, path, msg);
         return false;
     }
@@ -641,6 +642,7 @@ lively.ast.MozillaAST.AstVisitor.subclass("lively.ast.MozillaAST.Compare",
         if (!completePath) completePath = [];
         completePath = completePath.concat(path);
         var node2 = lively.PropertyPath(path.join('.')).get(baseNode2);
+        if (node1 === '*' || node2 === '*') return;
         if (this.compareType(node1, node2, state, completePath))
             this['visit' + node1.type](node1, node2, state, path, completePath);
     },
@@ -752,17 +754,30 @@ lively.ast.MozillaAST.AstVisitor.subclass("lively.ast.MozillaAST.Compare",
 
 Object.extend(lively.ast.acorn, {
 
-    printAst: function(astOrSource) {
-        var ast = Object.isString(astOrSource) ?
-            lively.ast.acorn.parse(astOrSource) : astOrSource,
-            tree = [];
+    printAst: function(astOrSource, printSource) {
+        var source, ast, tree = [], printFunc;
+        if (printSource) {
+            source = Object.isString(astOrSource) ?
+                astOrSource : escodegen.generate(astOrSource);
+            ast = lively.ast.acorn.parse(source);
+            acorn.walk.addSource(ast, source);
+            printFunc = function(ea) {
+                return Strings.format("%s (%s)",
+                    ea.type, (ea.source || '')
+                                .truncate(60)).replace(/\n/g, '')
+                                .replace(/\s+/g, ' ');
+            }
+        } else {
+            ast = Object.isString(astOrSource) ?
+                lively.ast.acorn.parse(astOrSource) : astOrSource;
+            printFunc = function(ea) { return ea.type; }
+        }
         new lively.ast.MozillaAST.ASTPrinter().accept(ast, 0, tree, []);
-        return Strings.printTree(tree[0],
-            function(ea) { return ea.type; },
-            function(ea) { return ea.children; }, '    ');
+        return Strings.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '    ');
     },
 
     compareAst: function(node1, node2) {
+        if (!node1 || !node2) throw new Error('node' + (node1 ? '1' : '2') + ' not defined');
         var state = {errors: []};
         new lively.ast.MozillaAST.Compare().accept(node1, node2, state, []);
         return !state.errors.length ? null : state.errors.pluck('msg');

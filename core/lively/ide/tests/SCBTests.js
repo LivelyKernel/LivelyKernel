@@ -400,30 +400,12 @@ TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',
     }
 },
 'testing', {
-    testAddCommaToPrecedingNodeSource: function() {
-        var prevSource = "foo: 3",
-            newSource,
-            expectedNewSource = prevSource + ',';
-        this.mock(this.prevNode.target, 'getSourceCode', function() { return prevSource });
-        this.mock(this.prevNode.target, 'putSourceCode', function(str) { newSource = str });
-        this.sut.interactiveAddTo(this.prevNode);
-        this.assertEquals(expectedNewSource, newSource, 'no , added');
-    },
-
     testAddNoCommaIfCommaAlreadyExisting: function() {
         var prevSource = "foo: 3,", called;
         this.mock(this.prevNode.target, 'getSourceCode', function() { return prevSource });
         this.mock(this.prevNode.target, 'putSourceCode', function(str) { called = true });
         this.sut.interactiveAddTo(this.prevNode);
         this.assert(!called, 'putSourceCode called');
-    },
-
-    testAddCommaToNewSourceWhenNextNodeExists: function() {
-        var newSrc;
-        this.prevNode._nextNode = {target: {}};
-        this.mock(this.prevNode.target, 'addSibling', function(src) { newSrc = src; });
-        this.sut.interactiveAddTo(this.prevNode);
-        this.assert(newSrc.endsWith(','), 'no , added to new source ' + newSrc);
     },
 
     testAddNoCommaWhenNoNextNodeExists: function() {

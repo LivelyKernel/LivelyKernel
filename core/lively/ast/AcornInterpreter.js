@@ -7,13 +7,18 @@ module('lively.ast.AcornInterpreter').requires('lively.ast.acorn').toRun(functio
 Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'interface', {
     run: function(node, optMapping) {
-        return this.runWithFrame(node, lively.ast.AcornInterpreter.Frame.create(null, optMapping));
+        return this.runWithFrameAndResult(node, lively.ast.AcornInterpreter.Frame.create(null, optMapping), undefined);
     },
 
     runWithFrame: function(node, frame) {
+        return this.runWithFrameAndResult(node, frame, undefined);
+    },
+
+    runWithFrameAndResult: function(node, frame, result) {
         var state = {
             currentFrame: frame,
-            labels: {}
+            labels: {},
+            result: result
         };
         if (!frame.isResuming())
             this.evaluateDeclarations(node, frame);

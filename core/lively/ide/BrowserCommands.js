@@ -441,29 +441,18 @@ lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddMethodToFileFragment
     targetPane: 'Pane4',
     nodeType: 'isMemberNode'
 },
-'command actions', {
-     interactiveAddTo: function(siblingNode) {
-        this.ensureSourceHasComma(siblingNode);
+ 'command actions', {
+    interactiveAddTo: function(siblingNode) {
         var methodName = "newMethod",
             ff = siblingNode.target,
-            nextFF = ff.nextElement(),
-            needsComma = nextFF && siblingNode.getSiblingWithTarget(nextFF);
-        this.createAndAddSource(siblingNode, methodName, needsComma);
+            nextFF = ff.nextElement();
+        this.createAndAddSource(siblingNode, methodName);
         this.selectStringInSourcePane(methodName);
     },
-
-    ensureSourceHasComma: function(node) {
-        var src = node.target.getSourceCode();
-        if (/,\s*$/.test(src)) return;
-        src = src.replace(/(\s*)$/, ',$1');
-        node.target.putSourceCode(src);
-    },
-
-    createSource: function(methodName, needsComma) {
+    createSource: function(methodName) {
         var comment = this.tab + this.tab + '// enter comment here'
-        return Strings.format('%s: function() {\n%s\n%s}%s',
-                              this.tab + methodName, comment, this.tab,
-                              needsComma ? ',' : '');
+        return Strings.format(',\n%s: function() {\n%s\n%s}',
+                              this.tab + methodName, comment, this.tab);
     }
 });
 

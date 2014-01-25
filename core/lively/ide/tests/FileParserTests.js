@@ -152,13 +152,13 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.assertEquals(dscr.length, 3);
         this.assertEquals(dscr[0].name, 'setUp');
         this.assertIdentity(dscr[0].startIndex, src.indexOf('\tsetUp'));
-        this.assertIdentity(dscr[0].stopIndex, src.indexOf(',\nformals'));
+        this.assertIdentity(dscr[0].stopIndex, src.indexOf('},\nformals'));
         this.assertEquals(dscr[1].name, 'formals');
         this.assertIdentity(dscr[1].startIndex, src.indexOf('formals:'));
-        this.assertIdentity(dscr[1].stopIndex, src.indexOf(',\n\ttearDown'));
+        this.assertIdentity(dscr[1].stopIndex, src.indexOf('],\n\ttearDown'));
             this.assertEquals(dscr[2].name, 'tearDown');
         this.assertIdentity(dscr[2].startIndex, src.indexOf('\ttearDown'));
-        this.assertIdentity(dscr[2].stopIndex, src.lastIndexOf('\n\})'));
+        this.assertIdentity(dscr[2].stopIndex, src.lastIndexOf('}\n\})'));
         this.assertDescriptorsAreValid([descriptor]);
     },
 
@@ -179,7 +179,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.assert(descriptor, 'no descriptor');
             this.assertEquals(descriptor.name, 'onEnter');
         this.assertIdentity(descriptor.startIndex, 0);
-        this.assertIdentity(descriptor.stopIndex, src.length - 1);
+        this.assertIdentity(descriptor.stopIndex, src.length - 2);
     },
 
     testParseMethod3: function() {   // xxx: function()...,
@@ -189,7 +189,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
             this.assert(descriptor, 'no descriptor');
             this.assertEquals(descriptor.name, 'setShape');
         this.assertIdentity(descriptor.startIndex, 0);
-        this.assertIdentity(descriptor.stopIndex, src.length - 1);
+        this.assertIdentity(descriptor.stopIndex, src.length - 2);
     },
 
     testParseMethodWithComment: function() {
@@ -209,7 +209,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.assert(descriptor, 'no descriptor');
         this.assertEquals(descriptor.name, 'initialViewExtent');
         this.assertIdentity(descriptor.startIndex, 0);
-            this.assertIdentity(descriptor.stopIndex, src.lastIndexOf(','));
+            this.assertIdentity(descriptor.stopIndex, src.lastIndexOf(',') -1);
     },
 
     testParseObject: function() {   // var object = {...};
@@ -601,7 +601,7 @@ using().run(function() {\nMorph.addMethods({})\n})\n});';
         var result = this.sut.callOMeta('propertyDef', src);
         this.assertEquals(result.type, 'propertyDef');
         this.assert(!result.isStatic());
-        this.assertEquals(result.stopIndex, src.length-1);
+        this.assertEquals(result.stopIndex, src.length-2);
     },
 
     testParseError: function() { // unequal number of curly bracktes
@@ -620,7 +620,7 @@ using().run(function() {\nMorph.addMethods({})\n})\n});';
         this.assert(result, 'not recognized');
         this.assertEquals(result.name, 'toSmalltalk');
         this.assertIdentity(result.startIndex, 0);
-        this.assertIdentity(result.stopIndex, src.length - 1);
+        this.assertIdentity(result.stopIndex, src.length - 2);
     },
 
     testParseGetter: function() {   // xxx: function()...,
@@ -1050,7 +1050,9 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
             'ClassA.subclass(\'ClassB\', {\n\tm2: function(a) { 3 },\nm3: function(b) { 4 }\n});\n' +
             '}); // end of module';
         this.root = this.db.prepareForMockModule('foo.js', this.src);
-        this.oldDB = lively.ide.SourceControl;
+        // If we are called multiple times, don't forget about the original SourceControl
+        if(!lively.ide.SourceControl.hasOwnProperty("putSourceCodeFor")) this.oldDB = lively.ide.SourceControl;
+        else debugger;
         lively.ide.SourceControl = this.db;
     },
 
@@ -1109,7 +1111,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.assertEquals(classFragment.stopIndex, 123+17, 'classFrag1 stop');
         this.assertEquals(classFragment.subElements().length, 1);
         this.assertEquals(classFragment.subElements()[0].startIndex, 82, 'method1 start');
-        this.assertEquals(classFragment.subElements()[0].stopIndex, 119+17, 'method1 stop');
+        this.assertEquals(classFragment.subElements()[0].stopIndex, 119+16, 'method1 stop');
         var otherClassFragment = this.fragmentNamed('ClassB');
         this.assertEquals(otherClassFragment.startIndex, 180+17, 'classFrag2 start');
         this.assertEquals(otherClassFragment.stopIndex, 257+17, 'classFrag2 stop');
@@ -1120,7 +1122,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     testGetSourceCodeWithoutSubElements: function() {
         var fragment = this.fragmentNamed('ClassB');
         this.assert(fragment, 'no fragment found');
-        var expected =  'ClassA.subclass(\'ClassB\', {\n\n});\n';
+        var expected =  'ClassA.subclass(\'ClassB\', {\n\n\n});\n';
             this.assertEquals(fragment.getSourceCodeWithoutSubElements(), expected);
     },
 
@@ -1141,9 +1143,9 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
             // FIXME test behavior depending on additionally loaded layer / system Config
             shouldRaiseError = Global.AdvancedSyntaxHighlighting && AdvancedSyntaxHighlighting.isGlobal();
         if (shouldRaiseError) {
-        this.assertRaises(function() {
-            fragment.putSourceCode('Object.subclass(\'' + newName + '\', \{\n');
-        });
+            this.assertRaises(function() {
+                fragment.putSourceCode('Object.subclass(\'' + newName + '\', \{\n');
+            });
         } else {
             fragment.putSourceCode('Object.subclass(\'' + newName + '\', \{\n');
         }
@@ -1261,8 +1263,8 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         var f1 = fragment.subElements()[1];
         var f2 = fragment.subElements()[2];
         this.assertEquals(f1.getSourceCode(), f2.getSourceCode());
-        this.assertEquals(f1.startIndex, 68, 1); this.assertEquals(f1.stopIndex, 76, 2);
-        this.assertEquals(f2.startIndex, 79, 3); this.assertEquals(f2.stopIndex, 87, 4);
+        this.assertEquals(f1.startIndex, 68, 1); this.assertEquals(f1.stopIndex, 75, 2);
+        this.assertEquals(f2.startIndex, 79, 3); this.assertEquals(f2.stopIndex, 86, 4);
 
         this.assertEquals(fragment.sourceCodeWithout(f2), 'Object.subclass("Dummy", {\ntest1: 1,\ntest2: 2,\n\n\n});');
         this.assertEquals(fragment.sourceCodeWithout(f1), 'Object.subclass("Dummy", {\ntest1: 1,\n\n\ntest2: 2,\n});');
@@ -1275,7 +1277,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         f.moveTo(o.subElements()[0].startIndex);
         var newO = this.fragmentNamed('Dummy');
         this.assertEquals(f.getSourceCode(), newO.subElements()[0].getSourceCode(), 1);
-        this.assertEquals(f.getSourceCode(), 'test2: 2,', 2);
+        this.assertEquals(f.getSourceCode(), 'test2: 2', 2);
         //this.assert(newO.eq(o), 6);
         this.assert(f.findOwnerFragment().eq(newO), 3);
         this.assert(f.eq(newO.subElements()[0]), 4);
@@ -1287,7 +1289,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         var targetIndex = this.src.indexOf('}'); // Dummy1
         var f = this.fragmentNamed('test2'); // first one
         f.moveTo(targetIndex);
-        this.assertEquals(f.getSourceCode(), 'test2: 2,', 1);
+        this.assertEquals(f.getSourceCode(), 'test2: 2', 1);
         this.assertEquals(f.getFileString().trim(), 'Object.subclass("Dummy1", {test2: 2,});\n'+
                           'Object.subclass("Dummy", {\ntest1: 1,\n\n\ntest2: 2,\n});');
     },
@@ -1397,8 +1399,9 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
             newSrc     = 'x: 4,\n\n',
             newPropDef = propDef.putSourceCode(newSrc);
 
-        this.assertEquals('x: 4,', newPropDef.getSourceCode(),
+        this.assertEquals('x: 4', newPropDef.getSourceCode(),
                           'setup failed, new code not ok');
+        this.assertEquals(objectDef.stopIndex, 18, 'updateIndices was probably unsuccessful')
         this.assertEquals('var x = {\nx: 4,\n\n\n}', objectDef.getSourceCode(),
                           'object def wrong');
     },

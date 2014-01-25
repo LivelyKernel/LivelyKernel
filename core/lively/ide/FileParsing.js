@@ -65,10 +65,11 @@ Object.subclass('lively.ide.FileFragment',
     getSourceCodeWithoutSubElements: function() {
         var completeSrc = this.getSourceCode();
         return this.subElements().inject(completeSrc, function(src, ea) {
-            var elemSrc = ea.getSourceCode();
-            var start = src.indexOf(elemSrc);
-            var end = elemSrc.length-1 + start;
-            return src.substring(0,start) + src.substring(end+1);
+            var elemSrc = ea.getSourceCode(),
+                start = src.indexOf(elemSrc),
+                end = elemSrc.length + start,
+                trailingCommaOffset = src[end] == ',' ? 1 : 0;
+            return src.substring(0, start) + src.substring(end + trailingCommaOffset);
         });
     },
 
@@ -86,8 +87,9 @@ Object.subclass('lively.ide.FileFragment',
         var childSource = childFrag.getSourceCode();
         var start = childFrag.startIndex - this.startIndex;
         if (start === -1) throw dbgOn(new Error('Cannot find source of ' + childFrag));
-        var end = start + childSource.length;
-        var newSource = mySource.slice(0, start) + mySource.slice(end);
+        var end = start + childSource.length,
+            trailingCommaOffset = mySource[end] == ',' ? 1 : 0,
+            newSource = mySource.slice(0, start) + mySource.slice(end + trailingCommaOffset);
         return newSource;
     },
 
@@ -172,20 +174,23 @@ Object.subclass('lively.ide.FileFragment',
         var newMe = this.reparseAndCheck(newString);
         if (!newMe) return null;
 
-        var newFileString = this.buildNewFileString(newString);
+        var newFileString = this.buildNewFileString(newString),
+            removedTrailingComma = this.getFileString()[this.stopIndex + 1] == ',' 
+                                    && /,\s*$/.test(newString);
         if (!this.fileName) {
             console.warn('No filename for descriptor ' + this.name);
         } else {
             this.getSourceControl().putSourceCodeFor(this, newFileString);
         }
-        this.updateIndices(newString, newMe);
+        this.updateIndices(newString, newMe, removedTrailingComma);
         return newMe;
     },
 
     buildNewFileString: function(newString) {
         var fileString    = this.getFileString(),
             beforeString  = fileString.substring(0, this.startIndex),
-            afterString   = fileString.substring(this.stopIndex+1),
+            trailingCommaOffset = fileString[this.stopIndex + 1] == ',' && /,\s*$/.test(newString) ? 1 : 0,
+            afterString   = fileString.substring(this.stopIndex + 1 + trailingCommaOffset),
             newFileString = beforeString.concat(newString, afterString);
         return newFileString.trim() + "\n";
     }
@@ -255,13 +260,13 @@ Object.subclass('lively.ide.FileFragment',
         return newMe;
     },
 
-    updateIndices: function(newSource, newMe) {
+    updateIndices: function(newSource, newMe, trailingComma) {
         this.checkConsistency();
 
         var prevStop   = this.stopIndex,
             newStop    = newMe.stopIndex,
             newStopSrc = newMe.startIndex + newSource.length - 1,
-            delta      = newStopSrc - prevStop;
+            delta      = newStopSrc - prevStop - (trailingComma ? 1 : 0);
 
         // note that the parsed stop index can be different from the end of the
         // new source because the code might have trailing whitespaces that
@@ -322,6 +327,7 @@ Object.subclass('lively.ide.FileFragment',
         if (index > this.startIndex) index -= mySrc.length;
         this.startIndex = index; this.stopIndex = index + mySrc.length - 1;
         //-------
+        if (this.type == "propertyDef" && !mySrc.endsWith(',')) mySrc += ',';
         var target = myOwner.fragmentsOfOwnFile().detect(function(ea) {
                 return ea.startIndex <= index && ea.stopIndex >= index }),
             targetSrc = target.getSourceCode(),
@@ -403,8 +409,7 @@ Object.subclass('lively.ide.FileFragment',
 
 
     addSibling: function(newSrc) {
-        if (!this.getSourceCode().endsWith('\n')) newSrc = '\n' + newSrc;
-        if (!newSrc.endsWith('\n')) newSrc += '\n';
+        if (this.type == 'propertyDef' && !newSrc.startsWith(',\n')) newSrc = ',\n' + newSrc;
         var owner = this.findOwnerFragment(),
             ownerSrc = owner.getSourceCode(),
             stopIndexInOwner = this.stopIndex - owner.startIndex,

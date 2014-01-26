@@ -879,18 +879,14 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         copy.pc = this.pc;
         copy.pcComputed = this.pcComputed;
         return copy;
-	},
+	}
+
 },
 'accessing', {
-    setContainingScope: function(frame) {
-        return this.containingScope = frame;
-    },
-
-    getContainingScope: function() {
-        return this.containingScope;
-    },
+    setContainingScope: function(frame) { return this.containingScope = frame; },
+    getContainingScope: function() { return this.containingScope; }
 },
-'mapping', {
+'accessing - mapping', {
     findFrame: function(name) {
         if (this.mapping.hasOwnProperty(name)) {
             return { val: this.mapping[name], frame: this };
@@ -944,7 +940,8 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 
     getThis: function() {
         return this.thisObj ? this.thisObj : Global;
-    },
+    }
+
 },
 'control-flow', {
     triggerReturn: function() {
@@ -972,22 +969,19 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     },
 },
 'resuming', {
-    setPC: function(node) {
-        this.pc = node;
-    },
+    setPC: function(node) { return this.pc = node; },
 
-    setComputedPC: function(bool) {
-        this.pcComputed = !!bool;
-    },
+    getPC: function(node) { return this.pc; },
 
-    isResuming: function() {
-        return this.pc !== null;
-    },
+    hasComputedPC: function() { return !!this.pcComputed; },
 
-    resumesNow: function() {
-        this.pc = null;
-        this.pcComputed = false;
-    },
+    setComputedPC: function(bool) { return this.pcComputed = !!bool; },
+
+    isResuming: function() { return this.pc !== null; },
+
+    resumesAt: function(node) { return this.hasComputedPC() && node === this.pc; },
+
+    resumesNow: function() { this.pc = null; this.pcComputed = false; }
 });
 
 Object.extend(lively.ast.AcornInterpreter.Frame, {

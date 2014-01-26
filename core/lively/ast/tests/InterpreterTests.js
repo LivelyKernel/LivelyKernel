@@ -453,21 +453,26 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
 
 TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 'helper', {
+
     parse: function(src) {
         return lively.ast.acorn.parse(src);
     },
+
     resumeWithMapping: function(resumeNode, contextNode, mapping) {
         var interpreter = new lively.ast.AcornInterpreter.Interpreter();
         var frame = lively.ast.AcornInterpreter.Frame.create(null, mapping);
         frame.setPC(resumeNode);
         return interpreter.runWithFrame(contextNode, frame);
     },
+
     resumeWithFrameAndResult: function(node, frame, result) {
         var interpreter = new lively.ast.AcornInterpreter.Interpreter();
         return interpreter.runWithFrameAndResult(node, frame, result);
-    },
+    }
+
 },
 'testing', {
+
     test01SimpleResumeFromStart: function() {
         var node = this.parse('var x = 1; x;'),
             resumeNode = node,
@@ -476,6 +481,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         this.assertEquals(1, this.resumeWithMapping(resumeNode, node, mapping), 'did not fully resume');
         this.assertEquals(1, mapping.x);
     },
+
     test02SimpleResume: function() {
         var node = this.parse('var x = 1; var y = 2; y;'),
             resumeNode = node.body[1],
@@ -494,6 +500,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         this.assertEquals(2, mapping.y);
         this.assertEquals(undefined, mapping.x, 'did not resume but restart');
     },
+
     test03InnerResume: function() {
         var node = this.parse('var x = 1 + 2; x;'),
             resumeNode = node.body[0].declarations[0].init,
@@ -510,6 +517,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         this.assertEquals(3, this.resumeWithMapping(resumeNode, node, mapping), 'did not fully resume');
         this.assertEquals(3, mapping.x);
     },
+
     test04ResumeFunction: function() {
         var node = this.parse('(function() { var x = 1; return x; })();'),
             funcNode = node.body[0].expression.callee,
@@ -528,6 +536,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 
         this.assertEquals(2, this.resumeWithFrameAndResult(funcNode.body, innerFrame), 'did not correctly resume');
     },
+
     test05ResumeFunctionWithOuter: function() {
         var node = this.parse('(function() { var x = 1; return x; })() + 5;'),
             funcNode = node.body[0].expression.left.callee,
@@ -550,6 +559,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         this.assertEquals(2, result, 'did not resume inner correctly');
         this.assertEquals(7, this.resumeWithFrameAndResult(node, outerFrame, result), 'did not resume outer correctly');
     },
+
     test06ResumeFunctionWithOuterAndMore: function() {
         var node = this.parse('var y = 5; (function() { var x = 1; return x; })() + y;'),
             funcNode = node.body[1].expression.left.callee,
@@ -571,7 +581,8 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
         this.assertEquals(2, result, 'did not resume inner correctly');
         this.assertEquals(12, this.resumeWithFrameAndResult(node, outerFrame, result), 'did not resume outer correctly');
-    },
+    }
+
 });
 
 }) // end of module

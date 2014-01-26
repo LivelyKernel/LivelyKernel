@@ -331,10 +331,6 @@ expected = expected.replace("{ 'key': undefined }", "{\n'key': undefined,\n'key'
         this.assertASTMatchesCode(result, expected);
     },
 
-
-
-
-
     test20ObjectPropertyNamingTest: function() {
         var src = 'var foo; ({foo: foo});',
             ast = this.parser.parse(src),
@@ -365,6 +361,7 @@ expected = expected.replace("{ 'key': undefined }", "{\n'key': undefined,\n'key'
 });
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
+// checks that rewritten code doesn't introduce semantic changes
 'testing', {
 
     test01LoopResult: function() {

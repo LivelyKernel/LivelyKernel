@@ -20,11 +20,11 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             labels: {},
             result: result
         };
-        if (!frame.isResuming())
-            this.evaluateDeclarations(node, frame);
+        if (!frame.isResuming()) this.evaluateDeclarations(node, frame);
         this.accept(node, state);
         return state.result;
-    },
+    }
+
 },
 'accessing', {
     setVariable: function(name, state) {
@@ -38,22 +38,23 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             throw new Error('setSlot can only be called with a MemberExpression node');
         var value = state.result;
         this.accept(node.object, state);
-        var obj = state.result,
-            prop;
-        if ((node.property.type == 'Identifier') && !node.computed)
+        var obj = state.result, prop;
+        if (node.property.type == 'Identifier' && !node.computed) {
             prop = node.property.name;
-        else {
+        } else {
             this.accept(node.property, state);
             prop = state.result;
         }
         obj[prop] = value;
         state.result = value;
-    },
+    }
+
 },
 'invoking', {
+
     evaluateDeclarations: function(node, frame) {
-        var self = this;
         // lookup all the declarations but stop at new function scopes
+        var self = this;
         acorn.walk.matchNodes(node, {
             VariableDeclaration: function(node, state, depth, type) {
                 if (type != 'VariableDeclaration') return;
@@ -81,11 +82,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             recv = argValues.shift(); // thisObj is first parameter
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
-        if (this.shouldInterpret(frame, func))
-            func = func.forInterpretation();
+
+        if (this.shouldInterpret(frame, func)) func = func.forInterpretation();
         if (isNew) {
-            if (this.isNative(func))
-                return new func();
+            if (this.isNative(func)) return new func();
             recv = this.newObject(func);
         }
 
@@ -105,8 +105,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     shouldInterpret: function(frame, func) {
-        if (this.isNative(func))
-            return false;
+        if (this.isNative(func)) return false;
         return func.hasOwnProperty('forInterpretation');
         // TODO: reactivate when necessary
             // || frame.breakAtCalls
@@ -120,20 +119,20 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var newObj = new constructor();
         newObj.constructor = func;
         return newObj;
-    },
+    }
+
 },
 'helper', {
+
     findNodeLabel: function(node, state) {
         return Object.getOwnPropertyNames(state.labels).reduce(function(res, label) {
-            if (state.labels[label] === node)
-                res = label;
+            if (state.labels[label] === node) res = label;
             return res;
         }, undefined);
     },
 
     wantsInterpretation: function(node, frame) {
-        if (!frame.isResuming())
-            return true;
+        if (!frame.isResuming()) return true;
         if (node === frame.pc) {
             var isComputed = frame.pcComputed;
             frame.resumesNow();
@@ -150,7 +149,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                     c(node.init, st, 'Expression');
             },
         }, acorn.walk.base));
-    },
+    }
+
 },
 'visiting', {
     accept: function(node, state) {
@@ -231,10 +231,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var result = state.result,
             frame = state.currentFrame;
         this.accept(node.discriminant, state);
-        var leftVal = state.result;
-        var rightVal,
-            caseMatched = false,
-            defaultCaseId;
+        var leftVal = state.result,
+            rightVal, caseMatched = false, defaultCaseId;
         for (var i = 0; i < node.cases.length; i++) {
             if (node.cases[i].test === null) {
                 // default
@@ -450,17 +448,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
     },
 
-    // visitForOfStatement: function(node, state) {
-    //     // left is a node of type VariableDeclaration
-    //     this.accept(node.left, state);
-
-    //     // right is a node of type Expression
-    //     this.accept(node.right, state);
-
-    //     // body is a node of type Statement
-    //     this.accept(node.body, state);
-    // },
-
     visitDebuggerStatement: function(node, state) {
         // do nothing, yet
     },
@@ -563,31 +550,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         // }
     },
 
-    // visitArrowExpression: function(node, state) {
-    //     node.params.forEach(function(ea) {
-    //         // ea is of type Pattern
-    //         this.accept(ea, state);
-    //     }, this);
-
-    //     if (node.defaults) {
-    //         node.defaults.forEach(function(ea) {
-    //             // ea is of type Expression
-    //             this.accept(ea, state);
-    //         }, this);
-    //     }
-
-    //     if (node.rest) {
-    //         // rest is a node of type Identifier
-    //         this.accept(node.rest, state);
-    //     }
-
-    //     // body is a node of type BlockStatement
-    //     this.accept(node.body, state);
-
-    //     // node.expression has a specific type that is boolean
-    //     if (node.expression) {/*do stuff*/}
-    // },
-
     visitSequenceExpression: function(node, state) {
         node.expressions.forEach(function(expr) {
             this.accept(expr, state);
@@ -639,29 +601,29 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var right = state.result;
 
         switch (node.operator) {
-        case '==':  state.result = left == right; break;
-        case '!=':  state.result = left != right; break;
-        case '===': state.result = left === right; break;
-        case '!==': state.result = left !== right; break;
-        case '<':   state.result = left < right; break;
-        case '<=':  state.result = left <= right; break;
-        case '>':   state.result = left > right; break;
-        case '>=':  state.result = left >= right; break;
-        case '<<':  state.result = left << right; break;
-        case '>>':  state.result = left >> right; break;
-        case '>>>': state.result = left >>> right; break;
-        case '+':   state.result = left + right; break;
-        case '-':   state.result = left - right; break;
-        case '*':   state.result = left * right; break;
-        case '/':   state.result = left / right; break;
-        case '%':   state.result = left % right; break;
-        case '|':   state.result = left | right; break;
-        case '^':   state.result = left ^ right; break;
-        case '&':   state.result = left & right; break;
-        case 'in':  state.result = left in right; break;
-        case 'instanceof': state.result = left instanceof right; break;
-        // case '..': // E4X-specific
-        default: throw new Error('No semantics for BinaryExpression with ' + node.operator + ' operator!');
+            case '==':  state.result = left == right; break;
+            case '!=':  state.result = left != right; break;
+            case '===': state.result = left === right; break;
+            case '!==': state.result = left !== right; break;
+            case '<':   state.result = left < right; break;
+            case '<=':  state.result = left <= right; break;
+            case '>':   state.result = left > right; break;
+            case '>=':  state.result = left >= right; break;
+            case '<<':  state.result = left << right; break;
+            case '>>':  state.result = left >> right; break;
+            case '>>>': state.result = left >>> right; break;
+            case '+':   state.result = left + right; break;
+            case '-':   state.result = left - right; break;
+            case '*':   state.result = left * right; break;
+            case '/':   state.result = left / right; break;
+            case '%':   state.result = left % right; break;
+            case '|':   state.result = left | right; break;
+            case '^':   state.result = left ^ right; break;
+            case '&':   state.result = left & right; break;
+            case 'in':  state.result = left in right; break;
+            case 'instanceof': state.result = left instanceof right; break;
+            // case '..': // E4X-specific
+            default: throw new Error('No semantics for BinaryExpression with ' + node.operator + ' operator!');
         }
     },
 
@@ -673,18 +635,18 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             var oldVal = state.result;
             this.accept(node.right, state);
             switch (node.operator) {
-            case '+=':    state.result = oldVal + state.result; break;
-            case '-=':    state.result = oldVal - state.result; break;
-            case '*=':    state.result = oldVal * state.result; break;
-            case '/=':    state.result = oldVal / state.result; break;
-            case '%=':    state.result = oldVal % state.result; break;
-            case '<<=':   state.result = oldVal << state.result; break;
-            case '>>=':   state.result = oldVal >> state.result; break;
-            case '>>>=':  state.result = oldVal >>> state.result; break;
-            case '|=':    state.result = oldVal | state.result; break;
-            case '^=':    state.result = oldVal ^ state.result; break;
-            case '&=':    state.result = oldVal & state.result; break;
-            default: throw new Error('No semantics for AssignmentExpression with ' + node.operator + ' operator!');
+                case '+=':    state.result = oldVal + state.result; break;
+                case '-=':    state.result = oldVal - state.result; break;
+                case '*=':    state.result = oldVal * state.result; break;
+                case '/=':    state.result = oldVal / state.result; break;
+                case '%=':    state.result = oldVal % state.result; break;
+                case '<<=':   state.result = oldVal << state.result; break;
+                case '>>=':   state.result = oldVal >> state.result; break;
+                case '>>>=':  state.result = oldVal >>> state.result; break;
+                case '|=':    state.result = oldVal | state.result; break;
+                case '^=':    state.result = oldVal ^ state.result; break;
+                case '&=':    state.result = oldVal & state.result; break;
+                default: throw new Error('No semantics for AssignmentExpression with ' + node.operator + ' operator!');
             }
         }
         if (node.left.type == 'Identifier')
@@ -790,7 +752,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     visitLiteral: function(node, state) {
         state.result = node.value;
         return;
-    },
+    }
+
 });
 
 Object.subclass('lively.ast.AcornInterpreter.Function',
@@ -879,12 +842,12 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
 
     asFunction: function() {
         return this.prepareFunction() && this._cachedFunction;
-    },
+    }
 },
 'continued interpretation', {
     resume: function(frame) {
         return this.basicApply(frame);
-    },
+    }
 });
 
 Object.subclass('lively.ast.AcornInterpreter.Frame',
@@ -1034,7 +997,7 @@ Object.extend(lively.ast.AcornInterpreter.Frame, {
 
     global: function() {
         return this.create(null, Global);
-    },
+    }
 });
 
 }); // end of module

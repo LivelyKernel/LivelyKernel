@@ -6,7 +6,8 @@ lively.morphic.Morph.addMethods(
     buildSpecProperties: {
         name: {},
         doNotSerialize: {defaultValue: [], getter: function(morph, val) { if (!morph.hasOwnProperty("doNotSerialize")) return []; return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
-        doNotCopyProperties: {defaultValue: [], getter: function(morph, val) { if (!morph.hasOwnProperty("doNotCopyProperties")) return []; return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},        grabbingEnabled: {defaultValue: undefined},
+        doNotCopyProperties: {defaultValue: [], getter: function(morph, val) { if (!morph.hasOwnProperty("doNotCopyProperties")) return []; return val && val.reject(function(ea) { return !Object.isString(ea) || ea.startsWith('$$'); }) }},
+        grabbingEnabled: {defaultValue: undefined},
         draggingEnabled: {defaultValue: undefined},
         droppingEnabled: {defaultValue: undefined},
         halosEnabled: {defaultValue: true},
@@ -303,7 +304,7 @@ Object.extend(lively.morphic.Morph, {
     },
 
     fromSpecString: function(string) {
-        return lively.persistence.SpecObject.fromString(object).createMorph();
+        return lively.persistence.SpecObject.fromString(string).createMorph();
     }
 });
 

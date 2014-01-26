@@ -24,13 +24,31 @@ Object.subclass('lively.persistence.SpecObject',
         // (plain toString, no deep graph traversal)
         this.setClass(morph.constructor);
         var props = Object.mergePropertyInHierarchy(morph, "buildSpecProperties");
+        function equal(a, b) {
+            if (!a || !b) return a === b;
+            switch (a.constructor) {
+                case String:
+                case Date:
+                case Boolean:
+                case Number: return a === b;
+            };
+            if (Object.isFunction(a.equals)) return a.equals(b);
+            function cmp(left, right) {
+                for (var name in left) {
+                    if (left[name] instanceof Function) continue;
+            	    if (!Objects.equal(left[name], right[name])) return false;
+                }
+                return true;
+            }
+            return cmp(a, b) && cmp(b, a);
+        }
         morph.getBuildSpecProperties(props).forEach(function(key) {
             var attr = props[key] || {};
             if (!morph.hasOwnProperty(key) && !attr.getter) return;
             var value = morph[key];
             if (attr.getter) value = attr.getter(morph, value);
             // don't record values that are the same as their default
-            if (attr.hasOwnProperty("defaultValue") && Objects.equal(attr.defaultValue, value)) { return; }
+            if (attr.hasOwnProperty("defaultValue") && equal(attr.defaultValue, value)) { return; }
             if (Object.isFunction(value)) {
                 // pass
             } else if (value && Object.isFunction(value.serializeExpr)) {
@@ -174,8 +192,10 @@ Object.subclass('lively.persistence.SpecObject',
             // buildSpec #recreate
             if (buildSpecAttr && buildSpecAttr.recreate) {
                 buildSpecAttr.recreate(instance, object, key, val); return; }
+
             // scripts
             if (Object.isFunction(val) && val.name) { instance.addScript(val, key); return; }
+
             // morphRef
             if (val && val.isMorphRef) {
                 val.name && options.morphRefRebuilders.push(function() {
@@ -184,15 +204,15 @@ Object.subclass('lively.persistence.SpecObject',
                     instance[key] = lively.PropertyPath(val.path).get(instance); });
                 return;
             }
-            if (!key.startsWith('_')) {
-                // This is a bit of test balloon I'm sending up to see if something breaks.
-                // This does fix the issue with multiple inspectors's divider affecting each other.
-                instance[key] = (val && Array.isArray(val)) ? val.clone() : val
+
+            if (!key.startsWith('_')) { // normal attributes
+                // clone fixes issues, e.g. multiple inspectors's divider affecting each other.
+                instance[key] = val && Array.isArray(val) ? val.clone() : val;
                 return;
             }
-            // normal attributes
-            var setter = instance['set' + key.replace(/^_/, '').capitalize()];
+
             // _Attributes
+            var setter = instance['set' + key.replace(/^_/, '').capitalize()];
             if (Object.isFunction(setter)) { setter.call(instance, val); }
         }
 
@@ -209,11 +229,12 @@ Object.subclass('lively.persistence.SpecObject',
         var buildSpecProps = Object.mergePropertyInHierarchy(instance, "buildSpecProperties");
 
         // watchers for debugging
-        var watchers = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key] && buildSpecProps[key].hasOwnProperty('watch'); });
-        watchers.forEach(function(key) {
-            var watchSpec = buildSpecProps[key].watch;
-            lively.PropertyPath(key).watch(Object.extend(watchSpec, {target: instance}));
-        });
+        Object.keys(buildSpecProps)
+            .select(function(key) { return buildSpecProps[key] && buildSpecProps[key].hasOwnProperty('watch'); })
+            .forEach(function(key) {
+                var watchSpec = buildSpecProps[key].watch;
+                lively.PropertyPath(key).watch(Object.extend(watchSpec, {target: instance}));
+            });
 
         // initialize morph
         if (instance.isMorph) {
@@ -230,10 +251,10 @@ Object.subclass('lively.persistence.SpecObject',
         recordedKeys.forEach(function(key) { set(key, object[key], buildSpecProps[key]); });
 
         // add default values
-        var defaults = Object.keys(buildSpecProps).select(function(key) { return buildSpecProps[key].hasOwnProperty('defaultValue'); });
-        defaults.withoutAll(recordedKeys).forEach(function(key) {
-            set(key, buildSpecProps[key].defaultValue, buildSpecProps[key]);
-        });
+        Object.keys(buildSpecProps)
+            .select(function(key) { return buildSpecProps[key].hasOwnProperty('defaultValue'); })
+            .withoutAll(recordedKeys)
+            .forEach(function(key) { set(key, buildSpecProps[key].defaultValue, buildSpecProps[key]); });
 
         // add submorphs
         if (object.submorphs) {

@@ -322,9 +322,17 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     calculateSnappingPosition: function() {
         // snap to position below component above, if there is one
-        var componentAbove = this.getComponentInDirection(-1);
+        var componentAbove = this.getComponentInDirection(-1, this.globalBounds().topCenter().addPt(pt(0, -100)));
+        var snapToTop = false;
+        if (!componentAbove) {
+            snapToTop = true;
+            componentAbove =  this.getComponentInDirection(-1);
+        }
 
         if (componentAbove && !componentAbove.isMerger()) {
+            if (snapToTop) {
+                return componentAbove.getPosition();
+            }
             // snap below component above
             var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
             var snappingThreshold = 200;
@@ -399,6 +407,20 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.addPreviewMorph();
         this.setOpacity(0.7);
         this.notifyNeighborsOfDragStart();
+        
+        // take the dragged component out of the layout
+        var componentBelow = this.getComponentInDirection(1);
+        if (componentBelow) {
+            componentBelow.move(-this.getExtent().y - this.componentOffset);
+        }
+        
+        // save cached position for the automatic layouting
+        this.getAllComponents().each(function (ea) {
+            ea.cachedPosition = ea.getPosition();
+        });
+        
+        // trigger this once to avoid flickering
+        this.onDrag();
     },
     
     onDragEnd: function($super, evt) {
@@ -407,6 +429,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.notifyNeighborsOfDragEnd();
         this.removePreviewMorph();
         this.setOpacity(1);
+        
+        this.getAllComponents().each(function (ea) {
+            ea.cachedPosition = null;
+        });
     },
     
     gridWidth: 20,
@@ -423,6 +449,56 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
         return $super(morphToDrop);
     },
+    realignAllComponents : function() {
+        var previewMorph = $morph("PreviewMorph" + this);
+        
+        // reset the position of all components
+        var all = this.getAllComponents();
+        all.each(function (ea) {
+            ea.setPosition(ea.getCachedPosition());
+        })
+
+        var componentBelow = this.getComponentInDirection(1);
+        var componentAbove = this.getComponentInDirection(-1);
+        var componentToMove;
+
+        // decide whether the component below or above is to move
+        if (componentAbove && componentAbove.getPosition().y == previewMorph.getPosition().y)
+            componentToMove = componentAbove;
+        else
+            componentToMove = componentBelow;
+
+        // move the component
+        if (componentToMove) {
+            var distanceBelow = previewMorph.getBounds().bottom() + this.componentOffset - componentToMove.getPosition().y;
+            componentToMove.move(distanceBelow);
+        }
+    },
+
+    move: function(y) {
+        var componentAbove = this.getComponentInDirection(-1);
+        var componentBelow = this.getComponentInDirection(1);
+        if (y > 0) {
+            if (componentBelow) {
+                componentBelow.move(y);
+            }
+            this.setPosition(this.getPosition().addPt(pt(0, y)));
+        } else if (y < 0) {
+            var canMove = true;
+            if (componentAbove) {
+                if (componentAbove.getPosition().y + componentAbove.getExtent().y > this.getPosition().y + y) {
+                    canMove = false;
+                }
+            }
+            if (canMove) {
+                this.setPosition(this.getPosition().addPt(pt(0, y)));
+                if (componentBelow) {
+                    componentBelow.move(y);
+                }
+            }
+        }
+    },
+
     getAllComponents: function() {
         return $world.withAllSubmorphsSelect(function(el) {
             return el instanceof lively.morphic.Charts.Component;
@@ -459,7 +535,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         previewMorph.setPosition(previewPos);
         previewMorph.setExtent(previewExtent);
 
-        this.realignAllComponentsInColumn();
+        this.realignAllComponents();
     },
     
     onDropOn: function($super, aMorph) {
@@ -615,8 +691,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             var elPosition = el.getPositionInWorld();
             
             // check for the nearest DF component straight above or below myPosition
-            if (-direction * elPosition.y < -direction * myPosition.y &&
-                elPosition.x <= myPosition.x && el.getBounds().right() >= myPosition.x) {
+            if (-direction * elPosition.y <= -direction * myPosition.y &&
+                elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x) {
                 
                 if (closestComponent == null || -direction * elPosition.y > -direction * closestComponent.getPositionInWorld().y)
                     closestComponent = el;
@@ -728,37 +804,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         return morphs;
     },
     
-    realignAllComponentsInColumn : function() {
-        var previewMorph = $morph("PreviewMorph" + this);
-        
-        // move all components below further up and close the eventual existing gap
-        var components = this.getComponentsInColumn();
-        // begin with the top most of them
-        components.sort(function (a, b) {return a.getPosition().y - b.getPosition().y});
 
-        var lastPosition = 0;
-        components.each( function (ea) {
-            // initialize lastPosition to the one of the first component
-            // or the previewMorphs one, if it's at the very top
-            if (!lastPosition) {
-                if (previewMorph && previewMorph.getPosition().y < ea.getPosition().y)
-                    lastPosition = pt(ea.calculateSnappingPosition().x, previewMorph.getPosition().y);
-                else
-                    lastPosition = ea.calculateSnappingPosition();
-            }
-            
-            // move the component a little bit down and snap to its position
-            ea.setPosition(pt(lastPosition.x, lastPosition.y + 5));
-            lastPosition = ea.calculateSnappingPosition();
-
-            // if there is a preview morph, move the next component below it
-            if (previewMorph && lastPosition.y <= previewMorph.getPosition().y + previewMorph.getExtent().y &&
-                lastPosition.y >= previewMorph.getPosition().y) {
-                lastPosition = pt(lastPosition.x, previewMorph.getPosition().y + previewMorph.getExtent().y + ea.componentOffset);
-            }
-            ea.setPosition(lastPosition);
-        })
-    },
     
     getData : function(target){
         var arrowToTarget = this.arrows.detect(function (arrow){
@@ -770,6 +816,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             return this.data;
         }
         return null;
+    },
+
+    getCachedPosition : function() {
+        // cached position for automatic layouting
+        return this.cachedPosition || this.getPosition();
     },
     
     migrateFrom : function(oldComponent){
@@ -878,6 +929,32 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
     updateComponent: function() {
         // do nothing
     },
+    move: function(y) {
+        var componentsBelow = this.getComponentsInDirection(1);
+        var componentsAbove = this.getComponentsInDirection(-1);
+        if (y > 0) {
+            if (componentsBelow.length) {
+                componentsBelow.each(function (ea) {ea.move(y)});
+            }
+            this.setPosition(this.getPosition().addPt(pt(0, y)));
+        } else if (y < 0) {
+            var _this = this, canMove = true;
+            if (componentsAbove.length) {
+                componentsAbove.each(function (componentAbove) {
+                    if (componentAbove.getBounds().bottom() > _this.getPosition().y + y) {
+                        canMove = false;
+                    }
+                });
+            }
+            if (canMove) {
+                _this.setPosition(_this.getPosition().addPt(pt(0, y)));
+                if (componentsBelow.length) {
+                    componentsBelow.each(function (ea) {ea.move(y)});
+                }
+            }
+        }
+    },
+
 
 
     isMerger: function() {
@@ -1037,8 +1114,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
     onMouseUp: function(e) {
         if (e.isLeftMouseButtonDown() && !e.isCtrlDown()) {
             var isMinimized = this.owner.getExtent().y == 60;
+            var componentBelow = this.owner.getComponentInDirection(1);
             if (isMinimized) {
                 this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY), true);
+                if (componentBelow) {
+                    componentBelow.move(this.oldY - 60);
+                }
                 var container = this.owner.getSubmorphsByAttribute("name","Container");
                 if (container.length > 0){
                     container[0].setVisible(true);
@@ -1051,9 +1132,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
                     container[0].setVisible(false);
                 }
                 this.owner.setExtent(pt(this.owner.getExtent().x, 60), true);
+                if (componentBelow) {
+                    componentBelow.move(-this.oldY + 60);
+                }
             }
-
-            this.owner.realignAllComponentsInColumn();
         }
     }
 });

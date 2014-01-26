@@ -66,7 +66,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             droppingEnabled: false,
             draggingEnabled: false,
             grabbingEnabled: false,
-            allowInput: true,
             className: "lively.morphic.CodeEditor",
             doitContext: {
                 isMorphRef: true,
@@ -148,17 +147,14 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Position: lively.pt(803.0,40.0),
             alarmColor: Color.rgb(240,0,0),
             className: "lively.morphic.Box",
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
+            grabbingEnabled: false,
+            draggingEnabled: false,
             isCopyMorphRef: true,
-            layout: {
-                adjustForNewBounds: true,
-                moveHorizontal: true
-            },
+            layout: { adjustForNewBounds: true, moveHorizontal: true },
             morphRefId: 26,
             name: "ChangeIndicator",
             savedColor: Color.rgb(0,0,0),
-            sourceModule: "lively.morphic.Core",
             indicateUnsavedChanges: function indicateUnsavedChanges() {
                     if (this.owner.scriptPane.hasChanged()) {
                         this.setColors(this.alarmColor);
@@ -177,7 +173,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Extent: lively.pt(251.0,21.0),
             _Position: lively.pt(185.0,9.0),
             className: "lively.morphic.Button",
-            isPressed: false,
             label: "ObjectEditor",
             list: [],
             name: "ObjectEditorMorphSelector",
@@ -193,7 +188,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 enableGrabbing: false,
                 label: {
                     align: "center",
-                    allowInput: false,
                     borderWidth: 0,
                     clipMode: "hidden",
                     emphasize: {
@@ -404,25 +398,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _FontFamily: "Arial, sans-serif",
             _FontSize: 9,
             _HandStyle: null,
-            _InputAllowed: true,
-            _MaxTextWidth: 64.8979476392384,
-            _MinTextWidth: 64.8979476392384,
+            _InputAllowed: false,
             _Position: lively.pt(4.0,12.0),
             _TextColor: Color.rgb(64,64,64),
-            allowInput: true,
-            allowsInput: false,
             className: "lively.morphic.Text",
-            doNotSerialize: ["charsTyped"],
-            emphasis: [[0,4,{
-                fontWeight: "normal",
-                italics: "normal"
-            }]],
             eventsAreIgnored: true,
             fixedWidth: true,
+            grabbingEnabled: false,
             isCopyMorphRef: true,
             morphRefId: 27,
             name: "ObjectEditorScriptsText2",
-            sourceModule: "lively.morphic.TextCore",
             textString: "Tag:"
         },{
             _BorderColor: Color.rgb(189,190,192),
@@ -447,7 +432,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 enableGrabbing: false,
                 label: {
                     align: "center",
-                    allowInput: false,
                     borderWidth: 0,
                     clipMode: "hidden",
                     emphasize: {
@@ -491,7 +475,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 enableGrabbing: false,
                 label: {
                     align: "center",
-                    allowInput: false,
                     borderWidth: 0,
                     clipMode: "hidden",
                     emphasize: {
@@ -537,7 +520,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 enableGrabbing: false,
                 label: {
                     align: "center",
-                    allowInput: false,
                     borderWidth: 0,
                     clipMode: "hidden",
                     emphasize: {
@@ -581,7 +563,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 enableGrabbing: false,
                 label: {
                     align: "center",
-                    allowInput: false,
                     borderWidth: 0,
                     clipMode: "hidden",
                     emphasize: {
@@ -742,6 +723,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             currentTag: null,
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
+            grabbingEnabled: false,
             layout: {
                 adjustForNewBounds: true,
                 resizeHeight: true
@@ -786,7 +768,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 selectedIndexes: [],
                 selection: null,
                 sourceModule: "lively.morphic.Lists",
-                submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {updater: 
             function ($upd, value) {
@@ -828,24 +809,14 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 _FontSize: 9,
                 _HandStyle: null,
                 _InputAllowed: true,
-                _MaxTextWidth: 64.8979476392384,
-                _MinTextWidth: 64.8979476392384,
                 _Position: lively.pt(3.0,2.0),
                 _TextColor: Color.rgb(64,64,64),
-                allowInput: true,
-                allowsInput: false,
                 className: "lively.morphic.Text",
-                doNotSerialize: ["charsTyped"],
-                emphasis: [[0,7,{
-                    fontWeight: "normal",
-                    italics: "normal"
-                }]],
                 eventsAreIgnored: true,
                 fixedWidth: true,
                 isCopyMorphRef: true,
                 morphRefId: 18,
                 name: "ObjectEditorScriptsText",
-                sourceModule: "lively.morphic.TextCore",
                 textString: "Scripts"
             },{
                 _BorderColor: Color.rgb(189,190,192),
@@ -874,7 +845,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     enableGrabbing: false,
                     label: {
                         align: "center",
-                        allowInput: false,
                         borderWidth: 0,
                         clipMode: "hidden",
                         emphasize: {
@@ -920,7 +890,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     enableGrabbing: false,
                     label: {
                         align: "center",
-                        allowInput: false,
                         borderWidth: 0,
                         clipMode: "hidden",
                         emphasize: {
@@ -1314,8 +1283,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },
             currentCategory: null,
             currentTag: null,
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
+            grabbingEnabled: false,
             layout: {
                 adjustForNewBounds: true,
                 moveVertical: true,
@@ -1364,7 +1333,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     enableGrabbing: false,
                     label: {
                         align: "center",
-                        allowInput: false,
                         borderWidth: 0,
                         clipMode: "hidden",
                         emphasize: {
@@ -1408,22 +1376,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },{
                 _Extent: lively.pt(124.1,22.0),
                 _FontFamily: "Arial, sans-serif",
-                _FontSize: 14,
+                _FontSize: 9,
                 _HandStyle: null,
                 _InputAllowed: true,
-                _MaxTextWidth: 124.10506681670552,
-                _MinTextWidth: 124.10506681670552,
-                _Position: lively.pt(4.0,-4.0),
+                _Position: lively.pt(2.0,2),
                 _TextColor: Color.rgb(64,64,64),
-                allowInput: true,
-                allowsInput: false,
                 className: "lively.morphic.Text",
-                doNotSerialize: ["charsTyped"],
-                emphasis: [[0,11,{
-                    fontSize: "9",
-                    fontWeight: "normal",
-                    italics: "normal"
-                }]],
                 eventsAreIgnored: true,
                 fixedWidth: true,
                 isCopyMorphRef: true,
@@ -1432,7 +1390,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 },
                 morphRefId: 20,
                 name: "ObjectEditorConnectionsText",
-                sourceModule: "lively.morphic.TextCore",
                 textString: "Connections"
             },{
                 _BorderColor: Color.rgb(189,190,192),
@@ -1459,7 +1416,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     enableGrabbing: false,
                     label: {
                         align: "center",
-                        allowInput: false,
                         borderWidth: 0,
                         clipMode: "hidden",
                         emphasize: {
@@ -1490,7 +1446,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 },
                 _Extent: lively.pt(180.0,82.0),
                 _Fill: Color.rgb(255,255,255),
-                _Position: lively.pt(0.2,18.7),
+                _Position: lively.pt(0.2,19),
                 className: "lively.morphic.List",
                 droppingEnabled: false,
                 draggingEnabled: false,
@@ -1900,7 +1856,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 enableGrabbing: false,
                 label: {
                     align: "center",
-                    allowInput: false,
                     borderWidth: 0,
                     clipMode: "hidden",
                     emphasize: {
@@ -2347,7 +2302,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         }
     }],
     titleBar: "ObjectEditor",
-    withoutLayers: "[GrabbingLayer]",
     initiateShutdown: function initiateShutdown(force) {
     if (force || !this.targetMorph.scriptPane.hasChanged()) {
         $super();

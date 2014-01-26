@@ -2,34 +2,19 @@ module('lively.ide.tools.Inspector').requires('lively.persistence.BuildSpec', 'l
 
 lively.BuildSpec('lively.ide.tools.Inspector', {
     _BorderColor: Color.rgb(204,0,0),
-    _Extent: lively.pt(468.2,499.4),
-    _Position: lively.pt(82.4,194.8),
+    _Extent: lively.pt(470,500),
     _StyleClassNames: ["Morph","Window"],
-    cameForward: false,
     className: "lively.morphic.Window",
-    collapsedExtent: null,
-    collapsedTransform: null,
     contentOffset: lively.pt(4.0,22.0),
-    doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
     draggingEnabled: true,
-    expandedExtent: null,
-    expandedTransform: null,
-    highlighted: false,
-    ignoreEventsOnExpand: false,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: { adjustForNewBounds: true },
     name: "ObjectInspector",
-    sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
-        _BorderWidth: 1.32,
-        _Extent: lively.pt(449.3,463.6),
+        _Extent: lively.pt(462,474),
         _Fill: Color.rgb(235,235,235),
         _Position: lively.pt(4.0,22.0),
-        _Scale: 1.02,
         className: "lively.morphic.Box",
-        doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
         droppingEnabled: true,
         isCopyMorphRef: true,
         layout: {
@@ -45,13 +30,11 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         submorphs: [{
             _BorderColor: Color.rgb(112,112,112),
             _BorderRadius: 2.59,
-            _BorderWidth: 1.1840000000000002,
             _ClipMode: "auto",
-            _Extent: lively.pt(433.0,142.1),
+            _Extent: lively.pt(446,142.1),
             _Fill: Color.rgb(255,255,255),
             _Position: lively.pt(8.1,38.5),
             className: "lively.morphic.Box",
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
             layout: {
                 resizeWidth: true,
@@ -77,7 +60,6 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 parent: null,
                 showMoreNode: null,
                 sourceModule: "lively.morphic.Widgets",
-                submorphs: [],
                 reset: function reset() {
                                             this.item = null;
                                             this.submorphs.invoke("remove");
@@ -124,7 +106,6 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 _FontFamily: "Helvetica",
                 _FontSize: 10,
                 _Position: lively.pt(92.0,0.0),
-                _Scale: 0.998001,
                 className: "lively.morphic.DropDownList",
                 doNotCopyProperties: [],
                 doNotSerialize: [],
@@ -150,7 +131,6 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 selectedLineNo: 0,
                 selection: "standard",
                 sourceModule: "lively.morphic.Core",
-                submorphs: [],
                 valueScale: 1,
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "selection", this.get("ObjectInspector"), "setFilter", {});
@@ -160,33 +140,22 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 _FontFamily: "Helvetica",
                 _HandStyle: null,
                 _InputAllowed: true,
-                _MaxTextWidth: 84,
-                _MinTextWidth: 84,
                 _TextColor: Color.rgb(64,64,64),
                 allowInput: false,
                 className: "lively.morphic.Text",
-                doNotSerialize: ["charsTyped"],
-                emphasis: [[0,7,{
-                    fontWeight: "normal",
-                    italics: "normal"
-                }]],
                 evalEnabled: false,
                 fixedHeight: true,
                 fixedWidth: true,
-                sourceModule: "lively.morphic.TextCore",
-                submorphs: [],
                 textString: "Filter:"
             }]
         },{
             _AutocompletionEnabled: true,
             _BorderColor: Color.rgb(204,204,204),
             _BorderRadius: 3,
-            _BorderWidth: 1,
-            _Extent: lively.pt(441.0,251.0),
+            _Extent: lively.pt(446,256),
             _FontSize: 12,
             _LineWrapping: false,
-            _Position: lively.pt(8.1,189.9),
-            _Scale: 0.9803921568627452,
+            _Position: lively.pt(8,190),
             _ShowActiveLine: false,
             _ShowErrors: true,
             _ShowGutter: false,
@@ -195,17 +164,14 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             _ShowPrintMargin: false,
             _ShowWarnings: true,
             _SoftTabs: true,
-            _StyleClassNames: ["Morph","CodeEditor","ace_editor","emacs-mode","ace_nobold","ace-chrome"],
             _TextMode: "javascript",
             _Theme: "",
             _aceInitialized: true,
             accessibleInInactiveWindow: true,
             allowInput: true,
             className: "lively.morphic.CodeEditor",
-            doNotSerialize: ["aceEditor","aceEditorAfterSetupCallbacks","savedTextString"],
             doitContext: null,
             droppingEnabled: true,
-            hasRobertsKeys: true,
             layout: {
                 resizeWidth: true,
                 scaleVertical: true
@@ -213,7 +179,6 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             name: "ObjectInspectorText",
             sourceModule: "lively.ide.CodeEditor",
             storedString: "",
-            submorphs: [],
             textMode: "javascript",
             theme: "",
             doSave: function doSave() {
@@ -378,7 +343,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             }
         },{
             _BorderColor: Color.rgb(204,0,0),
-            _Extent: lively.pt(433.7,3.7),
+            _Extent: lively.pt(446,3.7),
             _Fill: Color.rgb(204,204,204),
             _Position: lively.pt(8.1,182.4),
             className: "lively.morphic.HorizontalDivider",
@@ -396,7 +361,6 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             scalingAbove: [],
             scalingBelow: [],
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
             onFromBuildSpecCreated: function onFromBuildSpecCreated() {
                                 $super();
                                 this.addScalingAbove(this.owner.tree.owner/*Box*/);
@@ -405,18 +369,15 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         },{
             _BorderColor: Color.rgb(204,0,0),
             _Extent: lively.pt(12.0,12.0),
-            _Position: lively.pt(9.3,440.6),
-            _Scale: 0.9803921568627452,
+            _Position: lively.pt(10,450),
             checked: false,
             className: "lively.morphic.CheckBox",
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
             layout: {
                 moveVertical: true
             },
             name: "BindThisToSelection",
             sourceModule: "lively.morphic.Widgets",
-            submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "setChecked", this.get("ObjectInspector"), "setDoItContext", {});
         }
@@ -425,25 +386,13 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             _FontFamily: "Arial, sans-serif",
             _HandStyle: "default",
             _InputAllowed: false,
-            _MaxTextWidth: 120.695652,
-            _MinTextWidth: 120.695652,
-            _Position: lively.pt(30.1,435.1),
-            _Scale: 0.9803921568627452,
+            _Position: lively.pt(30,452),
             _TextColor: Color.rgb(64,64,64),
             allowInput: false,
             className: "lively.morphic.Text",
-            doNotSerialize: ["charsTyped"],
-            emphasis: [[0,24,{
-                fontWeight: "bold",
-                italics: "normal"
-            }]],
             fixedWidth: true,
-            layout: {
-                moveVertical: true
-            },
+            layout: { moveVertical: true },
             name: "Text",
-            sourceModule: "lively.morphic.TextCore",
-            submorphs: [],
             textString: "Bind 'this' to selection"
         }],
         tree: {

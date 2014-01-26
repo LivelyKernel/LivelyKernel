@@ -68,6 +68,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         showActiveLine: Config.get('aceDefaultShowActiveLine'),
         showIndents: Config.get('aceDefaultShowIndents'),
         softTabs: Config.get('useSoftTabs'),
+        tabSize: Config.get('defaultTabSize'),
         autocompletion: Config.get('aceDefaultEnableAutocompletion'),
         showWarnings: Config.get('aceDefaultShowWarnings'),
         showErrors: Config.get('aceDefaultShowErrors')
@@ -102,23 +103,24 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     applyStyle: function ($super, spec) {
         if (!spec) return this;
         $super(spec);
-        if (spec.allowInput !== undefined) this.setInputAllowed(spec.allowInput);
-        if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
-        if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
-        if (spec.textColor !== undefined) this.setTextColor(spec.textColor);
+        if (spec.allowInput !== undefined)     this.setInputAllowed(spec.allowInput);
+        if (spec.fontFamily !== undefined)     this.setFontFamily(spec.fontFamily);
+        if (spec.fontSize !== undefined)       this.setFontSize(spec.fontSize);
+        if (spec.textColor !== undefined)      this.setTextColor(spec.textColor);
         // -----------
-        if (spec.gutter !== undefined) this.setShowGutter(spec.gutter);
-        if (spec.textMode !== undefined) this.setTextMode(spec.textMode);
-        if (spec.theme !== undefined) this.setTheme(spec.theme);
-        if (spec.lineWrapping !== undefined) this.setLineWrapping(spec.lineWrapping);
-        if (spec.invisibles !== undefined) this.setShowInvisibles(spec.invisibles);
-        if (spec.printMargin !== undefined) this.setShowPrintMargin(spec.printMargin);
-        if (spec.showIndents !== undefined) this.setShowIndents(spec.showIndents);
+        if (spec.gutter !== undefined)         this.setShowGutter(spec.gutter);
+        if (spec.textMode !== undefined)       this.setTextMode(spec.textMode);
+        if (spec.theme !== undefined)          this.setTheme(spec.theme);
+        if (spec.lineWrapping !== undefined)   this.setLineWrapping(spec.lineWrapping);
+        if (spec.invisibles !== undefined)     this.setShowInvisibles(spec.invisibles);
+        if (spec.printMargin !== undefined)    this.setShowPrintMargin(spec.printMargin);
+        if (spec.showIndents !== undefined)    this.setShowIndents(spec.showIndents);
         if (spec.showActiveLine !== undefined) this.setShowActiveLine(spec.showActiveLine);
-        if (spec.softTabs !== undefined) this.setSoftTabs(spec.softTabs);
+        if (spec.softTabs !== undefined)       this.setSoftTabs(spec.softTabs);
         if (spec.autocompletion !== undefined) this.setAutocompletionEnabled(spec.autocompletion);
-        if (spec.showWarnings !== undefined) this.setShowWarnings(spec.showWarnings);
-        if (spec.showErrors !== undefined) this.setShowErrors(spec.showErrors);
+        if (spec.showWarnings !== undefined)   this.setShowWarnings(spec.showWarnings);
+        if (spec.showErrors !== undefined)     this.setShowErrors(spec.showErrors);
+        if (spec.tabSize !== undefined)        this.setTabSize(spec.tabSize);
         return this;
     }
 },
@@ -185,6 +187,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowInvisibles(this.getShowInvisibles());
         this.setShowIndents(this.getShowIndents());
         this.setSoftTabs(this.getSoftTabs());
+        this.setTabSize(this.getTabSize());
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
         this.setShowWarnings(this.getShowWarnings());

@@ -253,33 +253,49 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
     wantsMenu: Functions.True,
 
     isActive: function(pane) {
-        return this.browser.selectedNode() &&
-            this.browser.selectedNode().isClassNode
+        if (!this.browser.selectedNode()
+        || !this.browser.selectedNode().isClassNode) return false;
+        var klassName = this.browser.selectedNode().target.name,
+            klass = lively.Class.forName(klassName);
+        return klass && lively.Class.isClass(klass);
     },
 
 
     trigger: function() {
-        return [['view hierarchy', this.viewHierarchy.curry(this.browser.selectedNode().target.name).bind(this)]];
+        return [['view hierarchy', this.viewHierarchy.bind(this, this.browser.selectedNode().target.name)]];
     },
 
     viewHierarchy: function(klassName) {
         var w = lively.morphic.World.current();
 
         var klass = lively.Class.forName(klassName)
-        if (!klass) {
-            w.alert('Cannot find class ' + klassName)
+        if (!klass || !lively.Class.isClass(klass)) {
+            show('No such class ' + klassName)
             return
         }
 
-        var list = klass.withAllSortedSubclassesDo(function(kl, idx, level) {
-            var indent = Array.range(1, level).inject('', function(str, idx) { return str + '  ' });
-            return {isListItem: true, string: indent + (kl.type || kl.name), value: kl};
-        });
+        function makeListItem(klass, level, addString) {
+            return {
+                isListItem: true,
+                value: klass,
+                string: Strings.indent((addString || '') + (klass.type || klass.name), '  ', level)
+            };
+        }
+
+        var superclasses = klass.superclasses().map(function(kl,i ) { return makeListItem(kl, i); }),
+            list = klass.withAllSortedSubclassesDo(function(kl, idx, level) {
+                var indent = level + superclasses.length;
+                return kl === klass ? makeListItem(kl, indent - 1, '-->') : makeListItem(kl, indent);
+            });
+
         //var listPane = newRealListPane(new Rectangle(0,0, 400, 400));
         //listPane.innerMorph().updateList(list);
         // w.addFramedMorph(listPane, klass.type + ' and its subclasses');
-        var asText = list.pluck('string').join('\n');
-        w.addTextWindow({title: klass.type + ' and its subclasses', content: asText});
+        var asText = superclasses.concat(list).pluck('string').join('\n');
+        w.addCodeEditor({
+            title: klass.type + ' and its subclasses', content: asText,
+            textMode: 'text', tabSize: 2
+        });
     },
 
 });

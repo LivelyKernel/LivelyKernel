@@ -1,4 +1,4 @@
-module('lively.ast.tests.OldDebuggerTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.OldDebuggerTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.ast.Interpreter', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.AstTests.ExecutionStateReifierTest',
 'running', {

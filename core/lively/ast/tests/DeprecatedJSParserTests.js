@@ -1,4 +1,4 @@
-module('lively.ast.tests.DeprecatedJSParserTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.DeprecatedJSParserTests').requires('lively.ast.Parser', 'lively.ast.Interpreter', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
 'running', {

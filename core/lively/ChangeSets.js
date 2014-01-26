@@ -3141,6 +3141,7 @@ lively.BuildSpec("ChangesetsFlap", {
     currentMenu: null,
     doNotSerialize: ["currentMenu"],
     droppingEnabled: true,
+    grabbingEnabled: false,
     isEpiMorph: true,
     menu: null,
     name: "ChangesetsFlap",

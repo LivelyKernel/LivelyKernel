@@ -71,18 +71,14 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     _Extent: lively.pt(130.0,30.0),
     _Fill: Color.rgba(255,255,255,0.8),
     _HandStyle: "pointer",
-    _Position: lively.pt(2972.6,-10.0),
     className: "lively.morphic.Box",
     currentMenu: null,
     doNotSerialize: ["currentMenu"],
-    droppingEnabled: true,
-    fixedPosition: lively.pt(1751.6,-10.0),
-    fixedScale: 1,
+    grabbingEnabled: false,
     isEpiMorph: true,
     isFixed: true,
     menu: null,
     name: "Lively2LivelyStatus",
-    sourceModule: "lively.morphic.Core",
     style: {zIndex: 998},
     statusText: {
         isMorphRef: true,
@@ -100,10 +96,6 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         allowInput: false,
         className: "lively.morphic.Text",
         doNotSerialize: ["charsTyped"],
-        emphasis: [[0,9,{
-            fontWeight: "normal",
-            italics: "normal"
-        }]],
         evalEnabled: false,
         eventsAreIgnored: true,
         fixedHeight: true,
@@ -123,7 +115,6 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
             position: lively.pt(6.5,12.0),
             textColor: Color.rgb(127,230,127)
         },
-        submorphs: [],
         textString: "Connected"
     }],
     alignInWorld: function alignInWorld() {
@@ -270,22 +261,11 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
     _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(630.0,395.0),
     _Position: lively.pt(2310.0,23.0),
-    cameForward: false,
     className: "lively.morphic.Window",
-    collapsedExtent: null,
-    collapsedTransform: null,
     contentOffset: lively.pt(4.0,22.0),
-    doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
     draggingEnabled: true,
-    expandedExtent: null,
-    expandedTransform: null,
-    highlighted: false,
-    ignoreEventsOnExpand: false,
-    layout: {
-        adjustForNewBounds: true
-    },
+    layout: {adjustForNewBounds: true},
     name: "Lively2LivelyChat",
-    sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _BorderWidth: 1,
@@ -295,16 +275,12 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         className: "lively.morphic.Box",
         doNotSerialize: ['usersInitialized'],
         droppingEnabled: true,
-        layout: {
-            adjustForNewBounds: true,
-            resizeHeight: true,
-            resizeWidth: true
-        },
+        layout: { adjustForNewBounds: true, resizeHeight: true, resizeWidth: true },
         name: "Lively2LivelyChat",
         sourceModule: "lively.morphic.Core",
         submorphs: [{
             _BorderColor: Color.rgb(242,242,242),
-            _BorderWidth: 3.2560000000000002,
+            _BorderWidth: 3,
             _ClipMode: "auto",
             _Extent: lively.pt(600.0,110.0),
             _Fill: Color.rgb(255,255,255),
@@ -324,8 +300,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             this.initializeLayout({type: 'tiling', spacing: 10});
             this.itemList = [];
             this.itemMorphs = [];
-            // ?????
-            this.applyStyle({borderColor: Color.rgb(242,242,242), borderWidth: 3.404})
         },
             reset: function reset() {
             this.initializeLayout({type: 'tiling'});
@@ -350,13 +324,8 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             _setShowActiveLine: false,
             _setShowIndents: true,
             className: "lively.morphic.CodeEditor",
-            doNotSerialize: ["aceEditor","aceEditorAfterSetupCallbacks","savedTextString"],
-            hasRobertsKeys: true,
             isCommandLine: true,
-            layout: {
-                moveVertical: true,
-                resizeWidth: true
-            },
+            layout: { moveVertical: true, resizeWidth: true },
             name: "CommandLine",
             sourceModule: "lively.ide.CodeEditor",
             storedString: "",
@@ -405,12 +374,10 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
             _Fill: Color.rgb(255,255,255),
             _Position: lively.pt(10.0,126.0),
             className: "lively.morphic.Box",
-            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
             isInLayoutCycle: false,
             name: "MessageList",
-            sourceModule: "lively.morphic.Core",
-            submorphs: []
+            sourceModule: "lively.morphic.Core"
         }],
         getLastActiveSessionIfFor: function getLastActiveSessionIfFor(userMorph) {
         // userMorph = this.get('robertkrahn')

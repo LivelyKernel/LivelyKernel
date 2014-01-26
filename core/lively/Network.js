@@ -38,11 +38,14 @@ module('lively.Network').requires('lively.bindings', 'lively.Data', 'lively.net.
     }
 })();
 
-Object.subclass('URL', {
+Object.subclass('URL',
+"settings",
+{
     isURL: true,
     splitter: new RegExp('^(http|https|file)://([^/:]*)(:([0-9]+))?(/.*)?$'),
     pathSplitter: new RegExp("([^\\?#]*)(\\?[^#]*)?(#.*)?"),
-
+},
+'initializing', {
     initialize: function(/*...*/) { // same field names as window.location
         var firstArg = arguments[0];
         if (!firstArg) throw new Error("URL constructor expecting string or URL parameter");
@@ -77,6 +80,8 @@ Object.subclass('URL', {
             if (spec.hash !== undefined) this.hash = spec.hash;
         }
     },
+},
+"accessing", {
 
     inspect: function() {
         return JSON.serialize(this);
@@ -126,6 +131,47 @@ Object.subclass('URL', {
             this : new URL(this.withoutQuery().toString() + '/');
     },
 
+    getAllParentDirectories: function() {
+        var url = this, all = [], max = 100;;
+        do {
+            max--;
+            if (max == 0) throw new Error('Endless loop in URL>>getAllParentDirectories?')
+            all.push(url);
+            url = url.getDirectory();
+        } while (url.fullPath() != '/')
+        return all.reverse();
+    },
+
+    toQueryString: function(record) {
+        var results = [];
+        Properties.forEachOwn(record, function(p, value) {
+            results.push(encodeURIComponent(p) + "=" + encodeURIComponent(String(value)));
+        });
+        return results.join('&');
+    },
+
+    getQuery: function() {
+        var s = this.toString();
+        if (!s.include("?"))
+            return {};
+        return s.toQueryParams();
+    },
+
+    toLiteral: function() {
+        // URLs are literal
+        return Object.clone(this);
+    },
+
+    toExpression: function() {
+        // this does not work with the new prototype.js (rev 2808) anymore
+        // return 'new URL(JSON.unserialize(\'' + JSON.serialize(this) + '\'))';
+        return Strings.format('new URL({protocol: "%s", hostname: "%s", pathname: "%s"})',
+            this.protocol, this.hostname, this.pathname);
+    }
+
+},
+"conversion", {
+
     withPath: function(path) {
         var result = path.match(this.pathSplitter);
         if (!result) return null;
@@ -152,14 +198,6 @@ Object.subclass('URL', {
             hostname: this.hostname, pathname: dirPart + filename});
     },
 
-    toQueryString: function(record) {
-        var results = [];
-        Properties.forEachOwn(record, function(p, value) {
-            results.push(encodeURIComponent(p) + "=" + encodeURIComponent(String(value)));
-        });
-        return results.join('&');
-    },
-
     withQuery: function(record) {
         return new URL({protocol: this.protocol, port: this.port, hostname: this.hostname, pathname: this.pathname,
             search: "?" + this.toQueryString(record), hash: this.hash});
@@ -169,34 +207,21 @@ Object.subclass('URL', {
         return new URL({protocol: this.protocol, port: this.port, hostname: this.hostname, pathname: this.pathname});
     },
 
-    getQuery: function() {
-        var s = this.toString();
-        if (!s.include("?"))
-            return {};
-        return s.toQueryParams();
+    withRelativePartsResolved: function() {
+        var path = this.fullPath(),
+            result = path;
+        // /foo/../bar --> /bar
+        do {
+            path = result;
+            result = path.replace(/\/[^\/]+\/\.\./, '');
+        } while (result != path);
+        // foo//bar --> foo/bar
+        result = result.replace(/([^:])[\/]+/g, '$1/');
+        // foo/./bar --> foo/bar
+        result = result.replace(/\/\.\//g, '/');
+        return this.withPath(result);
     },
 
-    eq: function(url) {
-        if (!url) return false;
-        return url.protocol == this.protocol &&
-            url.port == this.port &&
-            url.normalizedHostname() == this.normalizedHostname() &&
-            url.pathname == this.pathname &&
-            url.search == this.search &&
-            url.hash == this.hash;
-    },
-    eqDomain: function(url) {
-        if (!url) return false;
-        return url.protocol == this.protocol &&
-            url.port == this.port &&
-            url.normalizedHostname() == this.normalizedHostname();
-    },
-
-
-    isIn: function(origin) {
-        return origin.normalizedHostname() == this.normalizedHostname() &&
-            this.fullPath().startsWith(origin.fullPath());
-    },
 
     relativePathFrom: function(origin) {
         function checkPathes(path1, path2) {
@@ -226,11 +251,40 @@ Object.subclass('URL', {
             throw new Error('pathname differs in relativePathFrom ' + origin + ' vs ' + this);
         return relPath;
     },
+
     saveRelativePathFrom: function(url) {
         // if hostname of this and url is the same just return #relativePathFrom
         // otherwise return the whole relative path of this
         return this.hostname === url.hostname ? this.relativePathFrom(url) : this.pathname.replace(/^\/?/, '');
+    }
+
+},
+"comparison", {
+
+    eq: function(url) {
+        if (!url) return false;
+        return url.protocol == this.protocol &&
+            url.port == this.port &&
+            url.normalizedHostname() == this.normalizedHostname() &&
+            url.pathname == this.pathname &&
+            url.search == this.search &&
+            url.hash == this.hash;
     },
+
+    eqDomain: function(url) {
+        if (!url) return false;
+        return url.protocol == this.protocol &&
+            url.port == this.port &&
+            url.normalizedHostname() == this.normalizedHostname();
+    },
+
+    isIn: function(origin) {
+        return origin.normalizedHostname() == this.normalizedHostname() &&
+            this.fullPath().startsWith(origin.fullPath());
+    }
+
+},
+"svn support", {
 
     svnWorkspacePath: function() {
         // heuristics to figure out the Subversion path
@@ -254,44 +308,8 @@ Object.subclass('URL', {
         // --> "http://localhost/livelyBranch/proxy/wiki/index.xhtml"
         return this.withPath(this.fullPath().replace(/(.*)!svn\/bc\/[0-9]+\/(.*)/, '$1$2'));
     },
-
-    toLiteral: function() {
-        // URLs are literal
-        return Object.clone(this);
-    },
-
-    toExpression: function() {
-        // this does not work with the new prototype.js (rev 2808) anymore
-        // return 'new URL(JSON.unserialize(\'' + JSON.serialize(this) + '\'))';
-        return Strings.format('new URL({protocol: "%s", hostname: "%s", pathname: "%s"})',
-            this.protocol, this.hostname, this.pathname);
-    },
-
-    withRelativePartsResolved: function() {
-        var path = this.fullPath(),
-            result = path;
-        // /foo/../bar --> /bar
-        do {
-            path = result;
-            result = path.replace(/\/[^\/]+\/\.\./, '');
-        } while (result != path);
-        // foo//bar --> foo/bar
-        result = result.replace(/([^:])[\/]+/g, '$1/');
-        // foo/./bar --> foo/bar
-        result = result.replace(/\/\.\//g, '/');
-        return this.withPath(result);
-    },
-
-    getAllParentDirectories: function() {
-        var url = this, all = [], max = 100;;
-        do {
-            max--;
-            if (max == 0) throw new Error('Endless loop in URL>>getAllParentDirectories?')
-            all.push(url);
-            url = url.getDirectory();
-        } while (url.fullPath() != '/')
-        return all.reverse();
-    },
+},
+"lively support", {
 
     asWebResource: function() { return new WebResource(this) },
 
@@ -314,6 +332,14 @@ Object.subclass('URL', {
         }
         return moduleName.replace(/\//g, '.');
     },
+
+    withoutTimemachinePath: function() {
+        var pn = this.pathname,
+            match = pn.match(/^\/timemachine\/[^\/]+/);
+        return match ?
+            URL.fromLiteral(Object.merge([this, {pathname: pn.replace(match, '')}])) :
+            this;
+    }
 
 });
 

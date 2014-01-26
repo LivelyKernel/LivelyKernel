@@ -249,8 +249,9 @@ lively.morphic.World.addMethods(
             json = serializer.serialize(this, null, serializer);
 
         // Step 2: Create a new document
-        bootstrapModuleURL = bootstrapModuleURL ? new URL(bootstrapModuleURL) : new URL(module("lively.bootstrap").uri());
-        url = new URL(url);
+        bootstrapModuleURL = bootstrapModuleURL ?
+            new URL(bootstrapModuleURL) :
+            new URL(module("lively.bootstrap").uri()).withoutTimemachinePath();
         var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
             title = this.name || url.filename().replace(/\.x?html$/, ''),
             bootstrapFile = bootstrapModuleURL.relativePathFrom(url),

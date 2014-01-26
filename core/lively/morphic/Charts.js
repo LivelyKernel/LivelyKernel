@@ -15,6 +15,10 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         this.setBorderWidth(0);
     },
     
+    getTipPosition: function() {
+        return this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, this.getExtent().y));
+    },
+    
     isActive: function() {
         return this.activated;
     },
@@ -60,7 +64,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
     activate: function() {
         this.activated = true;
-        this.componentMorph.onArrowActivated();
+        this.componentMorph.onArrowActivated(this);
         this.setFill(Color.rgbHex("77D88B"));
     },
     
@@ -88,8 +92,65 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         );
         
         $world.addMorph(newComponent);
+        this.componentMorph.refreshConnectionLines();
     }
 });
+
+lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
+    onMouseUp: function(e) {
+        if (e.isLeftMouseButtonDown()) {
+            this.openDataInspector(e.getPosition());
+        }
+    },
+    
+    remove: function($super) {
+        if (this.viewer) {
+            this.viewer.getWindow().remove();
+        }
+        $super();
+    },
+    
+    openDataInspector: function(evtPosition) {
+        this.viewer = $world.loadPartItem('JsonViewer', 'PartsBin/BP2013H2');
+        this.viewer.dataSource = this.from;
+        this.viewer.update = function() {
+            this.data = this.dataSource.data;
+            this.updateComponent();
+        }
+        this.viewer.openInWindow();
+        this.viewer.getWindow().setPosition(evtPosition);
+        this.viewer.getWindow().openInHand();
+        this.viewerLine = new lively.morphic.Path([evtPosition, evtPosition]);
+        var converter = function(pos) {
+            return pos.addPt(pt(250,250));
+        }
+        connect(this.viewer.getWindow(), '_Position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
+        $world.addMorph(this.viewerLine);
+        this.viewer.update();
+    },
+    
+    notifyViewer: function() {
+        if (this.viewer) {
+            this.viewer.update();
+        }
+    },
+    
+    onMouseOver: function() {
+        this.setBorderWidth(5);
+    },
+    
+    onMouseOut: function() {
+        this.setBorderWidth(1);
+    }, 
+    
+    initialize: function($super, vertices, from) {
+        $super(vertices);    
+        this.setBorderColor(Color.rgb(94,94,94));
+        this.from = from;
+    },
+    
+});
+
 
 lively.morphic.Morph.subclass("lively.morphic.Charts.LinearLayout", {
     
@@ -279,12 +340,62 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         var _this = this;
         this.arrows.each(function(arrow){
-            neighbor = _this.getComponentInDirection(1, arrow.getPositionInWorld());
+            neighbor = _this.getComponentInDirection(1, arrow.getTipPosition());
             if (neighbor) {
                 _this.neighbors.push(neighbor);
             }
         });
     },
+    
+    drawConnectionLine: function(arrow) {
+        var target = this.getComponentInDirection(1, arrow.getTipPosition());
+        
+        if (target && arrow.isActive()) {
+            // found component to send data to, so draw connection
+            
+            arrow.target = target;
+            var from = pt(arrow.getExtent().x/2,arrow.getExtent().y);
+            var to = pt(from.x, target.getPositionInWorld().y - arrow.getTipPosition().y + arrow.getExtent().y);
+            arrow.connectionLine = new lively.morphic.Charts.Line([from, to], this);
+            arrow.connectionLine.setBorderStyle('dashed');
+            arrow.addMorph(arrow.connectionLine);
+        }
+    },
+    
+
+    
+    drawAllConnectionLines: function() {
+        var _this = this;
+        this.arrows.each(function(ea) {
+            _this.drawConnectionLine(ea);
+        });
+    },
+    
+
+    
+    refreshConnectionLines: function() {
+        this.removeAllConnectionLines();
+        this.drawAllConnectionLines();
+    },
+    
+    removeConnectionLine: function(arrow) {
+        if (arrow.connectionLine) {
+            arrow.target = null;
+            arrow.connectionLine.remove();
+            arrow.connectionLine = null;
+        }
+    },
+    
+
+    
+    removeAllConnectionLines: function() {
+        var _this = this;
+        this.arrows.each(function(ea) {
+            _this.removeConnectionLine(ea);
+        });
+    },
+    
+
     
     notifyNeighborsOfDragEnd: function() {
         var neighbor;
@@ -301,13 +412,15 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         });
     },
     
-    onArrowActivated: function() {
-        debugger;
+    onArrowActivated: function(arrow) {
+        this.drawConnectionLine(arrow);
         this.update();
     },
     
     onArrowDeactivated: function(arrow) {
         var component = this.getComponentInDirection(1, arrow.getPositionInWorld());
+        
+        this.removeConnectionLine(arrow);
        
         if (component) {
             component.notify();
@@ -363,6 +476,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         return pos.subPt(remainder).addPt(offset);
     },
     
+    remove: function($super) {
+        this.onClose();
+        $super();
+    },
+    
     addPreviewMorph: function() {
         var morph = $morph("PreviewMorph" + this);
         if (!morph) {
@@ -393,10 +511,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     onResizeEnd: function() {
         var newExtent = this.calculateSnappingExtent(true);
         this.setExtent(newExtent, this.resizingFrom);
+        this.drawAllConnectionLines();
         this.removePreviewMorph();
         this.setOpacity(1);
     },
     onResizeStart: function() {
+        this.removeAllConnectionLines();
         this.addPreviewMorph();
         this.setOpacity(0.7);
     },
@@ -404,6 +524,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     onDragStart: function($super, evt) {
         $super(evt);
+        debugger;
+        this.removeAllConnectionLines();
+        
+        // Save the upper neighbor, so that it can be notified to redraw
+        // its connection lines. It can not be notified at the moment, since
+        // since we are still below it. Notification is done in onDropOn.
+        
+        // FanIn might change this due to multiple upper neighbors
+        this.savedUpperNeighbor = this.getComponentInDirection(-1);
+        
         this.addPreviewMorph();
         this.setOpacity(0.7);
         this.notifyNeighborsOfDragStart();
@@ -426,13 +556,23 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     onDragEnd: function($super, evt) {
         $super(evt);
         // positioning is done in onDropOn
-        this.notifyNeighborsOfDragEnd();
+        
         this.removePreviewMorph();
         this.setOpacity(1);
         
         this.getAllComponents().each(function (ea) {
             ea.cachedPosition = null;
         });
+    },
+    
+    onClose: function() {
+        
+        var neighbor = this.getComponentInDirection(-1);
+        if (neighbor) {
+            setTimeout(function() {
+                neighbor.refreshConnectionLines();
+            },0);
+        }
     },
     
     gridWidth: 20,
@@ -546,6 +686,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             var newext = this.calculateSnappingExtent();
             this.setExtent(newext);
         }
+        if (this.savedUpperNeighbor) {
+            this.savedUpperNeighbor.refreshConnectionLines();
+            this.savedUpperNeighbor = null;
+        }
+        var neighbor = this.getComponentInDirection(-1);
+        if (neighbor) {
+            neighbor.refreshConnectionLines();
+        }
+        this.drawAllConnectionLines();
+        this.notifyNeighborsOfDragEnd();
         this.notify();
     },
     
@@ -595,6 +745,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         var _this = this;
         this.arrows.each(function (arrow){
             if (arrow.isActive()) {
+                if (arrow.connectionLine) {
+                    arrow.connectionLine.notifyViewer();
+                }
                 var dependentComponent = _this.getComponentInDirection(1, arrow.getPositionInWorld());
                 if (dependentComponent) {
                     dependentComponent.notify();

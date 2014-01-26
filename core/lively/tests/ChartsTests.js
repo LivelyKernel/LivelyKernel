@@ -1,9 +1,244 @@
-module('lively.tests.ChartsTests').requires().toRun(function() {
+module('lively.tests.ChartsTests').requires('lively.morphic.Charts').toRun(function() {
 
-TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
+TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
+'setup/teardown', {
+    
     setUp: function() {
 		this.helper = new lively.tests.ChartsTests.Helper();
     },
+    
+    tearDown: function() {
+        // delete all dataflow components
+        // this fixes the problem that a failing test leaves components behind and affects other tests
+        $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.Charts.Component;
+        }).each(function(ea) {
+            ea.remove();
+        });
+    },
+}, 'connection line', {
+    
+    testToggleWithTarget: function() {
+        var components = this.helper.createComponents(2);
+        
+        // there is no line before activation
+        this.assertEquals(components[0].arrows[0].connectionLine, null);
+        
+        components[0].arrows[0].activate();
+        
+        // there is a line after activation
+        this.assert(components[0].arrows[0].connectionLine != null);
+        
+        components[0].arrows[0].deactivate();
+        
+        // there is no line after deactivation
+        this.assertEquals(components[0].arrows[0].connectionLine, null);
+    },
+    
+    testToggleWithoutTarget: function() {
+        var component = this.helper.createComponent();
+        
+        // there is no line before activation
+        this.assertEquals(component.arrows[0].connectionLine, null);
+        
+        component.arrows[0].activate();
+        
+        // there is no line after activation
+        this.assertEquals(component.arrows[0].connectionLine, null);
+        
+        component.arrows[0].deactivate();
+        
+        // there is no line after deactivation
+        this.assertEquals(component.arrows[0].connectionLine, null);
+    },
+    
+    testDrawIncomingLineOnDragBelow: function() {
+        var components = this.helper.createComponents(2, [pt(0,0), pt(1,1)]);
+        components[0].arrows[0].activate();
+        
+        // there is no line before dragging
+        this.assertEquals(components[0].arrows[0].connectionLine, null);
+        
+        this.drag([pt(-40,20), pt(-400,20)], components[1]);
+        
+        // there is a line after dragging
+        this.assert(components[0].arrows[0].connectionLine != null);
+    },
+    
+    testRemoveIncomingLineOnDragAway: function() {
+        var components = this.helper.createComponents(2);
+        components[0].arrows[0].activate();
+        
+        // there is a line before dragging
+        this.assert(components[0].arrows[0].connectionLine != null);
+        
+        this.drag([pt(40,20), pt(400,20)], components[1]);
+        
+        // there is no line after dragging
+        this.assertEquals(components[0].arrows[0].connectionLine, null);
+    },
+    
+    testRefreshLineOnDragBetween: function() {
+        var components = this.helper.createComponents(3, [pt(0,0), pt(0,1), pt(1,1)]);
+        
+        components[0].arrows[0].activate();
+        components[2].arrows[0].activate();
+        
+        // there is a line between component 0 and 1
+        this.assert(components[0].arrows[0].connectionLine != null);
+        this.assertEquals(components[0].arrows[0].target, components[1]);
+        
+        this.drag([pt(0,-50), pt(-405,-50)], components[2]);
+        
+        // there is a line between 0 and 2
+        this.assert(components[0].arrows[0].connectionLine != null);
+        this.assertEquals(components[0].arrows[0].target, components[2]);
+        
+        // there is a line between 2 and 1
+        this.assert(components[2].arrows[0].connectionLine != null);
+        this.assertEquals(components[2].arrows[0].target, components[1]);
+    },
+    
+    testRefreshLineOnDragFromBetween: function() {
+        var components = this.helper.createComponents(3);
+        
+        components[0].arrows[0].activate();
+        components[1].arrows[0].activate();
+        
+        // there is a line between component 0 and 1
+        this.assert(components[0].arrows[0].connectionLine != null);
+        this.assertEquals(components[0].arrows[0].target, components[1]);
+        
+        // there is a line between component 1 and 2
+        this.assert(components[1].arrows[0].connectionLine != null);
+        this.assertEquals(components[1].arrows[0].target, components[2]);
+        
+        this.drag([pt(50,20), pt(405,20)], components[1]);
+        
+        // there is a line between component 0 and 2
+        this.assert(components[0].arrows[0].connectionLine != null);
+        this.assertEquals(components[0].arrows[0].target, components[2]);
+        
+        // component 1 has no line anymore
+        this.assertEquals(components[1].arrows[0].connectionLine, null);
+    },
+    
+    testRefreshLineOnDeleteFromBetween: function() {
+        var components = this.helper.createComponents(3);
+        
+        components[0].arrows[0].activate();
+        components[1].arrows[0].activate();
+        
+        // there is a line between component 0 and 1
+        this.assert(components[0].arrows[0].connectionLine != null);
+        this.assertEquals(components[0].arrows[0].target, components[1]);
+        
+        // there is a line between component 1 and 2
+        this.assert(components[1].arrows[0].connectionLine != null);
+        this.assertEquals(components[1].arrows[0].target, components[2]);
+        
+        components[1].remove();
+        
+        // there is a line between component 0 and 2
+        this.assert(components[0].arrows[0].connectionLine != null);
+        this.assertEquals(components[0].arrows[0].target, components[2]);
+    }
+}, 'dragging', {
+    
+    testDragBetween: function() {
+        // test that component creates space between components and snaps into that gap
+        
+        var components = this.helper.createComponents(2);
+        var newComponent = this.helper.createComponent(pt(1, 1));
+        
+        this.drag([pt(-400,-20), pt(-405,-20)], newComponent);
+        
+        // assert that newComponent is below the component[0]
+        var position = newComponent.getPosition();
+        var posBelow = components[0].getPosition().addPt(pt(0, components[0].getExtent().y + components[0].componentOffset));
+        
+        this.assertEquals(position, posBelow);
+        
+        // assert that component[1] is below the newComponent
+        position = components[1].getPosition();
+        posBelow = newComponent.getPosition().addPt(pt(0, newComponent.getExtent().y + components[0].componentOffset));
+        
+        this.assertEquals(position, posBelow);
+    },
+    
+    testPreviewDragBetween: function() {
+        // test that the preview creates space between two components
+        
+        var components = this.helper.createComponents(2);
+        var newComponent = this.helper.createComponent(pt(1, 1));
+        
+        // drag new component between the two others without dropping
+        this.drag([pt(-400,-20), pt(-405,-20)], newComponent, false);
+        
+        // assert that preview snaps below component[0]
+        var preview = $morph('PreviewMorph' + newComponent);
+        var position = preview.getPosition();
+        var posBelow = components[0].getPosition().addPt(pt(0, components[0].getExtent().y + components[0].componentOffset));
+        
+        this.assertEquals(position, posBelow);
+        
+        // assert that component[1] is below the preview
+        position = components[1].getPosition();
+        posBelow = preview.getPosition().addPt(pt(0, preview.getExtent().y + components[0].componentOffset));
+        
+        this.assertEquals(position, posBelow);
+        
+        // drop it to finish the drag
+        this.mouseEvent('up', pt(-405,-20), newComponent);
+    },
+    
+    testPreviewOnDrag: function() {
+        // test that preview appears and disappears while dragging
+        
+        // there is no preview
+        var component = this.helper.createComponents(1).first();
+        this.assertEquals($morph("PreviewMorph" + component), null);
+        
+        // preview appears
+        this.drag([pt(300,300)], component, false);
+        this.assert($morph("PreviewMorph" + component) != null);
+
+        // preview disappears
+        this.mouseEvent('up', pt(300,300), component);
+        this.assertEquals($morph("PreviewMorph" + component), null);
+
+    },
+}, 'grid', {
+    
+    testSnapToGrid: function() {
+        // test that component snaps to a grid position
+        
+        var component = this.helper.createComponent();
+        
+        this.drag([pt(123,456)], component);
+        
+        var position = component.getPosition();
+        
+        this.assertEquals(position.x % component.gridWidth, 0);
+        this.assertEquals(position.y % component.gridWidth, 0);
+    },
+    
+    testSettingExtentSnapsToGrid: function() {
+        // test that the omponent snaps to the grid after resizing
+        
+        var component = this.helper.createComponent();
+        component.setExtent(component.getExtent().addPt(pt(20,20)));
+        
+        // invoke this event manually, since this is normally called by the resize halo
+        component.onResizeEnd();
+        
+        var extent = component.getExtent();
+        
+        this.assertEquals(extent.x % component.gridWidth, 0);
+        this.assertEquals(extent.y % component.gridWidth, 0);
+    },
+}, 'fan', {
+    
     testFanInInputs: function() {
         // Test whether the FanIn Components gets as many input data as there are components above
         
@@ -21,17 +256,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         this.assertEquals(fanIn.data.length, 3);
         
     },
-
-
-    tearDown: function() {
-        // delete all dataflow components
-        // this fixes the problem that a failing test leaves components behind and affects other tests
-        $world.withAllSubmorphsSelect(function(el) {
-            return el instanceof lively.morphic.Charts.Component;
-        }).each(function(ea) {
-            ea.remove();
-        });
-    },
+}, 'notification', {
     
     testNotify: function() {
         // test that following components are notified
@@ -82,16 +307,24 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         this.assertEquals(components[1].data, null);
     },
     
+     testNoInput: function() {
+        // test that refreshing data does not fail when there is no component above
+        
+        var component = this.helper.createComponent();
+        component.notify();
+        
+        this.assertEquals(component.data, null);
+    },
+}, 'resizing', {
+    
     testResizeOnDropBelow: function() {
         // test that component resizes on drop below a component
         
         var components = this.helper.createComponents(2, [pt(0,0), pt(1,1)]);
         
         components[1].setExtent(components[1].getExtent().subPt(pt(100,0)));
-        
-        this.mouseEvent('down', pt(20,20), components[1]);
-        this.mouseEvent('move', pt(-500,0), components[1]);
-        this.mouseEvent('up', pt(-500,0), components[1]);
+    
+        this.drag([pt(-500,0)], components[1]);
         
         var extent0 = components[0].getExtent();
         var extent1 = components[1].getExtent();
@@ -105,10 +338,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         var components = this.helper.createComponents(2, [pt(0,0), pt(1,1)]);
         
         components[1].setExtent(components[1].getExtent().subPt(pt(100,0)));
-        
-        this.mouseEvent('down', pt(20,20), components[1]);
-        this.mouseEvent('move', pt(-300,20), components[1]);
-        this.mouseEvent('move', pt(-305,20), components[1]);
+        this.drag([pt(-300,20), pt(-305,20)], components[1], false);
         
         var extent0 = components[0].getExtent();
         var extentPrev = $morph("PreviewMorph" + components[1]).getExtent();
@@ -119,7 +349,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         // preview should have been as wide as component above
         this.assertEquals(extent0.x, extentPrev.x);
     },
-    
+}, 'neighbor interaction', {
 
     testFindingNeighbours: function() {
         // test that correct neighbours are found
@@ -146,6 +376,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         this.assertEquals(foundComponent, null);
 
     },
+}, 'helper', {
     
     mouseEvent: function(type, pos, target, button) {
         if (button == undefined)
@@ -154,115 +385,23 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest', {
         this.doMouseEvent({type: 'mouse' + type, pos: pos, target: target, button: button});
     },
     
-    testPreviewOnDrag: function() {
-        // test that preview appears and disappears while dragging
+    drag: function(via, component, drop) {
+        if (drop == undefined) {
+            drop = true;
+        }
         
-        // there is no preview
-        var component = this.helper.createComponents(1).first();
-        this.assertEquals($morph("PreviewMorph" + component), null);
-        // preview appears
-        this.mouseEvent('down', pt(20,20), component);
-        this.mouseEvent('move', pt(300,300), component);
-        this.assert($morph("PreviewMorph" + component) != null);
-
-        // preview disappears
-        this.mouseEvent('up', pt(300,300), component);
-        this.assertEquals($morph("PreviewMorph" + component), null);
-
-    },
-    
-    testSnapToGrid: function() {
-        // test that component snaps to a grid position
+        this.mouseEvent('down', pt(0,0), component);
         
-        var component = this.helper.createComponent();
-        
-        this.mouseEvent('down', pt(20,20), component);
-        this.mouseEvent('move', pt(123,456), component);
-        this.mouseEvent('up', pt(123,456), component);
-        
-        var position = component.getPosition();
-        
-        this.assertEquals(position.x % component.gridWidth, 0);
-        this.assertEquals(position.y % component.gridWidth, 0);
-    },
-    testSettingExtentSnapsToGrid: function() {
-        // test that the omponent snaps to the grid after resizing
-        
-        var component = this.helper.createComponent();
-        component.setExtent(component.getExtent().addPt(pt(20,20)));
-        
-        // invoke this event manually, since this is normally called by the resize halo
-        component.onResizeEnd();
-        
-        var extent = component.getExtent();
-        
-        this.assertEquals(extent.x % component.gridWidth, 0);
-        this.assertEquals(extent.y % component.gridWidth, 0);
-    },
-
-    testNoInput: function() {
-        // test that refreshing data does not fail when there is no component above
-        
-        var component = this.helper.createComponent();
-        component.notify();
-        
-        this.assertEquals(component.data, null);
-    },
-
-    
-    testDragBetween: function() {
-        // test that component creates space between components and snaps into that gap
-        
-        var components = this.helper.createComponents(2);
-        var newComponent = this.helper.createComponent(pt(1, 1));
-        
-        this.mouseEvent('down', pt(20,20), newComponent);
-        this.mouseEvent('move', pt(-400,-20), newComponent);
-        this.mouseEvent('move', pt(-405,-20), newComponent);
-        this.mouseEvent('up', pt(-400,-20), newComponent);
-        
-        // assert that newComponent is below the component[0]
-        var position = newComponent.getPosition();
-        var posBelow = components[0].getPosition().addPt(pt(0, components[0].getExtent().y + components[0].componentOffset));
-        
-        this.assertEquals(position, posBelow);
-        
-        // assert that component[1] is below the newComponent
-        position = components[1].getPosition();
-        posBelow = newComponent.getPosition().addPt(pt(0, newComponent.getExtent().y + components[0].componentOffset));
-        
-        this.assertEquals(position, posBelow);
-    },
-    
-    testPreviewDragBetween: function() {
-        // test that the preview creates space between two components
-        
-        var components = this.helper.createComponents(2);
-        var newComponent = this.helper.createComponent(pt(1, 1));
-        
-        // drag new component between the two others
-        this.mouseEvent('down', pt(20,20), newComponent);
-        this.mouseEvent('move', pt(-400,-20), newComponent);
-        this.mouseEvent('move', pt(-405,-20), newComponent);
-        
-        // assert that preview snaps below component[0]
-        var preview = $morph('PreviewMorph' + newComponent);
-        var position = preview.getPosition();
-        var posBelow = components[0].getPosition().addPt(pt(0, components[0].getExtent().y + components[0].componentOffset));
-        
-        this.assertEquals(position, posBelow);
-        
-        // assert that component[1] is below the preview
-        position = components[1].getPosition();
-        posBelow = preview.getPosition().addPt(pt(0, preview.getExtent().y + components[0].componentOffset));
-        
-        this.assertEquals(position, posBelow);
-        
-        // drop it to finish the drag
-        this.mouseEvent('up', pt(-400,-20), newComponent);
-    },
-
+        var _that = this;
+        via.each( function(ea) {
+            _that.mouseEvent('move', ea, component);
+        });
+        if (drop) {
+            this.mouseEvent('up', via.last(), component);
+        }
+    }
 });
+
 Object.subclass('lively.tests.ChartsTests.Helper',
 'default category', {
     createComponents: function(amount, optPositions) {

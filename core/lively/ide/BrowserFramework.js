@@ -783,9 +783,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 });
 
 lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
-'serialization', {
-
-},
 'accessing', {
 
     getPane: function(pane) { return this[pane] && this[pane].innerMorph() },
@@ -901,13 +898,13 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
         if (!newOwner || !newOwner.isWindow || !this.ownerWidget) return;
         this.ownerWidget.updateTitle();
     },
+
     onWindowCollapse: function() {
         var browser = this.ownerWidget;
         if (browser.isNavigationCollapsed) {
             browser.expandNavigation();
         }
     }
-
 
 });
 

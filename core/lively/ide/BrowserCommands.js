@@ -295,7 +295,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
         w.addCodeEditor({
             title: klass.type + ' and its subclasses', content: asText,
             textMode: 'text', tabSize: 2
-        });
+        }).getWindow().comeForward();
     },
 
 });

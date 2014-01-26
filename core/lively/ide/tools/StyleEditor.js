@@ -450,19 +450,12 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _BorderWidth: 1,
                     _Extent: lively.pt(258.4,23.8),
                     _Position: lively.pt(20.0,260.0),
-                    _Scale: 1.01,
                     className: "lively.morphic.Button",
-                    doNotCopyProperties: [],
-                    doNotSerialize: [],
-                    isPressed: false,
                     label: "Configure Layout",
                     name: "layoutConfigButton",
                     padding: lively.rect(5,0,0,0),
                     showsMorphMenu: true,
                     sourceModule: "lively.morphic.Widgets",
-                    submorphs: [],
-                    toggle: false,
-                    value: false,
                     connectionRebuilder: function connectionRebuilder() {
                     lively.bindings.connect(this, "fire", this.get("StyleEditorPane"), "openLayoutConfigurator", {});
                 }

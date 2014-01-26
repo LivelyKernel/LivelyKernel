@@ -141,6 +141,7 @@ lively.BuildSpec('lively.wiki.ToolFlap', {
     currentMenu: null,
     doNotSerialize: ["currentMenu"],
     droppingEnabled: true,
+    grabbingEnabled: false,
     isEpiMorph: true,
     menu: null,
     name: "lively.wiki.ToolFlap",

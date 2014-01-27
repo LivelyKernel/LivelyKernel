@@ -441,6 +441,51 @@ Object.subclass('lively.tests.ChartsTests.Helper',
         });
     }
 });
-layouting
-
+TestCase.subclass('lively.tests.ChartsTests.EntityTest',
+'default category', {
+    getSampleData: function() {
+      return [
+          {
+            author: {name: "author1"},
+            id: "commitsha1",
+            files: [{name: "file1"}, {name: "file2"}, {name: "file3"}]
+          },
+          {
+            author: {name: "author2"},
+            id: "commitsha2",
+            files: [
+              {name: "file2"}, {name: "file4"}
+            ]
+          },
+          { author: {name: "author3"},
+            id: "commitsha3",
+            files: [{name: "file4"}]
+          },
+          { author: {name: "author3"},
+            id: "commitsha4",
+            files: [{name: "file5"}]
+          }
+        ];
+    },
+    
+    testEntityCreation: function() {
+        
+        // create entity with name, source and ID
+        var data = this.getSampleData();
+        var EntityFactory = new lively.morphic.Charts.EntityFactory();
+        
+        var Commit = EntityFactory.createEntityTypeFromList("Commit", data, "id");
+        this.assertEquals(Commit.getAll().length, 4);
+        
+        var Author = Commit.extractEntityFromAttribute("Author", "name", "author");
+        this.assertEquals(Author.getAll().length, 3);
+        
+        var File = Commit.extractEntityFromList("File", "name" , "files");
+        this.assertEquals(File.getAll().length, 5);
+        
+        var totalFileChanges = File.getAll().map(function (file) { return file.getCommits()} ).flatten().length;
+        this.assertEquals(totalFileChanges, 7);
+    
+    },
+});
 }) // end of module

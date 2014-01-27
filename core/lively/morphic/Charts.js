@@ -962,8 +962,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         return morphs;
     },
     
-
-    
     getData : function(target){
         var arrowToTarget = this.arrows.detect(function (arrow){
             var arrowX =  arrow.getTipPosition().x;
@@ -1323,276 +1321,116 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
 
     createEntityTypeFromList : function(entityTypeName, list, identityFunction) {
 
-
-
         var createEntityTypeFromList, _makeEntityType, _addBackReferencesTo, __extractEntityTypeFromList;
 
-
-
         createEntityTypeFromList = function(entityTypeName, list, identityFunction) {
-
-
-
           return _makeEntityType(entityTypeName, list);
-
-
-
         };
-
-
 
         __extractEntityFromAttribute = function (entityTypeName, identityFunction, sourceName) {
-
-
-
           return this.extractEntityFromList(entityTypeName, identityFunction, sourceName, true);
-
-
-
         };
 
-
-
-
-
         __extractEntityTypeFromList = function (entityTypeName, identityFunction, sourceListName, noArray) {
-
-            debugger;
-
             var isFunction = function (functionToCheck) {
-
                var getType = {};
-
                return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
-
             };
 
-
-
           if (!isFunction(identityFunction)) {
-
-
-
               var attr = identityFunction;
 
-
-
               identityFunction = function(ea) { return ea[attr] };
-
-
-
           }
 
-
-
           var currentEntityType = this;
-
           var allNewEntities = {};
 
-
-
           var _getOrAdd = function(file) {
-
-
-
               var id = identityFunction(file);
-
-
-
               if (allNewEntities[id])
-
-
-
                   return allNewEntities[id];
-
-
-
               else {
-
-
-
                   allNewEntities[id] = file;
-
                   return file;
-
               }
-
           };
 
-
-
           currentEntityType.getAll().each(function(eachCurrentEntity) {
-
             var newEntities;
-
-
-
             if (noArray)
-
               newEntities = [eachCurrentEntity[sourceListName]]
-
             else
-
               newEntities = eachCurrentEntity[sourceListName];
 
-
-
             newEntities.each(function(eachNewEntity) {
-
                 eachNewEntity = _getOrAdd(eachNewEntity);
-
-
-
                 currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
-
-
-
             });
 
           });
-
-
-
-          // wasn't there a better way to convert to dictionary?
-
-
-
-          var allNewEntitiesAsList = [];
-
-
-
-          for (var key in allNewEntities) {
-
-              if (allNewEntities.hasOwnProperty(key)) {
-
-                  allNewEntitiesAsList.push(allNewEntities[key]);
-
-              }
-
-          }
-
-
-
-          allNewEntities = allNewEntitiesAsList;
-
-
+    
+          // convert to array
+          allNewEntities = Properties.own(allNewEntities).map(function(key) {return allNewEntities[key]})
 
           return _makeEntityType(entityTypeName, allNewEntities);
-
-
-
         };
-
-
 
         _makeEntityType = function(entityTypeName, list) {
 
-
-
           var Entity = {
-
-
-
             items : list,
-
             entityTypeName : entityTypeName,
-
             itemsProto : {}
-
           };
-
-
 
           var proto = {
-
             extractEntityFromList : __extractEntityTypeFromList,
-
             extractEntityFromAttribute : __extractEntityFromAttribute,
-
             _addBackReferencesTo : _addBackReferencesTo,
-
-          getAll : function() { return Entity.items }
-
+            getAll : function() { return Entity.items }
           };
-
-
 
           Entity.__proto__ = proto;
 
-
-
           Entity.setIdentityAttribute = function(attributeGetter) {
 
-
-
             Entity.items = Entity.getAll().uniqBy(function(a, b) { return attributeGetter(a) == attributeGetter(b) });
-
-
 
             // Entity.getIdentity = ... ?
 
             return Entity.items;
-
           };
 
-
-
           Entity.mapTo = function() {
-
             console.warn("yet to implement");
-
           }
 
-
-
           return Entity;
-
         };
-
-
 
         _addBackReferencesTo = function(entity, reference) {
 
-
-
           var attribute = "referencing" + this.entityTypeName + "s";
 
-
-
           if (!entity[attribute])
-
             entity[attribute] = [];
 
           entity[attribute].push(reference);
 
-
-
           Object.defineProperty(entity, attribute, {
-
             enumerable: false,
-
             writable: true
-
           });
 
-
-
           entity["get" + this.entityTypeName + "s"] = function() {
-
             return this[attribute];
-
           };
 
-
-
           return entity;
-
         };
 
-
-
         return _makeEntityType(entityTypeName, list);
-
     },
 
 

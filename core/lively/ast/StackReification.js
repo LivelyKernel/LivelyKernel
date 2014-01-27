@@ -44,8 +44,8 @@ Object.extend(lively.ast.StackReification, {
         throw {isUnwindException: true, lastFrame: frame, topFrame: frame}
     },
 
-    run: function(func) {
-        if (!func.livelyDebuggingEnabled) func = func.stackCaptureMode();
+    run: function(func, astRegistry) {
+        if (!func.livelyDebuggingEnabled) func = func.stackCaptureMode(null, astRegistry);
         var result;
         try { return {isContinuation: false, returnValue: func()} } catch(e) {
             return e.isUnwindException ?
@@ -79,7 +79,7 @@ Object.extend(Function.prototype, {
     },
 
     stackCaptureMode: function(varMapping, astRegistry) {
-        var closure = this.asRewrittenClosure(astRegistry),
+        var closure = this.asRewrittenClosure(varMapping, astRegistry),
             rewrittenFunc = closure.getRewrittenFunc();
         if (!rewrittenFunc) throw new Error('Cannot rewrite ' + this);
         return rewrittenFunc;

@@ -151,158 +151,6 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     
 });
 
-
-lively.morphic.Charts.Component.subclass("lively.morphic.Charts.LinearLayout", {
-    
-    initialize: function($super, w, h) {
-        $super();
-        this.setFill(Color.white);
-        this.setExtent(pt(w, h));
-        this.OFFSET = 20;
-        this.currentX = this.OFFSET;
-    },
-    
-    addElement: function(element){
-        morph = element.morph.duplicate();
-        morph.setPosition(pt(this.currentX, this.getExtent().y - morph.getExtent().y));
-        this.currentX = this.currentX + morph.getExtent().x + this.OFFSET;
-        this.addMorph(morph);
-    },
-    
-    clear: function(){
-        this.currentX = this.OFFSET;
-        this.removeAllMorphs();
-    },
-    
-    updateComponent: function() {
-        // create linear layout containing rects from data
-
-        var layout = this.get("LinearLayout");
-        var bar;
-        layout.clear();
-        for (bar in this.data) {
-            if (this.data.hasOwnProperty(bar)) {
-                layout.addElement(this.data[bar]);
-            }
-        }
-    }
-    
-} );
-cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
-    basicLayout: function(container, submorphs) {
-        try {
-        var result = cop.proceed(container, submorphs);
-        } catch(e){
-            console.log("Error during layout: " + e);
-            return null;
-        }
-        return result;
-    }}
-).beGlobal();
-
-lively.morphic.Morph.subclass("lively.morphic.Charts.FreeLayout", {
-    
-    initialize: function($super, w, h) {
-        $super();
-        this.setFill(Color.white);
-        this.setExtent(pt(w, h));
-    },
-    
-    addElement: function(element){
-        morph = morph.element.duplicate()
-        this.addMorph(morph);
-    },
-    
-    clear: function(){
-        this.removeAllMorphs();
-    }
-    
-} );
-
-lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
-{
-    initialize: function($super) {
-        $super();
-        this.disableGutter();
-    },
-    
-    boundEval: function(codeStr) {
-        var ctx = this.getDoitContext() || this;
-        ctx.refreshData();
-        
-        var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
-        
-        // see also $super
-        
-        // Evaluate the string argument in a context in which "this" is
-        // determined by the reuslt of #getDoitContext
-        var str,
-        interactiveEval = function() {
-            try {
-                return eval(__evalStatement);
-            } catch (e) {
-                return eval(__evalStatement);
-            }
-        };
-        
-        try {
-            var result = interactiveEval.call(ctx);
-            if (localStorage.getItem("LivelyChangesets:" + location.pathname))
-                ChangeSet.logDoit(str, ctx.lvContextPath());
-            return result;
-        } catch(e) {throw e}
-        
-    },
-        
-    onChanged: function() {
-        if (!this.isValid())
-            return;
-        
-        var newSession =  this.aceEditor.getSession().toString();
-        if (this.oldSession) {
-            if (this.oldSession == newSession)
-                return;
-        }
-        this.oldSession = newSession;
-        
-        var ownerChain = this.ownerChain();
-
-        // find owner which is Charts.Component as the CodeEditor could be nested deep inside it
-        for (var i = 0; i < ownerChain.length; i++) {       
-            if (ownerChain[i] instanceof lively.morphic.Charts.Component){
-                ownerChain[i].onComponentChanged();     
-                break;      
-          }       
-        }
-    },
-    isValid: function() {
-        var str = this.getSession();
-        try {
-            eval("throw 0;" + str);
-        } catch (e) {
-            if (e === 0)
-                return true;
-        }
-        return false;
-    },
-    
-    doit: function(printResult, editor) {
-        var text = this.getSelectionMaybeInComment(),
-            result = this.tryBoundEval(text);
-        if (printResult) { this.printObject(editor, result); return; }
-        
-        var sel = this.getSelection();
-        if (sel && sel.isEmpty()) sel.selectLine();
-        return result;
-    },
-    
-    onKeyUp: function(evt) {
-        // deliver CodeEditor context to onChanged
-        var _this = evt.getTargetMorph();
-        _this.onChanged.apply(_this, arguments);
-    },
-    
-});
 lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     initialize: function($super) {
         $super();
@@ -1002,6 +850,160 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.setPosition(oldComponent.getPosition);
     }
 });
+
+
+lively.morphic.Charts.Component.subclass("lively.morphic.Charts.LinearLayout", {
+    
+    initialize: function($super, w, h) {
+        $super();
+        this.setFill(Color.white);
+        this.setExtent(pt(w, h));
+        this.OFFSET = 20;
+        this.currentX = this.OFFSET;
+    },
+    
+    addElement: function(element){
+        morph = element.morph.duplicate();
+        morph.setPosition(pt(this.currentX, this.getExtent().y - morph.getExtent().y));
+        this.currentX = this.currentX + morph.getExtent().x + this.OFFSET;
+        this.addMorph(morph);
+    },
+    
+    clear: function(){
+        this.currentX = this.OFFSET;
+        this.removeAllMorphs();
+    },
+    
+    updateComponent: function() {
+        // create linear layout containing rects from data
+
+        var layout = this.get("LinearLayout");
+        var bar;
+        layout.clear();
+        for (bar in this.data) {
+            if (this.data.hasOwnProperty(bar)) {
+                layout.addElement(this.data[bar]);
+            }
+        }
+    }
+    
+} );
+cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
+    basicLayout: function(container, submorphs) {
+        try {
+        var result = cop.proceed(container, submorphs);
+        } catch(e){
+            console.log("Error during layout: " + e);
+            return null;
+        }
+        return result;
+    }}
+).beGlobal();
+
+lively.morphic.Morph.subclass("lively.morphic.Charts.FreeLayout", {
+    
+    initialize: function($super, w, h) {
+        $super();
+        this.setFill(Color.white);
+        this.setExtent(pt(w, h));
+    },
+    
+    addElement: function(element){
+        morph = morph.element.duplicate()
+        this.addMorph(morph);
+    },
+    
+    clear: function(){
+        this.removeAllMorphs();
+    }
+    
+} );
+
+lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
+{
+    initialize: function($super) {
+        $super();
+        this.disableGutter();
+    },
+    
+    boundEval: function(codeStr) {
+        var ctx = this.getDoitContext() || this;
+        ctx.refreshData();
+        
+        var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        
+        // see also $super
+        
+        // Evaluate the string argument in a context in which "this" is
+        // determined by the reuslt of #getDoitContext
+        var str,
+        interactiveEval = function() {
+            try {
+                return eval(__evalStatement);
+            } catch (e) {
+                return eval(__evalStatement);
+            }
+        };
+        
+        try {
+            var result = interactiveEval.call(ctx);
+            if (localStorage.getItem("LivelyChangesets:" + location.pathname))
+                ChangeSet.logDoit(str, ctx.lvContextPath());
+            return result;
+        } catch(e) {throw e}
+        
+    },
+        
+    onChanged: function() {
+        if (!this.isValid())
+            return;
+        
+        var newSession =  this.aceEditor.getSession().toString();
+        if (this.oldSession) {
+            if (this.oldSession == newSession)
+                return;
+        }
+        this.oldSession = newSession;
+        
+        var ownerChain = this.ownerChain();
+
+        // find owner which is Charts.Component as the CodeEditor could be nested deep inside it
+        for (var i = 0; i < ownerChain.length; i++) {       
+            if (ownerChain[i] instanceof lively.morphic.Charts.Component){
+                ownerChain[i].onComponentChanged();     
+                break;      
+          }       
+        }
+    },
+    isValid: function() {
+        var str = this.getSession();
+        try {
+            eval("throw 0;" + str);
+        } catch (e) {
+            if (e === 0)
+                return true;
+        }
+        return false;
+    },
+    
+    doit: function(printResult, editor) {
+        var text = this.getSelectionMaybeInComment(),
+            result = this.tryBoundEval(text);
+        if (printResult) { this.printObject(editor, result); return; }
+        
+        var sel = this.getSelection();
+        if (sel && sel.isEmpty()) sel.selectLine();
+        return result;
+    },
+    
+    onKeyUp: function(evt) {
+        // deliver CodeEditor context to onChanged
+        var _this = evt.getTargetMorph();
+        _this.onChanged.apply(_this, arguments);
+    },
+    
+});
+
 lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
 'default category', {
     

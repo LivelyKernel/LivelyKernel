@@ -31,7 +31,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     },
     showContextMenu: function(position) {
         var _this = this;
-            
+        
         var componentNames = ["ScriptFlowComponent", "FanOut", "FanIn", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher"];
         
         var contextItems = componentNames.map(function(ea) {
@@ -152,7 +152,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
 });
 
 
-lively.morphic.Morph.subclass("lively.morphic.Charts.LinearLayout", {
+lively.morphic.Charts.Component.subclass("lively.morphic.Charts.LinearLayout", {
     
     initialize: function($super, w, h) {
         $super();
@@ -162,8 +162,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.LinearLayout", {
         this.currentX = this.OFFSET;
     },
     
-    addElement: function(morph){
-        morph = morph.duplicate();
+    addElement: function(element){
+        morph = element.morph.duplicate();
         morph.setPosition(pt(this.currentX, this.getExtent().y - morph.getExtent().y));
         this.currentX = this.currentX + morph.getExtent().x + this.OFFSET;
         this.addMorph(morph);
@@ -172,6 +172,19 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.LinearLayout", {
     clear: function(){
         this.currentX = this.OFFSET;
         this.removeAllMorphs();
+    },
+    
+    updateComponent: function() {
+        // create linear layout containing rects from data
+
+        var layout = this.get("LinearLayout");
+        var bar;
+        layout.clear();
+        for (bar in this.data) {
+            if (this.data.hasOwnProperty(bar)) {
+                layout.addElement(this.data[bar]);
+            }
+        }
     }
     
 } );
@@ -196,8 +209,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.FreeLayout", {
     },
     
     addElement: function(element){
-        element = element.duplicate()
-        this.addMorph(element);
+        morph = morph.element.duplicate()
+        this.addMorph(morph);
     },
     
     clear: function(){
@@ -992,6 +1005,59 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
 'default category', {
     
+    throwError: function(e) {
+        var text = this.get("ErrorText");
+        text.setTextString(e.toString());
+        text.error = e;
+        e.alreadyThrown = true;
+        throw e;
+    },
+    
+    updateComponent : function($super) {
+        var _this = this;
+        c = this.get("CodeEditor");
+        
+        var text = this.get("ErrorText");
+        text.setTextString("");
+        text.error = null;
+        
+        if (this.data) {
+            var prototypeMorph = this.get("PrototypeMorph");
+            
+            (function attachListener() {
+                if (prototypeMorph.__isListenedTo == true)
+                    return;
+                prototypeMorph.__isListenedTo = true;
+                
+                var methods = ["setExtent", "setFill", "setRotation"];
+                
+                methods.each(function(ea) {
+                   var oldFn = prototypeMorph[ea];
+                   
+                   prototypeMorph[ea] = function() {
+                       oldFn.apply(prototypeMorph, arguments);
+                       _this.update();
+                   }
+                });
+            })();
+            
+            if (prototypeMorph) {
+                var mappingFunction;
+                eval("mappingFunction = " + c.getTextString());
+                
+                this.data = this.data.map(function(ea) {
+                    var prototypeInstance = prototypeMorph.copy();
+                    mappingFunction(prototypeInstance, ea);
+                    // ensure that each datum is a object (primitives will get wrapped here)
+                    ea = ({}).valueOf.call(ea);
+                    ea.morph = prototypeInstance;
+                    return ea;
+                });
+            } else {
+                alert("No morph with name 'PrototypeMorph' found");
+            }
+        }
+    },
     initialize : function($super){
         $super();
         this.getSubmorphsByAttribute("name","Description")[0].setTextString("Prototype Component");

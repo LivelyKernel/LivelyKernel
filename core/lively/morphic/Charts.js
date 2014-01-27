@@ -32,7 +32,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     showContextMenu: function(position) {
         var _this = this;
             
-        var componentNames = ["ScriptFlowComponent", "MergeScript", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher"];
+        var componentNames = ["ScriptFlowComponent", "FanOut", "FanIn", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher"];
         
         var contextItems = componentNames.map(function(ea) {
             return [ea, function() {

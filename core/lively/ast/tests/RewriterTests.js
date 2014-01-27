@@ -385,9 +385,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
 
 });
 
-TestCase.subclass('lively.ast.tests.ContinuationTest',
+TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 'running', {
-
     setUp: function($super) {
         $super();
         this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
@@ -403,9 +402,12 @@ TestCase.subclass('lively.ast.tests.ContinuationTest',
     assertAstNodesEqual: lively.ast.tests.RewriterTests.AcornRewrite.prototype.assertAstNodesEqual
 },
 'testing', {
-
     test01RunWithNoBreak: function() {
-        function code() { var x = 2; return x + 4; }
+        function code() {
+            var x = 2;
+            return x + 4;
+        }
+
         var expected = {
             isContinuation: false,
             returnValue: 6
@@ -415,13 +417,18 @@ TestCase.subclass('lively.ast.tests.ContinuationTest',
     },
 
     test02SimpleBreak: function() {
-        function code() { var x = 2; debugger; return x + 4; }
-        var expected = {isContinuation: true},
+        function code() {
+            var x = 2;
+            debugger;
+            return x + 4;
+        }
+
+        var expected = { isContinuation: true },
             runResult = lively.ast.StackReification.run(code, this.astRegistry);
         this.assertMatches(expected, runResult);
         // can we access the original ast, needed for resuming?
         var capturedAst = runResult.frames()[0].getOriginalAst();
-        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(code), capturedAst);
+        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), capturedAst);
     },
 
     test03SimpleBreakInNestedFunction: function() {
@@ -434,22 +441,19 @@ TestCase.subclass('lively.ast.tests.ContinuationTest',
             var y = x + f();
             return y;
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry);
         // frame state
         this.assertEquals(2, continuation.frames().length, 'number of captured frames');
-        this.assertEquals(1, continuation.currentFrame.lookup("x"), 'val of x');
-        this.assertEquals(undefined, continuation.currentFrame.lookup("y"), 'val of y');
+        this.assertEquals(1, continuation.currentFrame.lookup('x'), 'val of x');
+        this.assertEquals(undefined, continuation.currentFrame.lookup('y'), 'val of y');
         this.assertEquals(Global, continuation.currentFrame.getThis(), 'val of this');
 
         // captured asts
-        var expectedAst = lively.ast.acorn.parseFunction("function() { debugger; return x * 2; }"),
+        var expectedAst = lively.ast.acorn.parseFunction('function() { debugger; return x * 2; }'),
             actualAst = continuation.frames()[0].getOriginalAst();
         this.assertAstNodesEqual(expectedAst, actualAst);
         this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), continuation.frames()[1].getOriginalAst());
-
-        expectedAst = lively.ast.acorn.parseFunction(String(code));
-        actualAst = continuation.frames()[1].getOriginalAst();
-        this.assertAstNodesEqual(expectedAst, actualAst);
     },
 
     test04BreakAndContinue: function() {
@@ -459,14 +463,13 @@ TestCase.subclass('lively.ast.tests.ContinuationTest',
             return x + 3;
         }
 
-        var c = lively.ast.StackReification.run(code, this.astRegistry);
-        
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
         // FIXME, right now we manually need to set the pc, this will be done in the
         // UnwindException
-        var frame = c.frames().first();
+        var frame = continuation.frames().first();
         frame.setPC(frame.getOriginalAst().body.body[2]/*-->debugger;*/)
 
-        var result = c.resume();
+        var result = continuation.resume();
         this.assertEquals(4, result, 'resume not working');
     },
 

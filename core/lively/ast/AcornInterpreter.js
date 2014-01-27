@@ -339,9 +339,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             }
             if (frame.returnTriggered)
                 return;
-            // TODO: reactivate for debugger
-            // frame.removeValue(node.test);
-            // frame.removeValue(node.body);
 
             this.accept(node.test, state);
             testVal = state.result;
@@ -353,8 +350,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var frame = state.currentFrame,
             testVal, result;
         do {
-            // TODO: reactivate for debugger
-            // frame.removeValue(node.test);
             this.accept(node.body, state);
             result = state.result;
 
@@ -369,8 +364,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             }
             if (frame.returnTriggered)
                 return;
-            // TODO: reactivate for debugger
-            // frame.removeValue(node.body);
 
             this.accept(node.test, state);
             testVal = state.result;
@@ -391,7 +384,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
         state.result = result;
 
-        if (frame.isResuming()) testVal = true; // resuming node inside loop
+        if (frame.isResuming()) testVal = true; // resuming node inside loop or update
         while (testVal) {
             this.accept(node.body, state);
             result = state.result;
@@ -411,10 +404,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             if (node.update) {
                 this.accept(node.update, state);
             }
-            // TODO: reactivate for debugger
-            // frame.removeValue(node.test);
-            // frame.removeValue(node.body);
-            // frame.removeValue(node.update);
 
             if (node.test) {
                 this.accept(node.test, state);

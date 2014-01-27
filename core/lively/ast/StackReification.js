@@ -112,28 +112,28 @@ Object.subclass('lively.ast.Continuation',
 },
 'resuming', {
     resume: function() {
-        throw new Error('TODO');
-        // FIXME: outer context usually does not have func
+        // FIXME: outer context usually does not have original AST
         // attaching the program node would possibly be right (otherwise the pc's context is missing)
-        // rename to getContextNode ??
-        // if (!this.currentFrame.getFunc())
-        //     throw new Error('Cannot resume because frame has no function!');
+        if (!this.currentFrame.getOriginalAst())
+            throw new Error('Cannot resume because frame has no AST!');
         if (!this.currentFrame.pc)
             throw new Error('Cannot resume because frame has no pc!');
 
-        var frame = this.currentFrame,
-            isComputed = false,
-            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
-            node, result;
-        // go through all frames on the stack. beginning with the top most, resume each of them
-        while (frame && frame.getContainingScope()) { // !frame.getContainingScope() means we reached the last frame
-            node = frame.getFunc(); // FIXME
-            frame.setComputedPC(isComputed)
-            result = interpreter.runWithFrameAndResult(node, frame, result);
-            frame = frame.getContainingScope();
+        var isComputed = false,
+            interpreter = new lively.ast.AcornInterpreter.Interpreter();
+
+        // go through all frames on the stack. beginning with the top most,
+        // resume each of them
+        return this.frames().reduce(function(result, frame) {
+            var originalAst = frame.getOriginalAst(); // FIXME
+            frame.setComputedPC(isComputed);
             isComputed = true; // all outer scopes should not recompute
-        }
-        return result;
+            // FIXME frames hold on to function ASTs but resuming from a
+            // function is not supported right now. So we set the resumable
+            // node to the functions body here as a quick fix
+            var resumeNode = frame.getOriginalAst().body;
+            return interpreter.runWithFrameAndResult(resumeNode, frame, result);
+        }, undefined);
     }
 });
 

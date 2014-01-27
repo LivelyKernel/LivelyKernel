@@ -465,9 +465,9 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         return interpreter.runWithFrame(contextNode, frame);
     },
 
-    resumeWithFrameAndResult: function(node, frame, result) {
+    resumeWithFrameAndResult: function(contextNode, frame, result) {
         var interpreter = new lively.ast.AcornInterpreter.Interpreter();
-        return interpreter.runWithFrameAndResult(node, frame, result);
+        return interpreter.runWithFrameAndResult(contextNode, frame, result);
     }
 
 },
@@ -534,7 +534,8 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
             innerFrame = outerFrame.newScope(funcNode, { x: 2 });
         innerFrame.setPC(resumeNode);
 
-        this.assertEquals(2, this.resumeWithFrameAndResult(funcNode.body, innerFrame), 'did not correctly resume');
+        var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
+        this.assertEquals(2, result, 'did not correctly resume');
     },
 
     test05ResumeFunctionWithOuter: function() {

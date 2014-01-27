@@ -386,6 +386,22 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
 });
 
 TestCase.subclass('lively.ast.tests.ContinuationTest',
+'running', {
+
+    setUp: function($super) {
+        $super();
+        this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
+        lively.ast.Rewriting.setCurrentASTRegistry(this.astRegistry = []);
+    },
+
+    tearDown: function($super) {
+        $super();
+        lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
+    }
+},
+'assertion', {
+    assertAstNodesEqual: lively.ast.tests.RewriterTests.AcornRewrite.prototype.assertAstNodesEqual
+},
 'testing', {
 
     test01RunWithNoBreak: function() {
@@ -400,14 +416,15 @@ TestCase.subclass('lively.ast.tests.ContinuationTest',
 
     test02SimpleBreak: function() {
         function code() { var x = 2; debugger; return x + 4; }
-        var expected = {
-            isContinuation: true
-        }
-        var runResult = lively.ast.StackReification.run(code);
-        this.assertMatches(expected, runResult)
+        var expected = {isContinuation: true},
+            runResult = lively.ast.StackReification.run(code, this.astRegistry);
+        this.assertMatches(expected, runResult);
+        // can we access the original ast, needed for resuming?
+        var capturedAst = runResult.frames()[0].getOriginalAst();
+        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(code), capturedAst);
     },
 
-    test02LinearFlow: function() {
+    test03SimpleBreakInNestedFunction: function() {
         function code() {
             var x = 1;
             var f = function() {
@@ -417,13 +434,60 @@ TestCase.subclass('lively.ast.tests.ContinuationTest',
             var y = x + f();
             return y;
         }
-        var continuation = lively.ast.StackReification.run(code);
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        // frame state
         this.assertEquals(2, continuation.frames().length, 'number of captured frames');
         this.assertEquals(1, continuation.currentFrame.lookup("x"), 'val of x');
         this.assertEquals(undefined, continuation.currentFrame.lookup("y"), 'val of y');
         this.assertEquals(Global, continuation.currentFrame.getThis(), 'val of this');
-        // var result = continuation.resume();
-        // this.assertEquals(3, result, 'result when resuming continuation');
+
+        // captured asts
+        var expectedAst = lively.ast.acorn.parseFunction("function() { debugger; return x * 2; }"),
+            actualAst = continuation.frames()[0].getOriginalAst();
+        this.assertAstNodesEqual(expectedAst, actualAst);
+        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), continuation.frames()[1].getOriginalAst());
+
+        expectedAst = lively.ast.acorn.parseFunction(String(code));
+        actualAst = continuation.frames()[1].getOriginalAst();
+        this.assertAstNodesEqual(expectedAst, actualAst);
+    },
+
+    test04BreakAndContinue: function() {
+        function code() {
+            var x = 1;
+            debugger;
+            return x + 3;
+        }
+
+        var c = lively.ast.StackReification.run(code, this.astRegistry);
+        
+        // FIXME, right now we manually need to set the pc, this will be done in the
+        // UnwindException
+        var frame = c.frames().first();
+        frame.setPC(frame.getOriginalAst().body.body[2]/*-->debugger;*/)
+
+        var result = c.resume();
+        this.assertEquals(4, result, 'resume not working');
+    },
+
+    test05BreakAndContinueWithForLoop: function() {
+        function code() {
+            var x = 1;
+            for (var i = 0; i < 5; i++) {
+                if (i == 3) debugger;
+                x += i;
+            }
+            return x + 3;
+        }
+        var c = lively.ast.StackReification.run(code, this.astRegistry);
+        
+        // FIXME, right now we manually need to set the pc, this will be done in the
+        // UnwindException
+        var frame = c.frames().first();
+        frame.setPC(frame.getOriginalAst().body.body[1].body.body[0].consequent/*-->debugger;*/)
+
+        var result = c.resume();
+        this.assertEquals(14, result, 'resume not working');
     }
 
 });

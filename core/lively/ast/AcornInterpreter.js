@@ -855,15 +855,16 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
 
 Object.subclass('lively.ast.AcornInterpreter.Frame',
 'initialization', {
+
     initialize: function(func, mapping) {
-        this.func = func;
-        this.mapping = mapping || {};
-        this.returnTriggered = false;
-        this.breakTriggered = null;     // null, true or string (labeled break)
+        this.func              = func;
+        this.mapping           = mapping || {};
+        this.returnTriggered   = false;
+        this.breakTriggered    = null;     // null, true or string (labeled break)
         this.continueTriggered = null;  // null, true or string (labeled continue)
-        this.containingScope = null;
-        this.pc = null;                 // program counter, actually an AST node
-        this.pcComputed = false;        // has the current pc (node) been computed?
+        this.containingScope   = null;
+        this.pc                = null;                 // program counter, actually an AST node
+        this.pcComputed        = false;        // has the current pc (node) been computed?
     },
 
     newScope: function(func, mapping) {
@@ -886,10 +887,16 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 
 },
 'accessing', {
+
     setContainingScope: function(frame) { return this.containingScope = frame; },
-    getContainingScope: function() { return this.containingScope; }
+
+    getContainingScope: function() { return this.containingScope; },
+
+    getOriginalAst: function() { return this.func; },
+
 },
 'accessing - mapping', {
+
     findFrame: function(name) {
         if (this.mapping.hasOwnProperty(name)) {
             return { val: this.mapping[name], frame: this };
@@ -921,9 +928,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         return undefined;
     },
 
-    addToMapping: function(name, value) {
-        return this.mapping[name] = value;
-    },
+    addToMapping: function(name, value) { return this.mapping[name] = value; },
 
     setArguments: function(argValues) {
         var argNames = this.func.argNames();
@@ -933,27 +938,18 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         return this.arguments = argValues;
     },
 
-    getArguments: function(args) {
-        return this.arguments;
-    },
+    getArguments: function(args) { return this.arguments; },
 
-    setThis: function(thisObj) {
-        return this.thisObj = thisObj;
-    },
+    setThis: function(thisObj) { return this.thisObj = thisObj; },
 
-    getThis: function() {
-        return this.thisObj ? this.thisObj : Global;
-    }
+    getThis: function() { return this.thisObj ? this.thisObj : Global; }
 
 },
 'control-flow', {
-    triggerReturn: function() {
-        this.returnTriggered = true;
-    },
 
-    triggerBreak: function(label) {
-        this.breakTriggered = label ? label : true;
-    },
+    triggerReturn: function() { this.returnTriggered = true; },
+
+    triggerBreak: function(label) { this.breakTriggered = label ? label : true; },
 
     stopBreak: function(label) {
         if (label === undefined) label = true;
@@ -961,17 +957,17 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
             this.breakTriggered = null;
     },
 
-    triggerContinue: function(label) {
-        this.continueTriggered = label ? label : true;
-    },
+    triggerContinue: function(label) { this.continueTriggered = label ? label : true; },
 
     stopContinue: function(label) {
         if (label === undefined) label = true;
         if (this.continueTriggered === label)
             this.continueTriggered = false;
-    },
+    }
+
 },
-'resuming', {
+'execution', {
+
     setPC: function(node) { return this.pc = node; },
 
     getPC: function(node) { return this.pc; },

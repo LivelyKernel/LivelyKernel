@@ -340,9 +340,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         var _this = this;
         this.arrows.each(function(arrow){
-            neighbor = _this.getComponentInDirection(1, arrow.getTipPosition());
-            if (neighbor) {
-                _this.neighbors.push(neighbor);
+            if (arrow.isActive()) {
+                neighbor = _this.getComponentInDirection(1, arrow.getTipPosition());
+                if (neighbor) {
+                    _this.neighbors.push(neighbor);
+                }
             }
         });
     },
@@ -435,7 +437,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     calculateSnappingPosition: function() {
         // snap to position below component above, if there is one
-        var componentAbove = this.getComponentInDirection(-1, this.globalBounds().topCenter().addPt(pt(0, -100)));
+        var componentAbove = this.getComponentInDirection(-1, this.globalBounds().topCenter().addPt(pt(0, -50)));
         var snapToTop = false;
         if (!componentAbove) {
             snapToTop = true;
@@ -611,29 +613,33 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         // move the component
         if (componentToMove) {
             var distanceBelow = previewMorph.getBounds().bottom() + this.componentOffset - componentToMove.getPosition().y;
-            componentToMove.move(distanceBelow);
+            componentToMove.move(distanceBelow, previewMorph.getBounds().bottom());
         }
     },
 
-    move: function(y) {
+    move: function(y, aggregatedY) {
         var componentAbove = this.getComponentInDirection(-1);
         var componentBelow = this.getComponentInDirection(1);
         if (y > 0) {
             if (componentBelow) {
-                componentBelow.move(y);
+                // because we have to first propagate the move to the bottom and then update the positions
+                // we need the aggregatedY as the second parameter
+                componentBelow.move(y, pt(this.getPosition().x, aggregatedY + this.componentOffset).addPt(pt(0, this.getExtent().y)).y);
             }
             this.setPosition(this.getPosition().addPt(pt(0, y)));
         } else if (y < 0) {
             var canMove = true;
             if (componentAbove) {
+                // if there is a component in the way we can't move up
                 if (componentAbove.getPosition().y + componentAbove.getExtent().y > this.getPosition().y + y) {
                     canMove = false;
                 }
             }
             if (canMove) {
+                // update position and move the components below to the top as well
                 this.setPosition(this.getPosition().addPt(pt(0, y)));
                 if (componentBelow) {
-                    componentBelow.move(y);
+                    componentBelow.move(y, this.getPosition().addPt(pt(0, y)).y);
                 }
             }
         }
@@ -1082,28 +1088,36 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
     updateComponent: function() {
         // do nothing
     },
-    move: function(y) {
+    move: function(y, aggregatedY) {
         var componentsBelow = this.getComponentsInDirection(1);
         var componentsAbove = this.getComponentsInDirection(-1);
+        var _this = this, distanceToMove;
         if (y > 0) {
-            if (componentsBelow.length) {
-                componentsBelow.each(function (ea) {ea.move(y)});
+            distanceToMove = (aggregatedY + this.componentOffset) - this.getPosition().y;
+            if (distanceToMove > 0) {
+                if (componentsBelow.length) {
+                    // move all components below
+                    // also pass the aggregatedY as we first propagate the move before actually
+                    // updating the positions (otherwise getComponentsInDirection won't work)
+                    componentsBelow.each(function (ea) {
+                        ea.move(distanceToMove, pt(_this.getPosition().x, aggregatedY + _this.componentOffset).addPt(pt(0, _this.getExtent().y)).y)
+                    });
+                }
+                this.setPosition(this.getPosition().addPt(pt(0, distanceToMove)));
             }
-            this.setPosition(this.getPosition().addPt(pt(0, y)));
         } else if (y < 0) {
-            var _this = this, canMove = true;
+            distanceToMove = y;
             if (componentsAbove.length) {
-                componentsAbove.each(function (componentAbove) {
-                    if (componentAbove.getBounds().bottom() > _this.getPosition().y + y) {
-                        canMove = false;
-                    }
+                // determine how far we can actually move to the top
+                // if we can't move for the full y, take the furthest that is possible
+                componentsAbove.each(function (ea) {
+                    distanceToMove = Math.max(distanceToMove, ea.getPosition().y + ea.getExtent().y + _this.componentOffset -  _this.getPosition().y);
                 });
             }
-            if (canMove) {
-                _this.setPosition(_this.getPosition().addPt(pt(0, y)));
-                if (componentsBelow.length) {
-                    componentsBelow.each(function (ea) {ea.move(y)});
-                }
+            // update the position accordingly and move the components below to the top as well
+            _this.setPosition(_this.getPosition().addPt(pt(0, distanceToMove)));
+            if (componentsBelow.length) {
+                componentsBelow.each(function (ea) {ea.move(distanceToMove)});
             }
         }
     },

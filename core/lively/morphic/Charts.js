@@ -848,7 +848,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.data = oldComponent.data;
         this.setExtent(oldComponent.getExtent);
         this.setPosition(oldComponent.getPosition);
+        
+        this.migrateFromPart(oldComponent);
+        oldComponent.remove();
+    },
+    migrateFromPart: function(oldComponent) {
+        // this should be overwritten by subclass or part
     }
+
 });
 
 

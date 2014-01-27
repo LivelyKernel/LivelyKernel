@@ -1,276 +1,290 @@
 module('lively.ast.Rewriting').requires('lively.ast.acorn').toRun(function() {
 
-(function DEPRECATED() {
-
-Object.extend(lively.ast, {
-    oldEval: eval
-});
-
-Object.extend(JSLoader, {
-    loadJs2: function (url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
-        var exactUrl = url;
-        if ((exactUrl.indexOf('!svn') <= 0) && !okToUseCache) {
-            exactUrl = this.makeUncached(exactUrl, cacheQuery);
-        }
-        $.ajax(exactUrl, {
-            success: lively.ast.Rewriting.loadJS.bind(lively.ast.Rewriting, onLoadCb)
-        });
-    }
-});
-
 Object.extend(lively.ast.Rewriting, {
-    loadJS: function(cb, src) {
-        if (!src) { src = cb; cb = null; }
-        eval(src);
-        if (cb) cb();
+
+    getCurrentASTRegistry: function() {
+        if (this._currentASTRegistry) return this._currentASTRegistry;
+        return [];
+    },
+
+    setCurrentASTRegistry: function(astRegistry) {
+        return this._currentASTRegistry = astRegistry;
+    },
+
+    rewrite: function(node, astRegistry) {
+        var r = new lively.ast.Rewriting.Rewriter(astRegistry);
+        return r.rewrite(node);
+    },
+
+    rewriteFunction: function(node, astRegistry) {
+        var r = new lively.ast.Rewriting.Rewriter(astRegistry);
+        return r.rewriteFunction(node);
     }
+
 });
 
-})();
+Object.subclass("lively.ast.Rewriting.Rewriter",
+"initializing", {
+    initialize: function(astRegistry)  {
+        // scopes is used for keeping track of local vars and computationProgress state
+        // while rewriting. Whenever a local var or an intermediate computation result
+        // is encoutered we store it in the scope. Then, when we create the actual
+        // "scope wrapper" where the stack reification state gets initialized we use
+        // this information to create the necessary declarations
+        this.scopes = [];
+        // module('lively.ast.StackReification').load();
+        // module('lively.AST.AstHelper').load()
+        
+        // Right now astRegistry is where the original ASTs for each
+        // scope/function are stored
+        // FIXME we need a more consistent storage/interface that might be integrated
+        // with the source control?
+        this.astRegistry = astRegistry || [];
+    }
+},
+'ast helpers', {
+    newNode: function(type, node) {
+        node.type = type;
+        node.start = 0;
+        node.end = 0;
+        return node;
+    },
 
-(function rewritingStuffToBeCleanedUp() {
-// module('lively.ast.StackReification').load();
-// module('lively.AST.AstHelper').load()
-
-newNode = function newNode(type, node) {
-    node.type = type;
-    node.start = 0;
-    node.end = 0;
-    return node;
-}
-
-enterScope = function enterScope() {
-    scopes.push([]);
-}
-
-exitScope = function exitScope() {
-    scopes.pop();
-}
-
-registerVars = function registerVars(vars) {
-    if (!scopes.length) return;
-    var scope = scopes.last();
-    return vars.map(function(varName) {
-        scope.push(varName);
-        return newNode('Identifier', { name: varName });
-    });
-}
-
-wrapSequence = function wrapSequence(node, args, vars) {
-    function newVariable(name, value) {
+    newVariable: function(name, value) {
         if (value == '{}') {
-            value = newNode('ObjectExpression', { properties: [] });
+            value = this.newNode('ObjectExpression', { properties: [] });
         } else if (Object.isArray(value)) {
-            value = newNode('ArrayExpression', {
+            value = this.newNode('ArrayExpression', {
                 elements: value.map(function(val) {
                     if (Object.isNumber(val)) {
-                        return newNode('Literal', { value: val });
+                        return this.newNode('Literal', { value: val });
                     } else if (Object.isString(val)) {
-                        return newNode('Identifier', { name: val });
+                        return this.newNode('Identifier', { name: val });
                     } else {
                         throw new Error('Cannot interpret value in array.');
                     }
-                })
-            });
+                }, this)
+            }, this);
         } else if (Object.isObject(value) && (value.type != null)) {
             // expected to be valid Parser API object
         } else
             throw new Error('Cannot interpret value for newVariable: ' + value + '!');
 
-        return newNode('VariableDeclarator', {
-            id: newNode('Identifier', { name: name }),
+        return this.newNode('VariableDeclarator', {
+            id: this.newNode('Identifier', { name: name }),
             init: value
         });
-    }
-    function newMemberExp(str) {
+    },
+
+    newMemberExp: function(str) {
         var parts = str.split('.');
         parts = parts.map(function(part) {
-            return newNode('Identifier', { name: part });
-        });
+            return this.newNode('Identifier', { name: part });
+        }, this);
+        var newNode = this.newNode.bind(this);
         return parts.reduce(function(object, property) {
             return newNode('MemberExpression', {
                 object: object,
                 property: property
             });
         });
-    }
-    function wrapArgsAndVars(args, vars) {
+    },
+
+     wrapArgsAndVars: function(args, vars) {
         if ((!args || !args.length) && (!vars || !vars.length)) return '{}';
         var wArgs = args ? args.map(function(ea) {
-                    return {
-                        key: newNode('Literal', {value: ea.name}),
-                        kind: 'init', value: ea
-                    }
-                }) : [],
+                return {
+                    key: this.newNode('Literal', {value: ea.name}),
+                    kind: 'init', value: ea
+                }
+            }, this) : [],
             wVars = vars ? vars.map(function(ea) {
-                    return {
-                        key: newNode('Literal', {value: ea.name}),
-                        kind: 'init',
-                        value: newNode('Identifier', {name: 'undefined'})
-                    }
-                }) : [];
-        return newNode('ObjectExpression', {properties: wArgs.concat(wVars)});
+                return {
+                    key: this.newNode('Literal', {value: ea.name}),
+                    kind: 'init',
+                    value: this.newNode('Identifier', {name: 'undefined'})
+                }
+            }, this) : [];
+        return this.newNode('ObjectExpression', {properties: wArgs.concat(wVars)});
     }
 
-    var level = scopes.length;
 
-    // add preamble
-    node.body.unshift(newNode('VariableDeclaration', {
-        kind: 'var',
-        declarations: [
-            newVariable('_', '{}'),
-            newVariable('_' + level, wrapArgsAndVars(args, vars)),
-            newVariable('__' + level,
-                ['_', '_' + level, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
-        ]
-    }));
+},
+'scoping', {
 
-    // add catch for UnwindException
-    node = newNode('TryStatement', {
-        block: newNode('BlockStatement', { body: node.body }),
-        handler: newNode('CatchClause', { guard: null,
-            param: newNode('Identifier', { name: 'e' }),
-            body: newNode('BlockStatement', { body: [
-                newNode('VariableDeclaration', {
-                    kind: 'var',
-                    declarations: [
-                        newVariable('ex', newNode('ConditionalExpression', {
-                            test: newMemberExp('e.isUnwindException'),
-                            consequent: newNode('Identifier', { name: 'e' }),
-                            alternate: newNode('NewExpression', {
-                                arguments: [ newNode('Identifier', { name: 'e' }) ],
-                                callee: newMemberExp('lively.ast.Rewriting.UnwindException')
-                            })
-                        }))
-                    ]
-                }),
-                newNode('ExpressionStatement', {
-                    expression: newNode('CallExpression', {
-                        callee: newMemberExp('ex.shiftFrame'),
-                        arguments: [
-                            newNode('Identifier', { name: 'this' }),
-                            newNode('Identifier', { name: '__' + level })
+    enterScope: function() {
+        this.scopes.push({localVars: [], computationProgress: []});
+    },
+
+    exitScope: function() {
+        this.scopes.pop();
+    },
+
+    registerVars: function(vars) {
+        if (!this.scopes.length) return;
+        var scope = this.scopes.last();
+        return vars.map(function(varName) {
+            scope.localVars.push(varName);
+            return this.newNode('Identifier', { name: varName });
+        }, this);
+    },
+
+},
+'rewriting', {
+
+    createPreamble: function(args, vars, level) {
+        return this.newNode('VariableDeclaration', {
+            kind: 'var',
+            declarations: [
+                this.newVariable('_', '{}'),
+                this.newVariable('_' + level, this.wrapArgsAndVars(args, vars)),
+                this.newVariable('__' + level,
+                    ['_', '_' + level, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
+            ]
+        })
+    },
+
+    createCatchForUnwind: function(node, originalFunctionIdx, level) {
+        return this.newNode('TryStatement', {
+            block: this.newNode('BlockStatement', { body: node.body }),
+            handler: this.newNode('CatchClause', { guard: null,
+                param: this.newNode('Identifier', { name: 'e' }),
+                body: this.newNode('BlockStatement', { body: [
+                    this.newNode('VariableDeclaration', {
+                        kind: 'var',
+                        declarations: [
+                            this.newVariable('ex', this.newNode('ConditionalExpression', {
+                                test: this.newMemberExp('e.isUnwindException'),
+                                consequent: this.newNode('Identifier', { name: 'e' }),
+                                alternate: this.newNode('NewExpression', {
+                                    arguments: [ this.newNode('Identifier', { name: 'e' }) ],
+                                    callee: this.newMemberExp('lively.ast.Rewriting.UnwindException')
+                                })
+                            }))
                         ]
-                    })
-                }),
-                newNode('ThrowStatement', { argument: newNode('Identifier', { name: 'ex' }) })
-            ]}),
-        }),
-        guardedHandlers: [],
-        finalizer: null
-    });
+                    }),
+                    this.newNode('ExpressionStatement', {
+                        expression: this.newNode('CallExpression', {
+                            callee: this.newMemberExp('ex.shiftFrame'),
+                            arguments: [
+                                this.newNode('Identifier', { name: 'this' }),
+                                this.newNode('Identifier', { name: '__' + level }),
+                                this.newNode('Identifier', { name: String(originalFunctionIdx) })
+                            ]
+                        })
+                    }),
+                    this.newNode('ThrowStatement', { argument: this.newNode('Identifier', { name: 'ex' }) })
+                ]}),
+            }),
+            guardedHandlers: [],
+            finalizer: null
+        });
+    },
 
-    return node;
-}
+    wrapSequence: function(node, args, vars, originalFunctionIdx) {
+        var level = this.scopes.length;
+        node.body.unshift(this.createPreamble(args, vars, level));
+        return this.createCatchForUnwind(node, originalFunctionIdx, level);
+    },
 
-wrapVar = function wrapVar(name) {
-    var scope;
-    for (var i = scopes.length - 1; i >= 0; i--) {
-        if (scopes[i].include(name)) { scope = i; break; }
-    }
-    if (scope === undefined) return newNode('Identifier', { name: name });
-    return newNode('MemberExpression', {
-        object: newNode('Identifier', { name: '_' + scope }),
-        property: newNode('Literal', { value: name }),
-        computed: true
-    });
-}
-
-wrapClosure = function wrapClosure(node, idx) {
-    var scopeId = scopes.length - 1,
-        scopeIdentifier = scopeId < 0 ?
-            newNode('Literal', {value: null}) :
-            newNode('Identifier', { name: '__' + (scopes.length - 1) });
-    return newNode('CallExpression', {
-        callee: newNode('Identifier', {name: '__createClosure'}),
-        arguments: [newNode('Literal', {value: idx}), scopeIdentifier, node]
-    });
-}
-
-storeComputationResult = function storeComputationResult(node, start, end) {
-    if (scopes.length == 0) return node;
-    var pos = (node.start || start || 0) + '-' + (node.end || end || 0);
-    return newNode('AssignmentExpression', {
-        operator: '=', right: node,
-        left: newNode('MemberExpression', {
-            object: newNode('Identifier', {name: '_'}),
-            property: newNode('Literal', {value: pos}),
-            computed: true
-        }),
-    });
-}
-
-findLocalVariables = function findLocalVariables(ast) {
-    var locals = [];
-    acorn.walk.matchNodes(ast, {
-        'VariableDeclaration': function(node, state, depth, type) {
-            if ((type == 'Statement') || (type == 'Expression')) return;
-            node.declarations.each(function(n) { state.push(n.id.name); });
-        },
-        'FunctionDeclaration': function(node, state, depth, type) {
-            if ((type == 'Statement') || (type == 'Expression') || (type == 'Function')) return;
-            state.push(node.id.name);
+    wrapVar: function(name) {
+        var scopeIdx;
+        for (var i = this.scopes.length - 1; i >= 0; i--) {
+            if (this.scopes[i].localVars.include(name)) { scopeIdx = i; break; }
         }
-    }, locals, {
-        visitors: acorn.walk.make({'Function': function() { /* stop descent */ }})
-    });
-    return locals;
-}
+        if (scopeIdx === undefined) return this.newNode('Identifier', { name: name });
+        return this.newNode('MemberExpression', {
+            object: this.newNode('Identifier', { name: '_' + scopeIdx }),
+            property: this.newNode('Literal', { value: name }),
+            computed: true
+        });
+    },
 
-var scopes = Global.scopes = [];
-// lively.ast.Rewriting.table
-Object.extend(lively.ast.Rewriting, {
-    table: []
-});
+    wrapClosure: function(node, idx) {
+        var scopeId = this.scopes.length - 1,
+            scopeIdentifier = scopeId < 0 ?
+                this.newNode('Literal', {value: null}) :
+                this.newNode('Identifier', { name: '__' + (this.scopes.length - 1) });
+        return this.newNode('CallExpression', {
+            callee: this.newNode('Identifier', {name: '__createClosure'}),
+            arguments: [this.newNode('Literal', {value: idx}), scopeIdentifier, node]
+        });
+    },
 
-Object.extend(Global, {
-    __createClosure: function(idx, scope, f) {
-        f._cachedAst = lively.ast.Rewriting.table[idx];
-        f._cachedScope = scope;
-        return f;
+    storeComputationResult: function(node, start, end) {
+        if (this.scopes.length == 0) return node;
+        var pos = (node.start || start || 0) + '-' + (node.end || end || 0);
+        this.scopes.last().computationProgress.push(pos);
+        return this.newNode('AssignmentExpression', {
+            operator: '=', right: node,
+            left: this.newNode('MemberExpression', {
+                object: this.newNode('Identifier', {name: '_'}),
+                property: this.newNode('Literal', {value: pos}),
+                computed: true
+            }),
+        });
+    },
+
+    findLocalVariables: function(ast) {
+        var locals = [];
+        acorn.walk.matchNodes(ast, {
+            'VariableDeclaration': function(node, state, depth, type) {
+                if (type == 'Statement' || type == 'Expression') return;
+                node.declarations.each(function(n) { state.push(n.id.name); });
+            },
+            'FunctionDeclaration': function(node, state, depth, type) {
+                if (type == 'Statement' || type == 'Expression' || type == 'Function') return;
+                state.push(node.id.name);
+            }
+        }, locals, {
+            visitors: acorn.walk.make({'Function': function() { /* stop descent */ }})
+        });
+        return locals;
+    },
+
+    rewrite: function(node) {
+        // FIXME!
+        lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
+        this.enterScope();
+        // TODO: old rewriting reference --------------
+        this.astRegistry.push(acorn.walk.copy(node));
+        var idx = this.astRegistry.length - 1;
+        // -------------------------------------------
+        if (node.type == 'FunctionDeclaration') {
+            var args = this.registerVars(node.params.pluck('name')); // arguments
+        }
+        var vars = this.registerVars(this.findLocalVariables(node)); // locals
+        var rewritten = (new lively.ast.Rewriting.RewriteVisitor()).accept(node, this);
+        this.exitScope();
+        var wrapped = this.wrapSequence(rewritten, args, vars, idx);
+        return this.newNode('Program', {body: [wrapped]});
+    },
+
+    rewriteFunction: function(node) {
+        // for now this is a shorthand to just rewrite functions: A function
+        // expression itself is not a valid parsable thing so we evaluate it as
+        // "(function ()...)" which gives us a program with one statement which is the
+        // function expression. Here we transform it into a FunctionStatement and
+        // process it further
+        if (node.type !== "Program"
+         || node.body.length !== 1
+         || node.body[0].type !== "ExpressionStatement"
+         || node.body[0].expression.type !== "FunctionExpression")
+            throw new Error('no a valid function expression/statement? ' + lively.ast.acorn.printAst(node));
+
+        node = node.body[0].expression;
+        var rewritten = acorn.walk.copy(node);
+        rewritten.type = 'FunctionDeclaration';
+        if (!rewritten.id) rewritten.id = this.newNode("Identifier", {name: ""});
+
+        return this.rewrite(this.newNode('Program', {body: [node]}))
+        // rewritten.body = rewrite(newNode('Program', {body: node.body}))
+        // ...
+
+        return rewritten;
     }
+
 });
-
-Global.rewrite = function rewrite(node) {
-    // FIXME!
-    lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
-    enterScope();
-    if (node.type == 'FunctionDeclaration') {
-        var args = registerVars(node.params.pluck('name')); // arguments
-    }
-    var vars = registerVars(findLocalVariables(node)); // locals
-    var rewritten = (new lively.ast.Rewriting.RewriteVisitor()).accept(node);
-    exitScope();
-    var wrapped = wrapSequence(rewritten, args, vars);
-    return newNode('Program', {body: [wrapped]});
-}
-
-Global.rewriteFunction = function(node) {
-    // for now this is a shorthand to just rewrite functions: A function
-    // expression itself is not a valid parsable thing so we evaluate it as
-    // "(function ()...)" which gives us a program with one statement which is the
-    // function expression. Here we transform it into a FunctionStatement and
-    // process it further
-    if (node.type !== "Program"
-     || node.body.length !== 1
-     || node.body[0].type !== "ExpressionStatement"
-     || node.body[0].expression.type !== "FunctionExpression")
-        throw new Error('no a valid function expression/statement? ' + lively.ast.acorn.printAst(node));
-    
-
-    node = node.body[0].expression;
-    var rewritten = acorn.walk.copy(node);
-    rewritten.type = 'FunctionDeclaration';
-    if (!rewritten.id) rewritten.id = newNode("Identifier", {name: ""});
-
-    return rewrite(newNode('Program', {body: [node]}))
-    // rewritten.body = rewrite(newNode('Program', {body: node.body}))
-    // ...
-
-    return rewritten;
-}
-
-})();
 
 Object.subclass("lively.ast.Rewriting.BaseVisitor",
 // This code was generated with:
@@ -638,14 +652,13 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
     visitExpressionStatement: function(n, st) {
         // expression is a node of type Expression
-        var expr = this.accept(n.expression, st);;
+        var expr = this.accept(n.expression, st);
         if (expr.type == 'ExpressionStatement')
             expr = expr.expression; // unwrap
         return {
             start: n.start, end: n.end, type: 'ExpressionStatement',
             expression: expr
         };
-    
     },
 
     visitReturnStatement: function(n, st) {
@@ -694,29 +707,29 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitDebuggerStatement: function(n, st) {
+    visitDebuggerStatement: function(n, rewriter) {
         // do something to trigger the debugger
-        var fn = newNode('FunctionExpression', {
-            body: newNode('BlockStatement', {
-                body: [newNode('ReturnStatement', {
-                    argument: newNode('Literal', { value: 'Debugger' })
+        var fn = rewriter.newNode('FunctionExpression', {
+            body: rewriter.newNode('BlockStatement', {
+                body: [rewriter.newNode('ReturnStatement', {
+                    argument: rewriter.newNode('Literal', { value: 'Debugger' })
                 })]
             }), id: null, params: []
         });
         fn.start = n.start;
         fn.end = n.end;
         // TODO: storeComputationResult(fn) is not possible for value
-        return newNode('ThrowStatement', {
-            argument: newNode('ObjectExpression', {
+        return rewriter.newNode('ThrowStatement', {
+            argument: rewriter.newNode('ObjectExpression', {
                 properties: [{
-                    key: newNode('Identifier', { name: 'toString' }),
+                    key: rewriter.newNode('Identifier', { name: 'toString' }),
                     kind: 'init', value: fn
                 }]
             })
         });
     },
 
-    visitFunctionDeclaration: function(n, st) {
+    visitFunctionDeclaration: function(n, rewriter) {
         // id is a node of type Identifier
         // each of n.params is of type Pattern
         // each of n.defaults is of type Expression (optional)
@@ -724,65 +737,65 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // body is a node of type BlockStatement
         // n.generator has a specific type that is boolean
         // n.expression has a specific type that is boolean
-        enterScope();
+        rewriter.enterScope();
         // TODO: old rewriting reference
-        lively.ast.Rewriting.table.push(acorn.walk.copy(n));
-        var idx = lively.ast.Rewriting.table.length - 1;
+        rewriter.astRegistry.push(acorn.walk.copy(n));
+        var idx = rewriter.astRegistry.length - 1;
         // END FIXME
-        var args = registerVars(n.params.pluck('name')); // arguments
-        var vars = registerVars(findLocalVariables(n.body)); // locals
-        var rewritten = this.accept(n.body, st);
-        exitScope();
-        var wrapped = wrapClosure({
+        var args = rewriter.registerVars(n.params.pluck('name')); // arguments
+        var vars = rewriter.registerVars(rewriter.findLocalVariables(n.body)); // locals
+        var rewritten = this.accept(n.body, rewriter);
+        rewriter.exitScope();
+        var wrapped = rewriter.wrapClosure({
             start: n.start, end: n.end, type: 'FunctionExpression',
-            body: newNode('BlockStatement', {body: [wrapSequence(rewritten, args, vars)]}),
+            body: rewriter.newNode('BlockStatement', {
+                body: [rewriter.wrapSequence(rewritten, args, vars, idx)]}),
             id: n.id || null, params: args
         }, idx);
         if (n.id && n.type == 'FunctionDeclaration') {
-            wrapped = newNode('AssignmentExpression', {
-                left: this.accept(n.id, st),
+            wrapped = rewriter.newNode('AssignmentExpression', {
+                left: this.accept(n.id, rewriter),
                 operator: '=',
                 right: wrapped
             });
         }
-        return newNode('ExpressionStatement', {
-            expression: storeComputationResult(wrapped, n.start, n.end),
+        return rewriter.newNode('ExpressionStatement', {
+            expression: rewriter.storeComputationResult(wrapped, n.start, n.end),
             id: n.id
         });
-    
     },
 
-    visitVariableDeclaration: function(n, st) {
+    visitVariableDeclaration: function(n, rewriter) {
         // each of n.declarations is of type VariableDeclarator
         // n.kind is "var" or "let" or "const"
         var decls = n.declarations.map(function(decl) {
-            var value = this.accept(decl.init, st);
-            value = newNode('AssignmentExpression', {
-                left: this.accept(decl.id, st),
+            var value = this.accept(decl.init, rewriter);
+            value = rewriter.newNode('AssignmentExpression', {
+                left: this.accept(decl.id, rewriter),
                 operator: '=',
                 right: (decl.init && decl.init.type == 'FunctionExpression') ?
                     value.expression : // unwrap
                     value
             });
             if (value.right == null) { // could be ignored
-                value.right = newNode('Identifier', { name: 'undefined' });
+                value.right = rewriter.newNode('Identifier', { name: 'undefined' });
             }
-            return storeComputationResult(value, decl.start, decl.end);
+            return rewriter.storeComputationResult(value, decl.start, decl.end);
         }, this);
-    
+
         return decls.length == 1 ?
-            newNode('ExpressionStatement', {expression: decls[0]}) :
-            newNode('ExpressionStatement', {
-                expression: newNode('SequenceExpression', {expressions: decls})
+            rewriter.newNode('ExpressionStatement', {expression: decls[0]}) :
+            rewriter.newNode('ExpressionStatement', {
+                expression: rewriter.newNode('SequenceExpression', {expressions: decls})
             });
     },
 
-    visitArrayExpression: function(n, st) {
+    visitArrayExpression: function(n, rewriter) {
         // each of n.elements can be of type Expression
         return {
             start: n.start, end: n.end, type: 'ArrayExpression',
             elements: n.elements.map(function(element) {
-                var elem = this.accept(element, st);
+                var elem = this.accept(element, rewriter);
                 if (elem.type == 'ExpressionStatement')
                     elem = elem.expression; // unwrap
                 return elem;
@@ -790,14 +803,14 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitObjectExpression: function(n, st) {
+    visitObjectExpression: function(n, rewriter) {
         // each.key of n.properties is of type node
         // each.value of n.properties is of type node
         // each.kind of n.properties is "init" or "get" or "set"
         return {
             start: n.start, end: n.end, type: 'ObjectExpression',
             properties: n.properties.map(function(prop) {
-                var value = this.accept(prop.value, st);
+                var value = this.accept(prop.value, rewriter);
                 if (prop.kind != 'init') { // set or get
                     // function cannot be replace by a closure directly
                     value = value.expression.right.arguments[2]; // unwrap
@@ -806,7 +819,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     { // original identifier rule
                         start: prop.key.start, end: prop.key.end, type: 'Identifier',
                         name: prop.key.name
-                    } : this.accept(prop.key, st);
+                    } : this.accept(prop.key, rewriter);
                 return {
                     key: key,
                     value: (value.type == 'ExpressionStatement') ?
@@ -818,43 +831,43 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitAssignmentExpression: function(n, st) {  // Set, ModifyingSet
+    visitAssignmentExpression: function(n, rewriter) {  // Set, ModifyingSet
         // n.operator is an AssignmentOperator enum:
         // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
         // left is a node of type Expression
         // right is a node of type Expression
-        var right = this.accept(n.right, st);
+        var right = this.accept(n.right, rewriter);
         if (right.type == 'ExpressionStatement')
             right = right.expression; // unwrap
-        return storeComputationResult({
+        return rewriter.storeComputationResult({
             start: n.start, end: n.end, type: 'AssignmentExpression',
             operator: n.operator,
-            left: this.accept(n.left, st),
+            left: this.accept(n.left, rewriter),
             right: right
         });
     },
 
-    visitUpdateExpression: function(n, st) {
+    visitUpdateExpression: function(n, rewriter) {
         // n.operator is an UpdateOperator enum:
         // "++" | "--"
         // argument is a node of type Expression
         // n.prefix has a specific type that is boolean
-        return storeComputationResult({
+        return rewriter.storeComputationResult({
             start: n.start, end: n.end, type: 'UpdateExpression',
-            argument: this.accept(n.argument, st),
+            argument: this.accept(n.argument, rewriter),
             operator: n.operator, prefix: n.prefix
         });
     },
 
-    visitLogicalExpression: function(n, st) {
+    visitLogicalExpression: function(n, rewriter) {
         // n.operator is an LogicalOperator enum:
         // "||" | "&&"
         // left is a node of type Expression
         // right is a node of type Expression
-        var left = this.accept(n.left, st);
+        var left = this.accept(n.left, rewriter);
         if (left.type == 'ExpressionStatement')
             left = left.expression; // unwrap
-        var right = this.accept(n.right, st);
+        var right = this.accept(n.right, rewriter);
         if (right.type == 'ExpressionStatement')
             right = right.expression; // unwrap
         return {
@@ -863,31 +876,31 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitConditionalExpression: function(n, st) {
+    visitConditionalExpression: function(n, rewriter) {
         // test is a node of type Expression
         // alternate is a node of type Expression
         // consequent is a node of type Expression
-        var consequent = this.accept(n.consequent, st);
+        var consequent = this.accept(n.consequent, rewriter);
         if (consequent.type == 'ExpressionStatement')
             consequent = consequent.expression; // unwrap;
-        var alternate = this.accept(n.alternate, st);
+        var alternate = this.accept(n.alternate, rewriter);
         if (alternate.type == 'ExpressionStatement')
             alternate = alternate.expression; // unwrap;
         return {
             start: n.start, end: n.end, type: 'ConditionalExpression',
-            test: this.accept(n.test, st), consequent: consequent,
+            test: this.accept(n.test, rewriter), consequent: consequent,
             alternate: alternate
         };
     },
 
-    visitNewExpression: function(n, st) {
+    visitNewExpression: function(n, rewriter) {
         // callee is a node of type Expression
         // each of n.arguments is of type Expression
-        return storeComputationResult({
+        return rewriter.storeComputationResult({
             start: n.start, end: n.end, type: 'NewExpression',
-            callee: this.accept(n.callee, st),
+            callee: this.accept(n.callee, rewriter),
             arguments: n.arguments.map(function(n) {
-                var n = this.accept(n, st);
+                var n = this.accept(n, rewriter);
                 return (n.type == 'ExpressionStatement') ?
                     n.expression : // unwrap
                     n;
@@ -895,14 +908,14 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         });
     },
 
-    visitCallExpression: function(n, st) {
+    visitCallExpression: function(n, rewriter) {
         // callee is a node of type Expression
         // each of n.arguments is of type Expression
         var thisIsBound = n.callee.type == 'MemberExpression'; // like foo.bar();
-        var callee = this.accept(n.callee, st);
+        var callee = this.accept(n.callee, rewriter);
         if (callee.type == 'ExpressionStatement') callee = callee.expression; // unwrap
         var args = n.arguments.map(function(n) {
-            var n = this.accept(n, st);
+            var n = this.accept(n, rewriter);
             return n.type == 'ExpressionStatement' ? n.expression : /*unwrap*/ n;
         }, this);
         if (!thisIsBound) {
@@ -917,20 +930,20 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             }
             args.unshift({type: 'Identifier', name: 'Global'});
         }
-        return storeComputationResult({
+        return rewriter.storeComputationResult({
             start: n.start, end: n.end,
             type: 'CallExpression', callee: callee,
             arguments: args
         });
     },
 
-    visitMemberExpression: function(n, st) {
+    visitMemberExpression: function(n, rewriter) {
         // object is a node of type Expression
         // property is a node of type Identifier
         // n.computed has a specific type that is boolean
-        var object = this.accept(n.object, st),
+        var object = this.accept(n.object, rewriter),
             property = n.computed ?
-                this.accept(n.property, st) :
+                this.accept(n.property, rewriter) :
                 { // original identifier rule
                     start: n.property.start, end: n.property.end, type: 'Identifier',
                     name: n.property.name
@@ -943,15 +956,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitCatchClause: function(n, st) {
+    visitCatchClause: function(n, rewriter) {
         // param is a node of type Pattern
         // guard is a node of type Expression (optional)
         // body is a node of type BlockStatement
-        var param = this.accept(n.param, st),
-            body = this.accept(n.body, st),
-            guard = n.guard ?  this.accept(n.guard, st) : guard;
-        body.body.unshift(newNode('ExpressionStatement', {
-            expression: storeComputationResult(param, n.param.start, n.param.end)
+        var param = this.accept(n.param, rewriter),
+            body = this.accept(n.body, rewriter),
+            guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
+        body.body.unshift(rewriter.newNode('ExpressionStatement', {
+            expression: rewriter.storeComputationResult(param, n.param.start, n.param.end)
         }));
         return {
             start: n.start, end: n.end, type: 'CatchClause',
@@ -959,9 +972,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitIdentifier: function(n, st) {
+    visitIdentifier: function(n, rewriter) {
         // n.name has a specific type that is string
-        return wrapVar(n.name);
+        return rewriter.wrapVar(n.name);
     }
 
 });

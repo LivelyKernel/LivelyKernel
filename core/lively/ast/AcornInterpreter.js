@@ -133,11 +133,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     wantsInterpretation: function(node, frame) {
         if (!frame.isResuming()) return true;
-        if (node === frame.pc) {
-            var isComputed = frame.pcComputed;
+        // FIXME: wantsInterpretation does not make it clear that there is a side effect!
+        if (frame.resumesAt(node)) {
+            var isComputed = frame.hasComputedPC();
             frame.resumesNow();
             return !isComputed;
         }
+        if (node.type == 'FunctionDeclaration') return false; // is done in evaluateDeclarations()
+        // rkrk 2014-01-26 what does this do?
         return acorn.walk.findNodeAt(node, frame.pc.start, frame.pc.end, null, Object.extend({
             VariableDeclaration: function(node, st, c) {
                 for (var i = 0; i < node.declarations.length; ++i) {
@@ -154,8 +157,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 },
 'visiting', {
     accept: function(node, state) {
-        if (node.type == 'FunctionDeclaration') return; // is done in evaluateDeclarations()
-        this.wantsInterpretation(node, state.currentFrame) && this['visit' + node.type](node, state);
+        return this.wantsInterpretation(node, state.currentFrame) ?
+            this['visit' + node.type](node, state) : undefined;
     },
 
     visitProgram: function(node, state) {
@@ -979,7 +982,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 
     isResuming: function() { return this.pc !== null; },
 
-    resumesAt: function(node) { return this.hasComputedPC() && node === this.pc; },
+    resumesAt: function(node) { return node === this.pc; },
 
     resumesNow: function() { this.pc = null; this.pcComputed = false; }
 });

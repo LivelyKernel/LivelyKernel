@@ -29,10 +29,10 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
 },
 'rewriting', {
 
-    rewrite: function(rewriter) {
+    rewrite: function(astRegistry) {
         var src = this.getFuncSource(),
             ast = lively.ast.acorn.parse('(' + src + ')')
-        return this.ast = rewriteFunction(ast);
+        return this.ast = lively.ast.Rewriting.rewriteFunction(ast, astRegistry);
     }
 
 });
@@ -46,40 +46,54 @@ Object.extend(lively.ast.StackReification, {
 
     run: function(func) {
         if (!func.livelyDebuggingEnabled) func = func.stackCaptureMode();
-        try { return func(); } catch(e) {
+        var result;
+        try { return {isContinuation: false, returnValue: func()} } catch(e) {
             return e.isUnwindException ?
-                lively.ast.Continuation.fromUnwindException(e) : e;
+                lively.ast.Continuation.fromUnwindException(e) : e
         }
     }
 });
 
 Object.extend(Global, {
     catchUnwind: lively.ast.StackReification.run,
-    halt: lively.ast.StackReification.halt
+    halt: lively.ast.StackReification.halt,
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    __createClosure: function(idx, scope, f) {
+        f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        f._cachedScope = scope;
+        return f;
+    },
+
+    __getClosure: function(idx) {
+        return lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+    }
 });
 
 Object.extend(Function.prototype, {
 
-    asRewrittenClosure: function(varMapping) {
-        var rewriter = {rewrite: Global.rewrite},
-            closure = new lively.ast.RewrittenClosure(this, varMapping);
-        closure.rewrite(rewriter);
+    asRewrittenClosure: function(varMapping, astRegistry) {
+        var closure = new lively.ast.RewrittenClosure(this, varMapping);
+        closure.rewrite(astRegistry);
         return closure;
     },
 
-    stackCaptureMode: function(varMapping) {
-        var closure = this.asRewrittenClosure();
-        var rewrittenFunc = closure.getRewrittenFunc();
+    stackCaptureMode: function(varMapping, astRegistry) {
+        var closure = this.asRewrittenClosure(astRegistry),
+            rewrittenFunc = closure.getRewrittenFunc();
         if (!rewrittenFunc) throw new Error('Cannot rewrite ' + this);
         return rewrittenFunc;
     },
 
-    stackCaptureSource: function(varMapping) {
-        return this.asRewrittenClosure().getRewrittenSource();
+    stackCaptureSource: function(varMapping, astRegistry) {
+        return this.asRewrittenClosure(astRegistry).getRewrittenSource();
     }
 });
 
 Object.subclass('lively.ast.Continuation',
+'settings', {
+    isContinuation: true
+},
 'initializing', {
     initialize: function(frame) {
         this.currentFrame = frame; // the frame in which the the unwind was triggered
@@ -145,12 +159,12 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
     }
 },
 'frames', {
-    shiftFrame: function(thiz, frame) {
+    shiftFrame: function(thiz, frame, astPointer) {
         var varMapping = frame[1],
             astValueRanges = frame[0],
             calledFrame = null,
-            parentScope = frame[2];
-        var frame = lively.ast.AcornInterpreter.Frame.create(null, varMapping);
+            parentScope = frame[2],
+            frame = lively.ast.AcornInterpreter.Frame.create(__getClosure(astPointer), varMapping);
         frame.setThis(thiz);
         if (!this.top) {
             this.top = this.last = frame;

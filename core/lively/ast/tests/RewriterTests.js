@@ -6,7 +6,15 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     setUp: function($super) {
         $super();
         this.parser = lively.ast.acorn;
-        this.rewrite = Global.rewrite;
+        this.rewrite = function(node) { return lively.ast.Rewriting.rewrite(node, astRegistry); };
+        this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
+        var astRegistry = this.astRegistry = [];
+        lively.ast.Rewriting.setCurrentASTRegistry(astRegistry);
+    },
+
+    tearDown: function($super) {
+        $super();
+        lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
     }
 
 },
@@ -23,12 +31,12 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "%s"
             + "} catch (e) {\n"
             + "    var ex = e.isUnwindException ? e : new lively.ast.Rewriting.UnwindException(e);\n"
-            + "    ex.shiftFrame(this, __%s);\n"
+            + "    ex.shiftFrame(this, __%s, %s);\n"
             + "    throw ex;\n"
             + "}\n",
             level, generateVarMappingString(), level, level,
             level-1 < 0 ? 'Global' : '__' + (level-1),
-            inner, level);
+            inner, level, "__/[0-9]+/__");
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         function generateVarMappingString() {
             if (!varMapping) return '{}';
@@ -371,7 +379,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
             return result;
         }
         var src = Strings.format('(%s)();', code),
-            src2 = escodegen.generate(rewrite(lively.ast.acorn.parse(src)));
+            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     }
 
@@ -380,7 +388,26 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
 TestCase.subclass('lively.ast.tests.ContinuationTest',
 'testing', {
 
-    test01LinearFlow: function() {
+    test01RunWithNoBreak: function() {
+        function code() { var x = 2; return x + 4; }
+        var expected = {
+            isContinuation: false,
+            returnValue: 6
+        }
+        var runResult = lively.ast.StackReification.run(code);
+        this.assertEqualState(expected, runResult)
+    },
+
+    test02SimpleBreak: function() {
+        function code() { var x = 2; debugger; return x + 4; }
+        var expected = {
+            isContinuation: true
+        }
+        var runResult = lively.ast.StackReification.run(code);
+        this.assertMatches(expected, runResult)
+    },
+
+    test02LinearFlow: function() {
         function code() {
             var x = 1;
             var f = function() {

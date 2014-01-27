@@ -98,6 +98,9 @@ Object.extend(Global, {
 
 (function setupBaseExtensionsForFunctionNames() {
 
+    addOwnPropertyIfAbsent(Object.prototype, 'lvIsConstructor', function(){
+        return false;});
+        
     addOwnPropertyIfAbsent(Function.prototype, 'lvIsConstructor', function(){
         if(this.superclass) 
             return true;
@@ -109,31 +112,101 @@ Object.extend(Global, {
                 ).length > 0 || Object.getOwnPropertyNames(this.prototype).length > 1)});   //one of them is 'constructor'
 
     addOwnPropertyIfAbsent(Object.prototype, 'lvOwnFunctionNames', function(){
-        return Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
+        var result = [],
+            obj = this;
+        Object.getOwnPropertyNames(obj).forEach(function(name){
             var object;
-            return !obj.__lookupGetter__(name) && 
-                name != 'lvContextPath' && 
-                name != 'lvOwnFunctionNames' && 
-                (object = obj[name]) instanceof Function &&
-                !object.lvIsConstructor()})});
+            var desc = Object.getOwnPropertyDescriptor(obj, name);
+            if(desc.get) 
+                result.push("get " + name);
+            else if(name != 'constructor' && 
+                    name != 'lvContextPath' && 
+                    name != 'lvOwnFunctionNames' && 
+                    (object = obj[name]) instanceof Function &&
+                    (name !== 'callee' || obj !== object.arguments) &&
+                    !object.lvIsConstructor()) 
+                result.push(name);
+            if(desc.set) 
+                result.push("set " + name);
+        });
+        return result});
     
+    addOwnPropertyIfAbsent(Array.prototype, 'lvOwnFunctionNames', function(){
+        var result = [],
+            obj = this;
+        Object.getOwnPropertyNames(obj).forEach(function(name){
+            var object;
+            var desc = Object.getOwnPropertyDescriptor(obj, name);
+            if(desc.get) 
+                result.push("get " + name);
+            else if(name - 0 != name && 
+                    (object = obj[name]) instanceof Function &&
+                    !object.lvIsConstructor()) 
+                result.push(name);
+            if(desc.set) 
+                result.push("set " + name);
+        });
+        return result});
+
+    addOwnPropertyIfAbsent(Function.prototype, 'lvOwnFunctionNames', function(){
+        var result = [],
+            obj = this;
+        Object.getOwnPropertyNames(obj).forEach(function(name){
+            var object;
+            var desc = Object.getOwnPropertyDescriptor(obj, name);
+            if(desc.get) 
+                result.push("get " + name);
+            else if(name != 'caller' && name != 'originalFunction' &&
+                    name != 'lvContextPath' && 
+                    name != 'lvOwnFunctionNames' && 
+                    (name != 'toString' || obj.superclass === undefined) &&
+                    (object = obj[name]) instanceof Function &&
+                    !object.lvIsConstructor()) 
+                result.push(name);
+            if(desc.set) 
+                result.push("set " + name);
+        });
+        return result});
+
     addOwnPropertyIfAbsent(Global, 'lvOwnFunctionNames', function(){
-        return Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
+        var result = [],
+            obj = this;
+        Object.getOwnPropertyNames(obj).forEach(function(name){
             var object;
-            return !obj.__lookupGetter__(name) && 
-                name != 'requires' && 
-                name != 'lvContextPath' && 
-                name != 'lvOwnFunctionNames' && 
-                (object = obj[name]) instanceof Function &&
-                !object.lvIsConstructor()})});
-    
+            var desc = Object.getOwnPropertyDescriptor(obj, name);
+            if(desc.get) 
+                result.push("get " + name);
+            else if(name != 'constructor' && 
+                    name != 'requires' && 
+                    name != 'lvContextPath' && 
+                    name != 'lvOwnFunctionNames' && 
+                    (object = obj[name]) instanceof Function &&
+                    !object.lvIsConstructor()) 
+                result.push(name);
+            if(desc.set) 
+                result.push("set " + name);
+        });
+        return result});
+
     addOwnPropertyIfAbsent(lively.Module.prototype, 'lvOwnFunctionNames', function(){
-        return Properties.allOwnPropertiesOrFunctions(this, function(obj, name) {
+        var result = [],
+            obj = this;
+        Object.getOwnPropertyNames(obj).forEach(function(name){
             var object;
-            return !obj.__lookupGetter__(name) && 
-                name != 'requires' && 
-                (object = obj[name]) instanceof Function &&
-                !object.lvIsConstructor()})});
+            var desc = Object.getOwnPropertyDescriptor(obj, name);
+            if(desc.get) 
+                result.push("get " + name);
+            else if(name != 'constructor' && 
+                    name != 'requires' && 
+                    name != 'lvContextPath' && 
+                    name != 'lvOwnFunctionNames' && 
+                    (object = obj[name]) instanceof Function &&
+                    !object.lvIsConstructor()) 
+                result.push(name);
+            if(desc.set) 
+                result.push("set " + name);
+        });
+        return result});
 })();
 
 (function setupBaseExtensionsForContextPath() {
@@ -158,7 +231,7 @@ Object.extend(Global, {
             return null;
         });
 
-    ["Global", "console", "location"].each(function(e){
+    ["Global", "console", "location", "document"].each(function(e){
                 addOwnPropertyIfAbsent(lively.lookup(e), 'lvContextPath', function(){return e});
             });
 
@@ -169,9 +242,9 @@ Object.extend(Global, {
                 return this.belongsToTrait.lvContextPath() + ".def." + this.displayName;
             if(this.declaredClass && this.methodName)
                 return this.declaredClass + "." + this.methodName;
-            if(Global[this.name] === this)
+            if(this.name && Global[this.name] === this)
                 return this.name;
-            if(Global[this.lvDisplayName] === this)
+            if(this.lvDisplayName && Global[this.lvDisplayName] === this)
                 return this.lvDisplayName;
             if(this === Function.prototype)
                 return "Function.prototype"
@@ -181,13 +254,14 @@ Object.extend(Global, {
     addOwnPropertyIfAbsent(RealTrait.prototype, 'lvContextPath', function(){
             if(this === RealTrait.prototype)
                 return 'RealTrait.prototype';
-            return "RealTrait.prototype.traitRegistry['" + this.name + "']";
+            return this.name && "RealTrait.prototype.traitRegistry['" + this.name + "']";
         });
 
     addOwnPropertyIfAbsent(lively.persistence.SpecObject.prototype, 'lvContextPath', function(){
             if(this === lively.persistence.SpecObject.prototype)
                 return 'lively.persistence.SpecObject.prototype';
-            return 'lively.persistence.BuildSpec.Registry["' + Properties.nameFor(lively.persistence.BuildSpec.Registry, this) + '"]';
+            var key = Properties.nameFor(lively.persistence.BuildSpec.Registry, this);
+            return key && 'lively.persistence.BuildSpec.Registry["' + key + '"]'; 
         });
 
     Object.keys(lively.ide.commands.byName).each(function(e){
@@ -428,13 +502,16 @@ debugger;
                 changeRecord.errors.push("Could not resolve the original context "+changeRecord.originalContextPath);
                 return;
             }
-            if(changeRecord.originalPropertyName && !originalContext[changeRecord.originalPropertyName]) {
-                changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+" does not have the  property '"+changeRecord.originalPropertyName+"' anymore");
-                return;
-            }
-            if(changeRecord.originalPropertyName && changeRecord.originalSource != originalContext[changeRecord.originalPropertyName].toString()) {
-                changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the original source anymore");
-                return;
+            if(changeRecord.originalPropertyName) {
+                var code = getFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
+                if(!code) {
+                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+" does not have the  property '"+changeRecord.originalPropertyName+"' anymore");
+                    return;
+                }
+                if(changeRecord.originalSource != code.toString()) {
+                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the original source anymore");
+                    return;
+                }
             }
             if(changeRecord.originalCategory) {
                 var originalContainer = originalContext.lvCategoriesContainer();
@@ -465,10 +542,10 @@ debugger;
         }
         var kindOfChange, 
             timestamp,
-            oldFunc = context[changeRecord.propertyName];
+            oldFunc = getFunctionOrAccessor(changeRecord.propertyName, context);
         switch(changeRecord.type) {
             case "removed":
-                delete context[changeRecord.propertyName];
+                deleteFunctionOrAccessor(changeRecord.propertyName, context);
                 if(!existingTimestamp)
                     if(oldFunc.user && oldFunc.timestamp)
                         //modified
@@ -494,7 +571,7 @@ debugger;
                 }
                 kindOfChange = "moved from "+changeRecord.originalContextPath;
                 if(!existingTimestamp) {
-                    var sourceOldFunc = originalContext[changeRecord.originalPropertyName];
+                    var sourceOldFunc = getFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
                     if(sourceOldFunc.user && sourceOldFunc.timestamp)
                         //already modified
                         timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, sourceOldFunc.timestamp);
@@ -502,7 +579,7 @@ debugger;
                         //first change
                         timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, changeRecord.originalContext, changeRecord.originalPropertyName);
                 }
-                delete originalContext[changeRecord.originalPropertyName];
+                deleteFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
                 break;
             case "renamed":
                 if(oldFunc) {
@@ -512,7 +589,7 @@ debugger;
                 }
                 kindOfChange = "renamed from "+changeRecord.originalPropertyName;
                 if(!existingTimestamp) {
-                    var sourceOldFunc = context[changeRecord.originalPropertyName];
+                    var sourceOldFunc = getFunctionOrAccessor(changeRecord.originalPropertyName, context);
                     if(sourceOldFunc.user && sourceOldFunc.timestamp)
                         //already modified
                         timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, sourceOldFunc.timestamp);
@@ -520,7 +597,7 @@ debugger;
                         //first change
                         timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, null, changeRecord.originalPropertyName);
                 }
-                delete context[changeRecord.originalPropertyName];
+                deleteFunctionOrAccessor(changeRecord.originalPropertyName, context);
                 break;
             case "changed source":
                 if(!oldFunc) {
@@ -555,19 +632,21 @@ debugger;
                 throw new Error("Applying "+changeRecord.type+ " not implemented yet");
             }
             if(!oldFunc || changeRecord.source != oldFunc.toString())
-                (function() { eval("this."+changeRecord.propertyName+" = "+ changeRecord.source) }).call(context);
-            var func = context[changeRecord.propertyName];
+                (function() { eval(functionOrAccessorStoreString(changeRecord.propertyName, changeRecord.source)) }).call(context);
+            var func = getFunctionOrAccessor(changeRecord.propertyName, context);
             func.kindOfChange = kindOfChange;
             func.user = $world.getUserName(); 
 
             if(changeRecord.category && changeRecord.category != changeRecord.originalCategory) {
                 var container = context.lvCategoriesContainer();
-                if(changeRecord.originalCategory) {
+                var originalCategory = changeRecord.originalCategory || "default category";
+                if(originalCategory) {
                     var originalContainer = container;
-                    if(context !== originalContext)
+                    var originalPropertyName = changeRecord.originalPropertyName || changeRecord.propertyName;
+                    if(originalContext && context !== originalContext)
                         originalContainer = originalContext.lvCategoriesContainer();
                     if(originalContainer)
-                        originalContainer.lvRemoveMethodFromExistingCategory(changeRecord.originalPropertyName, changeRecord.originalCategory);
+                        originalContainer.lvRemoveMethodFromExistingCategory(originalPropertyName, originalCategory);
                 }
                 if(container) {
                     container.lvAddCategoryIfAbsent(changeRecord.category);
@@ -1144,21 +1223,22 @@ lively.morphic.Panel.subclass('lively.ide.ChangesBrowser',
             	this.setActive(this.systemVsChangeButton, false);
             } else {
                 var name;
-                if(system[changeRecord.propertyName] === undefined && changeRecord.originalPropertyName && changeRecord.originalPropertyName != changeRecord.propertyName)
+                if(getFunctionOrAccessor(changeRecord.propertyName, system) === undefined && changeRecord.originalPropertyName && changeRecord.originalPropertyName != changeRecord.propertyName)
                     name = changeRecord.originalPropertyName;
                 else
                     name = changeRecord.propertyName;
                 this.systemContext.setTextString(contextPath);
                 this.systemName.setTextString(name);
-                this.systemCodePane.setTextString(system[name]);
+                var code = getFunctionOrAccessor(name, system);
+                this.systemCodePane.setTextString(code);
 
                 var category,
                     systemContainer = system.lvCategoriesContainer();
                 if(systemContainer)
                     category = systemContainer.lvCategoryForMethod(name);
                 this.systemCategory.setTextString(category || null);
-                this.setActive(this.originalVsSystemButton, system[name] && changeRecord.originalSource);
-                this.setActive(this.systemVsChangeButton, system[name] && changeRecord.source);
+                this.setActive(this.originalVsSystemButton, code && changeRecord.originalSource);
+                this.setActive(this.systemVsChangeButton, code && changeRecord.source);
             }
             this.changeCategory.setTextString(changeRecord.category);
             this.changeName.setTextString(changeRecord.propertyName);
@@ -1378,13 +1458,13 @@ lively.morphic.Panel.subclass('lively.ide.SharedChangeSetBrowser',
                 this.systemName.setTextString('');
             } else {
                 var name;
-                if(system[changeRecord.propertyName] === undefined && changeRecord.originalPropertyName && changeRecord.originalPropertyName != changeRecord.propertyName)
+                if(getFunctionOrAccessor(changeRecord.propertyName, system) === undefined && changeRecord.originalPropertyName && changeRecord.originalPropertyName != changeRecord.propertyName)
                     name = changeRecord.originalPropertyName;
                 else
                     name = changeRecord.propertyName;
                 this.systemContext.setTextString(contextPath);
                 this.systemName.setTextString(name);
-                this.systemCodePane.setTextString(system[name]);
+                this.systemCodePane.setTextString(getFunctionOrAccessor(name, system));
 
                 var category,
                     systemContainer = system.lvCategoriesContainer();
@@ -1505,8 +1585,9 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             categories.push({string: 'default category - static', names: staticNames.sort()});
         var nonStaticContainer = this.selectedContainerKind.nonStaticContainer(aContainer);
         if(nonStaticContainer) {
-            var allProtoNames = nonStaticContainer.lvOwnFunctionNames().sort();
+            var allProtoNames = nonStaticContainer.lvOwnFunctionNames();
             if(allProtoNames.length > 0) {
+                allProtoNames.sort();
                 categories.push({string: '-- all --  proto', names: allProtoNames.slice()});
                 aContainer.lvCategoriesWithMethodNamesDo(function(category, methodNames){
                     var names = methodNames.intersect(allProtoNames);
@@ -1564,6 +1645,14 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         this.codePane.doitContext = target;
         this.owner.setTitle(this.titleFor(this.selectedContainer));
         var text = "// doitContext = "+ target.lvContextPath();
+        if(this.selectedContainerKind.displayInheritanceTree) {
+            var indent = "\n//                     ";
+            while(Object.getPrototypeOf(target)) {
+                text += indent + "...inheriting from " + Object.getPrototypeOf(target).lvContextPath();
+                indent += "   ";
+                target = Object.getPrototypeOf(target);
+            }
+        }
         this.codePane.setTextString(text);
         this.codePane.savedTextString = text;
     },
@@ -1695,7 +1784,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         var functionName = panel.selectedFunctionNameInContainer;
         if (functionName) {
             try {
-                var oldFunc = this.doitContext[functionName];
+                var oldFunc = getFunctionOrAccessor(functionName, this.doitContext);
                 var text = this.textString;
                 (function(){eval(text)}).call(this.doitContext);
                 alertOK('eval'); 
@@ -1703,7 +1792,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                     var contextPath = this.doitContext.lvContextPath();
                     if(!contextPath)
                         throw new Error("Should not happen");
-                    var func = this.doitContext[functionName];
+                    var func = getFunctionOrAccessor(functionName, this.doitContext);
                     text = func.toString();   //clean up annotations
                     var category = panel.selectedCategory();
                     if(oldFunc.user && oldFunc.timestamp)
@@ -1735,18 +1824,21 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             {string: "classes", 
                 titleRenderFunction: function(e){return "Class " + (e.type || e.name)},
                 listRenderFunction: function(e){return e.name || e.type},
+                displayInheritanceTree: true,
                 containers: function(){return allClasses(true)},
                 nonStaticContainer: function(e){return e.prototype}}, 
                 
            {string: "non-class global constructors", 
                 titleRenderFunction: function(e){return e.name || e.lvDisplayName},
                 listRenderFunction: function(e){return e.name || e.lvDisplayName},
+                displayInheritanceTree: true,
                 containers: function(){return nonClassConstructors(true)},
                 nonStaticContainer: function(e){return e.prototype}}, 
                 
             {string: "traits", 
                 titleRenderFunction: function(e){return "Trait " + e.name},
                 listRenderFunction: function(e){return e.name},
+                displayInheritanceTree: false,
                 containers: function(){
                     return Global.RealTrait ? Object.values(RealTrait.prototype.traitRegistry) : []},
                 nonStaticContainer: function(e){return e.def}}, 
@@ -1754,6 +1846,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             {string: "modules", 
                 titleRenderFunction: function(e){return "Module " + e.name()},
                 listRenderFunction: function(e){return e.name()},
+                displayInheritanceTree: true,
                 containers: function(){
                     return subNamespaces(true).select(function(e){
                         return !e.isAnonymous() && e.lvOwnFunctionNames().length > 0
@@ -1766,6 +1859,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                     return 'lively.BuildSpec(' + (name ? '"' + name + '", ' : '') + '{className: ' + e.attributeStore.className + '})';
                     },
                 listRenderFunction: function(e){return e.string},
+                displayInheritanceTree: false,
                 containers: function(){return instantiatedBuildSpecsAndSubmorphsWithPaths()},
                 nonStaticContainer: function(e){return e.attributeStore}}, 
                 
@@ -1779,10 +1873,13 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                         else if (navigator.appVersion.indexOf("Mac")!=-1)
                             binding = binding.mac;
                     }
+                    if(binding && binding instanceof Array)
+                        binding = binding.join("  or  ");
                     if(binding)
                         binding = binding.replace("-s-", "-shift-");
                     return e.description + (binding ? "      (" + binding + ")" : "")},
                 listRenderFunction: function(e){ return Properties.nameFor(lively.ide.commands.byName, e)},
+                displayInheritanceTree: false,
                 containers: function(){return Object.values(lively.ide.commands.byName)},
                 nonStaticContainer: function(e){return null}}, 
                 
@@ -1792,20 +1889,23 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                 listRenderFunction: function(e){
                     var parts = e.lvContextPath().split("[");
                     return lively.lookup(parts[0]).name + "[" + parts[1]},
+                displayInheritanceTree: false,
                 containers: function(){return layeredFunctionContainers()},
                 nonStaticContainer: function(e){return null}},
                 
             {string: "plain JavaScript objects", 
-                titleRenderFunction: function(e){return "PJO " + e.lvContextPath()},
+                titleRenderFunction: function(e){return e.lvContextPath()},
                 listRenderFunction: function(e){return e.lvContextPath()},
+                displayInheritanceTree: true,
                 containers: function(){return PJOs(true)},
                 nonStaticContainer: function(e){return null}},
                 
             {string: "well-known global containers", 
                 titleRenderFunction: function(e){return "Global object " + e.lvContextPath()},
                 listRenderFunction: function(e){return e.lvContextPath()},
+                displayInheritanceTree: true,
                 containers: function(){
-                    return [Global, console, location]},
+                    return [Global, console, location, document]},
                 nonStaticContainer: function(e){return null}} 
         ]
     },
@@ -1822,13 +1922,15 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         if(!this.selectedFunctionKind)
             return [];
         var self = this;
-        var kind = 'property';
+        var kind;
         if (this.selectedContainer !== Global)
             kind = 'method';
         else
             kind = 'function';
         var items = [
-            ['add '+kind, function() {self.addProperty()}]
+            ['add '+kind, function() {self.addProperty(kind)}],
+            ['add getter', function() {self.addProperty('get')}],
+            ['add setter', function() {self.addProperty('set')}]
         ];
         if(this.functionPane.isMultipleSelectionList)
             items.push(
@@ -1845,18 +1947,28 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
 
         if (this.selectedFunctionNameInContainer) {
             items.push(
-                ['move to...', function() {self.moveProperty()}],
-                ['remove', function() {self.removeProperty()}],
-                ['rename as... ', function() {self.renameProperty()}],
-                ['senders', function() {
-                    openFunctionList('senders', self.selectedFunctionNameInContainer, true); 
-                    }],
-                ['implementors', function() {
-                    openFunctionList('implementors', self.selectedFunctionNameInContainer); }]
+                ['remove', function() {self.removeProperty()}]
                 );
+            if(this.selectedFunctionNameInContainer.indexOf(" ") === -1) {
+                items.push(
+                    ['move to...', function() {self.moveProperty()}],
+                    ['rename as... ', function() {self.renameProperty()}],
+                    ['senders', function() {
+                        openFunctionList('senders', self.selectedFunctionNameInContainer, true); 
+                        }],
+                    ['implementors', function() {
+                        openFunctionList('implementors', self.selectedFunctionNameInContainer); }]
+                    );
+            } else {
+                items.push(
+                    ['references', function() {
+                        openFunctionList('senders', self.selectedFunctionNameInContainer.substring(4), true); 
+                        }]
+                    );
+            }
             if (this.selectedFunctionKind != 'default category - static')
                 items.push(['change category', function() {self.changeCategory()}]);
-            var func = this.codePane.doitContext[this.selectedFunctionNameInContainer];
+            var func = getFunctionOrAccessor(this.selectedFunctionNameInContainer, this.codePane.doitContext);
             if(func.timestamp)
                 items.push(['browse versions', function() {self.browseVersions(func.timestamp)}])
         } else if(this.functionPane.getSelectedIndexes().length == 2)
@@ -1866,7 +1978,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         
         return items;
     },
-    moveProperty: function addProperty() {
+    moveProperty: function moveProperty() {
         var codePane = this.codePane,
             context = codePane.doitContext,
             functionPane = this.functionPane,
@@ -1897,9 +2009,9 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                 var contextPath = context.lvContextPath();
                 if(!contextPath)
                     throw new Error("Should not happen");
-                var func = context[functionName];
-                newContext[functionName] = func;
-                delete context[functionName];
+                var func = getFunctionOrAccessor(functionName, context);
+                setFunctionOrAccessor(functionName, newContext, func);
+                deleteFunctionOrAccessor(functionName, context);
     
                 var category = panel.selectedCategory();
                 if (category) {
@@ -1942,7 +2054,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
     },
 
 
-    addProperty: function addProperty() {
+    addProperty: function addProperty(kind) {
         var codePane = this.codePane,
             functionPane = this.functionPane,
             selectedContainer = this.selectedContainer,
@@ -1951,22 +2063,21 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
 
         var functionName = this.selectedFunctionNameInContainer;
         if (functionName)
-            var currentModule = context[functionName].sourceModule;
+            var currentModule = getFunctionOrAccessor(functionName, context).sourceModule;
         if(!currentModule) {
-            var funcWithSource = functionPane.getList().detect(function(e){return context[e].sourceModule});
+            var funcWithSource = functionPane.getList().detect(function(e){return getFunctionOrAccessor(e, context).sourceModule});
             if (funcWithSource)
                 currentModule = funcWithSource.sourceModule;
         }
             
         this.checkSourceNotAccidentlyDeleted(function() {
-            $world.editPrompt('new method name', function(functionName) {
+            $world.editPrompt('new ' + kind + ' name', function(functionName) {
                 if(!functionName || functionName.trim().length == 0)
                     return;
-                functionName = functionName.trim();
+                functionName = (kind == 'get' || kind == 'set' ? kind + ' ' : '') + functionName.trim();
                 
-                var currentNames = functionPane.getList().collect(function(e){return e});
-                if(currentNames.include(functionName)) {
-                    $world.alert('method name already in use');
+                if(getFunctionOrAccessor(functionName, context)) {
+                    $world.alert('name already in use');
                     return;
                 }
     
@@ -1974,8 +2085,8 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                 if(!contextPath)
                     throw new Error("Should not happen");
                 var func = function() {};
-                context[functionName] = func;
-    
+                setFunctionOrAccessor(functionName, context, func);
+
                 var category = panel.selectedCategory();
                 if (category)
                     selectedContainer.lvAddMethodToExistingCategory(func, functionName, category);
@@ -1995,7 +2106,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             });
         });
     },
-    renameProperty: function addProperty() {
+    renameProperty: function renameProperty() {
         var context = this.codePane.doitContext,
             oldFunctionName = this.selectedFunctionNameInContainer,
             func = context[oldFunctionName],
@@ -2052,7 +2163,8 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         var panel = this,
             container = this.selectedContainer,
             functionName = this.selectedFunctionNameInContainer,
-            func = this.codePane.doitContext[functionName],
+            context = this.codePane.doitContext,
+            func = getFunctionOrAccessor(functionName, context),
             category = this.selectedCategory(),
             functionKindPane = this.functionKindPane;
             
@@ -2066,7 +2178,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             categories.unshift('<new category>');
             
             var proceed = function(otherCategory) {
-                var contextPath = panel.codePane.doitContext.lvContextPath();
+                var contextPath = context.lvContextPath();
                 if(!contextPath)
                     throw new Error("Should not happen");
                 if(category)
@@ -2109,11 +2221,11 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
     removeProperty: function removeProperty () {
         var functionName = this.selectedFunctionNameInContainer,
             context = this.codePane.doitContext,
-            func = context[functionName],
+            func = getFunctionOrAccessor(functionName, context),
             selectedContainer = this.selectedContainer,
             panel = this;
 
-        $world.confirm('Are you sure you want to remove this method?', function(answer){
+        $world.confirm('Are you sure you want to remove this?', function(answer){
             if(!answer)
                 return;
             
@@ -2121,8 +2233,8 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
             if(!contextPath)
                 throw new Error("Should not happen");
             
-            delete context[functionName];
-    
+            deleteFunctionOrAccessor(functionName, context);
+
             var category = panel.selectedCategory();
             if (category)
                 selectedContainer.lvRemoveMethodFromExistingCategory(functionName, category);
@@ -2216,14 +2328,15 @@ lively.morphic.Panel.subclass('lively.ide.VersionsBrowser',
             alertOK("The current source and the source of the selected version are the same");
             return;
         }
-        var oldFunc = lively.lookup(current.contextPath + '.' + current.propertyName);
+        var context = lively.lookup(current.contextPath);
+        var oldFunc = getFunctionOrAccessor(current.propertyName, context);
         try {
-            eval(current.contextPath + '.' + current.propertyName + ' = ' + selected.source);
+            (function() { eval(functionOrAccessorStoreString(current.propertyName, selected.source)) }).call(context);
         } catch(e) {
             $world.logError(e);
             return;
         }
-        var func = lively.lookup(current.contextPath + '.' + current.propertyName);
+        var func = getFunctionOrAccessor(current.propertyName, context);
         func.timestamp = lively.ChangeSet.logChange(selected.source, current.contextPath, current.propertyName, current.category, oldFunc.timestamp);
         if(func.timestamp) {
             var newChange = lively.ChangeSet.getChangeRecord(func.timestamp);
@@ -2414,19 +2527,24 @@ lively.morphic.Morph.addMethods("iterating", {
 
         var myPath;
         if(this.name)
-            myPath = 
-                parentPath ? parentPath.split('.')[0] + '.'  + this.name : this.name;
+            myPath = (parentPath ? parentPath.split(':')[0] + ':' : '') + this.name;
         else
-            myPath = (parentPath ? parentPath : rootContextPath) + '.submorphs[' + indexPath.split('.').last() + ']';
+            myPath = (parentPath ? parentPath + ':' : '') + 'submorphs[' + indexPath.split('.').last() + ']';
             
         array.push({string: myPath, value: this});
-        var contextPath = rootContextPath;
-        if(this.name)
-            contextPath += (parentPath ? ".get('" + parentPath.split('.')[0] + "').get('" : ".get('") + this.name + "')";
-        else
+        var contextPath = rootContextPath + ".";
+        if(!this.name) {
             indexPath.split('.').each(function(i){
-                contextPath += '.submorphs[' + i + ']';
-            })
+                contextPath += 'submorphs[' + i + ']';
+            });
+        } else {
+            if(parentPath)
+                if(parentPath.indexOf('submorphs[') == 0)
+                    contextPath += parentPath.split(':')[0] + ".";
+                else
+                    contextPath += "get('" + parentPath.split(':')[0] + "').";
+            contextPath += "get('" + this.name + "')";
+        }
         addOwnPropertyIfAbsent(this, 'lvContextPath', function(){return contextPath});
 
         if(!this.submorphs)
@@ -2443,11 +2561,10 @@ lively.persistence.SpecObject.addMethods("iterating", {
         var props = this.attributeStore;
         var myPath;
         if(props.name)
-            myPath = 
-                parentPath ? parentPath.split('.')[0] + '.'  + props.name : props.name;
+            myPath = (parentPath ? parentPath.split(':')[0] + ':' : '') + props.name;
         else
-            myPath = parentPath + '.submorphs[' + indexPath.split('.').last() + ']';
-            
+            myPath = (parentPath ? parentPath + ':' : '') + 'submorphs[' + indexPath.split('.').last() + ']';
+
         array.push({string: myPath, value: this});
         var contextPath = rootContextPath;
         if(indexPath) {
@@ -2628,48 +2745,117 @@ Object.extend(Global, {
     nonClassConstructors: function(recursive) {
         var result = [];
         Object.getOwnPropertyNames(this).each(function(name) {
-            var object, pjo, methods;
-            if (!this.__lookupGetter__(name))
-                if ((object = this[name]) instanceof Function &&
-                    this.constructor !== object &&
-                    !lively.Class.isClass(object) &&
-                    object.lvIsConstructor()) {
+            var object, methods;
+            if (!this.__lookupGetter__(name) && (object = this[name]) instanceof Object &&
+            this.constructor !== object && !lively.Class.isClass(object)) {
+                if (object.lvIsConstructor()) {
                         result.push(object);
-                        var contextPath = object.lvContextPath();
-                        if(!contextPath) {
-                            addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
-                            contextPath = name;
-                        }
-                        if(!object.prototype)
-                            debugger;
-                        var protoContextPath = object.prototype.lvContextPath();
-                        if(!protoContextPath)
-                            addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})
-                }
-                else if((pjo = this[name]) instanceof Object && pjo !== Global && 
-                        pjo !== this.constructor && !(pjo instanceof lively.Module)) {
-                    var parentPath = name;
-                    Object.getOwnPropertyNames(pjo).each(function(name) {
-                        var object;
-                        if (!pjo.__lookupGetter__(name) &&
-                            (object = pjo[name]) instanceof Function &&
-                            pjo.constructor !== object &&
-                            !lively.Class.isClass(object) &&
-                            object.lvIsConstructor()) {
-                                result.push(object);
-                                var contextPath = object.lvContextPath();
-                                var path = parentPath + "." + name;
-                                if(!contextPath) {
-                                    if(!object.name)
-                                        addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
-                                    else if(object.name != name )
+                        var path = object.lvContextPath();
+                        if(!path)
+                            if(!object.name || object.name !== name) 
+                                if(!object.hasOwnProperty('lvDisplayName')) {
+                                    addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
+                                    if(!object.lvContextPath())
+                                        if(!object.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? name : null});
+                                        else
+                                            debugger;
+                                } else if(object.lvDisplayName === name || this[object.lvDisplayName] === object)
+                                    if(!object.hasOwnProperty('lvContextPath'))
+                                        addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? object.lvDisplayName : null});
+                                    else
                                         debugger;
-                                    addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path});
-                                    contextPath = path;
-                                }
-                                var protoContextPath = object.prototype.lvContextPath();
-                                if(!protoContextPath)
-                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})}})}
+                                else
+                                    if(!object.hasOwnProperty('lvContextPath'))
+                                        addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? name : null});
+                                    else
+                                        debugger;
+                            else if(object.name === name || this[object.name] === object)
+                                if(!object.hasOwnProperty('lvContextPath'))
+                                    addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? object.name : null});
+                                else
+                                    debugger;
+                            else
+                                if(!object.hasOwnProperty('lvContextPath'))
+                                    addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? name : null});
+                                else
+                                    debugger;
+                        else if(lively.lookup(path) !== object)
+                            debugger;
+                        var protoPath = object.prototype.lvContextPath();
+                        if(!protoPath) {
+                            path = path || object.lvContextPath();
+                            if(!path)
+                                debugger;
+                            else
+                                if(!object.prototype.hasOwnProperty('lvContextPath'))
+                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return this === object.prototype ? path + ".prototype" : null;});
+                                else
+                                    debugger;
+                        } else if(lively.lookup(protoPath) !== object.prototype)
+                            debugger;
+                } 
+                if(object !== Global && !(object instanceof lively.Module) && 
+                (!(object instanceof Function) || object.lvIsConstructor())) {
+                    var parentPath = object.lvContextPath();
+                    if(!parentPath)
+                        if(Global[name] === object)
+                            parentPath = name;
+                        else
+                            debugger;
+                    Object.getOwnPropertyNames(object).each(function(innerName) {
+                        var innerObject;
+                        if (!object.__lookupGetter__(innerName) &&
+                            (innerObject = object[innerName]) instanceof Function &&
+                            object.constructor !== innerObject &&
+                            !lively.Class.isClass(innerObject) &&
+                            innerObject.lvIsConstructor()) {
+                                result.push(innerObject);
+                                var innerPath = innerObject.lvContextPath();
+                                if(!innerPath)
+                                    if(!innerObject.name || innerObject.name !== innerName)
+                                        if(!innerObject.hasOwnProperty('lvDisplayName')) {
+                                            addOwnPropertyIfAbsent(innerObject, 'lvDisplayName', innerName);
+                                            if(!innerObject.lvContextPath())
+                                                if(!innerObject.hasOwnProperty('lvContextPath'))
+                                                    addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                                else
+                                                    debugger;
+                                        } else if(innerObject.lvDisplayName === innerName || object[innerObject.lvDisplayName] === innerObject)
+                                            if(!innerObject.hasOwnProperty('lvContextPath'))
+                                                addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerObject.lvDisplayName : null});
+                                            else
+                                                debugger;
+                                        else
+                                            if(!innerObject.hasOwnProperty('lvContextPath'))
+                                                addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                            else
+                                                debugger;
+                                    else if(innerObject.name === innerName || object[innerObject.name] === innerObject)
+                                        if(!innerObject.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerObject.name : null});
+                                        else
+                                            debugger;
+                                    else
+                                        if(!innerObject.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                        else
+                                            debugger;
+                                else if(lively.lookup(innerPath) !== innerObject)
+                                    debugger;
+                                var innerProtoPath = innerObject.prototype.lvContextPath();
+                                if(!innerProtoPath) {
+                                    innerPath = innerPath || innerObject.lvContextPath();
+                                    if(!innerPath)
+                                        debugger;
+                                    else
+                                        if(!innerObject.prototype.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(innerObject.prototype, 'lvContextPath', function(){return this === innerObject.prototype ? innerPath + ".prototype" : null;});
+                                        else
+                                            debugger;
+                                } else if(lively.lookup(innerProtoPath) !== innerObject.prototype)
+                                    debugger;
+                            }})}}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {
@@ -2678,26 +2864,26 @@ Object.extend(Global, {
     allClasses: function(recursive) {
         var result = [];
         Object.getOwnPropertyNames(this).each(function(name) {
-            var object, pjo, methods;
-            if (!this.__lookupGetter__(name))
-                if ((object = this[name]) instanceof Function &&
-                    lively.Class.isClass(object) &&
+            var object, methods;
+            if (!this.__lookupGetter__(name) && (object = this[name]) instanceof Object) {
+                if (lively.Class.isClass(object) &&
                     (object.type || object.name) == name) {
                         result.push(object)
-                } else if((pjo = this[name]) instanceof Object && pjo !== Global && 
-                        pjo !== this.constructor && !(pjo instanceof lively.Module)) {
+                } 
+                if(object !== Global && !(object instanceof lively.Module) && 
+                (!(object instanceof Function) || lively.Class.isClass(object))) {
                     var parentPath = name;
-                    Object.getOwnPropertyNames(pjo).each(function(name) {
-                        var object;
-                        if (!pjo.__lookupGetter__(name) &&
-                            (object = pjo[name]) instanceof Function &&
-                            lively.Class.isClass(object) &&
-                            (object.type || object.name) == parentPath + "." + name) {
-                                result.push(object)}})}
+                    Object.getOwnPropertyNames(object).each(function(innerName) {
+                        var innerObject;
+                        if (!object.__lookupGetter__(innerName) &&
+                            lively.Class.isClass(innerObject = object[innerName]) &&
+                            (innerObject.type || innerObject.name) == parentPath + "." + innerName) {
+                                result.push(innerObject)}})}}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {
-            return result.concat(ns.allClasses(true)) }).uniq();
+            return result.concat(ns.allClasses(true)); 
+            }).uniq();
     },
 
     layers: function (recursive) {
@@ -2715,12 +2901,13 @@ Object.extend(Global, {
     printInContext: function(aFunctionName, context) {
         var contextPath = context.lvContextPath()
         var annotation = "// doitContext = " + contextPath + "\n";
-        var func = context[aFunctionName];
+        var func = getFunctionOrAccessor(aFunctionName, context);
         if(func.user && func.timestamp) {
             var ts = new Date(func.timestamp).toUTCString();
             var kindOfChange = func.kindOfChange || 'changed';
             annotation += Strings.format('// '+kindOfChange+' at %s by %s  \n', ts, func.user);
-        } else if(func.belongsToTrait && func.displayName &&
+        }
+        if(func.belongsToTrait && func.displayName &&
                 (func.displayName != aFunctionName || func.belongsToTrait.def !== context))
             func = func.belongsToTrait.lvContextPath() + ".def." + func.displayName;
         else if(func.declaredClass && func.methodName && 
@@ -2732,23 +2919,63 @@ Object.extend(Global, {
         else if(func.displayName && func.displayName != aFunctionName && 
                 !context.__lookupGetter__(func.displayName) && func === context[func.displayName])
             func = contextPath + "." + func.displayName;
-        return annotation + "this." + aFunctionName + " = " + func;
+        else
+            func = functionOrAccessorStoreString(aFunctionName, func);
+        return annotation + func;
     },
+    functionOrAccessorStoreString: function(propName, source) {
+        var evalString;
+        if(propName.indexOf(" ") > 0)
+            evalString = "Object.defineProperty(this, '" + propName.substring(4) + "', {" + 
+                propName.substring(0, 3) + ": " + source + ", enumerable : true, configurable : true})";
+        else
+            evalString = "this." + propName + " = " + source;
+        return evalString;
+    },
+
 
 
 
     PJOs: function (recursive) {
         var result = [];
         Object.getOwnPropertyNames(this).each(function(name) {
-            var object, methods;
-            if (!this.__lookupGetter__(name) &&
-                (object = this[name]) instanceof Object &&
-                object.constructor === Object &&
-                (methods = object.lvOwnFunctionNames()).length > 0 &&
-                methods.indexOf("constructor") == -1) {
-                    result.push(object);
-                    if(!object.hasOwnProperty('lvContextPath'))
-                        addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return name;})}
+            var object, proto, methods;
+            if (!this.__lookupGetter__(name) && (object = this[name]) instanceof Object &&
+                ![Global, console, location, document, lively.ide.commands.byName].include(object) && 
+                !(object instanceof lively.Module) && !(object instanceof Layer) &&
+                !object.lvIsConstructor() && name !== "PJOs") {
+                    if(object.lvOwnFunctionNames().length > 0) {
+                        result.push(object);
+                        var path = object.lvContextPath();
+                        if(!path)
+                            if(!object.hasOwnProperty('lvContextPath'))
+                                addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? name : null})
+                            else
+                                debugger;
+                        else if(lively.lookup(path) !== object)
+                            debugger;
+                    }
+                    if(object instanceof Array)
+                        return;
+                    var parentPath = name;
+                    Object.getOwnPropertyNames(object).each(function(innerName) {
+                        var innerObject;
+                        if (!object.__lookupGetter__(innerName) &&
+                            (innerName !== 'arguments' || !(object instanceof Function)) &&
+                            (innerObject = object[innerName]) instanceof Object &&
+                            ![Global, console, location, document].include(innerObject) && 
+                            !(innerObject instanceof lively.Module) &&
+                            !innerObject.lvIsConstructor() && innerObject.lvOwnFunctionNames().length > 0) {
+                                result.push(innerObject);
+                                var innerPath = innerObject.lvContextPath();
+                                if(!innerPath)
+                                    if(!innerObject.hasOwnProperty('lvContextPath'))
+                                        addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                    else
+                                        debugger;
+                                else if(lively.lookup(innerPath) !== innerObject)
+                                    debugger;
+                            }})}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {
@@ -2757,7 +2984,7 @@ Object.extend(Global, {
 
 
     knownFunctionContainers: function() {
-        var known = subNamespaces(true).select(function(e){return !e.isAnonymous()}).concat(Object.values(lively.ide.commands.byName)).concat([Global, console, location]).concat(layeredFunctionContainers()).concat(PJOs(true));
+        var known = subNamespaces(true).select(function(e){return !e.isAnonymous()}).concat(Object.values(lively.ide.commands.byName)).concat([Global, console, location, document]).concat(layeredFunctionContainers()).concat(PJOs(true));
         
         allClasses(true).concat(nonClassConstructors(true)).each(function(e){
             known.push(e); if(e.prototype) known.push(e.prototype)});
@@ -2765,8 +2992,6 @@ Object.extend(Global, {
         instantiatedBuildSpecsAndSubmorphsWithPaths().each(function(e){if(e.value.attributeStore) known.push(e.value.attributeStore)});
         
         Object.values(RealTrait.prototype.traitRegistry).each(function(e){known.push(e.def)});
-        
-        morphFunctionContainers().each(function(e){known.push(e.value)});
         
         return known
     },
@@ -2824,9 +3049,11 @@ Object.extend(Global, {
                 try {
                     var d = Object.getOwnPropertyDescriptor(this, name);
                     if(d && !d.get) prop = this[name];
+                    else if(d) prop = d.get;
                 } catch(e){}
+                if( prop instanceof Function && name === 'callee' && prop.arguments === this) continue;
                 if( prop instanceof Function && !prop.lvIsConstructor() && 
-                    (name != 'caller' || !(this instanceof Function)))
+                    (name != 'caller' && name != 'originalFunction' || !(this instanceof Function)))
                         functionContainer = true;
                 if((prop instanceof Function && !prop.isWrapper || typeof prop == "object" && prop && !(prop instanceof Boolean || prop instanceof Number || prop instanceof String || prop instanceof Date || prop instanceof RegExp || prop instanceof MimeTypeArray || prop instanceof MimeType || prop instanceof Plugin)) && visited.indexOf(prop) === -1) {
                     visited.push(prop);
@@ -2945,13 +3172,13 @@ Object.extend(Global, {
             options.Expression = function(node) {if(node.type == "Identifier" && node.name == searchString) throw foundMarker; };
             preceding = '\\b';
         } else
-            preceding = '["\'.]';
+            preceding = '["\'\\.]';
 
         var re = new RegExp(preceding + searchString + '\\b'); 
         var containers = [];
         knownFunctionContainers().each(function(e){
             var names = e.lvOwnFunctionNames().select(function(n){
-                var f = e[n];
+                var f = getFunctionOrAccessor(n, e);
                 source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
                     var programNode = lively.ast.acorn.parse("var f = " + source);
@@ -2969,6 +3196,40 @@ Object.extend(Global, {
         });
         return containers
     },
+    deleteFunctionOrAccessor: function(functionName, context) {
+        if(functionName.indexOf("et ") === 1) {
+            var prop = functionName.substring(4);
+            var descr = Object.getOwnPropertyDescriptor(context, prop);
+            if(functionName[0] === "g")
+                delete descr.get;
+            else
+                delete descr.set;
+            delete context[prop];
+            Object.defineProperty(context, prop, descr);
+        } else 
+            delete context[functionName];
+    },
+
+    getFunctionOrAccessor: function(aFunctionName, context) {
+        var func;
+        if(aFunctionName.indexOf("get ") === 0)
+            func = Object.getOwnPropertyDescriptor(context, aFunctionName.substring(4)).get;
+        else if(aFunctionName.indexOf("set ") === 0)
+            func = Object.getOwnPropertyDescriptor(context, aFunctionName.substring(4)).set;
+        else 
+            func = context[aFunctionName];
+        return func;
+    },
+    setFunctionOrAccessor: function(aFunctionName, context, func) {
+        if(aFunctionName.indexOf("get ") === 0)
+            Object.defineProperty(context, aFunctionName.substring(4), {get: func, enumerable: true, configurable: true});
+        else if(aFunctionName.indexOf("set ") === 0)
+            Object.defineProperty(context, aFunctionName.substring(4), {set: func, enumerable: true, configurable: true});
+        else 
+            context[aFunctionName] = func;
+    },
+
+
     references: function(searchString) {
         // references("whitespace[input][0].push")
         if(!searchString || !searchString.trim())
@@ -2980,24 +3241,18 @@ Object.extend(Global, {
         var options = {
             Literal: function(node) {if(node.value == searchString) throw foundMarker; }
         }
-        if(searchString.indexOf('.') > -1 || searchString.indexOf('[') > -1) {
+        if(searchString.indexOf('.') > -1 || searchString.indexOf('[') > -1)
             options.MemberExpression = function(node) { if(source.substring(node.start - preamble.length, node.end - preamble.length) == searchString) throw foundMarker; };
-            re = new RegExp('\\b' + searchString.regExpEscape() + '\\b');
-        } else {
+        else {
             options.MemberExpression = function(node) { if(node.property.name == searchString) throw foundMarker; };
-            var preceding;
-            if(searchString in Global) {
+            if(searchString in Global)
                 options.Expression = function(node) {if(node.type == "Identifier" && node.name == searchString) throw foundMarker; };
-                preceding = '\\b';
-            } else
-                preceding = '["\'.]';
-
-            re = new RegExp(preceding + searchString.regExpEscape() + '\\b'); 
         }
+        re = new RegExp('\\b' + searchString.regExpEscape() + '\\b');
         var containers = [];
         knownFunctionContainers().each(function(e){
             var names = e.lvOwnFunctionNames().select(function(n){
-                var f = e[n];
+                var f = getFunctionOrAccessor(n, e);
                 source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
                     var programNode = lively.ast.acorn.parse(preamble + source);
@@ -3022,50 +3277,117 @@ lively.Module.addMethods("iterating", {
         var result = [];
         var thisPath = this.name();
         Object.getOwnPropertyNames(this).each(function(name) {
-            var object, pjo, methods;
-            if (!this.__lookupGetter__(name))
-                if ((object = this[name]) instanceof Function &&
-                    this.constructor !== object &&
-                    !lively.Class.isClass(object) &&
-                    object.lvIsConstructor()) {
+            var object, methods;
+            if (!this.__lookupGetter__(name) && (object = this[name]) instanceof Object &&
+            this.constructor !== object && !lively.Class.isClass(object)) {
+                if (object.lvIsConstructor()) {
                         result.push(object);
-                        var contextPath = object.lvContextPath();
-                        var path = thisPath + "." + name;
-                        if(!contextPath) {
-                            if(!object.name)
-                                addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
-                            else if(object.name != name )
-                                debugger;
-                            addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path});
-                            contextPath = path;
-                        }
-                        var protoContextPath = object.prototype.lvContextPath();
-                        if(!protoContextPath)
-                            addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})
-                } else if((pjo = this[name]) instanceof Object && pjo !== Global && pjo !== this &&
-                        pjo !== this.constructor && !(pjo instanceof lively.Module)) {
-                    var parentPath = thisPath + "." + name;
-                    Object.getOwnPropertyNames(pjo).each(function(name) {
-                        var object;
-                        if (!pjo.__lookupGetter__(name) &&
-                            (object = pjo[name]) instanceof Function &&
-                            pjo.constructor !== object &&
-                            !lively.Class.isClass(object) &&
-                            object.lvIsConstructor()) {
-                                result.push(object);
-                                var contextPath = object.lvContextPath();
-                                var path = parentPath + "." + name;
-                                if(!contextPath) {
-                                    if(!object.name)
-                                        addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
-                                    else if(object.name != name )
+                        var path = object.lvContextPath();
+                        if(!path)
+                            if(!object.name || object.name !== name) 
+                                if(!object.hasOwnProperty('lvDisplayName')) {
+                                    addOwnPropertyIfAbsent(object, 'lvDisplayName', name);
+                                    if(!object.lvContextPath())
+                                        if(!object.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? thisPath + "." + name : null});
+                                        else
+                                            debugger;
+                                } else if(object.lvDisplayName === name || this[object.lvDisplayName] === object)
+                                    if(!object.hasOwnProperty('lvContextPath'))
+                                        addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? thisPath + "." + object.lvDisplayName : null});
+                                    else
                                         debugger;
-                                    addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path});
-                                    contextPath = path;
-                                }
-                                var protoContextPath = object.prototype.lvContextPath();
-                                if(!protoContextPath)
-                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return contextPath + ".prototype";})}})}
+                                else
+                                    if(!object.hasOwnProperty('lvContextPath'))
+                                        addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? thisPath + "." + name : null});
+                                    else
+                                        debugger;
+                            else if(object.name === name || this[object.name] === object)
+                                if(!object.hasOwnProperty('lvContextPath'))
+                                    addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? thisPath + "." + object.name : null});
+                                else
+                                    debugger;
+                            else
+                                if(!object.hasOwnProperty('lvContextPath'))
+                                    addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? thisPath + "." + name : null});
+                                else
+                                    debugger;
+                        else if(lively.lookup(path) !== object)
+                            debugger;
+                        var protoPath = object.prototype.lvContextPath();
+                        if(!protoPath) {
+                            path = path || object.lvContextPath();
+                            if(!path)
+                                debugger;
+                            else
+                                if(!object.prototype.hasOwnProperty('lvContextPath'))
+                                    addOwnPropertyIfAbsent(object.prototype, 'lvContextPath', function(){return this === object.prototype ? path + ".prototype" : null;});
+                                else
+                                    debugger;
+                        } else if(lively.lookup(protoPath) !== object.prototype)
+                            debugger;
+                } 
+                if(object !== Global && !(object instanceof lively.Module) && 
+                (!(object instanceof Function) || object.lvIsConstructor())) {
+                    var parentPath = object.lvContextPath();
+                    if(!parentPath)
+                        if(lively.lookup(thisPath + "." + name) === object)
+                            parentPath = thisPath + "." + name;
+                        else
+                            debugger;
+                    Object.getOwnPropertyNames(object).each(function(innerName) {
+                        var innerObject;
+                        if (!object.__lookupGetter__(innerName) &&
+                            (innerObject = object[innerName]) instanceof Function &&
+                            object.constructor !== innerObject &&
+                            !lively.Class.isClass(innerObject) &&
+                            innerObject.lvIsConstructor()) {
+                                result.push(innerObject);
+                                var innerPath = innerObject.lvContextPath();
+                                if(!innerPath)
+                                    if(!innerObject.name || innerObject.name !== innerName)
+                                        if(!innerObject.hasOwnProperty('lvDisplayName')) {
+                                            addOwnPropertyIfAbsent(innerObject, 'lvDisplayName', innerName);
+                                            if(!innerObject.lvContextPath())
+                                                if(!innerObject.hasOwnProperty('lvContextPath'))
+                                                    addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                                else
+                                                    debugger;
+                                        } else if(innerObject.lvDisplayName === innerName || object[innerObject.lvDisplayName] ===  innerObject)
+                                            if(!innerObject.hasOwnProperty('lvContextPath'))
+                                                addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerObject.lvDisplayName : null});
+                                            else
+                                                debugger;
+                                        else
+                                            if(!innerObject.hasOwnProperty('lvContextPath'))
+                                                addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                            else
+                                                debugger;
+                                    else if(innerObject.name === innerName || object[innerObject.name] === innerObject)
+                                        if(!innerObject.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerObject.name : null});
+                                        else
+                                            debugger;
+                                    else
+                                        if(!innerObject.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                        else
+                                            debugger;
+                                else if(lively.lookup(innerPath) !== innerObject)
+                                    debugger;
+                                var innerProtoPath = innerObject.prototype.lvContextPath();
+                                if(!innerProtoPath) {
+                                    innerPath = innerPath || innerObject.lvContextPath();
+                                    if(!innerPath)
+                                        debugger;
+                                    else
+                                        if(!innerObject.prototype.hasOwnProperty('lvContextPath'))
+                                            addOwnPropertyIfAbsent(innerObject.prototype, 'lvContextPath', function(){return this === innerObject.prototype ? innerPath + ".prototype" : null;});
+                                        else
+                                            debugger;
+                                } else if(lively.lookup(innerProtoPath) !== innerObject.prototype)
+                                    debugger;
+                            }})}}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {
@@ -3076,15 +3398,42 @@ lively.Module.addMethods("iterating", {
         var thisPath = this.name();
         Object.getOwnPropertyNames(this).each(function(name) {
             var object, methods;
-            if (!this.__lookupGetter__(name) &&
-                (object = this[name]) instanceof Object &&
-                object.constructor === Object &&
-                (methods = object.lvOwnFunctionNames()).length > 0 &&
-                methods.indexOf("constructor") == -1) {
-                    result.push(object);
-                    if(!object.hasOwnProperty('lvContextPath')) {
-                        var path = thisPath + "." + name;
-                        addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return path})}}
+            if (!this.__lookupGetter__(name) && (object = this[name]) instanceof Object &&
+                ![Global, console, location, document, lively.ide.commands.byName].include(object) && 
+                !(object instanceof lively.Module) && !(object instanceof Layer) &&
+                !object.lvIsConstructor() && name !== "PJOs") {
+                    if(object.lvOwnFunctionNames().length > 0) {
+                        result.push(object);
+                        var path = object.lvContextPath();
+                        if(!path)
+                            if(!object.hasOwnProperty('lvContextPath'))
+                                addOwnPropertyIfAbsent(object, 'lvContextPath', function(){return this === object ? thisPath + "." + name : null})
+                            else
+                                debugger;
+                        else if(lively.lookup(path) !== object)
+                            debugger;
+                    }
+                    if(object instanceof Array)
+                        return;
+                    var parentPath = thisPath + "." + name;
+                    Object.getOwnPropertyNames(object).each(function(innerName) {
+                        var innerObject;
+                        if (!object.__lookupGetter__(innerName) &&
+                            (innerName !== 'arguments' || !(object instanceof Function)) &&
+                            (innerObject = object[innerName]) instanceof Object &&
+                            ![Global, console, location, document].include(innerObject) && 
+                            !(innerObject instanceof lively.Module) &&
+                            !innerObject.lvIsConstructor() && innerObject.lvOwnFunctionNames().length > 0) {
+                                result.push(innerObject);
+                                var innerPath = innerObject.lvContextPath();
+                                if(!innerPath)
+                                    if(!innerObject.hasOwnProperty('lvContextPath'))
+                                        addOwnPropertyIfAbsent(innerObject, 'lvContextPath', function(){return this === innerObject ? parentPath + "." + innerName : null});
+                                    else
+                                        debugger;
+                                else if(lively.lookup(innerPath) !== innerObject)
+                                    debugger;
+                            }})}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {
@@ -3094,26 +3443,26 @@ lively.Module.addMethods("iterating", {
         var result = [];
         var thisPath = this.name();
         Object.getOwnPropertyNames(this).each(function(name) {
-            var object, pjo, methods;
-            if (!this.__lookupGetter__(name))
-                if ((object = this[name]) instanceof Function &&
-                    lively.Class.isClass(object) &&
+            var object, methods;
+            if (!this.__lookupGetter__(name) && (object = this[name]) instanceof Object) {
+                if (lively.Class.isClass(object) &&
                     (object.type || object.name) == thisPath + "." + name) {
                         result.push(object)
-                } else if((pjo = this[name]) instanceof Object && pjo !== Global && pjo !== this &&
-                        pjo !== this.constructor && !(pjo instanceof lively.Module)) {
+                } 
+                if(object !== Global && !(object instanceof lively.Module) && 
+                (!(object instanceof Function) || lively.Class.isClass(object))) {
                     var parentPath = thisPath + "." + name;
-                    Object.getOwnPropertyNames(pjo).each(function(name) {
-                        var object;
-                        if (!pjo.__lookupGetter__(name) &&
-                            (object = pjo[name]) instanceof Function &&
-                            lively.Class.isClass(object) &&
-                            (object.type || object.name) == parentPath + "." + name) {
-                                result.push(object)}})}
+                    Object.getOwnPropertyNames(object).each(function(innerName) {
+                        var innerObject;
+                        if (!object.__lookupGetter__(innerName) &&
+                            lively.Class.isClass(innerObject = object[innerName]) &&
+                            (innerObject.type || innerObject.name) == parentPath + "." + innerName) {
+                                result.push(innerObject)}})}}
         }, this);
         if (!recursive) return result;
         return this.subNamespaces().inject(result, function(result, ns) {
-            return result.concat(ns.allClasses(true)) }).uniq();
+            return result.concat(ns.allClasses(true));
+            }).uniq();
     },
 
 
@@ -3224,18 +3573,42 @@ alignSubmorphs: function alignSubmorphs() {
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }],
+            ['Browse Senders...', function(){
+                $world.prompt("Senders of...", function(s) {
+                    if (!s) return;
+                    openFunctionList('senders', s, true);
+                });
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                self.collapse();
+                }],
+            ["Browse Implementors...", function(){
+                $world.prompt("Implementors of...(wildcards accepted)", function(s) {
+                    if (!s) return;
+                    openFunctionList('implementors', s);
+                });
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                self.collapse();
+                }],
+            ["Browse References...", function(){
+                $world.prompt("References to...(full path expressions accepted)", function(s) {
+                    if (!s) return;
+                    openFunctionList('references', s, true);
+                });
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                self.collapse();
+                }],
             ["Open changes browser", function(){
                 new lively.ide.ChangesBrowser(pt(1024, 384)).openIn(world, 'Changes Browser');
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }],
-            ["Open simple code browser", function(){
+            ["Open code browser", function(){
                 new lively.ide.SimpleCodeBrowser(pt(640, 480)).openIn(world, 'Simple Code Browser');
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }]
         );
-        y = 23*3;
+        y = 23*6;
     }
     this.menu = new lively.morphic.Menu(null, items);
     this.menu.openIn(this, pt(0,0), false);
@@ -3297,12 +3670,15 @@ alignSubmorphs: function alignSubmorphs() {
 
 
 (function loadChangeSets() {
-    if (Config.changesetsExperiment && $world.getUserName() && 
+    if (!Config.changesetsExperiment)
+        return;
+    while(!("$world" in Global)) setTimeout(function(){}, 500);
+    if($world.getUserName() && 
         localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off") {
             lively.ChangeSet.initialize();
             if(Config.automaticChangesReplay)
                 lively.ChangeSet.loadAndcheckVsSystem();
         }
-}).delay(location.hostname === 'localhost' ? 3 : 13);
+}).delay(location.hostname === 'localhost' ? 2 : 12);
 
 }) // end of module

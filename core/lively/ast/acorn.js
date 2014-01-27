@@ -825,8 +825,11 @@ lively.ide.ModuleWrapper.addMethods(
 
 Object.extend(lively.ast.acorn, {
 
-    parse: function(source) {
-        return acorn.parse(source);
+    parse: function(source) { return acorn.parse(source); },
+
+    parseFunction: function(source) {
+        var ast = acorn.parse('(' + source + ')');
+        return ast.body[0].expression;
     },
 
     parseLikeOMeta: function(src, rule) {

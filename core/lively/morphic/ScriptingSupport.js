@@ -138,7 +138,8 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
 'initializing', {
     initialize: function($super, partsBinURL, targetName, partItem) {
         $super(pt(0,0).extent(this.defaultExtent));
-        this.applyStyle({fill: Color.lightGray, borderColor: Color.black, borderRadius: 6});
+        this.applyStyle({fill: Color.white, borderColor: Color.gray, borderWidth: 0, borderRadius: 0});
+        this.setStyleClass('Window');
         this.partsBinURL = partsBinURL
         this.targetName = targetName;
         this.partItem = partItem;
@@ -216,7 +217,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
     showAsSelected: function() {
         this.owner.selectPartItem && this.owner.selectPartItem(this);
         this.isSelected = true;
-        this.applyStyle({borderWidth: 3, borderColor: Color.red})
+        this.applyStyle({borderWidth: 3})
     },
     showAsNotSelected: function() {
         this.isSelected = false;

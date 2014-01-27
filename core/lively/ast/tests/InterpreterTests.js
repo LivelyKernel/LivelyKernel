@@ -582,6 +582,22 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
         this.assertEquals(2, result, 'did not resume inner correctly');
         this.assertEquals(12, this.resumeWithFrameAndResult(node, outerFrame, result), 'did not resume outer correctly');
+    },
+
+    test07ResumeSwitch: function() {
+        var node = this.parse('var i = 1; switch (i) { case 1: i++; 1; break; case 2: 2; break; }'),
+            resumeNode = node.body[1].cases[0].consequent[1].expression;
+
+        // make sure resume node is 1; in case 1
+        this.assertMatches({
+            type: 'Literal', value: 1
+        }, resumeNode, 'resume node was incorrect');
+
+        // construct some frames but change x and y in mapping
+        var frame = lively.ast.AcornInterpreter.Frame.create(null, { i: 2 });
+        frame.setPC(resumeNode);
+        var result = this.resumeWithFrameAndResult(node, frame);
+        this.assertEquals(1, result, 'did not resume correctly');
     }
 
 });

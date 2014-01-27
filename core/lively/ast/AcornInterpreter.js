@@ -154,6 +154,17 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 if (node.init)
                     c(node.init, st, 'Expression');
             },
+            SwitchStatement: function(node, st, c) {
+                c(node.discriminant, st, 'Expression');
+                for (var i = 0; i < node.cases.length; ++i)
+                    c(node.cases[i], st, '')
+            },
+            SwitchCase: function(node, st, c) {
+                if (node.test)
+                    c(node.test, st, 'Expression');
+                for (var j = 0; j < node.consequent.length; ++j)
+                    c(node.consequent[j], st, 'Statement');
+            },
         }, acorn.walk.base));
     }
 
@@ -254,6 +265,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 rightVal = state.result;
                 state.result = result;
             }
+            if (frame.isResuming() && this.wantsInterpretation(node.cases[i], frame))
+                caseMatched = true; // resuming node is inside this case
             if ((leftVal === rightVal) || caseMatched) {
                 this.accept(node.cases[i], state);
                 caseMatched = true;

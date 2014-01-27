@@ -387,6 +387,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
 
 TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 'running', {
+
     setUp: function($super) {
         $super();
         this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
@@ -397,11 +398,15 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         $super();
         lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
     }
+
 },
 'assertion', {
+
     assertAstNodesEqual: lively.ast.tests.RewriterTests.AcornRewrite.prototype.assertAstNodesEqual
+
 },
 'testing', {
+
     test01RunWithNoBreak: function() {
         function code() {
             var x = 2;
@@ -482,15 +487,54 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
-        var c = lively.ast.StackReification.run(code, this.astRegistry);
-        
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
         // FIXME, right now we manually need to set the pc, this will be done in the
         // UnwindException
-        var frame = c.frames().first();
+        var frame = continuation.frames().first();
         frame.setPC(frame.getOriginalAst().body.body[1].body.body[0].consequent/*-->debugger;*/)
-
-        var result = c.resume();
+        var result = continuation.resume();
         this.assertEquals(14, result, 'resume not working');
+    },
+
+    test06BreakAndContinueWithWhileLoop: function() {
+        function code() {
+            var x = 1, i = 0;
+            while (i < 5) {
+                if (i == 3) debugger;
+                x += i;
+                i++;
+            }
+            return x + 3;
+        }
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        // FIXME, right now we manually need to set the pc, this will be done in the
+        // UnwindException
+        var frame = continuation.frames().first();
+        frame.setPC(frame.getOriginalAst().body.body[1].body.body[0].consequent/*-->debugger;*/)
+        var result = continuation.resume();
+        this.assertEquals(14, result, 'resume not working');
+    },
+
+    test07BreakAndContinueWithForInLoop: function() {
+        function code() {
+            var x = 1,
+                obj = { a: 1, b: 2, c: 3 };
+            for (var i in obj) {
+                if (i == 'b') debugger;
+                x += obj[i];
+            }
+            return x + 3;
+        }
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        // FIXME, right now we manually need to set the pc, this will be done in the
+        // UnwindException
+        var frame = continuation.frames().first();
+        frame.setPC(frame.getOriginalAst().body.body[1].body.body[0].consequent/*-->debugger;*/)
+        var result = continuation.resume();
+        this.assertEquals(10, result, 'resume not working');
     }
 
 });

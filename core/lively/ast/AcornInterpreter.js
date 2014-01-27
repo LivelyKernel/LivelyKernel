@@ -188,10 +188,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     visitIfStatement: function(node, state) {
-        var oldResult = state.result;
+        var oldResult = state.result,
+            frame = state.currentFrame;
         this.accept(node.test, state);
         var condVal = state.result;
         state.result = oldResult;
+
+        if (frame.isResuming() && this.wantsInterpretation(node.consequent, frame))
+            condVal = true; // resuming node inside true branch
         if (condVal) {
             this.accept(node.consequent, state);
         } else if (node.alternate) {
@@ -318,6 +322,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         this.accept(node.test, state);
         var testVal = state.result;
         state.result = result;
+
+        if (frame.isResuming()) testVal = true; // resuming node inside loop
         while (testVal) {
             this.accept(node.body, state);
             result = state.result;
@@ -385,6 +391,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
         state.result = result;
 
+        if (frame.isResuming()) testVal = true; // resuming node inside loop
         while (testVal) {
             this.accept(node.body, state);
             result = state.result;
@@ -421,6 +428,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var result = state.result,
             frame = state.currentFrame,
             left;
+
         this.accept(node.right, state);
         var right = state.result;
         if (node.left.type == 'VariableDeclaration') {
@@ -429,6 +437,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         } else
             left = node.left.name;
         state.result = result;
+
+        // FIXME: right needs to have a (the right!) value when frame.isResuming() == true
         for (var name in right) {
             state.result = name;
             this.setVariable(left, state);

@@ -162,10 +162,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.LinearLayout", {
         this.currentX = this.OFFSET;
     },
     
-    addElement: function(element){
-        element.setPosition(pt(this.currentX, this.getExtent().y - element.getExtent().y));
-        this.currentX = this.currentX + element.getExtent().x + this.OFFSET;
-        this.addMorph(element);
+    addElement: function(morph){
+        morph = morph.duplicate();
+        morph.setPosition(pt(this.currentX, this.getExtent().y - morph.getExtent().y));
+        this.currentX = this.currentX + morph.getExtent().x + this.OFFSET;
+        this.addMorph(morph);
     },
     
     clear: function(){
@@ -195,6 +196,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.FreeLayout", {
     },
     
     addElement: function(element){
+        element = element.duplicate()
         this.addMorph(element);
     },
     

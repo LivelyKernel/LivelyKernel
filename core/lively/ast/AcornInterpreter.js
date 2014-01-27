@@ -132,6 +132,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     wantsInterpretation: function(node, frame) {
+        if (node.type == 'FunctionDeclaration') return false; // is done in evaluateDeclarations()
+
         if (!frame.isResuming()) return true;
         // FIXME: wantsInterpretation does not make it clear that there is a side effect!
         if (frame.resumesAt(node)) {
@@ -139,9 +141,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             frame.resumesNow();
             return !isComputed;
         }
-        if (node.type == 'FunctionDeclaration') return false; // is done in evaluateDeclarations()
-        // rkrk 2014-01-26 what does this do?
-        return acorn.walk.findNodeAt(node, frame.pc.start, frame.pc.end, null, Object.extend({
+
+        // determine whether the pc is in sub-ast of node
+        return !!acorn.walk.findNodeAt(node, frame.pc.start, frame.pc.end, null, Object.extend({
+            // fix some visitors (untangling)
             VariableDeclaration: function(node, st, c) {
                 for (var i = 0; i < node.declarations.length; ++i) {
                     c(node.declarations[i], st, 'VariableDeclarator');

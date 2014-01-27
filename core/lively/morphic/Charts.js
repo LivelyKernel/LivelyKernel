@@ -526,7 +526,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     onDragStart: function($super, evt) {
         $super(evt);
-        debugger;
         this.removeAllConnectionLines();
         
         // Save the upper neighbor, so that it can be notified to redraw
@@ -967,7 +966,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     getData : function(target){
         var arrowToTarget = this.arrows.detect(function (arrow){
-            var arrowX =  arrow.getPositionInWorld().x;
+            var arrowX =  arrow.getTipPosition().x;
             return target.getPosition().x <= arrowX &&
                 arrowX <= target.getPosition().x + target.getExtent().x;
         });
@@ -1244,7 +1243,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
     
     getData : function(target){
         var arrowToTarget = this.arrows.detect(function (arrow){
-            var arrowX =  arrow.getPositionInWorld().x;
+            var arrowX =  arrow.getTipPosition().x;
             return target.getPosition().x <= arrowX &&
                 arrowX <= target.getPosition().x + target.getExtent().x;
         });

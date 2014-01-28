@@ -875,11 +875,11 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.func              = func;
         this.mapping           = mapping || {};
         this.returnTriggered   = false;
-        this.breakTriggered    = null;     // null, true or string (labeled break)
-        this.continueTriggered = null;  // null, true or string (labeled continue)
+        this.breakTriggered    = null;      // null, true or string (labeled break)
+        this.continueTriggered = null;      // null, true or string (labeled continue)
         this.containingScope   = null;
-        this.pc                = null;                 // program counter, actually an AST node
-        this.pcComputed        = false;        // has the current pc (node) been computed?
+        this.pc                = null;      // program counter, actually an AST node
+        this.pcComputed        = false;     // has the current pc (node) been computed?
     },
 
     newScope: function(func, mapping) {

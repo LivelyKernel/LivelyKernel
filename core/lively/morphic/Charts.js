@@ -843,11 +843,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     migrateFrom : function(oldComponent){
+        $world.addMorph(this);
+        this.setExtent(oldComponent.getExtent());
+        this.setPosition(oldComponent.getPosition());
         this.arrows = oldComponent.arrows;
         this.propagationEnabled = oldComponent.propagationEnabled;
         this.data = oldComponent.data;
-        this.setExtent(oldComponent.getExtent);
-        this.setPosition(oldComponent.getPosition);
         
         this.migrateFromPart(oldComponent);
         oldComponent.remove();
@@ -1120,6 +1121,16 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Script',
                 this.throwError(returnValue);
             }
         });
+    },
+    
+    migrateFromPart: function(oldComponent) {
+        var newCodeEditor = this.getSubmorphsByAttribute("name","CodeEditor");
+        var oldCodeEditor = oldComponent.getSubmorphsByAttribute("name","CodeEditor");
+        if (newCodeEditor.size() > 0 && oldCodeEditor.size() > 0){
+            newCodeEditor = newCodeEditor[0];
+            oldCodeEditor = oldCodeEditor[0];
+            newCodeEditor.setTextString(oldCodeEditor.getTextString());
+        }
     }
 });
 

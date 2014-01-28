@@ -709,6 +709,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
     visitDebuggerStatement: function(n, rewriter) {
         // do something to trigger the debugger
+        var start = n.start, end = n.end;
         var fn = rewriter.newNode('FunctionExpression', {
             body: rewriter.newNode('BlockStatement', {
                 body: [rewriter.newNode('ReturnStatement', {
@@ -716,14 +717,25 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 })]
             }), id: null, params: []
         });
-        fn.start = n.start;
-        fn.end = n.end;
+        var astPos = rewriter.newNode('ObjectExpression', {
+            properties: [{
+                key: rewriter.newNode('Identifier', {name: 'start'}),
+                kind: 'init', value: rewriter.newNode('Literal', {value: start})
+            }, {
+                key: rewriter.newNode('Identifier', {name: 'end'}),
+                kind: 'init', value: rewriter.newNode('Literal', {value: end})
+            }]
+        });
+
         // TODO: storeComputationResult(fn) is not possible for value
         return rewriter.newNode('ThrowStatement', {
             argument: rewriter.newNode('ObjectExpression', {
                 properties: [{
                     key: rewriter.newNode('Identifier', { name: 'toString' }),
                     kind: 'init', value: fn
+                }, {
+                    key: rewriter.newNode('Identifier', { name: 'astPosition' }),
+                    kind: 'init', value: astPos
                 }]
             })
         });

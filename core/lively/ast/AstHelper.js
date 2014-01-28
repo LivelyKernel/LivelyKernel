@@ -603,7 +603,7 @@ lively.ast.MozillaAST.AstVisitor.subclass('lively.ast.MozillaAST.ASTPrinter', {
         var pathString = path
             .map(function(ea) { return typeof ea === 'string' ? '.' + ea : '[' + ea + ']'})
             .join('')
-        var treeEntry = {type: pathString + ':' + node.type, source: node.source, children: []};
+        var treeEntry = {node: node, path: pathString, source: node.source, children: []};
         tree.push(treeEntry);
         var res = $super(node, depth+1, treeEntry.children, path);
         return res;
@@ -754,24 +754,36 @@ lively.ast.MozillaAST.AstVisitor.subclass("lively.ast.MozillaAST.Compare",
 
 Object.extend(lively.ast.acorn, {
 
-    printAst: function(astOrSource, printSource) {
-        var source, ast, tree = [], printFunc;
-        if (printSource) {
-            source = Object.isString(astOrSource) ?
-                astOrSource : escodegen.generate(astOrSource);
-            ast = lively.ast.acorn.parse(source);
-            acorn.walk.addSource(ast, source);
-            printFunc = function(ea) {
-                return Strings.format("%s (%s)",
-                    ea.type, (ea.source || '')
-                                .truncate(60)).replace(/\n/g, '')
-                                .replace(/\s+/g, ' ');
+    printAst: function(astOrSource, options) {
+        options = options || {};
+        var printSource = options.printSource || false,
+            printPositions = options.printPositions || false,
+            source, ast, tree = [];
+
+        if (Object.isString(astOrSource)) {
+            source = astOrSource;
+            ast = lively.ast.acorn.parse(astOrSource);
+        } else { ast = astOrSource; source = options.source; }
+
+        if (printSource && !ast.source) { // ensure that nodes have source attached
+            if (!source) {
+                source = escodegen.generate(ast);
+                ast = lively.ast.acorn.parse(source);
             }
-        } else {
-            ast = Object.isString(astOrSource) ?
-                lively.ast.acorn.parse(astOrSource) : astOrSource;
-            printFunc = function(ea) { return ea.type; }
+            acorn.walk.addSource(ast, source);
         }
+        
+        function printFunc(ea) {
+            var string = ea.path + ':' + ea.node.type, additional = [];
+            if (printPositions) { additional.push(ea.node.start + '-' + ea.node.end); }
+            if (printSource) {
+                additional.push(Strings.print((ea.source || '')
+                    .truncate(60).replace(/\n/g, '').replace(/\s+/g, ' ')));
+            }
+            if (additional.length) { string += '(' + additional.join(',') + ')'; }
+            return string;
+        }
+
         new lively.ast.MozillaAST.ASTPrinter().accept(ast, 0, tree, []);
         return Strings.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '    ');
     },

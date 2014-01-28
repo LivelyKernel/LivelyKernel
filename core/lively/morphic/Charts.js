@@ -1392,7 +1392,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
             if (isMinimized) {
                 this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY), true);
                 if (componentBelow) {
-                    componentBelow.move(this.oldY - 60);
+                    componentBelow.move(this.oldY - 60, this.owner.getPosition().y + this.oldY);
                 }
                 var container = this.owner.getSubmorphsByAttribute("name","Container");
                 if (container.length > 0){

@@ -754,6 +754,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         rewriter.astRegistry.push(acorn.walk.copy(n));
         var idx = rewriter.astRegistry.length - 1;
         // END FIXME
+        var start = n.start, end = n.end;
         var args = rewriter.registerVars(n.params.pluck('name')); // arguments
         var vars = rewriter.registerVars(rewriter.findLocalVariables(n.body)); // locals
         var rewritten = this.accept(n.body, rewriter);
@@ -771,8 +772,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 right: wrapped
             });
         }
-        return rewriter.newNode('ExpressionStatement', {
-            expression: rewriter.storeComputationResult(wrapped, n.start, n.end),
+        return rewriter.astRegistry[idx].rewritten = rewriter.newNode('ExpressionStatement', {
+            expression: rewriter.storeComputationResult(wrapped, start, end),
             id: n.id
         });
     },
@@ -780,6 +781,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitVariableDeclaration: function(n, rewriter) {
         // each of n.declarations is of type VariableDeclarator
         // n.kind is "var" or "let" or "const"
+        var start = n.start, end = n.end;
         var decls = n.declarations.map(function(decl) {
             var value = this.accept(decl.init, rewriter);
             value = rewriter.newNode('AssignmentExpression', {
@@ -792,7 +794,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             if (value.right == null) { // could be ignored
                 value.right = rewriter.newNode('Identifier', { name: 'undefined' });
             }
-            return rewriter.storeComputationResult(value, decl.start, decl.end);
+            return rewriter.storeComputationResult(value, start, end);
         }, this);
 
         return decls.length == 1 ?
@@ -848,11 +850,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
         // left is a node of type Expression
         // right is a node of type Expression
+        var start = n.start, end = n.end;
         var right = this.accept(n.right, rewriter);
         if (right.type == 'ExpressionStatement')
             right = right.expression; // unwrap
         return rewriter.storeComputationResult({
-            start: n.start, end: n.end, type: 'AssignmentExpression',
+            start: start, end: end, type: 'AssignmentExpression',
             operator: n.operator,
             left: this.accept(n.left, rewriter),
             right: right
@@ -864,8 +867,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // "++" | "--"
         // argument is a node of type Expression
         // n.prefix has a specific type that is boolean
+        var start = n.start, end = n.end;
         return rewriter.storeComputationResult({
-            start: n.start, end: n.end, type: 'UpdateExpression',
+            start: start, end: end, type: 'UpdateExpression',
             argument: this.accept(n.argument, rewriter),
             operator: n.operator, prefix: n.prefix
         });
@@ -908,8 +912,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitNewExpression: function(n, rewriter) {
         // callee is a node of type Expression
         // each of n.arguments is of type Expression
+        var start = n.start, end = n.end;
         return rewriter.storeComputationResult({
-            start: n.start, end: n.end, type: 'NewExpression',
+            start: start, end: end, type: 'NewExpression',
             callee: this.accept(n.callee, rewriter),
             arguments: n.arguments.map(function(n) {
                 var n = this.accept(n, rewriter);
@@ -923,6 +928,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitCallExpression: function(n, rewriter) {
         // callee is a node of type Expression
         // each of n.arguments is of type Expression
+        var start = n.start, end = n.end;
         var thisIsBound = n.callee.type == 'MemberExpression'; // like foo.bar();
         var callee = this.accept(n.callee, rewriter);
         if (callee.type == 'ExpressionStatement') callee = callee.expression; // unwrap
@@ -943,7 +949,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             args.unshift({type: 'Identifier', name: 'Global'});
         }
         return rewriter.storeComputationResult({
-            start: n.start, end: n.end,
+            start: start, end: end,
             type: 'CallExpression', callee: callee,
             arguments: args
         });
@@ -972,11 +978,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // param is a node of type Pattern
         // guard is a node of type Expression (optional)
         // body is a node of type BlockStatement
-        var param = this.accept(n.param, rewriter),
+        var start = n.param.start, end = n.param.end,
+            param = this.accept(n.param, rewriter),
             body = this.accept(n.body, rewriter),
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
         body.body.unshift(rewriter.newNode('ExpressionStatement', {
-            expression: rewriter.storeComputationResult(param, n.param.start, n.param.end)
+            expression: rewriter.storeComputationResult(param, start, end)
         }));
         return {
             start: n.start, end: n.end, type: 'CatchClause',

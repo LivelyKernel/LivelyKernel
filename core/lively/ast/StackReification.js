@@ -31,7 +31,7 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
 
     rewrite: function(astRegistry) {
         var src = this.getFuncSource(),
-            ast = lively.ast.acorn.parse('(' + src + ')')
+            ast = lively.ast.acorn.parseFunction(src);
         return this.ast = lively.ast.Rewriting.rewriteFunction(ast, astRegistry);
     }
 

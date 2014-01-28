@@ -261,18 +261,10 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     rewriteFunction: function(node) {
-        // for now this is a shorthand to just rewrite functions: A function
-        // expression itself is not a valid parsable thing so we evaluate it as
-        // "(function ()...)" which gives us a program with one statement which is the
-        // function expression. Here we transform it into a FunctionStatement and
-        // process it further
-        if (node.type !== "Program"
-         || node.body.length !== 1
-         || node.body[0].type !== "ExpressionStatement"
-         || node.body[0].expression.type !== "FunctionExpression")
+        // for now this is a shorthand to just rewrite functions
+        if (node.type !== "FunctionExpression")
             throw new Error('no a valid function expression/statement? ' + lively.ast.acorn.printAst(node));
 
-        node = node.body[0].expression;
         var rewritten = acorn.walk.copy(node);
         rewritten.type = 'FunctionDeclaration';
         if (!rewritten.id) rewritten.id = this.newNode("Identifier", {name: ""});

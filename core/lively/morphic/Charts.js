@@ -157,7 +157,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         this.arrows = [new lively.morphic.Charts.Arrow(this)];
         
-        
         this.setExtent(pt(500, 250));
         this.setFill(this.backgroundColor);
         this.setBorderColor(this.borderColor);
@@ -862,39 +861,52 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.LinearLayout", {
     
-    initialize: function($super, w, h) {
+    initialize: function($super) {
         $super();
-        this.setFill(Color.white);
-        this.setExtent(pt(w, h));
+        var description = this.getSubmorphsByAttribute("name","Description")[0];
+        description.setTextString("LinearLayoutViewer");
+        var layout = new lively.morphic.Morph();
+        layout.setFill(Color.white);
         this.OFFSET = 20;
-        this.currentX = this.OFFSET;
+        this.currentX = layout.OFFSET;
+        layout.setName("LinearLayout");
+        var container = this.getSubmorphsByAttribute("name","Container")[0];
+        container.addMorph(layout);
+        layout.setExtent(pt(container.getExtent().x-6,container.getExtent().y-6));
+        layout.setPosition(pt(3,3));
+        layout.layout = {
+            resizeHeight: true,
+            resizeWidth: true
+        }
+        this.addUpdateComponentScript();
     },
     
     addElement: function(element){
-        morph = element.morph.duplicate();
-        morph.setPosition(pt(this.currentX, this.getExtent().y - morph.getExtent().y));
+        var layout = this.getSubmorphsByAttribute("name","LinearLayout")[0];
+        var morph = element.morph.duplicate();
+        morph.setPosition(pt(this.currentX, layout.getExtent().y - morph.getExtent().y));
         this.currentX = this.currentX + morph.getExtent().x + this.OFFSET;
-        this.addMorph(morph);
+        layout.addMorph(morph);
     },
     
     clear: function(){
+        var layout = this.getSubmorphsByAttribute("name","LinearLayout")[0];
         this.currentX = this.OFFSET;
-        this.removeAllMorphs();
+        layout.removeAllMorphs();
     },
     
-    updateComponent: function() {
-        // create linear layout containing rects from data
-
-        var layout = this.get("LinearLayout");
-        var bar;
-        layout.clear();
-        for (bar in this.data) {
-            if (this.data.hasOwnProperty(bar)) {
-                layout.addElement(this.data[bar]);
+    addUpdateComponentScript: function() {
+        this.addScript(function updateComponent() {
+            // create linear layout containing rects from data
+            var bar;
+            this.clear();
+            for (bar in this.data) {
+                if (this.data.hasOwnProperty(bar)) {
+                    this.addElement(this.data[bar]);
+                }
             }
-        }
+        });
     }
-    
 } );
 cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
     basicLayout: function(container, submorphs) {
@@ -908,21 +920,46 @@ cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
     }}
 ).beGlobal();
 
-lively.morphic.Morph.subclass("lively.morphic.Charts.FreeLayout", {
+lively.morphic.Charts.Component.subclass("lively.morphic.Charts.FreeLayout", {
     
-    initialize: function($super, w, h) {
+    initialize: function($super) {
         $super();
-        this.setFill(Color.white);
-        this.setExtent(pt(w, h));
+        var description = this.getSubmorphsByAttribute("name","Description")[0];
+        description.setTextString("FreeLayout");
+        var layout = new lively.morphic.Morph();
+        layout.setFill(Color.white);
+        layout.setName("Canvas");
+        var container = this.getSubmorphsByAttribute("name","Container")[0];
+        container.addMorph(layout);
+        layout.setExtent(pt(container.getExtent().x-6,container.getExtent().y-6));
+        layout.setPosition(pt(3,3));
+        layout.layout = {
+            resizeHeight: true,
+            resizeWidth: true
+        };
+        
+        this.addScript(function updateComponent() {
+            // create linear layout containing rects from data
+    
+            var bar;
+            this.clear();
+            for (bar in this.data) {
+                if (this.data.hasOwnProperty(bar)) {
+                    this.addElement(this.data[bar]);
+                }
+            }
+        });
     },
     
     addElement: function(element){
-        morph = morph.element.duplicate()
-        this.addMorph(morph);
+        var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
+        var morph = element.morph.duplicate()
+        layout.addMorph(morph);
     },
     
     clear: function(){
-        this.removeAllMorphs();
+        var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
+        layout.removeAllMorphs();
     }
     
 } );

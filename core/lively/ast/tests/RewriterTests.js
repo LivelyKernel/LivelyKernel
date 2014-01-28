@@ -412,7 +412,6 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             var x = 2;
             return x + 4;
         }
-
         var expected = {
             isContinuation: false,
             returnValue: 6
@@ -429,11 +428,18 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         }
 
         var expected = { isContinuation: true },
-            runResult = lively.ast.StackReification.run(code, this.astRegistry);
-        this.assertMatches(expected, runResult);
+            runResult = lively.ast.StackReification.run(code, this.astRegistry),
+            frame = runResult.frames().first();
+        this.assert(runResult.isContinuation, 'no continuation');
+
         // can we access the original ast, needed for resuming?
-        var capturedAst = runResult.frames()[0].getOriginalAst();
+        var capturedAst = frame.getOriginalAst();
         this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), capturedAst);
+
+        // access the node where execution stopped
+        var resumeNode = frame.getPC(),
+            debuggerNode = frame.getOriginalAst().body.body[1];
+        this.assertIdentity(debuggerNode, resumeNode, 'resumeNode');
     },
 
     test03SimpleBreakInNestedFunction: function() {
@@ -447,7 +453,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             return y;
         }
 
-        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            frame1 = continuation.frames()[0],
+            frame2 = continuation.frames()[1];
         // frame state
         this.assertEquals(2, continuation.frames().length, 'number of captured frames');
         this.assertEquals(1, continuation.currentFrame.lookup('x'), 'val of x');
@@ -456,9 +464,14 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 
         // captured asts
         var expectedAst = lively.ast.acorn.parseFunction('function() { debugger; return x * 2; }'),
-            actualAst = continuation.frames()[0].getOriginalAst();
+            actualAst = frame1.getOriginalAst();
         this.assertAstNodesEqual(expectedAst, actualAst);
-        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), continuation.frames()[1].getOriginalAst());
+        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), frame2.getOriginalAst());
+
+        // access the node where execution stopped
+        var resumeNode = frame1.getPC(),
+            debuggerNode = frame1.getOriginalAst().body.body[0];
+        this.assertIdentity(debuggerNode, resumeNode, 'resumeNode');
     },
 
     test04BreakAndContinue: function() {
@@ -467,14 +480,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             debugger;
             return x + 3;
         }
-
-        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
-        // FIXME, right now we manually need to set the pc, this will be done in the
-        // UnwindException
-        var frame = continuation.frames().first();
-        frame.setPC(frame.getOriginalAst().body.body[2]/*-->debugger;*/)
-
-        var result = continuation.resume();
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
         this.assertEquals(4, result, 'resume not working');
     },
 
@@ -487,13 +494,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
-
-        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
-        // FIXME, right now we manually need to set the pc, this will be done in the
-        // UnwindException
-        var frame = continuation.frames().first();
-        frame.setPC(frame.getOriginalAst().body.body[1].body.body[0].consequent/*-->debugger;*/)
-        var result = continuation.resume();
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
         this.assertEquals(14, result, 'resume not working');
     },
 
@@ -507,13 +509,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
-
-        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
-        // FIXME, right now we manually need to set the pc, this will be done in the
-        // UnwindException
-        var frame = continuation.frames().first();
-        frame.setPC(frame.getOriginalAst().body.body[1].body.body[0].consequent/*-->debugger;*/)
-        var result = continuation.resume();
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
         this.assertEquals(14, result, 'resume not working');
     },
 
@@ -527,14 +524,60 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
-
-        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
-        // FIXME, right now we manually need to set the pc, this will be done in the
-        // UnwindException
-        var frame = continuation.frames().first();
-        frame.setPC(frame.getOriginalAst().body.body[1].body.body[0].consequent/*-->debugger;*/)
-        var result = continuation.resume();
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
         this.assertEquals(10, result, 'resume not working');
+    },
+
+    test08BreakAndContinueWithInnerFunction: function() {
+        function code() {
+            var x = 1;
+            var f = function() {
+                debugger;
+                return x * 2;
+            };
+            var y = x + f();
+            return y;
+        }
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
+        this.assertEquals(3, result, 'resume not working');
+    },
+
+    test09ReturnFunctionThatBreaksAndContinues: function() {
+        function code() {
+            var x = 3;
+            return function() {
+                debugger;
+                return x * 2;
+            };
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            func = continuation.returnValue;
+        var continuation2 = lively.ast.StackReification.run(func, this.astRegistry),
+            result = continuation2.resume();
+        this.assertEquals(6, result, 'resume not working');
+    },
+
+    test10BreakAndContinueOfInnerFunction: function() {
+        function code() {
+            var x = 1;
+            function f() { debugger; return x; }
+            return (function() { var x = 2; return f(); })();
+        }
+// FIXME there is currently a bug: in lively.ast.Continuation>>resume we
+// correctly resume the "f" which contains the debugger statement. In the next
+// step however we don't jump to the correct node ("return f();") of the next
+// frame but instead start the resume at "var x = 2;" which leads to running "f
+// ()" again.
+// FIXME second bug: there is a difference between the lexical scope of a
+// function (the x in f refers to "x = 1") but our current logic only considers
+// the runtime stack that is created on unwind which will incorrectly use "x = 2
+// " in the parent runtime scope for lookup
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
+        this.assertEquals(1, result, 'resume not working');
     }
 
 });

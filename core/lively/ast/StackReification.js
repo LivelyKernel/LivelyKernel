@@ -159,15 +159,23 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
     }
 },
 'frames', {
-    shiftFrame: function(thiz, frame, astPointer) {
-        var varMapping = frame[1],
-            astValueRanges = frame[0],
-            calledFrame = null,
-            parentScope = frame[2],
-            frame = lively.ast.AcornInterpreter.Frame.create(__getClosure(astPointer), varMapping);
+    shiftFrame: function(thiz, frameState, astPointer) {
+        var astValueRanges = frameState[0],
+            varMapping = frameState[1],
+            parentScope = frameState[2],
+            frame = lively.ast.AcornInterpreter.Frame.create(
+                __getClosure(astPointer), varMapping);
         frame.setThis(thiz);
+        Global.LastFrameState = frameState
+        Global.LastFrame = frame
         if (!this.top) {
             this.top = this.last = frame;
+            if (this.error && this.error.astPosition) {
+                var start = this.error.astPosition.start,
+                    end = this.error.astPosition.end,
+                    node = acorn.walk.findNodeAt(frame.getOriginalAst(), start, end).node;
+                frame.setPC(node);
+            }
         } else {
             // this.last.calledFrame = frameState;
             this.last.setContainingScope(frame);

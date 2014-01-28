@@ -553,6 +553,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
                 return x * 2;
             };
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             func = continuation.returnValue;
         var continuation2 = lively.ast.StackReification.run(func, this.astRegistry),
@@ -566,6 +567,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             function f() { debugger; return x; }
             return (function() { var x = 2; return f(); })();
         }
+
 // FIXME there is currently a bug: in lively.ast.Continuation>>resume we
 // correctly resume the "f" which contains the debugger statement. In the next
 // step however we don't jump to the correct node ("return f();") of the next

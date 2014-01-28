@@ -176,21 +176,60 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
         Global.LastFrame = frame
         if (!this.top) {
             this.top = this.last = frame;
-            if (this.error && this.error.astPosition) {
-                var start = this.error.astPosition.start,
-                    end = this.error.astPosition.end,
-                    node = acorn.walk.findNodeAt(frame.getOriginalAst(), start, end).node;
-                frame.setPC(node);
-            }
+            if (this.error && this.error.astPosition)
+                frame.setPC(this.findPC(frame, astValueRanges));
             if (parentFrameState[2] !== Global)
                 frame.setContainingScope(lively.ast.AcornInterpreter.Frame.create(parentFunc, parentScope));
         } else {
             // this.last.calledFrame = frameState;
+            // frame.setPC(this.findPC(frame, astValueRanges));
             this.last.setContainingScope(frame);
             this.last = frame;
         }
         return frame;
     }
+},
+'helper', {
+
+    findPC: function(frame, values) {
+        var start = this.error.astPosition.start,
+            end = this.error.astPosition.end;
+        return acorn.walk.findNodeAt(frame.getOriginalAst(), start, end).node;
+
+        // var ast = frame.getOriginalAst();
+        // if (Object.isEmpty(values)) return ast.body; // beginning of func
+        // // find the last computed value
+        // // mr 2014-01-28: could also be last of getOwnPropertyNames
+        // var last = Object.keys(values).max(function(k) {
+        //     var fromTo = k.split('-');
+        //     return (+fromTo[1]) << 23 - (+fromTo[0]);
+        // });
+        // // find the node corresponding to this value
+        // var start = last.split('-')[0],
+        //     end = last.split('-')[1],
+        //     node = acorn.walk.findNodeAt(frame.getOriginalAst(), start, end).node;
+        // // if the node is a debugger just use it as PC
+        // if (node.type == 'DebuggerStatement') return node;
+        // // TODO: determine next (uncomputed) node - that is where the PC is
+
+        // OLD CODE:
+        // the pc should be the next MODIFYING node right after the last one
+        // var pc = null;
+        // var foundNode = false;
+        // this.func.ast().withAllChildNodesDoPostOrder(function(n) {
+        //     if (!foundNode) {
+        //         if (n === node) foundNode = true;
+        //     } else {
+        //         if (n.isCall || n.isSend || n.isSet || n.isModifyingSet || n.isPreOp || n.isPostOp) {
+        //             pc = n;
+        //             return false
+        //         }
+        //     }
+        //     return true;
+        // });
+        // this.pc = pc || this.func.ast();
+    }
+
 });
 
 }) // end of module

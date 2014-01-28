@@ -1074,6 +1074,7 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
         var container = this.getSubmorphsByAttribute("name","Container")[0];
         
         var codeEditor = new lively.morphic.Charts.CodeEditor();
+        codeEditor.setName("CodeEditor");
         codeEditor.setPosition(pt(3,3));
         codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100\n))}");
         codeEditor.setExtent(pt(container.getExtent().x-150,container.getExtent().y-6));
@@ -1086,6 +1087,27 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
         prototypeMorph.layout = {moveHorizontal: true, moveVertical: true};
         container.addMorph(prototypeMorph);
         prototypeMorph.setPosition(pt(container.getExtent().x-125,container.getExtent().y-150));
+    },
+    
+    migrateFromPart: function(oldComponent) {
+        var newCodeEditor = this.getSubmorphsByAttribute("name","CodeEditor");
+        var oldCodeEditor = oldComponent.getSubmorphsByAttribute("name","CodeEditor");
+        if (newCodeEditor.size() > 0 && oldCodeEditor.size() > 0){
+            newCodeEditor = newCodeEditor[0];
+            oldCodeEditor = oldCodeEditor[0];
+            newCodeEditor.setTextString(oldCodeEditor.getTextString());
+        }
+        var newPrototype = this.getSubmorphsByAttribute("name","PrototypeMorph");
+        var oldPrototype = oldComponent.getSubmorphsByAttribute("name","PrototypeMorph");
+        var container = this.getSubmorphsByAttribute("name","Container");
+        
+        if (newPrototype.size() > 0 ){
+            newPrototype[0].remove();
+            oldPrototype = oldPrototype[0];
+            container = container[0];
+            
+            container.addMorph(oldPrototype);
+        }
     }
 });
 lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Script',

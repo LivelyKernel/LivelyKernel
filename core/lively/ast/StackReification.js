@@ -62,6 +62,7 @@ Object.extend(Global, {
     __createClosure: function(idx, scope, f) {
         f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
         f._cachedScope = scope;
+        f.livelyDebuggingEnabled = true;
         return f;
     },
 

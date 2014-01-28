@@ -257,6 +257,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var rewritten = (new lively.ast.Rewriting.RewriteVisitor()).accept(node, this);
         this.exitScope();
         var wrapped = this.wrapSequence(rewritten, args, vars, idx);
+this.astRegistry[idx].rewritten = wrapped;
         return this.newNode('Program', {body: [wrapped]});
     },
 

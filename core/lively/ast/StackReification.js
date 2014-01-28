@@ -107,7 +107,10 @@ Object.subclass('lively.ast.Continuation',
 'accessing', {
     frames: function() {
         var frame = this.currentFrame, result = [];
-        do { result.push(frame); } while (frame = frame.getContainingScope());
+        do {
+            if (frame.func)
+                result.push(frame);
+        } while (frame = frame.getContainingScope());
         return result;
     }
 },
@@ -163,7 +166,9 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
     shiftFrame: function(thiz, frameState, astPointer) {
         var astValueRanges = frameState[0],
             varMapping = frameState[1],
-            parentScope = frameState[2],
+            parentFrameState = frameState[2],
+            parentScope = parentFrameState[1],
+            parentFunc = null, // FIXME: determine AST parentFunc
             frame = lively.ast.AcornInterpreter.Frame.create(
                 __getClosure(astPointer), varMapping);
         frame.setThis(thiz);
@@ -177,6 +182,8 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
                     node = acorn.walk.findNodeAt(frame.getOriginalAst(), start, end).node;
                 frame.setPC(node);
             }
+            if (parentFrameState[2] !== Global)
+                frame.setContainingScope(lively.ast.AcornInterpreter.Frame.create(parentFunc, parentScope));
         } else {
             // this.last.calledFrame = frameState;
             this.last.setContainingScope(frame);

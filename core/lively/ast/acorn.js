@@ -566,70 +566,70 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                 return {
                     start: n.start, end: n.end, type: 'Program',
                     body: n.body.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             FunctionDeclaration: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'FunctionDeclaration',
                     id: c(n.id), params: n.params.map(c), body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             BlockStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'BlockStatement',
                     body: n.body.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ExpressionStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'ExpressionStatement',
                     expression: c(n.expression),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             CallExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'CallExpression',
                     callee: c(n.callee), arguments: n.arguments.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             MemberExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'MemberExpression',
                     object: c(n.object), property: c(n.property), computed: n.computed,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             NewExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'NewExpression',
                     callee: c(n.callee), arguments: n.arguments.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             VariableDeclaration: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'VariableDeclaration',
                     declarations: n.declarations.map(c), kind: n.kind,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             VariableDeclarator: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'VariableDeclarator',
                     id: c(n.id), init: c(n.init),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             FunctionExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'FunctionExpression',
                     id: c(n.id), params: n.params.map(c), body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             IfStatement: function(n, c) {
@@ -637,7 +637,7 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     start: n.start, end: n.end, type: 'IfStatement',
                     test: c(n.test), consequent: c(n.consequent),
                     alternate: c(n.alternate),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ConditionalExpression: function(n, c) {
@@ -645,35 +645,35 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     start: n.start, end: n.end, type: 'ConditionalExpression',
                     test: c(n.test), consequent: c(n.consequent),
                     alternate: c(n.alternate),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             SwitchStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'SwitchStatement',
                     discriminant: c(n.discriminant), cases: n.cases.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             SwitchCase: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'SwitchCase',
                     test: c(n.test), consequent: n.consequent.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             BreakStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'BreakStatement',
                     label: n.label,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ContinueStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'ContinueStatement',
                     label: n.label,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             TryStatement: function(n, c) {
@@ -681,21 +681,21 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     start: n.start, end: n.end, type: 'TryStatement',
                     block: c(n.block), handler: c(n.handler), finalizer: c(n.finalizer),
                     guardedHandlers: n.guardedHandlers.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             CatchClause: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'CatchClause',
                     param: c(n.param), guard: c(n.guard), body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ThrowStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'ThrowStatement',
                     argument: c(n.argument),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ForStatement: function(n, c) {
@@ -703,91 +703,91 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                     start: n.start, end: n.end, type: 'ForStatement',
                     init: c(n.init), test: c(n.test), update: c(n.update),
                     body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ForInStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'ForInStatement',
                     left: c(n.left), right: c(n.right), body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             WhileStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'WhileStatement',
                     test: c(n.test), body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             DoWhileStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'DoWhileStatement',
                     test: c(n.test), body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             WithStatement: function(n ,c) {
                 return {
                     start: n.start, end: n.end, type: 'WithStatement',
                     object: c(n.object), body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             UnaryExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'UnaryExpression',
                     argument: c(n.argument), operator: n.operator, prefix: n.prefix,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             BinaryExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'BinaryExpression',
                     left: c(n.left), operator: n.operator, right: c(n.right),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             LogicalExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'LogicalExpression',
                     left: c(n.left), operator: n.operator, right: c(n.right),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             AssignmentExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'AssignmentExpression',
                     left: c(n.left), operator: n.operator, right: c(n.right),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             UpdateExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'UpdateExpression',
                     argument: c(n.argument), operator: n.operator, prefix: n.prefix,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ReturnStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'ReturnStatement',
                     argument: c(n.argument),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             Identifier: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'Identifier',
                     name: n.name,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             Literal: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'Literal',
                     value: n.value, raw: n.raw /* Acorn-specific */,
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ObjectExpression: function(n, c) {
@@ -798,46 +798,46 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({lo
                             key: c(prop.key), value: c(prop.value), kind: prop.kind
                         };
                     }),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ArrayExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'ArrayExpression',
                     elements: n.elements.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             SequenceExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'SequenceExpression',
                     expressions: n.expressions.map(c),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             EmptyStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'EmptyStatement',
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             ThisExpression: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'ThisExpression',
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             DebuggerStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'DebuggerStatement',
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             },
             LabeledStatement: function(n, c) {
                 return {
                     start: n.start, end: n.end, type: 'LabeledStatement',
                     label: n.label, body: c(n.body),
-                    source: n.source
+                    source: n.source, astIndex: n.astIndex
                 };
             }
         }, override || {});

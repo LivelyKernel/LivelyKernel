@@ -111,21 +111,20 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     },
     
     openDataInspector: function(evtPosition) {
-        this.viewer = $world.loadPartItem('JsonViewer', 'PartsBin/BP2013H2');
-        this.viewer.dataSource = this.from;
-        this.viewer.update = function() {
-            this.data = this.dataSource.data;
-            this.updateComponent();
-        }
-        this.viewer.openInWindow();
-        this.viewer.getWindow().setPosition(evtPosition);
-        this.viewer.getWindow().openInHand();
+        
+        this.viewer = $world.loadPartItem('DataInspector', 'PartsBin/BP2013H2');
+        this.viewer.openInHand();
+        this.viewer.setSource(this.from);
+        
         this.viewerLine = new lively.morphic.Path([evtPosition, evtPosition]);
         var converter = function(pos) {
-            return pos.addPt(pt(250,250));
+            return pos.addPt(pt(190,120));
         }
-        connect(this.viewer.getWindow(), '_Position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
+        connect(this.viewer, '_Position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
+        this.viewerLine.setBorderColor(Color.rgb(94,94,94));
         $world.addMorph(this.viewerLine);
+        //this.viewer.line2 = this.viewerLine;
+        //this.viewerLine.setName("Line" + this.viewer);
         this.viewer.update();
     },
     
@@ -341,8 +340,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     remove: function($super) {
-        this.onClose();
         $super();
+        this.onClose();
     },
     
     addPreviewMorph: function() {
@@ -432,9 +431,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         var neighbor = this.getComponentInDirection(-1);
         if (neighbor) {
-            setTimeout(function() {
-                neighbor.refreshConnectionLines();
-            },0);
+            neighbor.refreshConnectionLines();
         }
     },
     

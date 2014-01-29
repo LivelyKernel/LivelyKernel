@@ -130,8 +130,11 @@ Object.subclass('lively.ast.Continuation',
         // resume each of them
         return this.frames().reduce(function(result, frame) {
             var originalAst = frame.getOriginalAst(); // FIXME
-            frame.setComputedPC(isComputed);
+            // frame.setComputedPC(isComputed);
             isComputed = true; // all outer scopes should not recompute
+            if (isComputed) {
+                frame.alreadyComputed[frame.pc.astIndex] = result;
+            }
             // FIXME frames hold on to function ASTs but resuming from a
             // function is not supported right now. So we set the resumable
             // node to the functions body here as a quick fix
@@ -164,14 +167,15 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
 },
 'frames', {
     shiftFrame: function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
-        // var astValueRanges = frameState[0];
-        var varMapping = frameState[1],
+        var alreadyComputed = frameState[0],
+            varMapping = frameState[1],
             parentFrameState = frameState[2],
             parentScope = parentFrameState[1],
             parentFunc = null, // FIXME: determine AST parentFunc ... actually not necessary.
             frame = lively.ast.AcornInterpreter.Frame.create(
                 __getClosure(pointerToOriginalAst), varMapping);
         frame.setThis(thiz);
+        frame.setAlreadyComputed(alreadyComputed);
         if (!this.top) {
             this.top = this.last = frame;
             var pc = this.error && this.error.astIndex ?
@@ -184,8 +188,8 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
                 frame.setContainingScope(lively.ast.AcornInterpreter.Frame.create(parentFunc, parentScope));
         } else {
             // this.last.calledFrame = frameState;
-            // var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
-            // frame.setPC(pc);
+            var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
+            frame.setPC(pc);
             this.last.setContainingScope(frame);
             this.last = frame;
         }

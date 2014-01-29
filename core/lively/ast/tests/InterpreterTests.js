@@ -467,6 +467,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 
     resumeWithFrameAndResult: function(contextNode, frame, result) {
         var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        if (result !== undefined) frame.alreadyComputed[frame.pc.astIndex] = result;
         return interpreter.runWithFrameAndResult(contextNode, frame, result);
     }
 
@@ -477,7 +478,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('var x = 1; x;'),
             resumeNode = node,
             mapping = { x: undefined };
-
+        acorn.walk.addAstIndex(node);
         this.assertEquals(1, this.resumeWithMapping(resumeNode, node, mapping), 'did not fully resume');
         this.assertEquals(1, mapping.x);
     },
@@ -486,6 +487,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('var x = 1; var y = 2; y;'),
             resumeNode = node.body[1],
             mapping = { y: undefined };
+        acorn.walk.addAstIndex(node);
 
         // make sure resume node is: var y = 2;
         this.assertMatches({
@@ -505,6 +507,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('var x = 1 + 2; x;'),
             resumeNode = node.body[0].declarations[0].init,
             mapping = { x: undefined };
+        acorn.walk.addAstIndex(node);
 
         // make sure resume node is: 1 + 2
         this.assertMatches({
@@ -522,6 +525,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('(function() { var x = 1; return x; })();'),
             funcNode = node.body[0].expression.callee,
             resumeNode = funcNode.body.body[1];
+        acorn.walk.addAstIndex(node);
 
         // make sure resume node is: return x;
         this.assertMatches({
@@ -542,6 +546,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('(function() { var x = 1; return x; })() + 5;'),
             funcNode = node.body[0].expression.left.callee,
             resumeNode = funcNode.body.body[1];
+        acorn.walk.addAstIndex(node);
+
+        // construct some frames but change x in mapping
+        var outerFrame = lively.ast.AcornInterpreter.Frame.create(null, {}),
+            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
 
         // make sure resume node is: return x;
         this.assertMatches({
@@ -549,22 +558,26 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
             argument: { type: 'Identifier', name: 'x' }
         }, resumeNode, 'resume node was incorrect');
 
-        // construct some frames but change x in mapping
-        var outerFrame = lively.ast.AcornInterpreter.Frame.create(null, {}),
-            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
-        outerFrame.setPC(node.body[0].expression.left);
-        outerFrame.setComputedPC(true);
+        // 1. interpret inner function
         innerFrame.setPC(resumeNode);
+        var result1 = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
+        this.assertEquals(2, result1, 'did not resume inner correctly');
 
-        var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
-        this.assertEquals(2, result, 'did not resume inner correctly');
-        this.assertEquals(7, this.resumeWithFrameAndResult(node, outerFrame, result), 'did not resume outer correctly');
+        // 2. with the result from the previous interpretation run the outer
+        outerFrame.setPC(node.body[0].expression.left);
+        var result2 = this.resumeWithFrameAndResult(node, outerFrame, result1);
+        this.assertEquals(7, result2, 'did not resume outer correctly');
     },
 
     test06ResumeFunctionWithOuterAndMore: function() {
         var node = this.parse('var y = 5; (function() { var x = 1; return x; })() + y;'),
             funcNode = node.body[1].expression.left.callee,
             resumeNode = funcNode.body.body[1];
+        acorn.walk.addAstIndex(node);
+
+        // construct some frames but change x and y in mapping
+        var outerFrame = lively.ast.AcornInterpreter.Frame.create(null, { y: 10 }),
+            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
 
         // make sure resume node is: return x;
         this.assertMatches({
@@ -572,21 +585,19 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
             argument: { type: 'Identifier', name: 'x' }
         }, resumeNode, 'resume node was incorrect');
 
-        // construct some frames but change x and y in mapping
-        var outerFrame = lively.ast.AcornInterpreter.Frame.create(null, { y: 10 }),
-            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
-        outerFrame.setPC(node.body[1].expression.left);
-        outerFrame.setComputedPC(true);
         innerFrame.setPC(resumeNode);
-
-        var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
-        this.assertEquals(2, result, 'did not resume inner correctly');
-        this.assertEquals(12, this.resumeWithFrameAndResult(node, outerFrame, result), 'did not resume outer correctly');
+        var result1 = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
+        this.assertEquals(2, result1, 'did not resume inner correctly');
+        
+        outerFrame.setPC(node.body[1].expression.left);
+        var result2 = this.resumeWithFrameAndResult(node, outerFrame, result1)
+        this.assertEquals(12, result2, 'did not resume outer correctly');
     },
 
     test07ResumeSwitch: function() {
         var node = this.parse('var i = 1; switch (i) { case 1: i++; 1; break; case 2: 2; break; }'),
             resumeNode = node.body[1].cases[0].consequent[1].expression;
+        acorn.walk.addAstIndex(node);
 
         // make sure resume node is 1; in case 1
         this.assertMatches({

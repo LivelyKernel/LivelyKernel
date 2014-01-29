@@ -152,6 +152,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
                 'for (var name in obj) result = name; result;');
         this.assertEqualState('b', this.interpret(node));
     },
+    test18cForInWithExpression: function() {
+        var node = this.parse('var obj = { a: 1, b: 2 }, m = {}, result; ' +
+                'for (m.a in obj) result = m; result.a;');
+        this.assertEqualState('b', this.interpret(node));
+    },
     test19ModifyingSet: function() {
         var node    = this.parse('a += 2;'),
             mapping = { a: 3 };
@@ -448,7 +453,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     test44cWithStatementWithDelete: function() {
         var node = this.parse('var obj = { a: 1 }; with(obj) { delete obj.a; a; }');
         this.assertRaises(this.interpret.curry(node));
-    },
+    }
 });
 
 TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',

@@ -450,15 +450,19 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var right = state.result;
         if (node.left.type == 'VariableDeclaration') {
             this.accept(node.left, state);
-            left = node.left.declarations[0].id.name;
+            left = node.left.declarations[0].id;
         } else
-            left = node.left.name;
+            left = node.left;
         state.result = result;
 
-        // FIXME: right needs to have a (the right!) value when frame.isResuming() == true
-        for (var name in right) {
-            state.result = name;
-            this.setVariable(left, state);
+        var keys = Object.keys(right); // collect enumerable properties (like for-in)
+        // FIXME: keys needs to have a (the right!) value when frame.isResuming() == true
+        for (var i = 0; i < keys.length; i++) {
+            state.result = keys[i];
+            if (left.type == 'Identifier')
+                this.setVariable(left.name, state);
+            else if (left.type == 'MemberExpression')
+                this.setSlot(left, state);
 
             this.accept(node.body, state);
 

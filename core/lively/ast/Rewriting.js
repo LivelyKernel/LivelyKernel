@@ -641,9 +641,9 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
 
 lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor", {
 
-    visitExpressionStatement: function(n, st) {
+    visitExpressionStatement: function(n, rewriter) {
         // expression is a node of type Expression
-        var expr = this.accept(n.expression, st);
+        var expr = this.accept(n.expression, rewriter);
         if (expr.type == 'ExpressionStatement')
             expr = expr.expression; // unwrap
         return {
@@ -652,10 +652,10 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitReturnStatement: function(n, st) {
+    visitReturnStatement: function(n, rewriter) {
         // argument is a node of type Expression
         var arg = n.argument ?
-            this.accept(n.argument, st) : null;
+            this.accept(n.argument, rewriter) : null;
         if (arg && arg.type == 'ExpressionStatement')
             arg = arg.expression; // unwrap
         return {
@@ -664,36 +664,36 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
-    visitForStatement: function(n, st) {
+    visitForStatement: function(n, rewriter) {
         // init is a node of type VariableDeclaration
-        var init = n.init ? this.accept(n.init, st) : null;
+        var init = n.init ? this.accept(n.init, rewriter) : null;
         if (init && init.type == 'ExpressionStatement')
             init = init.expression;
         return {
             start: n.start, end: n.end, type: 'ForStatement',
             init: init,
             // test is a node of type Expression
-            test: n.test ? this.accept(n.test, st) : null,
+            test: n.test ? this.accept(n.test, rewriter) : null,
             // update is a node of type Expression
-            update: n.update ? this.accept(n.update, st) : null,
+            update: n.update ? this.accept(n.update, rewriter) : null,
             // body is a node of type Statement
-            body: this.accept(n.body, st)
+            body: this.accept(n.body, rewriter)
         };
     },
 
-    visitForInStatement: function(n, st) {
+    visitForInStatement: function(n, rewriter) {
         // left is a node of type VariableDeclaration
         // right is a node of type Expression
         // body is a node of type Statement
         // n.each has a specific type that is boolean
-        var left = this.accept(
-            n.left.type == 'VariableDeclaration' ?
-            n.left.declarations[0].id : n.left, st);
+        var left = this.accept(n.left.type == 'VariableDeclaration' ?
+                n.left.declarations[0].id :
+                n.left, rewriter);
         // TODO: push storeComputationResult for loop assignment into body
         return {
             start: n.start, end: n.end, type: 'ForInStatement',
-            left: left, right: this.accept(n.right, st),
-            body: this.accept(n.body, st),
+            left: left, right: this.accept(n.right, rewriter),
+            body: this.accept(n.body, rewriter),
             each: n.each
         };
     },

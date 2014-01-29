@@ -23,7 +23,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     tryCatch: function(level, varMapping, inner) {
         level = level || 0;
         return Strings.format("try {\n"
-            + "var _ = {}, _%s = %s, __%s = [\n"
+            + "var _ = {}, lastNode = undefined, _%s = %s, __%s = [\n"
             + "        _,\n"
             + "        _%s,\n"
             + "        %s\n"
@@ -31,7 +31,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "%s"
             + "} catch (e) {\n"
             + "    var ex = e.isUnwindException ? e : new lively.ast.Rewriting.UnwindException(e);\n"
-            + "    ex.shiftFrame(this, __%s, %s);\n"
+            + "    ex.shiftFrame(this, __%s, lastNode, %s);\n"
             + "    throw ex;\n"
             + "}\n",
             level, generateVarMappingString(), level, level,
@@ -70,9 +70,10 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
           + "})", level, name, args.join(', '));
     },
     
-    intermediateResult: function(expression) {
-        // like _['0-15'] = 42;
-        return "_['__/[0-9]+\-[0-9]+/__'] = " + expression;
+    intermediateResult: function(expression, optionalAstIndex) {
+        // like _['7'] = 42; <-- the value stored in the _ object is the AST index
+        var astIndexMatcher = optionalAstIndex || "__/[0-9]+/__";
+        return "_[lastNode = " + astIndexMatcher + "] = " + expression;
     },
 
     setVar: function(level, varName, inner) {
@@ -119,7 +120,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                         this.intermediateResult(
                             this.setVar(0, 'i', '0;\n')
                           + this.getVar(0, 'i')
-                          + ';\n'));
+                          + ';\n', 3/*astIndex of "var i = 0"*/));
         this.assertASTMatchesCode(result, expected);
     },
 
@@ -421,6 +422,19 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
     },
 
     test02SimpleBreak: function() {
+        // Program(12,"function code() { var x = 2; debu...")
+        // \---.body[0]:FunctionDeclaration(11,"function code() { var x = 2; debu...")
+        //     |---.id:Identifier(0,"code")
+        //     \---.body:BlockStatement(10,"{ var x = 2; debugger; ...")
+        //         |---.body[0]:VariableDeclaration(4,"var x = 2;")
+        //         |   \---.declarations[0]:VariableDeclarator(3,"x = 2")
+        //         |       |---.id:Identifier(1,"x")
+        //         |       \---.init:Literal(2,"2")
+        //         |---.body[1]:DebuggerStatement(5,"debugger;")
+        //         \---.body[2]:ReturnStatement(9,"return x + 4;")
+        //             \---.argument:BinaryExpression(8,"x + 4")
+        //                 |---.left:Identifier(6,"x")
+        //                 \---.right:Literal(7,"4")
         function code() {
             var x = 2;
             debugger;
@@ -436,10 +450,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var capturedAst = frame.getOriginalAst();
         this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), capturedAst);
 
-        // access the node where execution stopped
-        var resumeNode = frame.getPC(),
-            debuggerNode = frame.getOriginalAst().body.body[1];
-        this.assertIdentity(debuggerNode, resumeNode, 'resumeNode');
+        // where did the execution stop?
+        // this.assertIdentity(5, frame.getPC(), 'pc');
+        this.assertIdentity(capturedAst.body.body[1], frame.getPC(), 'pc');
     },
 
     test03SimpleBreakInNestedFunction: function() {
@@ -470,8 +483,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 
         // access the node where execution stopped
         var resumeNode = frame1.getPC(),
-            debuggerNode = frame1.getOriginalAst().body.body[0];
-        this.assertIdentity(debuggerNode, resumeNode, 'resumeNode');
+            debuggerNode = actualAst.body.body[0];
+        this.assertAstNodesEqual(debuggerNode, resumeNode, 'resumeNode');
     },
 
     test04BreakAndContinue: function() {

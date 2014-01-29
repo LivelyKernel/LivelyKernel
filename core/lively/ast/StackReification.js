@@ -163,26 +163,29 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
     }
 },
 'frames', {
-    shiftFrame: function(thiz, frameState, astPointer) {
-        var astValueRanges = frameState[0],
-            varMapping = frameState[1],
+    shiftFrame: function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
+        // var astValueRanges = frameState[0];
+        var varMapping = frameState[1],
             parentFrameState = frameState[2],
             parentScope = parentFrameState[1],
-            parentFunc = null, // FIXME: determine AST parentFunc
+            parentFunc = null, // FIXME: determine AST parentFunc ... actually not necessary.
             frame = lively.ast.AcornInterpreter.Frame.create(
-                __getClosure(astPointer), varMapping);
+                __getClosure(pointerToOriginalAst), varMapping);
         frame.setThis(thiz);
-        Global.LastFrameState = frameState
-        Global.LastFrame = frame
         if (!this.top) {
             this.top = this.last = frame;
-            if (this.error && this.error.astPosition)
-                frame.setPC(this.findPC(frame, astValueRanges));
+            var pc = this.error && this.error.astIndex ?
+                acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), this.error.astIndex) :
+                null;
+            frame.setPC(pc);
+            // FIXME: assemble real lexical scope -- Frame objects represent
+            // call stack frames, not scopes!
             if (parentFrameState[2] !== Global)
                 frame.setContainingScope(lively.ast.AcornInterpreter.Frame.create(parentFunc, parentScope));
         } else {
             // this.last.calledFrame = frameState;
-            // frame.setPC(this.findPC(frame, astValueRanges));
+            // var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
+            // frame.setPC(pc);
             this.last.setContainingScope(frame);
             this.last = frame;
         }

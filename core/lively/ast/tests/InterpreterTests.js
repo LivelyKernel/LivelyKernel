@@ -132,11 +132,15 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     },
     test16bWhileReturnValue: function() {
         // actually a test for pre/post op
-        var node = this.parse('var i = 0; while (i < 3) { ++i; }');
-        this.assertEqualState(3, this.interpret(node));
+        var node = this.parse('var obj = { i: 0 }; while (obj.i < 3) { ++obj.i; }'),
+            mapping = { obj: { i: 0 } };
+        this.assertEqualState(3, this.interpret(node, mapping));
+        this.assertEqualState(3, mapping.obj.i);
 
-        var node = this.parse('var i = 0; while (i < 3) { i++; }');
-        this.assertEqualState(2, this.interpret(node));
+        node = this.parse('var obj = { i: 0 }; while (obj.i < 3) { obj.i++; }');
+        mapping = { obj: { i: 0 } };
+        this.assertEqualState(2, this.interpret(node, mapping));
+        this.assertEqualState(3, mapping.obj.i);
     },
     test17DoWhile: function() {
         var node = this.parse('var i = 0; do { ++i; } while (i == 0); i;');

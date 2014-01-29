@@ -926,4 +926,31 @@ Object.extend(lively.ast.acorn, {
 
 });
 
+(function extendAcornWalk() {
+    
+    acorn.walk.findNodeByAstIndex = function(ast, astIndexToFind) {
+        if (!ast.astIndex) acorn.walk.addAstIndex(ast);
+        // we need to visit every node, acorn.walk.forEachNode is highly
+        // inefficient, the compilled Mozilla visitors are a better fit
+        var found = null;
+        lively.ast.acorn.withMozillaAstDo(ast, null, function(next, node, state) {
+            if (found) return;
+            var idx = node.astIndex;
+            if (idx < astIndexToFind) return;
+            if (node.astIndex === astIndexToFind) { found = node; return; };
+            next();
+        });
+        return found;
+    };
+
+    acorn.walk.addAstIndex = function(ast) {
+        // we need to visit every node, acorn.walk.forEachNode is highly
+        // inefficient, the compilled Mozilla visitors are a better fit
+        lively.ast.acorn.withMozillaAstDo(ast, {index: 0}, function(next, node, state) {
+            next(); node.astIndex = state.index++;
+        });
+        return ast;
+    };
+
+})();
 }) // end of module

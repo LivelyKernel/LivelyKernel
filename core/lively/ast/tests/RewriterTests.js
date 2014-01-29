@@ -192,8 +192,6 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
               + this.getVar(0, 'i') + ' < 10; '
               + this.intermediateResult(this.getVar(0, 'i') + '++')
               + ") {\n}\n");
-// FIXME current rewriting inits i twice
-expected = expected.replace("{ 'i': undefined }", "{\n'i': undefined,\n'i': undefined\n }");
         this.assertASTMatchesCode(result, expected);
     },
 
@@ -205,8 +203,6 @@ expected = expected.replace("{ 'i': undefined }", "{\n'i': undefined,\n'i': unde
                 "for ("
               + this.getVar(0, 'key') + ' in obj'
               + ") {\n}\n");
-// FIXME current rewriting inits key twice
-expected = expected.replace("{ 'key': undefined }", "{\n'key': undefined,\n'key': undefined\n }")
         this.assertASTMatchesCode(result, expected);
     },
 

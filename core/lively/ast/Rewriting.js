@@ -234,11 +234,11 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var locals = [];
         acorn.walk.matchNodes(ast, {
             'VariableDeclaration': function(node, state, depth, type) {
-                if (type == 'Statement' || type == 'Expression') return;
+                if (node.type != type) return; // skip Expression, Statement, etc.
                 node.declarations.each(function(n) { state.push(n.id.name); });
             },
             'FunctionDeclaration': function(node, state, depth, type) {
-                if (type == 'Statement' || type == 'Expression' || type == 'Function') return;
+                if (node.type != type) return; // skip Expression, Statement, etc.
                 state.push(node.id.name);
             }
         }, locals, {
@@ -251,11 +251,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         // FIXME!
         lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
         this.enterScope();
-        // TODO: old rewriting reference --------------
         var astToRewrite = acorn.walk.copy(node);
         this.astRegistry.push(astToRewrite);
         var astRegistryIndex = this.astRegistry.length - 1;
-        // -------------------------------------------
         acorn.walk.addAstIndex(astToRewrite);
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
@@ -734,10 +732,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // n.generator has a specific type that is boolean
         // n.expression has a specific type that is boolean
         rewriter.enterScope();
-        // TODO: old rewriting reference
         rewriter.astRegistry.push(acorn.walk.copy(n));
         var idx = rewriter.astRegistry.length - 1;
-        // END FIXME
         var start = n.start, end = n.end, astIndex = n.astIndex;
         var args = rewriter.registerVars(n.params.pluck('name')); // arguments
         var vars = rewriter.registerVars(rewriter.findLocalVariables(n.body)); // locals

@@ -152,6 +152,8 @@ Object.subclass('lively.ide.SCBAddons.History',
             bounds = new lively.Rectangle(pos.x, pos.y, buttonExtent.x, buttonExtent.y),
             button = new lively.morphic.Button(bounds, label);
         panel.addMorph(button);
+        // line copied from SCB
+        button.label.setPosition(button.label.getPosition().subPt(pt(0, 2)));
         panel.locationPaneMenuButton.setPosition(panel.locationPaneMenuButton.getPosition().subXY(buttonExtent.x, 0));
         panel.backInHistoryButton = button;
         

@@ -45,6 +45,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.changeAppearanceFor(false, false);
 
         this.ensureLabel(labelString);
+        if (labelString) this.ensureLabel(labelString);
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);

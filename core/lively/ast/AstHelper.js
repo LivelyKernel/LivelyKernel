@@ -1,387 +1,451 @@
 module('lively.ast.AstHelper').requires("lively.ast.acorn").toRun(function() {
 
-Object.subclass("lively.ast.MozillaAST.AstVisitor",
+Object.subclass("lively.ast.MozillaAST.BaseVisitor",
 // This code was generated with:
-// lively.ast.MozillaAST.createVisitorCode({pathAsParameter: true, asLivelyClass: true, parameters: ["depth","state"], name: "lively.ast.MozillaAST.AstPrinter"});
+// lively.ast.MozillaAST.createVisitorCode({pathAsParameter: true, asLivelyClass: true, parameters: ["depth","state"], name: "lively.ast.MozillaAST.BaseVisitor", useReturn: true, openWindow: true});
 "visiting", {
-    accept: function(node, depth, state, path, otherArg) {
-        if (!node || !node.type) debugger;
-        return this['visit' + node.type](node, depth, state, path, otherArg);
+    accept: function(node, depth, state, path) {
+        return this['visit' + node.type](node, depth, state, path);
     },
 
-    visitProgram: function(node, depth, state, path, otherArg) {
+    visitProgram: function(node, depth, state, path) {
+        var retVal;
         node.body.forEach(function(ea, i) {
             // ea is of type Statement
-            this.accept(ea, depth, state, ["body", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["body", i]);
         }, this);
+        return retVal;
     },
 
-    visitFunction: function(node, depth, state, path, otherArg) {
+    visitFunction: function(node, depth, state, path) {
+        var retVal;
         if (node.id) {
             // id is a node of type Identifier
-            this.accept(node.id, depth, state, ["id"], otherArg);
+            retVal = this.accept(node.id, depth, state, ["id"]);
         }
 
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            this.accept(ea, depth, state, ["params", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["params", i]);
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                this.accept(ea, depth, state, ["defaults", i], otherArg);
+                retVal = this.accept(ea, depth, state, ["defaults", i]);
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            this.accept(node.rest, depth, state, ["rest"], otherArg);
+            retVal = this.accept(node.rest, depth, state, ["rest"]);
         }
 
         // body is a node of type BlockStatement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
 
         // node.expression has a specific type that is boolean
         if (node.expression) {/*do stuff*/}
+        return retVal;
     },
 
-    visitStatement: function(node, depth, state, path, otherArg) {
+    visitStatement: function(node, depth, state, path) {
+        var retVal;
+        return retVal;
     },
 
-    visitEmptyStatement: function(node, depth, state, path, otherArg) {
+    visitEmptyStatement: function(node, depth, state, path) {
+        var retVal;
+        return retVal;
     },
 
-    visitBlockStatement: function(node, depth, state, path, otherArg) {
+    visitBlockStatement: function(node, depth, state, path) {
+        var retVal;
         node.body.forEach(function(ea, i) {
             // ea is of type Statement
-            this.accept(ea, depth, state, ["body", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["body", i]);
         }, this);
+        return retVal;
     },
 
-    visitExpressionStatement: function(node, depth, state, path, otherArg) {
+    visitExpressionStatement: function(node, depth, state, path) {
+        var retVal;
         // expression is a node of type Expression
-        this.accept(node.expression, depth, state, ["expression"], otherArg);
+        retVal = this.accept(node.expression, depth, state, ["expression"]);
+        return retVal;
     },
 
-    visitIfStatement: function(node, depth, state, path, otherArg) {
+    visitIfStatement: function(node, depth, state, path) {
+        var retVal;
         // test is a node of type Expression
-        this.accept(node.test, depth, state, ["test"], otherArg);
+        retVal = this.accept(node.test, depth, state, ["test"]);
 
         // consequent is a node of type Statement
-        this.accept(node.consequent, depth, state, ["consequent"], otherArg);
+        retVal = this.accept(node.consequent, depth, state, ["consequent"]);
 
         if (node.alternate) {
             // alternate is a node of type Statement
-            this.accept(node.alternate, depth, state, ["alternate"], otherArg);
+            retVal = this.accept(node.alternate, depth, state, ["alternate"]);
         }
+        return retVal;
     },
 
-    visitLabeledStatement: function(node, depth, state, path, otherArg) {
+    visitLabeledStatement: function(node, depth, state, path) {
+        var retVal;
         // label is a node of type Identifier
-        this.accept(node.label, depth, state, ["label"], otherArg);
+        retVal = this.accept(node.label, depth, state, ["label"]);
 
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitBreakStatement: function(node, depth, state, path, otherArg) {
+    visitBreakStatement: function(node, depth, state, path) {
+        var retVal;
         if (node.label) {
             // label is a node of type Identifier
-            this.accept(node.label, depth, state, ["label"], otherArg);
+            retVal = this.accept(node.label, depth, state, ["label"]);
         }
+        return retVal;
     },
 
-    visitContinueStatement: function(node, depth, state, path, otherArg) {
+    visitContinueStatement: function(node, depth, state, path) {
+        var retVal;
         if (node.label) {
             // label is a node of type Identifier
-            this.accept(node.label, depth, state, ["label"], otherArg);
+            retVal = this.accept(node.label, depth, state, ["label"]);
         }
+        return retVal;
     },
 
-    visitWithStatement: function(node, depth, state, path, otherArg) {
+    visitWithStatement: function(node, depth, state, path) {
+        var retVal;
         // object is a node of type Expression
-        this.accept(node.object, depth, state, ["object"], otherArg);
+        retVal = this.accept(node.object, depth, state, ["object"]);
 
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitSwitchStatement: function(node, depth, state, path, otherArg) {
+    visitSwitchStatement: function(node, depth, state, path) {
+        var retVal;
         // discriminant is a node of type Expression
-        this.accept(node.discriminant, depth, state, ["discriminant"], otherArg);
+        retVal = this.accept(node.discriminant, depth, state, ["discriminant"]);
 
         node.cases.forEach(function(ea, i) {
             // ea is of type SwitchCase
-            this.accept(ea, depth, state, ["cases", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["cases", i]);
         }, this);
 
         // node.lexical has a specific type that is boolean
         if (node.lexical) {/*do stuff*/}
+        return retVal;
     },
 
-    visitReturnStatement: function(node, depth, state, path, otherArg) {
+    visitReturnStatement: function(node, depth, state, path) {
+        var retVal;
         if (node.argument) {
             // argument is a node of type Expression
-            this.accept(node.argument, depth, state, ["argument"], otherArg);
+            retVal = this.accept(node.argument, depth, state, ["argument"]);
         }
+        return retVal;
     },
 
-    visitThrowStatement: function(node, depth, state, path, otherArg) {
+    visitThrowStatement: function(node, depth, state, path) {
+        var retVal;
         // argument is a node of type Expression
-        this.accept(node.argument, depth, state, ["argument"], otherArg);
+        retVal = this.accept(node.argument, depth, state, ["argument"]);
+        return retVal;
     },
 
-    visitTryStatement: function(node, depth, state, path, otherArg) {
+    visitTryStatement: function(node, depth, state, path) {
+        var retVal;
         // block is a node of type BlockStatement
-        this.accept(node.block, depth, state, ["block"], otherArg);
+        retVal = this.accept(node.block, depth, state, ["block"]);
 
         if (node.handler) {
             // handler is a node of type CatchClause
-            this.accept(node.handler, depth, state, ["handler"], otherArg);
+            retVal = this.accept(node.handler, depth, state, ["handler"]);
         }
 
-        if (node.guardedHandlers) {
-            node.guardedHandlers.forEach(function(ea, i) {
-                // ea is of type CatchClause
-                this.accept(ea, depth, state, ["guardedHandlers", i], otherArg);
-            }, this);
-        }
+        node.guardedHandlers.forEach(function(ea, i) {
+            // ea is of type CatchClause
+            retVal = this.accept(ea, depth, state, ["guardedHandlers", i]);
+        }, this);
 
         if (node.finalizer) {
             // finalizer is a node of type BlockStatement
-            this.accept(node.finalizer, depth, state, ["finalizer"], otherArg);
+            retVal = this.accept(node.finalizer, depth, state, ["finalizer"]);
         }
+        return retVal;
     },
 
-    visitWhileStatement: function(node, depth, state, path, otherArg) {
+    visitWhileStatement: function(node, depth, state, path) {
+        var retVal;
         // test is a node of type Expression
-        this.accept(node.test, depth, state, ["test"], otherArg);
+        retVal = this.accept(node.test, depth, state, ["test"]);
 
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitDoWhileStatement: function(node, depth, state, path, otherArg) {
+    visitDoWhileStatement: function(node, depth, state, path) {
+        var retVal;
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         // test is a node of type Expression
-        this.accept(node.test, depth, state, ["test"], otherArg);
+        retVal = this.accept(node.test, depth, state, ["test"]);
+        return retVal;
     },
 
-    visitForStatement: function(node, depth, state, path, otherArg) {
+    visitForStatement: function(node, depth, state, path) {
+        var retVal;
         if (node.init) {
             // init is a node of type VariableDeclaration
-            this.accept(node.init, depth, state, ["init"], otherArg);
+            retVal = this.accept(node.init, depth, state, ["init"]);
         }
 
         if (node.test) {
             // test is a node of type Expression
-            this.accept(node.test, depth, state, ["test"], otherArg);
+            retVal = this.accept(node.test, depth, state, ["test"]);
         }
 
         if (node.update) {
             // update is a node of type Expression
-            this.accept(node.update, depth, state, ["update"], otherArg);
+            retVal = this.accept(node.update, depth, state, ["update"]);
         }
 
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitForInStatement: function(node, depth, state, path, otherArg) {
+    visitForInStatement: function(node, depth, state, path) {
+        var retVal;
         // left is a node of type VariableDeclaration
-        this.accept(node.left, depth, state, ["left"], otherArg);
+        retVal = this.accept(node.left, depth, state, ["left"]);
 
         // right is a node of type Expression
-        this.accept(node.right, depth, state, ["right"], otherArg);
+        retVal = this.accept(node.right, depth, state, ["right"]);
 
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         // node.each has a specific type that is boolean
         if (node.each) {/*do stuff*/}
+        return retVal;
     },
 
-    visitForOfStatement: function(node, depth, state, path, otherArg) {
+    visitForOfStatement: function(node, depth, state, path) {
+        var retVal;
         // left is a node of type VariableDeclaration
-        this.accept(node.left, depth, state, ["left"], otherArg);
+        retVal = this.accept(node.left, depth, state, ["left"]);
 
         // right is a node of type Expression
-        this.accept(node.right, depth, state, ["right"], otherArg);
+        retVal = this.accept(node.right, depth, state, ["right"]);
 
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitLetStatement: function(node, depth, state, path, otherArg) {
+    visitLetStatement: function(node, depth, state, path) {
+        var retVal;
         node.head.forEach(function(ea, i) {
             // ea.id is of type node
-            this.accept(ea.id, depth, state, ["head", i, "id"], otherArg);
+            retVal = this.accept(ea.id, depth, state, ["head", i, "id"]);
             if (ea.init) {
                 // ea.init can be of type node
-                this.accept(ea.init, depth, state, ["head", i, "init"], otherArg);
+                retVal = this.accept(ea.init, depth, state, ["head", i, "init"]);
             }
         }, this);
 
         // body is a node of type Statement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitDebuggerStatement: function(node, depth, state, path, otherArg) {
+    visitDebuggerStatement: function(node, depth, state, path) {
+        var retVal;
+        return retVal;
     },
 
-    visitDeclaration: function(node, depth, state, path, otherArg) {
+    visitDeclaration: function(node, depth, state, path) {
+        var retVal;
+        return retVal;
     },
 
-    visitFunctionDeclaration: function(node, depth, state, path, otherArg) {
+    visitFunctionDeclaration: function(node, depth, state, path) {
+        var retVal;
         // id is a node of type Identifier
-        this.accept(node.id, depth, state, ["id"], otherArg);
+        retVal = this.accept(node.id, depth, state, ["id"]);
 
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            this.accept(ea, depth, state, ["params", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["params", i]);
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                this.accept(ea, depth, state, ["defaults", i], otherArg);
+                retVal = this.accept(ea, depth, state, ["defaults", i]);
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            this.accept(node.rest, depth, state, ["rest"], otherArg);
+            retVal = this.accept(node.rest, depth, state, ["rest"]);
         }
 
         // body is a node of type BlockStatement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
 
         // node.expression has a specific type that is boolean
         if (node.expression) {/*do stuff*/}
+        return retVal;
     },
 
-    visitVariableDeclaration: function(node, depth, state, path, otherArg) {
+    visitVariableDeclaration: function(node, depth, state, path) {
+        var retVal;
         node.declarations.forEach(function(ea, i) {
             // ea is of type VariableDeclarator
-            this.accept(ea, depth, state, ["declarations", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["declarations", i]);
         }, this);
 
         // node.kind is "var" or "let" or "const"
+        return retVal;
     },
 
-    visitVariableDeclarator: function(node, depth, state, path, otherArg) {
+    visitVariableDeclarator: function(node, depth, state, path) {
+        var retVal;
         // id is a node of type Pattern
-        this.accept(node.id, depth, state, ["id"], otherArg);
+        retVal = this.accept(node.id, depth, state, ["id"]);
 
         if (node.init) {
             // init is a node of type Expression
-            this.accept(node.init, depth, state, ["init"], otherArg);
+            retVal = this.accept(node.init, depth, state, ["init"]);
         }
+        return retVal;
     },
 
-    visitExpression: function(node, depth, state, path, otherArg) {
+    visitExpression: function(node, depth, state, path) {
+        var retVal;
+        return retVal;
     },
 
-    visitThisExpression: function(node, depth, state, path, otherArg) {
+    visitThisExpression: function(node, depth, state, path) {
+        var retVal;
+        return retVal;
     },
 
-    visitArrayExpression: function(node, depth, state, path, otherArg) {
+    visitArrayExpression: function(node, depth, state, path) {
+        var retVal;
         node.elements.forEach(function(ea, i) {
             if (ea) {
                 // ea can be of type Expression or 
-                this.accept(ea, depth, state, ["elements", i], otherArg);
+                retVal = this.accept(ea, depth, state, ["elements", i]);
             }
         }, this);
+        return retVal;
     },
 
-    visitObjectExpression: function(node, depth, state, path, otherArg) {
+    visitObjectExpression: function(node, depth, state, path) {
+        var retVal;
         node.properties.forEach(function(ea, i) {
             // ea.key is of type node
-            this.accept(ea.key, depth, state, ["properties", i, "key"], otherArg);
+            retVal = this.accept(ea.key, depth, state, ["properties", i, "key"]);
             // ea.value is of type node
-            this.accept(ea.value, depth, state, ["properties", i, "value"], otherArg);
+            retVal = this.accept(ea.value, depth, state, ["properties", i, "value"]);
             // ea.kind is "init" or "get" or "set"
         }, this);
+        return retVal;
     },
 
-    visitFunctionExpression: function(node, depth, state, path, otherArg) {
+    visitFunctionExpression: function(node, depth, state, path) {
+        var retVal;
         if (node.id) {
             // id is a node of type Identifier
-            this.accept(node.id, depth, state, ["id"], otherArg);
+            retVal = this.accept(node.id, depth, state, ["id"]);
         }
 
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            this.accept(ea, depth, state, ["params", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["params", i]);
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                this.accept(ea, depth, state, ["defaults", i], otherArg);
+                retVal = this.accept(ea, depth, state, ["defaults", i]);
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            this.accept(node.rest, depth, state, ["rest"], otherArg);
+            retVal = this.accept(node.rest, depth, state, ["rest"]);
         }
 
         // body is a node of type BlockStatement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
 
         // node.expression has a specific type that is boolean
         if (node.expression) {/*do stuff*/}
+        return retVal;
     },
 
-    visitArrowExpression: function(node, depth, state, path, otherArg) {
+    visitArrowExpression: function(node, depth, state, path) {
+        var retVal;
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            this.accept(ea, depth, state, ["params", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["params", i]);
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                this.accept(ea, depth, state, ["defaults", i], otherArg);
+                retVal = this.accept(ea, depth, state, ["defaults", i]);
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            this.accept(node.rest, depth, state, ["rest"], otherArg);
+            retVal = this.accept(node.rest, depth, state, ["rest"]);
         }
 
         // body is a node of type BlockStatement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
 
         // node.expression has a specific type that is boolean
         if (node.expression) {/*do stuff*/}
+        return retVal;
     },
 
-    visitSequenceExpression: function(node, depth, state, path, otherArg) {
+    visitSequenceExpression: function(node, depth, state, path) {
+        var retVal;
         node.expressions.forEach(function(ea, i) {
             // ea is of type Expression
-            this.accept(ea, depth, state, ["expressions", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["expressions", i]);
         }, this);
+        return retVal;
     },
 
-    visitUnaryExpression: function(node, depth, state, path, otherArg) {
+    visitUnaryExpression: function(node, depth, state, path) {
+        var retVal;
         // node.operator is an UnaryOperator enum:
         // "-" | "+" | "!" | "~" | "typeof" | "void" | "delete"
 
@@ -389,381 +453,444 @@ Object.subclass("lively.ast.MozillaAST.AstVisitor",
         if (node.prefix) {/*do stuff*/}
 
         // argument is a node of type Expression
-        this.accept(node.argument, depth, state, ["argument"], otherArg);
+        retVal = this.accept(node.argument, depth, state, ["argument"]);
+        return retVal;
     },
 
-    visitBinaryExpression: function(node, depth, state, path, otherArg) {
+    visitBinaryExpression: function(node, depth, state, path) {
+        var retVal;
         // node.operator is an BinaryOperator enum:
         // "==" | "!=" | "===" | "!==" | | "<" | "<=" | ">" | ">=" | | "<<" | ">>" | ">>>" | | "+" | "-" | "*" | "/" | "%" | | "|" | "^" | "&" | "in" | | "instanceof" | ".."
 
         // left is a node of type Expression
-        this.accept(node.left, depth, state, ["left"], otherArg);
+        retVal = this.accept(node.left, depth, state, ["left"]);
 
         // right is a node of type Expression
-        this.accept(node.right, depth, state, ["right"], otherArg);
+        retVal = this.accept(node.right, depth, state, ["right"]);
+        return retVal;
     },
 
-    visitAssignmentExpression: function(node, depth, state, path, otherArg) {
+    visitAssignmentExpression: function(node, depth, state, path) {
+        var retVal;
         // node.operator is an AssignmentOperator enum:
         // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
 
         // left is a node of type Expression
-        this.accept(node.left, depth, state, ["left"], otherArg);
+        retVal = this.accept(node.left, depth, state, ["left"]);
 
         // right is a node of type Expression
-        this.accept(node.right, depth, state, ["right"], otherArg);
+        retVal = this.accept(node.right, depth, state, ["right"]);
+        return retVal;
     },
 
-    visitUpdateExpression: function(node, depth, state, path, otherArg) {
+    visitUpdateExpression: function(node, depth, state, path) {
+        var retVal;
         // node.operator is an UpdateOperator enum:
         // "++" | "--"
 
         // argument is a node of type Expression
-        this.accept(node.argument, depth, state, ["argument"], otherArg);
+        retVal = this.accept(node.argument, depth, state, ["argument"]);
 
         // node.prefix has a specific type that is boolean
         if (node.prefix) {/*do stuff*/}
+        return retVal;
     },
 
-    visitLogicalExpression: function(node, depth, state, path, otherArg) {
+    visitLogicalExpression: function(node, depth, state, path) {
+        var retVal;
         // node.operator is an LogicalOperator enum:
         // "||" | "&&"
 
         // left is a node of type Expression
-        this.accept(node.left, depth, state, ["left"], otherArg);
+        retVal = this.accept(node.left, depth, state, ["left"]);
 
         // right is a node of type Expression
-        this.accept(node.right, depth, state, ["right"], otherArg);
+        retVal = this.accept(node.right, depth, state, ["right"]);
+        return retVal;
     },
 
-    visitConditionalExpression: function(node, depth, state, path, otherArg) {
+    visitConditionalExpression: function(node, depth, state, path) {
+        var retVal;
         // test is a node of type Expression
-        this.accept(node.test, depth, state, ["test"], otherArg);
+        retVal = this.accept(node.test, depth, state, ["test"]);
 
         // alternate is a node of type Expression
-        this.accept(node.alternate, depth, state, ["alternate"], otherArg);
+        retVal = this.accept(node.alternate, depth, state, ["alternate"]);
 
         // consequent is a node of type Expression
-        this.accept(node.consequent, depth, state, ["consequent"], otherArg);
+        retVal = this.accept(node.consequent, depth, state, ["consequent"]);
+        return retVal;
     },
 
-    visitNewExpression: function(node, depth, state, path, otherArg) {
+    visitNewExpression: function(node, depth, state, path) {
+        var retVal;
         // callee is a node of type Expression
-        this.accept(node.callee, depth, state, ["callee"], otherArg);
+        retVal = this.accept(node.callee, depth, state, ["callee"]);
 
         node.arguments.forEach(function(ea, i) {
             // ea is of type Expression
-            this.accept(ea, depth, state, ["arguments", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["arguments", i]);
         }, this);
+        return retVal;
     },
 
-    visitCallExpression: function(node, depth, state, path, otherArg) {
+    visitCallExpression: function(node, depth, state, path) {
+        var retVal;
         // callee is a node of type Expression
-        this.accept(node.callee, depth, state, ["callee"], otherArg);
+        retVal = this.accept(node.callee, depth, state, ["callee"]);
 
         node.arguments.forEach(function(ea, i) {
             // ea is of type Expression
-            this.accept(ea, depth, state, ["arguments", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["arguments", i]);
         }, this);
+        return retVal;
     },
 
-    visitMemberExpression: function(node, depth, state, path, otherArg) {
+    visitMemberExpression: function(node, depth, state, path) {
+        var retVal;
         // object is a node of type Expression
-        this.accept(node.object, depth, state, ["object"], otherArg);
+        retVal = this.accept(node.object, depth, state, ["object"]);
 
         // property is a node of type Identifier
-        this.accept(node.property, depth, state, ["property"], otherArg);
+        retVal = this.accept(node.property, depth, state, ["property"]);
 
         // node.computed has a specific type that is boolean
         if (node.computed) {/*do stuff*/}
+        return retVal;
     },
 
-    visitYieldExpression: function(node, depth, state, path, otherArg) {
+    visitYieldExpression: function(node, depth, state, path) {
+        var retVal;
         if (node.argument) {
             // argument is a node of type Expression
-            this.accept(node.argument, depth, state, ["argument"], otherArg);
+            retVal = this.accept(node.argument, depth, state, ["argument"]);
         }
+        return retVal;
     },
 
-    visitComprehensionExpression: function(node, depth, state, path, otherArg) {
+    visitComprehensionExpression: function(node, depth, state, path) {
+        var retVal;
         // body is a node of type Expression
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         node.blocks.forEach(function(ea, i) {
             // ea is of type ComprehensionBlock
-            this.accept(ea, depth, state, ["blocks", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["blocks", i]);
         }, this);
 
         if (node.filter) {
             // filter is a node of type Expression
-            this.accept(node.filter, depth, state, ["filter"], otherArg);
+            retVal = this.accept(node.filter, depth, state, ["filter"]);
         }
+        return retVal;
     },
 
-    visitGeneratorExpression: function(node, depth, state, path, otherArg) {
+    visitGeneratorExpression: function(node, depth, state, path) {
+        var retVal;
         // body is a node of type Expression
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
 
         node.blocks.forEach(function(ea, i) {
             // ea is of type ComprehensionBlock
-            this.accept(ea, depth, state, ["blocks", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["blocks", i]);
         }, this);
 
         if (node.filter) {
             // filter is a node of type Expression
-            this.accept(node.filter, depth, state, ["filter"], otherArg);
+            retVal = this.accept(node.filter, depth, state, ["filter"]);
         }
+        return retVal;
     },
 
-    visitLetExpression: function(node, depth, state, path, otherArg) {
+    visitLetExpression: function(node, depth, state, path) {
+        var retVal;
         node.head.forEach(function(ea, i) {
             // ea.id is of type node
-            this.accept(ea.id, depth, state, ["head", i, "id"], otherArg);
+            retVal = this.accept(ea.id, depth, state, ["head", i, "id"]);
             if (ea.init) {
                 // ea.init can be of type node
-                this.accept(ea.init, depth, state, ["head", i, "init"], otherArg);
+                retVal = this.accept(ea.init, depth, state, ["head", i, "init"]);
             }
         }, this);
 
         // body is a node of type Expression
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitPattern: function(node, depth, state, path, otherArg) {
+    visitPattern: function(node, depth, state, path) {
+        var retVal;
+        return retVal;
     },
 
-    visitObjectPattern: function(node, depth, state, path, otherArg) {
+    visitObjectPattern: function(node, depth, state, path) {
+        var retVal;
         node.properties.forEach(function(ea, i) {
             // ea.key is of type node
-            this.accept(ea.key, depth, state, ["properties", i, "key"], otherArg);
+            retVal = this.accept(ea.key, depth, state, ["properties", i, "key"]);
             // ea.value is of type node
-            this.accept(ea.value, depth, state, ["properties", i, "value"], otherArg);
+            retVal = this.accept(ea.value, depth, state, ["properties", i, "value"]);
         }, this);
+        return retVal;
     },
 
-    visitArrayPattern: function(node, depth, state, path, otherArg) {
+    visitArrayPattern: function(node, depth, state, path) {
+        var retVal;
         node.elements.forEach(function(ea, i) {
             if (ea) {
                 // ea can be of type Pattern or 
-                this.accept(ea, depth, state, ["elements", i], otherArg);
+                retVal = this.accept(ea, depth, state, ["elements", i]);
             }
         }, this);
+        return retVal;
     },
 
-    visitSwitchCase: function(node, depth, state, path, otherArg) {
+    visitSwitchCase: function(node, depth, state, path) {
+        var retVal;
         if (node.test) {
             // test is a node of type Expression
-            this.accept(node.test, depth, state, ["test"], otherArg);
+            retVal = this.accept(node.test, depth, state, ["test"]);
         }
 
         node.consequent.forEach(function(ea, i) {
             // ea is of type Statement
-            this.accept(ea, depth, state, ["consequent", i], otherArg);
+            retVal = this.accept(ea, depth, state, ["consequent", i]);
         }, this);
+        return retVal;
     },
 
-    visitCatchClause: function(node, depth, state, path, otherArg) {
+    visitCatchClause: function(node, depth, state, path) {
+        var retVal;
         // param is a node of type Pattern
-        this.accept(node.param, depth, state, ["param"], otherArg);
+        retVal = this.accept(node.param, depth, state, ["param"]);
 
         if (node.guard) {
             // guard is a node of type Expression
-            this.accept(node.guard, depth, state, ["guard"], otherArg);
+            retVal = this.accept(node.guard, depth, state, ["guard"]);
         }
 
         // body is a node of type BlockStatement
-        this.accept(node.body, depth, state, ["body"], otherArg);
+        retVal = this.accept(node.body, depth, state, ["body"]);
+        return retVal;
     },
 
-    visitComprehensionBlock: function(node, depth, state, path, otherArg) {
+    visitComprehensionBlock: function(node, depth, state, path) {
+        var retVal;
         // left is a node of type Pattern
-        this.accept(node.left, depth, state, ["left"], otherArg);
+        retVal = this.accept(node.left, depth, state, ["left"]);
 
         // right is a node of type Expression
-        this.accept(node.right, depth, state, ["right"], otherArg);
+        retVal = this.accept(node.right, depth, state, ["right"]);
 
         // node.each has a specific type that is boolean
         if (node.each) {/*do stuff*/}
+        return retVal;
     },
 
-    visitIdentifier: function(node, depth, state, path, otherArg) {
+    visitIdentifier: function(node, depth, state, path) {
+        var retVal;
         // node.name has a specific type that is string
+        return retVal;
     },
 
-    visitLiteral: function(node, depth, state, path, otherArg) {
+    visitLiteral: function(node, depth, state, path) {
+        var retVal;
         if (node.value) {
             // node.value has a specific type that is string or boolean or number or RegExp
         }
+        return retVal;
     }
 });
 
-lively.ast.MozillaAST.AstVisitor.subclass('lively.ast.MozillaAST.ASTPrinter', {
+lively.ast.MozillaAST.BaseVisitor.subclass('lively.ast.PrinterVisitor', {
 
-    accept: function($super, node, depth, tree, path) {
+    accept: function($super, node, state, tree, path) {
         var pathString = path
             .map(function(ea) { return typeof ea === 'string' ? '.' + ea : '[' + ea + ']'})
             .join('')
-        var treeEntry = {node: node, path: pathString, source: node.source, children: []};
-        tree.push(treeEntry);
-        var res = $super(node, depth+1, treeEntry.children, path);
-        return res;
+        var myChildren = [];
+        $super(node, state, myChildren, path);
+        tree.push({
+            node: node,
+            path: pathString,
+            index: state.index++,
+            children: myChildren
+        });
     }
 
 });
 
-lively.ast.MozillaAST.AstVisitor.subclass("lively.ast.MozillaAST.Compare",
+lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
 "comparison", {
 
-    recordNotEqual: function(node1, node2, state, path, msg) {
-        state.errors.push({
+    recordNotEqual: function(node1, node2, state, msg) {
+        state.comparisons.errors.push({
             node1: node1, node2: node2,
-            path: path, msg: msg
+            path: state.completePath, msg: msg
         });
     },
 
-    compareType: function(node1, node2, state, path) {
-        return this.compareField('type', node1, node2, state, path);
+    compareType: function(node1, node2, state) {
+        return this.compareField('type', node1, node2, state);
     },
 
-    compareField: function(field, node1, node2, state, path) {
+    compareField: function(field, node1, node2, state) {
         if (node1 && node2 && node1[field] === node2[field]) return true;
         if ((node1 && node1[field] === '*') || (node2 && node2[field] === '*')) return true;
-        var fullPath = path.join('.') + '.' + field, msg;
+        var fullPath = state.completePath.join('.') + '.' + field, msg;
         if (!node1) msg = "node1 on " + fullPath + " not defined";
         else if (!node2) msg = 'node2 not defined but node1 (' + fullPath + ') is: '+ node1[field];
         else msg = fullPath + ' is not equal: ' + node1[field] + ' vs. ' + node2[field];
-        this.recordNotEqual(node1, node2, state, path, msg);
+        this.recordNotEqual(node1, node2, state, msg);
         return false;
     }
 
 },
 "visiting", {
-    accept: function(node1, baseNode2, state, path, completePath) {
-        if (!completePath) completePath = [];
-        completePath = completePath.concat(path);
+    accept: function(node1, baseNode2, state, path) {
         var node2 = lively.PropertyPath(path.join('.')).get(baseNode2);
         if (node1 === '*' || node2 === '*') return;
-        if (this.compareType(node1, node2, state, completePath))
-            this['visit' + node1.type](node1, node2, state, path, completePath);
+        var nextState = {
+            completePath: state.completePath.concat(path),
+            comparisons: state.comparisons
+        };
+        if (this.compareType(node1, node2, nextState))
+            this['visit' + node1.type](node1, node2, nextState, path);
     },
 
-    visitFunction: function($super, node1, node2, state, path, completePath) {
+    visitFunction: function($super, node1, node2, state, path) {
         // node1.generator has a specific type that is boolean
-        if (node1.generator) { this.compareField("generator", node1, node2, state, completePath); }
+        if (node1.generator) { this.compareField("generator", node1, node2, state); }
 
         // node1.expression has a specific type that is boolean
-        if (node1.expression) { this.compareField("expression", node1, node2, state, completePath); }
+        if (node1.expression) { this.compareField("expression", node1, node2, state); }
 
-        $super(node1, node2, state, path, completePath);
+        $super(node1, node2, state, path);
     },
 
-    visitSwitchStatement: function($super, node1, node2, state, path, completePath) {
+    visitSwitchStatement: function($super, node1, node2, state, path) {
         // node1.lexical has a specific type that is boolean
-        if (node1.lexical) { this.compareField("lexical", node1, node2, state, completePath); }
+        if (node1.lexical) { this.compareField("lexical", node1, node2, state); }
 
-        $super(node1, node2, state, path, completePath);
+        $super(node1, node2, state, path);
     },
 
-    visitForInStatement: function($super, node1, node2, state, path, completePath) {
+    visitForInStatement: function($super, node1, node2, state, path) {
         // node1.each has a specific type that is boolean
-        if (node1.each) { this.compareField("each", node1, node2, state, completePath); }
+        if (node1.each) { this.compareField("each", node1, node2, state); }
 
-        $super(node1, node2, state, path, completePath);
+        $super(node1, node2, state, path);
     },
 
-    visitFunctionDeclaration: function($super, node1, node2, state, path, completePath) {
+    visitFunctionDeclaration: function($super, node1, node2, state, path) {
         // node1.generator has a specific type that is boolean
-        if (node1.generator) { this.compareField("generator", node1, node2, state, completePath); }
+        if (node1.generator) { this.compareField("generator", node1, node2, state); }
 
         // node1.expression has a specific type that is boolean
-        if (node1.expression) { this.compareField("expression", node1, node2, state, completePath); }
+        if (node1.expression) { this.compareField("expression", node1, node2, state); }
 
-        $super(node1, node2, state, path, completePath);
+        $super(node1, node2, state, path);
     },
 
-    visitVariableDeclaration: function($super, node1, node2, state, path, completePath) {
+    visitVariableDeclaration: function($super, node1, node2, state, path) {
         // node1.kind is "var" or "let" or "const"
-        this.compareField("kind", node1, node2, state, completePath); 
-        $super(node1, node2, state, path, completePath);
+        this.compareField("kind", node1, node2, state); 
+        $super(node1, node2, state, path);
     },
 
-    visitUnaryExpression: function($super, node1, node2, state, path, completePath) {
+    visitUnaryExpression: function($super, node1, node2, state, path) {
         // node1.operator is an UnaryOperator enum:
         // "-" | "+" | "!" | "~" | "typeof" | "void" | "delete"
-        this.compareField("operator", node1, node2, state, completePath); 
+        this.compareField("operator", node1, node2, state); 
 
         // node1.prefix has a specific type that is boolean
-        if (node1.prefix) { this.compareField("prefix", node1, node2, state, completePath); }
+        if (node1.prefix) { this.compareField("prefix", node1, node2, state); }
 
-        $super(node1, node2, state, path, completePath);
+        $super(node1, node2, state, path);
     },
 
-    visitBinaryExpression: function($super, node1, node2, state, path, completePath) {
+    visitBinaryExpression: function($super, node1, node2, state, path) {
         // node1.operator is an BinaryOperator enum:
         // "==" | "!=" | "===" | "!==" | | "<" | "<=" | ">" | ">=" | | "<<" | ">>" | ">>>" | | "+" | "-" | "*" | "/" | "%" | | "|" | "^" | "&" | "in" | | "instanceof" | ".."
-        this.compareField("operator", node1, node2, state, completePath); 
-        $super(node1, node2, state, path, completePath);
+        this.compareField("operator", node1, node2, state); 
+        $super(node1, node2, state, path);
     },
 
-    visitAssignmentExpression: function($super, node1, node2, state, path, completePath) {
+    visitAssignmentExpression: function($super, node1, node2, state, path) {
         // node1.operator is an AssignmentOperator enum:
         // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
-        this.compareField("operator", node1, node2, state, completePath); 
-        $super(node1, node2, state, path, completePath);
+        this.compareField("operator", node1, node2, state); 
+        $super(node1, node2, state, path);
     },
 
-    visitUpdateExpression: function($super, node1, node2, state, path, completePath) {
+    visitUpdateExpression: function($super, node1, node2, state, path) {
         // node1.operator is an UpdateOperator enum:
         // "++" | "--"
-        this.compareField("operator", node1, node2, state, completePath); 
+        this.compareField("operator", node1, node2, state); 
         // node1.prefix has a specific type that is boolean
-        if (node1.prefix) { this.compareField("prefix", node1, node2, state, completePath); }
-        $super(node1, node2, state, path, completePath);
+        if (node1.prefix) { this.compareField("prefix", node1, node2, state); }
+        $super(node1, node2, state, path);
     },
 
-    visitLogicalExpression: function($super, node1, node2, state, path, completePath) {
+    visitLogicalExpression: function($super, node1, node2, state, path) {
         // node1.operator is an LogicalOperator enum:
         // "||" | "&&"
-        this.compareField("operator", node1, node2, state, completePath); 
-        $super(node1, node2, state, path, completePath);
+        this.compareField("operator", node1, node2, state); 
+        $super(node1, node2, state, path);
     },
 
-    visitMemberExpression: function($super, node1, node2, state, path, completePath) {
+    visitMemberExpression: function($super, node1, node2, state, path) {
         // node1.computed has a specific type that is boolean
-        if (node1.computed) { this.compareField("computed", node1, node2, state, completePath); }
-        $super(node1, node2, state, path, completePath);
+        if (node1.computed) { this.compareField("computed", node1, node2, state); }
+        $super(node1, node2, state, path);
     },
 
-    visitComprehensionBlock: function($super, node1, node2, state, path, completePath) {
+    visitComprehensionBlock: function($super, node1, node2, state, path) {
         // node1.each has a specific type that is boolean
-        if (node1.each) { this.compareField("each", node1, node2, state, completePath); }
-        $super(node1, node2, state, path, completePath);
+        if (node1.each) { this.compareField("each", node1, node2, state); }
+        $super(node1, node2, state, path);
     },
 
-    visitIdentifier: function($super, node1, node2, state, path, completePath) {
+    visitIdentifier: function($super, node1, node2, state, path) {
         // node1.name has a specific type that is string
-        this.compareField("name", node1, node2, state, completePath); 
-        $super(node1, node2, state, path, completePath);
+        this.compareField("name", node1, node2, state); 
+        $super(node1, node2, state, path);
     },
 
-    visitLiteral: function($super, node1, node2, state, path, completePath) {
-        this.compareField("value", node1, node2, state, completePath); 
-        $super(node1, node2, state, path, completePath);
+    visitLiteral: function($super, node1, node2, state, path) {
+        this.compareField("value", node1, node2, state); 
+        $super(node1, node2, state, path);
     }
 });
 
 Object.extend(lively.ast.acorn, {
 
+    withMozillaAstDo: function(ast, state, func) {
+        // simple interface to mozilla AST visitor. function gets passed three
+        // arguments:
+        // acceptNext, -- continue visiting
+        // node, -- current node being visited
+        // state -- state variable that is passed along
+        var vis = new lively.ast.MozillaAST.BaseVisitor(),
+            origAccept = vis.accept;
+        vis.accept = function(node, st) {
+            var next = function() { origAccept.call(vis, node, st); }
+            return func(next, node, st);
+        }
+        return vis.accept(ast, state);
+    },
+
     printAst: function(astOrSource, options) {
         options = options || {};
         var printSource = options.printSource || false,
             printPositions = options.printPositions || false,
+            printIndex = options.printIndex || false,
             source, ast, tree = [];
 
         if (Object.isString(astOrSource)) {
             source = astOrSource;
             ast = lively.ast.acorn.parse(astOrSource);
-        } else { ast = astOrSource; source = options.source; }
+        } else { ast = astOrSource; source = options.source || ast.source; }
 
         if (printSource && !ast.source) { // ensure that nodes have source attached
             if (!source) {
@@ -775,24 +902,26 @@ Object.extend(lively.ast.acorn, {
         
         function printFunc(ea) {
             var string = ea.path + ':' + ea.node.type, additional = [];
+            if (printIndex) { additional.push(ea.index); }
             if (printPositions) { additional.push(ea.node.start + '-' + ea.node.end); }
             if (printSource) {
-                additional.push(Strings.print((ea.source || '')
-                    .truncate(60).replace(/\n/g, '').replace(/\s+/g, ' ')));
+                var src = ea.node.source || source.slice(ea.node.start, ea.node.end),
+                    printed = Strings.print(src.truncate(60).replace(/\n/g, '').replace(/\s+/g, ' '));
+                additional.push(printed);
             }
             if (additional.length) { string += '(' + additional.join(',') + ')'; }
             return string;
         }
 
-        new lively.ast.MozillaAST.ASTPrinter().accept(ast, 0, tree, []);
+        new lively.ast.PrinterVisitor().accept(ast, {index: 0}, tree, []);
         return Strings.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '    ');
     },
 
     compareAst: function(node1, node2) {
         if (!node1 || !node2) throw new Error('node' + (node1 ? '1' : '2') + ' not defined');
-        var state = {errors: []};
-        new lively.ast.MozillaAST.Compare().accept(node1, node2, state, []);
-        return !state.errors.length ? null : state.errors.pluck('msg');
+        var state = {completePath: [], comparisons: {errors: []}};
+        new lively.ast.ComparisonVisitor().accept(node1, node2, state, []);
+        return !state.comparisons.errors.length ? null : state.comparisons.errors.pluck('msg');
     }
 
 });

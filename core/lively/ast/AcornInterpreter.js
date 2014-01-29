@@ -168,17 +168,23 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 },
 'visiting', {
     accept: function(node, state) {
-        if (node.type == 'FunctionDeclaration') return false; // is done in evaluateDeclarations()
+        if (node.type == 'FunctionDeclaration')
+            return false; // is done in evaluateDeclarations()
 
         var frame = state.currentFrame;
-
-        if (!frame.isResuming()) return this['visit' + node.type](node, state);
+        if (!frame.isResuming())
+            return this['visit' + node.type](node, state);
 
         var pc = frame.pc;
-        if (frame.resumesAt(node)) { debugger; frame.resumesNow(); }
+        if (frame.resumesAt(node)) {
+            debugger;
+            frame.resumesNow();
+        }
         var isAlreadyComputed = frame.alreadyComputed.hasOwnProperty(node.astIndex);
-        if (isAlreadyComputed) state.result = frame.alreadyComputed[node.astIndex];
-        else if (pc.astIndex <= node.astIndex) this['visit' + node.type](node, state);
+        if (isAlreadyComputed)
+            state.result = frame.alreadyComputed[node.astIndex];
+        else if (pc.astIndex <= node.astIndex)
+            this['visit' + node.type](node, state);
     },
 
     visitProgram: function(node, state) {

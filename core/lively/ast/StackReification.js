@@ -128,7 +128,7 @@ Object.subclass('lively.ast.Continuation',
 
         // go through all frames on the stack. beginning with the top most,
         // resume each of them
-        return this.frames().reduce(function(result, frame) {
+        return this.frames().reduce(function(result, frame, i) {
             var originalAst = frame.getOriginalAst(); // FIXME
             // frame.setComputedPC(isComputed);
             isComputed = true; // all outer scopes should not recompute
@@ -187,7 +187,7 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
             if (parentFrameState[2] !== Global)
                 frame.setContainingScope(lively.ast.AcornInterpreter.Frame.create(parentFunc, parentScope));
         } else {
-            // this.last.calledFrame = frameState;
+            if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
             var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
             frame.setPC(pc);
             this.last.setContainingScope(frame);

@@ -69,11 +69,17 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
           + this.tryCatch(level+1, argDecl, inner)
           + "})", level, name, args.join(', '));
     },
-    
+
     intermediateResult: function(expression, optionalAstIndex) {
-        // like _['7'] = 42; <-- the value stored in the _ object is the AST index
+        // like _[lastNode = 7] = 42; <-- the value stored in lastNode and the _ object is the AST index
         var astIndexMatcher = optionalAstIndex || "__/[0-9]+/__";
         return "_[lastNode = " + astIndexMatcher + "] = " + expression;
+    },
+
+    intermediateReference: function(optionalAstIndex) {
+        // like _[7] <-- the value stored in the _ object is the AST index
+        var astIndexMatcher = optionalAstIndex || "__/[0-9]+/__";
+        return "_[" + astIndexMatcher + "]";
     },
 
     setVar: function(level, varName, inner) {
@@ -201,8 +207,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'key': 'undefined'},
                 "for ("
-              + this.getVar(0, 'key') + ' in ' + this.intermediateResult('obj')
-              + ") {\n}\n");
+              + this.getVar(0, 'key') + ' in obj'
+              + ") {\n"
+              + this.intermediateResult(this.intermediateReference() + ' || Object.keys(obj);\n')
+              + this.intermediateReference() + '.shift();\n'
+              + "}\n");
         this.assertASTMatchesCode(result, expected);
     },
 
@@ -313,6 +322,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {lively: 'undefined', ast: 'undefined', morphic: 'undefined'},
             // FIXME vars are initialized twice?!
+            // mr 2014-01-29: This has to be the case if you want to do it correctly
                 this.intermediateResult(
                     this.setVar(0, 'lively', 'undefined, '))
               + this.intermediateResult(
@@ -489,6 +499,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             debugger;
             return x + 3;
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(4, result, 'resume not working');
@@ -503,6 +514,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(14, result, 'resume not working');
@@ -518,6 +530,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(14, result, 'resume not working');
@@ -533,6 +546,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(10, result, 'resume not working');
@@ -549,6 +563,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             }
             return x + 3;
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(10, result, 'resume not working');
@@ -592,6 +607,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             function f() { debugger; return x; }
             return (function() { var x = 2; return f(); })();
         }
+
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(1, result, 'resume not working');

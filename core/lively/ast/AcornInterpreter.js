@@ -426,13 +426,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     visitForInStatement: function(node, state) {
         var result = state.result,
             frame = state.currentFrame,
-            right, left;
+            keys, left;
 
         if (frame.isResuming() && frame.isAlreadyComputed(node.right.astIndex)) {
-            right = frame.alreadyComputed[node.right.astIndex];
+            // computed value only contains property names
+            keys = frame.alreadyComputed[node.right.astIndex];
         } else {
             this.accept(node.right, state);
-            right = state.result;
+            keys = Object.keys(state.result); // collect enumerable properties (like for-in)
         }
         if (node.left.type == 'VariableDeclaration') {
             this.accept(node.left, state);
@@ -441,16 +442,15 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             left = node.left;
         state.result = result;
 
-        var keys = Object.keys(right); // collect enumerable properties (like for-in)
         // FIXME: keys needs to have a (the right!) value when frame.isResuming() == true
         for (var i = 0; i < keys.length; i++) {
             state.result = keys[i];
             if (left.type == 'Identifier') {
-                if (frame.isResuming() && frame.lookup(left.name) !== state.result) continue;
-                else this.setVariable(left.name, state);
+                if (frame.isResuming() && frame.lookup(left.name) !== state.result)
+                    continue;
+                this.setVariable(left.name, state);
             } else if (left.type == 'MemberExpression') {
                 this.setSlot(left, state);
-                if (frame.isResuming()) show('for-in with memberexpression resume not yet implemented');
             }
 
             this.accept(node.body, state);

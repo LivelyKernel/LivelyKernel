@@ -665,7 +665,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     },
 
     visitForStatement: function(n, rewriter) {
-        // init is a node of type VariableDeclaration
+        // init is a node of type VariableDeclaration or Expression or null
         var init = n.init ? this.accept(n.init, rewriter) : null;
         if (init && init.type == 'ExpressionStatement')
             init = init.expression;
@@ -688,14 +688,57 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // n.each has a specific type that is boolean
         var left = this.accept(n.left.type == 'VariableDeclaration' ?
                 n.left.declarations[0].id :
-                n.left, rewriter);
-        // TODO: push storeComputationResult for loop assignment into body
+                n.left, rewriter),
+            right = this.accept(n.right, rewriter),
+            body = this.accept(n.body, rewriter),
+            start = n.start, end = n.end, astIndex = n.right.astIndex;
+
+        // add expression like _[lastNode = x] = _[x] || Object.keys(b); to the top of the loop body
+        body.body.unshift({
+            type: 'ExpressionStatement',
+            expression: rewriter.storeComputationResult({
+                type: 'LogicalExpression',
+                operator: '||',
+                left: {
+                    type: 'MemberExpression',
+                    object: { type: 'Identifier', name: '_' },
+                    property: { type: 'Literal', value: astIndex },
+                    computed: true
+                },
+                right: {
+                    type: 'CallExpression',
+                    callee: {
+                        type: 'MemberExpression',
+                        object: { type: 'Identifier', name: 'Object' },
+                        property: { type: 'Identifier', name: 'keys' },
+                        computed: false
+                    },
+                    arguments: [ right ]
+                }
+            }, start, end, astIndex)
+        });
+        // add expression like _[x].shift(); to the bottom of the loop body
+        body.body.push({
+            type: 'ExpressionStatement',
+            expression: {
+                type: 'CallExpression',
+                callee: {
+                    type: 'MemberExpression',
+                    object: {
+                        type: 'MemberExpression',
+                        object: { type: 'Identifier', name: '_' },
+                        property: { type: 'Literal', value: astIndex },
+                        computed: true
+                    },
+                    property: { type: 'Identifier', name: 'shift' },
+                    computed: false
+                },
+                arguments: [ ]
+            }
+        });
         return {
             start: n.start, end: n.end, type: 'ForInStatement',
-            left: left,
-            right: rewriter.storeComputationResult(
-                this.accept(n.right, rewriter), n.right.start, n.right.end, n.right.astIndex),
-            body: this.accept(n.body, rewriter),
+            left: left, right: right, body: body,
             each: n.each
         };
     },

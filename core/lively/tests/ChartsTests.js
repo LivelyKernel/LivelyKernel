@@ -75,7 +75,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         // there is a line before dragging
         this.assert(components[0].arrows[0].connectionLine != null);
         
-        this.drag([pt(40,20), pt(400,20)], components[1]);
+        this.drag([pt(40,20), pt(600,20)], components[1]);
         
         // there is no line after dragging
         this.assertEquals(components[0].arrows[0].connectionLine, null);

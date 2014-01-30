@@ -10,7 +10,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         
         $super(controlPoints);
         this.setBorderColor(Color.rgb(94,94,94));
-        this.deactivate();
+        //this.deactivate();
         this.positionAtMorph();
         this.setBorderWidth(0);
     },
@@ -70,7 +70,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         // Since addMorph removes the morph and adds it on the new owner,
         // remove is called on the arrow once. There it is also removed
         // from the componentMorph's arrows-array and needs to be pushed again.
-        aMorph.arrows.push(this);
+        if(aMorph.arrows) aMorph.arrows.push(this);
     },
     
     activate: function() {
@@ -197,11 +197,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.layout = {adjustForNewBounds: true};
     },
     
-    getComponentInDirection : function($super, direcetion) {
-        var componentsAbove = this.getComponentsInDirection(direcetion);
+    getComponentInDirection : function($super, direction) {
+        var componentsAbove = this.getComponentsInDirection(direction);
         if (componentsAbove.length) {
             componentsAbove.sort(function (a, b) {
-                if (direcetion == -1){
+                if (direction == -1){
                     return b.getPosition().y - a.getPosition().y
                 } else return a.getPosition().y - b.getPosition().y
             })
@@ -1272,28 +1272,7 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
         }
     },
 
-    getComponentsInDirection : function($super, direction) {
-        var components = [];
-        var pxInterval = 150;
-        
-        // choose upper left corner as point
-        var currentPoint = this.getPositionInWorld();
-        
-        var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
-        while (currentPoint.x < rightBoundary) {
-            
-            var component = this.getComponentInDirection(direction, currentPoint)
-    
-            if (component) {
-                components.pushIfNotIncluded(component);
-                currentPoint = pt(component.getBounds().right(), currentPoint.y);
-            }
-                
-            currentPoint = currentPoint.addPt(pt(pxInterval, 0));
-        }
-    
-        return components;
-    },
+
     
 
     updateComponent: function() {
@@ -1443,13 +1422,9 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
 
         // take the first component to the top
         // if there are multiple ones take the first from the left
-        var componentsAbove = this.getComponentsInDirection(-1);
-        if (componentsAbove.length) {
-            componentsAbove.sort(function (a, b) {
-                return b.getPosition().y - a.getPosition().y
-            })
-            this.data = componentsAbove[0].getData(this);
-        }
+        var componentsAbove = this.getComponentInDirection(-1);
+        if (componentsAbove)
+            this.data = componentsAbove.getData(this);
     },
 
     

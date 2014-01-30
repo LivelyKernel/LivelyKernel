@@ -59,9 +59,11 @@ Object.extend(Global, {
     halt: lively.ast.StackReification.halt,
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-    __createClosure: function(idx, scope, f) {
+    __createClosure: function(idx, parentFrameState, f) {
         f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
-        f._cachedScope = scope;
+        // parentFrameState = [computedValues, varMapping, parentParentFrameState]
+        // mr 2014-01-30: Never used!
+        f._cachedScopeObject = parentFrameState;
         f.livelyDebuggingEnabled = true;
         return f;
     },

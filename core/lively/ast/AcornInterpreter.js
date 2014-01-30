@@ -29,9 +29,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 },
 'accessing', {
     setVariable: function(name, state) {
-        var search = state.currentFrame.findFrame(name),
-            scope = search ? search.frame : lively.ast.AcornInterpreter.Frame.global();
-        scope.addToMapping(name, state.result);
+        var result = state.currentFrame.getScope().findScope(name);
+        if (!result)
+            result = lively.ast.AcornInterpreter.Scope.global(); // TODO: create Scope.global();
+        result.scope.set(name, state.result);
     },
 
     setSlot: function(node, state) {
@@ -60,7 +61,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             VariableDeclaration: function(node, state, depth, type) {
                 if (type != 'VariableDeclaration') return;
                 node.declarations.forEach(function(decl) {
-                    frame.addToMapping(decl.id.name);
+                    frame.getScope().addToMapping(decl.id.name);
                 });
             },
             FunctionDeclaration: function(node, state, depth, type) {
@@ -81,7 +82,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
 
-        if (this.shouldInterpret(frame, func)) func = func.forInterpretation();
+        if (this.shouldInterpret(frame, func)) {
+            func = func.forInterpretation();
+            func.setParentFrame(frame);
+        }
         if (isNew) {
             if (this.isNative(func)) return new func();
             recv = this.newObject(func);
@@ -233,9 +237,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         this.accept(node.object, state);
         var lexicalObj = state.result;
         state.result = oldResult;
-        state.currentFrame = frame.newScope(undefined, lexicalObj);
+        var withScope = frame.newScope(lexicalObj);
+        state.currentFrame.setScope(withScope);
         this.accept(node.body, state);
-        state.currentFrame = frame;
+        state.currentFrame.setScope(withScope.getParentScope());
     },
 
     visitSwitchStatement: function(node, state) {
@@ -311,11 +316,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     visitCatchClause: function(node, state) {
-        var frame = state.currentFrame;
-        state.currentFrame = frame.newScope();
-        state.currentFrame.addToMapping(node.param.name, state.error);
+        var frame = state.currentFrame,
+            catchScope = frame.newScope();
+        catchScope.set(node.param.name, state.error);
+        state.currentFrame.setScope(catchScope);
         this.accept(node.body, state);
-        state.currentFrame = frame;
+        state.currentFrame.setScope(catchScope.getParentScope()); // restore original scope
     },
 
     visitThrowStatement: function(node, state) {
@@ -549,12 +555,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         // IS NOT CALLED DIRECTLY FROM THE accept()
         var result = state.result;
         this.visitFunctionExpression(node, state);
-        state.currentFrame.addToMapping(node.id.name, state.result);
+        state.currentFrame.getScope().set(node.id.name, state.result);
         state.result = result;
     },
 
     visitFunctionExpression: function(node, state) {
-        var fn = new lively.ast.AcornInterpreter.Function(node, state.currentFrame);
+        var fn = new lively.ast.AcornInterpreter.Function(node, state.currentFrame.getScope());
         state.result = fn.asFunction();
 
         // if (node.defaults) {
@@ -581,7 +587,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             if (node.type == 'Identifier') {
                 // do not delete
                 try {
-                    state.currentFrame.findFrame(node.name);
+                    state.currentFrame.getScope().findScope(node.name);
                     state.result = false;
                 } catch (e) { // should be ReferenceError
                     state.result = true;
@@ -798,6 +804,9 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         fn.ast = function() {
             return that.node;
         };
+        fn.setParentFrame = function(frame) {
+            that.parentFrame = frame;
+        };
         // TODO: reactivate when necessary
         // why is this wrapped!? (context)
         // fn.startHalted = function() {
@@ -833,15 +842,16 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         // if (mapping['$super'] && argNames[0] == '$super')
         //     argValues.unshift(mapping['$super']);
 
-        var scope = this.lexicalScope ? this.lexicalScope : lively.ast.Interpreter.Frame.global(),
-            newFrame = scope.newScope(this /* FIXME: , mapping */);
+        var parentFrame = this.parentFrame ? this.parentFrame : lively.ast.Interpreter.Frame.global(),
+            frame = parentFrame.newFrame(this, this.lexicalScope);
+        // FIXME: add mapping to the new frame.getScope()
         if (thisObj !== undefined)
-            newFrame.setThis(thisObj);
-        newFrame.setArguments(argValues);
+            frame.setThis(thisObj);
+        frame.setArguments(argValues);
         // TODO: reactivate when necessary
         // newFrame.setCaller(lively.ast.Interpreter.Frame.top);
         // if (startHalted) newFrame.breakAtFirstStatement();
-        return this.basicApply(newFrame);
+        return this.basicApply(frame);
     },
 
     basicApply: function(frame) {
@@ -869,30 +879,89 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     }
 });
 
+Object.subclass('lively.ast.AcornInterpreter.Scope',
+'initialization', {
+
+    initialize: function(mapping, parentScope) {
+        this.mapping     = mapping || {};
+        this.parentScope = parentScope || null;
+    }
+
+},
+'accessing', {
+
+    getMapping: function() { return this.mapping; },
+
+    setMapping: function(mapping) { this.mapping = mapping ; },
+
+    getParentScope: function() { return this.parentScope; },
+
+    setParentScope: function(parentScope) { this.parentScope = parentScope; }
+
+},
+'accessing - mapping', {
+
+    has: function(name) { return this.mapping.hasOwnProperty(name); },
+
+    get: function(name) { return this.mapping[name]; },
+
+    set: function(name, value) { return this.mapping[name] = value; },
+
+    addToMapping: function(name) { return this.set(name, undefined); },
+
+    findScope: function(name) {
+        if (this.has(name)) {
+            return { val: this.get(name), scope: this };
+        }
+        // TODO: should check this === lively.ast.AcornInterpreter.Scope.global()
+        if (this.getMapping() === Global) { // reached global scope
+            throw new ReferenceError(name + ' is not defined');
+        }
+        // TODO: what is this doing?
+        // lookup in my current function
+        // if (!this.func) return null;
+        // var mapping = this.func.getVarMapping();
+        // if (mapping) {
+        //     var val = mapping[name];
+        //     if (val)
+        //         return { val: val, frame: this };
+        // }
+        var parentScope = this.getParentScope();
+        if (!parentScope)
+            throw new ReferenceError(name + ' is not defined');
+        return parentScope.findScope(name);
+    }
+
+});
+
 Object.subclass('lively.ast.AcornInterpreter.Frame',
 'initialization', {
 
-    initialize: function(func, mapping) {
+    initialize: function(func, scope) {
         this.func              = func;
-        this.mapping           = mapping || {};
+        this.scope             = scope;     // lexical scope
         this.returnTriggered   = false;
         this.breakTriggered    = null;      // null, true or string (labeled break)
         this.continueTriggered = null;      // null, true or string (labeled continue)
-        this.containingScope   = null;
+        this.parentFrame       = null;
         this.pc                = null;      // program counter, actually an AST node
         this.pcStatement       = null;      // statement node of the pc
         this.alreadyComputed   = {};        // maps astIndex to values. Filled
                                             // when we unwind from captured state
     },
 
-    newScope: function(func, mapping) {
-        var newFrame = new lively.ast.AcornInterpreter.Frame(func, mapping);
-        newFrame.setContainingScope(this);
+    newFrame: function(func, scope, mapping) {
+        mapping = mapping || {};
+        var newScope = new lively.ast.AcornInterpreter.Scope(mapping, scope); // create new scope
+        var newFrame = new lively.ast.AcornInterpreter.Frame(func, newScope);
+        newFrame.setParentFrame(this);
         return newFrame;
     },
 
+    newScope: function(mapping) { return new lively.ast.AcornInterpreter.Scope(mapping, this.scope); },
+
 	copy: function() {
-        var copy = new this.constructor(this.func, Object.extend({}, this.mapping));
+        var copy = new this.constructor(this.func, Object.extend({}, this.scope.getMapping()));
         copy.returnTriggered = this.returnTriggered;
         copy.breakTriggered = this.breakTriggered;
         copy.continueTriggered = this.continueTriggered;
@@ -905,52 +974,32 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 },
 'accessing', {
 
-    setContainingScope: function(frame) { return this.containingScope = frame; },
+    setScope: function(scope) { return this.scope = scope; },
 
-    getContainingScope: function() { return this.containingScope; },
+    getScope: function() { return this.scope; },
+
+    setParentFrame: function(frame) { return this.parentFrame = frame; },
+
+    getParentFrame: function() { return this.parentFrame; },
 
     getOriginalAst: function() { return this.func; },
 
 },
 'accessing - mapping', {
 
-    findFrame: function(name) {
-        if (this.mapping.hasOwnProperty(name)) {
-            return { val: this.mapping[name], frame: this };
-        }
-        if (this.mapping === Global) { // reached global scope
-            throw new ReferenceError(name + ' is not defined');
-        }
-        // TODO: what is this doing?
-        // lookup in my current function
-        // if (!this.func) return null;
-        // var mapping = this.func.getVarMapping();
-        // if (mapping) {
-        //     var val = mapping[name];
-        //     if (val)
-        //         return { val: val, frame: this };
-        // }
-        var containingScope = this.getContainingScope();
-        if (!containingScope)
-            throw new ReferenceError(name + ' is not defined');
-        return containingScope.findFrame(name);
-    },
-
     lookup: function(name) {
         if (name === 'undefined') return undefined;
         if (name === 'NaN') return NaN;
         if (name === 'arguments') return this.getArguments();
-        var frame = this.findFrame(name);
-        if (frame) return frame.val;
+        var result = this.scope.findScope(name);
+        if (result) return result.val;
         return undefined;
     },
-
-    addToMapping: function(name, value) { return this.mapping[name] = value; },
 
     setArguments: function(argValues) {
         var argNames = this.func.argNames();
         argNames.forEach(function(arg, idx) {
-            this.addToMapping(arg, argValues[idx]);
+            this.scope.set(arg, argValues[idx]);
         }, this);
         return this.arguments = argValues;
     },
@@ -1026,14 +1075,14 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         return this.pcStatement
             && (node === this.pcStatement
              || node.astIndex === this.pcStatement.astIndex);
-    },
-
+    }
 
 });
 
 Object.extend(lively.ast.AcornInterpreter.Frame, {
     create: function(ast, mapping) {
-        return new lively.ast.AcornInterpreter.Frame(ast, mapping || {});
+        var scope = new lively.ast.AcornInterpreter.Scope(mapping);
+        return new lively.ast.AcornInterpreter.Frame(ast, scope);
     },
 
     global: function() {

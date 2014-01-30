@@ -539,8 +539,8 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         }, resumeNode, 'resume node was incorrect');
 
         // construct frames but change x in mapping
-        var outerFrame = lively.ast.AcornInterpreter.Frame.create(node, {}),
-            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
+        var outerFrame = lively.ast.AcornInterpreter.Frame.create(node, {});
+        var innerFrame = outerFrame.newFrame(funcNode, outerFrame.getScope(), { x: 2 });
         innerFrame.setPC(resumeNode);
 
         var result = this.resumeWithFrameAndResult(funcNode.body, innerFrame);
@@ -554,7 +554,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 
         // construct some frames but change x in mapping
         var outerFrame = lively.ast.AcornInterpreter.Frame.create(node, {}),
-            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
+            innerFrame = outerFrame.newFrame(funcNode, outerFrame.getScope(), { x: 2 });
 
         // make sure resume node is: return x;
         this.assertMatches({
@@ -580,7 +580,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 
         // construct some frames but change x and y in mapping
         var outerFrame = lively.ast.AcornInterpreter.Frame.create(node, { y: 10 }),
-            innerFrame = outerFrame.newScope(funcNode, { x: 2 });
+            innerFrame = outerFrame.newFrame(funcNode, outerFrame.getScope(), { x: 2 });
 
         // make sure resume node is: return x;
         this.assertMatches({

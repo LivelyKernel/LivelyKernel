@@ -611,6 +611,19 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(1, result, 'resume not working');
+    },
+
+    test11BreakAndContinueWithMultipleFramesAndScopes: function() {
+        function code() {
+            var x = 1, y = 2;
+            function g() { debugger; return x; }
+            function f() { var x = 3; return y + g(); }
+            return (function() { var x = 2; return f(); })();
+        }
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        var result = continuation.resume();
+        this.assertEquals(3, result, 'resume not working');
     }
 
 });

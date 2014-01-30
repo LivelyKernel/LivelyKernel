@@ -464,7 +464,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 'helper', {
 
     parse: function(src) {
-        return lively.ast.acorn.parse(src);
+        return acorn.walk.addAstIndex(lively.ast.acorn.parse(src));
     },
 
     resumeWithMapping: function(resumeNode, contextNode, mapping) {
@@ -487,7 +487,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('var x = 1; x;'),
             resumeNode = node,
             mapping = { x: undefined };
-        acorn.walk.addAstIndex(node);
         this.assertEquals(1, this.resumeWithMapping(resumeNode, node, mapping), 'did not fully resume');
         this.assertEquals(1, mapping.x);
     },
@@ -496,7 +495,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('var x = 1; var y = 2; y;'),
             resumeNode = node.body[1],
             mapping = { y: undefined };
-        acorn.walk.addAstIndex(node);
 
         // make sure resume node is: var y = 2;
         this.assertMatches({
@@ -516,7 +514,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('var x = 1 + 2; x;'),
             resumeNode = node.body[0].declarations[0].init,
             mapping = { x: undefined };
-        acorn.walk.addAstIndex(node);
 
         // make sure resume node is: 1 + 2
         this.assertMatches({
@@ -534,7 +531,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('(function() { var x = 1; return x; })();'),
             funcNode = node.body[0].expression.callee,
             resumeNode = funcNode.body.body[1];
-        acorn.walk.addAstIndex(node);
 
         // make sure resume node is: return x;
         this.assertMatches({
@@ -555,7 +551,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('(function() { var x = 1; return x; })() + 5;'),
             funcNode = node.body[0].expression.left.callee,
             resumeNode = funcNode.body.body[1];
-        acorn.walk.addAstIndex(node);
 
         // construct some frames but change x in mapping
         var outerFrame = lively.ast.AcornInterpreter.Frame.create(node, {}),
@@ -582,7 +577,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
         var node = this.parse('var y = 5; (function() { var x = 1; return x; })() + y;'),
             funcNode = node.body[1].expression.left.callee,
             resumeNode = funcNode.body.body[1];
-        acorn.walk.addAstIndex(node);
 
         // construct some frames but change x and y in mapping
         var outerFrame = lively.ast.AcornInterpreter.Frame.create(node, { y: 10 }),
@@ -606,7 +600,6 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
     test07ResumeSwitch: function() {
         var node = this.parse('var i = 1; switch (i) { case 1: i++; 1; break; case 2: 2; break; }'),
             resumeNode = node.body[1].cases[0].consequent[1].expression;
-        acorn.walk.addAstIndex(node);
 
         // make sure resume node is 1; in case 1
         this.assertMatches({

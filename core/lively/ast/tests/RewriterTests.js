@@ -576,16 +576,6 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             function f() { debugger; return x; }
             return (function() { var x = 2; return f(); })();
         }
-
-// FIXME there is currently a bug: in lively.ast.Continuation>>resume we
-// correctly resume the "f" which contains the debugger statement. In the next
-// step however we don't jump to the correct node ("return f();") of the next
-// frame but instead start the resume at "var x = 2;" which leads to running "f
-// ()" again.
-// FIXME second bug: there is a difference between the lexical scope of a
-// function (the x in f refers to "x = 1") but our current logic only considers
-// the runtime stack that is created on unwind which will incorrectly use "x = 2
-// " in the parent runtime scope for lookup
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(1, result, 'resume not working');

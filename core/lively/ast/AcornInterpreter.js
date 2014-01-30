@@ -73,9 +73,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     invoke: function(node, recv, func, argValues, frame, isNew) {
-        // TODO: reactivate
-        // frame.setPC(node);
-
         // if we send apply to a function (recv) we want to interpret it
         // although apply is a native function
         if (recv && Object.isFunction(recv) && func === Function.prototype.apply) {
@@ -442,7 +439,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             left = node.left;
         state.result = result;
 
-        // FIXME: keys needs to have a (the right!) value when frame.isResuming() == true
         for (var i = 0; i < keys.length; i++) {
             state.result = keys[i];
             if (left.type == 'Identifier') {

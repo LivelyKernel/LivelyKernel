@@ -117,8 +117,8 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     },
     test14NoDynamicScope: function() {
         var node = this.parse('var a = 1; ' +
-            'function bar () { return a; }; ' +
-            'function foo() { var a = 2; return bar(); }; ' +
+            'function bar () { return a; } ' +
+            'function foo() { var a = 2; return bar(); } ' +
             'foo();');
         this.assertIdentity(1, this.interpret(node));
     },

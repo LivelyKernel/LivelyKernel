@@ -1,5 +1,37 @@
 module('lively.ast.tests.AstTests').requires('lively.TestFramework').toRun(function() {
 
+TestCase.subclass('lively.ast.tests.AstTests.Acorn',
+'testing', {
+
+    testFindNodeByAst: function() {
+        var src = 'var x = 3; function foo() { var y = 3; return y }; x + foo();',
+            ast = acorn.parse(src),
+            expected = ast.body[1].body.body[1].argument, // the y in "return y"
+            found = acorn.walk.findNodeByAstIndex(ast, 9);
+        this.assertIdentity(expected, found, 'node not found');
+    },
+    
+    testFindStatementOfNode: function() {
+        var tests = [{
+            src: 'var x = 3; function foo() { var y = 3; return y + 2 }; x + foo();',
+            target: function(ast) { return ast.body[1].body.body[1].argument.left; },
+            expected: function(ast) { return ast.body[1].body.body[1]; },
+        }, {
+            src: 'var x = 1; x;',
+            target: function(ast) { return ast.body[1]; },
+            expected: function(ast) { return ast.body[1]; },
+        }]
+
+        tests.forEach(function(test, i) {
+            debugger;
+            var ast = acorn.parse(test.src),
+                found = acorn.walk.findStatementOfNode(ast, test.target(ast));
+            this.assertIdentity(test.expected(ast), found, 'node not found ' + (i + 1));
+        }, this);
+    }
+
+});
+
 TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
 'testing', {
     test02RecreateClosure: function() {

@@ -201,7 +201,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'key': 'undefined'},
                 "for ("
-              + this.getVar(0, 'key') + ' in obj'
+              + this.getVar(0, 'key') + ' in ' + this.intermediateResult('obj')
               + ") {\n}\n");
         this.assertASTMatchesCode(result, expected);
     },
@@ -523,13 +523,29 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(14, result, 'resume not working');
     },
 
-    test07BreakAndContinueWithForInLoop: function() {
+    test07aBreakAndContinueWithForInLoop: function() {
         function code() {
             var x = 1,
                 obj = { a: 1, b: 2, c: 3 };
             for (var i in obj) {
                 if (i == 'b') debugger;
                 x += obj[i];
+            }
+            return x + 3;
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
+        this.assertEquals(10, result, 'resume not working');
+    },
+
+    test07bBreakAndContinueWithForInWithMemberExprLoop: function() {
+        function code() {
+            var x = 1,
+                obj = { a: 1, b: 2, c: 3 },
+                obj2 = {};
+            for (obj2.foo in obj) {
+                if (obj2.foo == 'b') debugger;
+                x += obj[obj2.foo];
             }
             return x + 3;
         }

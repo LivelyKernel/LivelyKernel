@@ -152,6 +152,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'visiting', {
     accept: function(node, state) {
         var frame = state.currentFrame;
+
         if (!this.wantsInterpretation(node, frame)) return;
 
         if (frame.isResuming()) {
@@ -425,10 +426,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     visitForInStatement: function(node, state) {
         var result = state.result,
             frame = state.currentFrame,
-            left;
+            right, left;
 
-        this.accept(node.right, state);
-        var right = state.result;
+        if (frame.isResuming() && frame.isAlreadyComputed(node.right.astIndex)) {
+            right = frame.alreadyComputed[node.right.astIndex];
+        } else {
+            this.accept(node.right, state);
+            right = state.result;
+        }
         if (node.left.type == 'VariableDeclaration') {
             this.accept(node.left, state);
             left = node.left.declarations[0].id;
@@ -440,10 +445,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         // FIXME: keys needs to have a (the right!) value when frame.isResuming() == true
         for (var i = 0; i < keys.length; i++) {
             state.result = keys[i];
-            if (left.type == 'Identifier')
-                this.setVariable(left.name, state);
-            else if (left.type == 'MemberExpression')
+            if (left.type == 'Identifier') {
+                if (frame.isResuming() && frame.lookup(left.name) !== state.result) continue;
+                else this.setVariable(left.name, state);
+            } else if (left.type == 'MemberExpression') {
                 this.setSlot(left, state);
+                if (frame.isResuming()) show('for-in with memberexpression resume not yet implemented');
+            }
 
             this.accept(node.body, state);
 

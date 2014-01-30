@@ -692,7 +692,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // TODO: push storeComputationResult for loop assignment into body
         return {
             start: n.start, end: n.end, type: 'ForInStatement',
-            left: left, right: this.accept(n.right, rewriter),
+            left: left,
+            right: rewriter.storeComputationResult(
+                this.accept(n.right, rewriter), n.right.start, n.right.end, n.right.astIndex),
             body: this.accept(n.body, rewriter),
             each: n.each
         };

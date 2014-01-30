@@ -123,18 +123,13 @@ Object.subclass('lively.ast.Continuation',
         if (!this.currentFrame.pc)
             throw new Error('Cannot resume because frame has no pc!');
 
-        var isComputed = false,
-            interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        var interpreter = new lively.ast.AcornInterpreter.Interpreter();
 
         // go through all frames on the stack. beginning with the top most,
         // resume each of them
         return this.frames().reduce(function(result, frame, i) {
             var originalAst = frame.getOriginalAst(); // FIXME
-            // frame.setComputedPC(isComputed);
-            isComputed = true; // all outer scopes should not recompute
-            if (isComputed) {
-                frame.alreadyComputed[frame.pc.astIndex] = result;
-            }
+            frame.alreadyComputed[frame.pc.astIndex] = result;
             // FIXME frames hold on to function ASTs but resuming from a
             // function is not supported right now. So we set the resumable
             // node to the functions body here as a quick fix

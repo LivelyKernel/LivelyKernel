@@ -197,6 +197,42 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.layout = {adjustForNewBounds: true};
     },
     
+    getComponentInDirection : function($super, direcetion) {
+        var componentsAbove = this.getComponentsInDirection(direcetion);
+        if (componentsAbove.length) {
+            componentsAbove.sort(function (a, b) {
+                if (direcetion == -1){
+                    return b.getPosition().y - a.getPosition().y
+                } else return a.getPosition().y - b.getPosition().y
+            })
+            return componentsAbove[0];
+        }
+        return null;
+    },
+    
+    getComponentsInDirection : function($super, direction) {
+        var components = [];
+        var pxInterval = 150;
+        
+        // choose upper left corner as point
+        var currentPoint = this.getPositionInWorld();
+        
+        var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
+        while (currentPoint.x < rightBoundary) {
+            
+            var component = this.getComponentInDirectionPerPoint(direction, currentPoint)
+    
+            if (component) {
+                components.pushIfNotIncluded(component);
+                currentPoint = pt(component.getBounds().right(), currentPoint.y);
+            }
+                
+            currentPoint = currentPoint.addPt(pt(pxInterval, 0));
+        }
+    
+        return components;
+    },
+    
     backgroundColor: Color.rgb(207,225,229),
     borderColor: Color.rgb(94,94,94),
     createContainer: function() {
@@ -724,7 +760,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
     },
     
-    getComponentInDirection: function(direction, point) {
+    getComponentInDirectionPerPoint: function(direction, point) {
         // direction should be an int, which indicates the vertical direction
         // -1 is up and 1 is down
 

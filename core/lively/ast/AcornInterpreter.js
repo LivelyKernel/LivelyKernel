@@ -6,6 +6,7 @@ module('lively.ast.AcornInterpreter').requires('lively.ast.acorn').toRun(functio
 */
 Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'interface', {
+
     run: function(node, optMapping) {
         return this.runWithFrameAndResult(node, lively.ast.AcornInterpreter.Frame.create(null, optMapping), undefined);
     },
@@ -132,59 +133,37 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     wantsInterpretation: function(node, frame) {
-        if (node.type == 'FunctionDeclaration') return false; // is done in evaluateDeclarations()
+        if (node.type == 'FunctionDeclaration')
+            return false; // is done in evaluateDeclarations()
+
         if (!frame.isResuming()) return true;
 
-        var isAlreadyComputed = frame.alreadyComputed.hasOwnProperty(node.astIndex);
-        if (isAlreadyComputed) return false;
+        // Have we reached the statement the pc is in already? If yes then we
+        // need to resume interpretation
+        if (frame.resumeHasReachedPCStatement()) return true;
 
-        // determine whether the pc is in sub-ast of node
-        return frame.pc.astIndex <= node.astIndex;
-        // return !!acorn.walk.findNodeAt(node, frame.pc.start, frame.pc.end, null, Object.extend({
-        //     // fix some visitors (untangling)
-        //     VariableDeclaration: function(node, st, c) {
-        //         for (var i = 0; i < node.declarations.length; ++i) {
-        //             c(node.declarations[i], st, 'VariableDeclarator');
-        //         }
-        //     },
-        //     VariableDeclarator: function(node, st, c) {
-        //         if (node.init)
-        //             c(node.init, st, 'Expression');
-        //     },
-        //     SwitchStatement: function(node, st, c) {
-        //         c(node.discriminant, st, 'Expression');
-        //         for (var i = 0; i < node.cases.length; ++i)
-        //             c(node.cases[i], st, '')
-        //     },
-        //     SwitchCase: function(node, st, c) {
-        //         if (node.test)
-        //             c(node.test, st, 'Expression');
-        //         for (var j = 0; j < node.consequent.length; ++j)
-        //             c(node.consequent[j], st, 'Statement');
-        //     },
-        // }, acorn.walk.base));
+        // is the pc is in sub-ast of node? return false if not
+        if (node.astIndex < frame.pcStatement.astIndex) return false;
+
+        return true;
     }
 
 },
 'visiting', {
     accept: function(node, state) {
-        if (node.type == 'FunctionDeclaration')
-            return false; // is done in evaluateDeclarations()
-
         var frame = state.currentFrame;
-        if (!frame.isResuming())
-            return this['visit' + node.type](node, state);
+        if (!this.wantsInterpretation(node, frame)) return;
 
-        var pc = frame.pc;
-        if (frame.resumesAt(node)) {
-            debugger;
-            frame.resumesNow();
+        if (frame.isResuming()) {
+            if (frame.isPCStatement(node)) frame.resumeReachedPCStatement();
+            if (frame.resumesAt(node)) frame.resumesNow();
+            if (frame.isAlreadyComputed(node.astIndex)) {
+                state.result = frame.alreadyComputed[node.astIndex];
+                return;
+            }
         }
-        var isAlreadyComputed = frame.alreadyComputed.hasOwnProperty(node.astIndex);
-        if (isAlreadyComputed)
-            state.result = frame.alreadyComputed[node.astIndex];
-        else if (pc.astIndex <= node.astIndex)
-            this['visit' + node.type](node, state);
+
+        this['visit' + node.type](node, state);
     },
 
     visitProgram: function(node, state) {
@@ -220,8 +199,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var condVal = state.result;
         state.result = oldResult;
 
-        if (frame.isResuming() && this.wantsInterpretation(node.consequent, frame))
+        if (frame.isResuming() && this.wantsInterpretation(node.consequent, frame)) {
             condVal = true; // resuming node inside true branch
+        }
         if (condVal) {
             this.accept(node.consequent, state);
         } else if (node.alternate) {
@@ -277,9 +257,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 rightVal = state.result;
                 state.result = result;
             }
-            if (frame.isResuming() && this.wantsInterpretation(node.cases[i], frame))
+            if (frame.isResuming() && this.wantsInterpretation(node.cases[i], frame)) {
                 caseMatched = true; // resuming node is inside this case
-            if ((leftVal === rightVal) || caseMatched) {
+            }
+            if (leftVal === rightVal || caseMatched) {
                 this.accept(node.cases[i], state);
                 caseMatched = true;
 
@@ -618,13 +599,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
         this.accept(node.argument, state);
         switch (node.operator) {
-        case '-':       state.result = -state.result; break;
-        case '+':       state.result = +state.result; break;
-        case '!':       state.result = !state.result; break;
-        case '~':       state.result = ~state.result; break;
-        case 'typeof':  state.result = typeof state.result; break;
-        case 'void':    state.result = void state.result; break; // or undefined?
-        default: throw new Error('No semantics for UnaryExpression with ' + node.operator + ' operator!');
+            case '-':       state.result = -state.result; break;
+            case '+':       state.result = +state.result; break;
+            case '!':       state.result = !state.result; break;
+            case '~':       state.result = ~state.result; break;
+            case 'typeof':  state.result = typeof state.result; break;
+            case 'void':    state.result = void state.result; break; // or undefined?
+            default: throw new Error('No semantics for UnaryExpression with ' + node.operator + ' operator!');
         }
     },
 
@@ -715,9 +696,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     visitLogicalExpression: function(node, state) {
         this.accept(node.left, state);
         var left = state.result;
-        if (((node.operator == '||') && !left) ||
-            ((node.operator == '&&') && left))
-            this.accept(node.right, state);
+        if ((node.operator == '||' && !left)
+         || (node.operator == '&&' && left))
+         this.accept(node.right, state);
     },
 
     visitConditionalExpression: function(node, state) {
@@ -895,6 +876,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.continueTriggered = null;      // null, true or string (labeled continue)
         this.containingScope   = null;
         this.pc                = null;      // program counter, actually an AST node
+        this.pcStatement       = null;      // statement node of the pc
         this.alreadyComputed   = {};        // maps astIndex to values. Filled
                                             // when we unwind from captured state
     },
@@ -973,12 +955,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 
     setThis: function(thisObj) { return this.thisObj = thisObj; },
 
-    getThis: function() { return this.thisObj ? this.thisObj : Global; },
-
-    setAlreadyComputed: function(mapping) {
-        // mapping == {astIndex: value}
-        return this.alreadyComputed = mapping;
-    }
+    getThis: function() { return this.thisObj ? this.thisObj : Global; }
 
 },
 'control-flow', {
@@ -1002,9 +979,28 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     }
 
 },
-'execution', {
+'resuming', {
 
-    setPC: function(node) { return this.pc = node; },
+    setAlreadyComputed: function(mapping) {
+        // mapping == {astIndex: value}
+        return this.alreadyComputed = mapping;
+    },
+
+    isAlreadyComputed: function(nodeOrAstIndex) {
+        var astIndex = typeof nodeOrAstIndex === "number" ?
+            nodeOrAstIndex : nodeOrAstIndex.astIndex;
+        return this.alreadyComputed.hasOwnProperty(astIndex);
+    },
+
+    setPC: function(node) {
+        if (!node) {
+            this.pcStatement = null;
+            return this.pc = null;
+        } else {
+            this.pcStatement = acorn.walk.findStatementOfNode(this.func, node) || this.func;
+            return this.pc = node;
+        }
+    },
 
     getPC: function(node) { return this.pc; },
 
@@ -1012,7 +1008,23 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 
     resumesAt: function(node) { return node === this.pc; },
 
-    resumesNow: function() { this.pc = null; }
+    resumesNow: function() { this.setPC(null); },
+
+    resumeHasReachedPCStatement: function() {
+        // For now: Just remove the pcStatement attribute to signal that
+        // resuming reached it
+        return this.pcStatement == null;
+    },
+
+    resumeReachedPCStatement: function() { this.pcStatement = null; },
+
+    isPCStatement: function(node) {
+        return this.pcStatement
+            && (node === this.pcStatement
+             || node.astIndex === this.pcStatement.astIndex);
+    },
+
+
 });
 
 Object.extend(lively.ast.AcornInterpreter.Frame, {

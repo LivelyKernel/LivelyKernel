@@ -1547,17 +1547,23 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
 
           currentEntityType.getAll().each(function(eachCurrentEntity) {
             var newEntities;
-            if (noArray)
-              newEntities = [eachCurrentEntity[sourceListName]]
-            else
+            if (noArray) {
+              eachNewEntity = eachCurrentEntity[sourceListName];
+              // replace the reference in the array to avoid multiple objects for the same entity
+              eachCurrentEntity[sourceListName] = _getOrAdd(eachNewEntity);
+              currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
+            } else {
               newEntities = eachCurrentEntity[sourceListName];
-
-            newEntities.each(function(eachNewEntity, index) {
+              newEntities.each(function(eachNewEntity, index) {
                 eachNewEntity = _getOrAdd(eachNewEntity);
                 // replace the reference in the array to avoid multiple objects for the same entity
                 newEntities[index] = eachNewEntity;
                 currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
-            });
+              });
+            }
+              
+
+            
 
           });
     

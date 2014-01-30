@@ -510,6 +510,19 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
         
         this.assertEquals(allFilesHaveAttribute, true);
         
+        
+        //
+        Author.getAll().each(function(eachAuthor) {
+            eachAuthor.testAttribute = true;
+        });
+        
+        var allAuthorsHaveAttribute = true;
+        Commit.getAll().pluck("author").each(function(eachAuthor) {
+           if (!eachAuthor.testAttribute)
+            allAuthorsHaveAttribute = false;
+        });
+        
+        this.assertEquals(allAuthorsHaveAttribute, true);
     }
     
     

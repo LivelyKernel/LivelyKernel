@@ -8,6 +8,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
     },
     
     tearDown: function() {
+        
         // delete all dataflow components
         // this fixes the problem that a failing test leaves components behind and affects other tests
         $world.withAllSubmorphsSelect(function(el) {
@@ -34,6 +35,8 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         // there is no line after deactivation
         this.assertEquals(components[0].arrows[0].connectionLine, null);
     },
+
+
     
     testToggleWithoutTarget: function() {
         var component = this.helper.createComponent();

@@ -29,6 +29,12 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         else
             this.deactivate();
     },
+    remove: function($super) {
+        
+        this.componentMorph.removeArrowFromArray(this);
+        $super();
+    },
+
     showContextMenu: function(position) {
         var _this = this;
         
@@ -60,6 +66,11 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         
         this.setPosition(pt(offsetX, offsetY));
         aMorph.addMorph(this);
+        
+        // Since addMorph removes the morph and adds it on the new owner,
+        // remove is called on the arrow once. There it is also removed
+        // from the componentMorph's arrows-array and needs to be pushed again.
+        aMorph.arrows.push(this);
     },
     
     activate: function() {
@@ -112,20 +123,30 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     
     openDataInspector: function(evtPosition) {
         
-        this.viewer = $world.loadPartItem('DataInspector', 'PartsBin/BP2013H2');
-        this.viewer.openInHand();
-        this.viewer.setSource(this.from);
+        var inspector = $world.loadPartItem('DataInspector', 'PartsBin/BP2013H2');
+        inspector.openInHand();
+        inspector.setSource(this.from);
         
         this.viewerLine = new lively.morphic.Path([evtPosition, evtPosition]);
+        
+        var circle = lively.morphic.Morph.makeEllipse(new Rectangle(evtPosition.x-6, evtPosition.y-6, 12, 12));
+        circle.setBorderWidth(2);
+        circle.setBorderColor(Color.black);
+        circle.setFill(Color.rgb(94,94,94));
+        
+        this.viewerLine.addMorph(circle);
+        
         var converter = function(pos) {
             return pos.addPt(pt(190,120));
         }
-        connect(this.viewer, '_Position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
-        this.viewerLine.setBorderColor(Color.rgb(94,94,94));
+        
         $world.addMorph(this.viewerLine);
-        //this.viewer.line2 = this.viewerLine;
-        //this.viewerLine.setName("Line" + this.viewer);
-        this.viewer.update();
+        this.viewerLine.setName('Line' + inspector);
+        connect(inspector, '_Position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
+        this.viewerLine.setBorderColor(Color.rgb(94,94,94));
+        inspector.update();
+        
+        this.viewer = inspector;
     },
     
     notifyViewer: function() {
@@ -154,7 +175,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     initialize: function($super) {
         $super();
 
-        this.arrows = [new lively.morphic.Charts.Arrow(this)];
+        var arrow = new lively.morphic.Charts.Arrow(this);
+        this.arrows = [arrow];
         
         this.setExtent(pt(500, 250));
         this.setFill(this.backgroundColor);
@@ -217,10 +239,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             // found component to send data to, so draw connection
             
             arrow.target = target;
+            
             var from = pt(arrow.getExtent().x/2,arrow.getExtent().y);
             var to = pt(from.x, target.getPositionInWorld().y - arrow.getTipPosition().y + arrow.getExtent().y);
             arrow.connectionLine = new lively.morphic.Charts.Line([from, to], this);
-            arrow.connectionLine.setBorderStyle('dashed');
+            arrow.connectionLine.setBorderStyle('dotted');
             arrow.addMorph(arrow.connectionLine);
         }
     },
@@ -265,12 +288,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         var _this = this;
         this.arrows.each(function (arrow){
-            if (arrow.isActive()) {
-                neighbor = _this.getComponentInDirection(1, arrow.getPositionInWorld());
-                if (neighbor) {
-                    neighbor.notify();
-                }
+            neighbor = _this.getComponentInDirection(1, arrow.getPositionInWorld());
+            if (neighbor) {
+                neighbor.notify();
             }
+            
             _this.neighbors.invoke("notify");
         });
     },
@@ -340,6 +362,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     remove: function($super) {
+        
         $super();
         this.onClose();
     },
@@ -433,6 +456,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         if (neighbor) {
             neighbor.refreshConnectionLines();
         }
+        this.notifyNextComponent();
     },
     
     gridWidth: 20,
@@ -449,6 +473,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
         return $super(morphToDrop);
     },
+    removeArrowFromArray: function(arrow) {
+        
+        var index = this.arrows.indexOf(arrow);
+        if (index > -1) {
+            this.arrows.splice(index, 1);
+        }
+    },
+
     realignAllComponents : function() {
         var previewMorph = $morph("PreviewMorph" + this);
         
@@ -612,6 +644,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
                 if (arrow.connectionLine) {
                     arrow.connectionLine.notifyViewer();
                 }
+                
                 var dependentComponent = _this.getComponentInDirection(1, arrow.getPositionInWorld());
                 if (dependentComponent) {
                     dependentComponent.notify();
@@ -822,6 +855,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     getData : function(target){
+        
         var arrowToTarget = this.arrows.detect(function (arrow){
             var arrowX =  arrow.getTipPosition().x;
             return target.getPosition().x <= arrowX &&

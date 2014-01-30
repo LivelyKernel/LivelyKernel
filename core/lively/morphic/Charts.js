@@ -10,9 +10,9 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         
         $super(controlPoints);
         this.setBorderColor(Color.rgb(94,94,94));
-        //this.deactivate();
         this.positionAtMorph();
         this.setBorderWidth(0);
+        this.deactivate();
     },
     
     getTipPosition: function() {
@@ -340,7 +340,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     onArrowDeactivated: function(arrow) {
         var component = this.getComponentInDirection(1, arrow.getPositionInWorld());
-        
+
         this.removeConnectionLine(arrow);
        
         if (component) {
@@ -1266,9 +1266,16 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
     initialize : function($super){
         $super();
         //delete Minimizer
-        if (this.getSubmorphsByAttribute("name","Minimizer"))
+        var minimizer = this.getSubmorphsByAttribute("name","Minimizer");
+        if (minimizer.length)
         {
-            this.getSubmorphsByAttribute("name","Minimizer")[0].remove();
+            minimizer[0].remove();
+        }
+        //delete container
+        var container = this.getSubmorphsByAttribute("name","Container");
+        if (container.length)
+        {
+            container[0].remove();
         }
     },
 
@@ -1412,6 +1419,10 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
     
     initialize : function($super){
         $super();
+
+        //delete arrow
+        this.arrows[0].remove();
+        this.arrows.clear();
 
         var label = this.getSubmorphsByAttribute("name","Description")[0];
         label.setTextString("FanOut");

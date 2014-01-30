@@ -1518,20 +1518,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
     }
 });
 Object.subclass('lively.morphic.Charts.EntityFactory',
-
-
-
 'default category', {
 
-
-
-    initialize: function($super) {
-
-        
-
-    },
-
-
+    initialize: function($super) { },
 
     createEntityTypeFromList : function(entityTypeName, list, identityFunction) {
 
@@ -1577,8 +1566,10 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
             else
               newEntities = eachCurrentEntity[sourceListName];
 
-            newEntities.each(function(eachNewEntity) {
+            newEntities.each(function(eachNewEntity, index) {
                 eachNewEntity = _getOrAdd(eachNewEntity);
+                // replace the reference in the array to avoid multiple objects for the same entity
+                newEntities[index] = eachNewEntity;
                 currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
             });
 

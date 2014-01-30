@@ -488,7 +488,31 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
         
         var totalFileChanges = File.getAll().map(function (file) { return file.getCommits()} ).flatten().length;
         this.assertEquals(totalFileChanges, 7);
-    
     },
+    
+    testReferenceReplacement: function() {
+        var data = this.getSampleData();
+        var EntityFactory = new lively.morphic.Charts.EntityFactory();
+        
+        var Commit = EntityFactory.createEntityTypeFromList("Commit", data, "id");
+        var Author = Commit.extractEntityFromAttribute("Author", "name", "author");
+        var File = Commit.extractEntityFromList("File", "name" , "files");
+        
+        File.getAll().each(function(eachFile) {
+            eachFile.testAttribute = true;
+        });
+        
+        var allFilesHaveAttribute = true;
+        Commit.getAll().pluck("files").flatten().each(function(eachFile) {
+           if (!eachFile.testAttribute)
+            allFilesHaveAttribute = false;
+        });
+        
+        this.assertEquals(allFilesHaveAttribute, true);
+        
+    }
+    
+    
+    
 });
 }) // end of module

@@ -479,7 +479,15 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     visitDebuggerStatement: function(node, state) {
-        // do nothing, yet
+        // FIXME: might not be in debug session => do nothing?
+        //        node.astIndex might be missing
+        var e = {
+            toString: function() {
+                return 'Debugger';
+            },
+            astIndex: node.astIndex
+        };
+        throw new lively.ast.Rewriting.UnwindException(e);
     },
 
     visitVariableDeclaration: function(node, state) {

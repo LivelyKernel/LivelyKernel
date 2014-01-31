@@ -123,15 +123,37 @@ Object.subclass('lively.ast.Continuation',
 
         // go through all frames on the stack. beginning with the top most,
         // resume each of them
-        return this.frames().reduce(function(result, frame, i) {
-            var originalAst = frame.getOriginalAst(); // FIXME
-            frame.alreadyComputed[frame.pc.astIndex] = result;
+        var result = this.frames().reduce(function(result, frame, i) {
+            if (result.error) {
+                result.error.addFrame(frame);
+                return result;
+            }
+
+            frame.alreadyComputed[frame.pc.astIndex] = result.val;
+
             // FIXME frames hold on to function ASTs but resuming from a
             // function is not supported right now. So we set the resumable
             // node to the functions body here as a quick fix
             var resumeNode = frame.getOriginalAst().body;
-            return interpreter.runWithFrameAndResult(resumeNode, frame, result);
-        }, undefined);
+            try {
+                return { val: interpreter.runWithFrameAndResult(resumeNode, frame, result.val) };
+            } catch (ex) {
+                if (!ex.isUnwindException)
+                    throw ex;
+
+                // FIXME: adjust already computed!
+                // frame.setAlreadyComputed(alreadyComputed);
+                var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
+                frame.setPC(pc);
+                ex.addFrame(frame);
+                return { error: ex };
+            }
+        }, {});
+
+        if (result.error)
+            return lively.ast.Continuation.fromUnwindException(result.error);
+        else
+            return result.val;
     }
 });
 
@@ -144,19 +166,26 @@ Object.extend(lively.ast.Continuation, {
 
 Object.subclass('lively.ast.Rewriting.UnwindException',
 'settings', {
+
     isUnwindException: true
+
 },
 'initializing', {
+
     initialize: function(error) {
         this.error = error;
     }
+
 },
 'printing', {
+
     toString: function() {
         return '[UNWIND] ' + this.error.toString();
     }
+
 },
 'frames', {
+
     shiftFrame: function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
         var alreadyComputed = frameState[0],
             // varMapping = frameState[1],
@@ -193,7 +222,18 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
         frame.setScope(topScope);
 
         return frame;
+    },
+
+    addFrame: function(frame) {
+        if (!this.top) {
+            this.top = this.last = frame;
+        } else {
+            this.last.setParentFrame(frame);
+            this.last = frame;
+        }
+        return frame;
     }
+
 });
 
 }) // end of module

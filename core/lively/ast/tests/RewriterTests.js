@@ -639,8 +639,12 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 
     test12IndependentFunctions: function() {
         var f1 = (function(x) { if (x === 1) debugger; return x + 1; }).stackCaptureMode(null, this.astRegistry),
-            f2 = function() { return f1(0) + f1(1) + f1(2); },
-            continuation = lively.ast.StackReification.run(f2, this.astRegistry);
+            f2 = function() { return f1(0) + f1(1) + f1(2); };
+
+        // FIXME: run breaks immediately with f1 not defined
+        //        f2 gets a binding to f1 that cannot be accessed by reastablished
+        //        by the rewriter/createClosure
+        var continuation = lively.ast.StackReification.run(f2, this.astRegistry);
         continuation.frames().last().scope.set('f1', f1);
         var result = continuation.resume();
         this.assertEquals(6, result, 'resume not working');

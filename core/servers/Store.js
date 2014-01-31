@@ -72,6 +72,7 @@ function retrieveChanges(since, requestingClientId, callback) {
     console.log("changes: %s, result: %s", i(changes), i(result));
     callback(null, result);
 }
+
 function checkPrecondition(path, precondition) {
     var db = inMemoryStores,  err = {type: 'precondition'};
     if (!precondition || !path.isIn(db)) return null;

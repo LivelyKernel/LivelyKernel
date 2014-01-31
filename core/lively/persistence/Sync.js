@@ -106,7 +106,7 @@ Object.subclass('lively.persistence.Sync.LocalStore',
         var err = this.checkPrecondition(path, options.precondition);
         if (err) { options.callback && options.callback(err); return; }
         // 2: setting the value in storage
-        if (path.isRoot()) this.db = db = val; else path.set(db, val);
+        if (path.isRoot()) this.db = db = val; else path.set(db, val, true/*ensure*/);
         options.callback && options.callback(null);
         // 3: Informing subscribers
         this.informSubscribers(path, val, options);
@@ -295,7 +295,10 @@ lively.persistence.Sync.LocalStore.subclass('lively.persistence.Sync.DAVStore',
         //    we cache ensureDirectory urls. #set is supposed to flush that
         //    cache when set op finished
         this.directoriesEnsured = this.directoriesEnsured || [];
-        if (this.directoriesEnsured.any(function(ea) { return ea.equal(path); })) { thenDo(); return }
+        if (!path.length
+          || this.directoriesEnsured.any(function(ea) { return ea.equal(path); })) {
+              thenDo(); return;
+        }
         this.directoriesEnsured.push(path);
         // 2: get all directory urls between (including) davRootURL,
         //    davRootURL + path[0], davRootURL + path[0] + ... + path[n]

@@ -223,7 +223,7 @@ function notifyResult(testRunId, data) {
     shelljs.exec([options.notifier.replace(/\s/g, '\\ ')].concat(
         ["--message", msg,
          "--identifier", "LivelyCoreTests" + options.testScript,
-         "--image", "core/media/lively_logo.png"]).join(' '));
+         "--image", "media/lively_logo.png"]).join(' '));
 }
 
 // poll
@@ -275,7 +275,7 @@ function startTests() {
 }
 
 function startNodeJSTests() {
-    var lively = require(env.WORKSPACE_LK + '/core/lively/bootstrap');
+    var lively = require(env.WORKSPACE_LK + '/lively/bootstrap');
     lively.testRun = {testRunId: randomId(),isNodeJS: true};
     if (options.testFilter) lively.testRun.testFilter = options.testFilter;
     if (options.modules) lively.testRun.additionalModules = options.modules;

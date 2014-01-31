@@ -555,15 +555,14 @@ Object.extend(lively.Module, {
         var baseURL = URL.root;
         return LivelyLoader.libsFiles.concat(LivelyLoader.bootstrapFiles).concat(this.topologicalSortLoadedModules()).reduce(function(uris, ea) {
             if (typeof ea === 'string') {
-                if (ea.startsWith('lively/')) {
-                    uris.push("core/" + ea);
-                } else if (ea.startsWith(baseURL.toString())) {
+                if (ea.startsWith(baseURL.toString())) {
                     uris.push(new URL(ea).relativePathFrom(baseURL));
                 } else { uris.push(ea); }
                 return uris;
             }
             var path = new URL(ea.uri()).relativePathFrom(baseURL);
             // omit modules outside of core
+            // FIXME: what is core now and what isn't?
             if (!path.startsWith('..')) uris.push(path);
             return uris;
         }, []);

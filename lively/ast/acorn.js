@@ -28,7 +28,7 @@ var acornLibs =  [Config.codeBase + 'lib/acorn/acorn.js',
     }
     function loadAcornWithRequireJS() {
         // FIXME how to access requirejs' require cleanly?
-        requirejs.s.contexts._.require(['core/lib/acorn/acorn.js', 'core/lib/acorn/acorn-loose.js', 'core/lib/acorn/acorn-walk.js'], function(acorn, acornLoose, acornWalk) {
+        requirejs.s.contexts._.require(['lib/acorn/acorn.js', 'lib/acorn/acorn-loose.js', 'lib/acorn/acorn-walk.js'], function(acorn, acornLoose, acornWalk) {
             Global.acorn = acorn;
             Object.extend(acorn, acornLoose);
             acorn.walk = acornWalk;

@@ -149,7 +149,7 @@ util._extend(services, sessionActions);
 // directly processed by the tracker and do not require
 // connections to other sessions.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-var websockets = require(path.join(process.env.WORKSPACE_LK, 'core/servers/support/websockets'));
+var websockets = require(path.join(process.env.WORKSPACE_LK, 'servers/support/websockets'));
 var WebSocketServer = websockets.WebSocketServer;
 var WebSocketClient = websockets.WebSocketClient;
 

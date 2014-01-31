@@ -492,7 +492,7 @@ Config.addOptions(
     ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
-    ['computeCodeEditorCompletionsOnStartup', true, 'when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions'],
+    ['computeCodeEditorCompletionsOnStartup', true, 'when enabled all JS files under core/ are read on startup nd their content is used to compute word completions'],
     ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."],
     ['improvedJavaScriptEval', false, "Eval that changes semantics of how object literals and if statements are evaluated."],
 ],

@@ -37,7 +37,7 @@ AsyncTestCase.subclass('lively.lang.tests.WorkerTests.WorkerCreation',
             
             this.waitFor(function() { return !!messageFromWorker; }, 120, function() {
                 // this.assertEquals(false, worker.errors.length > 0 && worker.errors[0], 'worker got errors');
-                this.assertEquals(URL.root.withFilename('core/lively/foo.js'), messageFromWorker.value);
+                this.assertEquals(URL.root.withFilename('lively/foo.js'), messageFromWorker.value);
                 this.done();
             });
         });

@@ -138,7 +138,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         return win;
     },
     codeBaseUrlString: function() {
-        return String(this.sourceDatabase().codeBaseURL).replace('core/', '');
+        return String(this.sourceDatabase().codeBaseURL);
     },
     installDefaultFilters: function() {
         var sortFilter = (new lively.ide.SortCommand(this)).filter,

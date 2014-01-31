@@ -8,14 +8,14 @@ var fs           = require("fs"),
 
 function determineCoreFiles() {
     // bootstrap.js - libsFile
-    var libsFile = 'core/lib/lively-libs-debug.js';
+    var libsFile = 'lib/lively-libs-debug.js';
     // bootstrap.js - bootstrapFiles
     var bootstrapFiles = [
-        'core/lively/Migration.js', 'core/lively/JSON.js', 'core/lively/lang/Object.js',
-        'core/lively/lang/Function.js', 'core/lively/lang/String.js', 'core/lively/lang/Array.js',
-        'core/lively/lang/Number.js', 'core/lively/lang/Date.js', 'core/lively/lang/Worker.js',
-        'core/lively/lang/LocalStorage.js', 'core/lively/defaultconfig.js', 'core/lively/Base.js',
-        'core/lively/ModuleSystem.js'
+        'lively/Migration.js', 'lively/JSON.js', 'lively/lang/Object.js',
+        'lively/lang/Function.js', 'lively/lang/String.js', 'lively/lang/Array.js',
+        'lively/lang/Number.js', 'lively/lang/Date.js', 'lively/lang/Worker.js',
+        'lively/lang/LocalStorage.js', 'lively/defaultconfig.js', 'lively/Base.js',
+        'lively/ModuleSystem.js'
     ];
     // bootstrap.js - bootstrapModules
     var bootstrapModules = ['lively.ChangeSets', 'lively.lang.Closure', 'lively.lang.UUID', 'lively.bindings', 'lively.Main'];
@@ -25,13 +25,8 @@ function determineCoreFiles() {
     bootstrapModules.push('lively.ide', 'lively.IPad', 'lively.net.SessionTracker', 'lively.net.Wiki', 'lively.ChangeSets');
 
     function moduleToFile(module) {
-        // TODO: Adapt module load logic
-        var relFile = 'core/' + module.replace(/\./g, '/') + '.js';
+        var relFile = module.replace(/\./g, '/') + '.js';
         var absFile = path.join(directory, relFile);
-        if (fs.existsSync(absFile))
-            return absFile;
-        relFile = module.replace(/\./g, '/') + '.js';
-        absFile = path.join(directory, relFile);
         return absFile;
     }
 

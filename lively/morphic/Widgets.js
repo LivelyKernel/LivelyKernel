@@ -1616,11 +1616,11 @@ lively.morphic.World.addMethods(
         });
     },
     openOMetaWorkspace: function() {
-        return this.openPartItem('OMetaWorkspace', 'core/lively/ide/tools/');
+        return this.openPartItem('OMetaWorkspace', 'lively/ide/tools/');
     },
 
     openGitControl: function() {
-        return this.openPartItem('GitControl', 'core/lively/ide/tools/');
+        return this.openPartItem('GitControl', 'lively/ide/tools/');
     },
 
     openFileTree: function() {

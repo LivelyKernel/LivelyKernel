@@ -23,7 +23,7 @@ var options = args.options([
     ['-h', '--help', 'Show this help.'],
     ['-p', '--port NUMBER', "On which port to run."],
     [      '--log-level STRING', 'Log level, accepted values: error, warning, info, debug.'],
-    [      '--lk-dir DIR', 'The directory of the Lively Kernel core repository (git).'],
+    [      '--lk-dir DIR', 'The directory of the Lively Kernel repository (git).'],
     [      '--db-config JSON', 'Stringified JSON object that configures the object DB and lively-davfs\n'
     + "                                 like {\n"
     + '                                   includedFiles: [STRING],\n'
@@ -65,7 +65,7 @@ if (!options.lkDir && env.WORKSPACE_LK_EXISTS) {
 }
 
 if (!options.defined('lkDir')) {
-    console.log("Cannot find the Lively core repository. "
+    console.log("Cannot find the Lively repository. "
                + "Please start the server with --lk-dir PATH/TO/LK-REPO");
 }
 
@@ -75,7 +75,7 @@ if (options.defined('dbConfig')) {
 }
 
 if (!options.defined('noSubservers')) {
-    var lkSubserverDir = path.join(options.lkDir, "core/servers");
+    var lkSubserverDir = path.join(options.lkDir, "servers");
     try {
         var fileList = fs.readdirSync(lkSubserverDir);
         fileList.forEach(function(name) {

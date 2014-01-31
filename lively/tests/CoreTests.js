@@ -53,17 +53,17 @@ TestCase.subclass('lively.tests.CoreTests.DocLinkConversionTest', {
             scripts = Array.from(newDoc.getElementsByTagName('script'));
 
 		this.assertEquals(4, scripts.length, 'remove the duplicate');
-		this.assertEquals('core/lively/JSON.js', scripts[0].getAttribute('xlink:href'));
+		this.assertEquals('lively/JSON.js', scripts[0].getAttribute('xlink:href'));
 		this.assertEquals('Config.codeBase=Config.getDocumentDirectory()+\'\'',
                           scripts[1].textContent);
-		this.assertEquals('core/lively/localconfig.js', scripts[2].getAttribute('xlink:href'));
+		this.assertEquals('lively/localconfig.js', scripts[2].getAttribute('xlink:href'));
 	},
 
 	test02ConvertPath: function() {
 		var codeBase = 'http://www.lively-kernel.org/repository/webwerkstatt/',
             toDir = 'http://www.lively-kernel.org/repository/webwerkstatt/draft/',
             sut = new DocLinkConverter(codeBase, toDir),
-            expected = 'core/lively/JSON.js',
+            expected = 'lively/JSON.js',
             result = sut.convertPath('lively/JSON.js');
 		this.assertEquals(expected, result);
 		result = sut.convertPath('../lively/JSON.js');
@@ -79,13 +79,13 @@ TestCase.subclass('lively.tests.CoreTests.DocLinkConversionTest', {
 			toDir = 'http://www.foo.org/bar/baz/',
 			sut = new DocLinkConverter(codeBase, toDir),
 			result = sut.relativeLivelyPathFrom(codeBase, toDir);
-		this.assertEquals('core/lively/', result);
+		this.assertEquals('lively/', result);
 		toDir = 'http://www.foo.org/bar/baz/xxx/xxx/';
 		result = sut.relativeLivelyPathFrom(codeBase, toDir);
-		this.assertEquals('../../core/lively/', result);
+		this.assertEquals('../../lively/', result);
 		toDir = codeBase;
 		result = sut.relativeLivelyPathFrom(codeBase, toDir);
-		this.assertEquals('core/lively/', result);
+		this.assertEquals('lively/', result);
 	},
 
 	test04ExtractFilename: function() {
@@ -111,9 +111,9 @@ TestCase.subclass('lively.tests.CoreTests.DocLinkConversionTest', {
             newDoc = sut.convert(d),
             scripts = Array.from(newDoc.getElementsByTagName('script'));
 
-		this.assertEquals(codeBase + 'core/lively/JSON.js',
+		this.assertEquals(codeBase + 'lively/JSON.js',
                           scripts[0].getAttribute('xlink:href'));
-		this.assertEquals(codeBase + 'core/lively/localconfig.js',
+		this.assertEquals(codeBase + 'lively/localconfig.js',
                           scripts[2].getAttribute('xlink:href'));
 	}
 

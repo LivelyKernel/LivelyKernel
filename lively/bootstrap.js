@@ -641,10 +641,6 @@
                         this.expectedModules[i] = moduleName;
                     }
 
-                    // FIXME: remove "core." part
-                    this.expectedModules = this.expectedModules.map(function(name) {
-                        return name.replace(/^core\./, ''); });
-
                     this.expectedModuleURLs.forEach(function(url) {
                         originalLoader.markAsLoading(url); });
                 },
@@ -679,7 +675,7 @@
                 // is why we wait here using a require
                 // FIXME: cleanup "waitForModules" computation
                 var waitForModules = combinedLoader.expectedModules.withoutAll(LivelyLoader.bootstrapFiles.map(function(fn) {
-                    return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.')
+                    return fn.replace(/\.js$/, '').replace(/\//g, '.')
                 }).concat(['lib.lively-libs-debug']));
 
                 lively.require(waitForModules).toRun(function() {
@@ -860,22 +856,22 @@
 
     // TODO: Something is wrong with the lively-libs, use debug only to
     // activate loading on ios 5
-    var libsFile = /*useMinifiedLibs ? 'core/lib/lively-libs.js' :*/ 'core/lib/lively-libs-debug.js',
+    var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
         libsFiles = [libsFile],
         bootstrapFiles = [
-            'core/lively/Migration.js',
-            'core/lively/JSON.js',
-            'core/lively/lang/Object.js',
-            'core/lively/lang/Function.js',
-            'core/lively/lang/String.js',
-            'core/lively/lang/Array.js',
-            'core/lively/lang/Number.js',
-            'core/lively/lang/Date.js',
-            'core/lively/lang/Worker.js',
-            'core/lively/lang/LocalStorage.js',
-            'core/lively/defaultconfig.js',
-            'core/lively/Base.js',
-            'core/lively/ModuleSystem.js'
+            'lively/Migration.js',
+            'lively/JSON.js',
+            'lively/lang/Object.js',
+            'lively/lang/Function.js',
+            'lively/lang/String.js',
+            'lively/lang/Array.js',
+            'lively/lang/Number.js',
+            'lively/lang/Date.js',
+            'lively/lang/Worker.js',
+            'lively/lang/LocalStorage.js',
+            'lively/defaultconfig.js',
+            'lively/Base.js',
+            'lively/ModuleSystem.js'
         ],
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
@@ -916,7 +912,7 @@
                 return Config.rootPath = rootPath;
             }
             if (codeBase) {
-                var parentDir = Global.JSLoader.dirOfURL(codeBase) + '../';
+                var parentDir = Global.JSLoader.dirOfURL(codeBase);
                 rootPath = Global.JSLoader.makeAbsolute(parentDir);
                 console.log('Root path is ' + rootPath);
                 return Config.rootPath = rootPath;

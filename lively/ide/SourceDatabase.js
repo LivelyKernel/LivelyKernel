@@ -466,12 +466,6 @@ Object.subclass('AnotherSourceDatabase', {
     mapURLsToRelativeModulePaths: function(urls) {
         return urls.collect(function(ea) {
             var path = ea.withRelativePartsResolved().relativePathFrom(URL.root);
-            if (path.startsWith('core/')) {
-                path = path.slice('core/'.length);
-            } else {
-                if (!path.startsWith('/')) path = '/' + path;
-                path = '..' + path;
-            }
             return path;
         });
     }

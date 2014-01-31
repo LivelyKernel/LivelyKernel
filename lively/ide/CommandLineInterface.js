@@ -673,7 +673,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         // will automaticelly insert grep results into currently focused workspace
         var focused = lively.morphic.Morph.focusedMorph(),
             codeEditor = focused instanceof lively.morphic.CodeEditor && focused;
-        path = path || 'core/lively/';
+        path = path || 'lively/';
         lively.ide.CommandLineSearch.doGrep(string, path, function(lines) {
             thenDo && thenDo(lines);
             if (!focused) return;
@@ -704,7 +704,6 @@ Object.extend(lively.ide.CommandLineSearch, {
             if (r.wasKilled()) return;
             lively.ide.CommandLineSearch.lastGrep = null;
             var lines = r.getStdout().split('\n').map(function(line) {
-                // return line.slice(line.indexOf('/core') + 6).replace(/\/\//g, '/'); })
                 return line.replace(/\/\//g, '/'); })
             thenDo && thenDo(lines, fullPath);
         });
@@ -730,7 +729,6 @@ Object.extend(lively.ide.CommandLineSearch, {
         // = {fileName: "lively/morphic/HTML.js", line: 235}
         line = line.replace(/\\/g, '/').replace(/^\.\//, '');
         if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
-        if (line.startsWith('core/')) line = line.slice('core/'.length); // FIXME!!!
         var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
         return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir} : null;
     },
@@ -1069,7 +1067,7 @@ lively.ide.CommandLineInterface.GitSupport = {
                  + "var path = require(\"path\"),\n"
                  + "    clientSessionId = '__SESSIONID__',\n"
                  + "    sessionTrackerURL = '__TRACKERURL__',\n"
-                 + "    ws = require(path.join(process.env.WORKSPACE_LK, 'core/servers/support/websockets')),\n"
+                 + "    ws = require(path.join(process.env.WORKSPACE_LK, 'servers/support/websockets')),\n"
                  + "    wsClient = new ws.WebSocketClient(sessionTrackerURL, {protocol: 'lively-json', sender: 'GitAuth', debugLevel: 10});\n"
                  + "function sendQuery(query, thenDo) {\n"
                  + "    wsClient.send({\n"

@@ -256,7 +256,7 @@ Object.subclass('DocLinkConverter', {
     },
 
     relativeLivelyPathFrom: function(codeBase, toDir) {
-        return this.codeBaseFrom(codeBase, toDir) + 'core/lively/';
+        return this.codeBaseFrom(codeBase, toDir) + 'lively/';
     },
 
     extractFilename: function(url) {

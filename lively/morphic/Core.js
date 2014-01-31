@@ -649,8 +649,8 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     metaTags: [
         {name: "apple-mobile-web-app-capable", content: "yes"}], 
     linkTags: [
-        {rel: 'shortcut icon', href: 'core/media/lively.ico'},
-        {rel: 'apple-touch-icon-precomposed', href: 'core/media/apple-touch-icon.png'}],
+        {rel: 'shortcut icon', href: 'media/lively.ico'},
+        {rel: 'apple-touch-icon-precomposed', href: 'media/apple-touch-icon.png'}],
     isWorld: true
 },
 'accessing -- morphic relationship', {

@@ -264,11 +264,28 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     rewriteFunction: function(node) {
-        // for now this is a shorthand to just rewrite functions
         if (node.type !== "FunctionExpression")
             throw new Error('no a valid function expression/statement? ' + lively.ast.acorn.printAst(node));
         if (!node.id) node.id = this.newNode("Identifier", {name: ""});
-        return this.rewrite(this.newNode('Program', {body: [node]}))
+
+        // FIXME!
+        lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
+        // this.enterScope();
+        var astToRewrite = acorn.walk.copy(node);
+        this.astRegistry.push(astToRewrite);
+        var astRegistryIndex = this.astRegistry.length - 1;
+        acorn.walk.addAstIndex(astToRewrite);
+        if (astToRewrite.type == 'FunctionDeclaration') {
+            var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
+        }
+        var vars = this.registerVars(this.findLocalVariables(astToRewrite)); // locals
+        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
+        var rewritten = rewriteVisitor.accept(astToRewrite, this);
+        // this.exitScope();
+        // FIXME!
+        rewritten = rewritten.expression.arguments[1];
+        this.astRegistry[astRegistryIndex].rewritten = rewritten; // FIXME just for debugging
+        return rewritten;
     }
 
 });

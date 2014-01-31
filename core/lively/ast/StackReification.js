@@ -12,9 +12,7 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
 'accessing', {
 
     getRewrittenFunc: function() {
-        // FIXME: should be:
-        // return this.recreateFuncFromSource(this.getRewrittenSource());
-        var func = eval(this.getRewrittenSource());
+        var func = this.recreateFuncFromSource(this.getRewrittenSource());
         func.livelyDebuggingEnabled = true;
         return func;
     },
@@ -26,6 +24,7 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
     getOriginalFunc: function() {
         return this.addClosureInformation(this.getFunc());
     }
+
 },
 'rewriting', {
 
@@ -44,14 +43,21 @@ Object.extend(lively.ast.StackReification, {
         throw {isUnwindException: true, lastFrame: frame, topFrame: frame}
     },
 
-    run: function(func, astRegistry) {
-        if (!func.livelyDebuggingEnabled) func = func.stackCaptureMode(null, astRegistry);
-        var result;
-        try { return {isContinuation: false, returnValue: func()} } catch(e) {
-            return e.isUnwindException ?
-                lively.ast.Continuation.fromUnwindException(e) : e
+    run: function(func, astRegistry, optMapping) {
+        if (!func.livelyDebuggingEnabled)
+            func = func.stackCaptureMode(optMapping, astRegistry);
+
+        try {
+            return { isContinuation: false, returnValue: func() };
+        } catch (e) {
+            // e will always be an UnwindException
+            if (e.error instanceof Error)
+                throw e.error;
+            else
+                return lively.ast.Continuation.fromUnwindException(e);
         }
     }
+
 });
 
 Object.extend(Global, {
@@ -88,6 +94,7 @@ Object.extend(Function.prototype, {
     stackCaptureSource: function(varMapping, astRegistry) {
         return this.asRewrittenClosure(astRegistry).getRewrittenSource();
     }
+
 });
 
 Object.subclass('lively.ast.Continuation',

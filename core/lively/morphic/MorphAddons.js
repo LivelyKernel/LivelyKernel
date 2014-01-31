@@ -1018,7 +1018,14 @@ lively.morphic.World.addMethods(
         return this.zoomLevel
     }
 });
-
+lively.morphic.Morph.addMethods(
+'object versioning', {
+    updateFrom: function(previousVersion) {
+        if (this !== previousVersion) {
+            this.renderWithHTML();
+        }
+    }
+});
 lively.morphic.HandMorph.addMethods(
 'focus', {
     setKeyboardFocus: function() {},

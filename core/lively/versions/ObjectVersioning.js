@@ -282,9 +282,17 @@ Object.extend(lively.versions.ObjectVersioning, {
             isProxy: function() { return true },
             proxyTarget: function() { return this.targetObject() },
             
-            targetObject: function() {
-                var version = lively.CurrentVersion,
-                    targetObject;
+			updateFrom: function(previousVersion) {
+				var currentTarget = this.targetObject();
+				var previousTarget = this.targetObjectInVersion(previousVersion);
+				return currentTarget.updateFrom(previousTarget);
+			},
+			
+			targetObject: function() {
+                return this.targetObjectInVersion(lively.CurrentVersion);
+            },
+            targetObjectInVersion: function(version) {
+                var targetObject;
                 
                 while(!targetObject && version) {
                     targetObject = this.__targetVersions[version.ID];
@@ -500,6 +508,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (name === '__shouldVersion') {
                     return this.__shouldVersion;
                 }
+	            if (name === '__updateFrom') {
+	                return this.updateFrom.bind(this);
+	            }
                 
                 targetObject = this.targetObject();
                 
@@ -924,27 +935,26 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         return previousVersion; 
     },
-    undo: function(callback) {
-        var previousVersion = this.previousVersion();
-        if (!previousVersion) {
+    moveTo: function(version, callback) {
+        var oldCurrent = lively.CurrentVersion;
+		lively.CurrentVersion = version;
+		$world.__updateFrom(oldCurrent)
+        if (callback) callback();
+		return version;
+    },
+	undo: function(callback) {
+        var predecessor = this.previousVersion();
+        if (!predecessor) {
             throw new Error('Can\'t undo: No previous version.');
         }
-        lively.CurrentVersion = previousVersion;
-        
-        if (callback) callback();
-        
-        return lively.CurrentVersion;
+        return this.moveTo(predecessor, callback);
     },
     redo: function(callback) {
-        var followingVersion = this.followingVersion();
-        if (!followingVersion) {
+        var successor = this.followingVersion();
+        if (!successor) {
             throw new Error('Can\'t redo: No next version.');
         }
-        lively.CurrentVersion = followingVersion;
-        
-        if (callback) callback();
-        
-        return lively.CurrentVersion;
+	    return this.moveTo(successor, callback);
     },
     previousVersion: function() {
         return lively.CurrentVersion.previousVersion;
@@ -1208,18 +1218,13 @@ lively.killScriptsFromTheFuture = function() {
 
 var livelyOV = lively.versions.ObjectVersioning;
 
-var redrawWorld = function() {
-    $world.renderWithHTML();
-}
-
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
 lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
 
 lively.undo = livelyOV.undo.bind(livelyOV).curry(function() {
     lively.killScriptsFromTheFuture();
-    redrawWorld();
 });
-lively.redo = livelyOV.redo.bind(livelyOV).curry(redrawWorld);
+lively.redo = livelyOV.redo.bind(livelyOV);
 
 lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 

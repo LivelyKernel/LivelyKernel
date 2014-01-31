@@ -366,11 +366,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     },
 
     test22FunctionCall: function() {
-        // test if the "return g();" is translated to "return _1["g"].call();"
+        // test if the "return g();" is translated to "return _0["g"].call();"
         var func = function() { function g() {}; return g(); }, returnStmt;
         func.stackCaptureMode();
         acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
-        var expected = "return " + this.intermediateResult(this.getVar(1, 'g')) + '.call(Global);'
+        var expected = "return " + this.intermediateResult(this.getVar(0, 'g')) + '.call(Global);';
         this.assertASTMatchesCode(returnStmt, expected);
     }
 });

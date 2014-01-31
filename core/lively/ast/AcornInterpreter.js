@@ -758,7 +758,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.property, state);
             property = state.result;
         }
-        state.result = object[property];
+        var getter = object.__lookupGetter__(property);
+        if (getter) {
+            state.result = this.invoke(node, object, getter, [], state.currentFrame, false/*isNew*/)
+        } else {
+            state.result = object[property];
+        }
     },
 
     visitSwitchCase: function(node, state) {

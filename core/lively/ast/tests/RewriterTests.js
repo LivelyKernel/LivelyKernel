@@ -31,7 +31,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "%s"
             + "} catch (e) {\n"
             + "    var ex = e.isUnwindException ? e : new lively.ast.Rewriting.UnwindException(e);\n"
-            + "    ex.shiftFrame(this, __%s, lastNode, %s);\n"
+            + "    ex.createAndShiftFrame(this, __%s, lastNode, %s);\n"
             + "    throw ex;\n"
             + "}\n",
             level, generateVarMappingString(), level, level,

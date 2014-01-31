@@ -125,7 +125,7 @@ Object.subclass('lively.ast.Continuation',
         // resume each of them
         var result = this.frames().reduce(function(result, frame, i) {
             if (result.error) {
-                result.error.addFrame(frame);
+                result.error.shiftFrame(frame);
                 return result;
             }
 
@@ -145,7 +145,7 @@ Object.subclass('lively.ast.Continuation',
                 // frame.setAlreadyComputed(alreadyComputed);
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
                 frame.setPC(pc);
-                ex.addFrame(frame);
+                ex.shiftFrame(frame);
                 return { error: ex };
             }
         }, {});
@@ -186,7 +186,7 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
 },
 'frames', {
 
-    shiftFrame: function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
+    createAndShiftFrame: function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
         var alreadyComputed = frameState[0],
             // varMapping = frameState[1],
             parentFrameState = frameState[2],
@@ -196,15 +196,12 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
         frame.setThis(thiz);
         frame.setAlreadyComputed(alreadyComputed);
         if (!this.top) {
-            this.top = this.last = frame;
             pc = this.error && this.error.astIndex ?
                 acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), this.error.astIndex) :
                 null;
         } else {
             if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
             pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
-            this.last.setParentFrame(frame);
-            this.last = frame;
         }
         frame.setPC(pc);
 
@@ -221,10 +218,10 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
         } while (fState && fState != Global);
         frame.setScope(topScope);
 
-        return frame;
+        return this.shiftFrame(frame);
     },
 
-    addFrame: function(frame) {
+    shiftFrame: function(frame) {
         if (!this.top) {
             this.top = this.last = frame;
         } else {

@@ -167,7 +167,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                         }),
                     this.newNode('ExpressionStatement', {
                         expression: this.newNode('CallExpression', {
-                            callee: this.newMemberExp('ex.shiftFrame'),
+                            callee: this.newMemberExp('ex.createAndShiftFrame'),
                             arguments: [
                                 this.newNode('Identifier', {name: 'this'}),
                                 this.newNode('Identifier', {name: '__' + level}),

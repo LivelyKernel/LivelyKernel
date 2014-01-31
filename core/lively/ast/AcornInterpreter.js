@@ -47,7 +47,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.property, state);
             prop = state.result;
         }
-        obj[prop] = value;
+        var setter = obj.__lookupSetter__(prop);
+        if (setter) {
+            this.invoke(node, obj, setter, [value], state.currentFrame, false/*isNew*/);
+        } else {
+            obj[prop] = value;
+        }
         state.result = value;
     }
 

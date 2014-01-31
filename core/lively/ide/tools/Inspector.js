@@ -2,7 +2,7 @@ module('lively.ide.tools.Inspector').requires('lively.persistence.BuildSpec', 'l
 
 lively.BuildSpec('lively.ide.tools.Inspector', {
     _BorderColor: Color.rgb(204,0,0),
-    _Extent: lively.pt(470,500),
+    _Extent: lively.pt(370,490),
     _StyleClassNames: ["Morph","Window"],
     className: "lively.morphic.Window",
     contentOffset: lively.pt(4.0,22.0),
@@ -11,8 +11,8 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
     name: "ObjectInspector",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
-        _Extent: lively.pt(462,474),
-        _Fill: Color.rgb(235,235,235),
+        _Extent: lively.pt(362,464),
+        _Fill: Color.rgba(235,235,235,0),
         _Position: lively.pt(4.0,22.0),
         className: "lively.morphic.Box",
         droppingEnabled: true,
@@ -28,12 +28,12 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         showInherited: false,
         sourceModule: "lively.morphic.Core",
         submorphs: [{
-            _BorderColor: Color.rgb(112,112,112),
-            _BorderRadius: 2.59,
+            _BorderColor: Color.rgb(210,210,210),
+            _BorderWidth: 1,
             _ClipMode: "auto",
-            _Extent: lively.pt(446,142.1),
+            _Extent: lively.pt(354,190),
             _Fill: Color.rgb(255,255,255),
-            _Position: lively.pt(8.1,38.5),
+            _Position: lively.pt(4,38.5),
             className: "lively.morphic.Box",
             droppingEnabled: true,
             layout: {
@@ -45,7 +45,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             submorphs: [{
                 _Extent: lively.pt(1.0,0.0),
                 _Fill: Color.rgb(255,255,255),
-                _Position: lively.pt(-2.0,0.0),
+                _Position: lively.pt(0.0,0.0),
                 className: "lively.morphic.Tree",
                 depth: 0,
                 doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
@@ -86,76 +86,63 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     return $super(evt);
                 }
             }]
-        },{
-            _BorderColor: Color.rgb(204,0,0),
-            _Extent: lively.pt(410.0,28.1),
-            _Position: lively.pt(10.7,8.1),
-            className: "lively.morphic.Morph",
+        },
+        {
+            _ClipMode: "auto",
+            _Extent: lively.pt(200.0,21.0),
+            _Fill: Color.rgba(243,243,243,0),
+            _FontFamily: "Helvetica",
+            _FontSize: 10,
+            _Position: lively.pt(55.0,7.0),
+            className: "lively.morphic.DropDownList",
+            doNotCopyProperties: [],
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             droppingEnabled: true,
-            isCopyMorphRef: true,
-            layout: {
-                resizeWidth: true,
-            },
-            morphRefId: 2,
+            itemList: [{
+                isListItem: true,
+                string: "show standard properties",
+                value: "standard"
+            },{
+                isListItem: true,
+                string: "show all properties",
+                value: "properties"
+            },{
+                isListItem: true,
+                string: "show morphs",
+                value: "submorphs"
+            }],
+            name: "ObjectInspectorFilterList",
+            selectOnMove: false,
+            selectedLineNo: 0,
+            selection: "standard",
             sourceModule: "lively.morphic.Core",
-            submorphs: [{
-                _ClipMode: "auto",
-                _Extent: lively.pt(322.0,21.0),
-                _Fill: Color.rgb(243,243,243),
-                _FontFamily: "Helvetica",
-                _FontSize: 10,
-                _Position: lively.pt(92.0,0.0),
-                className: "lively.morphic.DropDownList",
-                doNotCopyProperties: [],
-                doNotSerialize: [],
-                droppingEnabled: true,
-                itemList: [{
-                    isListItem: true,
-                    string: "show standard properties",
-                    value: "standard"
-                },{
-                    isListItem: true,
-                    string: "show all properties",
-                    value: "properties"
-                },{
-                    isListItem: true,
-                    string: "show morphs",
-                    value: "submorphs"
-                }],
-                layout: {
-                    resizeWidth: true
-                },
-                name: "ObjectInspectorFilterList",
-                selectOnMove: false,
-                selectedLineNo: 0,
-                selection: "standard",
-                sourceModule: "lively.morphic.Core",
-                valueScale: 1,
-                connectionRebuilder: function connectionRebuilder() {
+            valueScale: 1,
+            connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "selection", this.get("ObjectInspector"), "setFilter", {});
             }
-            },{
-                _Extent: lively.pt(92.0,0.0),
-                _FontFamily: "Helvetica",
-                _HandStyle: null,
-                _InputAllowed: true,
-                _TextColor: Color.rgb(64,64,64),
-                allowInput: false,
-                className: "lively.morphic.Text",
-                evalEnabled: false,
-                fixedHeight: true,
-                fixedWidth: true,
-                textString: "Filter:"
-            }]
+        },
+        {
+            _Extent: lively.pt(92.0,0.0),
+            _Position: lively.pt(6.0,10.0),
+            _FontFamily: "Helvetica",
+            _HandStyle: null,
+            _InputAllowed: true,
+            _TextColor: Color.rgb(64,64,64),
+            allowInput: false,
+            className: "lively.morphic.Text",
+            evalEnabled: false,
+            fixedHeight: true,
+            fixedWidth: true,
+            textString: "Filter:"
         },{
             _AutocompletionEnabled: true,
-            _BorderColor: Color.rgb(204,204,204),
-            _BorderRadius: 3,
-            _Extent: lively.pt(446,256),
+            _BorderColor: Color.rgb(210,210,210),
+            _BorderWidth: 1,
+            _BorderRadius: 0,
+            _Extent: lively.pt(354,190),
             _FontSize: 12,
             _LineWrapping: false,
-            _Position: lively.pt(8,190),
+            _Position: lively.pt(4,238),
             _ShowActiveLine: false,
             _ShowErrors: true,
             _ShowGutter: false,
@@ -343,9 +330,9 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             }
         },{
             _BorderColor: Color.rgb(204,0,0),
-            _Extent: lively.pt(446,3.7),
+            _Extent: lively.pt(354,3.7),
             _Fill: Color.rgb(204,204,204),
-            _Position: lively.pt(8.1,182.4),
+            _Position: lively.pt(4,230.4),
             className: "lively.morphic.HorizontalDivider",
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             draggingEnabled: true,
@@ -369,7 +356,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         },{
             _BorderColor: Color.rgb(204,0,0),
             _Extent: lively.pt(12.0,12.0),
-            _Position: lively.pt(10,450),
+            _Position: lively.pt(2,435),
             checked: false,
             className: "lively.morphic.CheckBox",
             droppingEnabled: true,
@@ -386,7 +373,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             _FontFamily: "Arial, sans-serif",
             _HandStyle: "default",
             _InputAllowed: false,
-            _Position: lively.pt(30,452),
+            _Position: lively.pt(25,438),
             _TextColor: Color.rgb(64,64,64),
             allowInput: false,
             className: "lively.morphic.Text",
@@ -661,7 +648,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 },
         inspect: function inspect(obj) {
                     if (this.owner.isWindow) {
-                        this.owner.setTitle(this.typename(obj) + ' Inspector');
+                        this.owner.setTitle('Inspector on: ' + this.typename(obj));
                     }
                     this.get("ObjectInspectorText").doitContext = obj;
                     if (!this.filter) this.get("ObjectInspectorFilterList").selectAt(0);

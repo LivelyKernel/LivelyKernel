@@ -624,6 +624,36 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var continuation = lively.ast.StackReification.run(code, this.astRegistry);
         var result = continuation.resume();
         this.assertEquals(3, result, 'resume not working');
+    },
+
+    test11ForEach: function() {
+        function code() {
+            var sum = 0;
+            [1,2,3].forEach(function(ea) { sum += ea; if (ea === 2) debugger; });
+            return sum;
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
+        this.assertEquals(6, result, 'resume not working');
+    },
+
+    test12IndependentFunctions: function() {
+        var f1 = (function(x) { if (x === 1) debugger; return x + 1; }).stackCaptureMode(null, this.astRegistry),
+            f2 = function() { return f1(0) + f1(1) + f1(2); },
+            continuation = lively.ast.StackReification.run(f2, this.astRegistry);
+        continuation.frames().last().scope.set('f1', f1);
+        var result = continuation.resume();
+        this.assertEquals(6, result, 'resume not working');
+    },
+
+    test13DebuggerInInterpretation: function() {
+        function code() {
+            var sum = 1; debugger; sum += 2; debugger; sum += 3; return sum;
+        }
+        var continuation1 = lively.ast.StackReification.run(code, this.astRegistry),
+            continuation2 = continuation1.resume(),
+            result = continuation2.resume();
+        this.assertEquals(6, result, '2x resume not working');
     }
 
 });

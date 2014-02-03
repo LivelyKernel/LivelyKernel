@@ -38,15 +38,58 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
 
 Object.extend(lively.ast.StackReification, {
 
+    debugReplacements: {
+        Function: {
+            bind: {},
+            call: {},
+            applyt: {}
+        },
+        Array: {
+            sort: {},
+            filter: {},
+            forEach: {
+                dbg: function(func, context) {
+                    for (var i = 0; i < this.length; i++)
+                        func.call(context, this[i], i, this);
+                }
+            },
+            some: {},
+            every: {},
+            map: {},
+            reduce: {},
+            reduceRight: {}
+        },
+        String: {
+            replace: {}
+        }
+    },
+
+    enableSystemDebugMode: function(astRegistry) {
+        var replacements = lively.ast.StackReification.debugReplacements;
+        var forEachSpec = replacements.Array.forEach
+        var dbgVersion = forEachSpec.dbg.stackCaptureMode(null, astRegistry);
+        var original = forEachSpec.original
+                    || (dbgVersion.original = forEachSpec.original = Array.prototype.forEach);
+        Array.prototype.forEach = dbgVersion;
+    },
+
+    disableSystemDebugMode: function() {
+        var replacements = lively.ast.StackReification.debugReplacements;
+        var forEachSpec = replacements.Array.forEach
+        var dbgVersion = Array.prototype.forEach;
+        var original = forEachSpec.original || dbgVersion.original || Array.prototype.forEach;
+        Array.prototype.forEach = original;
+    },
+
     halt: function() {
         var frame = lively.ast.Interpreter.Frame.create();
         throw {isUnwindException: true, lastFrame: frame, topFrame: frame}
     },
 
     run: function(func, astRegistry, optMapping) {
+        lively.ast.StackReification.enableSystemDebugMode(astRegistry);
         if (!func.livelyDebuggingEnabled)
             func = func.stackCaptureMode(optMapping, astRegistry);
-
         try {
             return { isContinuation: false, returnValue: func() };
         } catch (e) {
@@ -55,6 +98,8 @@ Object.extend(lively.ast.StackReification, {
                 throw e.error;
             else
                 return lively.ast.Continuation.fromUnwindException(e);
+        } finally {
+            lively.ast.StackReification.disableSystemDebugMode(astRegistry);
         }
     }
 

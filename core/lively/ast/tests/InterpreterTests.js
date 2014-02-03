@@ -99,9 +99,21 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         var node = this.parse('var obj = { foo: function() { return 3; } }; obj.foo();');
         this.assertEquals(3, this.interpret(node));
     },
-    test12UsingThis: function() {
+    test12aUsingThis: function() {
         var node = this.parse('var obj = { foo: function() { this.x = 3; } }; obj.foo(); obj.x;');
         this.assertEquals(3, this.interpret(node));
+    },
+    test12bFunctionalThis: function() {
+        var node = this.parse('function foo() { return this; } foo();');
+        this.assertEquals(Global, this.interpret(node));
+    },
+    test12cBoundThis: function() {
+        var node = this.parse('var obj = { x: 1 }; function foo() { return this.x; } foo.bind(obj)();');
+        this.assertEquals(1, this.interpret(node));
+    },
+    test12dCallThis: function() {
+        var node = this.parse('var obj = { x: 1 }; function foo() { return this.x; } foo.call(obj);');
+        this.assertEquals(1, this.interpret(node));
     },
     test13aModifyingVar: function() {
         var node = this.parse('var x = 1; x = 3; x;');

@@ -45,40 +45,60 @@ Object.extend(lively.ast.StackReification, {
             applyt: {}
         },
         Array: {
-            sort: {},
-            filter: {},
-            forEach: {
-                dbg: function(func, context) {
-                    for (var i = 0; i < this.length; i++)
-                        func.call(context, this[i], i, this);
-                }
+            sort: {
+                dbg: NativeArrayFunctions.sort
             },
-            some: {},
-            every: {},
-            map: {},
-            reduce: {},
-            reduceRight: {}
+            filter: {
+                dbg: NativeArrayFunctions.filter
+            },
+            forEach: {
+                dbg: NativeArrayFunctions.forEach
+            },
+            some: {
+                dbg: NativeArrayFunctions.some
+            },
+            every: {
+                dbg: NativeArrayFunctions.every
+            },
+            map: {
+                dbg: NativeArrayFunctions.map
+            },
+            reduce: {
+                dbg: NativeArrayFunctions.reduce
+            },
+            reduceRight: {
+                dbg: NativeArrayFunctions.reduceRight
+            }
         },
         String: {
             replace: {}
         }
     },
 
-    enableSystemDebugMode: function(astRegistry) {
-        var replacements = lively.ast.StackReification.debugReplacements;
-        var forEachSpec = replacements.Array.forEach
-        var dbgVersion = forEachSpec.dbg.stackCaptureMode(null, astRegistry);
-        var original = forEachSpec.original
-                    || (dbgVersion.original = forEachSpec.original = Array.prototype.forEach);
-        Array.prototype.forEach = dbgVersion;
+    enableDebugSupport: function(astRegistry) {
+        // FIXME currently only takes care of Array
+        try {
+            var replacements = lively.ast.StackReification.debugReplacements;
+            for (var method in replacements.Array) {
+                if (!replacements.Array.hasOwnProperty(method)) continue;
+                var spec = replacements.Array[method],
+                    dbgVersion = spec.dbg.stackCaptureMode(null, astRegistry);
+                if (!spec.original) spec.original = Array.prototype[method];
+                Array.prototype[method] = dbgVersion;
+            }
+        } catch(e) {
+            this.disableDebugSupport();
+            throw e;
+        }
     },
 
-    disableSystemDebugMode: function() {
+    disableDebugSupport: function() {
         var replacements = lively.ast.StackReification.debugReplacements;
-        var forEachSpec = replacements.Array.forEach
-        var dbgVersion = Array.prototype.forEach;
-        var original = forEachSpec.original || dbgVersion.original || Array.prototype.forEach;
-        Array.prototype.forEach = original;
+        for (var method in replacements.Array) {
+            var spec = replacements.Array[method],
+                original = spec.original || Array.prototype[method];
+            Array.prototype[method] = original;
+        }
     },
 
     halt: function() {
@@ -87,11 +107,11 @@ Object.extend(lively.ast.StackReification, {
     },
 
     run: function(func, astRegistry, optMapping) {
-        lively.ast.StackReification.enableSystemDebugMode(astRegistry);
+        lively.ast.StackReification.enableDebugSupport(astRegistry);
         if (!func.livelyDebuggingEnabled)
             func = func.stackCaptureMode(optMapping, astRegistry);
         try {
-            return { isContinuation: false, returnValue: func() };
+            return {isContinuation: false, returnValue: func()};
         } catch (e) {
             // e will always be an UnwindException
             if (e.error instanceof Error)
@@ -99,7 +119,7 @@ Object.extend(lively.ast.StackReification, {
             else
                 return lively.ast.Continuation.fromUnwindException(e);
         } finally {
-            lively.ast.StackReification.disableSystemDebugMode(astRegistry);
+            lively.ast.StackReification.disableDebugSupport(astRegistry);
         }
     }
 

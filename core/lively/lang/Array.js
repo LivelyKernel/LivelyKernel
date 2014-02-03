@@ -2,35 +2,99 @@
 // Extensions to Array instances
 ///////////////////////////////////////////////////////////////////////////////
 
-Object.extend(Array.prototype, {
+Global.NativeArrayFunctions = {
 
-    each: Array.prototype.forEach || function(iterator, context) {
-        for (var i = 0, len = this.length; i < len; i++) {
-            iterator.call(context, this[i], i); }
-        return this;
+    sort: function(sortFunc) {
+        if (!sortFunc) {
+            sortFunc = function(x,y) {
+                if (x < y) return -1;
+                if (x > y) return 1;
+                return 0;
+            };
+        }
+        var len = this.length, sorted = [];
+        for (var i = 0; i < this.length; i++) {
+            var inserted = false;
+            for (var j = 0; j < sorted.length; j++) {
+                if (1 === sortFunc(sorted[j], this[i])) {
+                    inserted = true;
+                    sorted[j+1] = sorted[j];
+                    sorted[j] = this[i];
+                    break;
+                }
+            }
+            if (!inserted) sorted.push(this[i]);
+        }
+        return sorted;
     },
 
-    all: Array.prototype.every || function(iterator, context) {
+    filter: function(iterator, context) {
+        var results = [];
+        for (var i = 0; i < this.length; i++) {
+            if (!this.hasOwnProperty(i)) continue;
+            var value = this[i];
+            if (iterator.call(context, value, i)) results.push(value);
+        }
+        return results;
+    },
+
+    forEach: function(iterator, context) {
+        for (var i = 0, len = this.length; i < len; i++) {
+            iterator.call(context, this[i], i, this); }
+    },
+
+    some: function(iterator, context) {
+        return this.detect(iterator, context) !== undefined;
+    },
+
+    every: function(iterator, context) {
         var result = true;
         for (var i = 0, len = this.length; i < len; i++) {
-            result = result && !! iterator.call(context || Global, this[i], i);
+            result = result && !! iterator.call(context, this[i], i);
             if (!result) break;
         }
         return result;
     },
 
-    any: Array.prototype.some || function(iterator, context) {
-        return this.detect(iterator, context) !== undefined;
-    },
-
-    collect: Array.prototype.map || (function(iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Prototype.K;
+    map: function(iterator, context) {
+        // if (typeof iterator !== 'function')
+            // throw new TypeError(arguments[0] + ' is not a function');
         var results = [];
         this.forEach(function(value, index) {
-            results.push(iterator(value, index));
+            results.push(iterator.call(context, value, index));
         });
         return results;
-    }),
+    },
+
+    reduce: function(iterator, memo, context) {
+        var start = 0;
+        if (!arguments.hasOwnProperty(1)) { start = 1; memo = this[0]; }
+        for (var i = start; i < this.length; i++)
+            memo = iterator.call(context, memo, this[i], i, this);
+        return memo;
+    },
+
+    reduceRight: function(iterator, memo, context) {
+        var start = this.length-1;
+        if (!arguments.hasOwnProperty(1)) { start--; memo = this[this.length-1]; }
+        for (var i = start; i >= 0; i--)
+            memo = iterator.call(context, memo, this[i], i, this);
+        return memo;
+    }
+
+};
+
+Object.extend(Array.prototype, {
+
+    each: Array.prototype.forEach || NativeArrayFunctions.forEach,
+
+    all: Array.prototype.every || NativeArrayFunctions.every,
+
+    any: Array.prototype.some || NativeArrayFunctions.some,
+
+    collect: Array.prototype.map || NativeArrayFunctions.map,
+
+    findAll: Array.prototype.filter || NativeArrayFunctions.filter,
 
     detect: function(iterator, context) {
         for (var value, i = 0, len = this.length; i < len; i++) {
@@ -40,15 +104,7 @@ Object.extend(Array.prototype, {
         return undefined;
     },
 
-    findAll: Array.prototype.filter || function(iterator, context) {
-        var results = [];
-        for (var i = 0; i < this.length; i++) {
-            if (!this.hasOwnProperty(i)) continue;
-            var value = this[i];
-            if (iterator.call(context, value, i)) results.push(value);
-        }
-        return results;
-    },
+
     filterByKey: function(key) {
         return this.filter(function(ea) { return !!ea[key]; });
     },
@@ -186,9 +242,7 @@ Object.extend(Array.prototype, {
 
     last: function() { return this[this.length - 1]; },
 
-    compact: function() {
-        return this.select(Functions.K);
-    },
+    compact: function() { return this.select(Functions.K); },
 
     mutableCompact: function() {
         // fix gaps that were created with 'delete'

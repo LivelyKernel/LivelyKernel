@@ -38,7 +38,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     showContextMenu: function(position) {
         var _this = this;
         
-        var componentNames = ["ScriptFlowComponent", "FanOut", "FanIn", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher"];
+        var componentNames = ["ScriptFlowComponent", "FanOut", "FanIn", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher", "FreeLayout"];
         
         var contextItems = componentNames.map(function(ea) {
             return [ea, function() {
@@ -1007,21 +1007,22 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.FreeLayout", {
         
         this.addScript(function updateComponent() {
             // create linear layout containing rects from data
-    
+            var morph = new lively.morphic.Box(new rect(0,0,10,10));
             var bar;
             this.clear();
             for (bar in this.data) {
                 if (this.data.hasOwnProperty(bar)) {
-                    this.addElement(this.data[bar]);
+                    this.addElement(this.data[bar],morph);
                 }
             }
+            var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
+            layout.addMorph(morph)
         });
     },
     
-    addElement: function(element){
-        var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
+    addElement: function(element, container){
         var morph = element.morph.duplicate()
-        layout.addMorph(morph);
+        container.addMorph(morph);
     },
     
     clear: function(){

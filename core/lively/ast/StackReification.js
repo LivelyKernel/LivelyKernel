@@ -71,7 +71,12 @@ Object.extend(lively.ast.StackReification, {
             }
         },
         String: {
+            // TODO: second parameter can be function (replaceValue)
             replace: {}
+        },
+        Array: {
+            // TODO: second parameter can be function (replacer)
+            stringify: {}
         }
     },
 

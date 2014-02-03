@@ -226,7 +226,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
-    findLocalVariables: function(ast) {
+    findLocalDeclarations: function(ast) {
         var locals = [];
         acorn.walk.matchNodes(ast, {
             'VariableDeclaration': function(node, state, depth, type) {
@@ -254,7 +254,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var vars = this.registerVars(this.findLocalVariables(astToRewrite)); // locals
+        var vars = this.registerVars(this.findLocalDeclarations(astToRewrite)); // locals
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         this.exitScope();
@@ -278,7 +278,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var vars = this.registerVars(this.findLocalVariables(astToRewrite)); // locals
+        var vars = this.registerVars(this.findLocalDeclarations(astToRewrite)); // locals
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         // this.exitScope();
@@ -794,7 +794,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         var idx = rewriter.astRegistry.length - 1;
         var start = n.start, end = n.end, astIndex = n.astIndex;
         var args = rewriter.registerVars(n.params.pluck('name')); // arguments
-        var vars = rewriter.registerVars(rewriter.findLocalVariables(n.body)); // locals
+        var vars = rewriter.registerVars(rewriter.findLocalDeclarations(n.body)); // locals
         var rewritten = this.accept(n.body, rewriter);
         rewriter.exitScope();
         var wrapped = rewriter.wrapClosure({

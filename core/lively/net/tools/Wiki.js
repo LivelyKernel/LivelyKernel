@@ -195,6 +195,12 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             });
     },
         setPath: function setPath(path) {
+        try {
+            // we expect a relative path to be entered, if it's a full URL try
+            // to make it into a path
+            var url = new URL(path);
+            path = url.relativePathFrom(URL.root);
+        } catch (e) {}
         this.get('pathText').textString = path;
         this._path = path; this.getVersions();
     },

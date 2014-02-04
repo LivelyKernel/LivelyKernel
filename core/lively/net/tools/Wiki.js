@@ -217,7 +217,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             if (!sel) { show('nothing selected'); return; }
             var url = this.getTimemachineBasePath()
                 .withFilename(encodeURIComponent(sel.date)+'/')
-                .withFilename(this.getWorldPath());
+                .withFilename(this.getPath());
             window.open(''+url);
         }
     }],

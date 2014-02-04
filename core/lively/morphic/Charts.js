@@ -1043,7 +1043,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         var ctx = this.getDoitContext() || this;
         ctx.refreshData();
         
-        var __evalStatement = "(function() {var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
         
         // see also $super
         
@@ -1115,6 +1115,53 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         _this.onChanged.apply(_this, arguments);
     },
     
+    arrangeOnPath: function(path, entity) {
+    	var morphs = entity.pluck("morph");
+    	
+    	if (!morphs.length)
+    	    return;
+    	
+    	// determine overall length of the path
+    	var length = path.reduce(function (sum, cur, i, all) {
+    		if (i > 0)
+    			return sum + cur.dist(all[i - 1]);
+    		else
+    			return sum;
+    	}, 0);
+      
+        var distance;
+        if (path[0].equals(path[path.length - 1])) {
+            // path is closed, leave space between last and first element
+    	    distance = length / (morphs.length);
+        } else {
+            // path is open, distribute elements evenly from start to end
+            distance = length / (morphs.length - 1);
+        }
+        
+        // set position of first morph and remove it from the array
+        morphs[0].setPosition(path[0]);
+        morphs.splice(0, 1);
+    
+    	var curPt = path[0];
+    	var curPathIndex = 1;
+    
+    	morphs.each(function (morph, index) {
+    		var distanceToTravel = distance;
+    		while (distanceToTravel) {
+    			var pieceLength = curPt.dist(path[curPathIndex]);
+    			if (pieceLength >= distanceToTravel || index == morphs.length - 1) {
+    				var direction = path[curPathIndex].subPt(curPt);
+    				curPt = curPt.addPt(direction.normalized().scaleBy(distanceToTravel));
+    				morph.setPosition(curPt);
+    				distanceToTravel = 0;
+    			} else {
+    				curPt = path[curPathIndex];
+    				curPathIndex++;
+    				distanceToTravel -= pieceLength;
+    			}
+    		}
+    	});
+    }
 });
 
 lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',

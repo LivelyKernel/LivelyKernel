@@ -769,11 +769,10 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (!rootDirectory.endsWith('/')) rootDirectory += '/';
         options.rootDirectory = rootDirectory;
         // we expect an consistent timeformat across OSs to parse the results
-        var timeFormatFix = "if [ \"`uname`\" = \"Darwin\" ]; "
-                          + "  then timeformat='-T'; "
-                          + "else "
-                          + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
-                          + "fi && ",
+        var platform = lively.ide.CommandLineInterface.getServerPlatform(),
+            timeFormatFix = platform === 'darwin' ? 
+                "timeformat='-T'; " :
+                "timeformat=\"--time-style=+%b %d %T %Y\"; ",
             excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
             searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : '-iname', pattern),
             depth = options.hasOwnProperty('depth') ? ' -maxdepth ' + options.depth : '',

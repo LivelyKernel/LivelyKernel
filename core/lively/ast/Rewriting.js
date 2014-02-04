@@ -269,8 +269,6 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     rewrite: function(node) {
-        // FIXME!
-        lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
         this.enterScope();
         var astToRewrite = acorn.walk.copy(node);
         this.astRegistry.push(astToRewrite);
@@ -293,8 +291,6 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             throw new Error('no a valid function expression/statement? ' + lively.ast.acorn.printAst(node));
         if (!node.id) node.id = this.newNode("Identifier", {name: ""});
 
-        // FIXME!
-        lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
         // this.enterScope();
         var astToRewrite = acorn.walk.copy(node);
         this.astRegistry.push(astToRewrite);
@@ -826,15 +822,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     },
 
     visitFunctionDeclaration: function(n, rewriter) {
-        if (n.type == 'FunctionDeclaration') { // FunctionExpressions are forwarded here too
-            // FunctionDeclarations are handled in registerDeclarations
-            // only advance the pc
-            return {
-                type: 'ExpressionStatement',
-                expression: rewriter.lastNodeExpression(n.astIndex)
-            };
-        }
+        // FunctionDeclarations are handled in registerDeclarations
+        // only advance the pc
+        return {
+            type: 'ExpressionStatement',
+            expression: rewriter.lastNodeExpression(n.astIndex)
+        };
+    },
 
+    visitFunctionExpression: function(n, rewriter) {
         // id is a node of type Identifier
         // each of n.params is of type Pattern
         // each of n.defaults is of type Expression (optional)
@@ -856,13 +852,6 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 body: [rewriter.wrapSequence(rewritten, args, decls, idx)]}),
             id: n.id || null, params: args
         }, idx);
-        if (n.id && n.type == 'FunctionDeclaration') {
-            wrapped = rewriter.newNode('AssignmentExpression', {
-                left: this.accept(n.id, rewriter),
-                operator: '=',
-                right: wrapped
-            });
-        }
         return rewriter.astRegistry[idx].rewritten = rewriter.newNode('ExpressionStatement', {
             expression: rewriter.storeComputationResult(wrapped, start, end, astIndex),
             id: n.id
@@ -1087,9 +1076,5 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     }
 
 });
-
-(function RewriteVisitorFIXME() {
-    lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionExpression = lively.ast.Rewriting.RewriteVisitor.prototype.visitFunctionDeclaration;
-})();
 
 }) // end of module

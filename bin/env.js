@@ -29,10 +29,16 @@ function which(command) {
                     fs.writeFileSync(sleepFile, 'sleeeeeep');
                 output = String(fs.readFileSync(whichOutputFile)).trim();
             } finally {
-                try {
-                    fs.existsSync(sleepFile) && fs.unlinkSync(sleepFile);
-                    fs.existsSync(whichOutputFile) && fs.unlinkSync(whichOutputFile);
-                } catch(e) { console.error(e); }
+                var timeout = 2*1000, start = Date.now();
+                (function cleanup() {
+                    try {
+                        fs.existsSync(sleepFile) && fs.unlinkSync(sleepFile);
+                        fs.existsSync(whichOutputFile) && fs.unlinkSync(whichOutputFile);
+                    } catch(e) {
+                        if (Date.now() - start < timeout) cleanup();
+                        else console.error(e);
+                    }
+                })();
             }
             return output;
         };

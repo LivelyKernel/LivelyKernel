@@ -25,6 +25,7 @@ Object.extend(lively.ast.Rewriting, {
 
 Object.subclass("lively.ast.Rewriting.Rewriter",
 "initializing", {
+
     initialize: function(astRegistry)  {
         // scopes is used for keeping track of local vars and computationProgress state
         // while rewriting. Whenever a local var or an intermediate computation result
@@ -43,8 +44,10 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
         this.astIndex = 0;
     }
+
 },
 'ast helpers', {
+
     newNode: function(type, node) {
         node.type = type;
         node.start = 0;
@@ -92,24 +95,17 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
-     wrapArgsAndVars: function(args, vars) {
-        if ((!args || !args.length) && (!vars || !vars.length)) return '{}';
+    wrapArgsAndDecls: function(args, decls) {
+        if ((!args || !args.length) && (!decls || !decls.length)) return '{}';
         var wArgs = args ? args.map(function(ea) {
                 return {
                     key: this.newNode('Literal', {value: ea.name}),
                     kind: 'init', value: ea
                 }
             }, this) : [],
-            wVars = vars ? vars.map(function(ea) {
-                return {
-                    key: this.newNode('Literal', {value: ea.name}),
-                    kind: 'init',
-                    value: this.newNode('Identifier', {name: 'undefined'})
-                }
-            }, this) : [];
-        return this.newNode('ObjectExpression', {properties: wArgs.concat(wVars)});
+            wDecls = decls || [];
+        return this.newNode('ObjectExpression', {properties: wArgs.concat(wDecls)});
     }
-
 
 },
 'scoping', {
@@ -131,16 +127,57 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         }, this);
     },
 
+    registerDeclarations: function(ast, visitor) {
+        if (!this.scopes.length) return;
+        var scope = this.scopes.last(),
+            that = this,
+            decls = {};
+        acorn.walk.matchNodes(ast, {
+            'VariableDeclaration': function(node, state, depth, type) {
+                if (node.type != type) return; // skip Expression, Statement, etc.
+                node.declarations.each(function(n) {
+                    state[n.id.name] = {
+                        key: that.newNode('Literal', {value: n.id.name}),
+                        kind: 'init',
+                        value: that.newNode('Identifier', {name: 'undefined'})
+                    };
+                    if (scope.localVars.indexOf(n.id.name) == -1)
+                        scope.localVars.push(n.id.name);
+                });
+            },
+            'FunctionDeclaration': function(node, state, depth, type) {
+                if (node.type != type) return; // skip Expression, Statement, etc.
+                state[node.id.name] = node; // rewrite is done below (to know all local vars first)
+                if (scope.localVars.indexOf(node.id.name) == -1)
+                    scope.localVars.push(node.id.name);
+            }
+        }, decls, {
+            visitors: acorn.walk.make({'Function': function() { /* stop descent */ }})
+        });
+
+        return Object.getOwnPropertyNames(decls).map(function(decl) {
+            var node = decls[decl];
+            if (node.type == 'FunctionDeclaration') {
+                node = {
+                    key: that.newNode('Literal', {value: node.id.name}),
+                    kind: 'init',
+                    value: that.rewriteFunctionDeclaration(node)
+                }
+            }
+            return node;
+        });
+    }
+
 },
 'rewriting', {
 
-    createPreamble: function(args, vars, level) {
+    createPreamble: function(args, decls, level) {
         return this.newNode('VariableDeclaration', {
             kind: 'var',
             declarations: [
                 this.newVariable('_', '{}'),
                 this.newVariable('lastNode', this.newNode('Identifier', {name: 'undefined'})),
-                this.newVariable('_' + level, this.wrapArgsAndVars(args, vars)),
+                this.newVariable('_' + level, this.wrapArgsAndDecls(args, decls)),
                 this.newVariable('__' + level,
                     ['_', '_' + level, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
             ]
@@ -182,9 +219,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
-    wrapSequence: function(node, args, vars, originalFunctionIdx) {
+    wrapSequence: function(node, args, decls, originalFunctionIdx) {
         var level = this.scopes.length;
-        node.body.unshift(this.createPreamble(args, vars, level));
+        node.body.unshift(this.createPreamble(args, decls, level));
         return this.createCatchForUnwind(node, originalFunctionIdx, level);
     },
 
@@ -213,34 +250,22 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var pos = (node.start || start || 0) + '-' + (node.end || end || 0);
         this.scopes.last().computationProgress.push(pos);
         return this.newNode('AssignmentExpression', {
-            operator: '=', right: node,
+            operator: '=',
             left: this.newNode('MemberExpression', {
                 object: this.newNode('Identifier', {name: '_'}),
-                property: this.newNode('AssignmentExpression', {
-                    operator: '=',
-                    left: this.newNode('Identifier', {name: 'lastNode'}),
-                    right: this.newNode('Literal', {value: astIndex})
-                }),
+                property: this.lastNodeExpression(astIndex),
                 computed: true
             }),
+            right: node
         });
     },
 
-    findLocalDeclarations: function(ast) {
-        var locals = [];
-        acorn.walk.matchNodes(ast, {
-            'VariableDeclaration': function(node, state, depth, type) {
-                if (node.type != type) return; // skip Expression, Statement, etc.
-                node.declarations.each(function(n) { state.push(n.id.name); });
-            },
-            'FunctionDeclaration': function(node, state, depth, type) {
-                if (node.type != type) return; // skip Expression, Statement, etc.
-                state.push(node.id.name);
-            }
-        }, locals, {
-            visitors: acorn.walk.make({'Function': function() { /* stop descent */ }})
+    lastNodeExpression: function(astIndex) {
+        return this.newNode('AssignmentExpression', {
+            operator: '=',
+            left: this.newNode('Identifier', {name: 'lastNode'}),
+            right: this.newNode('Literal', {value: astIndex})
         });
-        return locals;
     },
 
     rewrite: function(node) {
@@ -254,11 +279,11 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var vars = this.registerVars(this.findLocalDeclarations(astToRewrite)); // locals
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
+        var decls = this.registerDeclarations(astToRewrite, rewriteVisitor); // locals
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         this.exitScope();
-        var wrapped = this.wrapSequence(rewritten, args, vars, astRegistryIndex);
+        var wrapped = this.wrapSequence(rewritten, args, decls, astRegistryIndex);
         this.astRegistry[astRegistryIndex].rewritten = wrapped; // FIXME just for debugging
         return this.newNode('Program', {body: [wrapped]});
     },
@@ -278,7 +303,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var vars = this.registerVars(this.findLocalDeclarations(astToRewrite)); // locals
+        var decls = this.registerDeclarations(astToRewrite); // locals
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         // this.exitScope();
@@ -286,6 +311,25 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         rewritten = rewritten.expression.arguments[1];
         this.astRegistry[astRegistryIndex].rewritten = rewritten; // FIXME just for debugging
         return rewritten;
+    },
+
+    rewriteFunctionDeclaration: function(node) {
+        this.enterScope();
+        this.astRegistry.push(acorn.walk.copy(node));
+        var idx = this.astRegistry.length - 1;
+        var start = node.start, end = node.end, astIndex = node.astIndex;
+        var args = this.registerVars(node.params.pluck('name')); // arguments
+        var decls = this.registerDeclarations(node.body); // locals
+        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
+        var rewritten = rewriteVisitor.accept(node.body, this);
+        this.exitScope();
+        var wrapped = this.wrapClosure({
+            start: node.start, end: node.end, type: 'FunctionExpression',
+            body: this.newNode('BlockStatement', {
+                body: [this.wrapSequence(rewritten, args, decls, idx)]}),
+            id: node.id || null, params: args
+        }, idx);
+        return this.astRegistry[idx].rewritten = wrapped;
     }
 
 });
@@ -782,6 +826,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     },
 
     visitFunctionDeclaration: function(n, rewriter) {
+        if (n.type == 'FunctionDeclaration') { // FunctionExpressions are forwarded here too
+            // FunctionDeclarations are handled in registerDeclarations
+            // only advance the pc
+            return {
+                type: 'ExpressionStatement',
+                expression: rewriter.lastNodeExpression(n.astIndex)
+            };
+        }
+
         // id is a node of type Identifier
         // each of n.params is of type Pattern
         // each of n.defaults is of type Expression (optional)
@@ -794,13 +847,13 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         var idx = rewriter.astRegistry.length - 1;
         var start = n.start, end = n.end, astIndex = n.astIndex;
         var args = rewriter.registerVars(n.params.pluck('name')); // arguments
-        var vars = rewriter.registerVars(rewriter.findLocalDeclarations(n.body)); // locals
+        var decls = rewriter.registerDeclarations(n.body); // locals
         var rewritten = this.accept(n.body, rewriter);
         rewriter.exitScope();
         var wrapped = rewriter.wrapClosure({
             start: n.start, end: n.end, type: 'FunctionExpression',
             body: rewriter.newNode('BlockStatement', {
-                body: [rewriter.wrapSequence(rewritten, args, vars, idx)]}),
+                body: [rewriter.wrapSequence(rewritten, args, decls, idx)]}),
             id: n.id || null, params: args
         }, idx);
         if (n.id && n.type == 'FunctionDeclaration') {

@@ -681,7 +681,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
                     arrow.connectionLine.notifyViewer();
                 }
                 
-                var dependentComponent = _this.getComponentInDirection(1, arrow.getPositionInWorld());
+                var dependentComponent = _this.getComponentInDirectionPerPoint(1, arrow.getPositionInWorld());
                 if (dependentComponent) {
                     dependentComponent.notify();
                 }

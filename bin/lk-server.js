@@ -64,7 +64,7 @@ if (!options.lkDir && env.WORKSPACE_LK_EXISTS) {
     env.WORKSPACE_LK = options.lkDir;
 }
 
-if (!options.defined('lkDir')) {
+if (!options.lkDir) {
     console.log("Cannot find the Lively core repository. "
                + "Please start the server with --lk-dir PATH/TO/LK-REPO");
 }

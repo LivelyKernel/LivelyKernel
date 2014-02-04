@@ -600,9 +600,11 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenVersionsOfFile', {
     },
     showVersions: function() {
         var filename = this.browser.getPane1Selection().asString(),
-            url = this.browser.getTargetURL().withFilename(filename);
-        require('lively.ide.VersionTools').toRun(function() {
-            new lively.ide.FileVersionViewer().openForURL(url);
+            url = this.browser.getTargetURL().withFilename(filename),
+            path = url.relativePathFrom(URL.root);
+        require('lively.net.tools.Wiki').toRun(function() {
+            var versionViewer = lively.BuildSpec('lively.wiki.VersionViewer').createMorph().openInWorldCenter();
+            versionViewer.setPath(path);
         });
     },
 });

@@ -2,7 +2,7 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
-    initialize: function($super, aMorph) {
+    initialize: function($super, aMorph, point) {
         this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
         this.isLayoutable = false;
@@ -10,7 +10,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         
         $super(controlPoints);
         this.setBorderColor(Color.rgb(94,94,94));
-        this.positionAtMorph();
+        this.positionAtMorph(point);
         this.setBorderWidth(0);
         this.deactivate();
     },
@@ -57,14 +57,14 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     },
 
     
-    positionAtMorph: function() {
+    positionAtMorph: function(point) {
         var aMorph = this.componentMorph;
         var extent = aMorph.getExtent();
         
         var offsetX = (extent.x - this.getExtent().x) / 2;
         var offsetY = extent.y;
         
-        this.setPosition(pt(offsetX, offsetY));
+        this.setPosition(point || pt(offsetX, offsetY));
         aMorph.addMorph(this);
         
         // Since addMorph removes the morph and adds it on the new owner,
@@ -339,7 +339,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     onArrowDeactivated: function(arrow) {
-        var component = this.getComponentInDirection(1, arrow.getPositionInWorld());
+        var component = this.getComponentInDirectionPerPoint(1, arrow.getPositionInWorld());
 
         this.removeConnectionLine(arrow);
        
@@ -1569,7 +1569,6 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
             var newArrow = new lively.morphic.Charts.Arrow(this);
             var offset = this.getPosition().x;
             newArrow.setPosition(pt(target.getExtent().x/2+target.getPosition().x-newArrow.getExtent().x/2-offset,newArrow.getPosition().y));
-            this.arrows.push(newArrow);
             newArrow.activate();
             return this.data;
         }

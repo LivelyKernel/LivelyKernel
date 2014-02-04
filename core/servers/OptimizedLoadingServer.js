@@ -4,6 +4,7 @@ var fs           = require("fs"),
     ffuser       = require('file-fuser'),
     directory    = process.env.WORKSPACE_LK || path.resolve(__dirname, '../..'),
     combinedFile = "combined.js",
+    isWindows    = !!process.platform.match(/^win/),
     fuser;
 
 function determineCoreFiles() {
@@ -80,6 +81,13 @@ function determineCoreFiles() {
 }
 
 (function setup() {
+    if (isWindows) {
+        console.log("Optimized file loading currently not supported on Windows. "
+                  + "There seems to be an issue with gaze module used by the file-fuser to "
+                  + "watch for file changes. Trying to watch a directory on window results "
+                  + "on an error");
+        return;
+    }
     // if the combined file exists when we are starting then delete it. This
     // way we make sure that we pick up changes that happended while the server
     // wasn't running

@@ -228,13 +228,6 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                     this.setVar(0, 'foo', 
                         this.intermediateResult(
                             this.closureWrapper(0, 'bar', [], {}, "")))) + ';\n');
-// FIXME: inner function should be declared local');
-// expected = this.tryCatch(0, {'foo': 'undefined', 'bar': 'undefined'},
-//     this.intermediateResult(
-//         this.setVar(0, 'foo',
-//             this.intermediateResult(
-//             this.setVar(0, 'bar',
-//                 this.closureWrapper(0, 'bar', [], {},""))))) + ';\n');
         this.assertASTMatchesCode(result, expected);
     },
 

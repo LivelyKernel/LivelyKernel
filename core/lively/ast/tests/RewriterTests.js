@@ -147,9 +147,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'i': 'undefined', 'j': 'undefined'},
-                this.intermediateResult(
-                    this.setVar(0, 'i', '0, ')
-                  + this.intermediateResult(this.setVar(0, 'j', 'undefined;\n'))));
+                this.intermediateResult(this.setVar(0, 'i', '0, ')) +
+                this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
     },
 
@@ -318,15 +317,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {lively: 'undefined', ast: 'undefined', morphic: 'undefined'},
-            // FIXME vars are initialized twice?!
-            // mr 2014-01-29: This has to be the case if you want to do it correctly
-                this.intermediateResult(
-                    this.setVar(0, 'lively', 'undefined, '))
-              + this.intermediateResult(
-                    this.setVar(0, 'ast', 'undefined, '))
-              + this.intermediateResult(
-                    this.setVar(0, 'morphic', 'undefined;\n'))
-              + this.getVar(0, 'lively') + '.ast.morphic;\n');
+                this.pcAdvance() + ', ' +   // for lively
+                this.pcAdvance() + ', ' +   // for ast
+                this.pcAdvance() + ';\n' +  // for morphic
+                // FIXME: shouldn't there be a pc advance for lively.ast.morphic?
+                this.getVar(0, 'lively') + '.ast.morphic;\n');
         this.assertASTMatchesCode(result, expected);
     },
 
@@ -348,8 +343,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {foo: 'undefined'},
-                this.intermediateResult(this.setVar(0, 'foo', 'undefined;\n'))
-              + "({ foo: " + this.getVar(0, 'foo') + ' });\n');
+                this.pcAdvance() + ';\n' +
+                "({ foo: " + this.getVar(0, 'foo') + ' });\n');
         this.assertASTMatchesCode(result, expected);
     },
 
@@ -406,6 +401,48 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
         }
         var src = Strings.format('(%s)();', code),
             src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test02aFunctionArguments: function() {
+        function code(a) {
+            return a;
+        }
+        var src = Strings.format('(%s)(1);', code),
+            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test02bFunctionArgumentsAndVar: function() {
+        function code(a) {
+            var a = 3;
+            return a;
+        }
+        var src = Strings.format('(%s)(1);', code),
+            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test02cFunctionArgumentsAndUndefinedVar: function() {
+        function code(a) {
+            var a;
+            return a;
+        }
+        var src = Strings.format('(%s)(1);', code),
+            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+        console.log(src2);
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test02dFunctionArgumentsAndLateVarDef: function() {
+        function code(a) {
+            var b = a;
+            var a = 3;
+            return b += a;
+        }
+        var src = Strings.format('(%s)(1);', code),
+            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+        console.log(src2);
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     }
 

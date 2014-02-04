@@ -120,11 +120,15 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     registerVars: function(vars) {
         if (!this.scopes.length) return;
-        var scope = this.scopes.last();
-        return vars.map(function(varName) {
-            scope.localVars.push(varName);
-            return this.newNode('Identifier', { name: varName });
-        }, this);
+        var scope = this.scopes.last(),
+            that = this;
+        return vars.reduce(function(res, varName) {
+            if (scope.localVars.indexOf(varName) == -1) {
+                scope.localVars.push(varName);
+            }
+            res.push(that.newNode('Identifier', { name: varName }));
+            return res;
+        }, []);
     },
 
     registerDeclarations: function(ast, visitor) {
@@ -136,13 +140,15 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             'VariableDeclaration': function(node, state, depth, type) {
                 if (node.type != type) return; // skip Expression, Statement, etc.
                 node.declarations.each(function(n) {
-                    state[n.id.name] = {
-                        key: that.newNode('Literal', {value: n.id.name}),
-                        kind: 'init',
-                        value: that.newNode('Identifier', {name: 'undefined'})
-                    };
-                    if (scope.localVars.indexOf(n.id.name) == -1)
+                    // only if it has not been defined before (as variable or argument!)
+                    if (scope.localVars.indexOf(n.id.name) == -1) {
+                        state[n.id.name] = {
+                            key: that.newNode('Literal', {value: n.id.name}),
+                            kind: 'init',
+                            value: that.newNode('Identifier', {name: 'undefined'})
+                        };
                         scope.localVars.push(n.id.name);
+                    }
                 });
             },
             'FunctionDeclaration': function(node, state, depth, type) {
@@ -863,6 +869,11 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // n.kind is "var" or "let" or "const"
         var start = n.start, end = n.end, astIndex = n.astIndex;
         var decls = n.declarations.map(function(decl) {
+            if (decl.init == null) { // no initialization, e.g. var x;
+                // only advance the pc
+                return rewriter.lastNodeExpression(n.astIndex);
+            }
+
             var value = this.accept(decl.init, rewriter);
             value = rewriter.newNode('AssignmentExpression', {
                 left: this.accept(decl.id, rewriter),
@@ -871,9 +882,6 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     value.expression : // unwrap
                     value
             });
-            if (value.right == null) { // could be ignored
-                value.right = rewriter.newNode('Identifier', { name: 'undefined' });
-            }
             return rewriter.storeComputationResult(value, start, end, astIndex);
         }, this);
 

@@ -985,25 +985,28 @@
                 base = this.rootPath,
                 timemachineActive = /timemachine/.test(Config.rootPath),
                 urlOption = Global.JSLoader.getOption('quickLoad'),
-                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive;
+                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive,
+                combinedModulesHash;
 
             if (dontBootstrap) { thenDoFunc(); return; }
 
             if (optimizedLoading) {
-                console.log('optimized loading enabled');
                 var hashUrl = base + 'generated/combinedModulesHash.txt';
                 Global.JSLoader.getViaXHR(true/*sync*/, hashUrl, function(err, hash) {
-                    if (err) { console.log(err); return; }
-                    var combinedModulesUrl = base + 'generated/' + hash + '/combinedModules.js';
-                    Global.JSLoader.loadCombinedModules(
-                        combinedModulesUrl, thenDoFunc);
+                    if (err) console.warn('Optimized loading not available: ' + err);
+                    else combinedModulesHash = hash;
                 });
-                return;
             }
 
-            Global.JSLoader.resolveAndLoadAll(
-                base, this.libsFiles.concat(Global.LivelyLoader.bootstrapFiles),
-                thenDoFunc);
+            if (combinedModulesHash) {
+                console.log('optimized loading enabled');
+                var combinedModulesUrl = base + 'generated/' + combinedModulesHash + '/combinedModules.js';
+                Global.JSLoader.loadCombinedModules(combinedModulesUrl, thenDoFunc);
+            } else {
+                Global.JSLoader.resolveAndLoadAll(
+                    base, this.libsFiles.concat(Global.LivelyLoader.bootstrapFiles),
+                    thenDoFunc);
+            }
         }
 
     };

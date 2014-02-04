@@ -317,9 +317,12 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     rewriteFunctionDeclaration: function(node) {
         this.enterScope();
-        this.astRegistry.push(acorn.walk.copy(node));
-        var idx = this.astRegistry.length - 1;
+        var astToRewrite = acorn.walk.copy(node);
+        this.astRegistry.push(astToRewrite);
+        var astRegistryIndex = this.astRegistry.length - 1;
         var start = node.start, end = node.end, astIndex = node.astIndex;
+        // FIXME: sub-ast should have there own node indices
+        // acorn.walk.addAstIndex(astToRewrite);
         var args = this.registerVars(node.params.pluck('name')); // arguments
         var decls = this.registerDeclarations(node.body); // locals
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
@@ -328,10 +331,11 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var wrapped = this.wrapClosure({
             start: node.start, end: node.end, type: 'FunctionExpression',
             body: this.newNode('BlockStatement', {
-                body: [this.wrapSequence(rewritten, args, decls, idx)]}),
+                body: [this.wrapSequence(rewritten, args, decls, astRegistryIndex)]}),
             id: node.id || null, params: args
-        }, idx);
-        return this.astRegistry[idx].rewritten = wrapped;
+        }, astRegistryIndex);
+        this.astRegistry[astRegistryIndex].rewritten = wrapped;
+        return wrapped;
     }
 
 });
@@ -845,8 +849,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // n.generator has a specific type that is boolean
         // n.expression has a specific type that is boolean
         rewriter.enterScope();
-        rewriter.astRegistry.push(acorn.walk.copy(n));
-        var idx = rewriter.astRegistry.length - 1;
+        var astToRewrite = acorn.walk.copy(n);
+        rewriter.astRegistry.push(astToRewrite);
+        var astRegistryIndex = rewriter.astRegistry.length - 1;
         var start = n.start, end = n.end, astIndex = n.astIndex;
         var args = rewriter.registerVars(n.params.pluck('name')); // arguments
         var decls = rewriter.registerDeclarations(n.body); // locals
@@ -855,10 +860,10 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         var wrapped = rewriter.wrapClosure({
             start: n.start, end: n.end, type: 'FunctionExpression',
             body: rewriter.newNode('BlockStatement', {
-                body: [rewriter.wrapSequence(rewritten, args, decls, idx)]}),
+                body: [rewriter.wrapSequence(rewritten, args, decls, astRegistryIndex)]}),
             id: n.id || null, params: args
-        }, idx);
-        return rewriter.astRegistry[idx].rewritten = rewriter.newNode('ExpressionStatement', {
+        }, astRegistryIndex);
+        return rewriter.astRegistry[astRegistryIndex].rewritten = rewriter.newNode('ExpressionStatement', {
             expression: rewriter.storeComputationResult(wrapped, start, end, astIndex),
             id: n.id
         });

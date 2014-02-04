@@ -76,13 +76,14 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     activate: function() {
         this.activated = true;
         this.componentMorph.onArrowActivated(this);
-        this.setFill(Color.rgbHex("77D88B"));
+        this.setFill(Color.rgb(94,94,94));
     },
     
     deactivate: function() {
         this.activated = false;
         this.componentMorph.onArrowDeactivated(this);
-        this.setFill(Color.rgb(94,94,94));
+        this.setFillOpacity(0);
+        this.setBorderWidth(1);
     },
     
     onMouseUp: function(e) {

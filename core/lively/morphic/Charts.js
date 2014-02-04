@@ -75,15 +75,15 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
     activate: function() {
         this.activated = true;
-        this.componentMorph.onArrowActivated(this);
         this.setFill(Color.rgb(94,94,94));
+        this.componentMorph.onArrowActivated(this);
     },
     
     deactivate: function() {
         this.activated = false;
-        this.componentMorph.onArrowDeactivated(this);
         this.setFillOpacity(0);
         this.setBorderWidth(1);
+        this.componentMorph.onArrowDeactivated(this);
     },
     
     onMouseUp: function(e) {
@@ -649,6 +649,17 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     update: function() {
+        if (this.called>1000){
+            return;
+        }
+        this.called = (this.called || 0)+1;
+        var _this = this;
+        setTimeout(function(){
+            _this.called = 0;
+        },10000);
+        console.log(this.called);
+        
+        
         this.refreshData();
 
         var promise;
@@ -688,6 +699,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
                 }
             }  
         });
+        if (this.arrows.length == 0){
+            //alert("Component has no arrows.");
+        }
     },
     
     notify: function() {
@@ -1009,13 +1023,12 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.FreeLayout", {
         var morph = new lively.morphic.Box(new rect(0,0,10,10));
         var bar;
         this.clear();
-        for (bar in this.data) {
-            if (this.data.hasOwnProperty(bar)) {
-                this.addElement(this.data[bar],morph);
-            }
-        }
+        var _this = this;
+        this.data.each(function(datum){
+            _this.addElement(datum,morph);
+        })
         var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
-        layout.addMorph(morph);
+        layout.addMorph(morph)
     },
     
     addElement: function(element, container){

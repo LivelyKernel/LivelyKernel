@@ -1,7 +1,7 @@
 module('lively.net.tools.Wiki').requires('lively.morphic.Complete', 'lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.wiki.VersionViewer', {
-    _Extent: lively.pt(336.0,181.0),
+    _Extent: lively.pt(354.0,196.0),
     _Position: lively.pt(812.0,61.0),
     className: "lively.morphic.Window",
     contentOffset: lively.pt(3.0,22.0),
@@ -12,9 +12,10 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _BorderWidth: 1,
-        _Extent: lively.pt(330.0,156.0),
+        _Extent: lively.pt(348.0,171.0),
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(3.0,22.0),
+        _path: null,
         className: "lively.morphic.Box",
         droppingEnabled: true,
         isCopyMorphRef: true,
@@ -31,20 +32,49 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         name: "VersionViewer",
         sourceModule: "lively.morphic.Core",
         submorphs: [{
-            _ClipMode: {x: "hidden",y: "scroll"},
-            _Extent: lively.pt(321.6,102.3),
+            _ClipMode: "hidden",
+            _Extent: lively.pt(339.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _HandStyle: null,
+            _InputAllowed: true,
+            _MaxTextWidth: 120.695652,
+            _MinTextWidth: 120.695652,
+            _Padding: lively.rect(5,5,0,0),
+            _Position: lively.pt(4.2,4.2),
+            allowInput: true,
+            className: "lively.morphic.Text",
+            emphasis: [[0,0,{
+                fontWeight: "normal",
+                italics: "normal"
+            }]],
+            fixedHeight: true,
+            isInputLine: true,
+            layout: {
+                resizeHeight: false,
+                resizeWidth: true
+            },
+            name: "pathText",
+            sourceModule: "lively.morphic.TextCore",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "savedTextString", this.get("VersionViewer"), "setPath", {});
+        }
+        },{
+            _ClipMode: {
+                x: "hidden",
+                y: "scroll"
+            },
+            _Extent: lively.pt(339.6,109.2),
             _Fill: Color.rgb(243,243,243),
-            _FontSize: 10,
-            _Position: lively.pt(4.2,26.8),
+            _Position: lively.pt(4.2,25.8),
             changeTriggered: true,
             className: "lively.morphic.List",
             droppingEnabled: true,
             itemMorphs: [],
             layout: {
                 adjustForNewBounds: true,
-                extent: lively.pt(321.6,102.3),
+                extent: lively.pt(339.6,109.2),
                 listItemHeight: 19,
-                maxExtent: lively.pt(321.6,102.3),
+                maxExtent: lively.pt(339.6,109.2),
                 maxListItems: 6,
                 noOfCandidatesShown: 1,
                 padding: 0,
@@ -53,82 +83,149 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             },
             name: "VersionList",
             sourceModule: "lively.morphic.Lists",
-            submorphs: [{
-                _BorderColor: Color.rgb(204,0,0),
-                _Extent: lively.pt(321.6,4.0),
-                className: "lively.morphic.Box",
-                droppingEnabled: true,
-                layout: {
-                    adjustForNewBounds: true,
-                    resizeWidth: true
-                }
-            }]
+            submorphs: []
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 5,
-            _BorderWidth: 1,
-            _Extent: lively.pt(321.6,20.0),
-            _Position: lively.pt(4.2,131.8),
-            className: "lively.morphic.Button",
-            isPressed: false,
-            label: "Visit",
-            layout: {resizeWidth: true},
-            name: "VisitButton",
-            sourceModule: "lively.morphic.Widgets",
-            connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this.get("VersionViewer"), "visitVersion", {});
-        }
+            _Extent: lively.pt(339.6,29.1),
+            _Fill: Color.rgb(255,255,255),
+            _Position: lively.pt(4.2,137.7),
+            className: "lively.morphic.Box",
+            droppingEnabled: true,
+            layout: {
+                borderSize: 3.975,
+                extentWithoutPlaceholder: lively.pt(378.6,100.0),
+                resizeHeight: false,
+                resizeWidth: true,
+                spacing: 4.25,
+                type: "lively.morphic.Layout.HorizontalLayout"
+            },
+            name: "Rectangle",
+            sourceModule: "lively.morphic.Core",
+            submorphs: [{
+                _BorderColor: Color.rgb(189,190,192),
+                _BorderRadius: 5,
+                _BorderWidth: 1,
+                _Extent: lively.pt(163.7,21.2),
+                _Position: lively.pt(171.9,4.0),
+                className: "lively.morphic.Button",
+                isPressed: false,
+                label: "Visit",
+                layout: {
+                    resizeWidth: true
+                },
+                name: "VisitButton",
+                sourceModule: "lively.morphic.Widgets",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("VersionViewer"), "visitVersion", {});
+            }
+            },{
+                _BorderColor: Color.rgb(189,190,192),
+                _BorderRadius: 5,
+                _BorderWidth: 1,
+                _Extent: lively.pt(163.7,21.2),
+                _Position: lively.pt(4.0,4.0),
+                className: "lively.morphic.Button",
+                isPressed: false,
+                label: "Revert",
+                layout: {
+                    resizeWidth: true
+                },
+                name: "RevertButton",
+                sourceModule: "lively.morphic.Widgets",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("VersionViewer"), "revertToVersion", {});
+            }
+            }]
         }],
-        getTimemachineBasePath: function getTimemachineBasePath() {
-        return URL.root.withFilename('timemachine/');
+        getPath: function getPath() {
+        return this._path;
     },
+        getTimemachineBasePath: function getTimemachineBasePath() {
+            return URL.root.withFilename('timemachine/');
+        },
         getVersions: function getVersions() {
+        var p = this.getPath();
+        if (!p) return;
         module('lively.store.Interface').load(true);
         var self = this;
         new lively.store.ObjectRepository().getRecords({
-            paths: [this.getWorldPath()],
+            paths: [p],
             attributes: ['path', 'date', 'author', 'change']
         }, function(err, rows) {
             self.showResult(err, rows);
         });
     },
-        getWorldPath: function getWorldPath() {
-        return URL.source.relativePathFrom(URL.root)
+        onLoad: function onLoad() {
+        // this.getVersions();
     },
         reset: function reset() {
-        lively.bindings.connect(this.get('UpdateButton'), 'fire', this, 'getVersions');
-        lively.bindings.connect(this.get('VisitButton'), 'fire', this, 'visitVersion');
-        this.get('VersionList').setList([]);
+            // lively.bindings.connect(this.get('UpdateButton'), 'fire', this, 'getVersions');
+            lively.bindings.connect(this.get('pathText'), 'savedTextString', this, 'setPath');
+            lively.bindings.connect(this.get('VisitButton'), 'fire', this, 'visitVersion');
+            lively.bindings.connect(this.get('RevertButton'), 'fire', this, 'revertToVersion');
+            this.get('pathText').beInputLine();
+            this._path = null;
+            this.get('VersionList').setList([]);
+            this.get('pathText').textString = '';
+        },
+        revertToVersion: function revertToVersion() {
+        var sel = this.get('VersionList').selection;
+        if (!sel) { $world.inform('No version selected'); return; }
+        var path = this.getPath(),
+            getURL = this.getTimemachineBasePath().withFilename(sel.date + '/').withFilename(path),
+            putURL = URL.root.withFilename(this.getPath()),
+            prompt = 'Do you really want to revert \n'
+                    + path
+                    + '\nto its version from\n'
+                    + new Date(sel.date).format('yy/mm/dd hh:MM:ss') + '?';
+            $world.confirm(prompt, function(input) {
+                if (!input) { $world.alertOK('Revert aborted.'); return; }
+                getURL.asWebResource().beAsync().get().whenDone(function(content, status) {
+                    if (!status.isSuccess()) {
+                        $world.alert('Revert failed.\nCould not read version: ' + status);
+                        return;
+                    }
+                    putURL.asWebResource().beAsync().put(content).whenDone(function(_, status) {
+                        if (!status.isSuccess()) {
+                            $world.alert('Revert failed.\nCould not write version: ' + status);
+                            return;
+                        }
+                        $world.alertOK(path + ' successfully reverted.');
+                    });
+                });
+            });
+    },
+        setPath: function setPath(path) {
+        this.get('pathText').textString = path;
+        this._path = path; this.getVersions();
     },
         showResult: function showResult(err, versions) {
-        if (err) { show(err); versions && show(versions); return; }
-        var items = versions.map(function(version) {
-            try {
-                var date = new Date(version.date).format('yy/mm/dd hh:mm:ss');
-            } catch (e) { show(e); date = 'Invalid date'; }
-            return {
-                isListItem: true,
-                string: version.author + ' - ' + date + ' (' + version.change + ')',
-                value: version
-            }
-        });
-        this.get('VersionList').setList(items);
-    },
+            if (err) { show(err); versions && show(versions); return; }
+            var items = versions.map(function(version) {
+                try {
+                    var date = new Date(version.date).format('yy/mm/dd HH:MM:ss');
+                } catch (e) { show(e); date = 'Invalid date'; }
+                return {
+                    isListItem: true,
+                    string: version.author + ' - ' + date + ' (' + version.change + ')',
+                    value: version
+                }
+            });
+            this.get('VersionList').setList(items);
+        },
         visitVersion: function visitVersion() {
-        var sel = this.get('VersionList').selection;
-        if (!sel) { show('nothing selected'); return; }
-        var url = this.getTimemachineBasePath()
-            .withFilename(encodeURIComponent(sel.date)+'/')
-            .withFilename(this.getWorldPath());
-        window.open(''+url);
-    }
+            var sel = this.get('VersionList').selection;
+            if (!sel) { show('nothing selected'); return; }
+            var url = this.getTimemachineBasePath()
+                .withFilename(encodeURIComponent(sel.date)+'/')
+                .withFilename(this.getWorldPath());
+            window.open(''+url);
+        }
     }],
-    getVersions: function() {
-        this.targetMorph.getVersions();
-    },
-    titleBar: "VersionViewer"
+    titleBar: "VersionViewer",
+    setPath: function setPath(p) {
+    this.targetMorph.setPath(p);
+}
 });
-
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 lively.BuildSpec('lively.wiki.ToolFlap', {
@@ -195,7 +292,7 @@ alignSubmorphs: function alignSubmorphs() {
     var items = [
         ['world versions', function() {
             var versionViewer = lively.BuildSpec('lively.wiki.VersionViewer').createMorph().openInWorldCenter();
-            versionViewer.getVersions();
+            versionViewer.setPath(URL.source.relativePathFrom(URL.root));
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             self.collapse();
         }]

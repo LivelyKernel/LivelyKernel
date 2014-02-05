@@ -70,7 +70,9 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         // Since addMorph removes the morph and adds it on the new owner,
         // remove is called on the arrow once. There it is also removed
         // from the componentMorph's arrows-array and needs to be pushed again.
-        if(aMorph.arrows) aMorph.arrows.push(this);
+        if (aMorph.arrows) {
+            aMorph.arrows.push(this);
+        }
     },
     
     activate: function() {
@@ -670,7 +672,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         },10000);
         console.log(this.called);
         
-        
         this.refreshData();
 
         var promise;
@@ -1028,12 +1029,44 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.FreeLayout", {
             _this.addElement(datum,morph);
         })
         var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
-        layout.addMorph(morph)
+        layout.addMorph(morph);
     },
     
     addElement: function(element, container){
         var morph = element.morph.duplicate()
         container.addMorph(morph);
+    },
+
+    scale: function() {
+        var margin = 15;
+        var canvas = this.getSubmorphsByAttribute("name","Canvas").first();
+        var ownWidth = canvas.getExtent().x - margin;
+        var ownHeight = canvas.getExtent().y - margin;
+        var maxX = 1;
+        var maxY = 1;
+        
+        canvas.submorphs.forEach(function(morph) {
+            var x = morph.getBounds().right();
+            var y = morph.getBounds().bottom();
+            
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+        });
+        
+        var scaleFactor = Math.min(ownWidth/maxX, ownHeight/maxY);
+        
+        canvas.submorphs.forEach(function(morph) {
+            var x = morph.getPosition().x * scaleFactor;
+            var y = morph.getPosition().y * scaleFactor;
+            
+            morph.setPosition(pt(x,y));
+        });
+        
+    },
+
+    onResizeEnd: function($super) {        
+        $super();
+        this.scale();
     },
     
     clear: function(){

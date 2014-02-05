@@ -252,7 +252,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 this.intermediateResult(
-                    "fn.call(Global, "
+                    "fn("
                   + this.intermediateResult(
                       this.closureWrapper(0, '', [], {}, "") + ');\n')));
         this.assertASTMatchesCode(result, expected);
@@ -316,7 +316,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                     '('
                     + this.intermediateResult(
                         this.closureWrapper(0, '', [], {},""))
-                    + ").call(Global);\n"));
+                    + ")();\n"));
         this.assertASTMatchesCode(result, expected);
     },
 
@@ -365,12 +365,20 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         this.assertASTMatchesCode(result, expected);
     },
 
-    test22FunctionCall: function() {
+    test22aLocalFunctionCall: function() {
         // test if the "return g();" is translated to "return _0["g"].call();"
         var func = function() { function g() {}; return g(); }, returnStmt;
         func.stackCaptureMode();
         acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
         var expected = "return " + this.intermediateResult(this.getVar(0, 'g')) + '.call(Global);';
+        this.assertASTMatchesCode(returnStmt, expected);
+    },
+
+    test22bGlobalFunctionCall: function() {
+        var func = function() { return g(); }, returnStmt;
+        func.stackCaptureMode();
+        acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
+        var expected = "return " + this.intermediateResult('g') + '();';
         this.assertASTMatchesCode(returnStmt, expected);
     },
 

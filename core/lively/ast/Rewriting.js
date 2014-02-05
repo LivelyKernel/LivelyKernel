@@ -285,12 +285,18 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         for (var i = this.scopes.length - 1; i >= 0; i--) {
             if (this.scopes[i].localVars.include(name)) { scopeIdx = i; break; }
         }
+        // mr 2014-02-05: if true, the reference is a global one - should throw error?
         if (scopeIdx === undefined) return this.newNode('Identifier', { name: name });
         return this.newNode('MemberExpression', {
             object: this.newNode('Identifier', { name: '_' + scopeIdx }),
             property: this.newNode('Literal', { value: name }),
             computed: true
         });
+    },
+
+    isWrappedVar: function(node) {
+        return node.type == 'MemberExpression' && node.object.type == 'Identifier' &&
+               node.object.name[0] == '_' && !isNaN(node.object.name.substr(1));
     },
 
     wrapClosure: function(node, idx) {
@@ -1080,8 +1086,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             var n = this.accept(n, rewriter);
             return n.type == 'ExpressionStatement' ? n.expression : /*unwrap*/ n;
         }, this);
-        if (!thisIsBound) {
-            // something like "foo();". we can't just rewrite it as _123['foo']()
+        if (!thisIsBound && rewriter.isWrappedVar(callee)) {
+            // something like "foo();" when foo is in rewrite scope.
+            // we can't just rewrite it as _123['foo']()
             // as this would bind this to the scope object. Instead we ensure
             // that .call is used for invocation
             callee = {

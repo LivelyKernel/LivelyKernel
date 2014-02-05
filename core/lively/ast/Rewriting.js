@@ -36,7 +36,8 @@ Object.extend(lively.ast.Rewriting, {
 
         // 1. Rewrite Lively code and put it into DBG_* files
         modules.forEachShowingProgress(pBar, function(modulePath, i) {
-            putRewritten(modulePath, escodegen.generate(rewrite(get(modulePath))));
+            // FIXME: manually wrap code in function so that async load will not temper with _0, etc.
+            putRewritten(modulePath, '(function() {' + escodegen.generate(rewrite(get(modulePath))) + '})();');
         }, Functions.K, function() {
             pBar.remove();
             // 2. Create bootstrap code needed to run rewritten code

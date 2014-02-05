@@ -44,7 +44,11 @@ Object.extend(lively.ast.Rewriting, {
             put("core/lively/ast/BootstrapDebugger.js", [
                 lively.ast.Rewriting.createClosureBaseDef,
                 lively.ast.Rewriting.UnwindExceptionBaseDef,
-                "window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg)
+                // FIXME: should use JSON.stringify(astReg) but its hundreds of MBs
+                // Idea: virtual registry with references to file, version, segment (character range)
+                //       makes individual ast indexes necessary (or addition ast index offset for
+                //         reparsing and indexing)
+                "window.LivelyDebuggingASTRegistry=[];"
             ].join('\n'));
         });
 

@@ -19,6 +19,31 @@ Object.extend(lively.ast.Rewriting, {
     rewriteFunction: function(node, astRegistry) {
         var r = new lively.ast.Rewriting.Rewriter(astRegistry);
         return r.rewriteFunction(node);
+    },
+
+    rewriteLivelyCode: function() {
+        var modules = lively.Module.bootstrapModules();
+
+        function get(path) {
+            return URL.root.withFilename(path).asWebResource().get().content;
+        };
+
+        function put(path, rewrittenSource) {
+            var idx = path.lastIndexOf('/') + 1,
+                debugPath = path.slice(0,idx) + 'DBG_' + path.slice(idx);
+            return URL.root.withFilename(debugPath).asWebResource().put(rewrittenSource);
+        };
+
+        function rewrite(source) {
+            var ast = lively.ast.acorn.parse(source);
+            return lively.ast.Rewriting.rewrite(ast);
+        };
+
+        var pBar = $world.addProgressBar()
+        modules.forEachShowingProgress(pBar, function(modulePath, i) {
+            put(modulePath, escodegen.generate(rewrite(get(modulePath))));
+        }, Functions.K, function() { pBar.remove(); });
+
     }
 
 });

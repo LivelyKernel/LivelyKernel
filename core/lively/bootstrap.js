@@ -551,7 +551,7 @@
                 if (onLoadCb) scriptEl.onload = onLoadCb;
                 return Global;
             } :
-            function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+            function(url, onLoadCb, loadSync, okToUseCache, cacheQuery, suppressDebug) {
                 // Deprecation: loading css files via loadJs is no longer
                 // supported
                 if (url.match(/\.css$/) || url.match(/\.css\?/)) {
@@ -559,8 +559,27 @@
                     return null;
                 }
 
+
                 if (this.isLoading(url)) return null;
                 this.markAsLoading(url);
+
+                // FIXME This is just a test to see if the system can load from rewritten code;
+                var loadDebugCode = JSLoader.getOption('loadRewrittenCode') && !suppressDebug;
+                if (loadDebugCode) {
+                    var idx = url.lastIndexOf('/') + 1,
+                        dbgURL = url.slice(0,idx) + 'DBG_' + url.slice(idx),
+                        wasLoaded = false;
+                    JSLoader.getViaXHR(loadSync, dbgURL, function(err, content) {
+                        if (err) {
+                            JSLoader.loadedURLs = JSLoader.loadedURLs.filter(function(ea) { return ea !== url; });
+                            JSLoader.loadJs(url, onLoadCb, loadSync, okToUseCache, cacheQuery, true)
+                            // JSLoader.getViaXHR(loadSync, url, function(err, content) {})
+                        } else {
+                            JSLoader.evalJavaScriptFromURL(dbgURL, content, onLoadCb);
+                        }
+                    });
+                    return;
+                }
 
                 if (okToUseCache === undefined) okToUseCache = true;
 

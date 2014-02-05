@@ -1054,7 +1054,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         var ctx = this.getDoitContext() || this;
         ctx.refreshData();
         
-        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
         
         // see also $super
         
@@ -1128,7 +1128,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     arrangeOnPath: function(path, entity) {
     	var morphs = entity.pluck("morph");
-    	
+	
     	if (!morphs.length)
     	    return;
     	
@@ -1156,7 +1156,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     	var curPt = path[0];
     	var curPathIndex = 1;
     
-    	morphs.each(function (morph, index) {
+    	morphs.each( function (morph, index) {
     		var distanceToTravel = distance;
     		while (distanceToTravel) {
     			var pieceLength = curPt.dist(path[curPathIndex]);
@@ -1171,8 +1171,22 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     				distanceToTravel -= pieceLength;
     			}
     		}
-    	});
+    	})
+    },
+    createConnection: function (entity1, entity2, connections) {
+        connections.each( function (conn) {
+            conn.morph.setEnd = function (point) {this.setVertices([pt(0, 0), point.subPt(this.getPosition())])};
+            // var from = conn["get" + entity1]();
+            // var to = conn["get" + entity2]();
+            var from = conn[entity1];
+            var to = conn[entity2];
+            if (to.morph && from.morph) {
+                connect(from.morph, "position", conn.morph, "setPosition", {});
+                connect(to.morph, "position", conn.morph, "setEnd", {});
+            }
+        });
     }
+
 });
 
 lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',

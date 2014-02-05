@@ -241,29 +241,28 @@ Object.extend(lively.ast.Continuation, {
     }
 });
 
-Object.subclass('lively.ast.Rewriting.UnwindException',
-'settings', {
+(function setupUnwindException() {
 
-    isUnwindException: true
+    module('lively.ast.Rewriting');
+    lively.ast.Rewriting.createClosureBaseDef = 
+        "window.__createClosure = function __createClosure(idx, f) {\n"
+      + "    f._cachedAst = LivelyDebuggingASTRegistry[idx];\n"
+      + "    f.livelyDebuggingEnabled = true;\n"
+      + "    return f;\n"
+      + "}\n";
 
-},
-'initializing', {
-
-    initialize: function(error) {
-        this.error = error;
+    lively.ast.Rewriting.UnwindExceptionBaseDef = 
+        "window.UnwindException = function UnwindException(error) { this.error = error; }\n"
+      + "UnwindException.prototype.isUnwindException = true;\n"
+      + "UnwindException.prototype.toString = function() { return '[UNWIND] ' + this.error.toString(); }\n"
+      + "UnwindException.prototype.createAndShiftFrame = function(/*...*/) { /*lively debugging not yet loaded*/ }\n";
+    // base definition for UnwindException
+    if (typeof UnwindException === 'undefined') {
+        eval(lively.ast.Rewriting.UnwindExceptionBaseDef)
     }
 
-},
-'printing', {
-
-    toString: function() {
-        return '[UNWIND] ' + this.error.toString();
-    }
-
-},
-'frames', {
-
-    createAndShiftFrame: function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
+    // when debugging is enabled UnwindException can do more...
+    UnwindException.prototype.createAndShiftFrame = function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
         var alreadyComputed = frameState[0],
             // varMapping = frameState[1],
             parentFrameState = frameState[2],
@@ -296,9 +295,9 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
         frame.setScope(topScope);
 
         return this.shiftFrame(frame);
-    },
-
-    shiftFrame: function(frame) {
+    }
+    
+    UnwindException.prototype.shiftFrame = function(frame) {
         if (!this.top) {
             this.top = this.last = frame;
         } else {
@@ -307,7 +306,7 @@ Object.subclass('lively.ast.Rewriting.UnwindException',
         }
         return frame;
     }
-
-});
+    
+})();
 
 }) // end of module

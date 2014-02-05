@@ -2,6 +2,11 @@ module('lively.ast.Rewriting').requires('lively.ast.acorn').toRun(function() {
 
 Object.extend(lively.ast.Rewriting, {
 
+    _currentASTRegistry: (function() {
+        return typeof LivelyDebuggingASTRegistry !== 'undefined'?
+            LivelyDebuggingASTRegistry : [];
+    })(),
+
     getCurrentASTRegistry: function() {
         if (this._currentASTRegistry) return this._currentASTRegistry;
         return [];
@@ -22,28 +27,45 @@ Object.extend(lively.ast.Rewriting, {
     },
 
     rewriteLivelyCode: function() {
-        var modules = lively.Module.bootstrapModules();
+        var modules = lively.Module.bootstrapModules(),
+            pBar = $world.addProgressBar(),
+            astReg = lively.ast.Rewriting.setCurrentASTRegistry([]);
 
+        // Ignore the libs for now
+        modules = modules.reject(function(ea) { return /lib\//.test(ea); });
+
+        // 1. Rewrite Lively code and put it into DBG_* files
+        modules.forEachShowingProgress(pBar, function(modulePath, i) {
+            putRewritten(modulePath, escodegen.generate(rewrite(get(modulePath))));
+        }, Functions.K, function() { pBar.remove(); });
+
+        // 2. Create bootstrap code needed to run rewritten code
+        put("core/lively/ast/BootstrapDebugger.js", [
+            lively.ast.Rewriting.createClosureBaseDef,
+            lively.ast.Rewriting.UnwindExceptionBaseDef,
+            "window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg)
+        ].join('\n'));
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // helper
         function get(path) {
             return URL.root.withFilename(path).asWebResource().get().content;
         };
-
-        function put(path, rewrittenSource) {
+        
+        function putRewritten(path, rewrittenSource) {
             var idx = path.lastIndexOf('/') + 1,
                 debugPath = path.slice(0,idx) + 'DBG_' + path.slice(idx);
-            return URL.root.withFilename(debugPath).asWebResource().put(rewrittenSource);
+            put(debugPath, rewrittenSource);
+        };
+
+        function put(path, source) {
+            URL.root.withFilename(path).asWebResource().put(source);
         };
 
         function rewrite(source) {
             var ast = lively.ast.acorn.parse(source);
-            return lively.ast.Rewriting.rewrite(ast);
+            return lively.ast.Rewriting.rewrite(ast, astReg);
         };
-
-        var pBar = $world.addProgressBar()
-        modules.forEachShowingProgress(pBar, function(modulePath, i) {
-            put(modulePath, escodegen.generate(rewrite(get(modulePath))));
-        }, Functions.K, function() { pBar.remove(); });
-
     }
 
 });

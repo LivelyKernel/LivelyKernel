@@ -881,21 +881,25 @@
     // activate loading on ios 5
     var libsFile = /*useMinifiedLibs ? 'core/lib/lively-libs.js' :*/ 'core/lib/lively-libs-debug.js',
         libsFiles = [libsFile],
-        bootstrapFiles = [
-            'core/lively/Migration.js',
-            'core/lively/JSON.js',
-            'core/lively/lang/Object.js',
-            'core/lively/lang/Function.js',
-            'core/lively/lang/String.js',
-            'core/lively/lang/Array.js',
-            'core/lively/lang/Number.js',
-            'core/lively/lang/Date.js',
-            'core/lively/lang/Worker.js',
-            'core/lively/lang/LocalStorage.js',
-            'core/lively/defaultconfig.js',
-            'core/lively/Base.js',
-            'core/lively/ModuleSystem.js'
-        ],
+        bootstrapFiles = (function() {
+            var normalBootstrapFiles = [
+                'core/lively/Migration.js',
+                'core/lively/JSON.js',
+                'core/lively/lang/Object.js',
+                'core/lively/lang/Function.js',
+                'core/lively/lang/String.js',
+                'core/lively/lang/Array.js',
+                'core/lively/lang/Number.js',
+                'core/lively/lang/Date.js',
+                'core/lively/lang/Worker.js',
+                'core/lively/lang/LocalStorage.js',
+                'core/lively/defaultconfig.js',
+                'core/lively/Base.js',
+                'core/lively/ModuleSystem.js']
+            return JSLoader.getOption('loadRewrittenCode') ?
+                ["core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles) :
+                normalBootstrapFiles;
+        })(),
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
                 parentDir;

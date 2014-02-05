@@ -37,14 +37,16 @@ Object.extend(lively.ast.Rewriting, {
         // 1. Rewrite Lively code and put it into DBG_* files
         modules.forEachShowingProgress(pBar, function(modulePath, i) {
             putRewritten(modulePath, escodegen.generate(rewrite(get(modulePath))));
-        }, Functions.K, function() { pBar.remove(); });
+        }, Functions.K, function() {
+            pBar.remove();
+            // 2. Create bootstrap code needed to run rewritten code
+            put("core/lively/ast/BootstrapDebugger.js", [
+                lively.ast.Rewriting.createClosureBaseDef,
+                lively.ast.Rewriting.UnwindExceptionBaseDef,
+                "window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg)
+            ].join('\n'));
+        });
 
-        // 2. Create bootstrap code needed to run rewritten code
-        put("core/lively/ast/BootstrapDebugger.js", [
-            lively.ast.Rewriting.createClosureBaseDef,
-            lively.ast.Rewriting.UnwindExceptionBaseDef,
-            "window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg)
-        ].join('\n'));
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // helper

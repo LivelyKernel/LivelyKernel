@@ -922,8 +922,25 @@ Object.extend(lively.ast.acorn, {
         var state = {completePath: [], comparisons: {errors: []}};
         new lively.ast.ComparisonVisitor().accept(node1, node2, state, []);
         return !state.comparisons.errors.length ? null : state.comparisons.errors.pluck('msg');
-    }
+    },
 
+    pathToNode: function(ast, index, options) {
+        options = options || {};
+        if (!ast.astIndex) acorn.walk.addAstIndex(ast);
+        var vis = new lively.ast.MozillaAST.BaseVisitor(), found = null;
+        (vis.accept = function (node, pathToHere, state, path) {
+            if (found) return;
+            var fullPath = pathToHere.concat(path);
+            if (node.astIndex === index) {
+                var pathString = fullPath
+                    .map(function(ea) { return typeof ea === 'string' ? '.' + ea : '[' + ea + ']'})
+                    .join('');
+                found = {pathString: pathString, path: fullPath, node: node};
+            }
+            return this['visit' + node.type](node, fullPath, state, path);
+        }).call(vis,ast, [], {}, []);
+        return found;
+    }
 });
 
 (function extendAcornWalk() {

@@ -197,7 +197,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         this.assertASTMatchesCode(result, expected);
     },
 
-    test09ForInWithVarDeclarationTest: function() {
+    test09aForInWithVarDeclarationTest: function() {
         var src = 'for (var key in obj) {}',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
@@ -206,6 +206,21 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
               + this.getVar(0, 'key') + ' in obj'
               + ") {\n"
               + this.intermediateResult(this.intermediateReference() + ' || Object.keys(obj);\n')
+              + this.intermediateReference() + '.shift();\n'
+              + "}\n");
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test09bForInWithoutCurlys: function() {
+        var src = "for (var key in obj) 1;\n",
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {'key': 'undefined'},
+                "for ("
+              + this.getVar(0, 'key') + ' in obj'
+              + ") {\n"
+              + this.intermediateResult(this.intermediateReference() + ' || Object.keys(obj);\n')
+              + "1;\n"
               + this.intermediateReference() + '.shift();\n'
               + "}\n");
         this.assertASTMatchesCode(result, expected);

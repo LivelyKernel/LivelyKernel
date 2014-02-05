@@ -755,7 +755,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             right = this.accept(n.right, rewriter),
             body = this.accept(n.body, rewriter),
             start = n.start, end = n.end, astIndex = n.right.astIndex;
-
+        if (body.type !== 'BlockStatement') {
+            body = rewriter.newNode('BlockStatement', {body: [body]})
+        }
         // add expression like _[lastNode = x] = _[x] || Object.keys(b); to the top of the loop body
         body.body.unshift({
             type: 'ExpressionStatement',

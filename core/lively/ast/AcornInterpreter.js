@@ -487,7 +487,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             },
             astIndex: node.astIndex
         };
-        throw new lively.ast.Rewriting.UnwindException(e);
+        throw new UnwindException(e);
     },
 
     visitVariableDeclaration: function(node, state) {

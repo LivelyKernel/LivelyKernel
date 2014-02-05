@@ -229,7 +229,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                                 consequent: this.newNode('Identifier', {name: 'e'}),
                                 alternate: this.newNode('NewExpression', {
                                     arguments: [this.newNode('Identifier', {name: 'e'})],
-                                    callee: this.newMemberExp('lively.ast.Rewriting.UnwindException')
+                                    callee: this.newMemberExp('UnwindException')
                                 })
                             }))]
                         }),

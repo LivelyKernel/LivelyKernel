@@ -30,7 +30,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "    ];\n"
             + "%s"
             + "} catch (e) {\n"
-            + "    var ex = e.isUnwindException ? e : new lively.ast.Rewriting.UnwindException(e);\n"
+            + "    var ex = e.isUnwindException ? e : new UnwindException(e);\n"
             + "    ex.createAndShiftFrame(this, __%s, lastNode, %s);\n"
             + "    throw ex;\n"
             + "}\n",

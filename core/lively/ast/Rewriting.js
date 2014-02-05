@@ -1015,7 +1015,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     n.expression : // unwrap
                     n;
             }, this)
-        }, start, end);
+        }, start, end, astIndex);
     },
 
     visitCallExpression: function(n, rewriter) {

@@ -1,4 +1,4 @@
-module('lively.ast.Rewriting').requires('lively.ast.acorn').toRun(function() {
+module('lively.ast.Rewriting').requires('lively.ast.acorn', 'lively.ast.StackReification').toRun(function() {
 
 Object.extend(lively.ast.Rewriting, {
 

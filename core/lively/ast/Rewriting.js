@@ -36,8 +36,18 @@ Object.extend(lively.ast.Rewriting, {
 
         // 1. Rewrite Lively code and put it into DBG_* files
         modules.forEachShowingProgress(pBar, function(modulePath, i) {
+            var rewrittenAst = rewrite(get(modulePath)),
+                // try -> _0 has all global variables
+                globalVars = rewrittenAst.body[0].block.body[0].declarations[2].init.
+                    properties.pluck('key').pluck('value'),
+                globalAssignments = globalVars.map(function(varName) {
+                    return 'Global["' + varName + '"] = _0["' + varName + '"];'
+                }).join('\n');
             // FIXME: manually wrap code in function so that async load will not temper with _0, etc.
-            putRewritten(modulePath, '(function() {' + escodegen.generate(rewrite(get(modulePath))) + '})();');
+            putRewritten(modulePath, '(function() {\n' +
+                escodegen.generate(rewrittenAst) + '\n' +
+                globalAssignments + '\n' + // FIXME: add assigments to define global vars
+                '})();');
         }, Functions.K, function() {
             pBar.remove();
             // 2. Create bootstrap code needed to run rewritten code

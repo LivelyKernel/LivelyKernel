@@ -243,18 +243,18 @@ Object.extend(Function.prototype, {
             };
         if (optMapping) mapping = Object.merge([mapping, optMapping]);
         if (constructor && constructor.prototype && constructor.prototype[name]) {
-            var superFunc = function() {
-                    try {
-                        return obj.constructor.prototype[name].apply(obj, arguments)
-                    } catch (e) {
-                        if ($world)
-                            $world.logError(e, 'Error in $super call')
-                        else
-                            alert('Error in $super call: ' + e + '\n' + e.stack);
-                        return null;
-                    }
-                };
-            mapping["$super"] = lively.Closure.fromFunction(superFunc, {
+            var superFuncStr = "function() {\n" +
+                "    try {\n" +
+                "        return obj.constructor.prototype[name].apply(obj, arguments)\n" +
+                "    } catch (e) {\n" +
+                "        if ($world)\n" +
+                "            $world.logError(e, 'Error in $super call')\n" +
+                "        else\n" +
+                "            alert('Error in $super call: ' + e + '\\n' + e.stack);\n" +
+                "        return null;\n" +
+                "    }\n" +
+                "}";
+            mapping["$super"] = lively.Closure.fromSource(superFuncStr, {
                 "obj": obj,
                 name: name
             }).recreateFunc();

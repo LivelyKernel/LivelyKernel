@@ -216,9 +216,17 @@ Object.subclass('AttributeConnection',
             // that no bind is necessary and oldValue is accessible. Note that
             // when updater calls this method arguments can be more than just
             // the new value
-            if (converter) newValue = converter.call(connection, newValue, oldValue);
+            var args = Array.from(arguments);
+            if (converter) {
+                newValue = converter.call(connection, newValue, oldValue);
+                args[0] = newValue;
+            }
             var result = (typeof targetMethod === 'function') ?
-                targetMethod.apply(target, arguments) :
+                // mr 2014-02-07: Wow! I think it is an unexpected feature that usually
+                // the targetMethod gets the newValue as first AND the oldValue as second parameter.
+                // Not to mention that there can be a $proceed arg in updater that may
+                // replace the default call here and do something completely different!
+                targetMethod.apply(target, args) :
                 target[propName] = newValue;
             if (connection.removeAfterUpdate) connection.disconnect();
             return result;

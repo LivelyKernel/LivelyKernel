@@ -2,7 +2,7 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
-    initialize: function($super, aMorph, point) {
+    initialize: function($super, aMorph, positionX) {
         this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
         this.isLayoutable = false;
@@ -10,7 +10,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         
         $super(controlPoints);
         this.setBorderColor(Color.rgb(94,94,94));
-        this.positionAtMorph(point);
+        this.positionAtMorph(positionX);
         this.setBorderWidth(0);
         this.deactivate();
     },
@@ -57,14 +57,14 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     },
 
     
-    positionAtMorph: function(point) {
+    positionAtMorph: function(positionX) {
         var aMorph = this.componentMorph;
         var extent = aMorph.getExtent();
         
         var offsetX = (extent.x - this.getExtent().x) / 2;
         var offsetY = extent.y;
         
-        this.setPosition(point || pt(offsetX, offsetY));
+        this.setPosition(pt(positionX || offsetX, offsetY));
         aMorph.addMorph(this);
         
         // Since addMorph removes the morph and adds it on the new owner,
@@ -97,11 +97,15 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     createComponent: function(componentName) {
         var newComponent = $world.loadPartItem(componentName, 'PartsBin/BP2013H2');
         var extent =  this.componentMorph.getExtent();
-        var offset = pt(0,extent.y + 20);
+        var offset = pt(0,extent.y + newComponent.componentOffset);
         
-        newComponent.setPosition(
-            this.componentMorph.getPosition().addPt(offset)
-        );
+        var newPosition = this.componentMorph.getPosition().addPt(offset);
+        newComponent.setPosition(newPosition);
+
+        var componentBelow = this.componentMorph.getComponentInDirectionPerPoint(1, this.getTipPosition());
+        if (componentBelow) {
+            componentBelow.move(newComponent.getExtent().y + newComponent.componentOffset, newPosition.y + newComponent.getExtent().y);
+        }
         
         $world.addMorph(newComponent);
         this.componentMorph.refreshConnectionLines();
@@ -199,14 +203,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     getComponentInDirection : function($super, direction) {
-        var componentsAbove = this.getComponentsInDirection(direction);
-        if (componentsAbove.length) {
-            componentsAbove.sort(function (a, b) {
+        var components = this.getComponentsInDirection(direction);
+        if (components.length) {
+            components.sort(function (a, b) {
                 if (direction == -1){
                     return b.getPosition().y - a.getPosition().y
                 } else return a.getPosition().y - b.getPosition().y
             })
-            return componentsAbove[0];
+            return components[0];
         }
         return null;
     },
@@ -446,6 +450,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     onDragStart: function($super, evt) {
+        this.wasDragged = true;
         $super(evt);
         this.removeAllConnectionLines();
         
@@ -488,12 +493,20 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     onClose: function() {
-        
-        var neighbor = this.getComponentInDirection(-1);
-        if (neighbor) {
-            neighbor.refreshConnectionLines();
+        // only do this if the component is really removed
+        // it is temporarily removed while dragging..
+        if (!this.wasDragged) {
+            var componentBelow = this.getComponentInDirection(1);
+            if (componentBelow) {
+                componentBelow.move(-this.getExtent().y - this.componentOffset);
+            }
+
+            var componentAbove = this.getComponentInDirection(-1);
+            if (componentAbove) {
+                componentAbove.refreshConnectionLines();
+            }
+            this.notifyNextComponent();
         }
-        this.notifyNextComponent();
     },
     
     gridWidth: 20,
@@ -630,6 +643,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.drawAllConnectionLines();
         this.notifyNeighborsOfDragEnd();
         this.notify();
+        this.wasDragged = false;
     },
     
 
@@ -860,6 +874,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     setExtent: function($super, newExtent) {
+        var oldExtent = this.getExtent();
         $super(newExtent);
         
         if (!this.isMerger()) {
@@ -869,6 +884,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
 
         this.adjustForNewBounds();
+        
+        var componentBelow = this.getComponentInDirection(1);
+        if (componentBelow) {
+            componentBelow.move(newExtent.y - oldExtent.y, this.getPosition().y + newExtent.y);
+        }
         
         var previewMorph = $morph("PreviewMorph" + this);
         if (previewMorph) {
@@ -886,24 +906,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
 
     
-    getComponentsInColumn: function(point) {
-        var allComponents = this.getAllComponents();
-        var morphs = [];
-        var myPosition = point || this.globalBounds().topCenter();
-        
-        allComponents.each(function(el) {
-            if (el.isBeingDragged)
-                return;
 
-            var elPosition = el.getPositionInWorld();
-            
-            // check for all DF components equal to and below my position
-            if (elPosition.x <= myPosition.x && el.getBounds().right() >= myPosition.x)
-                morphs.push(el);
-        }, this);
-        
-        return morphs;
-    },
     
     getData : function(target){
         
@@ -1021,7 +1024,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.FreeLayout", {
     updateComponent: function(){
         // create linear layout containing rects from data
         var morph = new lively.morphic.Box(new rect(0,0,10,10));
-        var bar;
         this.clear();
         var _this = this;
         this.data.each(function(datum){
@@ -1594,9 +1596,9 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         
         if (!arrowToTarget){
             //create new arrow for this target
-            var newArrow = new lively.morphic.Charts.Arrow(this);
             var offset = this.getPosition().x;
-            newArrow.setPosition(pt(target.getExtent().x/2+target.getPosition().x-newArrow.getExtent().x/2-offset,newArrow.getPosition().y));
+            var positionX = target.getExtent().x / 2 + target.getPosition().x - 20 - offset;
+            var newArrow = new lively.morphic.Charts.Arrow(this, positionX);
             newArrow.activate();
             return this.data;
         }

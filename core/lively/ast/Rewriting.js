@@ -315,9 +315,13 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     wrapClosure: function(node, idx) {
+        var scopeId = this.scopes.length - 1,
+            scopeIdentifier = scopeId < 0 ?
+                this.newNode('Literal', {value: null}) :
+                this.newNode('Identifier', { name: '__' + (this.scopes.length - 1) });
         return this.newNode('CallExpression', {
             callee: this.newNode('Identifier', {name: '__createClosure'}),
-            arguments: [this.newNode('Literal', {value: idx}), node]
+            arguments: [this.newNode('Literal', {value: idx}), scopeIdentifier, node]
         });
     },
 
@@ -380,7 +384,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         // this.exitScope();
         // FIXME!
-        rewritten = rewritten.expression.arguments[1];
+        rewritten = rewritten.expression.arguments[2];
         this.astRegistry[astRegistryIndex].rewritten = rewritten; // FIXME just for debugging
         return rewritten;
     },
@@ -1004,7 +1008,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 var value = this.accept(prop.value, rewriter);
                 if (prop.kind != 'init') { // set or get
                     // function cannot be replace by a closure directly
-                    value = value.expression.right.arguments[1]; // unwrap
+                    value = value.expression.right.arguments[2]; // unwrap
                 }
                 var key = prop.key.type == 'Identifier' ?
                     { // original identifier rule

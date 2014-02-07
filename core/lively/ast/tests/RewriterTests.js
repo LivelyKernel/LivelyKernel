@@ -56,7 +56,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     
     closureWrapper: function(level, name, args, innerVarDecl, inner) {
         // something like:
-        // __createClosure(333, function () {
+        // __createClosure(333, __0, function () {
         //     try {
         //         var _ = {}, _1 = {}, __1 = [_,_1,__0];
         //     ___ DO INNER HERE ___
@@ -65,9 +65,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         var argDecl = innerVarDecl || {};
         args.forEach(function(argName) { argDecl[argName] = argName; });
         return Strings.format(
-            "__createClosure(__/[0-9]+/__, function %s(%s) {\n"
+            "__createClosure(__/[0-9]+/__, __%s, function %s(%s) {\n"
           + this.tryCatch(level+1, argDecl, inner)
-          + "})", name, args.join(', '));
+          + "})", level, name, args.join(', '));
     },
 
     intermediateResult: function(expression, optionalAstIndex) {

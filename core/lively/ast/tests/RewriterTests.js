@@ -401,6 +401,29 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 this.intermediateResult(this.getVar(0, 'foo') + '.call(Global);\n') +
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+    },
+
+    test25aNoRewritePrefixFunctionDecl: function() {
+        var src = 'var a, b; function _NO_REWRITE_foo(a, b) { return a + b; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, {
+                'a': 'undefined',
+                'b': 'undefined',
+                '_NO_REWRITE_foo': 'function _NO_REWRITE_foo(a, b) {\nreturn a + b;\n}'
+            }, this.pcAdvance() + ', ' + this.pcAdvance() + ';\n' + this.pcAdvance() + ';\n');
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test25bNoRewritePrefixFunctionExpr: function() {
+        var src = 'var bar = function _NO_REWRITE_foo(a, b) { return a + b; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'bar': 'undefined' },
+                this.intermediateResult(
+                    this.setVar(0, 'bar',
+                        this.intermediateResult('function _NO_REWRITE_foo(a, b) {\nreturn a + b;\n};\n'))));
+        this.assertASTMatchesCode(result, expected);
     }
 
 });

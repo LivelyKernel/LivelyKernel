@@ -101,8 +101,24 @@ Object.subclass('lively.Closure',
             };
             closureVars.push(name + '=this.varMapping["' + name + '"]');
         }
+        if (this.originalFunc && this.originalFunc.livelyDebuggingEnabled) {
+            var scopeObject = this.originalFunc._cachedScopeObject,
+                depth = -1,
+                path = ''
+            while (scopeObject && scopeObject != Global) {
+                depth++;
+                scopeObject = scopeObject[2]; // descend in scope
+            }
+            scopeObject = this.originalFunc._cachedScopeObject;
+            var path = 'this.originalFunc._cachedScopeObject';
+            for (var i = depth; i >= 0; i--) {
+                closureVars.push('_' + depth + '=' + path + '[1]');
+                closureVars.push('__' + depth + '=' + path);
+                path += '[2]';
+            }
+        }
         var src = closureVars.length > 0 ? 'var ' + closureVars.join(',') + ';\n' : '';
-        if (specificSuperHandling) src += '(function superWrapperForClosure() { return '
+        if (specificSuperHandling) src += '(function superWrapperForClosure() { return ';
         src += '(' + funcSource + ')';
 
         if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat($A(arguments))) })'

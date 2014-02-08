@@ -1625,12 +1625,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
     onMouseUp: function(e) {
         if (e.isLeftMouseButtonDown() && !e.isCtrlDown()) {
             var isMinimized = this.owner.getExtent().y == 60;
-            var componentBelow = this.owner.getComponentInDirection(1);
             if (isMinimized) {
                 this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY), true);
-                if (componentBelow) {
-                    componentBelow.move(this.oldY - 60, this.owner.getPosition().y + this.oldY);
-                }
                 var container = this.owner.getSubmorphsByAttribute("name","Container");
                 if (container.length > 0){
                     container[0].setVisible(true);
@@ -1643,9 +1639,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
                     container[0].setVisible(false);
                 }
                 this.owner.setExtent(pt(this.owner.getExtent().x, 60), true);
-                if (componentBelow) {
-                    componentBelow.move(-this.oldY + 60);
-                }
             }
         }
     }

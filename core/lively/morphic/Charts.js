@@ -217,7 +217,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     getComponentsInDirection : function($super, direction) {
         var components = [];
-        var pxInterval = 150;
+        var pxInterval = 100;
         
         // choose upper left corner as point
         var currentPoint = this.getPositionInWorld();
@@ -362,16 +362,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     calculateSnappingPosition: function() {
         // snap to position below component above, if there is one
         var componentAbove = this.getComponentInDirection(-1, this.globalBounds().topCenter().addPt(pt(0, -50)));
-        var snapToTop = false;
-        if (!componentAbove) {
-            snapToTop = true;
-            componentAbove =  this.getComponentInDirection(-1);
-        }
 
         if (componentAbove && !componentAbove.isMerger()) {
-            if (snapToTop) {
-                return componentAbove.getPosition();
-            }
             // snap below component above
             var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
             var snappingThreshold = 200;
@@ -466,10 +458,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.notifyNeighborsOfDragStart();
         
         // take the dragged component out of the layout
-        var componentBelow = this.getComponentInDirection(1);
-        if (componentBelow) {
-            componentBelow.move(-this.getExtent().y - this.componentOffset);
-        }
+        var componentsBelow = this.getComponentsInDirection(1);
+        var _this = this;
+        componentsBelow.each(function (c) {
+            c.move(-_this.getExtent().y - _this.componentOffset);
+        });
         
         // save cached position for the automatic layouting
         this.getAllComponents().each(function (ea) {
@@ -496,15 +489,18 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         // only do this if the component is really removed
         // it is temporarily removed while dragging..
         if (!this.wasDragged) {
-            var componentBelow = this.getComponentInDirection(1);
-            if (componentBelow) {
-                componentBelow.move(-this.getExtent().y - this.componentOffset);
-            }
+            var _this = this;
 
-            var componentAbove = this.getComponentInDirection(-1);
-            if (componentAbove) {
-                componentAbove.refreshConnectionLines();
-            }
+            var componentsBelow = this.getComponentsInDirection(1);
+            componentsBelow.each(function (c) {
+                c.move(-_this.getExtent().y - _this.componentOffset);
+            });
+
+            var componentsAbove = this.getComponentsInDirection(-1);
+            componentsAbove.each(function (c){
+                c.refreshConnectionLines();
+            });
+
             this.notifyNextComponent();
         }
     },
@@ -540,48 +536,49 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             ea.setPosition(ea.getCachedPosition());
         })
 
-        var componentBelow = this.getComponentInDirection(1);
-        var componentAbove = this.getComponentInDirection(-1);
-        var componentToMove;
+        var componentsBelow = this.getComponentsInDirection(1);
+        var componentsAbove = this.getComponentsInDirection(-1);
+        var componentsToMove = [];
 
-        // decide whether the component below or above is to move
-        if (componentAbove && componentAbove.getPosition().y == previewMorph.getPosition().y)
-            componentToMove = componentAbove;
-        else
-            componentToMove = componentBelow;
+        // select all components the preview intersects
+        componentsToMove = componentsAbove.concat(componentsBelow).filter(function (c) {
+            return (c && previewMorph.globalBounds().intersects(c.innerBounds().translatedBy(c.getPosition())))
+        });
 
-        // move the component
-        if (componentToMove) {
-            var distanceBelow = previewMorph.getBounds().bottom() + this.componentOffset - componentToMove.getPosition().y;
-            componentToMove.move(distanceBelow, previewMorph.getBounds().bottom());
-        }
+        // move the components
+        componentsToMove.each(function (c) {
+            var distanceBelow = previewMorph.getBounds().bottom() + c.componentOffset - c.getPosition().y;
+            c.move(distanceBelow, previewMorph.getBounds().bottom());
+        });
     },
 
     move: function(y, aggregatedY) {
-        var componentAbove = this.getComponentInDirection(-1);
-        var componentBelow = this.getComponentInDirection(1);
+        var componentsBelow = this.getComponentsInDirection(1);
+        var componentsAbove = this.getComponentsInDirection(-1);
+        var _this = this, distanceToMove;
         if (y > 0) {
-            if (componentBelow) {
-                // because we have to first propagate the move to the bottom and then update the positions
-                // we need the aggregatedY as the second parameter
-                componentBelow.move(y, pt(this.getPosition().x, aggregatedY + this.componentOffset).addPt(pt(0, this.getExtent().y)).y);
+            distanceToMove = (aggregatedY + this.componentOffset) - this.getPosition().y;
+            if (distanceToMove > 0) {
+                // move all components below
+                // also pass the aggregatedY as we first propagate the move before actually
+                // updating the positions (otherwise getComponentsInDirection won't work)
+                componentsBelow.each(function (ea) {
+                    ea.move(distanceToMove, pt(_this.getPosition().x, aggregatedY + _this.componentOffset).addPt(pt(0, _this.getExtent().y)).y)
+                });
+                this.setPosition(this.getPosition().addPt(pt(0, distanceToMove)));
             }
-            this.setPosition(this.getPosition().addPt(pt(0, y)));
         } else if (y < 0) {
-            var canMove = true;
-            if (componentAbove) {
-                // if there is a component in the way we can't move up
-                if (componentAbove.getPosition().y + componentAbove.getExtent().y > this.getPosition().y + y) {
-                    canMove = false;
-                }
-            }
-            if (canMove) {
-                // update position and move the components below to the top as well
-                this.setPosition(this.getPosition().addPt(pt(0, y)));
-                if (componentBelow) {
-                    componentBelow.move(y, this.getPosition().addPt(pt(0, y)).y);
-                }
-            }
+            distanceToMove = y;
+            // determine how far we can actually move to the top
+            // if we can't move for the full y, take the furthest that is possible
+            componentsAbove.each(function (ea) {
+                distanceToMove = Math.max(distanceToMove, ea.getPosition().y + ea.getExtent().y + _this.componentOffset -  _this.getPosition().y);
+            });
+            // update the position accordingly and move the components below to the top as well
+            this.setPosition(_this.getPosition().addPt(pt(0, distanceToMove)));
+            componentsBelow.each(function (ea) {
+                ea.move(distanceToMove)
+            });
         }
     },
 
@@ -628,8 +625,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         $super();
         if (aMorph == $world) {
             var newpos = this.calculateSnappingPosition();
-            this.setPosition(newpos);
             var newext = this.calculateSnappingExtent();
+            this.setPosition(newpos);
             this.setExtent(newext);
         }
         if (this.savedUpperNeighbor) {
@@ -885,10 +882,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         this.adjustForNewBounds();
         
-        var componentBelow = this.getComponentInDirection(1);
-        if (componentBelow) {
-            componentBelow.move(newExtent.y - oldExtent.y, this.getPosition().y + newExtent.y);
-        }
+        var _this = this;
+        var componentsBelow = this.getComponentsInDirection(1);
+        componentsBelow.each(function (c) {
+            c.move(newExtent.y - oldExtent.y, _this.getPosition().y + newExtent.y);
+        });
         
         var previewMorph = $morph("PreviewMorph" + this);
         if (previewMorph) {
@@ -1427,73 +1425,29 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
         }
     },
 
-
-    
-
     updateComponent: function() {
         // do nothing
     },
-    move: function(y, aggregatedY) {
-        var componentsBelow = this.getComponentsInDirection(1);
+
+    calculateSnappingPosition: function() {
         var componentsAbove = this.getComponentsInDirection(-1);
-        var _this = this, distanceToMove;
-        if (y > 0) {
-            distanceToMove = (aggregatedY + this.componentOffset) - this.getPosition().y;
-            if (distanceToMove > 0) {
-                if (componentsBelow.length) {
-                    // move all components below
-                    // also pass the aggregatedY as we first propagate the move before actually
-                    // updating the positions (otherwise getComponentsInDirection won't work)
-                    componentsBelow.each(function (ea) {
-                        ea.move(distanceToMove, pt(_this.getPosition().x, aggregatedY + _this.componentOffset).addPt(pt(0, _this.getExtent().y)).y)
-                    });
-                }
-                this.setPosition(this.getPosition().addPt(pt(0, distanceToMove)));
+        var componentAbove;
+        if (componentsAbove.length > 0)
+            componentAbove = componentsAbove.first();
+
+        if (componentAbove && !componentAbove.isMerger()) {
+            // snap below component above
+            var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
+            var snappingThreshold = 200;
+            if (this.getPositionInWorld().y < posBelowComponent.y + snappingThreshold) {
+                // snap directly below component above
+                return posBelowComponent;
             }
-        } else if (y < 0) {
-            distanceToMove = y;
-            if (componentsAbove.length) {
-                // determine how far we can actually move to the top
-                // if we can't move for the full y, take the furthest that is possible
-                componentsAbove.each(function (ea) {
-                    distanceToMove = Math.max(distanceToMove, ea.getPosition().y + ea.getExtent().y + _this.componentOffset -  _this.getPosition().y);
-                });
-            }
-            // update the position accordingly and move the components below to the top as well
-            _this.setPosition(_this.getPosition().addPt(pt(0, distanceToMove)));
-            if (componentsBelow.length) {
-                componentsBelow.each(function (ea) {ea.move(distanceToMove)});
-            }
-        }
-    },
-
-
-
-    isMerger: function() {
-        return true;
-    },
-    
-
-    
-});
-
-lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
-'default category', {
-
-    initialize : function($super){
-        $super();
-        var label = this.getSubmorphsByAttribute("name","Description")[0];
-        label.setTextString("FanIn");
-        this.setExtent(pt(this.getExtent().x,50));
-    },
-
-    refreshData: function() {
-        this.data = null;
-    
-        var componentsAbove = this.getComponentsInDirection(-1);
-        for (var i = 0; i < componentsAbove.length; i++) {
-            this.data = this.data || [];
-            this.data.push(componentsAbove[i].getData(this));
+            // snap into column of component above
+            var yGrid = this.calculateSnappingPositionInGrid().y;
+            return pt(posBelowComponent.x, yGrid);
+        } else {
+            return this.calculateSnappingPositionInGrid();
         }
     },
 
@@ -1503,7 +1457,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
         var oldExtent = this.getExtent();
         var offsetX = 0;
         var offsetY = 0;
-        
+
         // Find the nearest fitting snapping extent
         if (oldExtent.x % this.gridWidth > this.gridWidth / 2) {
             offsetX = this.gridWidth;
@@ -1531,36 +1485,31 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
             return pt(x,y);
         }
     },
+
+    isMerger: function() {
+        return true;
+    },
+});
+
+lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
+'default category', {
+
+    initialize : function($super){
+        $super();
+        var label = this.getSubmorphsByAttribute("name","Description")[0];
+        label.setTextString("FanIn");
+        this.setExtent(pt(this.getExtent().x,50));
+    },
+
+    refreshData: function() {
+        this.data = null;
     
-    calculateSnappingPosition: function() {
         var componentsAbove = this.getComponentsInDirection(-1);
-        var componentAbove;
-        if (componentsAbove.length > 0)
-            componentAbove = componentsAbove.first();
-        
-        var preview = $morph("PreviewMorph" + this);
-        if (componentAbove && !componentAbove.isMerger()) {
-            // snap below components above
-            if (preview) {
-                preview.setExtent(this.calculateSnappingExtent());
-            }
-            var posBelowComponent = componentAbove.getPosition().addPt(pt(0,componentAbove.getExtent().y + this.componentOffset));
-            if (this.getPositionInWorld().y < componentAbove.getPosition().y + componentAbove.getExtent().y + this.componentOffset + 200) {
-                // snap directly below component above
-                return posBelowComponent;
-            }
-            // snap into column of component above
-            var yGrid = this.calculateSnappingPositionInGrid().y;
-            return pt(posBelowComponent.x, yGrid);
-        } else {
-            // snap to the grid
-            if (preview) {
-                preview.setExtent(this.getExtent());
-            }
-            return this.calculateSnappingPositionInGrid();
+        for (var i = 0; i < componentsAbove.length; i++) {
+            this.data = this.data || [];
+            this.data.push(componentsAbove[i].getData(this));
         }
     },
-    
 });
 lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
 'default category', {

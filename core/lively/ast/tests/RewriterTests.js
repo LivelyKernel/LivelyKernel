@@ -112,6 +112,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         var notEqual = lively.ast.acorn.compareAst(node1, node2);
         if (!notEqual) return;
         this.assert(false, 'nodes not equal: ' + (msg ? '\n  ' + msg : '') + '\n  ' + notEqual.join('\n  '));
+    },
+
+    assertAstReference: function(entry, msg) {
+        var isReference = entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef');
+        this.assert(isReference, msg || 'registry entry is no reference');
     }
 
 },
@@ -424,6 +429,32 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                     this.setVar(0, 'bar',
                         this.intermediateResult('function _NO_REWRITE_foo(a, b) {\nreturn a + b;\n};\n'))));
         this.assertASTMatchesCode(result, expected);
+    },
+
+    test26CompressedAstRegistryRewrite: function() {
+        var registry = lively.ast.Rewriting.getCurrentASTRegistry();
+        this.assertEquals(0, registry.length, 'registry not empty at the beginning');
+
+        var src = 'function foo() { 2; } var bar = function() { 1; };',
+            ast = this.parser.parse(src);
+        this.rewrite(ast);
+        console.log(registry);
+        this.assertEquals(3, registry.length, 'registry has wrong size after rewrite');
+        this.assertAstReference(registry[1], 'FunctionDeclaration is no reference');
+        this.assertAstReference(registry[2], 'FunctionExpression is no reference');
+
+        var refAst = registry[registry[1].registryRef],
+            refAstIndex = registry[1].indexRef,
+            result = acorn.walk.findNodeByAstIndex(refAst, refAstIndex),
+            expected = registry[0].body[0];
+        console.log(result, expected);
+        this.assertEquals(result, expected, 'FunctionDeclaration reference not correct');
+
+        refAst = registry[registry[2].registryRef];
+        refAstIndex = registry[2].indexRef;
+        result = acorn.walk.findNodeByAstIndex(refAst, refAstIndex);
+        expected = registry[0].body[1].declarations[0].init;
+        this.assertEquals(result, expected, 'FunctionExpression reference not correct');
     }
 
 });

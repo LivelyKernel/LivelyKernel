@@ -54,15 +54,7 @@ Object.extend(lively.ast.Rewriting, {
                 lively.ast.Rewriting.createClosureBaseDef,
                 lively.ast.Rewriting.UnwindExceptionBaseDef
             ];
-            code.push("window.LivelyDebuggingASTRegistry=[");
-            var delim = '';
-            for (var i = 0; i < astReg.length; i++) {
-                // TODO: output ASTs instead of source code
-                var src = escodegen.generate(astReg[i]);
-                code.push(delim + JSON.stringify(src));
-                delim = ',';
-            }
-            code.push("];");
+            code.push("window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg));
             // 2. Create bootstrap code needed to run rewritten code
             put("core/lively/ast/BootstrapDebugger.js", code.join('\n'));
         });
@@ -236,7 +228,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 node = {
                     key: that.newNode('Literal', {value: node.id.name}),
                     kind: 'init',
-                    value: that.rewriteFunctionDeclaration(node)
+                    value: that.rewriteFunctionDeclaration(node, visitor.registryIndex)
                 }
             }
             return node;
@@ -362,7 +354,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
+        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex);
         var decls = this.registerDeclarations(astToRewrite, rewriteVisitor); // locals
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         this.exitScope();
@@ -384,8 +376,8 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var decls = this.registerDeclarations(astToRewrite); // locals
-        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
+        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex);
+        var decls = this.registerDeclarations(astToRewrite, rewriteVisitor); // locals
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         // this.exitScope();
         // FIXME!
@@ -394,7 +386,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         return rewritten;
     },
 
-    rewriteFunctionDeclaration: function(node) {
+    rewriteFunctionDeclaration: function(node, originalRegistryIndex) {
         var astToRewrite = acorn.walk.copy(node);
         if (node.id.name.substr(0, 12) == '_NO_REWRITE_') {
             astToRewrite.type = 'FunctionExpression';
@@ -402,14 +394,12 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         }
 
         this.enterScope();
-        this.astRegistry.push(node);
+        this.astRegistry.push({ registryRef: originalRegistryIndex, indexRef: node.astIndex });
         var astRegistryIndex = this.astRegistry.length - 1;
         var start = node.start, end = node.end, astIndex = node.astIndex;
-        // FIXME: sub-ast should have there own node indices
-        // acorn.walk.addAstIndex(astToRewrite);
         var args = this.registerVars(node.params.pluck('name')); // arguments
-        var decls = this.registerDeclarations(node.body); // locals
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
+        var decls = this.registerDeclarations(node.body, rewriteVisitor); // locals
         var rewritten = rewriteVisitor.accept(astToRewrite.body, this);
         this.exitScope();
         var wrapped = this.wrapClosure({
@@ -418,7 +408,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 body: [this.wrapSequence(rewritten, args, decls, astRegistryIndex)]}),
             id: node.id || null, params: args
         }, astRegistryIndex);
-        this.astRegistry[astRegistryIndex].rewritten = wrapped;
+        // this.astRegistry[astRegistryIndex].rewritten = wrapped; // FIXME just for debugging
         return wrapped;
     }
 
@@ -786,7 +776,15 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
     }
 });
 
-lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor", {
+lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
+'initializing', {
+
+    initialize: function(registryIndex) {
+        this.registryIndex = registryIndex;
+    }
+
+},
+'visiting', {
 
     visitExpressionStatement: function(n, rewriter) {
         // expression is a node of type Expression
@@ -944,10 +942,11 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         }
 
         rewriter.enterScope();
-        rewriter.astRegistry.push(astToRewrite);
+        // FIXME: parallel rewriting may corrupt this index
+        rewriter.astRegistry.push({ registryRef: this.registryIndex, indexRef: n.astIndex });
         var astRegistryIndex = rewriter.astRegistry.length - 1;
         var args = rewriter.registerVars(n.params.pluck('name')); // arguments
-        var decls = rewriter.registerDeclarations(n.body); // locals
+        var decls = rewriter.registerDeclarations(n.body, this); // locals
         var rewritten = this.accept(n.body, rewriter);
         rewriter.exitScope();
         var wrapped = rewriter.wrapClosure({
@@ -956,10 +955,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 body: [rewriter.wrapSequence(rewritten, args, decls, astRegistryIndex)]}),
             id: n.id || null, params: args
         }, astRegistryIndex);
-        return rewriter.astRegistry[astRegistryIndex].rewritten = rewriter.newNode('ExpressionStatement', {
+        wrapped = rewriter.newNode('ExpressionStatement', {
             expression: rewriter.storeComputationResult(wrapped, start, end, astIndex),
             id: n.id
         });
+        // rewriter.astRegistry[astRegistryIndex].rewritten = wrapped; // FIXME just for debugging
+        return wrapped;
     },
 
     visitVariableDeclaration: function(n, rewriter) {

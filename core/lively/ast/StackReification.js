@@ -144,7 +144,15 @@ Object.extend(Global, {
     },
 
     __getClosure: function(idx) {
-        return lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        var entry = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        if (entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
+            // reference instead of complete ast
+            entry = acorn.walk.findNodeByAstIndex(
+                lively.ast.Rewriting.getCurrentASTRegistry()[entry.registryRef],
+                entry.indexRef
+            );
+        }
+        return entry; // ast
     }
 });
 
@@ -253,9 +261,8 @@ Object.extend(lively.ast.Continuation, {
       + "    f._cachedScopeObject = parentFrameState;\n"
       + "    f.livelyDebuggingEnabled = true;\n"
       + "    f.toString = function toString() {\n"
-      + "        var ast = LivelyDebuggingASTRegistry[idx],\n"
-      + "        // TODO: save AST instead of source and escodegen.generate the source here\n"
-      + "        src = ast;\n"
+      + "        var ast = __getClosure(idx),\n"
+      + "            src = escodegen.generate(ast);\n"
       + "        return src;\n"
       + "    };\n"
       + "    return f;\n"

@@ -1294,69 +1294,71 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Table', {
         $super();
         this.getSubmorphsByAttribute("name","Description")[0].setTextString("Table");
         
-        var spec = {};
-        spec.showColHeads = true;
-        spec.showRowHeads = false;
-        this.table = new lively.morphic.DataGrid(1,1,spec);
-        var container = this.getSubmorphsByAttribute("name","Container")[0];
-        container.addMorph(this.table);
-        this.table.setPosition(pt(3,3));
-        this.table.setExtent(container.getExtent().subPt(pt(6,6)));
-        this.table.layout = {resizeWidth: true, resizeHeight: true};
-        
+        this.table = this.clearTable();
+         
         this.rows = 0;
         this.columns = 0;
     },
     
+    createTable : function(row, column) {
+        var spec = {};
+        spec.showColHeads = true;
+        spec.showRowHeads = false;
+        return new lively.morphic.DataGrid(row, column, spec);
+    },
+    
+    updateTable : function(){
+        var container = this.getSubmorphsByAttribute("name","Container")[0];
+        container.submorphs.invoke("remove");
+        container.addMorph(this.table);
+        this.table.setPosition(pt(3,3));
+        this.table.setExtent(container.getExtent().subPt(pt(6,6)));
+        this.table.layout = {resizeWidth: true, resizeHeight: true};
+    },
+    
     updateComponent : function(){
-        if (!this.data) return;
-        
-        this.clearTable();
-        if (this.data.length+1 > this.columns){
-            for (var i=0; i<this.data.length+1-this.columns; i++){
-                this.table.addCol("1");
-                this.columns++;
-            }
+        if (!this.data) {
+            this.clearTable();
+            return;
         }
         
-        if (this.data.length+1 < this.columns){
-            for (var i=0; i<this.data.length+1-this.columns; i++){
-                this.table.removeCol();
-                this.columns--;
-            }
+        if (!(this.data.first() instanceof Array)){
+            var attributes = [];
+            this.data.each(function(ea){
+                var key;
+                for ( key in ea){
+                    if (attributes.indexOf(key) == -1)
+                        attributes.push(key);
+                }
+            })
+            this.table = this.createTable(attributes.length,this.data.length+1);
+            this.table.setColNames(attributes);
+        } else {
+            this.table = this.createTable(this.data[0].length,this.data.length+1);
         }
         
-        if (this.data[0].length+1 > this.rows){
-            for (var i=0; i<this.data.length+1-this.rows; i++){
-                this.table.addRow(new Array(this.columns+1));
-                this.rows++;
-            }
-        }
-        
-        if (this.data[0].length+1 < this.rows){
-            for (var i=0; i<this.data.length+1-this.rows; i++){
-                this.table.removeRow();
-                this.rows--;
-            }
-        }
-        var col = 0;
         var _this = this;
-        this.data.each(function (ea){
-           if (ea instanceof Array) {
-                var row = 0;
-                ea.each(function (el){
+        this.data.each(function (ea,col){
+            if (ea instanceof Array) {
+                ea.each(function (el,row){
                     _this.table.atPut(row,col,el.toString())
-                    row++;
                 });
-                col++;
-           }
+            } else {
+                attributes.each(function (attr,row){
+                    var content = ea[attr];
+                    if (!content) 
+                        content = "-";
+                    _this.table.atPut(row,col,content);
+                });
+            }
+            
         });
-        
-        this.table.updateDisplay();
+        this.updateTable();
     },
     
     clearTable : function() {
-        
+        this.table = this.createTable(0,0);
+        this.updateTable();
     }
     
 });

@@ -1020,11 +1020,60 @@ lively.morphic.World.addMethods(
 });
 lively.morphic.Morph.addMethods(
 'object versioning', {
-    updateFrom: function(previousVersion) {
-        console.log("Hello World");
-		if (lively.CurrentVersion !== previousVersion) {
-			this.renderWithHTML();
-        }
+    updateFrom: function(oldVersion) {
+
+ 		var inVersionDo = function(version, aFunction) {
+  			var oldValue = lively.CurrentVersion;
+  			lively.CurrentVersion = version;
+  			var result = aFunction();
+  			lively.CurrentVersion = oldValue;
+  			return result;
+  		};
+
+		var inOldVersionDo = inVersionDo.curry(oldVersion);
+
+  		var properties = ['Fill', 'Extent'];
+  		
+  		var oldValues = inOldVersionDo(function() {
+  			return properties.collect(function(ea) {
+  				return this['get' + ea]();
+  			}.bind(this))
+  		}.bind(this));
+  		
+  		for (var i=0; i<properties.length; i++) {
+  		  	var currentValue = this['get' + properties[i]]();
+  		  	if (oldValues[i] != currentValue) {
+  		  		this['set' + properties[i]]( currentValue );
+  		  	}
+		}
+		
+		var oldSubmorphs = inOldVersionDo(function() {return this.submorphs;}.bind(this));
+		this.submorphs.forEach(function(ea) {
+			var index = oldSubmorphs.indexOf(ea);
+			var wasAdded = -1 == index;
+			if (wasAdded) {
+				ea.remove();
+				this.addMorph(ea, this.submorphs[index]);
+			}
+		}.bind(this));
+		
+		oldSubmorphs.forEach(function(ea) {
+			var index = this.submorphs.indexOf(ea);
+			var wasRemoved = -1 == index;
+			if (wasRemoved) {
+				this.submorphs.push(ea);
+				ea.remove();
+			}
+		}.bind(this));
+		
+		this.submorphs.forEach(function(ea) {
+			ea.updateFrom(oldVersion);
+		});
+		
+		console.log("Hello World");
+		// if (lively.CurrentVersion !== oldVersion) {
+		// 			this.renderWithHTML();
+		//         }
     }
 });
 lively.morphic.HandMorph.addMethods(

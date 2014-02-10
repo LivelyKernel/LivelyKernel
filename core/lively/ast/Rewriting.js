@@ -356,7 +356,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     rewrite: function(node) {
         this.enterScope();
         var astToRewrite = acorn.walk.copy(node);
-        this.astRegistry.push(astToRewrite);
+        this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1;
         acorn.walk.addAstIndex(astToRewrite);
         if (astToRewrite.type == 'FunctionDeclaration') {
@@ -378,7 +378,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
         // this.enterScope();
         var astToRewrite = acorn.walk.copy(node);
-        this.astRegistry.push(astToRewrite);
+        this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1;
         acorn.walk.addAstIndex(astToRewrite);
         if (astToRewrite.type == 'FunctionDeclaration') {
@@ -402,7 +402,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         }
 
         this.enterScope();
-        this.astRegistry.push(astToRewrite);
+        this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1;
         var start = node.start, end = node.end, astIndex = node.astIndex;
         // FIXME: sub-ast should have there own node indices
@@ -410,7 +410,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var args = this.registerVars(node.params.pluck('name')); // arguments
         var decls = this.registerDeclarations(node.body); // locals
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
-        var rewritten = rewriteVisitor.accept(node.body, this);
+        var rewritten = rewriteVisitor.accept(astToRewrite.body, this);
         this.exitScope();
         var wrapped = this.wrapClosure({
             start: node.start, end: node.end, type: 'FunctionExpression',

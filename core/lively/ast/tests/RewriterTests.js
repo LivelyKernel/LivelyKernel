@@ -481,19 +481,20 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
         var src = Strings.format('(%s)(1);', code),
             src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
-    },
-
-    test03FunctionReCreation: function() {
-        function wrapper() {
-            var b = 2;
-            return function code(a) {
-                return a += b;
-            }
-        }
-        var fn = wrapper.stackCaptureMode()(),
-            fn2 = lively.Closure.fromFunction(fn).recreateFunc();
-        this.assertEquals(fn(1), fn2(1));
     }
+
+    // FIXME mr-2014-02-10: Should fromFunction recreate the scope/context at all?
+    // test03FunctionReCreation: function() {
+    //     function wrapper() {
+    //         var b = 2;
+    //         return function code(a) {
+    //             return a += b;
+    //         }
+    //     }
+    //     var fn = wrapper.stackCaptureMode()(),
+    //         fn2 = lively.Closure.fromFunction(fn).recreateFunc();
+    //     this.assertEquals(fn(1), fn2(1));
+    // }
 
 });
 

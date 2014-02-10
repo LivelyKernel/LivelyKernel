@@ -281,19 +281,13 @@ Object.extend(lively.versions.ObjectVersioning, {
             // === helpers ===
             isProxy: function() { return true },
             proxyTarget: function() { return this.targetObject() },
-            
-			updateFrom: function(previousVersion) {
-				var currentTarget = this.targetObject();
-				var previousTarget = this.targetObjectInVersion(previousVersion);
-				return currentTarget.updateFrom(previousTarget);
-			},
 			
 			targetObject: function() {
                 return this.targetObjectInVersion(lively.CurrentVersion);
             },
             targetObjectInVersion: function(version) {
                 var targetObject;
-                
+
                 while(!targetObject && version) {
                     targetObject = this.__targetVersions[version.ID];
                     version = version.previousVersion;
@@ -508,9 +502,6 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (name === '__shouldVersion') {
                     return this.__shouldVersion;
                 }
-	            if (name === '__updateFrom') {
-	                return this.updateFrom.bind(this);
-	            }
                 
                 targetObject = this.targetObject();
                 
@@ -938,7 +929,7 @@ Object.extend(lively.versions.ObjectVersioning, {
     moveTo: function(version, callback) {
         var oldCurrent = lively.CurrentVersion;
 		lively.CurrentVersion = version;
-		$world.__updateFrom(oldCurrent)
+		$world.updateFrom(oldCurrent)
         if (callback) callback();
 		return version;
     },
@@ -1230,6 +1221,6 @@ lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 
 // ----- GLOBAL ACTIVATION -----
 
-lively.versions.ObjectVersioning.init();
+lively.versions.ObjectVersioning.start();
 
 });

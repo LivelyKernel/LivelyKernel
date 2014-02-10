@@ -1021,8 +1021,9 @@ lively.morphic.World.addMethods(
 lively.morphic.Morph.addMethods(
 'object versioning', {
     updateFrom: function(previousVersion) {
-        if (this !== previousVersion) {
-            this.renderWithHTML();
+        console.log("Hello World");
+		if (lively.CurrentVersion !== previousVersion) {
+			this.renderWithHTML();
         }
     }
 });

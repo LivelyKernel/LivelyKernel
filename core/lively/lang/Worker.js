@@ -91,7 +91,7 @@ lively.Worker = {
 
         // This code is run inside the worker and initializes it. It installs
         // a console.log method since since this is not available by default.
-        function _NO_REWRITE_workerSetupCode() {
+        function workerSetupCode() {
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             // yoshiki and robert, 05/08/13: Inserted code that sets up the lively context
             // and globals of Lively:
@@ -211,7 +211,7 @@ lively.Worker = {
             var urlInterface = typeof webkitURL !== 'undefined' ? webkitURL : URL;
             return urlInterface.createObjectURL(blob);
         }
-        var workerCode = Strings.format('(%s)();', String(_NO_REWRITE_workerSetupCode));
+        var workerCode = Strings.format('(%s)();', String(workerSetupCode));
         if (customInitFunc) {
             var code = Strings.format('(%s)();', customInitFunc);
             workerCode += '\n' + code;

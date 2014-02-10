@@ -252,6 +252,12 @@ Object.extend(lively.ast.Continuation, {
       + "    // parentFrameState = [computedValues, varMapping, parentParentFrameState]\n"
       + "    f._cachedScopeObject = parentFrameState;\n"
       + "    f.livelyDebuggingEnabled = true;\n"
+      + "    f.toString = function toString() {\n"
+      + "        var ast = LivelyDebuggingASTRegistry[idx],\n"
+      + "        // TODO: save AST instead of source and escodegen.generate the source here\n"
+      + "        src = ast;\n"
+      + "        return src;\n"
+      + "    };\n"
       + "    return f;\n"
       + "}\n";
 

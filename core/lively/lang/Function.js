@@ -243,7 +243,7 @@ Object.extend(Function.prototype, {
             };
         if (optMapping) mapping = Object.merge([mapping, optMapping]);
         if (constructor && constructor.prototype && constructor.prototype[name]) {
-            var superFunc = function _NO_REWRITE_() {
+            var superFunc = function() {
                     try {
                         return obj.constructor.prototype[name].apply(obj, arguments)
                     } catch (e) {

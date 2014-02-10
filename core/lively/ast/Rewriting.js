@@ -50,16 +50,21 @@ Object.extend(lively.ast.Rewriting, {
                 '})();');
         }, Functions.K, function() {
             pBar.remove();
-            // 2. Create bootstrap code needed to run rewritten code
-            put("core/lively/ast/BootstrapDebugger.js", [
+            var code = [
                 lively.ast.Rewriting.createClosureBaseDef,
-                lively.ast.Rewriting.UnwindExceptionBaseDef,
-                // FIXME: should use JSON.stringify(astReg) but its hundreds of MBs
-                // Idea: virtual registry with references to file, version, segment (character range)
-                //       makes individual ast indexes necessary (or addition ast index offset for
-                //         reparsing and indexing)
-                "window.LivelyDebuggingASTRegistry=[];"
-            ].join('\n'));
+                lively.ast.Rewriting.UnwindExceptionBaseDef
+            ];
+            code.push("window.LivelyDebuggingASTRegistry=[");
+            var delim = '';
+            for (var i = 0; i < astReg.length; i++) {
+                // TODO: output ASTs instead of source code
+                var src = escodegen.generate(astReg[i]);
+                code.push(delim + JSON.stringify(src));
+                delim = ',';
+            }
+            code.push("];");
+            // 2. Create bootstrap code needed to run rewritten code
+            put("core/lively/ast/BootstrapDebugger.js", code.join('\n'));
         });
 
 

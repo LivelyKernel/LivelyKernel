@@ -1,5 +1,43 @@
 module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets', 'cop.Layers').toRun(function() {
 
+lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
+
+    initialize: function($super, content) {
+        $super();
+        this.content = content;
+        this.content.component = this;
+    },
+
+    onContentChanged: function() {
+        // abstract
+    }
+});
+
+
+lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent", {
+
+    initialize: function($super, content) {
+        $super(content);
+    },
+
+    onContentChanged: function() {
+        // do nothing
+    }
+});
+
+lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
+
+    update: function(data) {
+        // abstract
+    },
+
+    throwError: function(error) {
+        
+    }
+});
+
+
+
 lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
     initialize: function($super, aMorph, positionX) {
@@ -178,9 +216,9 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     
 });
 
-lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
-    initialize: function($super) {
-        $super();
+lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponent", {
+    initialize: function($super, content) {
+        $super(content);
 
         var arrow = new lively.morphic.Charts.Arrow(this);
         this.arrows = [arrow];
@@ -201,7 +239,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     updateComponent : function(){
-        //this should be overwritten by subclass    
+        this.content.update(this.data);
     },
     
     getComponentInDirection : function($super, direction) {
@@ -242,12 +280,15 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     backgroundColor: Color.rgb(207,225,229),
     borderColor: Color.rgb(94,94,94),
+    
     createContainer: function() {
         var container = new lively.morphic.Box(new rect(0,0,10,10));
         container.setBorderWidth(3);
         container.setFill(this.backgroundColor);
         container.setBorderColor(this.borderColor);
         container.setName("Container");
+
+        container.addMorph(this.content);
         this.addMorph(container);
         container.setPosition(pt(0,50));
         container.setExtent(pt(this.getExtent().x,this.getExtent().y-50));
@@ -602,7 +643,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     getAllComponents: function() {
         return $world.withAllSubmorphsSelect(function(el) {
-            return el instanceof lively.morphic.Charts.Component;
+            return el instanceof lively.morphic.Charts.DataFlowComponent;
         });
     },
 
@@ -733,6 +774,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
     },
     
+    onContentChanged: function() {
+        this.notify();
+    },
+
     notify: function() {
         this.update();
     },
@@ -915,6 +960,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             previewMorph.setExtent(previewExtent);
         }
     },
+
     throwError: function(error) {
         var text = this.get("ErrorText");
         text.setTextString(error.toString());
@@ -922,11 +968,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         error.alreadyThrown = true;
         throw error;
     },
-    
-
-    
-
-    
+       
     getData : function(target){
         
         var arrowToTarget = this.arrows.detect(function (arrow){
@@ -963,52 +1005,42 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 });
 
 
-lively.morphic.Charts.Component.subclass("lively.morphic.Charts.LinearLayout", {
+lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
     
     initialize: function($super) {
         $super();
-        var description = this.getSubmorphsByAttribute("name","Description")[0];
-        description.setTextString("LinearLayoutViewer");
-        var layout = new lively.morphic.Morph();
-        layout.setFill(Color.white);
+        this.setFill(Color.white);
         this.OFFSET = 20;
-        this.currentX = layout.OFFSET;
-        layout.setName("LinearLayout");
-        var container = this.getSubmorphsByAttribute("name","Container")[0];
-        container.addMorph(layout);
-        layout.setExtent(pt(container.getExtent().x-6,container.getExtent().y-6));
-        layout.setPosition(pt(3,3));
-        layout.layout = {
+        this.currentX = this.OFFSET;
+        this.setName("LinearLayout");
+        this.layout = {
             resizeHeight: true,
             resizeWidth: true
         }
     },
     
     addElement: function(element){
-        var layout = this.getSubmorphsByAttribute("name","LinearLayout")[0];
         var morph = element.morph.duplicate();
-        morph.setPosition(pt(this.currentX, layout.getExtent().y - morph.getExtent().y));
+        morph.setPosition(pt(this.currentX, this.getExtent().y - morph.getExtent().y));
         this.currentX = this.currentX + morph.getExtent().x + this.OFFSET;
-        layout.addMorph(morph);
+        this.addMorph(morph);
     },
     
     clear: function(){
-        var layout = this.getSubmorphsByAttribute("name","LinearLayout")[0];
         this.currentX = this.OFFSET;
-        layout.removeAllMorphs();
+        this.removeAllMorphs();
     },
     
-    updateComponent: function() {
+    update: function(data) {
         // create linear layout containing rects from data
-        var bar;
         this.clear();
-        for (bar in this.data) {
-            if (this.data.hasOwnProperty(bar)) {
-                this.addElement(this.data[bar]);
-            }
-        }
+        var _this = this;
+        data.each(function(ea) {
+            _this.addElement(ea);
+        });
     }
 } );
+
 cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
     basicLayout: function(container, submorphs) {
         try {
@@ -1021,67 +1053,57 @@ cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
     }}
 ).beGlobal();
 
-lively.morphic.Charts.Component.subclass("lively.morphic.Charts.FreeLayout", {
+lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     
     initialize: function($super) {
         $super();
-        var description = this.getSubmorphsByAttribute("name","Description")[0];
-        description.setTextString("FreeLayout");
-        var layout = new lively.morphic.Morph();
-        layout.setFill(Color.white);
-        layout.setName("Canvas");
-        var container = this.getSubmorphsByAttribute("name","Container")[0];
-        container.addMorph(layout);
-        layout.setExtent(pt(container.getExtent().x-6,container.getExtent().y-6));
-        layout.setPosition(pt(3,3));
-        layout.layout = {
+        this.setFill(Color.white);
+        this.setName("Canvas");
+        this.layout = {
             resizeHeight: true,
             resizeWidth: true
         };
     },
-    
-    updateComponent: function(){
+
+    update: function(data) {
         // create linear layout containing rects from data
-        var morph = new lively.morphic.Box(new rect(0,0,10,10));
         this.clear();
+        var canvasMorph = new lively.morphic.Box(new rect(0,0,10,10));
         var _this = this;
-        this.data.each(function(datum){
-            _this.addElement(datum,morph);
-        })
-        var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
-        layout.addMorph(morph);
+        data.each(function(datum){
+            _this.addElement(datum, canvasMorph);
+        });
+        this.addMorph(canvasMorph);
     },
-    
-    addElement: function(element, container){
+
+    addElement: function(element, container) {
         var morph = element.morph.duplicate()
         container.addMorph(morph);
     },
 
     scale: function() {
         var margin = 15;
-        var canvas = this.getSubmorphsByAttribute("name","Canvas").first();
-        var ownWidth = canvas.getExtent().x - margin;
-        var ownHeight = canvas.getExtent().y - margin;
+        var ownWidth = this.getExtent().x - margin;
+        var ownHeight = this.getExtent().y - margin;
         var maxX = 1;
         var maxY = 1;
         
-        canvas.submorphs.forEach(function(morph) {
+        this.submorphs.forEach(function(morph) {
             var x = morph.getBounds().right();
             var y = morph.getBounds().bottom();
             
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
+            maxX = Math.max(x, maxX);
+            maxY = Math.max(y, maxY);
         });
         
         var scaleFactor = Math.min(ownWidth/maxX, ownHeight/maxY);
         
-        canvas.submorphs.forEach(function(morph) {
+        this.submorphs.forEach(function(morph) {
             var x = morph.getPosition().x * scaleFactor;
             var y = morph.getPosition().y * scaleFactor;
             
             morph.setPosition(pt(x,y));
         });
-        
     },
 
     onResizeEnd: function($super) {        
@@ -1090,8 +1112,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.FreeLayout", {
     },
     
     clear: function(){
-        var layout = this.getSubmorphsByAttribute("name","Canvas")[0];
-        layout.removeAllMorphs();
+        this.removeAllMorphs();
     }
     
 } );
@@ -1105,7 +1126,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
-        ctx.refreshData();
+        // ctx.refreshData();
         
         var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
         
@@ -1142,15 +1163,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         }
         this.oldSession = newSession;
         
-        var ownerChain = this.ownerChain();
-
-        // find owner which is Charts.Component as the CodeEditor could be nested deep inside it
-        for (var i = 0; i < ownerChain.length; i++) {       
-            if (ownerChain[i] instanceof lively.morphic.Charts.Component){
-                ownerChain[i].onComponentChanged();     
-                break;      
-          }       
-        }
+        this.owner.component.onContentChanged();
     },
     isValid: function() {
         var str = this.getSession();
@@ -1242,26 +1255,47 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
 
 });
 
-lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
+lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 'default category', {
     
+    initialize : function($super){
+        $super();
+        this.codeEditor.setName("CodeEditor");
+        this.codeEditor.setPosition(pt(3, 3));
+        this.codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100\n))}");
+        this.codeEditor.setExtent(pt(this.getExtent().x - 150,this.getExtent().y - 6));
+        this.codeEditor.layout = {resizeWidth: true, resizeHeight: true};
+        this.addMorph(this.codeEditor);
+        
+        var prototypeMorph = new lively.morphic.Box(new rect(0, 0, 100, 100));
+        prototypeMorph.setFill(Color.blue);
+        prototypeMorph.setName("PrototypeMorph");
+        prototypeMorph.layout = {moveHorizontal: true, moveVertical: true};
+        prototypeMorph.setPosition(pt(this.getExtent().x-125,this.getExtent().y-150));
+        this.addMorph(prototypeMorph);
+    },
+
     throwError: function(e) {
-        var text = this.get("ErrorText");
-        text.setTextString(e.toString());
-        text.error = e;
-        e.alreadyThrown = true;
-        throw e;
+        if (this.component) {
+            alert("TODO: notify component when error is thrown");
+            // var text = this.get("ErrorText");
+            // text.setTextString(e.toString());
+            // text.error = e;
+            // e.alreadyThrown = true;
+            // throw e;
+        } else {
+            alert("component morph missing");
+        }
+
     },
     
-    updateComponent : function($super) {
+    update : function($super, data) {
         var _this = this;
-        c = this.get("CodeEditor");
-        
         var text = this.get("ErrorText");
         text.setTextString("");
         text.error = null;
         
-        if (this.data) {
+        if (data) {
             var prototypeMorph = this.get("PrototypeMorph");
             
             (function attachListener() {
@@ -1283,9 +1317,9 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
             
             if (prototypeMorph) {
                 var mappingFunction;
-                eval("mappingFunction = " + c.getTextString());
+                eval("mappingFunction = " + this.codeEditor.getTextString());
                 
-                this.data = this.data.map(function(ea) {
+                data = data.map(function(ea) {
                     var prototypeInstance = prototypeMorph.copy();
                     mappingFunction(prototypeInstance, ea);
                     // ensure that each datum is a object (primitives will get wrapped here)
@@ -1299,26 +1333,6 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
         }
     },
     
-    initialize : function($super){
-        $super();
-        this.getSubmorphsByAttribute("name","Description")[0].setTextString("Prototype Component");
-        var container = this.getSubmorphsByAttribute("name","Container")[0];
-        
-        var codeEditor = new lively.morphic.Charts.CodeEditor();
-        codeEditor.setName("CodeEditor");
-        codeEditor.setPosition(pt(3,3));
-        codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100\n))}");
-        codeEditor.setExtent(pt(container.getExtent().x-150,container.getExtent().y-6));
-        codeEditor.layout = {resizeWidth: true, resizeHeight: true};
-        container.addMorph(codeEditor);
-        
-        var prototypeMorph = new lively.morphic.Box(new rect(0,0,100,100));
-        prototypeMorph.setFill(Color.blue);
-        prototypeMorph.setName("PrototypeMorph");
-        prototypeMorph.layout = {moveHorizontal: true, moveVertical: true};
-        container.addMorph(prototypeMorph);
-        prototypeMorph.setPosition(pt(container.getExtent().x-125,container.getExtent().y-150));
-    },
     
     migrateFromPart: function(oldComponent) {
         var newCodeEditor = this.getSubmorphsByAttribute("name","CodeEditor");
@@ -1341,7 +1355,7 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Prototype',
         }
     }
 });
-lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Table', {
+lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     
     initialize : function($super){
         $super();
@@ -1457,35 +1471,37 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Table', {
     },
     
 });
-lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Script',
+lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
 'default category', {
     
     initialize : function($super){
         $super();
-        this.getSubmorphsByAttribute("name","Description")[0].setTextString("Script");
-        var container = this.getSubmorphsByAttribute("name","Container")[0];
-        
-        var codeEditor = new lively.morphic.Charts.CodeEditor();
-        codeEditor.setPosition(pt(3,3));
-        codeEditor.setTextString("// Use the data, Luke!");
-        codeEditor.setName("CodeEditor");
-        codeEditor.setExtent(pt(container.getExtent().x-6,container.getExtent().y-6));
-        codeEditor.layout = {resizeWidth: true, resizeHeight: true};
-        container.addMorph(codeEditor);
+        this.codeEditor = new lively.morphic.Charts.CodeEditor();
+        this.codeEditor.setPosition(pt(3,3));
+        this.codeEditor.setTextString("// Use the data, Luke!");
+        this.codeEditor.setName("CodeEditor");
+        this.codeEditor.setExtent(pt(this.getExtent().x - 6, this.getExtent().y - 6));
+        this.codeEditor.layout = {
+            resizeWidth: true,
+            resizeHeight: true
+        };
+        // TODO: fix extent
+        this.codeEditor.setExtent(pt(500, 250));
+        this.addMorph(this.codeEditor);
+
     },
     
-    updateComponent: function() {
-        var c = this.getSubmorphsByAttribute("name","CodeEditor")[0];
-        c.doitContext = this;
+    update: function(data) {
+        this.codeEditor.doitContext = this;
         
-        if (!c.getSelectionRangeAce())
+        if (!this.codeEditor.getSelectionRangeAce())
             return;
         
         var text = this.get("ErrorText");
         text.setTextString("");
         text.error = null;
         
-        var returnValue = c.evalAll();
+        var returnValue = this.codeEditor.evalAll();
         
         if (returnValue instanceof Error) {
             this.throwError(returnValue);
@@ -1493,8 +1509,8 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Script',
     },
     
     migrateFromPart: function(oldComponent) {
-        var newCodeEditor = this.getSubmorphsByAttribute("name","CodeEditor");
-        var oldCodeEditor = oldComponent.getSubmorphsByAttribute("name","CodeEditor");
+        var newCodeEditor = this.codeEditor;
+        var oldCodeEditor = oldComponent.codeEditor;
         if (newCodeEditor.size() > 0 && oldCodeEditor.size() > 0){
             newCodeEditor = newCodeEditor[0];
             oldCodeEditor = oldCodeEditor[0];
@@ -1503,27 +1519,23 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Script',
     }
 });
 
-lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Fan',
+lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
 'default category', {
     
     initialize : function($super){
         $super();
-        //delete Minimizer
-        var minimizer = this.getSubmorphsByAttribute("name","Minimizer");
+        // delete Minimizer
+        var minimizer = this.getSubmorphsByAttribute("name", "Minimizer");
         if (minimizer.length)
         {
             minimizer[0].remove();
         }
-        //delete container
-        var container = this.getSubmorphsByAttribute("name","Container");
+        // delete container
+        var container = this.getSubmorphsByAttribute("name", "Container");
         if (container.length)
         {
             container[0].remove();
         }
-    },
-
-    updateComponent: function() {
-        // do nothing
     },
 
     calculateSnappingPosition: function() {
@@ -1593,14 +1605,14 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
 
     initialize : function($super){
         $super();
-        var label = this.getSubmorphsByAttribute("name","Description")[0];
+        var label = this.getSubmorphsByAttribute("name", "Description")[0];
         label.setTextString("FanIn");
-        this.setExtent(pt(this.getExtent().x,50));
+        this.setExtent(pt(this.getExtent().x, 50));
     },
 
     refreshData: function() {
         this.data = null;
-    
+
         var componentsAbove = this.getComponentsInDirection(-1);
         for (var i = 0; i < componentsAbove.length; i++) {
             this.data = this.data || [];
@@ -1618,10 +1630,11 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         this.arrows[0].remove();
         this.arrows.clear();
 
-        var label = this.getSubmorphsByAttribute("name","Description")[0];
+        var label = this.getSubmorphsByAttribute("name", "Description")[0];
         label.setTextString("FanOut");
-        this.setExtent(pt(this.getExtent().x,50));
+        this.setExtent(pt(this.getExtent().x, 50));
     },
+
     refreshData: function() {
         this.data = null;
 
@@ -1632,7 +1645,6 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
             this.data = componentsAbove.getData(this);
     },
 
-    
     getData : function(target){
         var arrowToTarget = this.arrows.detect(function (arrow){
             var arrowX =  arrow.getTipPosition().x;
@@ -1656,6 +1668,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         return null;
     }
 });
+
 lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
 {
     initialize: function($super) {
@@ -1689,6 +1702,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
         }
     }
 });
+
 Object.subclass('lively.morphic.Charts.EntityFactory',
 'default category', {
 
@@ -1819,7 +1833,5 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
 
 
 });
-
-
 
 }) // end of module

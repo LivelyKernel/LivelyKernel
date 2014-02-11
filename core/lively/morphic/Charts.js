@@ -522,6 +522,22 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
         return $super(morphToDrop);
     },
+    wantsToBeDroppedInto: function($super, target) {
+        var ownerChain = target.ownerChain();
+
+        // find owner which is Charts.Component
+        for (var i = 0; i < ownerChain.length; i++) {
+            var proto = Object.getPrototypeOf(ownerChain[i]);
+            while (proto != null) {
+                if (proto == lively.morphic.Charts.Component.prototype)
+                    return false;
+                proto = Object.getPrototypeOf(proto);
+            }
+        }
+
+        return $super(target);
+    },
+
     removeArrowFromArray: function(arrow) {
         
         var index = this.arrows.indexOf(arrow);
@@ -645,6 +661,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.notify();
         this.wasDragged = false;
     },
+
+
     
 
     

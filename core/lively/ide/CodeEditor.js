@@ -193,6 +193,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowWarnings(this.getShowWarnings());
         this.setInputAllowed(this.inputAllowed());
 
+        this.activateAutocompletionWhenTyping();
+
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
         if (!cbs) return;
@@ -465,6 +467,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     showsCompleter: function() {
         return this.withAceDo(function(ed) {
             return ed.completer && ed.completer.activated; })
+    },
+
+    activateAutocompletionWhenTyping: function() {
+        var editor = this.aceEditor;
+        editor.commands.on("afterExec", function(e){
+             if (e.command.name == "insertstring"&&/^[\w.]$/.test(e.args)) {
+                editor.execCommand("startAutocomplete")
+             }
+        })
     }
 
 },

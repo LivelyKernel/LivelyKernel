@@ -452,8 +452,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         // its connection lines. It can not be notified at the moment, since
         // since we are still below it. Notification is done in onDropOn.
 
-        // FanIn might change this due to multiple upper neighbors
-        this.savedUpperNeighbor = this.getComponentInDirection(-1);
+        this.savedUpperNeighbors = this.getComponentsInDirection(-1);
         
         this.addPreviewMorph();
         this.setOpacity(0.7);
@@ -649,14 +648,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             this.setExtent(newext);
         }
 
-        if (this.savedUpperNeighbor) {
-            this.savedUpperNeighbor.refreshConnectionLines();
-            this.savedUpperNeighbor = null;
-        }
-        var neighbor = this.getComponentInDirection(-1);
-        if (neighbor) {
+        var componentsAbove = this.getComponentsInDirection(-1);
+        componentsAbove.concat(this.savedUpperNeighbors).each(function (neighbor) {
             neighbor.refreshConnectionLines();
-        }
+        });
+        this.savedUpperNeighbors = null;
+
         this.drawAllConnectionLines();
         this.notifyNeighborsOfDragEnd();
         this.notify();

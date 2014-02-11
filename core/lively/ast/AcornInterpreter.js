@@ -860,7 +860,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         // if (mapping['$super'] && argNames[0] == '$super')
         //     argValues.unshift(mapping['$super']);
 
-        var parentFrame = this.parentFrame ? this.parentFrame : lively.ast.Interpreter.Frame.global(),
+        var parentFrame = this.parentFrame ? this.parentFrame : lively.ast.AcornInterpreter.Frame.global(),
             frame = parentFrame.newFrame(this, this.lexicalScope);
         // FIXME: add mapping to the new frame.getScope()
         if (thisObj !== undefined)

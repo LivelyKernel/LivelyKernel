@@ -13,7 +13,7 @@ Object.extend(lively.net.tools.Lively2Lively, {
                 // PartsBin items always have three associated files, just use
                 // .metainfo for counting updates.
                 return dbRec.path.startsWith("PartsBin")
-                    && (dbRec.path.endsWith(".html") 
+                    && (dbRec.path.endsWith(".html")
                      || dbRec.path.endsWith(".json"));
             }));
         })
@@ -238,7 +238,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
             console.warn("wiki notificications not available");
         }
     },
-    
+
     alignNotificationIcon: function alignNotificationIcon() {
         var icon = this.get('NotificationRectangle');
         icon && icon.align(icon.bounds().bottomRight(), this.innerBounds().bottomRight().addXY(3,8));
@@ -457,7 +457,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         }
         var list = this.get("UserList");
         // createUserItem('AKay').openInWorldCenter()
-        function createUserItem(userName) { 
+        function createUserItem(userName) {
             var imgWidth = 64, imgHeight = 64, textHeight = 20,
                 width = 100, height = imgHeight + textHeight;
             new URL('http://lively-web.org/nodejs/UserServer/avatar/' + userName).asWebResource().beAsync().get().whenDone(function(url, _) {
@@ -526,7 +526,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         submorphs: [{
             _BorderWidth: 1,
             _ClipMode: "auto",
-            _Extent: lively.pt(622.0,100.0),
+            _Extent: lively.pt(622.0,320),
             _Fill: Color.rgb(243,243,243),
             _FontSize: 10,
             _Position: lively.pt(10.0,35.0),
@@ -540,7 +540,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             layout: {resizeHeight: false,resizeWidth: true},
             name: "SessionList",
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "selection", this.get("RemoteWorkspace"), "selectedSession", {});
             lively.bindings.connect(this, "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});
         }
         },{
@@ -556,53 +555,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "updateSessions", {});
         }
-        },{
-            _BorderColor: Color.rgb(95,94,95),
-            _BorderWidth: 1,
-            _Extent: lively.pt(622.0,213.0),
-            _Position: lively.pt(10.0,140.0),
-            accessibleInInactiveWindow: true,
-            className: "lively.morphic.CodeEditor",
-            layout: {moveVertical: false,resizeHeight: true,resizeWidth: true},
-            name: "RemoteWorkspace",
-            sourceModule: "lively.ide.CodeEditor",
-            storedString: "// Text here gets evaluated in other Lively worlds",
-            textMode: "javascript",
-            textString: "// Text here gets evaluated in other Lively worlds",
-            boundEval: function boundEval(string) {
-                                    if (!this.selectedSession) { lively.bindings.signal(self, 'evalResult', 'no remote session selected'); return; }
-                                    var localSess = this.get('Lively2LivelyInspector').getLocalSession();
-                                    var self = this;
-                                    localSess.remoteEval(this.selectedSession.id, string, function(msg) {
-                                        var result = 'something went wrong';
-                                        if (!msg || !msg.data) { result = 'remote eval failed'; }
-                                        else if (msg.data.error) { result = 'remote eval error: ' + msg.data.error; }
-                                        else result = msg.data.result;
-                                        lively.bindings.signal(self, 'evalResult', result);
-                                    });
-                                },
-            doit: function doit(printResult, editor) {
-                                            var text = this.getSelectionMaybeInComment();
-                                            if (printResult) {
-                                                connect(this, 'evalResult', this, 'printObject', {
-                                                    updater: function($upd, val) { $upd(null, val); },
-                                                    removeAfterUpdate: true
-                                                });
-                                            }
-                                            this.tryBoundEval(text);
-                                            if (printResult) return;
-                                            var sel = this.getSelection();
-                                            if (sel && sel.isEmpty()) sel.selectLine();
-                                        },
-            printInspect: function printInspect() {
-                                            var s = this.getSelectionMaybeInComment()
-                                            s = "Objects.inspect(" + s + ", {maxDepth: 0})";
-                                            connect(this, 'evalResult', this, 'printObject', {
-                                                updater: function($upd, val) { $upd(null, val); },
-                                                removeAfterUpdate: true
-                                            });
-                                            this.tryBoundEval(s);
-                                        }
         },{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
@@ -623,7 +575,6 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _Extent: lively.pt(80.0,20.0),
             _Position: lively.pt(90.0,10.0),
             className: "lively.morphic.Button",
-            isPressed: false,
             label: "send morph",
             name: "SendMorphButton",
             sourceModule: "lively.morphic.Widgets",
@@ -631,6 +582,18 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             value: false,
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "sendMorphOnUserClick", {});
+        }
+        }, {
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(100.0,20.0),
+            _Position: lively.pt(180.0,10.0),
+            className: "lively.morphic.Button",
+            label: "open workspace",
+            name: "OpenWorkspaceButton",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "openWorkspaceForSelectedSession", {});
         }
         }],
         zoom: 1,
@@ -702,11 +665,11 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                     resizeWidth: true, resizeHeight: true
                 });
                 preview.name = 'lively2livelyPreview';
-            
+
                 preview.worldId = this.get('SessionList').selection.id;
                 preview.addScript(function setZoom(zoom) {
                     this.jQuery().children()
-                        .css({'-webkit-transform': Strings.format('scale(%s,%s)', zoom,zoom)});        
+                        .css({'-webkit-transform': Strings.format('scale(%s,%s)', zoom,zoom)});
                 });
                 preview.addScript(function zoomIn() { this.setZoom(this.zoom += 0.2); });
                 preview.addScript(function zoomOut() { this.setZoom(this.zoom -= 0.2); });
@@ -746,11 +709,9 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 connect(this.get("RefreshButton"), 'fire', this, 'updateSessions');
                 connect(this.get("PreviewButton"), 'fire', this, 'openWorldPreview');
                 connect(this.get("SendMorphButton"), 'fire', this, 'sendMorphOnUserClick');
-                connect(this.get("SessionList"), 'selection', this.get('RemoteWorkspace'), 'selectedSession');
                 connect(this.get("SessionList"), 'selection', this, 'setWorkspaceTarget');
                 this.get("SessionList").selection = null;
                 this.get("SessionList").setList([]);
-                this.get("RemoteWorkspace").textString = '// Text here gets evaluated in other Lively worlds';
                 // this.get('Title').applyStyle({whitespaceHandling: 'pre', wordBreak: 'break-all'})
                 this.getPartsBinMetaInfo().addRequiredModule("lively.net.SessionTracker");
                 this.stopStepping();
@@ -785,8 +746,26 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 removeAfterUpdate: true});
         }).delay(0.2);
     },
+        openWorkspaceForSelectedSession: function openWorkspaceForSelectedSession() {
+        var world = this.world(),
+            sessInspector = this,
+            sel = this.get("SessionList").selection,
+            worldName = sel && sel.worldURL;
+        if (!sel) { alert('No session selected!'); return }
+        // ----
+        var workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
+        workspace.openInWorldCenter().comeForward();
+        workspace.targetMorph.showSessionIdInput();
+        (function() {
+            debugger;
+            var sel2 = workspace.get('ConnectionInput').getList().detect(function(item) {
+                return item.value.id === sel.id;
+            });
+            workspace.get('ConnectionInput').setSelection(sel2);
+        }).delay(0.5);
+    },
         setWorkspaceTarget: function setWorkspaceTarget(session) {
-            
+
                 },
         updateSessions: function updateSessions() {
             // lively.net.SessionTracker.closeSessions()
@@ -822,6 +801,238 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     this.targetMorph.updateSessions();
     this.targetMorph.startStepping(30 * 1000, 'updateSessions');
 }
+});
+
+lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
+    _Extent: lively.pt(629.0,267.0),
+    className: "lively.morphic.Window",
+    contentOffset: lively.pt(3.0,22.0),
+    draggingEnabled: true,
+    droppingEnabled: false,
+    layout: {
+        adjustForNewBounds: true
+    },
+    name: "Lively2LivelyWorkspace",
+    sourceModule: "lively.morphic.Widgets",
+    submorphs: [{
+        _BorderColor: Color.rgb(95,94,95),
+        _BorderWidth: 1,
+        _Extent: lively.pt(623.0,242.0),
+        _Position: lively.pt(3.0,22.0),
+        _Fill: Color.rgb(243,243,243),
+        _targetSession: null,
+        className: "lively.morphic.Box",
+        doNotSerialize: ["_targetSession"],
+        layout: {adjustForNewBounds: true, resizeHeight: true, resizeWidth: true },
+        name: "Lively2LivelyWorkspace",
+        submorphs: [{
+            _BorderColor: Color.rgb(95,94,95),
+            _Extent: lively.pt(621.0,218.0),
+            _FontSize: 12,
+            _Position: lively.pt(1.0,24.0),
+            _ShowGutter: false,
+            accessibleInInactiveWindow: true,
+            className: "lively.morphic.CodeEditor",
+            droppingEnabled: false,
+            grabbingEnabled: false,
+            layout: {
+                resizeHeight: true,
+                resizeWidth: true
+            },
+            name: "editor",
+            sourceModule: "lively.ide.CodeEditor",
+            textMode: "javascript",
+            textString: "// code in here is evaluated in the context of the connected session\n\
+        \n\
+        ",
+            doListProtocol: function doListProtocol() {
+            var string = this.getSelectionMaybeInComment(), self = this;
+            this.withCompletionsDo(string, function(err, result) {
+                if (err) { self.setStatusMessage(err, Color.red); return; }
+                new lively.morphic.Text.ProtocolLister(self).openNarrower(result);
+            });
+        },
+            doit: function doit(printResult, editor) {
+            var self = this, text = this.getSelectionMaybeInComment();
+            function output(msg, isError) {
+                if (printResult) {
+                    self.printObject(editor, msg, false);
+                } else {
+                    if (isError) self.setStatusMessage(msg, Color.red);
+                    var sel = self.getSelection();
+                    if (sel && sel.isEmpty()) sel.selectLine();
+                }
+            }
+            this.remoteEval(text, function(err, result) {
+                output(String(result), err);
+            });
+        },
+            printInspect: function printInspect() {
+            var self = this;
+            var s = this.getSelectionMaybeInComment()
+            var code = Strings.format("var inspector, result;\n"
+                + "if (typeof Objects !== 'undefined') inspector = Objects;\n"
+                + "else if (typeof _dbgHelper !== 'undefined') inspector = _dbgHelper;\n"
+                + "else throw new Error('no inspect available');\n"
+                + "try { result = (function() { return %s })(); } catch(e) { result = e; }\n"
+                + "inspector.inspect(result, {maxDepth: 0});\n", s);
+            this.remoteEval(code, function(err, result) {
+                self.printObject(null, String(err || result));
+            });
+        },
+            remoteEval: function remoteEval(code, doFunc) {
+            var localSess = this.owner.localSession();
+            this.owner.withTargetSession(function(err, targetSess) {
+                if (err) { doFunc(new Error('cannot get target session: %s' + err), err); return; }
+                localSess.remoteEval(targetSess.id, code, function(msg) {
+                    var isError = true, result = 'something went wrong';
+                    if (!msg || !msg.data) { result = 'remote eval failed'; }
+                    else if (msg.data.error) { result = 'remote eval error: ' + msg.data.error; }
+                    else { result = msg.data.result; isError = false; }
+                    doFunc(isError, result);
+                });
+            });
+        },
+            withCompletionsDo: function withCompletionsDo(code, doFunc) {
+            var localSess = this.owner.localSession();
+            this.owner.withTargetSession(function(err, targetSess) {
+                if (err) { doFunc(new Error('cannot get target session: %s' + err), err); return; }
+                localSess.sendTo(targetSess.id, 'completions', {expr: code}, function(msg) {
+                    var err = msg.error || msg.data.error;
+                    doFunc(err ? err : null, msg.data);
+                });
+            });
+        }
+        },{
+            _ClipMode: "auto",
+            _Extent: lively.pt(107.0,25.0),
+            _Fill: Color.rgb(243,243,243),
+            _Position: lively.pt(3.0,2.0),
+            changeTriggered: true,
+            className: "lively.morphic.DropDownList",
+            droppingEnabled: true,
+            itemList: ["session id","name"],
+            name: "ConnectionChoice",
+            selectOnMove: false,
+            selectedLineNo: 1,
+            selection: "name",
+            sourceModule: "lively.morphic.Lists",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "selection", this.get("Lively2LivelyWorkspace"), "switchConnectionChoice", {});
+        }
+        },{
+            _ClipMode: "auto",
+            _Extent: lively.pt(496.0,20.0),
+            _Fill: Color.rgb(243,243,243),
+            _FontFamily: "Helvetica",
+            _FontSize: 10,
+            _Position: lively.pt(120.0,2.0),
+            changeTriggered: true,
+            className: "lively.morphic.DropDownList",
+            droppingEnabled: true,
+            grabbingEnabled: false,
+            itemList: [],
+            layout: { resizeWidth: true },
+            name: "ConnectionInput",
+            selectedLineNo: 1,
+            selection: null,
+            sourceModule: "lively.morphic.Lists",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "selection", this.get("Lively2LivelyWorkspace"), "selectTargetSession", {});
+        }
+        }],
+        addDropDownTargetSessionList: function addDropDownTargetSessionList(listItemGenerator) {
+        var self = this;
+        self.withSessionsDo(function(sessions) {
+            var choiceBounds = self.get('ConnectionChoice').bounds(),
+                containerBounds = self.bounds(),
+                items = sessions.map(listItemGenerator),
+                list = new lively.morphic.DropDownList(rect(0,0,containerBounds.width - choiceBounds.width -20,20), items);
+            lively.bindings.connect(list, 'selection', self, 'selectTargetSession');
+            // list.setExtent(pt(400,20));
+            list.align(list.getPosition(), choiceBounds.topRight().addXY(10,0));
+            self.addMorph(list);
+            list.applyStyle({resizeWidth: true});
+            list.name = "ConnectionInput";
+        });
+    },
+        localSession: function localSession() {
+        return lively.net.SessionTracker.getSession();
+    },
+        message: function message(/*args*/) {
+        var msg = Strings.format.apply(Strings, arguments);
+        this.get("editor").setStatusMessage(msg, Color.black);
+    },
+        onLoad: function onLoad() {
+        this.showNameInput();
+    },
+        onWindowGetsFocus: function onWindowGetsFocus() {
+        this.get('editor').focus();
+    },
+        removeOtherInput: function removeOtherInput() {
+        this.get('ConnectionInput') && this.get('ConnectionInput').remove();
+    },
+        reset: function reset() {
+        this.get("ConnectionChoice").setList(['session id', 'name']);
+        lively.bindings.connect(this.get("ConnectionChoice"), "selection", this, "switchConnectionChoice");
+        this.doNotSerialize = ["_targetSession"];
+        this.get('ConnectionInput').setList([]);
+        this.get('editor').textString = '// code in here is evaluated in the context of the connected session';
+    },
+        selectTargetSession: function selectTargetSession(sess) {
+        this._targetSession = sess;
+    },
+        showNameInput: function showNameInput() {
+        this.removeOtherInput();
+        this.addDropDownTargetSessionList(function(session) {
+            return {
+                string: session.user + ' (' + session.worldURL + ')',
+                value: {worldURL: session.worldURL, user: session.user},
+                isListItem: true
+            };
+        });
+    },
+        showSessionIdInput: function showSessionIdInput() {
+        this.removeOtherInput();
+        this.addDropDownTargetSessionList(function(session) {
+            return {string: session.id, value: session, isListItem: true};
+        });
+    },
+        switchConnectionChoice: function switchConnectionChoice(choice) {
+        switch (choice) {
+            case 'session id':
+                this.showSessionIdInput();
+                break;
+            case 'name':
+                this.showNameInput();
+                break;
+        }
+    },
+        withSessionsDo: function withSessionsDo(doFunc, forceFreshList) {
+        lively.net.SessionTracker.sessionLister.withSessionListDo(this.localSession(), function(err, sessions) {
+            if (err) { show('withSessionsDo error: %s', err); return; }
+            doFunc(sessions);
+        }, forceFreshList);
+    },
+        withTargetSession: function withTargetSession(doFunc) {
+        if (!this._targetSession) return doFunc(null, null);
+        // target session can be an object with an id or a user/worldURL pair
+        if (this._targetSession.id) return doFunc(null, this._targetSession);
+        if (this._targetSession.user && this._targetSession.worldURL) {
+            var user = this._targetSession.user, url = this._targetSession.worldURL;
+            this.withSessionsDo(function(sessions) {
+                var s = sessions
+                    .select(function(s) { return s.user === user && s.worldURL === url; })
+                    .sortBy(function(s) { return Math.max(s.lastActivity, s.timeOfRegistration); })
+                    .last()
+                doFunc(s ? null : new Error('Cannot find session with ' + user + ' and ' + url), s);
+            }, true/*force fresh list*/);
+            return;
+        }
+        doFunc(null, null);
+    }
+    }],
+    titleBar: "Lively2LivelyWorkspace"
 });
 
 }) // end of module

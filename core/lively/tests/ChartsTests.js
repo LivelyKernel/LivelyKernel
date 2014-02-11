@@ -150,7 +150,6 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
     
     testDragBetween: function() {
         // test that component creates space between components and snaps into that gap
-        
         var components = this.helper.createComponents(2);
         var newComponent = this.helper.createComponent(pt(1, 1));
         
@@ -261,10 +260,11 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
     },
     
     testFanOutDataFlow : function(){
+        debugger;
         var componentTop = this.helper.createComponent();
         var fanOut = new lively.morphic.Charts.FanOut();
-        $world.addMorph(fanOut);
         fanOut.setPosition(pt(0,300));
+        $world.addMorph(fanOut);
         var componentsBottom = this.helper.createComponents(2,[pt(0,2),pt(1,2)]);
         componentTop.arrows[0].activate();
         componentTop.data=42;
@@ -461,7 +461,6 @@ Object.subclass('lively.tests.ChartsTests.Helper',
         
         for (var i = 0; i < amount; i++) {
             var aComponent = new lively.morphic.Charts.Component();
-            $world.addMorph(aComponent);
             var extent = aComponent.getExtent().addPt(pt(20, 20));
             
             var newPosition;
@@ -473,6 +472,10 @@ Object.subclass('lively.tests.ChartsTests.Helper',
             aComponent.setPosition(newPosition);
             components.push(aComponent);
         }
+        
+        components.each(function(comp) {
+            $world.addMorph(comp);
+        });
         
         return components;
     },

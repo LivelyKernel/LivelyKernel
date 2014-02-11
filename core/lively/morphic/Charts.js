@@ -233,7 +233,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
                 components.pushIfNotIncluded(component);
                 currentPoint = pt(component.getBounds().right(), currentPoint.y);
             }
-                
+            
             currentPoint = currentPoint.addPt(pt(pxInterval, 0));
         }
     
@@ -276,7 +276,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     drawConnectionLine: function(arrow) {
-        var target = this.getComponentInDirection(1, arrow.getTipPosition());
+        var target = this.getComponentInDirectionPerPoint(1, arrow.getTipPosition());
         
         if (target && arrow.isActive()) {
             // found component to send data to, so draw connection
@@ -883,11 +883,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         this.adjustForNewBounds();
         
-        var _this = this;
-        var componentsBelow = this.getComponentsInDirection(1);
-        componentsBelow.each(function (c) {
-            c.move(newExtent.y - oldExtent.y, _this.getPosition().y + newExtent.y);
-        });
+        // Before added to the world, we don't want to inform other components of changing extent
+        if (this.owner) {
+            var _this = this;
+            var componentsBelow = this.getComponentsInDirection(1);
+            componentsBelow.each(function (c) {
+                c.move(newExtent.y - oldExtent.y, _this.getPosition().y + newExtent.y);
+            });
+        }
         
         var previewMorph = $morph("PreviewMorph" + this);
         if (previewMorph) {

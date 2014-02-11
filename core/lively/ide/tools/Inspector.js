@@ -688,7 +688,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     this.applyLayout();
                 },
         select: function select(item, tree) {
-                    if(item.name != 'this' && this.get("BindThisToSelection").checked) {    
+                    if(this.get("BindThisToSelection").checked) {    
                         this.get("ObjectInspectorText").doitContext = item.data;
                     }; 
                     this.get("ObjectInspectorText").textString = this.displayString(item.data);

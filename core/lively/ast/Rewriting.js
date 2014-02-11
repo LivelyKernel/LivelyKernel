@@ -1,4 +1,4 @@
-module('lively.ast.Rewriting').requires('lively.ast.acorn', 'lively.ast.StackReification').toRun(function() {
+module('lively.ast.Rewriting').requires('lively.ast.acorn', 'lively.ast.AstHelper').toRun(function() {
 
 Object.extend(lively.ast.Rewriting, {
 
@@ -1200,5 +1200,80 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     }
 
 });
+
+(function setupUnwindException() {
+
+    lively.ast.Rewriting.createClosureBaseDef =
+        "window.__createClosure = function __createClosure(idx, parentFrameState, f) {\n"
+      + "    f._cachedAst = LivelyDebuggingASTRegistry[idx];\n"
+      + "    // parentFrameState = [computedValues, varMapping, parentParentFrameState]\n"
+      + "    f._cachedScopeObject = parentFrameState;\n"
+      + "    f.livelyDebuggingEnabled = true;\n"
+      + "    f.toString = function toString() {\n"
+      + "        var ast = LivelyDebuggingASTRegistry[idx],\n"
+      + "        // TODO: save AST instead of source and escodegen.generate the source here\n"
+      + "        src = ast;\n"
+      + "        return src;\n"
+      + "    };\n"
+      + "    return f;\n"
+      + "}\n";
+
+    lively.ast.Rewriting.UnwindExceptionBaseDef =
+        "window.UnwindException = function UnwindException(error) { this.error = error; this.capturedFrames = []; }\n"
+      + "UnwindException.prototype.isUnwindException = true;\n"
+      + "UnwindException.prototype.toString = function() { return '[UNWIND] ' + this.error.toString(); }\n"
+      + "UnwindException.prototype.createAndShiftFrame = function(/*...*/) { this.capturedFrames.push(arguments); }\n";
+    // base definition for UnwindException
+    if (typeof UnwindException === 'undefined') {
+        eval(lively.ast.Rewriting.UnwindExceptionBaseDef)
+    }
+
+    // when debugging is enabled UnwindException can do more...
+    UnwindException.prototype.createAndShiftFrame = function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
+        var alreadyComputed = frameState[0],
+            // varMapping = frameState[1],
+            parentFrameState = frameState[2],
+            frame = lively.ast.AcornInterpreter.Frame.create(
+                __getClosure(pointerToOriginalAst) /*, varMapping */),
+            pc;
+        frame.setThis(thiz);
+        frame.setAlreadyComputed(alreadyComputed);
+        if (!this.top) {
+            pc = this.error && this.error.astIndex ?
+                acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), this.error.astIndex) :
+                null;
+        } else {
+            if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
+            pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
+        }
+        frame.setPC(pc);
+
+        var scope, topScope, newScope,
+            fState = frameState;
+        do {
+            newScope = new lively.ast.AcornInterpreter.Scope(fState[1]); // varMapping
+            if (scope)
+                scope.setParentScope(newScope);
+            else
+                topScope = newScope;
+            scope = newScope
+            fState = fState[2]; // parentFrameState
+        } while (fState && fState != Global);
+        frame.setScope(topScope);
+
+        return this.shiftFrame(frame);
+    }
+
+    UnwindException.prototype.shiftFrame = function(frame) {
+        if (!this.top) {
+            this.top = this.last = frame;
+        } else {
+            this.last.setParentFrame(frame);
+            this.last = frame;
+        }
+        return frame;
+    }
+
+})();
 
 }) // end of module

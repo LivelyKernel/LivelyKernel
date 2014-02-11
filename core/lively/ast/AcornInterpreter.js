@@ -29,9 +29,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 },
 'accessing', {
     setVariable: function(name, state) {
-        var result = state.currentFrame.getScope().findScope(name);
-        if (!result)
-            result = lively.ast.AcornInterpreter.Scope.global(); // TODO: create Scope.global();
+        var scope = state.currentFrame.getScope();
+        if (name == 'arguments' && scope.getMapping() != Global && scope.getParentScope() != null) {
+            state.currentFrame.setArguments(state.result);
+            return;
+        }
+        var result = scope.findScope(name); // may throw ReferenceError
         result.scope.set(name, state.result);
     },
 
@@ -1006,10 +1009,14 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 'accessing - mapping', {
 
     lookup: function(name) {
+        var result;
         if (name === 'undefined') return undefined;
         if (name === 'NaN') return NaN;
-        if (name === 'arguments') return this.getArguments();
-        var result = this.scope.findScope(name);
+
+        if (name === 'arguments') result = this.getArguments();
+        if (result !== undefined) return result;
+
+        result = this.scope.findScope(name);
         if (result) return result.val;
         return undefined;
     },
@@ -1022,7 +1029,10 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         return this.arguments = argValues;
     },
 
-    getArguments: function(args) { return this.arguments; },
+    getArguments: function(args) {
+        if (this.scope && this.scope.getMapping() != Global && this.scope.getParentScope() != null)
+            return this.arguments;
+    },
 
     setThis: function(thisObj) { return this.thisObj = thisObj; },
 

@@ -328,9 +328,25 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
             delete Global[className];
         }
     },
-    test28SpecialVarArguments: function() {
+    test28aSpecialVarArguments: function() {
         var node = this.parse('function x() { return arguments[0]; } x(1);');
         this.assertEquals(1, this.interpret(node));
+    },
+    test28bSetSpecialVarArguments: function() {
+        var node = this.parse('function x() { arguments = [2]; return arguments[0]; } x(1);');
+        this.assertEquals(2, this.interpret(node));
+    },
+    test28cModifySpecialVarArguments: function() {
+        var node = this.parse('function x() { arguments[0] = 2; return arguments[0]; } x(1);');
+        this.assertEquals(2, this.interpret(node));
+    },
+    test28dArgumentsWithoutFunction: function() {
+        var node = this.parse('arguments;');
+        this.assertRaises(this.interpret.curry(node));
+    },
+    test28eLocalVariableArguments: function() {
+        var node = this.parse('var arguments = 2; arguments;');
+        this.assertEquals(2, this.interpret(node));
     },
     test29NullisNull: function() {
         var node = this.parse('null');

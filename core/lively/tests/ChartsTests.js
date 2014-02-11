@@ -509,12 +509,19 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
             author: {name: "author2"},
             id: "commitsha2",
             files: [
-              {name: "file2"}, {name: "file4"}
+              {name: "file2"},
+              {
+                name: "file4",
+                commitSpecificInfo: 1
+            }
             ]
           },
           { author: {name: "author3"},
             id: "commitsha3",
-            files: [{name: "file4"}]
+            files: [{
+                name: "file4",
+                commitSpecificInfo: 2
+                }]
           },
           { author: {name: "author3"},
             id: "commitsha4",
@@ -524,7 +531,6 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
     },
     
     testEntityCreation: function() {
-        
         // create entity with name, source and ID
         var data = this.getSampleData();
         var EntityFactory = new lively.morphic.Charts.EntityFactory();
@@ -554,30 +560,32 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
             eachFile.testAttribute = true;
         });
         
-        var allFilesHaveAttribute = true;
-        Commit.getAll().pluck("files").flatten().each(function(eachFile) {
-           if (!eachFile.testAttribute)
-            allFilesHaveAttribute = false;
+        var allFilesHaveAttribute = Commit.getAll().pluck("files").flatten().every(function(eachFile) {
+           return eachFile.testAttribute == true;
         });
-        
         this.assertEquals(allFilesHaveAttribute, true);
         
-        
-        //
         Author.getAll().each(function(eachAuthor) {
             eachAuthor.testAttribute = true;
         });
         
-        var allAuthorsHaveAttribute = true;
-        Commit.getAll().pluck("author").each(function(eachAuthor) {
-           if (!eachAuthor.testAttribute)
-            allAuthorsHaveAttribute = false;
+        var allAuthorsHaveAttribute = Commit.getAll().pluck("author").every(function(eachAuthor) {
+           return eachAuthor.testAttribute == true;
         });
         
         this.assertEquals(allAuthorsHaveAttribute, true);
+    },
+    
+    testPreservingOfEntityIndependentData: function() {
+        var data = this.getSampleData();
+        var EntityFactory = new lively.morphic.Charts.EntityFactory();
+        
+        var Commit = EntityFactory.createEntityTypeFromList("Commit", data, "id");
+        var Author = Commit.extractEntityFromAttribute("Author", "name", "author");
+        var File = Commit.extractEntityFromList("File", "name" , "files");
+        
+        
     }
-    
-    
     
 });
 }) // end of module

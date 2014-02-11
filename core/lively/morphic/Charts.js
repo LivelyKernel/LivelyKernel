@@ -206,6 +206,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     getComponentInDirection : function($super, direction) {
         var components = this.getComponentsInDirection(direction);
+
         if (components.length) {
             components.sort(function (a, b) {
                 if (direction == -1){
@@ -223,7 +224,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         // choose upper left corner as point
         var currentPoint = this.getPositionInWorld();
-        
+
         var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
         while (currentPoint.x < rightBoundary) {
             
@@ -231,7 +232,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
             if (component) {
                 components.pushIfNotIncluded(component);
-                currentPoint = pt(component.getBounds().right(), currentPoint.y);
             }
             
             currentPoint = currentPoint.addPt(pt(pxInterval, 0));
@@ -451,7 +451,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         // Save the upper neighbor, so that it can be notified to redraw
         // its connection lines. It can not be notified at the moment, since
         // since we are still below it. Notification is done in onDropOn.
-        
+
         // FanIn might change this due to multiple upper neighbors
         this.savedUpperNeighbor = this.getComponentInDirection(-1);
         
@@ -648,6 +648,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             this.setPosition(newpos);
             this.setExtent(newext);
         }
+
         if (this.savedUpperNeighbor) {
             this.savedUpperNeighbor.refreshConnectionLines();
             this.savedUpperNeighbor = null;

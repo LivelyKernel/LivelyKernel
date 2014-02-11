@@ -283,11 +283,11 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 this.stopAddingPartItemsAsync();
                 return;
             }
-        
+
             var partItem = this.partItemsToBeAdded.shift();
             var morph = partItem.asPartsBinItem();
             this.addMorph(morph);
-            this.adjustForNewBounds() 
+            this.adjustForNewBounds()
         },
             adjustForNewBounds: function adjustForNewBounds() {
         /*
@@ -296,26 +296,26 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             $super();
             var bounds = this.innerBounds(),
                 delta = 15,
-            	left = bounds.x + delta,
-        		top = bounds.y + delta,
-        		x = left, y = top,
-        		width = bounds.width;
-        	this.submorphs.forEach(function(morph) {
-        		var extent = morph.getExtent();
-        		if (extent.x + x + delta > width) {
-        			x = left;
-        			y += extent.y + delta;
-        		}
-        		morph.setPosition(pt(x,y))
-        		x += extent.x + delta;
-        	})
+                left = bounds.x + delta,
+                top = bounds.y + delta,
+                x = left, y = top,
+                width = bounds.width;
+            this.submorphs.forEach(function(morph) {
+                var extent = morph.getExtent();
+                if (extent.x + x + delta > width) {
+                    x = left;
+                    y += extent.y + delta;
+                }
+                morph.setPosition(pt(x,y));
+                x += extent.x + delta;
+            });
         },
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "selectedItem", this.get("PartsBinBrowser"), "setSelectedPartItem", {});
         },
             selectPartItem: function selectPartItem(item) {
-        	this.selectedItem = item && item.partItem;
-        	this.submorphs.without(item).invoke('showAsNotSelected');
+            this.selectedItem = item && item.partItem;
+            this.submorphs.without(item).invoke('showAsNotSelected');
         },
             startAddingPartItems: function startAddingPartItems(partItems) {
             this.partItemsToBeAdded = partItems.clone();
@@ -326,7 +326,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             delete this.partItemsToBeAdded;
         },
             unselectAll: function unselectAll() {
-        	this.submorphs.invoke('showAsNotSelected');
+            this.submorphs.invoke('showAsNotSelected');
         }
         },{
             _BorderColor: Color.rgb(210,210,210),
@@ -353,14 +353,14 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 value: false,
                 style: {
                     borderRadius: 0,
-                    padding: lively.rect(8,3,0,0),
+                    padding: lively.rect(8,3,0,0)
                 },
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this, "onFire", {});
             },
                 onFire: function onFire() {
-                        	this.get('PartsBinBrowser').removeCategoryInteractively()
-                        }
+                    this.get('PartsBinBrowser').removeCategoryInteractively();
+                }
             },{
                 _BorderColor: Color.rgb(210,210,210),
                 _BorderRadius: 0,
@@ -383,7 +383,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 lively.bindings.connect(this, "fire", this, "onFire", {});
             },
                 onFire: function onFire() {
-                        	this.get('PartsBinBrowser').addCategoryInteractively()
+                            this.get('PartsBinBrowser').addCategoryInteractively()
                         }
             },{
                 _BorderColor: Color.rgb(210,210,210),
@@ -510,9 +510,9 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         var partsBin = this, world = this.world();
         world.prompt('Name of new category?', function(categoryName) {
             if (!categoryName || categoryName == '') {
-    	   alert('no category created!')
-    	   return;
-    	}
+           alert('no category created!')
+           return;
+        }
             partsBin.addCategory(categoryName)
         });
     },
@@ -528,10 +528,10 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         this.removeParts();
         if (!doNotSort) {
             partItems = partItems.sortBy(function(ea) {
-                return ea.name.toLowerCase() 
+                return ea.name.toLowerCase()
             });
         }
-    
+
         var pContents = this.get('partsBinContents');
         pContents.stopAddingPartItemsAsync();
         pContents.startAddingPartItems(partItems);
@@ -549,7 +549,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         addPartsOfCategory: function addPartsOfCategory(categoryName) {
         var partsSpace = this.getPartsSpaceForCategory(categoryName);
         connect(partsSpace, 'partItems', this, 'addMorphsForPartItems', {
-    	converter: function(partItemObj) { return Properties.ownValues(partItemObj) }})
+        converter: function(partItemObj) { return Properties.ownValues(partItemObj) }})
         partsSpace.load(true);
     },
         commitLogString: function commitLogString(metaInfo) {
@@ -558,7 +558,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             .reverse()
             .collect(function(ea) {
                 return Strings.format("%s %s: \n    %s\n\n",
-                    ea.date.format("yyyy-mm-dd HH:MM") , 
+                    ea.date.format("yyyy-mm-dd HH:MM") ,
                     ea.author, (ea.message || "no comment"));
             })
             .join('');
@@ -572,7 +572,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         doSearch: function doSearch() {
         if (URL.root.hostname !== this.partsBinURL().hostname) {
             show('Search not available.'); return; }
-        
+
             this.showMsg("searching...");
             var pb = this;
             var searchString = this.get('searchText').textString;
@@ -620,7 +620,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
     },
         getURLForCategoryNamed: function getURLForCategoryNamed(categoryName) {
         this.ensureCategories()
-    
+
         var relative = this.categories[categoryName];
         if (!relative) return null;
         return URL.ensureAbsoluteCodeBaseURL(relative).withRelativePartsResolved()
@@ -661,10 +661,10 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         var item = this.selectedPartItem;
         if (!item) return;
         this.world().confirm("really delete " + item.name + " in PartsBin?", function(answer) {
-    	if (!answer) return;
-    	item.del();
-    	this.reloadEverything();
-    	alertOK("deleted " + item.name);
+        if (!answer) return;
+        item.del();
+        this.reloadEverything();
+        alertOK("deleted " + item.name);
         }.bind(this))
     },
         loadAndOpenSelectedPartItem: function loadAndOpenSelectedPartItem(partMorph) {
@@ -672,7 +672,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         if (!item) return;
         connect(item, 'part', this, 'openPart');
         var selectedVersion = this.get('selectedPartVersions').selection,
-    	    rev = selectedVersion ? selectedVersion.version : null;
+            rev = selectedVersion ? selectedVersion.version : null;
         item.loadPart(true, null, rev);
         alertOK('loading ' + item.name + '...');
     },
@@ -714,8 +714,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
              var all = subDocuments.invoke('getURL')
              .select(function(ea) {return ea.filename().endsWith(".json")})
              .sortBy(function(ea) {return ea.filename()});
-             
-             this.addPartsFromURLs(all)         
+
+             this.addPartsFromURLs(all)
         },
         onLoadLatest: function onLoadLatest(latestFiles) {
             var latestURLs = latestFiles.pluck('path').map(function(path) { return URL.root.withFilename(path); });
@@ -742,15 +742,15 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         var url = this.getURLForCategoryNamed(categoryName);
         if (!url) {
             alert('No category ' + categoryName + ' exists! Doing nothing')
-    	return;
+        return;
         }
         var webR = new WebResource(url);
         if (!webR.exists()) {
             alert('Does not exist: ' + url);
-    	delete this.categories[categoryName];
-    	lively.PartsBin.removePartsSpace(name);
-    	this.updateCategoryList();
-    	return
+        delete this.categories[categoryName];
+        lively.PartsBin.removePartsSpace(name);
+        this.updateCategoryList();
+        return
         }
         webR.getSubElements()
         if (!webR.subDocuments || webR.subDocuments.length > 0 ||
@@ -767,12 +767,12 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         removeCategoryInteractively: function removeCategoryInteractively() {
         var partsBin = this, world = this.world();
         world.confirm('Really remove ' + this.categoryName + '?', function(result) {
-    	if (!result) {
-    	   alert('no category removed!')
-    	   return;
-    	}
-    	partsBin.removeCategory(partsBin.categoryName)
-        });	
+        if (!result) {
+           alert('no category removed!')
+           return;
+        }
+        partsBin.removeCategory(partsBin.categoryName)
+        });
     },
         removeParts: function removeParts() {
         this.get('partsBinContents').submorphs.clone().invoke('remove');
@@ -792,8 +792,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
     },
         saveCommentForSelectedPartItem: function saveCommentForSelectedPartItem(comment) {
         if (!this.selectedPartItem) {
-    	alert('no part item selected!')
-    	return;
+        alert('no part item selected!')
+        return;
         }
         var metaInfo = this.selectedPartItem.getMetaInfo();
         metaInfo.setComment(comment);
@@ -824,20 +824,20 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         if (!item) {
             this.get('selectedPartName').textString = 'nothing selected'
             this.get('selectedPartSpaceName').textString = ''
-    	return;
+        return;
         }
         this.get('selectedPartName').textString = item.name
         this.get('selectedPartSpaceName').textString = item.partsSpaceName
-    
+
         // load versions
         connect(item, 'partVersions', this, 'setSelectedPartVersions');
         item.loadPartVersions(true);
-    
+
         // load meta info
         connect(item, 'loadedMetaInfo', this, 'setMetaInfoOfSelectedItem');
-        
+
         this.setShareLink(item);
-    
+
         item.loadPartMetaInfo(true);
     },
         setSelectedPartVersions: function setSelectedPartVersions(versions) {
@@ -845,9 +845,9 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         var list = versions.collect(function(ea) {
             var formattedDate = ea.date;
             if (formattedDate.format) {
-                formattedDate = formattedDate.format("yyyy-mm-dd HH:MM") 
+                formattedDate = formattedDate.format("yyyy-mm-dd HH:MM")
             }
-            return { 
+            return {
                 string: formattedDate + " " + ea.author + " (" + ea.version + ")",
                 value: ea, isListItem: true}
         })
@@ -866,18 +866,18 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         connect(this.get('removeCategoryButton'), 'fire', this, 'removeCategoryInteractively')
         connect(this.get('categoryList'), 'selection', this, 'categoryName')
         connect(this, 'categoryName', this, 'loadPartsOfCategory')
-    
+
         connect(this.get('partsBinContents'), 'selectedItem', this, 'setSelectedPartItem')
-    
+
         connect(this.get('reloadButton'), "fire", this, "reloadEverything")
-    
+
         connect(this.get('loadPartButton'), "fire", this, "loadAndOpenSelectedPartItem")
-    
+
         connect(this.get('removePartButton'), "fire", this, "interactivelyRemoveSelectedPartItem")
-    
+
         connect(this.get('movePartButton'), "fire", this, "interactivelyMoveSelectedPartItem")
         connect(this.get('copyPartButton'), "fire", this, "interactivelyCopySelectedPartItem")
-    
+
         connect(this.get('selectedPartComment'), "savedTextString", this, "saveCommentForSelectedPartItem")
     },
         showCommits: function showCommits() {
@@ -897,7 +897,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         this.get('partsBinContents').addMorph(label)
     },
         toggleMorePane: function toggleMorePane() {
-        var pane = this.get('morePane');
+        var pane = this.get('morePane'),
             moveOffset = pane.getExtent().withY(0),
             steps = 5, timePerStep = 10,
             btn = pane.get('moreButton');
@@ -907,13 +907,13 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 btn.setLabel('more')
                 pane.setVisible(false)
             });
-    
+
         } else {
             btn.setLabel('hide')
             pane.setVisible(true)
             this.addMorphBack(pane);
             pane.align(
-                pane.bounds().topRight(), 
+                pane.bounds().topRight(),
                 this.get('partsBinContents').bounds().topRight());
             // move it so that it is completely visible
             var dest = pane.getPosition().addPt(moveOffset);
@@ -924,7 +924,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         this.ensureCategories();
         var webR = new WebResource(this.partsBinURL());
         webR.noProxy().beAsync();
-    
+
         var callback = function(collections) {
             collections.forEach(function(dir) {
                 var unescape = Global.urlUnescape || Global.unescape,
@@ -941,14 +941,14 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 if (!(this.sourceObj.status && this.sourceObj.status.isDone())) return;
                 if (!value) return;
                 $upd(value);
-            },
+            }
         });
 
         webR.getSubElements();
     },
         updateCategoryList: function updateCategoryList(optCategoryName) {
         this.get('categoryList').updateList(
-    	Properties.own(this.categories).sortBy(function(name) { return name.toLowerCase()}));
+        Properties.own(this.categories).sortBy(function(name) { return name.toLowerCase()}));
         this.get('categoryList').setSelection(optCategoryName)
     },
         updatePartsBinURLChooser: function updatePartsBinURLChooser() {
@@ -957,19 +957,9 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
     }
 }],
     titleBar: "PartsBinBrowser",
-    connectionRebuilder: function connectionRebuilder() {
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser.owner --> AttributeConnection(<lively.morphic.Button#5D040... - moreButton>.globalTransform --> [object Object].alignToMagnet).updateOwners)
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser._Position --> AttributeConnection(<lively.morphic.Button#5D040... - moreButton>.globalTransform --> [object Object].alignToMagnet).signalTransformationChanged)
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser._Scale --> AttributeConnection(<lively.morphic.Button#5D040... - moreButton>.globalTransform --> [object Object].alignToMagnet).signalTransformationChanged)
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser._Rotation --> AttributeConnection(<lively.morphic.Button#5D040... - moreButton>.globalTransform --> [object Object].alignToMagnet).signalTransformationChanged)
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser.owner --> AttributeConnection(<lively.morphic.Box#36794... - PartsBinBrowser>.globalTransform --> [object Object].alignToMagnet).updateOwners)
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser._Position --> AttributeConnection(<lively.morphic.Box#36794... - PartsBinBrowser>.globalTransform --> [object Object].alignToMagnet).signalTransformationChanged)
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser._Scale --> AttributeConnection(<lively.morphic.Box#36794... - PartsBinBrowser>.globalTransform --> [object Object].alignToMagnet).signalTransformationChanged)
-    // failed to generate rebuild code for AttributeConnection(<lively.morphic.Window#2AC7A... - PartsBinBrowser> PartsBinBrowser._Rotation --> AttributeConnection(<lively.morphic.Box#36794... - PartsBinBrowser>.globalTransform --> [object Object].alignToMagnet).signalTransformationChanged)
-},
     onLoadFromPartsBin: function onLoadFromPartsBin() {
     $super();
-	this.targetMorph.reloadEverything();
+    this.targetMorph.reloadEverything();
 },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
     $super();

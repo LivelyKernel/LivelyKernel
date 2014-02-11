@@ -104,7 +104,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         var newPosition = this.componentMorph.getPosition().addPt(offset);
         newComponent.setPosition(newPosition);
 
-        var componentBelow = this.componentMorph.getComponentInDirectionPerPoint(1, this.getTipPosition());
+        var componentBelow = this.componentMorph.getComponentInDirectionFrom(1, this.getTipPosition());
         if (componentBelow) {
             componentBelow.move(newComponent.getExtent().y + newComponent.componentOffset, newPosition.y + newComponent.getExtent().y);
         }
@@ -227,7 +227,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         var rightBoundary = this.getPositionInWorld().x + this.getExtent().x;
         while (currentPoint.x < rightBoundary) {
             
-            var component = this.getComponentInDirectionPerPoint(direction, currentPoint)
+            var component = this.getComponentInDirectionFrom(direction, currentPoint)
     
             if (component) {
                 components.pushIfNotIncluded(component);
@@ -276,7 +276,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     drawConnectionLine: function(arrow) {
-        var target = this.getComponentInDirectionPerPoint(1, arrow.getTipPosition());
+        var target = this.getComponentInDirectionFrom(1, arrow.getTipPosition());
         
         if (target && arrow.isActive()) {
             // found component to send data to, so draw connection
@@ -346,7 +346,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     onArrowDeactivated: function(arrow) {
-        var component = this.getComponentInDirectionPerPoint(1, arrow.getPositionInWorld());
+        var component = this.getComponentInDirectionFrom(1, arrow.getPositionInWorld());
 
         this.removeConnectionLine(arrow);
        
@@ -681,16 +681,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     
     update: function() {
-        if (this.called>1000){
-            return;
-        }
-        this.called = (this.called || 0)+1;
-        var _this = this;
-        setTimeout(function(){
-            _this.called = 0;
-        },10000);
-        console.log(this.called);
-        
         this.refreshData();
 
         var promise;
@@ -717,14 +707,24 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     notifyNextComponent: function() {
+        
+        if (this.called>1000){
+            return;
+        }
+        this.called = (this.called || 0)+1;
         var _this = this;
+        setTimeout(function(){
+            _this.called = 0;
+        },10000);
+        console.log(this.called);
+        
         this.arrows.each(function (arrow){
             if (arrow.isActive()) {
                 if (arrow.connectionLine) {
                     arrow.connectionLine.notifyViewer();
                 }
                 
-                var dependentComponent = _this.getComponentInDirectionPerPoint(1, arrow.getPositionInWorld());
+                var dependentComponent = _this.getComponentInDirectionFrom(1, arrow.getPositionInWorld());
                 if (dependentComponent) {
                     dependentComponent.notify();
                 }
@@ -806,7 +806,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
     },
     
-    getComponentInDirectionPerPoint: function(direction, point) {
+    getComponentInDirectionFrom: function(direction, point) {
         // direction should be an int, which indicates the vertical direction
         // -1 is up and 1 is down
 
@@ -822,7 +822,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             
             var elPosition = el.getPositionInWorld();
             
-            // check for the nearest DF component straight above or below myPosition
+            // check for the nearest component straight above or below myPosition
             if (-direction * elPosition.y <= -direction * myPosition.y &&
                 elPosition.x <= myPosition.x && elPosition.x + el.getExtent().x >= myPosition.x) {
                 

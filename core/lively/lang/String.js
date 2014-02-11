@@ -128,13 +128,13 @@ Object.extend(String.prototype, {
 
 Global.Strings = {
     format: function Strings$format() {
-        return Strings.formatFromArray($A(arguments));
+        return Strings.formatFromArray(Array.from(arguments));
     },
 
     // adapted from firebug lite
     formatFromArray: function Strings$formatFromArray(objects) {
         var self = objects.shift();
-        if(self==undefined) {console.log("Error in Strings>>formatFromArray, self is undefined")};
+        if (!self) { console.log("Error in Strings>>formatFromArray, first arg is undefined"); };
 
         function appendText(object, string) {
             return "" + object;
@@ -149,7 +149,6 @@ Global.Strings = {
         }
 
         function appendFloat(value, string, precision) {
-            dbgOn(!value.toFixed);
             if (precision > -1) return value.toFixed(precision);
             else return value.toString();
         }
@@ -201,10 +200,7 @@ Global.Strings = {
 
     indent: function (str, indentString, depth) {
         if (!depth || depth <= 0) return str;
-        while (depth > 0) {
-            depth--;
-            str = indentString + str;
-        }
+        while (depth > 0) { depth--; str = indentString + str; }
         return str;
     },
 
@@ -220,9 +216,9 @@ Global.Strings = {
         return removeLeadingWhitespace(removeTrailingWhitespace(str));
     },
 
-    print: function(obj) {
-        if (obj && obj.constructor && obj.constructor === Array) {
-            return '[' + obj.map(function(ea) { return Strings.print(ea); }) + ']';
+    print: function print(obj) {
+        if (obj && Array.isArray(obj)) {
+            return '[' + obj.map(function(ea) { return print(ea); }) + ']';
         }
         if (typeof obj !== "string") {
             return String(obj);

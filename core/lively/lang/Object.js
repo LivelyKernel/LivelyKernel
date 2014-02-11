@@ -194,13 +194,13 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 
 Global.Objects = {
 
-    inspect: function(obj, options, depth) {
+    inspect: function inspect(obj, options, depth) {
         options = options || {};
         depth = depth || 0;
         if (!obj) { return Strings.print(obj); }
 
         // print function
-        if (Object.isFunction(obj)) {
+        if (typeof obj === 'function') {
             return options.printFunctionSource ? String(obj) :
                 'function' + (obj.name ? ' ' + obj.name : '')
               + '(' + obj.argumentNames().join(',') + ') {/*...*/}';
@@ -214,22 +214,22 @@ Global.Objects = {
             case Number: return Strings.print(obj);
         };
 
-        if (Object.isFunction(obj.serializeExpr)) {
+        if (typeof obj.serializeExpr === 'function') {
             return obj.serializeExpr();
         }
 
-        var isArray = Object.isArray(obj),
+        var isArray = obj && Array.isArray(obj),
             openBr = isArray ? '[' : '{', closeBr = isArray ? ']' : '}';
         if (options.maxDepth && depth >= options.maxDepth) return openBr + '/*...*/' + closeBr;
 
         var printedProps = [];
         if (isArray) {
-            printedProps = obj.map(function(ea) { return Objects.inspect(ea, options, depth); });
+            printedProps = obj.map(function(ea) { return inspect(ea, options, depth); });
         } else {
             printedProps = Object.keys(obj)
                // .select(function(key) { return obj.hasOwnProperty(key); })
                 .sort(function(a, b) {
-                    var aIsFunc = Object.isFunction(obj[a]), bIsFunc = Object.isFunction(obj[b]);
+                    var aIsFunc = typeof obj[a] === 'function', bIsFunc = typeof obj[b] === 'function';
                     if (aIsFunc === bIsFunc) {
                         if (a < b)  return -1;
                         if (a > b) return 1;
@@ -238,8 +238,8 @@ Global.Objects = {
                     return aIsFunc ? 1 : -1;
                 })
                 .map(function(key, i) {
-                    if (isArray) Objects.inspect(obj[key], options, depth + 1);
-                    var printedVal = Objects.inspect(obj[key], options, depth + 1);
+                    if (isArray) inspect(obj[key], options, depth + 1);
+                    var printedVal = inspect(obj[key], options, depth + 1);
                     return Strings.format('%s: %s',
                         options.escapeKeys ? Strings.print(key) : key, printedVal);
                 });

@@ -398,7 +398,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var astRegistryIndex = this.astRegistry.length - 1;
         var start = node.start, end = node.end, astIndex = node.astIndex;
         var args = this.registerVars(node.params.pluck('name')); // arguments
-        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor();
+        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(originalRegistryIndex);
         var decls = this.registerDeclarations(node.body, rewriteVisitor); // locals
         var rewritten = rewriteVisitor.accept(astToRewrite.body, this);
         this.exitScope();

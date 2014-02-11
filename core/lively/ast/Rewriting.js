@@ -3,7 +3,7 @@ module('lively.ast.Rewriting').requires('lively.ast.acorn', 'lively.ast.AstHelpe
 Object.extend(lively.ast.Rewriting, {
 
     _currentASTRegistry: (function() {
-        return typeof LivelyDebuggingASTRegistry !== 'undefined'?
+        return typeof LivelyDebuggingASTRegistry !== 'undefined' ?
             LivelyDebuggingASTRegistry : [];
     })(),
 
@@ -35,13 +35,13 @@ Object.extend(lively.ast.Rewriting, {
         modules = modules.reject(function(ea) { return /lib\//.test(ea); });
 
         // 1. Rewrite Lively code and put it into DBG_* files
-        modules.forEachShowingProgress(pBar, function(modulePath, i) {
+        modules.forEachShowingProgress(pBar, function(modulePath) {
             var rewrittenAst = rewrite(get(modulePath)),
                 // try -> _0 has all global variables
                 globalVars = rewrittenAst.body[0].block.body[0].declarations[2].init.
                     properties.pluck('key').pluck('value'),
                 globalAssignments = globalVars.map(function(varName) {
-                    return 'Global["' + varName + '"] = _0["' + varName + '"];'
+                    return 'Global["' + varName + '"] = _0["' + varName + '"];';
                 }).join('\n');
             // FIXME: manually wrap code in function so that async load will not temper with _0, etc.
             putRewritten(modulePath, '(function() {\n' +
@@ -80,22 +80,22 @@ Object.extend(lively.ast.Rewriting, {
         // helper
         function get(path) {
             return URL.root.withFilename(path).asWebResource().get().content;
-        };
-        
+        }
+
         function putRewritten(path, rewrittenSource) {
             var idx = path.lastIndexOf('/') + 1,
                 debugPath = path.slice(0,idx) + 'DBG_' + path.slice(idx);
             put(debugPath, rewrittenSource);
-        };
+        }
 
         function put(path, source) {
             URL.root.withFilename(path).asWebResource().put(source);
-        };
+        }
 
         function rewrite(source) {
             var ast = lively.ast.acorn.parse(source);
             return lively.ast.Rewriting.rewrite(ast, astReg);
-        };
+        }
     }
 
 });
@@ -112,7 +112,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         this.scopes = [];
         // module('lively.ast.StackReification').load();
         // module('lively.AST.AstHelper').load()
-        
+
         // Right now astRegistry is where the original ASTs for each
         // scope/function are stored
         // FIXME we need a more consistent storage/interface that might be integrated
@@ -178,7 +178,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 return {
                     key: this.newNode('Literal', {value: ea.name}),
                     kind: 'init', value: ea
-                }
+                };
             }, this) : [],
             wDecls = decls || [];
         return this.newNode('ObjectExpression', {properties: wArgs.concat(wDecls)});
@@ -196,7 +196,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     registerVars: function(vars) {
-        if (!this.scopes.length) return;
+        if (!this.scopes.length) return undefined;
         var scope = this.scopes.last(),
             that = this;
         return vars.reduce(function(res, varName) {
@@ -210,9 +210,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     registerDeclarations: function(ast, visitor) {
         if (!this.scopes.length) return;
-        var scope = this.scopes.last(),
-            that = this,
-            decls = {};
+        var scope = this.scopes.last(), that = this, decls = {};
         acorn.walk.matchNodes(ast, {
             'VariableDeclaration': function(node, state, depth, type) {
                 if (node.type != type) return; // skip Expression, Statement, etc.
@@ -393,6 +391,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex);
+        // FIXME: decls unused?
         var decls = this.registerDeclarations(astToRewrite, rewriteVisitor); // locals
         var rewritten = rewriteVisitor.accept(astToRewrite, this);
         // this.exitScope();
@@ -411,12 +410,11 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
         this.enterScope();
         this.astRegistry.push({ registryRef: originalRegistryIndex, indexRef: node.astIndex });
-        var astRegistryIndex = this.astRegistry.length - 1;
-        var start = node.start, end = node.end, astIndex = node.astIndex;
-        var args = this.registerVars(node.params.pluck('name')); // arguments
-        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(originalRegistryIndex);
-        var decls = this.registerDeclarations(node.body, rewriteVisitor); // locals
-        var rewritten = rewriteVisitor.accept(astToRewrite.body, this);
+        var astRegistryIndex = this.astRegistry.length - 1,
+            args = this.registerVars(node.params.pluck('name')), // arguments
+            rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(originalRegistryIndex),
+            decls = this.registerDeclarations(node.body, rewriteVisitor), // locals
+            rewritten = rewriteVisitor.accept(astToRewrite.body, this);
         this.exitScope();
         var wrapped = this.wrapClosure({
             start: node.start, end: node.end, type: 'FunctionExpression',

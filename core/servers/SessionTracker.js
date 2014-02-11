@@ -304,7 +304,8 @@ function SessionTracker(options) {
             // flatten it so that {trackerId: {sessionId: {sess spec}*}}
             Object.keys(sessions[1]).forEach(function(url) {
                 var remote = sessions[1][url];
-                util._extend(result, remote.trackersWithSessions)
+                for (var id in remote.trackersWithSessions)
+                    if (!result[id]) result[id] = remote.trackersWithSessions[id];
             });
             thenDo(result);
         });

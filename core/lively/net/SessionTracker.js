@@ -101,10 +101,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         return this.getWebResource('reset').beSync().post('reset').content;
     },
 
-    getSessions: function(cb) {
+    getSessions: function(cb, forceFresh) {
         // if timeout specified throttle requests so that they happen at most
         // timeout-often
         var to = this.getSessionsCacheInvalidationTimeout;
+        if (forceFresh) delete this._getSessionsCachedResult;
         if (to && this._getSessionsCachedResult) {
             cb && cb(this._getSessionsCachedResult); return; }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -459,6 +460,21 @@ Object.extend(lively.net.SessionTracker, {
             .beAsync().post(JSON.stringify(data), 'application/json')
             .whenDone(function(_,status) {
                 thenDo && thenDo(status.isSuccess() ? null : status); });
+    }
+});
+
+Object.extend(lively.net.SessionTracker, {
+    sessionLister: {
+        withSessionListDo: function(session, doFunc, forceFresh) {
+            if (!session.isConnected()) { doFunc(new Error('Not connected'), []); return; }
+            session.getSessions(function(remotes) {
+                var list = Object.keys(remotes).map(function(trackerId) {
+                    return Object.keys(remotes[trackerId]).map(function(sessionId) {
+                        return remotes[trackerId][sessionId]; });
+                }).flatten();
+                doFunc(null, list);
+            }, forceFresh);
+        }
     }
 });
 

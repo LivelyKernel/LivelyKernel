@@ -54,7 +54,23 @@ Object.extend(lively.ast.Rewriting, {
                 lively.ast.Rewriting.createClosureBaseDef,
                 lively.ast.Rewriting.UnwindExceptionBaseDef
             ];
-            code.push("window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg));
+            code.push("window.LivelyDebuggingASTRegistry=[");
+            var delim = '';
+            for (var i = 0; i < astReg.length; i++) {
+                var entry = astReg[i];
+                if (entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
+                    // reference instead of complete ast
+                    entry = acorn.walk.findNodeByAstIndex(
+                        lively.ast.Rewriting.getCurrentASTRegistry()[entry.registryRef],
+                        entry.indexRef
+                    );
+                }
+                // TODO: output ASTs instead of source code
+                var src = escodegen.generate(entry);
+                code.push(delim + JSON.stringify(src));
+                delim = ',';
+            }
+            code.push("];");
             // 2. Create bootstrap code needed to run rewritten code
             put("core/lively/ast/BootstrapDebugger.js", code.join('\n'));
         });

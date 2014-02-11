@@ -1020,34 +1020,36 @@ lively.morphic.World.addMethods(
 });
 lively.morphic.Morph.addMethods(
 'object versioning', {
-    updateFrom: function(oldVersion) {
-
- 		var inVersionDo = function(version, aFunction) {
-  			var oldValue = lively.CurrentVersion;
-  			lively.CurrentVersion = version;
-  			var result = aFunction();
-  			lively.CurrentVersion = oldValue;
-  			return result;
-  		};
-
-		var inOldVersionDo = inVersionDo.curry(oldVersion);
-
-  		var properties = ['Fill', 'Extent'];
-  		
-  		var oldValues = inOldVersionDo(function() {
-  			return properties.collect(function(ea) {
-  				return this['get' + ea]();
-  			}.bind(this))
-  		}.bind(this));
+	inVersionDo: function(version, aFunction) {
+		var oldValue = lively.CurrentVersion;
+		lively.CurrentVersion = version;
+		var result = aFunction();
+		lively.CurrentVersion = oldValue;
+		return result;
+	},
+	updateProperties: ['Fill', 'Extent'],
+	
+	updateChangedPropertiesFrom: function(oldVersion) {
+		var properties = this.updateProperties;
+		var collectPropValues = function() {
+			return properties.collect(function(ea) {
+				return this['get' + ea]();
+			}.bind(this))
+		}.bind(this);
+		
+		var oldPropValues = this.inVersionDo(oldVersion, collectPropValues);
   		
   		for (var i=0; i<properties.length; i++) {
-  		  	var currentValue = this['get' + properties[i]]();
-  		  	if (oldValues[i] != currentValue) {
-  		  		this['set' + properties[i]]( currentValue );
+			var name = properties[i];
+  		  	var currentValue = this['get' + name]();
+  		  	if (oldPropValues[i] != currentValue) {
+  		  		this['set' + name]( currentValue );
   		  	}
 		}
+	},
+	updateAddedAndRemovedSubmorphsFrom: function(oldVersion) {
+		var oldSubmorphs = this.inVersionDo(oldVersion, function() {return this.submorphs;}.bind(this));
 		
-		var oldSubmorphs = inOldVersionDo(function() {return this.submorphs;}.bind(this));
 		this.submorphs.forEach(function(ea) {
 			var index = oldSubmorphs.indexOf(ea);
 			var wasAdded = -1 == index;
@@ -1065,15 +1067,14 @@ lively.morphic.Morph.addMethods(
 				ea.remove();
 			}
 		}.bind(this));
+	},
+    updateFrom: function(oldVersion) {
+  		this.updateChangedPropertiesFrom(oldVersion);
+		this.updateAddedAndRemovedSubmorphsFrom(oldVersion);
 		
 		this.submorphs.forEach(function(ea) {
 			ea.updateFrom(oldVersion);
 		});
-		
-		console.log("Hello World");
-		// if (lively.CurrentVersion !== oldVersion) {
-		// 			this.renderWithHTML();
-		//         }
     }
 });
 lively.morphic.HandMorph.addMethods(

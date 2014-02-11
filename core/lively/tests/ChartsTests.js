@@ -244,11 +244,11 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
     testFanInInputs: function() {
         // Test whether the FanIn Components gets as many input data as there are components above
         
-        var components = this.helper.createComponents(3,[pt(0,0),pt(1,0),pt(2,0)]);
+        var components = this.helper.createComponents(3,[pt(0,0), pt(1,0), pt(2,0)]);
         var fanIn = new lively.morphic.Charts.FanIn();
         $world.addMorph(fanIn);
         fanIn.setPosition(pt(0,300));
-        fanIn.setExtent(pt(components[2].getPosition().x + components[2].getExtent().x,250));
+        fanIn.setExtent(pt(components[2].getPosition().x + components[2].getExtent().x, 250));
         
         components.each(function(ea) {
             ea.data = 42;
@@ -466,7 +466,8 @@ Object.subclass('lively.tests.ChartsTests.Helper',
         var components = [];
         
         for (var i = 0; i < amount; i++) {
-            var aComponent = new lively.morphic.Charts.Component();
+            var aComponent = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts.Script());
+            
             var extent = aComponent.getExtent().addPt(pt(20, 20));
             
             var newPosition;

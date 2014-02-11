@@ -4,8 +4,15 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     initialize: function($super, content) {
         $super();
-        this.content = content;
-        this.content.component = this;
+        if (content === undefined) {
+            alert("TODO: Handle no content within constructing component.");
+            // content = new lively.morphic.Charts.Script()
+        }
+        if (content != undefined) {
+            this.content = content;
+            this.content.component = this;
+        }
+    
     },
 
     onContentChanged: function() {
@@ -238,7 +245,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.layout = {adjustForNewBounds: true};
     },
     
-    updateComponent : function(){
+    updateComponent : function() {
         this.content.update(this.data);
     },
     
@@ -287,8 +294,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         container.setFill(this.backgroundColor);
         container.setBorderColor(this.borderColor);
         container.setName("Container");
-
-        container.addMorph(this.content);
+        
+        if (this.content) {
+            container.addMorph(this.content);
+        } else {
+            alert("TODO: DataFlowComponent tries to add content.");
+        }
+        
         this.addMorph(container);
         container.setPosition(pt(0,50));
         container.setExtent(pt(this.getExtent().x,this.getExtent().y-50));
@@ -1126,9 +1138,8 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
-        // ctx.refreshData();
-        
-        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var data = ctx.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+
+        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var data = ctx.component.data; str = eval(codeStr); ctx.component.data = data; return str;}).call(ctx);"
         
         // see also $super
         
@@ -1598,6 +1609,10 @@ lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
     isMerger: function() {
         return true;
     },
+    
+    updateComponent: function() {
+        // don't call $super; the fan doesn't need internal updates
+    }
 });
 
 lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',

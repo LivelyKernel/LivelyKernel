@@ -494,11 +494,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             var _this = this;
 
             var componentsBelow = this.getComponentsInDirection(1);
+            var componentsAbove = this.getComponentsInDirection(-1);
+            
             componentsBelow.each(function (c) {
                 c.move(-_this.getExtent().y - _this.componentOffset);
             });
 
-            var componentsAbove = this.getComponentsInDirection(-1);
             componentsAbove.each(function (c){
                 c.refreshConnectionLines();
             });

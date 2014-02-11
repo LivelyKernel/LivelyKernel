@@ -48,14 +48,10 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 _Position: lively.pt(0.0,0.0),
                 className: "lively.morphic.Tree",
                 depth: 0,
-                doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
                 dragAndDrop: true,
                 droppingEnabled: true,
                 isInLayoutCycle: false,
-                layout: {
-                    resizeWidth: true,
-                    scaleVertical: true,
-                },
+                layout: {resizeWidth: true,scaleVertical: true},
                 name: "ObjectInspectorTree",
                 parent: null,
                 showMoreNode: null,
@@ -238,15 +234,15 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                     while (ifNode.consequent.type == 'IfStatement') {
                                         ifNode = ifNode.consequent;
                                     }
-                                    if (ifNode.consequent.type == 'BlockStatement' && 
+                                    if (ifNode.consequent.type == 'BlockStatement' &&
                                         ifNode.consequent.body.length > 0) {
-                                            //When deciding what the expected return value of an 
+                                            //When deciding what the expected return value of an
                                             //if statement should be,
                                             //we do not interpret the curly braces construct in
                                             //"if(expr) {}" as an object literal,
                                             //since it is not at all obvious that that's what
-                                            //the user intends in this case. 
-                                            //Instead, we let eval do its thing, 
+                                            //the user intends in this case.
+                                            //Instead, we let eval do its thing,
                                             //so, if expr is truish, we return undefined.
                                             //
                                             //But for "if(expr) {prop: val}" we guess that
@@ -255,7 +251,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                             iter1(ifNode.consequent);
                                     }
                                     if (ifNode.alternate) {
-                                        if(ifNode.alternate.type == 'BlockStatement' && 
+                                        if(ifNode.alternate.type == 'BlockStatement' &&
                                             ifNode.alternate.body.length > 0) {
                                                 iter1(ifNode.alternate);
                                         } else if (ifNode.alternate.type == 'IfStatement') {
@@ -389,9 +385,9 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         updateFilter: "standard",
         addChildrenTo: function addChildrenTo(item) {
                     var value = item.data;
-                    if(value === null || value === undefined || 
-                      (typeof value.valueOf() == 'string' && value.length == 1 && 
-                      item.name != 'this' && item.parent && typeof item.parent.valueOf() == 'string')) 
+                    if(value === null || value === undefined ||
+                      (typeof value.valueOf() == 'string' && value.length == 1 &&
+                      item.name != 'this' && item.parent && typeof item.parent.valueOf() == 'string'))
                         return;
                     item.children = [];
                     Object.addScript(item, function onExpand() { this.inspector.expand(this); });
@@ -431,15 +427,15 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 },
         describe: function describe(obj) {
                     var str;
-                    if ((typeof obj === 'object' || typeof obj === 'function') && obj !== null && 'name' in obj) { 
-                        if(obj.__lookupGetter__('name')) { 
-                            try { 
-                                str = obj.name; 
-                            } catch(e) {} 
-                        } else if(typeof obj.name.valueOf() == 'string')                             
+                    if ((typeof obj === 'object' || typeof obj === 'function') && obj !== null && 'name' in obj) {
+                        if(obj.__lookupGetter__('name')) {
+                            try {
+                                str = obj.name;
+                            } catch(e) {}
+                        } else if(typeof obj.name.valueOf() == 'string')
                             str = obj.name;
                         else if(typeof obj.name == 'function' && obj.name.length == 0) {
-                            try {    
+                            try {
                                 str = obj.name();
                             } catch(e) {}
                         }
@@ -449,7 +445,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     return str;
                 },
         displayString: function displayString(o) {
-                    var n = Object.prototype.toString.call(o).split(' ')[1]; 
+                    var n = Object.prototype.toString.call(o).split(' ')[1];
                     n = n.substr(0, n.length - 1);
                     switch(n.valueOf()) {
                         case 'Null':
@@ -460,18 +456,18 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         case 'Array':
                             return Strings.print(o);
                         case 'Function':
-                            try { 
-                                return Function.prototype.toString.call(o); 
-                            } catch(e) { 
-                                return o.toString(); 
-                            } 
+                            try {
+                                return Function.prototype.toString.call(o);
+                            } catch(e) {
+                                return o.toString();
+                            }
                         case 'Object':
                             //We should try to be more specific
                             var c = o.constructor;
                             if(typeof c == 'function' &&
                                 o instanceof c &&
                                 Object.getPrototypeOf(o) === c.prototype) {
-                                
+
                                 if(c.type && typeof c.type.valueOf() == 'string') {
                                     n = c.type;
                                 }
@@ -482,7 +478,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             }
                             else {
                                 return 'an Object';
-                            }    
+                            }
                             break;
                         default:
                             return o.toString();
@@ -512,7 +508,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         if(!visitedProps.include(prop)) {
                             visitedProps.push(prop);
                             var descr = Object.getOwnPropertyDescriptor(value, prop);
-                            if(descr) { 
+                            if(descr) {
                                 if(descr.get) {
                                     accessors["get " + prop] = descr.get;
                                     props.push("get " + prop);
@@ -550,7 +546,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         this.expandIndexedChildren(item, newChildren);
                     }
                     var lookupKeys = [], lookupValues = [];
-                    item.children.each(function(i) { 
+                    item.children.each(function(i) {
                         lookupKeys.push(i.name);
                         lookupValues.push(i);
                     });
@@ -586,7 +582,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         expandIndexedChildren: function expandIndexedChildren(item, children) {
                     var o = item.data;
                     var lookupKeys = [], lookupValues = [];
-                    item.children.each(function(i) { 
+                    item.children.each(function(i) {
                         lookupKeys.push(i.name);
                         lookupValues.push(i);
                     });
@@ -678,24 +674,24 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         {isListItem: true,
                             string: "show standard properties",
                             value: "standard"},
-                        {isListItem:true, 
-                            string:"show all properties", 
+                        {isListItem:true,
+                            string:"show all properties",
                             value: "properties"},
-                        {isListItem:true, 
-                            string:"show morphs", 
+                        {isListItem:true,
+                            string:"show morphs",
                             value: "submorphs"}]);
                     this.get("ObjectInspectorFilterList").selectAt(0);
                     this.applyLayout();
                 },
         select: function select(item, tree) {
-                    if(this.get("BindThisToSelection").checked) {    
+                    if (this.get("BindThisToSelection").checked) {
                         this.get("ObjectInspectorText").doitContext = item.data;
-                    }; 
+                    }
                     this.get("ObjectInspectorText").textString = this.displayString(item.data);
                 },
         setDoItContext: function setDoItContext(bindThisToSelection) {
                     if(bindThisToSelection) {
-                        var selectedTree = this.tree.withAllTreesDetect(function(t) {return t.item.isSelected});
+                        var selectedTree = this.tree.withAllTreesDetect(function(t) { return t.item.isSelected; });
                         if (selectedTree) {
                             this.get("ObjectInspectorText").doitContext = selectedTree.item.data;
                         }
@@ -729,7 +725,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                     return false;
                                 }
                             }
-                            return prop == 'submorphs' || 
+                            return prop == 'submorphs' ||
                                 obj[prop] instanceof lively.morphic.Morph;
                         },
                     };
@@ -741,7 +737,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                     this.tree.layoutAfter(function() { that.update(); });
                 },
         typename: function typename(o) {
-                    var n = Object.prototype.toString.call(o).split(' ')[1]; 
+                    var n = Object.prototype.toString.call(o).split(' ')[1];
                     n = n.substr(0, n.length - 1);
                     switch(n.valueOf()) {
                         case 'Function':
@@ -760,7 +756,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             if(typeof c == 'function' &&
                                 o instanceof c &&
                                 Object.getPrototypeOf(o) === c.prototype) {
-                                
+
                                 if(c.type && typeof c.type.valueOf() == 'string') {
                                     return c.type + (c.prototype === o ? ' prototype' : '');
                                 }
@@ -769,7 +765,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                 }
                             } else {
                                 debugger;
-                            }    
+                            }
                         default:
                             return n;
                     }

@@ -654,9 +654,24 @@ Object.extend(lively.morphic.Morph, {
         ellipse.setFill(Color.green);
         ellipse.setOrigin(aRectangle.extent().scaleBy(0.5));
         return ellipse;
-    }
+    },
+    makeCubicBezier: function(controlPoints, lineWidth, lineColor) {
+        var ptToString = function(point) { return point.x + ',' + point.y };
+        var svgDescriptors = "M" + ptToString(controlPoints[0]) + "C" + controlPoints.slice(1).map(ptToString).join(' ');
+        var bezierCurve = new lively.morphic.Path([lively.pt(0,0),lively.pt(0,0)])
 
-});
+        bezierCurve.shape.setPathElements(lively.morphic.Shapes.PathElement.parse(svgDescriptors));
+        bezierCurve.setPosition(lively.pt(0, 0));
+        bezierCurve.setBorderWidth(lineWidth);
+        bezierCurve.setBorderColor(lineColor)
+
+        // this fixes the wrong bounding box which can clip parts of the path
+        bezierCurve.shape.getBounds = function() {
+            var b = this.renderContext().pathNode.getBBox()
+            return new Rectangle(b.x - lineWidth, b.y - lineWidth, b.width + 2 * lineWidth, b.height + 2 * lineWidth)
+        }
+        return bezierCurve;
+    }});
 
 lively.Line.addMethods(
 'conversion', {

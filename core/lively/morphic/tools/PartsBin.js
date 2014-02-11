@@ -801,14 +801,14 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
     },
         search: function search(searchString) {
         // triggers search in this.loadPartsOfCategory through connection
-        this.get('categoryList').setSelection("*search*");
+        var list = this.get('categoryList');
+        list.deselectAll();
+        list.setSelection("*search*");
     },
         setMetaInfoOfSelectedItem: function setMetaInfoOfSelectedItem(metaInfo) {
         var comment = (metaInfo && metaInfo.getComment()) ||
             'No comment yet';
         this.get('CommitLog').setTextString(this.commitLogString(metaInfo))
-    
-    
         this.get('selectedPartComment').textString = comment;
     },
         setPartsBinURL: function setPartsBinURL(url) {

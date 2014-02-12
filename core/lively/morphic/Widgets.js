@@ -1555,7 +1555,8 @@ lively.morphic.World.addMethods(
                 title: "Workspace",
                 content: "3 + 4",
                 syntaxHighlighting: true,
-                theme: lively.Config.get("aceWorkspaceTheme")
+                theme: lively.Config.get("aceWorkspaceTheme"),
+                lineWrapping: lively.Config.get("aceDefaultLineWrapping")
             });
         } else {
             editor = this.addTextWindow({title: 'Workspace',
@@ -1567,6 +1568,7 @@ lively.morphic.World.addMethods(
         editor.selectAll();
         return editor;
     },
+
     openAboutBox: function() {
         var text = this.addTextWindow({title: 'About Lively Kernel'});
         text.owner.setExtent(pt(390, 105));

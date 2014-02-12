@@ -90,7 +90,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
 
     putImageData: function(data, width, height) {
-        // accepts real image dat aobject or simple array with rgba-quad-tuples
+        // accepts real image data object or simple array with rgba-quad-tuples
         var ctx = this.getContext();
         if (data.constructor === ImageData) {
             ctx.putImageData(data, 0,0);

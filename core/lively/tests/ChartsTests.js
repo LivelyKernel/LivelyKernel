@@ -316,10 +316,10 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         var components = this.helper.createComponents(3);
         components[0].arrows[0].activate();
         components[1].arrows[0].activate();
-        
+
         components[0].data = 42;
         components[0].notifyNextComponent();
-        
+
         this.assertEquals(components[1].data, 42);
         this.assertEquals(components[2].data, 42);
     },

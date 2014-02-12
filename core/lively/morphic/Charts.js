@@ -71,7 +71,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
     },
 
     throwError: function(error) {
-        
+        this.component.throwError(error);
     }
 });
 
@@ -267,7 +267,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.setFill(this.backgroundColor);
         this.setBorderColor(this.borderColor);
         this.setBorderWidth(3);
-        this.propagationEnabled = true;
         this.data = null;
         
         this.createLabel();
@@ -280,9 +279,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     updateComponent : function() {
         var newData = this.content.update(this.data);
-        // necessary in the case that a new data object was constructed by the content
-        if (newData)
-            this.data = newData;
+        // TODO always return data
+        // check whether the return value already was a promise
+        if (newData && typeof newData.done == "function") {
+            return newData;
+        } else {
+            return new $.Deferred().resolve(newData);
+        }
     },
     
     getComponentInDirection : function($super, direction) {
@@ -759,16 +762,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             }
             return;
         }
-        if (this.propagationEnabled){
-            var _this = this;
-            if (promise && typeof promise.done == "function") {
-                promise.done(function() {
-                    _this.notifyNextComponent();
-                });
-            } else {
-                this.notifyNextComponent();
-            }
-        }
+        var _this = this;
+        promise.done(function(data) {
+            _this.data = data;
+            _this.notifyNextComponent();
+        }).fail(function () {
+            //don't propagate
+        });
     },
     
     notifyNextComponent: function() {
@@ -782,7 +782,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             _this.called = 0;
         },10000);
         console.log(this.called);
-        
+
         this.arrows.each(function (arrow){
             if (arrow.isActive()) {
                 if (arrow.connectionLine) {
@@ -1018,7 +1018,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.setExtent(oldComponent.getExtent());
         this.setPosition(oldComponent.getPosition());
         this.arrows = oldComponent.arrows;
-        this.propagationEnabled = oldComponent.propagationEnabled;
         this.data = oldComponent.data;
         
         this.migrateFromPart(oldComponent);
@@ -1064,6 +1063,8 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
         data.each(function(ea) {
             _this.addElement(ea);
         });
+
+        return data;
     }
 } );
 
@@ -1100,6 +1101,8 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
             _this.addElement(datum, canvasMorph);
         });
         this.addMorph(canvasMorph);
+
+        return data;
     },
 
     addElement: function(element, container) {
@@ -1153,7 +1156,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
 
-        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var data = ctx.component.data; str = eval(codeStr); ctx.component.data = data; return str;}).call(ctx);"
+        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var data = ctx.component.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
         
         // see also $super
         
@@ -1216,6 +1219,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         var _this = evt.getTargetMorph();
         _this.onChanged.apply(_this, arguments);
     },
+
     
     arrangeOnPath: function(path, entity) {
     	var morphs = entity.pluck("morph");
@@ -1526,6 +1530,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
     
     update: function(data) {
         this.codeEditor.doitContext = this;
+        this.data = data;
         
         if (!this.codeEditor.getSelectionRangeAce())
             return;
@@ -1539,6 +1544,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
         if (returnValue instanceof Error) {
             this.throwError(returnValue);
         }
+        
+        // codeEditor saves data in this.data
+        return this.data;
     },
     
     migrateFromPart: function(oldComponent) {
@@ -1551,7 +1559,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
         }
     }
 });
-
+lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JSONFetcher', {
+    initialize: function($super) {
+        $super();
+        this.codeEditor.setTextString('data = $.ajax("https://api.github.com/users");');
+    },
+});
 lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
 'default category', {
     

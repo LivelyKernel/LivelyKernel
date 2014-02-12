@@ -364,7 +364,7 @@ Object.subclass('AttributeConnection',
     },
 
     getExistingConnection: function() {
-        var conns = this.sourceObj.attributeConnections;
+        var conns = this.sourceObj && this.sourceObj.attributeConnections;
         if (!conns) return null;
         for (var i = 0, len = conns.length; i < len; i++) {
             if (this.isSimilarConnection(conns[i])) return conns[i];
@@ -479,6 +479,7 @@ Object.extend(AttributeConnection, {
 AttributeConnection.addMethods('serialization', {
     onrestore: function() {
         try {
+            if (!this.sourceObj) { throw new Error("Restoring AttributeConnection, but lost its source."); }
             this.connect();
         } catch(e) {
             dbgOn(true);

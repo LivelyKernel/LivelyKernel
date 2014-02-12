@@ -52,7 +52,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
         var setter = obj.__lookupSetter__(prop);
         if (setter) {
-            this.invoke(node, obj, setter, [value], state.currentFrame, false/*isNew*/);
+            this.invoke(obj, setter, [value], state.currentFrame, false/*isNew*/);
         } else {
             obj[prop] = value;
         }
@@ -81,7 +81,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         })});
     },
 
-    invoke: function(node, recv, func, argValues, frame, isNew) {
+    invoke: function(recv, func, argValues, frame, isNew) {
         // if we send apply to a function (recv) we want to interpret it
         // although apply is a native function
         if (recv && Object.isFunction(recv) && func === Function.prototype.apply) {
@@ -761,7 +761,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(arg, state);
             args.push(state.result);
         }, this);
-        state.result = this.invoke(node, recv, fn, args, state.currentFrame, state.isNew);
+        state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
     },
 
     visitMemberExpression: function(node, state) {
@@ -776,7 +776,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
         var getter = object.__lookupGetter__(property);
         if (getter) {
-            state.result = this.invoke(node, object, getter, [], state.currentFrame, false/*isNew*/)
+            state.result = this.invoke(object, getter, [], state.currentFrame, false/*isNew*/)
         } else {
             state.result = object[property];
         }

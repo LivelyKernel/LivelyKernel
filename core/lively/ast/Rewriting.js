@@ -1229,7 +1229,6 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     // when debugging is enabled UnwindException can do more...
     UnwindException.prototype.createAndShiftFrame = function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
         var alreadyComputed = frameState[0],
-            // varMapping = frameState[1],
             parentFrameState = frameState[2],
             frame = lively.ast.AcornInterpreter.Frame.create(
                 __getClosure(pointerToOriginalAst) /*, varMapping */),

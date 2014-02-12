@@ -844,6 +844,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     },
 },
 'accessing', {
+
     argNames: function() {
         return this.node.params.map(function(param) {
             // params are supposed to be of type Identifier
@@ -854,6 +855,11 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     name: function() {
         return this.node.id ? this.node.id.name : undefined;
     },
+
+    getAst: function() {
+        return this.node;
+    }
+
 },
 'interpretation', {
     apply: function(thisObj, argValues, startHalted) {
@@ -959,7 +965,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 'initialization', {
 
     initialize: function(func, scope) {
-        this.func              = func;
+        this.func              = func;      // Function object
         this.scope             = scope;     // lexical scope
         this.returnTriggered   = false;
         this.breakTriggered    = null;      // null, true or string (labeled break)
@@ -1003,7 +1009,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 
     getParentFrame: function() { return this.parentFrame; },
 
-    getOriginalAst: function() { return this.func; },
+    getOriginalAst: function() { return this.func.getAst(); },
 
 },
 'accessing - mapping', {
@@ -1078,7 +1084,8 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
             this.pcStatement = null;
             return this.pc = null;
         } else {
-            this.pcStatement = acorn.walk.findStatementOfNode(this.func, node) || this.func;
+            var ast = this.getOriginalAst();
+            this.pcStatement = acorn.walk.findStatementOfNode(ast, node) || ast;
             return this.pc = node;
         }
     },

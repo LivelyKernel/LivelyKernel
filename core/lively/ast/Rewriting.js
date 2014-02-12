@@ -1230,8 +1230,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     UnwindException.prototype.createAndShiftFrame = function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
         var alreadyComputed = frameState[0],
             parentFrameState = frameState[2],
-            frame = lively.ast.AcornInterpreter.Frame.create(
-                __getClosure(pointerToOriginalAst) /*, varMapping */),
+            func = new lively.ast.AcornInterpreter.Function(__getClosure(pointerToOriginalAst)),
+            frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
             pc;
         frame.setThis(thiz);
         frame.setAlreadyComputed(alreadyComputed);

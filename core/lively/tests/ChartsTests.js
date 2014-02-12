@@ -451,22 +451,49 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         if (drop) {
             this.mouseEvent('up', via.last(), component);
         }
+    },
+    
+    testMorphCreator: function() {
+        // data of script should be sent to morphCreator which adds morphs to the data
+        var scriptComponent = this.helper.createComponent();
+        var morphCreator = this.helper.createComponent(pt(0, 1), "MorphCreator");
+
+        scriptComponent.arrows[0].activate();
+        morphCreator.arrows[0].activate();
+        
+        scriptComponent.data = [10];
+        scriptComponent.notifyNextComponent();
+        
+        this.assertEquals(scriptComponent.data[0], 10);
+        this.assertEquals(morphCreator.data[0], 10);
+        this.assert(morphCreator.data[0].morph instanceof lively.morphic.Morph);
     }
 });
 
 Object.subclass('lively.tests.ChartsTests.Helper',
 'default category', {
-    createComponents: function(amount, optPositions) {
+    createComponents: function(amount, optPositions, optClass) {
         // optPositions = pt(0, 0), pt(0, 1), pt(0, 2) would lead to three components in a column
+        // optClass can be "Script", "MorphCreator" etc.
+        if (!Object.isArray(optPositions)) {
+            // probably, only one optional parameter was provided; swap the parameters
+            var _tmp = optClass;
+            optClass = optPositions;
+            optPositions = _tmp;
+        }
+        
         if (optPositions && optPositions.length != amount) {
             alert("Amount doesn't match with length of positions");
             return;
+        }
+        if (!optClass || !Object.isString(optClass)) {
+            optClass = "Script"
         }
         
         var components = [];
         
         for (var i = 0; i < amount; i++) {
-            var aComponent = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts.Script());
+            var aComponent = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts[optClass]());
             
             var extent = aComponent.getExtent().addPt(pt(20, 20));
             
@@ -487,8 +514,13 @@ Object.subclass('lively.tests.ChartsTests.Helper',
         return components;
     },
     
-    createComponent: function(optPosition) {
-        return this.createComponents(1, [optPosition]).first();
+    createComponent: function(optPosition, optClass) {
+        if (optPosition && !(optPosition instanceof lively.Point)) {
+            var _tmp = optPosition
+            optPosition = optClass;
+            optClass = _tmp;
+        }
+        return this.createComponents(1, [optPosition], optClass).first();
     },
 
     removeComponents: function(components) {

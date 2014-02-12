@@ -1094,7 +1094,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     update: function(data) {
         // create linear layout containing rects from data
         this.clear();
-        var canvasMorph = new lively.morphic.Box(new rect(0,0,10,10));
+        var canvasMorph = new lively.morphic.Box(new rect(0, 0, 10, 10));
         var _this = this;
         data.each(function(datum){
             _this.addElement(datum, canvasMorph);
@@ -1303,7 +1303,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         $super(newExtent);
         this.codeEditor.setExtent(newExtent.subPt(pt(150, 0)));
         var prototypeMorph = this.getSubmorphsByAttribute("name","PrototypeMorph");
-        debugger;
         if (prototypeMorph.length) {
             prototypeMorph[0].setPosition(pt(this.getExtent().x - 125, this.getExtent().y - 150));
         }
@@ -1351,7 +1350,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             if (prototypeMorph) {
                 var mappingFunction;
                 eval("mappingFunction = " + this.codeEditor.getTextString());
-                debugger
                 data = data.map(function(ea) {
                     var prototypeInstance = prototypeMorph.copy();
                     mappingFunction(prototypeInstance, ea);

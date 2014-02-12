@@ -861,6 +861,11 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
 
     getAst: function() {
         return this.node;
+    },
+
+    isFunction: function() {
+        var astType = this.getAst().type;
+        return astType == 'FunctionExpression' || astType == 'FunctionDeclaration';
     }
 
 },
@@ -1039,7 +1044,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     },
 
     getArguments: function(args) {
-        if (this.scope && this.scope.getMapping() != Global && this.scope.getParentScope() != null)
+        if (this.scope && this.scope.getMapping() != Global && this.func.isFunction())
             return this.arguments;
     },
 

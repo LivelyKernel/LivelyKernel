@@ -145,7 +145,9 @@ lively.ide.BrowserNode.subclass('lively.ide.FileFragmentNode', {
 
         spec.push(['remove', function() {
             node.browser.ensureSourceNotAccidentlyDeleted(function() {
+                var prevDefinitions = node.getDefinitions();
                 node.target.remove();
+                node.cleanupSource(prevDefinitions, []);
                 node.browser.allChanged();
             });
         }]);

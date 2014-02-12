@@ -709,6 +709,8 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         return src;
     },
 
+
+
     evalSource: function(newSource) {
         if (!this.browser.evaluate) return false;
         var ownerName = this.target.className || this.target.findOwnerFragment().name;
@@ -739,6 +741,12 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         });
         console.log('Successfully evaluated #' + methodName);
         return true;
+    },
+
+    getDefinitions: function() {
+        var targetClassName = this.target.className || this.target.findOwnerFragment().name,
+            targetName = this.target.name;
+        return [targetClassName + '#' + targetName];
     },
 
     asString: function($super) {

@@ -931,6 +931,12 @@ Object.subclass('lively.ide.BrowserNode',
     },
     parent: function() { return this.parent },
     childNodes: function() { return [] },
+    getDefinitions: function() {
+        // answer array of 'path.to.object#propertyName'
+        var defs = [];
+        this.childNodes().forEach(function(ea){defs = defs.concat(ea.getDefinitions())});
+        return defs;
+    },
     sourceString: function() { return this.browser.emptyText }
 },
 'conversion', {
@@ -962,8 +968,12 @@ Object.subclass('lively.ide.BrowserNode',
     newSource: function(newSource) {
         var errorOccurred = false,
             failureOccurred = false,
+            prevDefinitions,
             msg = 'Saving ' + this.target.getName() + '...\n',
             srcCtrl = this.target.getSourceControl ? this.target.getSourceControl() : lively.ide.SourceControl;
+
+        if (this.browser.evaluate)
+            prevDefinitions = this.getDefinitions();
 
         // save source
         try {
@@ -995,6 +1005,11 @@ Object.subclass('lively.ide.BrowserNode',
             this.browser.panel.sourcePane.innerMorph().showError(e)
             errorOccurred = true;
         }
+
+        // delete old definitions
+        if (this.browser.evaluate)
+            this.cleanupSource(prevDefinitions, this.getDefinitions());
+
         var color = errorOccurred ? Color.red : (failureOccurred ? Color.black : Color.green);
         var delay = errorOccurred ? 5 : null;
         this.statusMessage(msg, color, delay);
@@ -1002,6 +1017,20 @@ Object.subclass('lively.ide.BrowserNode',
     },
     evalSource: function(newSource) { return false },
     saveSource: function(newSource, sourceControl) { return false },
+    cleanupSource: function(oldDefs, newDefs) {
+        // delete those oldDefs that are not also in newDefs from runtime
+        if (!this.browser.evaluate) return;
+        oldDefs.withoutAll(newDefs).forEach(function(def){
+            var pathAndProp = def.split("#"),
+                path = pathAndProp[0],
+                prop = pathAndProp[1],
+                object = lively.Class.forName(path);
+            if (!object)
+                return console.warn('Class/object not found: ' + path);
+            delete object.prototype[prop];
+            console.log("Deleted old " + path + ".prototype." + prop);
+        });
+    },
 },
 'menu', {
     menuSpec: function() { return [] },

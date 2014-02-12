@@ -745,7 +745,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         if (!this.browser.evaluate) return false;
         var ownerName = this.target.className || this.target.findOwnerFragment().name;
         if (!lively.Class.forName(ownerName)) {
-            console.log('Didn\'t found class/object');
+            console.log('Didn\'t find class/object');
             return false
         }
         var methodName = this.target.name;

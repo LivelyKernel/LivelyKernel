@@ -31,7 +31,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "%s"
             + "} catch (e) {\n"
             + "    var ex = e.isUnwindException ? e : new UnwindException(e);\n"
-            + "    ex.createAndShiftFrame(this, __%s, lastNode, %s);\n"
+            + "    ex.createAndShiftFrame(this, arguments, __%s, lastNode, %s);\n"
             + "    throw ex;\n"
             + "}\n",
             level, generateVarMappingString(), level, level,
@@ -453,8 +453,28 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         result = acorn.walk.findNodeByAstIndex(refAst, refAstIndex);
         expected = registry[0].body[1].declarations[0].init;
         this.assertEquals(result, expected, 'FunctionExpression reference not correct');
-    }
+    },
 
+    test27aReferencingArguments: function() {
+        var src = 'function foo() { arguments; arguments[0]; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {},
+                'arguments;\n' +
+                'arguments[0];\n'
+            ) }, this.pcAdvance() + ';\n');
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test27bRedeclaringArguments: function() {
+        var src = 'function foo() { var arguments; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {},
+                this.pcAdvance() + ';\n'
+            ) }, this.pcAdvance() + ';\n');
+        this.assertASTMatchesCode(result, expected);
+    }
 });
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
@@ -777,7 +797,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var f1 = (function(x) { if (x === 1) debugger; return x + 1; }).stackCaptureMode(null, this.astRegistry),
             f2 = function() { return f1(0) + f1(1) + f1(2); };
 
-        var continuation = lively.ast.StackReification.run(f2, this.astRegistry, { f1: f1 });
+        var continuation = lively.ast.StackReification.run(f2, this.astRegistry, null, { f1: f1 });
         continuation.frames().last().scope.set('f1', f1);
         var result = continuation.resume();
         this.assertEquals(6, result, 'resume not working');
@@ -791,6 +811,16 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             continuation2 = continuation1.resume(),
             result = continuation2.resume();
         this.assertEquals(6, result, '2x resume not working');
+    },
+
+    test14ArgumentsInInterpretation: function() {
+        function code() {
+            var a = arguments[0]; debugger; return a + arguments[1];
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry, [2, 3]);
+        debugger;
+        var result = continuation.resume();
+        this.assertEquals(5, result, 'accessing arguments not working');
     }
 
 });

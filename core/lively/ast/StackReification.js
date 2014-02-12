@@ -111,12 +111,12 @@ Object.extend(lively.ast.StackReification, {
         throw {isUnwindException: true, lastFrame: frame, topFrame: frame}
     },
 
-    run: function(func, astRegistry, optMapping) {
+    run: function(func, astRegistry, args, optMapping) {
         lively.ast.StackReification.enableDebugSupport(astRegistry);
         if (!func.livelyDebuggingEnabled)
             func = func.stackCaptureMode(optMapping, astRegistry);
         try {
-            return {isContinuation: false, returnValue: func()};
+            return { isContinuation: false, returnValue: func.apply(null, args || []) };
         } catch (e) {
             // e will always be an UnwindException
             if (e.error instanceof Error)

@@ -216,7 +216,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 if (node.type != type) return; // skip Expression, Statement, etc.
                 node.declarations.each(function(n) {
                     // only if it has not been defined before (as variable or argument!)
-                    if (scope.localVars.indexOf(n.id.name) == -1) {
+                    if ((scope.localVars.indexOf(n.id.name) == -1) && (n.id.name != 'arguments')) {
                         state[n.id.name] = {
                             key: that.newNode('Literal', {value: n.id.name}),
                             kind: 'init',
@@ -288,6 +288,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                             callee: this.newMemberExp('ex.createAndShiftFrame'),
                             arguments: [
                                 this.newNode('Identifier', {name: 'this'}),
+                                this.newNode('Identifier', {name: 'arguments'}),
                                 this.newNode('Identifier', {name: '__' + level}),
                                 this.newNode('Identifier', {name: "lastNode"}),
                                 this.newNode('Identifier', {name: String(originalFunctionIdx)})]
@@ -1227,7 +1228,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     }
 
     // when debugging is enabled UnwindException can do more...
-    UnwindException.prototype.createAndShiftFrame = function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
+    UnwindException.prototype.createAndShiftFrame = function(thiz, args, frameState, lastNodeAstIndex, pointerToOriginalAst) {
         var scope, topScope, newScope,
             fState = frameState;
         do {
@@ -1246,6 +1247,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
             pc;
         frame.setThis(thiz);
+        frame.setArguments(args);
         frame.setAlreadyComputed(alreadyComputed);
         if (!this.top) {
             pc = this.error && this.error.astIndex ?

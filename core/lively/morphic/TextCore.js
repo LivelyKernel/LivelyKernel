@@ -2512,6 +2512,9 @@ function getCompletions(evalFunc, string, thenDo) {
         }, []);
         function complete(completion) {
             if (prefix && prefix.length) {
+                var sel = ed.aceEditor.selection;
+                if (sel.isBackwards()) sel.setRange(sel.getRange(), false/*reverse*/);
+                sel.clearSelection();
                 var range = ed.aceEditor.find({needle: prefix, backwards: true, preventScroll: true})
                 ed.replace(range, '');
             }

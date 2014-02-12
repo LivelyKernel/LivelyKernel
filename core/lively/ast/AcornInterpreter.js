@@ -8,7 +8,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'interface', {
 
     run: function(node, optMapping) {
-        return this.runWithFrameAndResult(node, lively.ast.AcornInterpreter.Frame.create(null, optMapping), undefined);
+        var program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program, optMapping);
+        program.lexicalScope = frame.getScope(); // FIXME
+        return this.runWithFrameAndResult(node, frame, undefined);
     },
 
     runWithFrame: function(node, frame) {

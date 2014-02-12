@@ -1228,9 +1228,21 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
     // when debugging is enabled UnwindException can do more...
     UnwindException.prototype.createAndShiftFrame = function(thiz, frameState, lastNodeAstIndex, pointerToOriginalAst) {
+        var scope, topScope, newScope,
+            fState = frameState;
+        do {
+            newScope = new lively.ast.AcornInterpreter.Scope(fState[1]); // varMapping
+            if (scope)
+                scope.setParentScope(newScope);
+            else
+                topScope = newScope;
+            scope = newScope
+            fState = fState[2]; // parentFrameState
+        } while (fState && fState != Global);
+
         var alreadyComputed = frameState[0],
             parentFrameState = frameState[2],
-            func = new lively.ast.AcornInterpreter.Function(__getClosure(pointerToOriginalAst)),
+            func = new lively.ast.AcornInterpreter.Function(__getClosure(pointerToOriginalAst), topScope),
             frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
             pc;
         frame.setThis(thiz);
@@ -1244,18 +1256,6 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
         }
         frame.setPC(pc);
-
-        var scope, topScope, newScope,
-            fState = frameState;
-        do {
-            newScope = new lively.ast.AcornInterpreter.Scope(fState[1]); // varMapping
-            if (scope)
-                scope.setParentScope(newScope);
-            else
-                topScope = newScope;
-            scope = newScope
-            fState = fState[2]; // parentFrameState
-        } while (fState && fState != Global);
         frame.setScope(topScope);
 
         return this.shiftFrame(frame);

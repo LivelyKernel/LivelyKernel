@@ -368,9 +368,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex);
-        var decls = this.registerDeclarations(astToRewrite, rewriteVisitor); // locals
-        var rewritten = rewriteVisitor.accept(astToRewrite, this);
+        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex),
+            decls = this.registerDeclarations(astToRewrite, rewriteVisitor), // locals
+            rewritten = rewriteVisitor.accept(astToRewrite, this);
         this.exitScope();
         var wrapped = this.wrapSequence(rewritten, args, decls, astRegistryIndex);
         this.astRegistry[astRegistryIndex].rewritten = wrapped; // FIXME just for debugging
@@ -388,12 +388,13 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var astRegistryIndex = this.astRegistry.length - 1;
         acorn.walk.addAstIndex(astToRewrite);
         if (astToRewrite.type == 'FunctionDeclaration') {
+            // FIXME: args unused?
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
-        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex);
-        // FIXME: decls unused?
-        var decls = this.registerDeclarations(astToRewrite, rewriteVisitor); // locals
-        var rewritten = rewriteVisitor.accept(astToRewrite, this);
+        var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex),
+            // FIXME: decls unused?
+            decls = this.registerDeclarations(astToRewrite, rewriteVisitor), // locals
+            rewritten = rewriteVisitor.accept(astToRewrite, this);
         // this.exitScope();
         // FIXME!
         rewritten = rewritten.expression.arguments[2];
@@ -956,12 +957,11 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         }
 
         rewriter.enterScope();
-        // FIXME: parallel rewriting may corrupt this index
         rewriter.astRegistry.push({ registryRef: this.registryIndex, indexRef: n.astIndex });
-        var astRegistryIndex = rewriter.astRegistry.length - 1;
-        var args = rewriter.registerVars(n.params.pluck('name')); // arguments
-        var decls = rewriter.registerDeclarations(n.body, this); // locals
-        var rewritten = this.accept(n.body, rewriter);
+        var astRegistryIndex = rewriter.astRegistry.length - 1,
+            args = rewriter.registerVars(n.params.pluck('name')), // arguments
+            decls = rewriter.registerDeclarations(n.body, this), // locals
+            rewritten = this.accept(n.body, rewriter);
         rewriter.exitScope();
         var wrapped = rewriter.wrapClosure({
             start: n.start, end: n.end, type: 'FunctionExpression',

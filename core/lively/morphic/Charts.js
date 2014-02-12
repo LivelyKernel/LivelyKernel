@@ -4,6 +4,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     initialize: function($super, content) {
         $super();
+        
         if (content === undefined) {
             alert("TODO: Handle no content within constructing component.");
             // content = new lively.morphic.Charts.Script()
@@ -12,11 +13,42 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             this.content = content;
             this.content.component = this;
         }
-    
+        
     },
 
     onContentChanged: function() {
         // abstract
+    },
+    
+    createContainer: function() {
+        this.setExtent(pt(500, 250));
+        
+        var container = new lively.morphic.Box(new rect(0,0,10,10));
+        container.setBorderWidth(3);
+        container.setFill(this.backgroundColor);
+        container.setBorderColor(this.borderColor);
+        container.setName("Container");
+        
+        this.addMorph(container);
+        container.setPosition(pt(0, 50));
+        container.setExtent(this.getExtent().subPt(pt(0, 50)));
+        container.layout = {
+            adjustForNewBounds: true,
+            resizeHeight: true,
+            resizeWidth: true
+        };
+        
+        if (this.content) {
+            this.content.layout = {
+                resizeWidth: true,
+                resizeHeight: true
+            };
+            this.content.setExtent(container.getExtent().subPt(pt(6, 6)));
+            this.content.setPosition(pt(3, 3));
+            container.addMorph(this.content);
+        } else {
+            alert("TODO: DataFlowComponent tries to add content.");
+        }
     }
 });
 
@@ -226,11 +258,12 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponent", {
     initialize: function($super, content) {
         $super(content);
-
+        
         var arrow = new lively.morphic.Charts.Arrow(this);
         this.arrows = [arrow];
         
         this.setExtent(pt(500, 250));
+        
         this.setFill(this.backgroundColor);
         this.setBorderColor(this.borderColor);
         this.setBorderWidth(3);
@@ -246,7 +279,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     updateComponent : function() {
-        this.content.update(this.data);
+        var newData = this.content.update(this.data);
+        // necessary in the case that a new data object was constructed by the content
+        if (newData)
+            this.data = newData;
     },
     
     getComponentInDirection : function($super, direction) {
@@ -288,28 +324,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     backgroundColor: Color.rgb(207,225,229),
     borderColor: Color.rgb(94,94,94),
     
-    createContainer: function() {
-        var container = new lively.morphic.Box(new rect(0,0,10,10));
-        container.setBorderWidth(3);
-        container.setFill(this.backgroundColor);
-        container.setBorderColor(this.borderColor);
-        container.setName("Container");
-        
-        if (this.content) {
-            container.addMorph(this.content);
-        } else {
-            alert("TODO: DataFlowComponent tries to add content.");
-        }
-        
-        this.addMorph(container);
-        container.setPosition(pt(0,50));
-        container.setExtent(pt(this.getExtent().x,this.getExtent().y-50));
-        container.layout = {
-              adjustForNewBounds: true,
-              resizeHeight: true,
-              resizeWidth: true
-            };
-    },
+
 
     errorColor: Color.rgb(210, 172, 172),
     
@@ -733,7 +748,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     update: function() {
         this.refreshData();
-
         var promise;
         try {
             promise = this.updateComponent();
@@ -1271,10 +1285,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     
     initialize : function($super){
         $super();
+        
+        this.codeEditor = new lively.morphic.Charts.CodeEditor();
         this.codeEditor.setName("CodeEditor");
-        this.codeEditor.setPosition(pt(3, 3));
-        this.codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100\n))}");
-        this.codeEditor.setExtent(pt(this.getExtent().x - 150,this.getExtent().y - 6));
+        this.codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100))\n}");
         this.codeEditor.layout = {resizeWidth: true, resizeHeight: true};
         this.addMorph(this.codeEditor);
         
@@ -1282,8 +1296,17 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         prototypeMorph.setFill(Color.blue);
         prototypeMorph.setName("PrototypeMorph");
         prototypeMorph.layout = {moveHorizontal: true, moveVertical: true};
-        prototypeMorph.setPosition(pt(this.getExtent().x-125,this.getExtent().y-150));
         this.addMorph(prototypeMorph);
+    },
+    
+    setExtent: function($super, newExtent) {
+        $super(newExtent);
+        this.codeEditor.setExtent(newExtent.subPt(pt(150, 0)));
+        var prototypeMorph = this.getSubmorphsByAttribute("name","PrototypeMorph");
+        debugger;
+        if (prototypeMorph.length) {
+            prototypeMorph[0].setPosition(pt(this.getExtent().x - 125, this.getExtent().y - 150));
+        }
     },
 
     throwError: function(e) {
@@ -1325,11 +1348,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                    }
                 });
             })();
-            
             if (prototypeMorph) {
                 var mappingFunction;
                 eval("mappingFunction = " + this.codeEditor.getTextString());
-                
+                debugger
                 data = data.map(function(ea) {
                     var prototypeInstance = prototypeMorph.copy();
                     mappingFunction(prototypeInstance, ea);
@@ -1341,6 +1363,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             } else {
                 alert("No morph with name 'PrototypeMorph' found");
             }
+            return data;
         }
     },
     
@@ -1488,18 +1511,19 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
     initialize : function($super){
         $super();
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
-        this.codeEditor.setPosition(pt(3,3));
         this.codeEditor.setTextString("// Use the data, Luke!");
         this.codeEditor.setName("CodeEditor");
-        this.codeEditor.setExtent(pt(this.getExtent().x - 6, this.getExtent().y - 6));
         this.codeEditor.layout = {
             resizeWidth: true,
             resizeHeight: true
         };
-        // TODO: fix extent
-        this.codeEditor.setExtent(pt(500, 250));
         this.addMorph(this.codeEditor);
 
+    },
+    
+    setExtent: function($super, newExtent) {
+        $super(newExtent);
+        this.codeEditor.setExtent(newExtent);
     },
     
     update: function(data) {

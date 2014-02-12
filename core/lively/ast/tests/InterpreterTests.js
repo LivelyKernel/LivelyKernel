@@ -348,6 +348,19 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         var node = this.parse('var arguments = 2; arguments;');
         this.assertEquals(2, this.interpret(node));
     },
+    test28fMixedSpecialAndLocalVar: function() {
+        var src = 'function foo() {\n'
+                + '    var arguments = "hey";\n'
+                + '    function bar() {\n'
+                + '        arguments = undefined;\n'
+                + '        return arguments;\n'
+                + '    }\n'
+                + '    return bar();\n'
+                + '}\n'
+                + 'foo();\n',
+            node = this.parse(src);
+        this.assertEquals(undefined, this.interpret(node));
+    },
     test29NullisNull: function() {
         var node = this.parse('null');
         this.assertIdentity(null, this.interpret(node));

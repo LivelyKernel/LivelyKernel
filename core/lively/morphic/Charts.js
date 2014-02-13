@@ -4,16 +4,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     initialize: function($super, content) {
         $super();
-        
-        if (content === undefined) {
-            alert("TODO: Handle no content within constructing component.");
-            // content = new lively.morphic.Charts.Script()
-        }
-        if (content != undefined) {
-            this.content = content;
-            this.content.component = this;
-        }
-        
+
+        this.content = content;
+        this.content.component = this;
     },
 
     onContentChanged: function() {
@@ -39,17 +32,13 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         container.disableGrabbing();
         container.disableDragging();
         
-        if (this.content) {
-            this.content.layout = {
-                resizeWidth: true,
-                resizeHeight: true
-            };
-            this.content.setExtent(container.getExtent().subPt(pt(6, 6)));
-            this.content.setPosition(pt(3, 3));
-            container.addMorph(this.content);
-        } else {
-            alert("TODO: DataFlowComponent tries to add content.");
-        }
+        this.content.layout = {
+            resizeWidth: true,
+            resizeHeight: true
+        };
+        this.content.setExtent(container.getExtent().subPt(pt(6, 6)));
+        this.content.setPosition(pt(3, 3));
+        container.addMorph(this.content);
     }
 });
 
@@ -79,8 +68,19 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
         // abstract
     }
 });
+lively.morphic.Charts.Content.subclass("lively.morphic.Charts.NullContent", {
+    
+    initialize : function($super) {
+        $super();
+        
+        this.description = "";
+        this.extent = pt(400, 40);
+    },
 
-
+    update: function(data) {
+        return data;
+    },
+});
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
@@ -267,7 +267,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         var arrow = new lively.morphic.Charts.Arrow(this);
         this.arrows = [arrow];
         
-        this.setExtent(content.extent);
+        this.setExtent(this.content.extent);
         
         this.setFill(this.backgroundColor);
         this.setBorderColor(this.borderColor);
@@ -284,7 +284,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     updateComponent : function() {
         var newData = this.content.update(this.data);
-        // TODO always return data
         // check whether the return value already was a promise
         if (newData && typeof newData.done == "function") {
             return newData;
@@ -1587,8 +1586,8 @@ lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JsonFetcher', {
 lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
 'default category', {
     
-    initialize : function($super){
-        $super();
+    initialize : function($super, content){
+        $super(content);
         // delete Minimizer
         var minimizer = this.getSubmorphsByAttribute("name", "Minimizer");
         if (minimizer.length)
@@ -1674,11 +1673,12 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
 'default category', {
 
     initialize : function($super){
-        $super();
-
-        var label = this.getSubmorphsByAttribute("name", "Description")[0];
-        label.setTextString("FanIn");
-        this.setExtent(pt(this.getExtent().x, 50));
+        var nullContent = new lively.morphic.Charts.NullContent();
+        nullContent.description = "FanIn";
+        
+        $super(nullContent);
+        
+        this.arrows[0].positionAtMorph();
     },
 
     refreshData: function() {
@@ -1695,15 +1695,14 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
 'default category', {
     
     initialize : function($super){
-        $super();
+        var nullContent = new lively.morphic.Charts.NullContent();
+        nullContent.description = "FanOut";
+        
+        $super(nullContent);
 
         //delete arrow
         this.arrows[0].remove();
         this.arrows.clear();
-
-        var label = this.getSubmorphsByAttribute("name", "Description")[0];
-        label.setTextString("FanOut");
-        this.setExtent(pt(this.getExtent().x, 50));
     },
 
     refreshData: function() {

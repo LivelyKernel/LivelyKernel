@@ -36,6 +36,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             resizeWidth: true
         };
         
+        container.disableGrabbing();
+        container.disableDragging();
+        
         if (this.content) {
             this.content.layout = {
                 resizeWidth: true,
@@ -113,7 +116,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     showContextMenu: function(position) {
         var _this = this;
         
-        var componentNames = ["ScriptFlowComponent", "FanOut", "FanIn", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher", "FreeLayout", "Table"];
+        var componentNames = ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table"];
         
         var contextItems = componentNames.map(function(ea) {
             return [ea, function() {
@@ -172,7 +175,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     },
     
     createComponent: function(componentName) {
-        var newComponent = $world.loadPartItem(componentName, 'PartsBin/BP2013H2');
+        var newComponent = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts[componentName]());
         var extent =  this.componentMorph.getExtent();
         var offset = pt(0,extent.y + newComponent.componentOffset);
         

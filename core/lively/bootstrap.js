@@ -564,7 +564,9 @@
                 this.markAsLoading(url);
 
                 // FIXME This is just a test to see if the system can load from rewritten code;
-                var loadDebugCode = JSLoader.getOption('loadRewrittenCode') && !suppressDebug;
+                var loadDebugCode = JSLoader.getOption('loadRewrittenCode')
+                                 && !suppressDebug
+                                 && !this.isCrossDomain(url);
                 if (loadDebugCode) {
                     var idx = url.lastIndexOf('/') + 1,
                         dbgURL = url.slice(0,idx) + 'DBG_' + url.slice(idx),
@@ -873,6 +875,14 @@
                 callback(xhr.statusText, null);
             };
             xhr.send(null);
+        },
+
+        isCrossDomain: function(url) {
+            // does url start with protocol, hostname, and port -> then no xdomain
+            var l = document.location;
+            if (url.indexOf(l.protocol) !== 0) return false; // relative
+            var domainRe = new RegExp("^" + l.protocol + "/*" + l.hostname + (l.port.length ? ':' + l.port : ''));
+            return !domainRe.test(url);
         }
 
     };

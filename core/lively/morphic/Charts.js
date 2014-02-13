@@ -38,7 +38,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     showContextMenu: function(position) {
         var _this = this;
         
-        var componentNames = ["ScriptFlowComponent", "FanOut", "FanIn", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher", "FreeLayout"];
+        var componentNames = ["ScriptFlowComponent", "FanOut", "FanIn", "JsonViewer", "LinearLayoutViewer", "PrototypeComponent", "JsonFetcher", "FreeLayout", "Table"];
         
         var contextItems = componentNames.map(function(ea) {
             return [ea, function() {
@@ -1351,18 +1351,32 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Table', {
          
         this.rows = 0;
         this.columns = 0;
+        //this.cellWidth = 80;
     },
     
     createTable : function(row, column) {
         var spec = {};
         spec.showColHeads = true;
         spec.showRowHeads = false;
-        return new lively.morphic.DataGrid(row, column, spec);
+        this.columns = column;
+        this.rows = row;
+            
+        var table = new lively.morphic.DataGrid(row, column, spec);
+        this.table.defaultCellWidth = this.defaultCellWidth;
+        //set gridmode of table cells to hidden
+        table.rows.each(function(row){
+            row.each(function(ea){
+                ea.setClipMode("hidden");
+            });
+        });
+        
+        return table;
     },
     
     updateTable : function(){
         var container = this.getSubmorphsByAttribute("name","Container")[0];
         container.submorphs.invoke("remove");
+        this.table.setClipMode("scroll");
         container.addMorph(this.table);
         this.table.setPosition(pt(3,3));
         this.table.setExtent(container.getExtent().subPt(pt(6,6)));
@@ -1412,7 +1426,35 @@ lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Table', {
     clearTable : function() {
         this.table = this.createTable(0,0);
         this.updateTable();
-    }
+    },
+    
+    onDoubleClick : function() {
+        this.updateCellWidth();
+    },
+    
+    onClick : function() {
+       
+    },
+    
+    updateCellWidth : function(){
+        if(!this.table) return;
+        
+        var table = this.table;
+        var activeCell = table.rows[table.getActiveRowIndex()][table.getActiveColIndex()];
+        var oldWidth = activeCell.getExtent().x;
+        var newWidth = activeCell.getTextString().length*10;
+        var index = table.getActiveColIndex();
+        table.setColWidth(index,newWidth);
+        var diff = (activeCell.getExtent().x-oldWidth);
+
+        //move all column right of index
+        for (var j = index+1; j<table.rows[0].length;j++ )
+            for (var i = 0; i < table.rows.length; i++) {
+                var curCell = table.rows[i][j];
+                var pos = curCell.getPosition();
+                curCell.setPosition(pt(pos.x+diff,pos.y));
+            }
+    },
     
 });
 lively.morphic.Charts.Component.subclass('lively.morphic.Charts.Script',

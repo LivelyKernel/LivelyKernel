@@ -7,12 +7,23 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         this.content = content;
         this.content.component = this;
+        
+        this.setExtent(this.content.extent);
+        
+        this.createLabel();
+        this.createMinimizer();
+        this.createContainer();
+        
+        this.setFill(this.backgroundColor);
+        this.setBorderColor(this.borderColor);
+        this.setBorderWidth(3);
+        
+        this.layout = {adjustForNewBounds: true};
+        this.createErrorText();
     },
-
-    onContentChanged: function() {
+    createMinimizer: function() {
         // abstract
     },
-    
     createContainer: function() {
         var container = new lively.morphic.Box(new rect(0,0,10,10));
         container.setBorderWidth(3);
@@ -39,7 +50,44 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.content.setExtent(container.getExtent().subPt(pt(6, 6)));
         this.content.setPosition(pt(3, 3));
         container.addMorph(this.content);
+    },
+
+    onContentChanged: function() {
+        // abstract
+    },
+    
+    createLabel: function() {
+        var t = new lively.morphic.Text();
+        t.setTextString(this.content.description);
+        t.setName("Description");
+        t.setExtent(pt(50, 20));
+        t.setPosition(pt(10, 10));
+        t.setFontSize(12);
+        t.setFillOpacity(0);
+        t.setBorderWidth(0);
+        this.addMorph(t);
+    },
+    
+    createErrorText: function() {
+        var t = new lively.morphic.Text();
+        t.setTextString("");
+        t.setName("ErrorText");
+        
+        // don't ask, that's lively
+        var _this = this;
+        setTimeout(function() {
+            var descriptionWidth = _this.getSubmorphsByAttribute("name", "Description")[0].getTextBounds().width;
+            t.setExtent(pt(_this.getExtent().x - descriptionWidth - 80, 20));
+            t.setPosition(pt(descriptionWidth + 20, 10));            
+        }, 10);
+
+        t.setFontSize(10);
+        t.setFillOpacity(0);
+        t.setBorderWidth(0);
+        t.layout = {resizeWidth: true};
+        this.addMorph(t);
     }
+
 });
 
 
@@ -47,6 +95,21 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
 
     initialize: function($super, content) {
         $super(content);
+        
+        this.setDescription(content.description);
+        
+    },
+    
+    createContainer: function() {
+        // TODO
+    },
+    
+    createLabel: function() {
+        // TODO
+    },
+    
+    createMinimizer: function() {
+        // TODO
     },
 
     onContentChanged: function() {
@@ -85,6 +148,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.NullContent", {
 lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
     initialize: function($super, aMorph, positionX) {
+        debugger;
         this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
         this.isLayoutable = false;
@@ -262,24 +326,12 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
 
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponent", {
     initialize: function($super, content) {
-        $super(content);
         
+        $super(content);
         var arrow = new lively.morphic.Charts.Arrow(this);
         this.arrows = [arrow];
         
-        this.setExtent(this.content.extent);
-        
-        this.setFill(this.backgroundColor);
-        this.setBorderColor(this.borderColor);
-        this.setBorderWidth(3);
         this.data = null;
-        
-        this.createLabel();
-        this.createErrorText();
-        this.createMinimizer();
-        this.createContainer();
-
-        this.layout = {adjustForNewBounds: true};
     },
     
     updateComponent : function() {
@@ -613,6 +665,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
 
 
+
     removeArrowFromArray: function(arrow) {
         
         var index = this.arrows.indexOf(arrow);
@@ -681,27 +734,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             return el instanceof lively.morphic.Charts.DataFlowComponent;
         });
     },
-
-    createErrorText: function() {
-        var t = new lively.morphic.Text();
-        t.setTextString("");
-        t.setName("ErrorText");
-        
-        // don't ask, that's lively
-        var _this = this;
-        setTimeout(function() {
-            var descriptionWidth = _this.getSubmorphsByAttribute("name", "Description")[0].getTextBounds().width;
-            t.setExtent(pt(_this.getExtent().x - descriptionWidth - 80, 20));
-            t.setPosition(pt(descriptionWidth + 20, 10));            
-        }, 10);
-
-        t.setFontSize(10);
-        t.setFillOpacity(0);
-        t.setBorderWidth(0);
-        t.layout = {resizeWidth: true};
-        this.addMorph(t);
-    },
-
+    
     createMinimizer: function() {
         var minimizer = new lively.morphic.Charts.Minimizer();
         minimizer.setPosition(pt(this.getExtent().x - 60, 10));
@@ -742,24 +775,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.notify();
         this.wasDragged = false;
     },
-
-
-    
-
-    
-    createLabel: function() {
-        var t = new lively.morphic.Text();
-        t.setTextString(this.content.description);
-        t.setName("Description");
-        t.setExtent(pt(50, 20));
-        t.setPosition(pt(10, 10));
-        t.setFontSize(12);
-        t.setFillOpacity(0);
-        t.setBorderWidth(0);
-        this.addMorph(t);
-    },
-    
-
     
     update: function() {
         this.refreshData();
@@ -981,7 +996,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         var oldExtent = this.getExtent();
         $super(newExtent);
         
-        if (!this.isMerger()) {
+        if (!this.isMerger() && this.arrows) {
             this.arrows.each(function (arrow){
                  arrow.positionAtMorph();
             });

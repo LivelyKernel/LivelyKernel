@@ -756,6 +756,11 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     update: function() {
         this.refreshData();
+        
+        var text = this.get("ErrorText");
+        text.setTextString("");
+        text.error = null;
+
         var promise;
         try {
             promise = this.updateComponent();
@@ -767,6 +772,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             }
             return;
         }
+
         var _this = this;
         promise.done(function(data) {
             _this.data = data;
@@ -1405,22 +1411,18 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         $super();
         this.description = "Table";
         
-        this.table = this.clearTable();
+        this.clearTable();
          
         this.rows = 0;
         this.columns = 0;
-        //this.cellWidth = 80;
     },
     
-    createTable : function(row, column) {
+    createTable : function(rowCount, columnCount) {
         var spec = {};
         spec.showColHeads = true;
         spec.showRowHeads = false;
-        this.columns = column;
-        this.rows = row;
             
-        var table = new lively.morphic.DataGrid(row, column, spec);
-        this.table.defaultCellWidth = this.defaultCellWidth;
+        var table = new lively.morphic.DataGrid(rowCount, columnCount, spec);
         //set gridmode of table cells to hidden
         table.rows.each(function(row){
             row.each(function(ea){
@@ -1428,52 +1430,50 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             });
         });
         
+        table.disableGrabbing();
+        table.disableDragging();
+        
         return table;
     },
     
     updateTable : function(){
-        var container = this.getSubmorphsByAttribute("name","Container")[0];
-        container.submorphs.invoke("remove");
-        this.table.setClipMode("scroll");
-        container.addMorph(this.table);
-        this.table.setPosition(pt(3,3));
-        this.table.setExtent(container.getExtent().subPt(pt(6,6)));
+        this.submorphs.invoke("remove");
+        this.table.setClipMode("auto");
+        this.addMorph(this.table);
+        this.table.setExtent(this.getExtent());
         this.table.layout = {resizeWidth: true, resizeHeight: true};
     },
+    setExtent: function($super, newExtent) {
+        $super(newExtent);
+        this.table.setExtent(newExtent);
+    },
     
-    updateComponent : function(){
-        if (!this.data) {
-            this.clearTable();
-            return;
-        }
+    update : function(data){
         
-        if (!(this.data.first() instanceof Array)){
+        this.clearTable();
+        
+        if (!Object.isArray(data.first())){
             var attributes = [];
-            this.data.each(function(ea){
-                var key;
-                for ( key in ea){
-                    if (attributes.indexOf(key) == -1)
-                        attributes.push(key);
+            data.each(function(ea){
+                for (var key in ea){
+                    attributes.pushIfNotIncluded(key);
                 }
-            })
-            this.table = this.createTable(attributes.length,this.data.length+1);
+            });
+            this.table = this.createTable(attributes.length, data.length + 1);
             this.table.setColNames(attributes);
         } else {
-            this.table = this.createTable(this.data[0].length,this.data.length+1);
+            this.table = this.createTable(data[0].length, data.length + 1);
         }
         
         var _this = this;
-        this.data.each(function (ea,col){
-            if (ea instanceof Array) {
-                ea.each(function (el,row){
-                    _this.table.atPut(row,col,el.toString())
+        data.each(function (ea, col){
+            if (Object.isArray(ea)) {
+                ea.each(function (el, row){
+                    _this.table.atPut(row, col, el.toString())
                 });
             } else {
-                attributes.each(function (attr,row){
-                    var content = ea[attr];
-                    if (!content) 
-                        content = "-";
-                    _this.table.atPut(row,col,content);
+                attributes.each(function (attr, row){
+                    _this.table.atPut(row, col, ea[attr] || "-");
                 });
             }
             
@@ -1494,24 +1494,25 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
        
     },
     
-    updateCellWidth : function(){
+    updateCellWidth : function() {
         if(!this.table) return;
         
         var table = this.table;
         var activeCell = table.rows[table.getActiveRowIndex()][table.getActiveColIndex()];
         var oldWidth = activeCell.getExtent().x;
-        var newWidth = activeCell.getTextString().length*10;
+        var newWidth = activeCell.getTextBounds().width + 10;
         var index = table.getActiveColIndex();
-        table.setColWidth(index,newWidth);
-        var diff = (activeCell.getExtent().x-oldWidth);
+        var diff = (newWidth - oldWidth);
+        table.setColWidth(index, newWidth);
 
-        //move all column right of index
-        for (var j = index+1; j<table.rows[0].length;j++ )
+        //move all columns right of index
+        for (var j = index + 1; j < table.rows[0].length; j++) {
             for (var i = 0; i < table.rows.length; i++) {
                 var curCell = table.rows[i][j];
                 var pos = curCell.getPosition();
-                curCell.setPosition(pt(pos.x+diff,pos.y));
+                curCell.setPosition(pt(pos.x + diff, pos.y));
             }
+        }
     },
     
 });
@@ -1543,10 +1544,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
         
         if (!this.codeEditor.getSelectionRangeAce())
             return this.data;
-        
-        var text = this.get("ErrorText");
-        text.setTextString("");
-        text.error = null;
         
         var returnValue = this.codeEditor.evalAll();
         

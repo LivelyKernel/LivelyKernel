@@ -279,18 +279,18 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
     },
     
     testFanOutMoving : function(){
+        
         var fanOut = new lively.morphic.Charts.FanOut();
         $world.addMorph(fanOut);
         fanOut.setPosition(pt(0,600));
-        
+
         var components = this.helper.createComponents(3,[pt(0,0),pt(0,1),pt(0,3)]);
         
-        this.drag([pt(10,10),pt(10-50)], fanOut);
         components[1].arrows[0].activate();
         components[0].arrows[0].activate();
         //drag componentBottom to create and active arrow of FanOut
         this.drag([pt(10,10)], components[2]);
-        
+
         components[0].data = 42;
         components[0].notifyNextComponent();
         
@@ -298,10 +298,10 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         components[1].notifyNextComponent();
         
         this.assertEquals(components[2].data, 43);
-        
+
         //move fanOut up
         this.drag([pt(10,10),pt(20,-500)], fanOut);
-        
+
         components[0].data = 8;
         components[0].notifyNextComponent();
         

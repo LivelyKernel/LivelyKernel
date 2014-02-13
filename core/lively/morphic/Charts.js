@@ -73,6 +73,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
 
     throwError: function(error) {
         this.component.throwError(error);
+    },
+    
+    migrateFromPart: function(oldComponent) {
+        // abstract
     }
 });
 
@@ -1029,18 +1033,17 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     migrateFrom : function(oldComponent){
-        $world.addMorph(this);
         this.setExtent(oldComponent.getExtent());
         this.setPosition(oldComponent.getPosition());
         this.arrows = oldComponent.arrows;
         this.data = oldComponent.data;
         
-        this.migrateFromPart(oldComponent);
+        this.content.migrateFromPart(oldComponent);
         oldComponent.remove();
+        $world.addMorph(this);
+        
     },
-    migrateFromPart: function(oldComponent) {
-        // this should be overwritten by subclass or part
-    }
+
 
 });
 
@@ -1381,24 +1384,14 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     
     
     migrateFromPart: function(oldComponent) {
-        var newCodeEditor = this.getSubmorphsByAttribute("name","CodeEditor");
-        var oldCodeEditor = oldComponent.getSubmorphsByAttribute("name","CodeEditor");
-        if (newCodeEditor.size() > 0 && oldCodeEditor.size() > 0){
-            newCodeEditor = newCodeEditor[0];
-            oldCodeEditor = oldCodeEditor[0];
-            newCodeEditor.setTextString(oldCodeEditor.getTextString());
-        }
-        var newPrototype = this.getSubmorphsByAttribute("name","PrototypeMorph");
-        var oldPrototype = oldComponent.getSubmorphsByAttribute("name","PrototypeMorph");
-        var container = this.getSubmorphsByAttribute("name","Container");
+        this.codeEditor.setTextString(oldComponent.content.codeEditor.getTextString());
+        debugger;
+        var newPrototype = this.getSubmorphsByAttribute("name","PrototypeMorph")[0];
+        var oldPrototype = oldComponent.getSubmorphsByAttribute("name","PrototypeMorph")[0];
+        var container = this.component.getSubmorphsByAttribute("name","Container")[0];
         
-        if (newPrototype.size() > 0 ){
-            newPrototype[0].remove();
-            oldPrototype = oldPrototype[0];
-            container = container[0];
-            
-            container.addMorph(oldPrototype);
-        }
+        newPrototype.remove();
+        container.addMorph(oldPrototype);
     }
 });
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
@@ -1578,13 +1571,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
     },
     
     migrateFromPart: function(oldComponent) {
-        var newCodeEditor = this.codeEditor;
-        var oldCodeEditor = oldComponent.codeEditor;
-        if (newCodeEditor.size() > 0 && oldCodeEditor.size() > 0){
-            newCodeEditor = newCodeEditor[0];
-            oldCodeEditor = oldCodeEditor[0];
-            newCodeEditor.setTextString(oldCodeEditor.getTextString());
-        }
+        this.codeEditor.setTextString(oldComponent.content.codeEditor.getTextString());
     }
 });
 lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JsonFetcher', {

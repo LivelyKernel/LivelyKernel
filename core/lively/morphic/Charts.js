@@ -1314,7 +1314,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
         this.codeEditor.setName("CodeEditor");
-        this.codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100))\n}");
+        this.codeEditor.setTextString("function map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100))\n}");
         this.codeEditor.layout = {resizeWidth: true, resizeHeight: true};
         this.addMorph(this.codeEditor);
         
@@ -1334,19 +1334,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         }
     },
 
-    throwError: function(e) {
-        if (this.component) {
-            alert("TODO: notify component when error is thrown");
-            // var text = this.get("ErrorText");
-            // text.setTextString(e.toString());
-            // text.error = e;
-            // e.alreadyThrown = true;
-            // throw e;
-        } else {
-            alert("component morph missing");
-        }
 
-    },
     
     update : function($super, data) {
         var _this = this;

@@ -1044,7 +1044,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
 
 });
 
-
 lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
     
     initialize: function($super) {
@@ -1526,6 +1525,30 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     },
     
 });
+
+lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
+'default category', {
+    
+    initialize: function($super) {   
+
+        $super();
+        this.description = "JsonViewer";
+        this.extent = pt(400, 200);
+        this.objectTree = $world.loadPartItem('ObjectTree', 'PartsBin/BP2013H2');
+        this.addMorph(this.objectTree);
+    },
+    
+    setExtent: function($super, newExtent) {
+        $super(newExtent);
+        this.objectTree.setExtent(newExtent.subPt(pt(1, 0)));
+    },
+    
+    update: function(data) {
+        this.objectTree.inspect(data);
+    }
+    
+});
+
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
 'default category', {
     
@@ -1576,15 +1599,16 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
         }
     }
 });
-lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JSONFetcher', {
+lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JsonFetcher', {
     initialize: function($super) {
         $super();
-        this.description = "JSONFetcher";
+        this.description = "JsonFetcher";
         this.extent = pt(400, 100);
-        
         this.codeEditor.setTextString('data = $.ajax("https://api.github.com/users");');
     },
 });
+
+
 lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
 'default category', {
     

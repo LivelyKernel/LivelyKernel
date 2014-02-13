@@ -10,62 +10,76 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         this.setExtent(this.content.extent);
         
-        this.createLabel();
+        this.createComponentHeader();
         this.createMinimizer();
-        this.createContainer();
-        
-        this.setFill(this.backgroundColor);
-        this.setBorderColor(this.borderColor);
-        this.setBorderWidth(3);
-        
+        this.createComponentBody();
+
         this.layout = {adjustForNewBounds: true};
         this.createErrorText();
     },
     createMinimizer: function() {
         // abstract
     },
-    createContainer: function() {
-        var container = new lively.morphic.Box(new rect(0,0,10,10));
-        container.setBorderWidth(3);
-        container.setFill(this.backgroundColor);
-        container.setBorderColor(this.borderColor);
-        container.setName("Container");
+    createComponentBody: function() {
+        var componentBody = new lively.morphic.Morph();
+        componentBody.setName("ComponentBody");
+        componentBody.setStyleClassNames(["ComponentBody"]);
         
-        this.addMorph(container);
-        container.setPosition(pt(0, 50));
-        container.setExtent(this.getExtent().subPt(pt(0, 50)));
-        container.layout = {
+        var headerHeight = 24;
+        componentBody.setExtent(this.getExtent().subPt(pt(2, headerHeight)));
+        componentBody.setPosition(pt(0, headerHeight));
+        
+        componentBody.setStyleSheet(this.getBodyCSS());
+        componentBody.setFill();
+        componentBody.setBorderStyle();
+        
+        this.addMorph(componentBody);
+        
+        componentBody.layout = {
             adjustForNewBounds: true,
             resizeHeight: true,
             resizeWidth: true
         };
         
-        container.disableGrabbing();
-        container.disableDragging();
+        componentBody.disableGrabbing();
+        componentBody.disableDragging();
         
         this.content.layout = {
             resizeWidth: true,
             resizeHeight: true
         };
-        this.content.setExtent(container.getExtent().subPt(pt(6, 6)));
+        this.content.setExtent(componentBody.getExtent().subPt(pt(6, 6)));
         this.content.setPosition(pt(3, 3));
-        container.addMorph(this.content);
+        componentBody.addMorph(this.content);
     },
 
     onContentChanged: function() {
         // abstract
     },
     
-    createLabel: function() {
-        var t = new lively.morphic.Text();
-        t.setTextString(this.content.description);
-        t.setName("Description");
-        t.setExtent(pt(50, 20));
-        t.setPosition(pt(10, 10));
-        t.setFontSize(12);
-        t.setFillOpacity(0);
-        t.setBorderWidth(0);
-        this.addMorph(t);
+    createComponentHeader: function() {
+        var headerHeight = 24;
+        var header = new lively.morphic.Morph();
+        header.setStyleClassNames(["ComponentHeader"]);
+        header.setExtent(pt(400, headerHeight));
+        header.ignoreEvents();
+
+        header.setAppearanceStylingMode(false)
+        header.setStyleSheet(this.getHeaderCSS());
+        header.setFill();
+        header.setBorderStyle();
+        header.setAppearanceStylingMode(false)
+        
+        this.addMorph(header);
+        
+        
+        // TODO
+        // header.setTextString(this.content.description);
+        header.setName("ComponentHeader");
+        
+        // t.setFontSize(12);
+        // t.setFillOpacity(0);
+        // t.setBorderWidth(0);
     },
     
     createErrorText: function() {
@@ -85,7 +99,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         t.setFillOpacity(0);
         t.setBorderWidth(0);
         t.layout = {resizeWidth: true};
+        console.warn("TODO; errortext")
         this.addMorph(t);
+    },
+    
+    getBodyCSS: function() {
+        // abstract
+    },
+    
+    getHeaderCSS: function() {
+        // abstract
     }
 
 });
@@ -100,11 +123,11 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         
     },
     
-    createContainer: function() {
+    createComponentBody: function() {
         // TODO
     },
     
-    createLabel: function() {
+    createComponentHeader: function() {
         // TODO
     },
     
@@ -208,7 +231,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         var extent = aMorph.getExtent();
         
         var offsetX = (extent.x - this.getExtent().x) / 2;
-        var offsetY = extent.y;
+        var offsetY = extent.y + 3;
         
         this.setPosition(pt(positionX || offsetX, offsetY));
         aMorph.addMorph(this);
@@ -380,11 +403,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         return components;
     },
     
-    backgroundColor: Color.rgb(207,225,229),
-    borderColor: Color.rgb(94,94,94),
-    
-
-
     errorColor: Color.rgb(210, 172, 172),
     
     notifyNeighborsOfDragStart: function() {
@@ -736,6 +754,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     createMinimizer: function() {
+        console.warn("TODO");
+        return;
         var minimizer = new lively.morphic.Charts.Minimizer();
         minimizer.setPosition(pt(this.getExtent().x - 60, 10));
         minimizer.layout = {moveHorizontal: true}
@@ -1058,6 +1078,81 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
     },
 
+    getBodyCSS : function() {
+        return ".ComponentBody {\
+            background-color: rgb(255, 255, 255) !important;\
+            border-bottom-left-radius: 5px !important;\
+            border-bottom-right-radius: 5px !important;\
+            border-width: 1px !important;\
+            border-color: rgb(66, 139, 202) !important;\
+            display: block !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            font-size: 14px !important;\
+            line-height: 20px !important;\
+            margin-bottom: 0px !important;\
+            margin-left: 0px !important;\
+            margin-right: 0px !important;\
+            margin-top: 0px !important;\
+            padding-bottom: 0px !important;\
+            padding-left: 0px !important;\
+            padding-right: 0px !important;\
+            padding-top: 0px !important;\
+            position: relative !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
+            box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
+        }";
+    },
+    
+getHeaderCSS: function() {
+    return	".ComponentHeader { \
+        background-color: rgb(66, 139, 202); !important; \
+        color: white !important; \
+        border-top-left-radius: 4px !important; \
+        border-top-right-radius: 4px !important;\
+        background-attachment: scroll !important;\
+        background-clip: border-box !important;\
+        background-image: none !important;\
+        background-origin: padding-box !important;\
+        background-size: auto !important;\
+        border-bottom-color: rgb(66, 139, 202) !important;\
+        border-bottom-style: solid !important;\
+        border-bottom-width: 1px !important;\
+        border-image-outset: 0px !important;\
+        border-image-repeat: stretch !important;\
+        border-image-slice: 100% !important;\
+        border-image-source: none !important;\
+        border-image-width: 1 !important;\
+        border-left-color: rgb(66, 139, 202) !important;\
+        border-left-style: solid !important;\
+        border-left-width: 1px !important;\
+        border-right-color: rgb(66, 139, 202) !important;\
+        border-right-style: solid !important;\
+        border-right-width: 1px !important;\
+        border-top-color: rgb(66, 139, 202) !important;\
+        border-top-style: solid !important;\
+        border-top-width: 1px !important;\
+        box-sizing: border-box !important;\
+        color: rgb(255, 255, 255) !important;\
+        cursor: auto !important;\
+        display: block !important;\
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+        font-size: 14px !important;\
+        line-height: 20px !important;\
+        margin-bottom: -1px !important;\
+        padding-bottom: 10px !important;\
+        padding-left: 10px !important;\
+        padding-right: 15px !important;\
+        padding-top: 2px !important;\
+        position: relative !important;\
+        text-decoration: none solid rgb(255, 255, 255) !important;\
+        z-index: 2 !important;\
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+        -webkit-box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+        box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+        border-width: 1px !important;\
+    }";
+},
 
 });
 
@@ -1418,10 +1513,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         debugger;
         var newPrototype = this.getSubmorphsByAttribute("name","PrototypeMorph")[0];
         var oldPrototype = oldComponent.getSubmorphsByAttribute("name","PrototypeMorph")[0];
-        var container = this.component.getSubmorphsByAttribute("name","Container")[0];
+        var componentBody = this.component.getSubmorphsByAttribute("name","ComponentBody")[0];
         
         newPrototype.remove();
-        container.addMorph(oldPrototype);
+        componentBody.addMorph(oldPrototype);
     }
 });
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
@@ -1625,11 +1720,11 @@ lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
         {
             minimizer[0].remove();
         }
-        // delete container
-        var container = this.getSubmorphsByAttribute("name", "Container");
-        if (container.length)
+        // delete componentBody
+        var componentBody = this.getSubmorphsByAttribute("name", "ComponentBody");
+        if (componentBody.length)
         {
-            container[0].remove();
+            componentBody[0].remove();
         }
     },
 
@@ -1789,16 +1884,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
             var isMinimized = this.owner.getExtent().y == 60;
             if (isMinimized) {
                 this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY), true);
-                var container = this.owner.getSubmorphsByAttribute("name","Container");
-                if (container.length > 0){
-                    container[0].setVisible(true);
+                var componentBody = this.owner.getSubmorphsByAttribute("name","ComponentBody");
+                if (componentBody.length > 0){
+                    componentBody[0].setVisible(true);
                 }
             }
             else {
                 this.oldY = this.owner.getExtent().y;
-                var container = this.owner.getSubmorphsByAttribute("name","Container");
-                if (container.length > 0){
-                    container[0].setVisible(false);
+                var componentBody = this.owner.getSubmorphsByAttribute("name","ComponentBody");
+                if (componentBody.length > 0){
+                    componentBody[0].setVisible(false);
                 }
                 this.owner.setExtent(pt(this.owner.getExtent().x, 60), true);
             }

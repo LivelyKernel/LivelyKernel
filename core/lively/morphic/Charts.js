@@ -273,6 +273,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.createErrorText();
         this.createMinimizer();
         this.createContainer();
+        
+        this.setDescription(content.description);
 
         this.layout = {adjustForNewBounds: true};
     },
@@ -606,6 +608,9 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         }
 
         return $super(target);
+    },
+    setDescription: function(description) {
+        this.getSubmorphsByAttribute("name", "Description")[0].setTextString(description);
     },
 
     removeArrowFromArray: function(arrow) {
@@ -1034,6 +1039,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
     
     initialize: function($super) {
         $super();
+        this.description = "LinearLayout";
         this.setFill(Color.white);
         this.OFFSET = 20;
         this.currentX = this.OFFSET;
@@ -1084,6 +1090,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     
     initialize: function($super) {
         $super();
+        this.description = "Canvas";
         this.setFill(Color.white);
         this.setName("Canvas");
         this.layout = {
@@ -1289,7 +1296,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     
     initialize : function($super){
         $super();
-        
+        this.description = "MorphCreator";
+
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
         this.codeEditor.setName("CodeEditor");
         this.codeEditor.setTextString("// Use the data, Luke! \nfunction map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100))\n}");
@@ -1395,7 +1403,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     
     initialize : function($super){
         $super();
-        this.getSubmorphsByAttribute("name","Description")[0].setTextString("Table");
+        this.description = "Table";
         
         this.table = this.clearTable();
          
@@ -1512,8 +1520,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
     
     initialize : function($super){
         $super();
+        this.description = "Script";
+
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
-        this.codeEditor.setTextString("// Use the data, Luke!");
         this.codeEditor.setName("CodeEditor");
         this.codeEditor.layout = {
             resizeWidth: true,
@@ -1562,6 +1571,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
 lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JSONFetcher', {
     initialize: function($super) {
         $super();
+        this.description = "JSONFetcher";
         this.codeEditor.setTextString('data = $.ajax("https://api.github.com/users");');
     },
 });
@@ -1656,6 +1666,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
 
     initialize : function($super){
         $super();
+
         var label = this.getSubmorphsByAttribute("name", "Description")[0];
         label.setTextString("FanIn");
         this.setExtent(pt(this.getExtent().x, 50));

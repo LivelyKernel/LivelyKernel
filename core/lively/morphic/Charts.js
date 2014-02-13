@@ -1533,7 +1533,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
         this.data = data;
         
         if (!this.codeEditor.getSelectionRangeAce())
-            return;
+            return this.data;
         
         var text = this.get("ErrorText");
         text.setTextString("");
@@ -1646,7 +1646,8 @@ lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
     },
     
     updateComponent: function() {
-        // don't call $super; the fan doesn't need internal updates
+        // nothing needs to be done, just resolve with the old data
+        return new $.Deferred().resolve(this.data);
     }
 });
 
@@ -1690,9 +1691,9 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
 
         // take the first component to the top
         // if there are multiple ones take the first from the left
-        var componentsAbove = this.getComponentInDirection(-1);
-        if (componentsAbove)
-            this.data = componentsAbove.getData(this);
+        var componentAbove = this.getComponentInDirection(-1);
+        if (componentAbove)
+            this.data = componentAbove.getData(this);
     },
 
     getData : function(target){

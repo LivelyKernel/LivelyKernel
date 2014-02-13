@@ -1208,6 +1208,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "    // parentFrameState = [computedValues, varMapping, parentParentFrameState]\n"
       + "    f._cachedScopeObject = parentFrameState;\n"
       + "    f.livelyDebuggingEnabled = true;\n"
+      + "    var realCode = f.toString();\n"
+      + "    f.toStringRewritten = function() { return realCode; };\n"
       + "    f.toString = function toString() {\n"
       + "        var ast = LivelyDebuggingASTRegistry[idx],\n"
       + "        // TODO: save AST instead of source and escodegen.generate the source here\n"

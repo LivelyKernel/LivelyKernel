@@ -468,6 +468,35 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assertEquals(morphCreator.data[0], 10);
         this.assert(morphCreator.data[0].morph instanceof lively.morphic.Morph);
     }
+},
+'linear layout', {
+    
+    testLinearLayoutCreatesMorphs: function() {
+		var component = this.helper.createComponent();
+        $world.addMorph(component);
+        
+	    component.arrows[0].activate();
+        var data = [{Test: 10}]
+	    data[0].morph = new lively.morphic.Box(new rect(0,0,10,10));
+	    data[0].morph.setFill(Color.red);
+	    component.data = data;
+	    
+	    var linearLayout = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts.LinearLayout());
+	    linearLayout.setPosition(pt(10,400));
+	    $world.addMorph(linearLayout);
+	    
+	    component.notifyNextComponent();
+	    
+	    this.assertEquals(component.data[0], data[0]);
+        this.assertEquals(linearLayout.data[0], data[0]);
+        this.assert(linearLayout.data[0].morph instanceof lively.morphic.Morph);
+	    
+	    
+	    
+	    
+    },
+    
+    
 });
 
 Object.subclass('lively.tests.ChartsTests.Helper',

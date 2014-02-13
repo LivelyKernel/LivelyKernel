@@ -469,7 +469,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assert(morphCreator.data[0].morph instanceof lively.morphic.Morph);
     }
 },
-'linear layout', {
+'layout components', {
     
     testLinearLayoutCreatesMorphs: function() {
 		var component = this.helper.createComponent();
@@ -477,12 +477,12 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         
 	    component.arrows[0].activate();
         var data = [{Test: 10}]
-	    data[0].morph = new lively.morphic.Box(new rect(0,0,10,10));
+	    data[0].morph = new lively.morphic.Box(new rect(0, 0, 10, 10));
 	    data[0].morph.setFill(Color.red);
 	    component.data = data;
 	    
 	    var linearLayout = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts.LinearLayout());
-	    linearLayout.setPosition(pt(10,400));
+	    linearLayout.setPosition(pt(10, 400));
 	    $world.addMorph(linearLayout);
 	    
 	    component.notifyNextComponent();
@@ -490,15 +490,70 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
 	    this.assertEquals(component.data[0], data[0]);
         this.assertEquals(linearLayout.data[0], data[0]);
         this.assert(linearLayout.data[0].morph instanceof lively.morphic.Morph);
-	    
-	    
-	    
-	    
     },
     
+    testFreeLayoutCreatesMorphs: function() {
+		var component = this.helper.createComponent();
+        $world.addMorph(component);
+        
+	    component.arrows[0].activate();
+        var data = [{Test: 10}]
+	    data[0].morph = new lively.morphic.Box(new rect(0, 0, 10, 10));
+	    data[0].morph.setFill(Color.red);
+	    data[0].morph.setPosition(pt(132, 56));
+	    component.data = data;
+	    
+	    var freeLayout = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts.FreeLayout());
+	    freeLayout.setPosition(pt(10, 400));
+	    $world.addMorph(freeLayout);
+	    
+	    component.notifyNextComponent();
+	    
+        this.assertEquals(component.data[0], data[0]);
+        this.assertEquals(freeLayout.data[0], data[0]);
+        this.assert(freeLayout.data[0].morph instanceof lively.morphic.Morph);
+        this.assertEquals(freeLayout.data[0].morph.getPosition(), pt(132, 56));
+    },
+});
+AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
+'setup/teardown', {
+    
+    setUp: function($super) {
+        $super();
+		this.helper = new lively.tests.ChartsTests.Helper();
+    },
+    
+    tearDown: function($super) {
+        $super();
+        // delete all dataflow components
+        // this fixes the problem that a failing test leaves components behind and affects other tests
+        $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.Charts.Component;
+        }).each(function(ea) {
+            ea.remove();
+        });
+    },
+}, 
+'script',{
+    testCodeEditorEval : function(){
+        var components = this.helper.createComponents(2);
+
+        components[0].arrows[0].activate();
+        components[0].content.codeEditor.setTextString("data='testdata'");
+        
+        var inited = false;
+        var _this = this;
+        components[0].content.codeEditor.withAceDo(function() { inited = true; });
+        this.waitFor(function() { return !!inited }, 10, function() {
+            components[0].onContentChanged();
+            
+            _this.assertEquals(components[0].data, "testdata");
+            _this.assertEquals(components[1].data, "testdata");
+            _this.done();
+        });
+    }
     
 });
-
 Object.subclass('lively.tests.ChartsTests.Helper',
 'default category', {
     createComponents: function(amount, optPositions, optClass) {

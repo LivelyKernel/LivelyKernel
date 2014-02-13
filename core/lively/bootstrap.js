@@ -727,7 +727,7 @@
 
         loadAll: function(urls, cb) {
             [].concat(urls).reverse().reduce(function(loadPrevious, url) {
-                return function() { Global.JSLoader.loadJs(url, loadPrevious); };
+                return function() { Global.JSLoader.loadJs(url, loadPrevious, url.indexOf('BootstrapDebugger.js') >= -1); };
             }, function() { if (cb) cb(); })();
         },
 
@@ -907,7 +907,7 @@
                 'core/lively/Base.js',
                 'core/lively/ModuleSystem.js']
             return JSLoader.getOption('loadRewrittenCode') ?
-                ["core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles) :
+                ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles) :
                 normalBootstrapFiles;
         })(),
         codeBase = (function findCodeBase() {

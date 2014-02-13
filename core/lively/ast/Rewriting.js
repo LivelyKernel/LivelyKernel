@@ -51,26 +51,13 @@ Object.extend(lively.ast.Rewriting, {
         }, Functions.K, function() {
             pBar.remove();
             var code = [
+                lively.ast.Rewriting.acornFindNodeByAstIndexBaseDef,
                 lively.ast.Rewriting.createClosureBaseDef,
                 lively.ast.Rewriting.UnwindExceptionBaseDef
             ];
-            code.push("window.LivelyDebuggingASTRegistry=[");
-            var delim = '';
-            for (var i = 0; i < astReg.length; i++) {
-                var entry = astReg[i];
-                if (entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
-                    // reference instead of complete ast
-                    entry = acorn.walk.findNodeByAstIndex(
-                        lively.ast.Rewriting.getCurrentASTRegistry()[entry.registryRef],
-                        entry.indexRef
-                    );
-                }
-                // TODO: output ASTs instead of source code
-                var src = escodegen.generate(entry);
-                code.push(delim + JSON.stringify(src));
-                delim = ',';
-            }
-            code.push("];");
+
+            code.push("window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg) + ";");
+
             // 2. Create bootstrap code needed to run rewritten code
             put("core/lively/ast/BootstrapDebugger.js", code.join('\n'));
         });
@@ -362,10 +349,10 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     rewrite: function(node) {
         this.enterScope();
+        acorn.walk.addAstIndex(node);
         var astToRewrite = acorn.walk.copy(node);
         this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1;
-        acorn.walk.addAstIndex(astToRewrite);
         if (astToRewrite.type == 'FunctionDeclaration') {
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
         }
@@ -374,7 +361,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             rewritten = rewriteVisitor.accept(astToRewrite, this);
         this.exitScope();
         var wrapped = this.wrapSequence(rewritten, args, decls, astRegistryIndex);
-        this.astRegistry[astRegistryIndex].rewritten = wrapped; // FIXME just for debugging
+        // this.astRegistry[astRegistryIndex].rewritten = wrapped; // FIXME just for debugging
         return this.newNode('Program', {body: [wrapped]});
     },
 
@@ -384,10 +371,10 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if (!node.id) node.id = this.newNode("Identifier", {name: ""});
 
         // this.enterScope();
+        acorn.walk.addAstIndex(node);
         var astToRewrite = acorn.walk.copy(node);
         this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1;
-        acorn.walk.addAstIndex(astToRewrite);
         if (astToRewrite.type == 'FunctionDeclaration') {
             // FIXME: args unused?
             var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
@@ -399,7 +386,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         // this.exitScope();
         // FIXME!
         rewritten = rewritten.expression.arguments[2];
-        this.astRegistry[astRegistryIndex].rewritten = rewritten; // FIXME just for debugging
+        // this.astRegistry[astRegistryIndex].rewritten = rewritten; // FIXME just for debugging
         return rewritten;
     },
 
@@ -1202,6 +1189,35 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
 (function setupUnwindException() {
 
+    lively.ast.Rewriting.acornFindNodeByAstIndexBaseDef =
+        "acorn = { walk: {\n"
+      + "    findNodeByAstIndex: function(ast, astIndexToFind) {\n"
+      + "        if (ast.astIndex === astIndexToFind) return ast;\n"
+      + "        var i, j, node, nodes, found\n"
+      + "            props = Object.getOwnPropertyNames(ast);\n"
+      + "        for (i = 0; i < props.length; i++) {\n"
+      + "            node = ast[props[i]];\n"
+      + "            if (node instanceof Array) {\n"
+      + "                nodes = node;\n"
+      + "                for (j = 0; j < nodes.length; j++) {\n"
+      + "                    node = nodes[j];\n"
+      + "                    if (node.key && node.value) {\n"
+      + "                        if (node.key.astIndex >= astIndexToFind)\n"
+      + "                            return acorn.walk.findNodeByAstIndex(node.key, astIndexToFind);\n"
+      + "                        else if (node.value.astIndex >= astIndexToFind)\n"
+      + "                            return acorn.walk.findNodeByAstIndex(node.value, astIndexToFind);\n"
+      + "                        continue;\n"
+      + "                    } else if ((node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
+      + "                    return acorn.walk.findNodeByAstIndex(node, astIndexToFind);\n"
+      + "                }\n"
+      + "                continue;\n"
+      + "            } else if ((node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
+      + "            return acorn.walk.findNodeByAstIndex(node, astIndexToFind);\n"
+      + "        }\n"
+      + "        return null;\n"
+      + "    }\n"
+      + "}};";
+
     lively.ast.Rewriting.createClosureBaseDef =
         "window.__createClosure = function __createClosure(idx, parentFrameState, f) {\n"
       + "    f._cachedAst = LivelyDebuggingASTRegistry[idx];\n"
@@ -1211,9 +1227,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "    var realCode = f.toString();\n"
       + "    f.toStringRewritten = function() { return realCode; };\n"
       + "    f.toString = function toString() {\n"
-      + "        var ast = LivelyDebuggingASTRegistry[idx],\n"
-      + "        // TODO: save AST instead of source and escodegen.generate the source here\n"
-      + "        src = ast;\n"
+      + "        var ast = LivelyDebuggingASTRegistry[idx];\n"
+      + "        if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {\n"
+      + "            // reference instead of complete ast\n"
+      + "            ast = acorn.walk.findNodeByAstIndex(\n"
+      + "                LivelyDebuggingASTRegistry[ast.registryRef],\n"
+      + "                ast.indexRef\n"
+      + "            );\n"
+      + "        }\n"
+      + "        var src = escodegen.generate(ast);\n"
       + "        return src;\n"
       + "    };\n"
       + "    return f;\n"
@@ -1224,6 +1246,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "UnwindException.prototype.isUnwindException = true;\n"
       + "UnwindException.prototype.toString = function() { return '[UNWIND] ' + this.error.toString(); }\n"
       + "UnwindException.prototype.createAndShiftFrame = function(/*...*/) { this.capturedFrames.push(arguments); }\n";
+
     // base definition for UnwindException
     if (typeof UnwindException === 'undefined') {
         eval(lively.ast.Rewriting.UnwindExceptionBaseDef)

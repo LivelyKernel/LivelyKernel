@@ -10,9 +10,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         this.setExtent(this.content.extent);
         
-        this.createComponentHeader();
-        this.createMinimizer();
-        this.createComponentBody();
+        this.componentHeader = this.createComponentHeader();
+        this.componentBody = this.createComponentBody();
 
         this.layout = {adjustForNewBounds: true};
         this.createErrorText();
@@ -51,24 +50,46 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.content.setExtent(componentBody.getExtent().subPt(pt(6, 6)));
         this.content.setPosition(pt(3, 3));
         componentBody.addMorph(this.content);
+        
+        return componentBody;
     },
 
     onContentChanged: function() {
         // abstract
     },
+    minimize: function(evt) {
+        if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
+            if (this.isMinimized) {
+                this.setExtent(pt(this.getExtent().x, this.maximizedHeight));
+                this.componentBody.setVisible(true);
+                this.isMinimized = false;
+            }
+            else {
+                this.maximizedHeight = this.getExtent().y;
+                this.componentBody.setVisible(false);
+                this.setExtent(pt(this.getExtent().x, 24));
+                this.isMinimized = true;
+            }
+        }
+    },
     
     createComponentHeader: function() {
         var headerHeight = 24;
         var header = new lively.morphic.Morph();
+        header.setName("ComponentHeader");
         header.setStyleClassNames(["ComponentHeader"]);
         header.setExtent(pt(400, headerHeight));
         header.ignoreEvents();
-
-        header.setAppearanceStylingMode(false)
+        header.setAppearanceStylingMode(false);
         header.setStyleSheet(this.getHeaderCSS());
         header.setFill();
         header.setBorderStyle();
-        header.setAppearanceStylingMode(false)
+        header.setAppearanceStylingMode(false);
+        
+        var _this = this;
+        header.onMouseUp = function(evt) {
+            _this.minimize(evt);
+        }
         
         this.addMorph(header);
         
@@ -77,13 +98,19 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             resizeWidth: true
         };
         
-        // TODO
-        // header.setTextString(this.content.description);
-        header.setName("ComponentHeader");
+        var text = new lively.morphic.Text();
+        text.setExtent(pt(150,24));
+        text.setFillOpacity(0);
+        text.setBorderWidth(0);
+        text.ignoreEvents();
+        text.setTextColor(Color.white);
+        text.setFontSize(11);
+        text.setTextString(this.content.description);
         
-        // t.setFontSize(12);
-        // t.setFillOpacity(0);
-        // t.setBorderWidth(0);
+        header.addMorph(text);
+        
+        return header;
+        
     },
     
     createErrorText: function() {
@@ -559,7 +586,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             var morph = new lively.morphic.Box(rect(0,0,0,0));
             morph.setName("PreviewMorph" + this);
             morph.setBorderWidth(1);
-            morph.setBorderColor(Color.black);
+            morph.setBorderRadius(5);
+            morph.setBorderColor(Color.rgb(191,166,88));
             morph.setBorderStyle('dashed');
             $world.addMorph(morph,this);
         }

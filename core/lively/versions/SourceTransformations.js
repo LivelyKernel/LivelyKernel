@@ -5,6 +5,55 @@ module('lively.versions.SourceTransformations').requires().toRun(function() {
 Global.MOZ_SourceMap = Global.sourceMap;
         
 Object.extend(lively.versions.SourceTransformations, {
+    
+    transformSource: function (originalSource, optCodeGeneratorOptions) {
+        return new lively.versions.InsertProxiesTransformations().transformSource(originalSource, optCodeGeneratorOptions || {beautify: true});
+    },
+    transformObjectAccess: function (originalSource) {
+        return new lively.versions.ObjectAccessTransformations().transformSource(originalSource, {beautify: true});
+    },
+    transformObjectCreation: function (originalSource) {
+        return new lively.versions.InsertProxiesTransformations().transformSource(originalSource, {beautify: true});
+    },
+    generateCodeWithMapping: function(originalSource, sourceMapOptions) {
+        var uglifySourceMap = UglifyJS.SourceMap({}),
+            generatedCode,
+            sourceMap,
+            dataUri;  
+        
+        generatedCode = this.transformSource(originalSource, 
+            {source_map: uglifySourceMap});
+                
+        sourceMap = JSON.parse(uglifySourceMap.toString());
+        Object.extend(sourceMap, sourceMapOptions);
+        
+        // see kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
+        dataUri = 'data:application/json;charset=utf-8;base64,' +
+            btoa(JSON.stringify(sourceMap));
+        
+        return generatedCode + '\n//@ sourceMappingURL=' + dataUri;
+    },
+    generateCodeFromUrl: function(url) {
+        var absoluteUrl = URL.ensureAbsoluteURL(url),
+            originalSource = JSLoader.getSync(absoluteUrl),
+            sourceMapOptions = {
+                sourceRoot: absoluteUrl.dirname(),
+                sources: [absoluteUrl.filename()]
+            };
+        
+        return this.generateCodeWithMapping(originalSource, sourceMapOptions);
+    },
+    generateCodeFromSource: function(source, optScriptName) {
+        var sourceName = optScriptName || 'eval at runtime',
+            sourceMapOptions = {
+                sources: [sourceName],
+                sourcesContent: [source]
+            };
+
+        return this.generateCodeWithMapping(source, sourceMapOptions);
+    },
+});
+Object.subclass('lively.versions.InsertProxiesTransformations', {
     isCallToEval: function(node) {
         
         if (!node instanceof UglifyJS.AST_Call)
@@ -334,42 +383,43 @@ Object.extend(lively.versions.SourceTransformations, {
         
         return outputStream.toString();
     },
-    generateCodeWithMapping: function(originalSource, sourceMapOptions) {
-        var uglifySourceMap = UglifyJS.SourceMap({}),
-            generatedCode,
-            sourceMap,
-            dataUri;  
+});
+lively.versions.InsertProxiesTransformations.subclass(
+    'lively.versions.ObjectAccessTransformations', {
+    transformNode: function(node) { 
+        if (node instanceof UglifyJS.AST_Dot) {
+            return new UglifyJS.AST_Call({
+                expression: new UglifyJS.AST_Dot({
+                    expression: node.expression,
+                    property: '__OV__get',
+                }),
+               args: [new UglifyJS.AST_String({value: node.property})],
+            });
+        }
         
-        generatedCode = this.transformSource(originalSource, 
-            {source_map: uglifySourceMap});
-                
-        sourceMap = JSON.parse(uglifySourceMap.toString());
-        Object.extend(sourceMap, sourceMapOptions);
-        
-        // see kybernetikos.github.io/jsSandbox/srcmaps/dynamic.html
-        dataUri = 'data:application/json;charset=utf-8;base64,' +
-            btoa(JSON.stringify(sourceMap));
-        
-        return generatedCode + '\n//@ sourceMappingURL=' + dataUri;
-    },
-    generateCodeFromUrl: function(url) {
-        var absoluteUrl = URL.ensureAbsoluteURL(url),
-            originalSource = JSLoader.getSync(absoluteUrl),
-            sourceMapOptions = {
-                sourceRoot: absoluteUrl.dirname(),
-                sources: [absoluteUrl.filename()]
-            };
-        
-        return this.generateCodeWithMapping(originalSource, sourceMapOptions);
-    },
-    generateCodeFromSource: function(source, optScriptName) {
-        var sourceName = optScriptName || 'eval at runtime',
-            sourceMapOptions = {
-                sources: [sourceName],
-                sourcesContent: [source]
-            };
-
-        return this.generateCodeWithMapping(source, sourceMapOptions);
+        if (node instanceof UglifyJS.AST_Call) {
+            var isTransformedObjectFunctionCall = 
+                node.expression instanceof UglifyJS.AST_Call && 
+                node.expression.expression instanceof UglifyJS.AST_Dot &&
+                node.expression.expression.property == '__OV__get';
+            
+            if (isTransformedObjectFunctionCall) {
+                node.expression.expression.property = '__OV__getAndApply'
+                node.expression.args.pushAll(node.args);
+                return node.expression;
+            } else {
+                // nonObjectFunctionCall such as: var func = function() {}; func();
+                return new UglifyJS.AST_Call({
+                    expression: new UglifyJS.AST_Dot({
+                        expression: node.expression,
+                        property: '__OV__apply',
+                    }),
+                    args: node.args,
+                });
+            }
+        }
+            
+        return node; 
     },
 });
     

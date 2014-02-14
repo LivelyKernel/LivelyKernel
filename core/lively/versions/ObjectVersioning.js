@@ -1114,8 +1114,7 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 Object.extend(lively.versions.ObjectVersioning, {
     transformSource: function(source) {
-        return lively.versions.SourceTransformations.transformSource(source,
-            {beautify: true});
+        return lively.versions.SourceTransformations.transformSource(source);
     }
 });
 
@@ -1223,6 +1222,6 @@ lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 
 // ----- GLOBAL ACTIVATION -----
 
-lively.versions.ObjectVersioning.start();
+lively.versions.ObjectVersioning.init();
 
 });

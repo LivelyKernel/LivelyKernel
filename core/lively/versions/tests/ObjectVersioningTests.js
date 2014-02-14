@@ -536,6 +536,64 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         this.assert(!descendant.method);
     },
 });
+TestCase.subclass(
+'lively.versions.tests.ObjectVersioningTests.ObjectAccessTransformationTests',
+'helpers', {
+    transform: function(source) {
+        return lively.versions.SourceTransformations.transformObjectAccess(source);
+    },
+},
+'testing', {
+    test01Get: function() {
+        var input = 'var obj = {}; obj.foo;',
+            expectedOutput = 
+            'var obj = {};\n' +
+            '\n' + 
+            'obj.__OV__get(\"foo\");';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+        },
+    test02ObjectFunctionApply: function() {
+        var input = 'var obj = {}; obj.foo();',
+            expectedOutput = 
+            'var obj = {};\n' +
+            '\n' + 
+            'obj.__OV__getAndApply(\"foo\");';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test03ObjectFunctionApplyWithArgs: function() {
+        var input = 'var obj = {}; obj.foo(5, \"bar\");', 
+            expectedOutput = 
+            'var obj = {};\n' +
+            '\n' + 
+            'obj.__OV__getAndApply(\"foo\", 5, \"bar\");';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test04FunctionApply: function() {
+        var input = 'var func = function() {}; func();',
+            expectedOutput = 
+            'var func = function() {};\n' +
+            '\n' + 
+            'func.__OV__apply();';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test05FunctionApplyWithArgs: function() {
+        var input = 'var func = function() {}; func(5, \"bar\");',
+            expectedOutput = 
+            'var func = function() {};\n' +
+            '\n' + 
+            'func.__OV__apply(5, \"bar\");';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+
+
+
+
+}); 
 
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ExtensionTests',
 'testing', {
@@ -583,7 +641,7 @@ TestCase.subclass(
 'lively.versions.tests.ObjectVersioningTests.SourceTransformationTests',
 'helpers', {
     transform: function(source) {
-        return lively.versions.ObjectVersioning.transformSource(source);
+        return lively.versions.SourceTransformations.transformObjectCreation(source);
     },
 },
 'testing', {

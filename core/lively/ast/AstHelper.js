@@ -959,6 +959,8 @@ Object.extend(lively.ast.acorn, {
         });
         return found;
     };
+    // FIXME: global (and temporary) findNodeByAstIndex is used by __getClosure and defined in Rewriting.js
+    findNodeByAstIndex = acorn.walk.findNodeByAstIndex;
 
     acorn.walk.findStatementOfNode = function(ast, target) {
         // find the statement that a target node is in. Example:

@@ -112,13 +112,17 @@ Object.extend(lively.ast.StackReification, {
     },
 
     run: function(func, astRegistry, args, optMapping) {
+        // FIXME: __getClosure - needed for UnwindExceptions also used here - uses
+        //        lively.ast.Rewriting.getCurrentASTRegistry()
+        astRegistry = astRegistry || lively.ast.Rewriting.getCurrentASTRegistry();
         lively.ast.StackReification.enableDebugSupport(astRegistry);
         if (!func.livelyDebuggingEnabled)
             func = func.stackCaptureMode(optMapping, astRegistry);
         try {
             return { isContinuation: false, returnValue: func.apply(null, args || []) };
         } catch (e) {
-            // e will always be an UnwindException
+            // e will not be an UnwindException in rewritten system (gets unwrapped)
+            e = e.isUnwindException ? e : e.unwindException;
             if (e.error instanceof Error)
                 throw e.error;
             else
@@ -145,9 +149,9 @@ Object.extend(Global, {
 
     __getClosure: function(idx) {
         var entry = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
-        if (entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
+        if (entry && entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
             // reference instead of complete ast
-            entry = acorn.walk.findNodeByAstIndex(
+            entry = findNodeByAstIndex(
                 lively.ast.Rewriting.getCurrentASTRegistry()[entry.registryRef],
                 entry.indexRef
             );

@@ -51,7 +51,7 @@ Object.extend(lively.ast.Rewriting, {
         }, Functions.K, function() {
             pBar.remove();
             var code = [
-                lively.ast.Rewriting.acornFindNodeByAstIndexBaseDef,
+                lively.ast.Rewriting.findNodeByAstIndexBaseDef,
                 lively.ast.Rewriting.createClosureBaseDef,
                 lively.ast.Rewriting.UnwindExceptionBaseDef
             ];
@@ -1201,34 +1201,32 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
 (function setupUnwindException() {
 
-    lively.ast.Rewriting.acornFindNodeByAstIndexBaseDef =
-        "acorn = { walk: {\n"
-      + "    findNodeByAstIndex: function(ast, astIndexToFind) {\n"
-      + "        if (ast.astIndex === astIndexToFind) return ast;\n"
-      + "        var i, j, node, nodes, found\n"
-      + "            props = Object.getOwnPropertyNames(ast);\n"
-      + "        for (i = 0; i < props.length; i++) {\n"
-      + "            node = ast[props[i]];\n"
-      + "            if (node instanceof Array) {\n"
-      + "                nodes = node;\n"
-      + "                for (j = 0; j < nodes.length; j++) {\n"
-      + "                    node = nodes[j];\n"
-      + "                    if (node.key && node.value) {\n"
-      + "                        if (node.key.astIndex >= astIndexToFind)\n"
-      + "                            return acorn.walk.findNodeByAstIndex(node.key, astIndexToFind);\n"
-      + "                        else if (node.value.astIndex >= astIndexToFind)\n"
-      + "                            return acorn.walk.findNodeByAstIndex(node.value, astIndexToFind);\n"
-      + "                        continue;\n"
-      + "                    } else if ((node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
-      + "                    return acorn.walk.findNodeByAstIndex(node, astIndexToFind);\n"
-      + "                }\n"
-      + "                continue;\n"
-      + "            } else if ((node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
-      + "            return acorn.walk.findNodeByAstIndex(node, astIndexToFind);\n"
-      + "        }\n"
-      + "        return null;\n"
+    lively.ast.Rewriting.findNodeByAstIndexBaseDef =
+        "window.findNodeByAstIndex = function findNodeByAstIndex(ast, astIndexToFind) {\n"
+      + "    if (ast.astIndex === astIndexToFind) return ast;\n"
+      + "    var i, j, node, nodes, found,\n"
+      + "        props = Object.getOwnPropertyNames(ast);\n"
+      + "    for (i = 0; i < props.length; i++) {\n"
+      + "        node = ast[props[i]];\n"
+      + "        if (node instanceof Array) {\n"
+      + "            nodes = node;\n"
+      + "            for (j = 0; j < nodes.length; j++) {\n"
+      + "                node = nodes[j];\n"
+      + "                if (node.key && node.value) {\n"
+      + "                    if (node.key.astIndex >= astIndexToFind)\n"
+      + "                        return findNodeByAstIndex(node.key, astIndexToFind);\n"
+      + "                    else if (node.value.astIndex >= astIndexToFind)\n"
+      + "                        return findNodeByAstIndex(node.value, astIndexToFind);\n"
+      + "                    continue;\n"
+      + "                } else if (!node || (node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
+      + "                return findNodeByAstIndex(node, astIndexToFind);\n"
+      + "            }\n"
+      + "            continue;\n"
+      + "        } else if (!node || (node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
+      + "        return findNodeByAstIndex(node, astIndexToFind);\n"
       + "    }\n"
-      + "}};";
+      + "    return null;\n"
+      + "};\n";
 
     lively.ast.Rewriting.createClosureBaseDef =
         "window.__createClosure = function __createClosure(idx, parentFrameState, f) {\n"
@@ -1242,7 +1240,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "        var ast = LivelyDebuggingASTRegistry[idx];\n"
       + "        if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {\n"
       + "            // reference instead of complete ast\n"
-      + "            ast = acorn.walk.findNodeByAstIndex(\n"
+      + "            ast = findNodeByAstIndex(\n"
       + "                LivelyDebuggingASTRegistry[ast.registryRef],\n"
       + "                ast.indexRef\n"
       + "            );\n"
@@ -1254,10 +1252,10 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "}\n";
 
     lively.ast.Rewriting.UnwindExceptionBaseDef =
-        "window.UnwindException = function UnwindException(error) { this.error = error; this.capturedFrames = []; }\n"
+        "window.UnwindException = function UnwindException(error) { this.error = error; error.unwindException = this; }\n"
       + "UnwindException.prototype.isUnwindException = true;\n"
       + "UnwindException.prototype.toString = function() { return '[UNWIND] ' + this.error.toString(); }\n"
-      + "UnwindException.prototype.createAndShiftFrame = function(/*...*/) { this.capturedFrames.push(arguments); }\n";
+      + "UnwindException.prototype.createAndShiftFrame = function(/*...*/) { }\n";
 
     // base definition for UnwindException
     if (typeof UnwindException === 'undefined') {

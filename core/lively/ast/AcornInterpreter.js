@@ -920,7 +920,14 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
     initialize: function(mapping, parentScope) {
         this.mapping     = mapping || {};
         this.parentScope = parentScope || null;
-    }
+    },
+
+	copy: function() {
+        return new this.constructor(
+            Object.extend({}, this.mapping),
+            this.parentScope ? this.parentScope.copy() : null
+        );
+	}
 
 },
 'accessing', {
@@ -996,13 +1003,17 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     newScope: function(mapping) { return new lively.ast.AcornInterpreter.Scope(mapping, this.scope); },
 
 	copy: function() {
-        var copy = new this.constructor(this.func, Object.extend({}, this.scope.getMapping()));
+	    var scope = this.scope.copy();
+	    var func = new lively.ast.AcornInterpreter.Function(this.func.node, scope);
+        var copy = new this.constructor(func, scope);
         copy.returnTriggered = this.returnTriggered;
         copy.breakTriggered = this.breakTriggered;
         copy.continueTriggered = this.continueTriggered;
-        var parentFrame = this.getContainingScope();
-        if (parentFrame) copy.setContainingScope(parentFrame.copy());
+        var parentFrame = this.getParentFrame();
+        if (parentFrame) copy.setParentFrame(parentFrame.copy());
         copy.pc = this.pc;
+        copy.pcStatement = this.pcStatement;
+        copy.alreadyComputed = Object.extend({}, this.alreadyComputed);
         return copy;
 	}
 

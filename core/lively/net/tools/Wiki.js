@@ -208,7 +208,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             if (err) { show(err); versions && show(versions); return; }
             var items = versions.map(function(version) {
                 try {
-                    var date = new Date(version.date).format('yy/mm/dd HH:MM:ss');
+                    var date = new Date(version.date).format('yy/mm/dd HH:MM:ss tt');
                 } catch (e) { show(e); date = 'Invalid date'; }
                 return {
                     isListItem: true,

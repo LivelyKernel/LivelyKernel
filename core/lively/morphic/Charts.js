@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     createComponentHeader: function() {
-        var headerHeight = 24;
+        var headerHeight = 28;
         var header = new lively.morphic.Morph();
         header.setName("ComponentHeader");
         header.setStyleClassNames(["ComponentHeader"]);
@@ -108,6 +108,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         text.setTextString(this.content.description);
         
         header.addMorph(text);
+        
+        header.addMorph(this.createMinimizer());
         
         return header;
         
@@ -787,12 +789,11 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     createMinimizer: function() {
-        console.warn("TODO");
-        return;
         var minimizer = new lively.morphic.Charts.Minimizer();
-        minimizer.setPosition(pt(this.getExtent().x - 60, 10));
+        minimizer.setPosition(pt(this.getExtent().x - 27, 8));
         minimizer.layout = {moveHorizontal: true}
-        this.addMorph(minimizer);
+        
+        return minimizer;
     },
 
     
@@ -1143,6 +1144,8 @@ getHeaderCSS: function() {
         color: white !important; \
         border-top-left-radius: 4px !important; \
         border-top-right-radius: 4px !important;\
+        border-bottom-left-radius: 4px !important; \
+        border-bottom-right-radius: 4px !important;\
         background-attachment: scroll !important;\
         background-clip: border-box !important;\
         background-image: none !important;\
@@ -1904,33 +1907,62 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
 {
     initialize: function($super) {
         $super();
+        
+        var width = 20;
+        var height = 8;
+        
         this.setFillOpacity(0);
-        this.setExtent(pt(50, 43));
+        this.setExtent(pt(width, height));
         this.setName("Minimizer");
-        var vertices = [pt(10,13), pt(25,25), pt(40,13)];
-        this.addMorph(new lively.morphic.Path(vertices));
+        this.orientation = "up";
+        
+        var vertices = [pt(0, height), pt(width / 2, 0), pt(width, height)];
+        var line = new lively.morphic.Path(vertices);
+        line.setBorderColor(Color.white);
+        line.setBorderWidth(2);
+        
+        this.addMorph(line);
         this.submorphs[0].disableEvents();
+        
     },
     
-    onMouseUp: function(e) {
-        if (e.isLeftMouseButtonDown() && !e.isCtrlDown()) {
-            var isMinimized = this.owner.getExtent().y == 60;
-            if (isMinimized) {
-                this.owner.setExtent(pt(this.owner.getExtent().x, this.oldY), true);
-                var componentBody = this.owner.getSubmorphsByAttribute("name","ComponentBody");
-                if (componentBody.length > 0){
-                    componentBody[0].setVisible(true);
-                }
+onMouseUp: function(evt) {
+
+        var component = this.owner.owner;
+        
+        if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
+            if (component.isMinimized) {
+                component.setExtent(pt(component.getExtent().x, component.maximizedHeight));
+                component.componentBody.setVisible(true);
+                component.isMinimized = false;
+            } else {
+                component.maximizedHeight = component.getExtent().y;
+                component.componentBody.setVisible(false);
+                component.setExtent(pt(component.getExtent().x, 24));
+                component.isMinimized = true;
             }
-            else {
-                this.oldY = this.owner.getExtent().y;
-                var componentBody = this.owner.getSubmorphsByAttribute("name","ComponentBody");
-                if (componentBody.length > 0){
-                    componentBody[0].setVisible(false);
-                }
-                this.owner.setExtent(pt(this.owner.getExtent().x, 60), true);
-            }
+            this.flip();
         }
+        
+    },
+    flip: function() {
+        
+        var points = this.submorphs[0].getControlPoints();
+        var width = this.getExtent().x;
+        var height = this.getExtent().y;
+        
+        if (this.orientation === "up") {
+            points[0].setPos(pt(0, 0));
+            points[1].setPos(pt(width / 2, height));
+            points[2].setPos(pt(width, 0));
+            this.orientation = "down";
+        } else {
+            points[0].setPos(pt(0, height));
+            points[1].setPos(pt(width / 2, 0));
+            points[2].setPos(pt(width, height));
+            this.orientation = "up";
+        }
+        
     }
 });
 

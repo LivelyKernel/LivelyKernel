@@ -181,7 +181,7 @@ Object.subclass('lively.PartsBin.PartItem',
         
         var self = this,
             path = this.getFileURL().relativePathFrom(URL.root),
-            query = !!rev ?
+            query = !!rev || rev === 0 ?
                 {
                     paths: [path],
                     attributes: ['content'],
@@ -205,7 +205,7 @@ Object.subclass('lively.PartsBin.PartItem',
         return this;
     },
 
-    loadPart: function(isAsync, optCached, rev) {
+    loadPart: function(isAsync, optCached, rev, cb) {
         if (optCached) { this.setPartFromJSON(this.json); return this; }
 
         // a revisionOnLoad should always be set! If no PartsBinMetaInfo can
@@ -239,10 +239,12 @@ Object.subclass('lively.PartsBin.PartItem',
                 } catch(e) {
                     console.log('Error on setPartFromJSON: ' + e)
                 }
-            }
+            },
+            triggerCallback: cb ? cb.curry(null) : Functions.Null,
         }
         lively.bindings.connect(this, 'json', loadTrigger, 'jsonLoaded', {removeAfterUpdate: true});
         lively.bindings.connect(this, 'loadedMetaInfo', loadTrigger, 'metaInfoLoaded', {removeAfterUpdate: true});
+        lively.bindings.connect(this, 'part', loadTrigger, 'triggerCallback', {removeAfterUpdate: true});
         this.load(isAsync, rev);
         this.loadPartMetaInfo(isAsync, rev);
         return this;
@@ -591,9 +593,13 @@ Object.extend(lively.PartsBin, {
         this.addPartsSpace(space);
         return space;
     },
-    getPart: function(partName, optPartsSpaceName) {
+    getPart: function(partName, optPartsSpaceName, cb) {
         var partItem = this.getPartItem(partName, optPartsSpaceName);
-        return partItem ? partItem.loadPart().part : null;
+        if (!cb) 
+            return partItem ? partItem.loadPart().part : null;
+        if (!partItem)
+            return cb(new Error("PartsBin item not found"), null);
+        partItem.loadPart(true, undefined, undefined, cb);
     },
     getPartItem: function(partName, optPartsSpaceName) {
         // PartsBin -> PartsSpace -> PartItem -> Part

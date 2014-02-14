@@ -1326,9 +1326,12 @@ lively.morphic.Text.addMethods(
 
 lively.morphic.World.addMethods(
 'tools', {
-    loadPartItem: function(partName, optPartspaceName) {
+    loadPartItem: function(partName, optPartspaceName, cb) {
         var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
-            part = lively.PartsBin.getPart(partName, optPartspaceName);
+            part = lively.PartsBin.getPart(partName, optPartspaceName, cb ? function(err, part) {
+                if (part && part.onCreateFromPartsBin) part.onCreateFromPartsBin();
+                cb(err, part)
+            } : undefined);
         if (!part) {debugger;
             return;
         }

@@ -300,8 +300,8 @@ Object.extend(Global, {
         if(!morph || !morph.wrappedObject) return undefined
         return morph.wrappedObject()
     },
-    $part: function getPartItem(partName, partSpaceName) {
-        return $world.loadPartItem(partName, partSpaceName);
+    $part: function getPartItem(partName, partSpaceName, cb) {
+        return $world.loadPartItem(partName, partSpaceName, cb);
     }
 });
 
@@ -434,3 +434,4 @@ Object.extend(Function.prototype, {
         return methods.join('\n\n');
     },
 });// end of module
+

@@ -72,6 +72,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         this.addMorph(header);
         
+        header.layout = {
+            adjustForNewBounds: true,
+            resizeWidth: true
+        };
         
         // TODO
         // header.setTextString(this.content.description);
@@ -171,16 +175,18 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.NullContent", {
 lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
     initialize: function($super, aMorph, positionX) {
-        debugger;
+        
         this.componentMorph = aMorph;
         var arrowHeight = 10, arrowBase = 20;
         this.isLayoutable = false;
-        var controlPoints = [pt(0, 0), pt(2 * arrowBase, 0), pt(arrowBase, arrowHeight), pt(0, 0)];
+        var controlPoints = [pt(0, 0), pt(arrowBase, arrowHeight), pt(2 * arrowBase, 0)];
         
         $super(controlPoints);
-        this.setBorderColor(Color.rgb(94,94,94));
+        this.setBorderColor(Color.rgb(66, 139, 202));
+        this.setFill(Color.rgb(66, 139, 202));
+        this.setFillOpacity(0);
         this.positionAtMorph(positionX);
-        this.setBorderWidth(0);
+        this.setBorderWidth(1);
         this.deactivate();
     },
     
@@ -231,7 +237,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         var extent = aMorph.getExtent();
         
         var offsetX = (extent.x - this.getExtent().x) / 2;
-        var offsetY = extent.y + 3;
+        var offsetY = extent.y + 15;
         
         this.setPosition(pt(positionX || offsetX, offsetY));
         aMorph.addMorph(this);
@@ -246,14 +252,13 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     
     activate: function() {
         this.activated = true;
-        this.setFill(Color.rgb(94,94,94));
+        this.setBorderStyle('solid');
         this.componentMorph.onArrowActivated(this);
     },
     
     deactivate: function() {
         this.activated = false;
-        this.setFillOpacity(0);
-        this.setBorderWidth(1);
+        this.setBorderStyle('dotted');
         this.componentMorph.onArrowDeactivated(this);
     },
     
@@ -340,8 +345,8 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     }, 
     
     initialize: function($super, vertices, from) {
-        $super(vertices);    
-        this.setBorderColor(Color.rgb(94,94,94));
+        $super(vertices);
+        this.setBorderColor(Color.rgb(66, 139, 202));
         this.from = from;
     },
     
@@ -654,7 +659,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     gridWidth: 20,
     
-    componentOffset: 20,
+    componentOffset: 50,
     
     isMerger: function() {
         return false;

@@ -579,7 +579,7 @@ Object.subclass('lively.tests.ChartsTests.Helper',
         for (var i = 0; i < amount; i++) {
             var aComponent = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts[optClass]());
             
-            var extent = aComponent.getExtent().addPt(pt(20, 20));
+            var extent = aComponent.getExtent().addPt(pt(aComponent.componentOffset, aComponent.componentOffset));
             
             var newPosition;
             if (optPositions && optPositions[i]) 

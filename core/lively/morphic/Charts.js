@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     createComponentHeader: function() {
-        var headerHeight = 28;
+        var headerHeight = 24;
         var header = new lively.morphic.Morph();
         header.setName("ComponentHeader");
         header.setStyleClassNames(["ComponentHeader"]);
@@ -1144,8 +1144,6 @@ getHeaderCSS: function() {
         color: white !important; \
         border-top-left-radius: 4px !important; \
         border-top-right-radius: 4px !important;\
-        border-bottom-left-radius: 4px !important; \
-        border-bottom-right-radius: 4px !important;\
         background-attachment: scroll !important;\
         background-clip: border-box !important;\
         background-image: none !important;\

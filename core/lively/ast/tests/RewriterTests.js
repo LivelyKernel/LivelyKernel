@@ -474,11 +474,42 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 this.pcAdvance() + ';\n'
             ) }, this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+    },
+
+    test28TryAndCatchErrorRecovery: function() {
+        var src = 'try { } catch (e) { }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                'try {\n' +
+                '} catch (e) {\n' +
+                this.intermediateResult('e = e.isUnwindException ? e.error : e;\n') +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
     }
+
 });
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
 // checks that rewritten code doesn't introduce semantic changes
+'running', {
+
+    setUp: function($super) {
+        $super();
+        this.parser = lively.ast.acorn;
+        this.rewrite = function(node) { return lively.ast.Rewriting.rewrite(node, astRegistry); };
+        this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
+        var astRegistry = this.astRegistry = [];
+        lively.ast.Rewriting.setCurrentASTRegistry(astRegistry);
+    },
+
+    tearDown: function($super) {
+        $super();
+        lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
+    }
+
+},
 'testing', {
 
     test01LoopResult: function() {
@@ -488,7 +519,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
             return result;
         }
         var src = Strings.format('(%s)();', code),
-            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     },
 
@@ -497,7 +528,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
             return a;
         }
         var src = Strings.format('(%s)(1);', code),
-            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     },
 
@@ -507,7 +538,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
             return a;
         }
         var src = Strings.format('(%s)(1);', code),
-            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     },
 
@@ -517,7 +548,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
             return a;
         }
         var src = Strings.format('(%s)(1);', code),
-            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     },
 
@@ -525,25 +556,29 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
         function code(a) {
             var b = a;
             var a = 3;
-            return b += a;
+            return b + a;
         }
         var src = Strings.format('(%s)(1);', code),
-            src2 = escodegen.generate(lively.ast.Rewriting.rewrite(lively.ast.acorn.parse(src)));
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test03ThrowOverFunctionBoundaries: function() {
+        function code() {
+            function thrower() {
+                throw new Error('123');
+            }
+            try {
+                thrower();
+            } catch (e) {
+                return e.message;
+            }
+            return '321';
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     }
-
-    // FIXME mr-2014-02-10: Should fromFunction recreate the scope/context at all?
-    // test03FunctionReCreation: function() {
-    //     function wrapper() {
-    //         var b = 2;
-    //         return function code(a) {
-    //             return a += b;
-    //         }
-    //     }
-    //     var fn = wrapper.stackCaptureMode()(),
-    //         fn2 = lively.Closure.fromFunction(fn).recreateFunc();
-    //     this.assertEquals(fn(1), fn2(1));
-    // }
 
 });
 
@@ -818,7 +853,6 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             var a = arguments[0]; debugger; return a + arguments[1];
         }
         var continuation = lively.ast.StackReification.run(code, this.astRegistry, [2, 3]);
-        debugger;
         var result = continuation.resume();
         this.assertEquals(5, result, 'accessing arguments not working');
     }

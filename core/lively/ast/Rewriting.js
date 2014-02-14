@@ -288,6 +288,18 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
+    createCatchUnwrap: function(catchVar) {
+        return this.newNode('AssignmentExpression', {
+            operator: '=',
+            left: this.newNode('Identifier', {name: catchVar}),
+            right: this.newNode('ConditionalExpression', {
+                test: this.newMemberExp(catchVar + '.isUnwindException'),
+                consequent: this.newMemberExp(catchVar + '.error'),
+                alternate: this.newNode('Identifier', {name: catchVar})
+            })
+        });
+    },
+
     wrapSequence: function(node, args, decls, originalFunctionIdx) {
         var level = this.scopes.length;
         node.body.unshift(this.createPreamble(args, decls, level));
@@ -1171,9 +1183,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             param = this.accept(n.param, rewriter),
             body = this.accept(n.body, rewriter),
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
+        // FIXME: catch param should be added to scope variables - temporary, without overriding existing!
         body.body.unshift(rewriter.newNode('ExpressionStatement', {
-            expression: rewriter.storeComputationResult(param, start, end, astIndex)
-        }));
+            expression: rewriter.storeComputationResult(rewriter.createCatchUnwrap(param.name), start, end, astIndex)}));
         return {
             start: n.start, end: n.end, type: 'CatchClause',
             param: param, guard: guard, body: body

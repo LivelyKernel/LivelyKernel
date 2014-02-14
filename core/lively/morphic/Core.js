@@ -215,7 +215,25 @@ Object.subclass('lively.morphic.Morph',
         var world = this.world();
         return world && world.firstHand();
     },
+	addSubmorphToRenderContext: function(morph) {
 
+    	var parentRenderCtxt = this.renderContext(),
+        	subRenderCtxt = morph.renderContext(),
+        	ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
+            	parentRenderCtxt.newForChild() : subRenderCtxt;
+    	
+		var morphIndex = this.submorphs.indexOf(morph),
+			optMorphBefore = this.submorphs[morphIndex + 1];
+			
+		morph.renderAfterUsing(ctx, optMorphBefore);
+
+    	morph.resumeSteppingAll();
+
+    	if (this.getLayouter()) {
+        	this.getLayouter().onSubmorphAdded(this, morph, this.submorphs);
+    	}
+		
+	},
     addMorph: function (morph, optMorphBefore) {
         var newOwner = this;
         if (morph.isAncestorOf(newOwner)) {
@@ -245,17 +263,18 @@ Object.subclass('lively.morphic.Morph',
 
         newOwner.cachedBounds = null; // submorph might affect bounds
 
-        var parentRenderCtxt = newOwner.renderContext(),
-            subRenderCtxt = morph.renderContext(),
-            ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
-                parentRenderCtxt.newForChild() : subRenderCtxt;
-        morph.renderAfterUsing(ctx, optMorphBefore);
-
-        morph.resumeSteppingAll();
-
-        if (newOwner.getLayouter()) {
-            newOwner.getLayouter().onSubmorphAdded(newOwner, morph, newOwner.submorphs);
-        }
+		this.addSubmorphToRenderContext(morph);
+        // var parentRenderCtxt = newOwner.renderContext(),
+        //     subRenderCtxt = morph.renderContext(),
+        //     ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
+        //         parentRenderCtxt.newForChild() : subRenderCtxt;
+        // morph.renderAfterUsing(ctx, optMorphBefore);
+        // 
+        // morph.resumeSteppingAll();
+        // 
+        // if (newOwner.getLayouter()) {
+        //     newOwner.getLayouter().onSubmorphAdded(newOwner, morph, newOwner.submorphs);
+        // }
 
         // FIXME remove, this was added for Ted's HyperCard implementation,
         // it should not be part of the core system
@@ -377,7 +396,13 @@ Object.subclass('lively.morphic.Morph',
         this.disableEventHandlerRecursively();
         this.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(null); });
     },
-
+	removeSubmorphFromRenderContext: function(morph) {
+		if (this.getLayouter()) {
+            this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
+        }
+        this.renderContextDispatch('removeMorph');
+		morph.renderContextDispatch('remove');
+	},
     removeMorph: function(morph) {
         // PRIVATE! do *not* call directly
         this.submorphs = this.submorphs.without(morph);

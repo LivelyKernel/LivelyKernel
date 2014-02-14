@@ -929,7 +929,9 @@ Object.extend(lively.versions.ObjectVersioning, {
     moveTo: function(version, callback) {
         var oldCurrent = lively.CurrentVersion;
 		lively.CurrentVersion = version;
-		$world.updateFrom(oldCurrent)
+		lively.doWithoutVersioning(function() {
+			$world.updateFrom(oldCurrent);
+		})
         if (callback) callback();
 		return version;
     },
@@ -1146,7 +1148,7 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 // ----- DO-WITHOUT-PROXYING EXPERIMENT -----
 
-lively.doWithoutProxying = function(func) {
+lively.doWithoutVersioning = function(func) {
     lively.currentlyInDontVersionScope = true;
     
     func();

@@ -710,6 +710,30 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         }
         return src;
     },
+    saveSource: function($super, newSource, sourceControl) {
+        // save the old values for later access, $super modifies this.target heavily
+        var target = this.target,
+            propertyName = target.name,
+            pType = target.type,
+            oldS = target.getSourceCode(),
+            success = $super(newSource, sourceControl)
+
+        if (success && pType == this.target.type && pType == "propertyDef" 
+            && this.target.name != propertyName) {
+            var browser = this.browser,
+                dontAsk = lively.Config.get("propertyPreservation", true),
+                saveOld = function(answer) {
+                    if (answer) {
+                        target.addSibling(oldS);
+                        browser.allChanged();
+                    }};
+            (dontAsk === undefined) 
+                ? $world.confirm("You saved with a changed property name. " 
+                    + "Do you want to preserve the old property?", saveOld)
+                : saveOld(dontAsk)
+        }
+        return success;
+    },
 
 
 
@@ -963,5 +987,12 @@ lively.ide.FileFragmentNode.subclass('lively.ide.BuildSpecFragmentNode', {
         return true;
     }
 });
+
+lively.Config.addOption({
+    name: 'propertyPreservation', 
+    value: undefined, 
+    docString: 'When saving a method (property) with a changed name, save the old behavior, or loose it. If not set (undefined), you are asked.', 
+    group: 'lively.ide.tools', 
+    type: 'trilean', });
 
 }) // end of module

@@ -616,44 +616,38 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (changedNode && this.allNodes().every(function(ea) { return !changedNode.hasSimilarTarget(ea); }))
             return;
 
-        // FIXME remove duplication
         var browser = this,/*browser=b*/
-            oldN1 = browser.getPane1Selection(),
-            oldN2 = browser.getPane2Selection(),
-            oldN3 = browser.getPane3Selection(),
-            oldN4 = browser.getPane4Selection(),
+            oldN = [1, 2, 3, 4].map(function(n) { return browser["getPane" + n + "Selection"]() }),
             sourcePos = browser.panel.sourcePane.getVerticalScrollPosition(),
             src = keepUnsavedChanges
                && browser.hasUnsavedChanges()
                && browser.panel.sourcePane.innerMorph().textString;
 
         // new list contents
-        var nodes1 = browser.childsFilteredAndAsListItems(browser.rootNode(), browser.getRootFilters()),
-            selection1 = oldN1 ? nodes1.detect(function(ea) { return ea.value.target === oldN1.target; }) : null,
-            nodes2 = selection1 ? browser.childsFilteredAndAsListItems(selection1.value, browser.getPane1Filters()) : [],
-            selection2 = oldN2 ? nodes2.detect(function(ea) { return ea.value.target === oldN2.target; }) : null,
-            nodes3 = selection2 ? browser.childsFilteredAndAsListItems(selection2.value, browser.getPane2Filters()) : [],
-            selection3 = oldN3 ? nodes3.detect(function(ea) { return ea.value.target === oldN3.target; }) : null,
-            nodes4 = selection3 ? browser.childsFilteredAndAsListItems(selection3.value, browser.getPane3Filters()) : [],
-            selection4 = oldN4 ? nodes4.detect(function(ea) { return ea.value.target === oldN4.target; }) : null;
+        var nodes = new Array(4),
+            selection = [{value: browser.rootNode()}],
+            filters = [browser.getRootFilters()].concat([1, 2, 3, 4].map(function(n) { 
+                return browser["getPane" + n + "Filters"]() }));
+        for (var i = 0; i < 4; i++){
+            nodes[i] = selection[i] ? 
+                browser.childsFilteredAndAsListItems(selection[i].value, filters[i]) : 
+                [];
+            selection[i + 1] = oldN[i] ? 
+                nodes[i].detect(function(ea) { return ea.value.hasSimilarTarget(oldN[i]); }) : 
+                null
+        }
+        // loose the first selection, rootNode, to have everything symmetric
+        selection.shift();
+
 
         lively.bindings.noUpdate(function() {
-            browser.panel.Pane1.setList(nodes1);
-            browser.panel.Pane1.setSelection(selection1);
-            browser.Pane1Content = nodes1;
-            browser.Pane1Selection = selection1 ? selection1.value: null;
-            browser.panel.Pane2.setList(nodes2);
-            browser.panel.Pane2.setSelection(selection2);
-            browser.Pane2Content = nodes2;;
-            browser.Pane2Selection = selection2 ? selection2.value: null;
-            browser.panel.Pane3.setList(nodes3);
-            browser.panel.Pane3.setSelection(selection3);
-            browser.Pane3Content = nodes3;;
-            browser.Pane3Selection = selection3 ? selection3.value: null;
-            browser.panel.Pane4.setList(nodes4);
-            browser.panel.Pane4.setSelection(selection4);
-            browser.Pane4Content = nodes4;;
-            browser.Pane4Selection = selection4 ? selection4.value: null;
+            for (var n = 1; n < 5; n++){
+                var i = n - 1;
+                browser.panel["Pane" + n].setList(nodes[i]);
+                browser.panel["Pane" + n].setSelection(selection[i]);
+                browser["Pane" + n + "Content"] = nodes[i];
+                browser["Pane" + n + "Selection"] = selection[i] ? selection[i].value : null
+            }
         });
 
         if (src) {

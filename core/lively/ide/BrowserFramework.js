@@ -951,12 +951,10 @@ Object.subclass('lively.ide.BrowserNode',
     hasSimilarTarget: function(other) {
         if (!other)
             return false;
-        var myString = this.asString();
-        var otherString = other.asString();
-        return myString.length >= otherString.length ?
-        myString.include(otherString) :
-        otherString.include(myString);
+        return (this.target !== undefined && this.target === other.target) 
+            || this.asString() == other.asString()
     },
+
 },
 'source code management', {
     newSource: function(newSource) {

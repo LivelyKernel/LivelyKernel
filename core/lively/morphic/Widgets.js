@@ -2029,80 +2029,12 @@ lively.morphic.World.addMethods(
         return progressBar
     },
 },
-'preferences', {
-    openPreferences: function() {
-        require('lively.morphic.tools.Preferences').toRun(function() {
-            lively.BuildSpec('lively.morphic.tools.Preferences').createMorph().openInWorldCenter().comeForward();
-        });
-    },
-
-    askForNewWorldExtent: function() {
-        var world = this;
-        this.prompt("Please enter new world extent", function(str) {
-            if (!str) return;
-            var newExtent;
-            try {
-                newExtent = eval(str);
-            } catch(e) {
-                alert("Could not eval: " + str)
-            };
-            if (! (newExtent instanceof lively.Point)) {
-                alert("" + newExtent + " " + "is not a proper extent")
-                return
-            }
-            world.setExtent(newExtent);
-            alertOK("Set world extent to " +  newExtent);
-        }, this.getExtent().toString());
-    },
-    askForNewBackgroundColor: function() {
-        var world = this,
-            oldColor = this.getFill();
-        if(! (oldColor instanceof Color)){
-            oldColor = Color.rgb(255,255,255);
-        }
-        this.prompt("Please enter new world background color", function(str) {
-            if (!str) return;
-            var newColor;
-            try {
-                newColor = eval(str);
-            } catch(e) {
-                alert("Could not eval: " + str)
-            };
-            if (! (newColor instanceof Color)) {
-                alert("" + newColor + " " + "is not a proper Color")
-                return
-            }
-            world.setFill(newColor);
-            alertOK("Set world background to " +  newColor);
-        }, "Color." + oldColor)
-    },
-    askForUserName: function() {
-        var world = this;
-        this.prompt("Please enter your username", function(name) {
-            if (name && name.length > 0) {
-                world.setCurrentUser(name);
-                alertOK("set username to: " + name);
-            } else {
-                alertOK("removing username")
-                world.setCurrentUser(undefined);
-            }
-        }, world.getUserName(true));
-    },
-    setCurrentUser: function(username) {
-        this.currentUser = username;
-        if (lively.LocalStorage)
-            lively.LocalStorage.set('UserName', username);
-        require('lively.net.SessionTracker').toRun(function() {
-            lively.net.SessionTracker.serverLogin();
-        });
-    },
-},
 'morph selection', {
     withSelectedMorphsDo: function(func, context) {
         // FIXME currently it is the halo target...
         if (!this.currentHaloTarget) return;
         func.call(context || Global, this.currentHaloTarget);
-    },
+    }
 },
 'debugging', {
     resetAllScales: function() {

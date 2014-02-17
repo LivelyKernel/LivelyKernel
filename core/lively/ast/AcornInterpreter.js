@@ -3,6 +3,7 @@ module('lively.ast.AcornInterpreter').requires('lively.ast.acorn').toRun(functio
 /*
 // reimplementation of lively.ast.InterpreterVisitor for Mozilla Parser API
 // TODO: implement strict mode ?!
+//       - different arguments handling (immutable)
 */
 Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'interface', {
@@ -34,7 +35,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     setVariable: function(name, state) {
         var scope = state.currentFrame.getScope();
         if (name == 'arguments' && scope.getMapping() != Global && scope.getParentScope() != null) {
-            state.currentFrame.setArguments(state.result);
+            state.currentFrame.arguments = state.result;
             return;
         }
         var result = scope.findScope(name); // may throw ReferenceError
@@ -53,9 +54,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.property, state);
             prop = state.result;
         }
+
         var setter = obj.__lookupSetter__(prop);
         if (setter) {
             this.invoke(obj, setter, [value], state.currentFrame, false/*isNew*/);
+        } else if (obj === state.currentFrame.arguments) {
+            obj[prop] = value;
+            state.currentFrame.setArguments(obj);
         } else {
             obj[prop] = value;
         }
@@ -955,7 +960,6 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
         if (this.has(name)) {
             return { val: this.get(name), scope: this };
         }
-        // TODO: should check this === lively.ast.AcornInterpreter.Scope.global()
         if (this.getMapping() === Global) { // reached global scope
             throw new ReferenceError(name + ' is not defined');
         }
@@ -1034,14 +1038,11 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 'accessing - mapping', {
 
     lookup: function(name) {
-        var result;
         if (name === 'undefined') return undefined;
         if (name === 'NaN') return NaN;
-
-        if (name === 'arguments') result = this.getArguments();
-        if (result !== undefined) return result;
-
-        result = this.scope.findScope(name);
+        if (name === 'arguments')
+            return this.scope.has(name) ? this.scope.get(name) : this.getArguments();
+        var result = this.scope.findScope(name);
         if (result) return result.val;
         return undefined;
     },
@@ -1057,6 +1058,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
     getArguments: function(args) {
         if (this.scope && this.scope.getMapping() != Global && this.func.isFunction())
             return this.arguments;
+        throw new ReferenceError('arguments is not defined');
     },
 
     setThis: function(thisObj) { return this.thisObj = thisObj; },

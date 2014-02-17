@@ -338,7 +338,14 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     },
     test28cModifySpecialVarArguments: function() {
         var node = this.parse('function x() { arguments[0] = 2; return arguments[0]; } x(1);');
-        this.assertEquals(2, this.interpret(node));
+        this.assertEquals(2, this.interpret(node), 'directly modifying arguments did not work');
+
+        node = this.parse('function x(a) { arguments[0] = 2; return a; } x(1);');
+        this.assertEquals(2, this.interpret(node), 'indirectly modifying arguments did not work');
+
+        // FIXME: this should work too! (non-strict)
+        // node = this.parse('function x(a) { a = 2; return arguments[0]; } x(1);');
+        // this.assertEquals(2, this.interpret(node), 'modifying named argument did not work');
     },
     test28dArgumentsWithoutFunction: function() {
         var node = this.parse('arguments;');

@@ -1025,7 +1025,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             
                     setTimestampAndUser: function(timestamp, user) {
                         this.setProperty('timestamp', timestamp || new Date());
-                        this.setProperty('user', user || (lively.LocalStorage && lively.LocalStorage.get('UserName')));
+                        this.setProperty('user', user || lively.Config.get('UserName'));
                     },
                     
                     tag: function(tags) {
@@ -1589,7 +1589,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             
                     setTimestampAndUser: function(timestamp, user) {
                         this.setProperty('timestamp', timestamp || new Date());
-                        this.setProperty('user', user || (lively.LocalStorage && lively.LocalStorage.get('UserName')));
+                        this.setProperty('user', user || lively.Config.get('UserName'));
                     },
                     
                     tag: function(tags) {
@@ -2058,7 +2058,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         
                 setTimestampAndUser: function(timestamp, user) {
                     this.setProperty('timestamp', timestamp || new Date());
-                    this.setProperty('user', user || (lively.LocalStorage && lively.LocalStorage.get('UserName')));
+                    this.setProperty('user', user || lively.Config.get('UserName'));
                 },
                 
                 tag: function(tags) {

@@ -127,6 +127,7 @@ Object.extend(String.prototype, {
 ///////////////////////////////////////////////////////////////////////////////
 
 Global.Strings = {
+
     format: function Strings$format() {
         return Strings.formatFromArray(Array.from(arguments));
     },

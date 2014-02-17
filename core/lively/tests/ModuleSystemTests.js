@@ -47,6 +47,7 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
             lively.Module.findAllInThenDo(url, function() {});
         }, /foo is not a directory/, 'no error on non-dir URL');
     },
+
     testUriWithRealtivePath: function() {
         // FIXME this is for handling core in the namespace root
         var m = module('../users/robertkrahn/foo.js'),
@@ -54,12 +55,14 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
             expected = URL.root.withFilename('users/robertkrahn/foo.js').toString();
         this.assertEquals(expected, m.uri());
     },
+
     testRelativePathModule: function() {
         this.assertEquals(module('../users/robertkrahn/foo.js').uri(),
                           module('users/robertkrahn/foo.js').uri());
         this.assertEquals(module('users/robertkrahn/foo.js').uri(),
                           module('users.robertkrahn.foo').uri());
     },
+
     testToRun: function() {
         var moduleCodeExecuted = false;
         module('foo.goo').remove();
@@ -68,6 +71,7 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
         });
         this.assert(moduleCodeExecuted, 'module not executed');
     },
+
     testRequireLib: function() {
         var moduleCodeExecuted = false,
             lib = {uri: URL.root.withFilename('foo.js'), loadTest: function() { return false; }};
@@ -75,7 +79,13 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
             moduleCodeExecuted = true;
         });
         this.assert(!moduleCodeExecuted, 'module prematurely executed');
+    },
+
+    testModuleNamesSupportUnicodeChars: function() {
+        this.assertEquals("Global.users.foo.config", module('users.foo.config').namespaceIdentifier);
+        this.assertEquals("Global.users.föö.config", module('users.föö.config').namespaceIdentifier);
     }
+
 });
 
 AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',

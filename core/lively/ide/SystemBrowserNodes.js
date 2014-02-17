@@ -712,7 +712,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
     },
     saveSource: function($super, newSource, sourceControl) {
         // save the old values for later access, $super modifies this.target heavily
-        var target = this.target,
+        var self = this, target = this.target,
             propertyName = target.name,
             pType = target.type,
             oldS = target.getSourceCode(),
@@ -724,13 +724,17 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
                 dontAsk = lively.Config.get("propertyPreservation", true),
                 saveOld = function(answer) {
                     if (answer) {
-                        target.addSibling(oldS);
+                        var sibling = target.addSibling(oldS);
+                        try { (new lively.ide.ClassElemFragmentNode(sibling, browser, self.parent))
+                                .evalSource(oldS) }
+                        catch(e){ browser.setStatusMessage(e, Color.red) }
                         browser.allChanged();
                     }};
+            // The method has to be readded after it was removed, therefore the delay.
             (dontAsk === undefined) 
                 ? $world.confirm("You saved with a changed property name. " 
                     + "Do you want to preserve the old property?", saveOld)
-                : saveOld(dontAsk)
+                : saveOld.delay(0, dontAsk)
         }
         return success;
     },

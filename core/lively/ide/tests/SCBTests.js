@@ -596,4 +596,41 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
 
 });
 
+lively.ide.tests.SCBTests.BrowserNodeTest.subclass('lively.ide.tests.SCBTests.ClassElemFragmentTest',
+'testing', {
+    testSaveWithPreservation: function() {
+        this.buildTestSource();
+        var browser = this.browser, preserve, self = this, foo;
+
+        browser.buildView();
+        // browsing it, to create the needed BrowserNodes
+        this.m1.basicBrowseIt({browser: browser});
+
+        try{
+            preserve = lively.Config.get("propertyPreservation", true)
+            lively.Config.set("propertyPreservation", true);
+            foo = Global.Foo
+            
+            browser.envaluate = true;
+            browser.pane2Selection.evalSource(browser.pane2Selection.savedSource);
+            var obj = new Foo();
+
+            this.assertEquals(obj.m1(), 23);
+            browser.pane4Selection.newSource("    n1: function() { return 22 }");
+            this.assertEquals(obj.n1(), 22);
+            // this.assertEquals(obj.m1(), 23);
+            connect(Global.Foo.prototype, "m1", {done: function() {
+                if (!obj.m1 || obj.m1() != 23)
+                    self.failure("m1 was set, but behaves unexpectedly.");
+                Global.Foo = foo;
+                self.done();
+            },}, "done", {removeAfterUpdate: true})
+        } finally{
+            lively.Config.set("propertyPreservation", preserve);
+        }
+
+
+    }
+});
+
 });

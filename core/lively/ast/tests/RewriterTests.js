@@ -932,6 +932,43 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(1, continuation.currentFrame.lookup('a'), 'execution of finally block was not prevented');
         var result = continuation.resume();
         this.assertEquals(4, result, 'try-finally was not resumed correctly');
+    },
+
+    test16aBreakAndContinueWithinCatch: function() {
+        function code() {
+            var a = 1;
+            try {
+                throw { b: 2 };
+            } catch (e) {
+                e.b = 3;
+                debugger;
+                a += e.b;
+            } finally {
+                a += 10;
+            }
+            return a;
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
+        this.assertEquals(14, result, 'try-catch did not resume correctly in catch');
+    },
+
+    test16bBreakAndContinueWithinFinally: function() {
+        function code() {
+            var a = 1;
+            try {
+                throw { b: 2 };
+            } catch (e) {
+                a += e.b;
+            } finally {
+                debugger;
+                a += 3;
+            }
+            return a;
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
+        this.assertEquals(6, result, 'try-catch did not resume in finally');
     }
 
 });

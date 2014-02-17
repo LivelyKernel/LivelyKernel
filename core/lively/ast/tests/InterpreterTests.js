@@ -263,9 +263,9 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
                 outer: {}
             };
         this.interpret(node, mapping);
-        this.assertEquals(true, mapping.outer.finalizer);
-        this.assertEquals(true, mapping.outer.catcher);
-        this.assertEquals(true, mapping.inner.finalizer);
+        this.assertEquals(true, mapping.outer.finalizer, 'outer finalizer was not called');
+        this.assertEquals(true, mapping.outer.catcher, 'outer catch was not called');
+        this.assertEquals(true, mapping.inner.finalizer, 'inner finalizer was not called');
     },
     test24fTryCatchMultipleLevels: function() {
         var src = 'function m1() { for (var i = 0; i < 10; i++) if (i == 3) throw i; } ' +

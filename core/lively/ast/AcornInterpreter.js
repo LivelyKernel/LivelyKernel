@@ -317,18 +317,31 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     visitTryStatement: function(node, state) {
+        var frame = state.currentFrame,
+            hasError = false, err;
+
         try {
             this.accept(node.block, state);
         } catch (e) {
-            if (node.handler === null)
-                throw e;
-            state.error = e;
+            hasError = true;
+            err = e;
+        }
+        if (frame.isResuming() && (node.handler !== null)  && !frame.isAlreadyComputed(node.handler)) {
+            hasError = true;
+            err = frame.alreadyComputed[node.handler.param.astIndex];
+        }
+
+        if (hasError && (node.handler !== null)) {
+            state.error = err;
             this.accept(node.handler, state);
             delete state.error;
-        } finally {
-            if (node.finalizer !== null)
-                this.accept(node.finalizer, state);
         }
+
+        if (node.finalizer !== null)
+            this.accept(node.finalizer, state);
+
+        if (hasError && (node.handler === null))
+            throw err;
     },
 
     visitCatchClause: function(node, state) {

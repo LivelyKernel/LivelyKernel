@@ -1193,7 +1193,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
 
-        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var data = ctx.component.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var arrangeOnCircle = " + this.arrangeOnCircle + "; var data = ctx.component.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
         
         // see also $super
         
@@ -1258,7 +1258,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     },
 
     
-    arrangeOnPath: function(path, entity) {
+    arrangeOnPath: function(path, entity, rotationCenter) {
     	var morphs = entity.pluck("morph");
 	
     	if (!morphs.length)
@@ -1287,6 +1287,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     	var curPt = path[0];
     	var curPathIndex = 1;
+    	var rotation = 0;
     
     	morphs.each( function (morph, index) {
     		var distanceToTravel = distance;
@@ -1296,6 +1297,10 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     				var direction = path[curPathIndex].subPt(curPt);
     				curPt = curPt.addPt(direction.normalized().scaleBy(distanceToTravel));
     				morph.setPosition(curPt);
+    				if(typeof rotationCenter !== "undefined"){
+    				    rotation = rotation + (Math.asin(distance / curPt.dist(rotationCenter)));
+			            morph.setRotation(rotation);
+    				}
     				distanceToTravel = 0;
     			} else {
     				curPt = path[curPathIndex];
@@ -1317,6 +1322,17 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
                 connect(to.morph, "position", conn.morph, "setEnd", {});
             }
         });
+    },
+    
+    arrangeOnCircle : function(radius, center, data) {
+        var path = [];
+        for (var i = 0; i < 360; i = i + 10){
+            var radianMeasure = i/360*2*Math.PI;
+            var newPT = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
+            path.push(newPT);
+        }
+        
+        return arrangeOnPath(path, data, center);
     }
 
 });
@@ -1690,6 +1706,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
     initialize : function($super){
         var nullContent = new lively.morphic.Charts.NullContent();
         nullContent.description = "FanIn";
+        this.extent = pt(400, 100);
         
         $super(nullContent);
         
@@ -1712,6 +1729,7 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
     initialize : function($super){
         var nullContent = new lively.morphic.Charts.NullContent();
         nullContent.description = "FanOut";
+        this.extent = pt(400, 100);
         
         $super(nullContent);
 

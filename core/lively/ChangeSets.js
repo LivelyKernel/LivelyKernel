@@ -3662,17 +3662,23 @@ alignSubmorphs: function alignSubmorphs() {
 }
 });
 
-(function openChangesetsFlap() {
+(function loadChangeSets() {
     lively.whenLoaded(function(world) {
-        if (!Config.changesetsExperiment) return;       
+        if (!Config.changesetsExperiment) return;
+
         lively.BuildSpec('ChangesetsFlap').createMorph().openInWorld();
-		if (world.getUserName() && 
-			localStorage.getItem("LivelyChangesets:" +  world.getUserName() + ":" + location.pathname) !== "off")
-				(function loadChangeSets() {
-					lively.ChangeSet.initialize();
-					if (Config.automaticChangesReplay)
-						lively.ChangeSet.loadAndcheckVsSystem();
-				}).delay(location.hostname === 'localhost' ? 1 : 10);
+
+        var userName = world.getUserName(true/*don't ask*/),
+            isOff = "off" === localStorage.getItem(
+                Strings.format("LivelyChangesets:%s:%s",
+                    userName, lively.Config.location));
+        if (!userName || isOff) return;
+
+		(function loadChangeSets() {
+			lively.ChangeSet.initialize();
+			if (Config.automaticChangesReplay)
+				lively.ChangeSet.loadAndcheckVsSystem();
+		}).delay(Config.location.hostname === 'localhost' ? 1 : 10);
     });
 })();
 

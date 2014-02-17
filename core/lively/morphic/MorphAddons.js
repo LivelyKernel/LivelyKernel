@@ -704,6 +704,11 @@ Object.extend(lively.morphic.Text, {
 });
 
 lively.morphic.World.addMethods(
+'events', {
+
+    isGrabbable: function(evt) { return false; }
+
+},
 'debugging', {
     logError: function (er, optName) {
         Global.LastError = er;
@@ -894,48 +899,105 @@ lively.morphic.World.addMethods(
     addStatusProgress: function(label) {
         return this.addStatusMessageMorph(this.addProgressBar(null, label));
     }
+
+},
+'preferences', {
+
+    openPreferences: function() {
+        require('lively.morphic.tools.Preferences').toRun(function() {
+            lively.BuildSpec('lively.morphic.tools.Preferences').createMorph().openInWorldCenter().comeForward();
+        });
+    },
+
+    askForNewWorldExtent: function() {
+        var world = this;
+        this.prompt("Please enter new world extent", function(str) {
+            if (!str) return;
+            var newExtent;
+            try {
+                newExtent = eval(str);
+            } catch(e) {
+                alert("Could not eval: " + str)
+            };
+            if (! (newExtent instanceof lively.Point)) {
+                alert("" + newExtent + " " + "is not a proper extent")
+                return
+            }
+            world.setExtent(newExtent);
+            alertOK("Set world extent to " +  newExtent);
+        }, this.getExtent().toString());
+    },
+
+    askForNewBackgroundColor: function() {
+        var world = this,
+            oldColor = this.getFill();
+        if(! (oldColor instanceof Color)){
+            oldColor = Color.rgb(255,255,255);
+        }
+        world.prompt("Please enter new world background color", function(str) {
+            if (!str) return;
+            var newColor;
+            try {
+                newColor = eval(str);
+            } catch(e) {
+                alert("Could not eval: " + str)
+            };
+            if (! (newColor instanceof Color)) {
+                alert("" + newColor + " " + "is not a proper Color")
+                return
+            }
+            world.setFill(newColor);
+            alertOK("Set world background to " +  newColor);
+        }, "Color." + oldColor)
+    },
 },
 'auth', {
+
+    askForUserName: function(prompt) {
+        var world = this, oldUserName = world.getUserName(true);
+        world.prompt(prompt || "Please enter your user name.", function(name) {
+            if (name && name.length > 0) {
+                world.setCurrentUser(name);
+                world.setStatusMessage("User name is now: " + world.getUserName(true), Color.green);
+            } else {
+                var msg = oldUserName ? "Removing user name." : "No user name set.";
+                world.setStatusMessage(msg, Color.green);
+                world.setCurrentUser(undefined);
+            }
+        }, oldUserName);
+    },
+
+    setCurrentUser: function(username) {
+        this.currentUser = username;
+        lively.Config.set('UserName', username);
+        require('lively.net.SessionTracker').toRun(function() {
+            lively.net.SessionTracker.serverLogin();
+        });
+    },
+
     getUserName: function(noninteractive) {
         var userName = lively.Config.get('UserName')
         if (userName && userName !== 'undefined') return userName;
-        if (!noninteractive) userName = this.requestUserName();
+        if (!noninteractive) userName = this.askForUserName();
         if (userName && userName !== 'undefined') {
             lively.Config.set('UserName', userName);
             return userName;
         }
         return null;
     },
+
     getUserDir: function(optUserName) {
         var username = optUserName || this.getUserName();
         return username ? URL.root.withFilename('users/' + username + '/') : null;
     },
 
-    requestUserName: function() {
-        // use a server request to determine the user name. Used to be a cgi
-        // script, could be a DB lookup followed by a login screen or something.
-        // currently disabled
-        return null;
-    },
-    askToRegisterAnAccount: function() {
-        var msg = 'Cannot retrieve your user name. Register an account now?';
-        $world.confirm(msg, function(response) {
-            if (response) {
-                window.open('http://lively-kernel.org/trac/register');
-            }
-        });
-    },
-
     ensureUserDir: function(optUserName) {
-        var username = optUserName || this.getUserName();
-        if (!username) {
-            this.askToRegisterAnAccount();
-            return null;
-        }
-        var userDir = this.getUserDir(optUserName);
+        var username = optUserName || this.getUserName(),
+            userDir = this.getUserDir(optUserName);
         userDir.asWebResource().ensureExistance();
         return userDir;
     },
+
     ensureUserConfig: function(optUserName) {
         var userDirURL = this.ensureUserDir(optUserName);
         if (!userDirURL) return;
@@ -948,15 +1010,14 @@ lively.morphic.World.addMethods(
         createModuleCommand.createModuleFile(userConfigURL);
         return userConfigURL;
     },
+
     showUserConfig: function() {
         var url = this.ensureUserConfig()
         require('lively.ide').toRun(function() {
             lively.ide.browse(url);
         });
-    },
-    isGrabbable: function(evt) {
-        return false;
     }
+
 },
 'fullscreen', {
     addBackgroundMorphForFullScreen: function() {

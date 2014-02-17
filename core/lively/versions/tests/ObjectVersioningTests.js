@@ -553,6 +553,16 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
         },
+    test06IndexStyleGet: function() {
+        var input = 'var obj = {}; obj["foo"];',
+            expectedOutput = 
+            'var obj = {};\n' +
+            '\n' + 
+            'obj.__OV__get(\"foo\");';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+        },
+
     test02ObjectFunctionApply: function() {
         var input = 'var obj = {}; obj.foo();',
             expectedOutput = 
@@ -589,6 +599,27 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
+    test07IndexStyleObjectFunctionApply: function() {
+        var input = 'var obj = {}; obj["foo"]();',
+            expectedOutput = 
+            'var obj = {};\n' +
+            '\n' + 
+            'obj.__OV__getAndApply(\"foo\");';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+        },
+    test08EqualAssign: function() {
+        var input = 'var obj = {}; obj.foo = 5;',
+            expectedOutput = 
+            'var obj = {};\n' +
+            '\n' + 
+            'obj.__OV__set(\"foo\", 5);';
+        var transformed = this.transform(input);
+        debugger;
+        this.assertEquals(transformed, expectedOutput);
+    },
+
+
 
 
 

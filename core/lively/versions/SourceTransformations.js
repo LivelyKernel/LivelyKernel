@@ -397,13 +397,19 @@ lively.versions.InsertProxiesTransformations.subclass(
             });
         }
         
+        if (node instanceof UglifyJS.AST_Sub) {
+            return new UglifyJS.AST_Call({
+                expression: new UglifyJS.AST_Dot({
+                    expression: node.expression,
+                    property: '__OV__get',
+                }),
+               args: [node.property],
+            });
+        }
+        
         if (node instanceof UglifyJS.AST_Call) {
-            var isTransformedObjectFunctionCall = 
-                node.expression instanceof UglifyJS.AST_Call && 
-                node.expression.expression instanceof UglifyJS.AST_Dot &&
-                node.expression.expression.property == '__OV__get';
             
-            if (isTransformedObjectFunctionCall) {
+            if (this.isTransformedOVGetCall(node.expression)) {
                 node.expression.expression.property = '__OV__getAndApply'
                 node.expression.args.pushAll(node.args);
                 return node.expression;
@@ -418,9 +424,32 @@ lively.versions.InsertProxiesTransformations.subclass(
                 });
             }
         }
-            
+        
+        if (node instanceof UglifyJS.AST_Assign) {
+            if (node.operator = "=") {
+                if (this.isTransformedOVGetCall(node.left)) {            
+                    return new UglifyJS.AST_Call({
+                        expression: new UglifyJS.AST_Dot({
+                            expression: node.left.expression.expression,
+                            property: '__OV__set',
+                        }),
+                        args: [
+                            node.left.args.first(),
+                            node.right
+                            ],
+                    });
+                }
+            }
+        }
+        
         return node; 
     },
+    isTransformedOVGetCall: function(node) {
+        return node instanceof UglifyJS.AST_Call && 
+            node.expression instanceof UglifyJS.AST_Dot &&
+            node.expression.property == '__OV__get';
+    }
+
 });
     
 });

@@ -918,17 +918,26 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         });
 
         // TODO: storeComputationResult(fn) is not possible for value
-        return rewriter.newNode('ThrowStatement', {
-            argument: rewriter.newNode('ObjectExpression', {
-                properties: [{
-                    key: rewriter.newNode('Identifier', { name: 'toString' }),
-                    kind: 'init', value: fn
-                }, {
-                    key: rewriter.newNode('Identifier', { name: 'astIndex' }),
-                    kind: 'init', value: rewriter.newNode('Literal', {value: astIndex})
-                }]
+        return rewriter.newNode('BlockStatement', { body: [
+            rewriter.newNode('ExpressionStatement', {
+                expression: rewriter.newNode('AssignmentExpression', {
+                    operator: '=',
+                    left: rewriter.newNode('Identifier', { name: 'debugging' }),
+                    right: rewriter.newNode('Literal', { value: true })
+                })
+            }),
+            rewriter.newNode('ThrowStatement', {
+                argument: rewriter.newNode('ObjectExpression', {
+                    properties: [{
+                        key: rewriter.newNode('Identifier', { name: 'toString' }),
+                        kind: 'init', value: fn
+                    }, {
+                        key: rewriter.newNode('Identifier', { name: 'astIndex' }),
+                        kind: 'init', value: rewriter.newNode('Literal', {value: astIndex})
+                    }]
+                })
             })
-        });
+        ]});
     },
 
     visitFunctionDeclaration: function(n, rewriter) {
@@ -1209,7 +1218,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // param is a node of type Pattern
         // guard is a node of type Expression (optional)
         // body is a node of type BlockStatement
-        var start = n.param.start, end = n.param.end, astIndex = n.astIndex,
+        var start = n.param.start, end = n.param.end, astIndex = n.astIndex, paramIndex = n.param.astIndex,
             param = this.accept(n.param, rewriter),
             body = this.accept(n.body, rewriter),
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
@@ -1217,12 +1226,10 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         body.body.unshift(
             // [lastNode = xx] = e = e.isUnwindExpression ? e.error : e
             rewriter.newNode('ExpressionStatement', {
-                expression: astIndex != null ? rewriter.storeComputationResult(rewriter.createCatchUnwrap(param.name), start, end, astIndex) : rewriter.createCatchUnwrap(param.name)
+                expression: paramIndex != null ? rewriter.storeComputationResult(rewriter.createCatchUnwrap(param.name), start, end, paramIndex) : rewriter.createCatchUnwrap(param.name)
             }),
-            // if (e.toString() == 'Debugger') {
-            //     debugging = true;
+            // if (e.toString() == 'Debugger')
             //     throw e.unwindException || e;
-            // }
             rewriter.newNode('IfStatement', {
                 test: rewriter.newNode('BinaryExpression', {
                     operator: '==',
@@ -1235,26 +1242,17 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     }),
                     right: rewriter.newNode('Literal', { value: 'Debugger' })
                 }),
-                consequent: rewriter.newNode('BlockStatement', { body: [
-                    rewriter.newNode('ExpressionStatement', {
-                        expression: rewriter.newNode('AssignmentExpression', {
-                            operator: '=',
-                            left: rewriter.newNode('Identifier', { name: 'debugging' }),
-                            right: rewriter.newNode('Literal', { value: true })
-                        })
-                    }),
-                    rewriter.newNode('ThrowStatement', {
-                        argument: rewriter.newNode('BinaryExpression', {
-                            operator: '||',
-                            left: rewriter.newNode('MemberExpression', {
-                                object: rewriter.newNode('Identifier', { name: param.name }),
-                                property: rewriter.newNode('Identifier', { name: 'unwindException' }),
-                                computed: false
-                            }),
-                            right: rewriter.newNode('Identifier', { name: param.name })
-                        })
+                consequent: rewriter.newNode('ThrowStatement', {
+                    argument: rewriter.newNode('BinaryExpression', {
+                        operator: '||',
+                        left: rewriter.newNode('MemberExpression', {
+                            object: rewriter.newNode('Identifier', { name: param.name }),
+                            property: rewriter.newNode('Identifier', { name: 'unwindException' }),
+                            computed: false
+                        }),
+                        right: rewriter.newNode('Identifier', { name: param.name })
                     })
-                ]}),
+                }),
                 alternate: null
             })
         );

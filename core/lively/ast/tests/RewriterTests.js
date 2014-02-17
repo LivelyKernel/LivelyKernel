@@ -58,10 +58,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         storeResult = storeResult == null ? true : !!storeResult;
         var firstLine = catchVar + ' = ' + catchVar + '.isUnwindException ? ' + catchVar + '.error : ' + catchVar + ';\n';
         return (storeResult ? this.intermediateResult(firstLine) : firstLine) +
-            'if (' + catchVar + '.toString() == \'Debugger\') {\n' +
-            'debugging = true;\n' +
-            'throw ' + catchVar + '.unwindException || ' + catchVar + ';\n' +
-            '}\n';
+            'if (' + catchVar + '.toString() == \'Debugger\')\n' +
+            'throw ' + catchVar + '.unwindException || ' + catchVar + ';\n';
     },
 
     finallyWrapper: function(stmts) {
@@ -71,12 +69,15 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     },
 
     debuggerThrow: function() {
-        return "throw {\n" +
+        return "{\n" +
+            "debugging = true;\n" +
+            "throw {\n" +
             "toString: function () {\n" +
             "return 'Debugger';\n" +
             "},\n" +
             "astIndex: __/[0-9]+/__\n" +
-            "};\n";
+            "};\n" +
+            "}\n";
     },
 
     closureWrapper: function(level, name, args, innerVarDecl, inner) {

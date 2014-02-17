@@ -166,34 +166,4 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
     }
 });
 
-
-// LivelyClasses benchmark currently disabled as it's not working probably
-// as long as the class system isn't loaded with source-transformations as
-// well... however, that wouldn't allow to continue to run core parts and
-// no-proxy-reference benchmarks without any proxies, which we still want for
-// now, during development...
-
-// // Own benchmarks: Simple examples using Lively's class
-// // system and morphs
-// 
-// lively.versions.tests.Benchmarks.TestCase.subclass(
-// 'lively.versions.tests.Benchmarks.livelyClasses', {
-//     initialize: function($super, testResult, optTestSelector) {
-//         this.benchmarkFileName = 'livelyClasses.js'
-//         
-//         $super(testResult, optTestSelector);
-//     },
-//     test01SourceToSourceTransformation: function() {
-//         lively.versions.ObjectVersioning.transformSource(this.sources);
-//     },
-//     test02aNoProxyReferenceExecution: function() {
-//         eval(this.sources);
-//     },
-//     test02bBenchmarkExecution: function() {
-//         lively.versions.tests.Benchmarks.isExecutingProxyBenchmark = true;
-//         eval(this.transformedSources);
-//         delete lively.versions.tests.Benchmarks.isExecutingProxyBenchmark;
-//     }
-// });
-
 });

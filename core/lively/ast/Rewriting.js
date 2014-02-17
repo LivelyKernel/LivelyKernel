@@ -245,6 +245,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             declarations: [
                 this.newVariable('_', '{}'),
                 this.newVariable('lastNode', this.newNode('Identifier', {name: 'undefined'})),
+                this.newVariable('debugging', this.newNode('Literal', {value: false})),
                 this.newVariable('_' + level, this.wrapArgsAndDecls(args, decls)),
                 this.newVariable('__' + level,
                     ['_', '_' + level, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
@@ -1175,6 +1176,35 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
+    visitTryStatement: function(n, rewriter) {
+        // block is a node of type BlockStatement
+        // handler is a node of type CatchClause or null
+        // finalizer is a node of type BlockStatement null
+        n.block = this.accept(n.block, rewriter);
+
+        if (!n.handler)
+            n.handler = rewriter.newNode('CatchClause', {
+                param: rewriter.newNode('Identifier', { name: 'e' }),
+                body: rewriter.newNode('BlockStatement', { body: [] })
+            });
+        n.handler = this.accept(n.handler, rewriter);
+
+        if (n.finalizer) {
+            n.finalizer = rewriter.newNode('BlockStatement', { body: [
+                rewriter.newNode('IfStatement', {
+                    test: rewriter.newNode('UnaryExpression', {
+                        operator: '!', prefix: true,
+                        argument: rewriter.newNode('Identifier', { name: 'debugging' })
+                    }),
+                    consequent: this.accept(n.finalizer, rewriter),
+                    alternate: null
+                })
+            ]});
+        }
+
+        return n;
+    },
+
     visitCatchClause: function(n, rewriter) {
         // param is a node of type Pattern
         // guard is a node of type Expression (optional)
@@ -1184,8 +1214,50 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             body = this.accept(n.body, rewriter),
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
         // FIXME: catch param should be added to scope variables - temporary, without overriding existing!
-        body.body.unshift(rewriter.newNode('ExpressionStatement', {
-            expression: rewriter.storeComputationResult(rewriter.createCatchUnwrap(param.name), start, end, astIndex)}));
+        body.body.unshift(
+            // [lastNode = xx] = e = e.isUnwindExpression ? e.error : e
+            rewriter.newNode('ExpressionStatement', {
+                expression: astIndex != null ? rewriter.storeComputationResult(rewriter.createCatchUnwrap(param.name), start, end, astIndex) : rewriter.createCatchUnwrap(param.name)
+            }),
+            // if (e.toString() == 'Debugger') {
+            //     debugging = true;
+            //     throw e.unwindException || e;
+            // }
+            rewriter.newNode('IfStatement', {
+                test: rewriter.newNode('BinaryExpression', {
+                    operator: '==',
+                    left: rewriter.newNode('CallExpression', {
+                        callee: rewriter.newNode('MemberExpression', {
+                            object: rewriter.newNode('Identifier', { name: param.name }),
+                            property: rewriter.newNode('Identifier', { name: 'toString' }),
+                            computed: false
+                        }), arguments: []
+                    }),
+                    right: rewriter.newNode('Literal', { value: 'Debugger' })
+                }),
+                consequent: rewriter.newNode('BlockStatement', { body: [
+                    rewriter.newNode('ExpressionStatement', {
+                        expression: rewriter.newNode('AssignmentExpression', {
+                            operator: '=',
+                            left: rewriter.newNode('Identifier', { name: 'debugging' }),
+                            right: rewriter.newNode('Literal', { value: true })
+                        })
+                    }),
+                    rewriter.newNode('ThrowStatement', {
+                        argument: rewriter.newNode('BinaryExpression', {
+                            operator: '||',
+                            left: rewriter.newNode('MemberExpression', {
+                                object: rewriter.newNode('Identifier', { name: param.name }),
+                                property: rewriter.newNode('Identifier', { name: 'unwindException' }),
+                                computed: false
+                            }),
+                            right: rewriter.newNode('Identifier', { name: param.name })
+                        })
+                    })
+                ]}),
+                alternate: null
+            })
+        );
         return {
             start: n.start, end: n.end, type: 'CatchClause',
             param: param, guard: guard, body: body

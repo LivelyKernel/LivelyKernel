@@ -23,7 +23,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     tryCatch: function(level, varMapping, inner) {
         level = level || 0;
         return Strings.format("try {\n"
-            + "var _ = {}, lastNode = undefined, _%s = %s, __%s = [\n"
+            + "var _ = {}, lastNode = undefined, debugging = false, _%s = %s, __%s = [\n"
             + "        _,\n"
             + "        _%s,\n"
             + "        %s\n"
@@ -53,7 +53,32 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             return escodegen.generate(ast);
         }
     },
-    
+
+    catchIntro: function(catchVar, storeResult) {
+        storeResult = storeResult == null ? true : !!storeResult;
+        var firstLine = catchVar + ' = ' + catchVar + '.isUnwindException ? ' + catchVar + '.error : ' + catchVar + ';\n';
+        return (storeResult ? this.intermediateResult(firstLine) : firstLine) +
+            'if (' + catchVar + '.toString() == \'Debugger\') {\n' +
+            'debugging = true;\n' +
+            'throw ' + catchVar + '.unwindException || ' + catchVar + ';\n' +
+            '}\n';
+    },
+
+    finallyWrapper: function(stmts) {
+        return 'if (!debugging) {\n' +
+            stmts +
+            '}\n';
+    },
+
+    debuggerThrow: function() {
+        return "throw {\n" +
+            "toString: function () {\n" +
+            "return 'Debugger';\n" +
+            "},\n" +
+            "astIndex: __/[0-9]+/__\n" +
+            "};\n";
+    },
+
     closureWrapper: function(level, name, args, innerVarDecl, inner) {
         // something like:
         // __createClosure(333, __0, function () {
@@ -483,7 +508,40 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             expected = this.tryCatch(0, { },
                 'try {\n' +
                 '} catch (e) {\n' +
-                this.intermediateResult('e = e.isUnwindException ? e.error : e;\n') +
+                this.catchIntro('e') +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test29aTryFinallyAndDebugger: function() {
+        var src = 'try { debugger; } finally { 1; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                'try {\n' +
+                this.debuggerThrow() +
+                '} catch (e) {\n' +
+                this.catchIntro('e', false) +
+                '} finally {\n' +
+                this.finallyWrapper('1;\n') +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test29bTryCatchFinallyAndDebugger: function() {
+        var src = 'try { debugger; } catch (e) { 1; } finally { 2; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                'try {\n' +
+                this.debuggerThrow() +
+                '} catch (e) {\n' +
+                this.catchIntro('e') +
+                '1;\n' +
+                '} finally {\n' +
+                this.finallyWrapper('2;\n') +
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
@@ -852,9 +910,27 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         function code() {
             var a = arguments[0]; debugger; return a + arguments[1];
         }
-        var continuation = lively.ast.StackReification.run(code, this.astRegistry, [2, 3]);
-        var result = continuation.resume();
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry, [2, 3]),
+            result = continuation.resume();
         this.assertEquals(5, result, 'accessing arguments not working');
+    },
+
+    test15TryFinallyExecution: function() {
+        function code() {
+            var a = 1;
+            try {
+                debugger;
+            } catch (e) {
+                a += 2;
+            } finally {
+                a += 3;
+            }
+            return a;
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        this.assertEquals(1, continuation.currentFrame.lookup('a'), 'execution of finally block was not prevented');
+        var result = continuation.resume();
+        this.assertEquals(4, result, 'try-finally was not resumed correctly');
     }
 
 });

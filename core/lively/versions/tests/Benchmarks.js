@@ -55,9 +55,117 @@ lively.versions.tests.Benchmarks.TestCase.subclass(
 });
 
 lively.versions.tests.Benchmarks.TestCase.subclass(
-'lively.versions.tests.Benchmarks.v8DeltaBlue', {
+'lively.versions.tests.Benchmarks.v8Deltablue', {
     initialize: function($super, testResult, optTestSelector) {
         this.benchmarkFileName = 'deltablue.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8Crypto', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'crypto.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8EarleyBoyer', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'earley-boyer.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8NavierStokes', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'navier-stokes.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8Raytrace', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'raytrace.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8Regexp', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'regexp.js'
+        
+        $super(testResult, optTestSelector);
+    },
+    test01SourceToSourceTransformation: function() {
+        lively.versions.ObjectVersioning.transformSource(this.sources);
+    },
+    test02aNoProxyReferenceExecution: function() {
+        eval(this.sources);
+    },
+    test02bBenchmarkExecution: function() {
+        eval(this.transformedSources);
+    }
+});
+
+lively.versions.tests.Benchmarks.TestCase.subclass(
+'lively.versions.tests.Benchmarks.v8Splay', {
+    initialize: function($super, testResult, optTestSelector) {
+        this.benchmarkFileName = 'splay.js'
         
         $super(testResult, optTestSelector);
     },

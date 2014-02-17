@@ -283,8 +283,10 @@ Object.extend(lively.versions.ObjectVersioning, {
             proxyTarget: function() { return this.targetObject() },
             
             targetObject: function() {
-                var version = lively.CurrentVersion,
-                    targetObject;
+                return this.targetObjectInVersion(lively.CurrentVersion);
+            },
+            targetObjectInVersion: function(version) {
+                var targetObject;
                 
                 while(!targetObject && version) {
                     targetObject = this.__targetVersions[version.ID];
@@ -924,27 +926,32 @@ Object.extend(lively.versions.ObjectVersioning, {
         
         return previousVersion; 
     },
+    moveTo: function(version, callback) {
+        var oldCurrent = lively.CurrentVersion;
+        
+        lively.CurrentVersion = version;
+        
+        if (callback) callback();
+        
+        return version;
+    },
     undo: function(callback) {
-        var previousVersion = this.previousVersion();
-        if (!previousVersion) {
+        var predecessor = this.previousVersion();
+        
+        if (!predecessor) {
             throw new Error('Can\'t undo: No previous version.');
         }
-        lively.CurrentVersion = previousVersion;
         
-        if (callback) callback();
-        
-        return lively.CurrentVersion;
+        return this.moveTo(predecessor, callback);
     },
     redo: function(callback) {
-        var followingVersion = this.followingVersion();
-        if (!followingVersion) {
+        var successor = this.followingVersion();
+        
+        if (!successor) {
             throw new Error('Can\'t redo: No next version.');
         }
-        lively.CurrentVersion = followingVersion;
         
-        if (callback) callback();
-        
-        return lively.CurrentVersion;
+	    return this.moveTo(successor, callback);
     },
     previousVersion: function() {
         return lively.CurrentVersion.previousVersion;
@@ -1145,7 +1152,7 @@ Object.extend(lively.versions.ObjectVersioning, {
 
 // ----- DO-WITHOUT-PROXYING EXPERIMENT -----
 
-lively.doWithoutProxying = function(func) {
+lively.doWithoutVersioning = function(func) {
     lively.currentlyInDontVersionScope = true;
     
     func();
@@ -1209,7 +1216,9 @@ lively.killScriptsFromTheFuture = function() {
 var livelyOV = lively.versions.ObjectVersioning;
 
 var redrawWorld = function() {
-    $world.renderWithHTML();
+    lively.doWithoutVersioning(function() {
+        $world.renderWithHTML();
+    })
 }
 
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);

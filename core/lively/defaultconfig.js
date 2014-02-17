@@ -184,7 +184,7 @@ Global.Config = {
             console.warn('cannot load user config because cannot access localStorage!')
             return;
         }
-        var userName = optUsername || lively.LocalStorage.get('UserName');
+        var userName = optUsername || this.get('UserName');
         if (!userName || userName === "undefined") return;
         var userConfigModule = Strings.format('users.%s.config', userName);
         lively.require(userConfigModule).toRun(this.urlQueryOverride.bind(this));
@@ -345,7 +345,7 @@ Config.addOptions(
         type: 'String',
         doc: 'UserName identifies the current Lively user',
         get: function() { return lively.LocalStorage.get('UserName'); },
-        set: function(val) { return lively.LocalStorage.set('UserName', val); }
+        set: function(val) { return lively.LocalStorage.set('UserName', val ? val.replace(/ /g, '_') : val); }
     }
 ],
 
@@ -436,8 +436,6 @@ Config.addOptions(
     ["wikiRepoUrl", null],
 
     ["forceHTML", false],
-
-    ["userNameURL", Config.location.protocol + '//' + Config.location.host + '/cgi/user.sh'],
 
     ["lessAnnoyingWorldStatusMessages", true],
     ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."]

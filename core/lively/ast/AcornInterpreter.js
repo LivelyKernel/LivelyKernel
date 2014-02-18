@@ -331,16 +331,22 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             err = frame.alreadyComputed[node.handler.param.astIndex];
         }
 
-        if (hasError && (node.handler !== null)) {
-            state.error = err;
-            this.accept(node.handler, state);
-            delete state.error;
+        try {
+            if (hasError && (node.handler !== null)) {
+                hasError = false;
+                state.error = err;
+                this.accept(node.handler, state);
+                delete state.error;
+            }
+        } catch (e) {
+            hasError = true;
+            err = e;
+        } finally {
+            if (node.finalizer !== null)
+                this.accept(node.finalizer, state);
         }
 
-        if (node.finalizer !== null)
-            this.accept(node.finalizer, state);
-
-        if (hasError && (node.handler === null))
+        if (hasError)
             throw err;
     },
 

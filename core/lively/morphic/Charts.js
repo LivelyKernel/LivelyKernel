@@ -14,7 +14,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.componentBody = this.createComponentBody();
 
         this.layout = {adjustForNewBounds: true};
-        this.createErrorText();
     },
     createMinimizer: function() {
         // abstract
@@ -99,7 +98,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         };
         
         var text = new lively.morphic.Text();
-        text.setExtent(pt(150,24));
+        text.setName("Description");
+        text.setExtent(pt(50, 24));
         text.setFillOpacity(0);
         text.setBorderWidth(0);
         text.ignoreEvents();
@@ -107,12 +107,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         text.setFontSize(11);
         text.setTextString(this.content.description);
         
-        header.addMorph(text);
+        this.description = text;
+        header.addMorph(this.description);
         
         header.addMorph(this.createMinimizer());
+        this.errorText = this.createErrorText();
+        header.addMorph(this.errorText);
         
         return header;
-        
     },
     
     createErrorText: function() {
@@ -125,15 +127,43 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         setTimeout(function() {
             var descriptionWidth = _this.getSubmorphsByAttribute("name", "Description")[0].getTextBounds().width;
             t.setExtent(pt(_this.getExtent().x - descriptionWidth - 80, 20));
-            t.setPosition(pt(descriptionWidth + 20, 10));            
+            t.setPosition(pt(descriptionWidth + 20, 0));            
         }, 10);
 
         t.setFontSize(10);
         t.setFillOpacity(0);
         t.setBorderWidth(0);
         t.layout = {resizeWidth: true};
-        console.warn("TODO; errortext")
-        this.addMorph(t);
+        t.disableEvents();
+        return t;
+    },
+    
+    applyDefaultStyle: function() {
+        this.componentHeader.setStyleSheet(this.getHeaderCSS());
+        this.componentBody.setStyleSheet(this.getBodyCSS());
+        
+        this.description.setTextColor(Color.white);
+        
+        this.errorText.setTextColor(Color.white);
+        var minimizer = this.getSubmorphsByAttribute("name", "Minimizer");
+        if (minimizer.length)
+        {
+            minimizer[0].applyDefaultStyle();
+        }
+    },
+    
+    applyErrorStyle: function() {
+        this.componentHeader.setStyleSheet(this.getErrorHeaderCSS());
+        this.componentBody.setStyleSheet(this.getErrorBodyCSS());
+        
+        this.description.setTextColor(Color.rgb(169, 68, 66));
+        
+        this.errorText.setTextColor(Color.rgb(169, 68, 66));
+        var minimizer = this.getSubmorphsByAttribute("name", "Minimizer");
+        if (minimizer.length)
+        {
+            minimizer[0].applyErrorStyle();
+        }
     },
     
     getBodyCSS: function() {
@@ -840,9 +870,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         var promise;
         try {
             promise = this.updateComponent();
-            this.setFill(this.backgroundColor); 
+            this.applyDefaultStyle();
+            
         } catch (e) {
-            this.setFill(this.errorColor);
+            this.applyErrorStyle();
             if (!e.alreadyThrown){
                 this.throwError(e);
             }
@@ -1141,56 +1172,132 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         }";
     },
     
-getHeaderCSS: function() {
-    return	".ComponentHeader { \
-        background-color: rgb(66, 139, 202); !important; \
-        color: white !important; \
-        border-top-left-radius: 4px !important; \
-        border-top-right-radius: 4px !important;\
-        background-attachment: scroll !important;\
-        background-clip: border-box !important;\
-        background-image: none !important;\
-        background-origin: padding-box !important;\
-        background-size: auto !important;\
-        border-bottom-color: rgb(66, 139, 202) !important;\
-        border-bottom-style: solid !important;\
-        border-bottom-width: 1px !important;\
-        border-image-outset: 0px !important;\
-        border-image-repeat: stretch !important;\
-        border-image-slice: 100% !important;\
-        border-image-source: none !important;\
-        border-image-width: 1 !important;\
-        border-left-color: rgb(66, 139, 202) !important;\
-        border-left-style: solid !important;\
-        border-left-width: 1px !important;\
-        border-right-color: rgb(66, 139, 202) !important;\
-        border-right-style: solid !important;\
-        border-right-width: 1px !important;\
-        border-top-color: rgb(66, 139, 202) !important;\
-        border-top-style: solid !important;\
-        border-top-width: 1px !important;\
-        box-sizing: border-box !important;\
-        color: rgb(255, 255, 255) !important;\
-        cursor: auto !important;\
-        display: block !important;\
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
-        font-size: 14px !important;\
-        line-height: 20px !important;\
-        margin-bottom: -1px !important;\
-        padding-bottom: 10px !important;\
-        padding-left: 10px !important;\
-        padding-right: 15px !important;\
-        padding-top: 2px !important;\
-        position: relative !important;\
-        text-decoration: none solid rgb(255, 255, 255) !important;\
-        z-index: 2 !important;\
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
-        -webkit-box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
-        box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
-        border-width: 1px !important;\
-    }";
-},
-
+    getErrorBodyCSS : function() {
+        return ".ComponentBody {\
+            background-color: rgb(255, 255, 255) !important;\
+            border-bottom-left-radius: 5px !important;\
+            border-bottom-right-radius: 5px !important;\
+            border-width: 1px !important;\
+            border-color: rgb(235, 204, 209) !important;\
+            display: block !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            font-size: 14px !important;\
+            line-height: 20px !important;\
+            margin-bottom: 0px !important;\
+            margin-left: 0px !important;\
+            margin-right: 0px !important;\
+            margin-top: 0px !important;\
+            padding-bottom: 0px !important;\
+            padding-left: 0px !important;\
+            padding-right: 0px !important;\
+            padding-top: 0px !important;\
+            position: relative !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
+            box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
+        }";
+    },
+    
+    
+    getHeaderCSS: function() {
+        return	".ComponentHeader { \
+            background-color: rgb(66, 139, 202); !important; \
+            color: white !important; \
+            border-top-left-radius: 4px !important; \
+            border-top-right-radius: 4px !important;\
+            background-attachment: scroll !important;\
+            background-clip: border-box !important;\
+            background-image: none !important;\
+            background-origin: padding-box !important;\
+            background-size: auto !important;\
+            border-bottom-color: rgb(66, 139, 202) !important;\
+            border-bottom-style: solid !important;\
+            border-bottom-width: 1px !important;\
+            border-image-outset: 0px !important;\
+            border-image-repeat: stretch !important;\
+            border-image-slice: 100% !important;\
+            border-image-source: none !important;\
+            border-image-width: 1 !important;\
+            border-left-color: rgb(66, 139, 202) !important;\
+            border-left-style: solid !important;\
+            border-left-width: 1px !important;\
+            border-right-color: rgb(66, 139, 202) !important;\
+            border-right-style: solid !important;\
+            border-right-width: 1px !important;\
+            border-top-color: rgb(66, 139, 202) !important;\
+            border-top-style: solid !important;\
+            border-top-width: 1px !important;\
+            box-sizing: border-box !important;\
+            color: rgb(255, 255, 255) !important;\
+            cursor: auto !important;\
+            display: block !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            font-size: 14px !important;\
+            line-height: 20px !important;\
+            margin-bottom: -1px !important;\
+            padding-bottom: 10px !important;\
+            padding-left: 10px !important;\
+            padding-right: 15px !important;\
+            padding-top: 2px !important;\
+            position: relative !important;\
+            text-decoration: none solid rgb(255, 255, 255) !important;\
+            z-index: 2 !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            -webkit-box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+            box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+            border-width: 1px !important;\
+        }";
+    },
+    
+    getErrorHeaderCSS: function() {
+        return	".ComponentHeader { \
+            background-color: rgb(235, 204, 209); !important; \
+            color: white !important; \
+            border-top-left-radius: 4px !important; \
+            border-top-right-radius: 4px !important;\
+            background-attachment: scroll !important;\
+            background-clip: border-box !important;\
+            background-image: none !important;\
+            background-origin: padding-box !important;\
+            background-size: auto !important;\
+            border-bottom-color: rgb(235, 204, 209) !important;\
+            border-bottom-style: solid !important;\
+            border-bottom-width: 1px !important;\
+            border-image-outset: 0px !important;\
+            border-image-repeat: stretch !important;\
+            border-image-slice: 100% !important;\
+            border-image-source: none !important;\
+            border-image-width: 1 !important;\
+            border-left-color: rgb(235, 204, 209) !important;\
+            border-left-style: solid !important;\
+            border-left-width: 1px !important;\
+            border-right-color: rgb(235, 204, 209) !important;\
+            border-right-style: solid !important;\
+            border-right-width: 1px !important;\
+            border-top-color: rgb(235, 204, 209) !important;\
+            border-top-style: solid !important;\
+            border-top-width: 1px !important;\
+            box-sizing: border-box !important;\
+            color: rgb(255, 255, 255) !important;\
+            cursor: auto !important;\
+            display: block !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            font-size: 14px !important;\
+            line-height: 20px !important;\
+            margin-bottom: -1px !important;\
+            padding-bottom: 10px !important;\
+            padding-left: 10px !important;\
+            padding-right: 15px !important;\
+            padding-top: 2px !important;\
+            position: relative !important;\
+            text-decoration: none solid rgb(255, 255, 255) !important;\
+            z-index: 2 !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            -webkit-box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+            box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+            border-width: 1px !important;\
+        }";
+    },
 });
 
 lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
@@ -1918,11 +2025,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
         this.orientation = "up";
         
         var vertices = [pt(0, height), pt(width / 2, 0), pt(width, height)];
-        var line = new lively.morphic.Path(vertices);
-        line.setBorderColor(Color.white);
-        line.setBorderWidth(2);
+        this.line = new lively.morphic.Path(vertices);
+        this.line.setBorderColor(Color.white);
+        this.line.setBorderWidth(2);
         
-        this.addMorph(line);
+        this.addMorph(this.line);
         this.submorphs[0].disableEvents();
         
     },
@@ -1964,6 +2071,14 @@ onMouseUp: function(evt) {
             this.orientation = "up";
         }
         
+    },
+    
+    applyDefaultStyle: function() {
+        this.line.setBorderColor(Color.white);
+    },
+    
+    applyErrorStyle: function() {
+        this.line.setBorderColor(Color.rgb(169, 68, 66));
     }
 });
 

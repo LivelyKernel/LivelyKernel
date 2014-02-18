@@ -85,6 +85,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         header.setBorderStyle();
         header.setAppearanceStylingMode(false);
         
+        // This is useless at the moment, since events are
+        // disabled on the header.
         var _this = this;
         header.onMouseUp = function(evt) {
             _this.minimize(evt);
@@ -109,10 +111,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         this.description = text;
         header.addMorph(this.description);
-        
-        header.addMorph(this.createMinimizer());
+
         this.errorText = this.createErrorText();
         header.addMorph(this.errorText);
+        header.addMorph(this.createMinimizer());
         
         return header;
     },
@@ -153,6 +155,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     applyErrorStyle: function() {
+        
         this.componentHeader.setStyleSheet(this.getErrorHeaderCSS());
         this.componentBody.setStyleSheet(this.getErrorBodyCSS());
         
@@ -192,25 +195,136 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     initialize: function($super, content) {
         $super(content);
         
-        this.setDescription(content.description);
+        this.componentHeader.addMorph(this.createCloser());
+        
+        this.setExtent(pt(400, 300));
+        this.isDragged = true;
+        this.position = this.getPositionInWorld();
         
     },
     
-    createComponentBody: function() {
-        // TODO
+    onDragStart: function($super, evt) {
+        this.isDragged = true;
+        
+        $super(evt);
     },
     
-    createComponentHeader: function() {
-        // TODO
+    onDropOn: function($super, aMorph) {
+        $super(aMorph);
+        
+        this.isDragged = false;
     },
     
-    createMinimizer: function() {
-        // TODO
+    update: function(data) {
+        this.content.update(data);
+    },
+    wantsToBeDroppedInto: function(dropTarget) {
+        return dropTarget == $world;
+    },
+
+    onDrag: function($super, evt) {
+        $super();
+        this.position = this.getPositionInWorld();
+    },
+    remove: function($super) {
+        $super();
+        
+        var line = $morph("Line" + this);
+        if (!this.isDragged && line)
+            line.remove();
     },
 
     onContentChanged: function() {
         // do nothing
-    }
+    },
+    
+    createMinimizer: function() {
+        var minimizer = new lively.morphic.Charts.Minimizer();
+        minimizer.setPosition(pt(this.getExtent().x - 42, 8));
+        minimizer.layout = {moveHorizontal: true}
+        
+        return minimizer;
+    },
+    
+    createCloser: function() {
+        var closer = new lively.morphic.Charts.Closer();
+        closer.setPosition(pt(this.getExtent().x - 16, 8));
+        closer.layout = {moveHorizontal: true}
+        
+        return closer;
+    },
+    
+    getBodyCSS: function() {
+        return ".ComponentBody {\
+            background-color: rgb(255, 255, 255) !important;\
+            border-width: 1px !important;\
+            border-color: rgb(144, 144, 144) !important;\
+            display: block !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            font-size: 14px !important;\
+            line-height: 20px !important;\
+            margin-bottom: 0px !important;\
+            margin-left: 0px !important;\
+            margin-right: 0px !important;\
+            margin-top: 0px !important;\
+            padding-bottom: 0px !important;\
+            padding-left: 0px !important;\
+            padding-right: 0px !important;\
+            padding-top: 0px !important;\
+            position: relative !important;\
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+            -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
+            box-shadow: 0 10px 20px rgba(0,0,0,.2) !important;\
+        }";
+    },
+    
+getHeaderCSS: function() {
+    return	".ComponentHeader { \
+        background-color: rgb(144, 144, 144) !important; \
+        color: white !important; \
+        background-attachment: scroll !important;\
+        background-clip: border-box !important;\
+        background-image: none !important;\
+        background-origin: padding-box !important;\
+        background-size: auto !important;\
+        border-bottom-color: rgb(144, 144, 144) !important;\
+        border-bottom-style: solid !important;\
+        border-bottom-width: 1px !important;\
+        border-image-outset: 0px !important;\
+        border-image-repeat: stretch !important;\
+        border-image-slice: 100% !important;\
+        border-image-source: none !important;\
+        border-image-width: 1 !important;\
+        border-left-color: rgb(144, 144, 144) !important;\
+        border-left-style: solid !important;\
+        border-left-width: 1px !important;\
+        border-right-color: rgb(144, 144, 144) !important;\
+        border-right-style: solid !important;\
+        border-right-width: 1px !important;\
+        border-top-color: rgb(144, 144, 144) !important;\
+        border-top-style: solid !important;\
+        border-top-width: 1px !important;\
+        box-sizing: border-box !important;\
+        color: rgb(255, 255, 255) !important;\
+        cursor: auto !important;\
+        display: block !important;\
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+        font-size: 14px !important;\
+        line-height: 20px !important;\
+        margin-bottom: -1px !important;\
+        padding-bottom: 10px !important;\
+        padding-left: 10px !important;\
+        padding-right: 15px !important;\
+        padding-top: 2px !important;\
+        position: relative !important;\
+        text-decoration: none solid rgb(255, 255, 255) !important;\
+        z-index: 2 !important;\
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
+        -webkit-box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+        box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
+        border-width: 1px !important;\
+    }";
+}
 });
 
 lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
@@ -367,42 +481,42 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     
     remove: function($super) {
         if (this.viewer) {
-            this.viewer.getWindow().remove();
+            this.viewer.remove();
         }
         $super();
     },
     
     openDataInspector: function(evtPosition) {
         
-        var inspector = $world.loadPartItem('DataInspector', 'PartsBin/BP2013H2');
-        inspector.openInHand();
-        inspector.setSource(this.from);
+        this.viewer = new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts.JsonViewer());
+        this.viewer.update(this.data);
+        this.viewer.openInHand();
         
         this.viewerLine = new lively.morphic.Path([evtPosition, evtPosition]);
+        this.viewerLine.setName('Line' + this.viewer);
+        this.viewerLine.setBorderColor(Color.rgb(144, 144, 144));
         
-        var circle = lively.morphic.Morph.makeEllipse(new Rectangle(evtPosition.x-6, evtPosition.y-6, 12, 12));
-        circle.setBorderWidth(2);
-        circle.setBorderColor(Color.black);
-        circle.setFill(Color.rgb(94,94,94));
+        var center = pt(this.getPositionInWorld().x, evtPosition.y);
+        var circle = lively.morphic.Morph.makeEllipse(new Rectangle(center.x, center.y - 3, 6, 6));
+        circle.setBorderWidth(1);
+        circle.setBorderColor(Color.rgb(144, 144, 144));
+        circle.setFill();
         
         this.viewerLine.addMorph(circle);
+        $world.addMorph(this.viewerLine);
         
         var converter = function(pos) {
             return pos.addPt(pt(190,120));
         }
         
-        $world.addMorph(this.viewerLine);
-        this.viewerLine.setName('Line' + inspector);
-        connect(inspector, '_Position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
-        this.viewerLine.setBorderColor(Color.rgb(94,94,94));
-        inspector.update();
+        connect(this.viewer, 'position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
         
-        this.viewer = inspector;
     },
     
-    notifyViewer: function() {
+    updateViewer: function(data) {
+        this.data = data;
         if (this.viewer) {
-            this.viewer.update();
+            this.viewer.update(data);
         }
     },
     
@@ -414,11 +528,11 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
         this.setBorderWidth(1);
     }, 
     
-    initialize: function($super, vertices, from) {
+    initialize: function($super, vertices) {
         $super(vertices);
-        this.setBorderColor(Color.rgb(66, 139, 202));
-        this.from = from;
+        this.setBorderColor(Color.rgb(144, 144, 144));
     },
+
     
 });
 
@@ -431,6 +545,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         this.data = null;
     },
+    
+
     
     updateComponent : function() {
         var newData = this.content.update(this.data);
@@ -505,7 +621,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             
             var from = pt(arrow.getExtent().x/2,arrow.getExtent().y);
             var to = pt(from.x, target.getPositionInWorld().y - arrow.getTipPosition().y + arrow.getExtent().y);
-            arrow.connectionLine = new lively.morphic.Charts.Line([from, to], this);
+            arrow.connectionLine = new lively.morphic.Charts.Line([from, to]);
             arrow.connectionLine.setBorderStyle('dotted');
             arrow.addMorph(arrow.connectionLine);
         }
@@ -877,7 +993,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         var text = this.get("ErrorText");
         text.setTextString("");
         text.error = null;
-
+        
         var promise;
         try {
             promise = this.updateComponent();
@@ -890,7 +1006,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             }
             return;
         }
-
+        
         var _this = this;
         promise.done(function() {
             if (arguments.length == 1) {
@@ -919,7 +1035,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.arrows.each(function (arrow){
             if (arrow.isActive()) {
                 if (arrow.connectionLine) {
-                    arrow.connectionLine.notifyViewer();
+                    arrow.connectionLine.updateViewer(_this.data);
                 }
                 
                 var dependentComponent = _this.getComponentInDirectionFrom(1, arrow.getPositionInWorld());
@@ -2091,6 +2207,45 @@ onMouseUp: function(evt) {
     applyErrorStyle: function() {
         this.line.setBorderColor(Color.rgb(169, 68, 66));
     }
+});
+
+lively.morphic.Morph.subclass("lively.morphic.Charts.Closer",
+{
+    initialize: function($super) {
+        $super();
+        
+        var width = 8;
+        var height = 8;
+        
+        this.setFillOpacity(0);
+        this.setExtent(pt(width, height));
+        this.setName("Closer");
+        
+        var vertices = [pt(0, 0), pt(width, height)];
+        var line = new lively.morphic.Path(vertices);
+        line.setBorderColor(Color.white);
+        line.setBorderWidth(2);
+        this.addMorph(line);
+        
+        vertices = [pt(0, height), pt(width, 0)];
+        line = new lively.morphic.Path(vertices);
+        line.setBorderColor(Color.white);
+        line.setBorderWidth(2);
+        this.addMorph(line);
+        
+        this.submorphs[0].disableEvents();
+        this.submorphs[1].disableEvents();
+        
+    },
+    
+    onMouseUp: function(evt) {
+
+        var component = this.owner.owner;
+        
+        if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
+            component.remove();
+        }
+    },
 });
 
 Object.subclass('lively.morphic.Charts.EntityFactory',

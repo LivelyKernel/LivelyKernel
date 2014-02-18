@@ -850,8 +850,12 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         }
 
         var _this = this;
-        promise.done(function(data) {
-            _this.data = data;
+        promise.done(function() {
+            if (arguments.length == 1) {
+                _this.data = arguments[0];
+            } else {
+                _this.data = arguments;
+            }
             _this.notifyNextComponent();
         }).fail(function () {
             //don't propagate
@@ -965,7 +969,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     getComponentInDirectionFrom: function(direction, point) {
         // direction should be an int, which indicates the vertical direction
         // -1 is up and 1 is down
-
         var allComponents = this.getAllComponents();
         var closestComponent = null;
 

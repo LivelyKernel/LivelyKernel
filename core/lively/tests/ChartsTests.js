@@ -700,8 +700,41 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
         var Commit = EntityFactory.createEntityTypeFromList("Commit", data, "id");
         var Author = Commit.extractEntityFromAttribute("Author", "name", "author");
         var File = Commit.extractEntityFromList("File", "name" , "files");
+    },
+    
+    testStateLessEntities: function() {
+        // create entity with name, source and ID
+        var data = this.getSampleData();
+        debugger
+        var EntityFactory = new lively.morphic.Charts.EntityFactory();
+        
+        var Commit = EntityFactory.createEntityTypeFromList("Commit", data, "id");
+        this.assertEquals(Commit.getAll().length, 4);
+        
+        var Author = Commit.extractEntityFromAttribute("Author", "name", "author");
+        this.assertEquals(Author.getAll().length, 3);
+        
+        var File = Commit.extractEntityFromList("File", "name" , "files");
+        this.assertEquals(File.getAll().length, 5);
+        
+        var totalFileChanges = File.getAll().map(function (file) { return file.getCommits()} ).flatten().length;
+        this.assertEquals(totalFileChanges, 7);
         
         
+        // data = this.getSampleData();
+        EntityFactory = new lively.morphic.Charts.EntityFactory();
+        
+        Commit = EntityFactory.createEntityTypeFromList("Commit", data, "id");
+        this.assertEquals(Commit.getAll().length, 4);
+        
+        Author = Commit.extractEntityFromAttribute("Author", "name", "author");
+        this.assertEquals(Author.getAll().length, 3);
+        
+        File = Commit.extractEntityFromList("File", "name" , "files");
+        this.assertEquals(File.getAll().length, 5);
+        
+        totalFileChanges = File.getAll().map(function (file) { return file.getCommits()} ).flatten().length;
+        this.assertEquals(totalFileChanges, 7);
     }
     
 });

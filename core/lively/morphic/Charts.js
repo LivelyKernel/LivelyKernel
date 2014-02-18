@@ -2100,7 +2100,7 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
 
     createEntityTypeFromList : function(entityTypeName, list, identityFunction) {
 
-        var createEntityTypeFromList, _makeEntityType, _addBackReferencesTo, __extractEntityTypeFromList;
+        var createEntityTypeFromList, _makeEntityType, _clearBackReferences, _addBackReferencesTo, __extractEntityTypeFromList, __extractEntityFromAttribute;
 
         createEntityTypeFromList = function(entityTypeName, list, identityFunction) {
           return _makeEntityType(entityTypeName, list);
@@ -2135,10 +2135,24 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
               }
           };
 
+          // clearBackReferences
           currentEntityType.getAll().each(function(eachCurrentEntity) {
             var newEntities;
             if (noArray) {
-              eachNewEntity = eachCurrentEntity[sourceListName];
+              var eachNewEntity = eachCurrentEntity[sourceListName];
+              currentEntityType._clearBackReferences(eachNewEntity);
+            } else {
+              newEntities = eachCurrentEntity[sourceListName];
+              newEntities.each(function(eachNewEntity, index) {
+                currentEntityType._clearBackReferences(eachNewEntity);
+              });
+            }
+          });
+
+          currentEntityType.getAll().each(function(eachCurrentEntity) {
+            var newEntities;
+            if (noArray) {
+              var eachNewEntity = eachCurrentEntity[sourceListName];
               // replace the reference in the array to avoid multiple objects for the same entity
               eachCurrentEntity[sourceListName] = _getOrAdd(eachNewEntity);
               currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
@@ -2151,10 +2165,6 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
                 currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
               });
             }
-              
-
-            
-
           });
     
           // convert to array
@@ -2175,6 +2185,7 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
             extractEntityFromList : __extractEntityTypeFromList,
             extractEntityFromAttribute : __extractEntityFromAttribute,
             _addBackReferencesTo : _addBackReferencesTo,
+            _clearBackReferences : _clearBackReferences,
             getAll : function() { return Entity.items }
           };
 
@@ -2194,6 +2205,13 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
           }
 
           return Entity;
+        };
+        
+        
+        _clearBackReferences = function(entity) {
+            debugger;
+            var attribute = "referencing" + this.entityTypeName + "s";
+            entity[attribute] = [];
         };
 
         _addBackReferencesTo = function(entity, reference) {

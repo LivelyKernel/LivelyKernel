@@ -1316,7 +1316,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
     initialize: function($super) {
         $super();
         this.description = "LinearLayout";
-        this.extent = pt(500, 500);
+        this.extent = pt(400, 400);
         
         this.setFill(Color.white);
         this.OFFSET = 20;
@@ -1369,7 +1369,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     initialize: function($super) {
         $super();
         this.description = "Canvas";
-        this.extent = pt(500, 500);
+        this.extent = pt(400, 400);
         
         this.setFill(Color.white);
         this.setName("Canvas");

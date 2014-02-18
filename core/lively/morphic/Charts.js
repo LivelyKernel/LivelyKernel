@@ -1936,7 +1936,7 @@ onMouseUp: function(evt) {
             } else {
                 component.maximizedHeight = component.getExtent().y;
                 component.componentBody.setVisible(false);
-                component.setExtent(pt(component.getExtent().x, 24));
+                component.setExtent(pt(component.getExtent().x, 24 + 6));
                 component.isMinimized = true;
             }
             this.flip();

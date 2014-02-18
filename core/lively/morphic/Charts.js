@@ -1326,7 +1326,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     arrangeOnCircle : function(radius, center, data) {
         var path = [];
-        for (var i = 0; i < 360; i = i + 10){
+        for (var i = 0; i <= 360; i = i + 10){
             var radianMeasure = i/360*2*Math.PI;
             var newPT = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
             path.push(newPT);

@@ -176,6 +176,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
 });
 
+Object.extend(lively.morphic.Charts.Component, {
+    create: function(componentName) {
+        if (componentName == "FanIn" || componentName == "FanOut") {
+            return new lively.morphic.Charts[componentName]();
+        } else {
+            return new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts[componentName]());
+        }
+    }
+});
+
 
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent", {
 
@@ -330,7 +340,8 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     },
     
     createComponent: function(componentName) {
-        var newComponent = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts[componentName]());
+        var newComponent = new lively.morphic.Charts.Component.create(componentName);
+        
         var extent =  this.componentMorph.getExtent();
         var offset = pt(0,extent.y + newComponent.componentOffset);
         

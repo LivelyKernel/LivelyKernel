@@ -426,6 +426,9 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         node = this.parse('function x(a) { arguments[0] = 2; return a; } x(1);');
         this.assertEquals(2, this.interpret(node), 'indirectly modifying arguments did not work');
 
+        node = this.parse('function x(a) { var z = []; arguments = z; z[0] = 23; return a; } x(5)');
+        this.assertEquals(5, this.interpret(node), 'actual arguments changed via non-Argument obj');
+
         // FIXME: this should work too! (non-strict)
         // node = this.parse('function x(a) { a = 2; return arguments[0]; } x(1);');
         // this.assertEquals(2, this.interpret(node), 'modifying named argument did not work');
@@ -453,6 +456,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
                 + 'foo();\n',
             node = this.parse(src);
         this.assertEquals(undefined, this.interpret(node));
+    },
+
+    test28gArgumentCalledArguments: function() {
+        var node = this.parse('function x(arguments) { return arguments; } x(1, 2, 3);');
+        this.assertEquals(1, this.interpret(node));
     },
 
     test29NullisNull: function() {

@@ -34,12 +34,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'accessing', {
     setVariable: function(name, state) {
         var scope = state.currentFrame.getScope();
-        if (name == 'arguments' && scope.getMapping() != Global && scope.getParentScope() != null) {
-            state.currentFrame.arguments = state.result;
-            return;
-        }
-        var result = scope.findScope(name); // may throw ReferenceError
-        result.scope.set(name, state.result);
+        if (name != 'arguments')
+            scope = scope.findScope(name).scope; // may throw ReferenceError
+        scope.set(name, state.result);
     },
 
     setSlot: function(node, state) {

@@ -245,7 +245,7 @@ Object.extend(lively.ide.ModuleWrapper, {
         }
     },
 
-    newVirtualModuleId: function() { return "virtual-module.x" + Strings.newUUID() }
+    newVirtualModuleId: function() { return "virtual_module.x" + Strings.newUUID().replace(/-/g, '_'); }
 
 });
 

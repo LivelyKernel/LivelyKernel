@@ -77,7 +77,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         var header = new lively.morphic.Morph();
         header.setName("ComponentHeader");
         header.setStyleClassNames(["ComponentHeader"]);
-        header.setExtent(pt(400, headerHeight));
+        header.setExtent(pt(this.getExtent().x, headerHeight));
         header.ignoreEvents();
         header.setAppearanceStylingMode(false);
         header.setStyleSheet(this.getHeaderCSS());
@@ -1432,7 +1432,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
     initialize: function($super) {
         $super();
         this.description = "LinearLayout";
-        this.extent = pt(400, 400);
+        this.extent = pt(600, 600);
         
         this.setFill(Color.white);
         this.OFFSET = 20;
@@ -1485,7 +1485,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     initialize: function($super) {
         $super();
         this.description = "Canvas";
-        this.extent = pt(400, 400);
+        this.extent = pt(600, 600);
         
         this.setFill(Color.white);
         this.setName("Canvas");

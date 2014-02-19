@@ -407,13 +407,27 @@ lively.versions.InsertProxiesTransformations.subclass(
             });
         }
         
+        
+        
         if (node instanceof UglifyJS.AST_Call) {
             
-            if (this.isTransformedOVGetCall(node.expression)) {
+            if (node instanceof UglifyJS.AST_New) {
+                if (this.isTransformedOVGetCall(node.expression)) {
+                    return new UglifyJS.AST_Call({
+                        expression: new UglifyJS.AST_Dot({
+                            expression: node.expression,
+                            property: '__OV__construct',
+                        }),
+                       args: node.args,
+                    });
+                }
+            }
+            else if (this.isTransformedOVGetCall(node.expression)) {
                 node.expression.expression.property = '__OV__getAndApply'
                 node.expression.args.pushAll(node.args);
                 return node.expression;
-            } else {
+            } 
+            else {
                 // nonObjectFunctionCall such as: var func = function() {}; func();
                 return new UglifyJS.AST_Call({
                     expression: new UglifyJS.AST_Dot({
@@ -426,19 +440,21 @@ lively.versions.InsertProxiesTransformations.subclass(
         }
         
         if (node instanceof UglifyJS.AST_Assign) {
-            if (node.operator = "=") {
-                if (this.isTransformedOVGetCall(node.left)) {            
-                    return new UglifyJS.AST_Call({
-                        expression: new UglifyJS.AST_Dot({
-                            expression: node.left.expression.expression,
-                            property: '__OV__set',
-                        }),
-                        args: [
-                            node.left.args.first(),
-                            node.right
-                            ],
-                    });
-                }
+            if (node.operator != "=") 
+                throw new Error("Assign statements without = operator are not yet supported")
+                
+          
+            if (this.isTransformedOVGetCall(node.left)) {            
+                return new UglifyJS.AST_Call({
+                    expression: new UglifyJS.AST_Dot({
+                        expression: node.left.expression.expression,
+                        property: '__OV__set',
+                    }),
+                    args: [
+                        node.left.args.first(),
+                        node.right
+                        ],
+                });
             }
         }
         
@@ -448,7 +464,13 @@ lively.versions.InsertProxiesTransformations.subclass(
         return node instanceof UglifyJS.AST_Call && 
             node.expression instanceof UglifyJS.AST_Dot &&
             node.expression.property == '__OV__get';
-    }
+    },
+    isTransformedOVGetAndApplyCall: function(node) {
+        return node instanceof UglifyJS.AST_Call && 
+            node.expression instanceof UglifyJS.AST_Dot &&
+            node.expression.property == '__OV__getAndApply';
+    },
+
 
 });
     

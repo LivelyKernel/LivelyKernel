@@ -614,10 +614,27 @@ TestCase.subclass(
             'var obj = {};\n' +
             '\n' + 
             'obj.__OV__set(\"foo\", 5);';
-        var transformed = this.transform(input);
-        debugger;
-        this.assertEquals(transformed, expectedOutput);
+        
+        this.assertEquals(this.transform(input), expectedOutput);
     },
+    test09IndexStyleEqualAssign: function() {
+        var input = 'var obj = {}; obj["foo"] = 5;',
+            expectedOutput = 
+            'var obj = {};\n' +
+            '\n' + 
+            'obj.__OV__set(\"foo\", 5);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test10Construct: function() {
+        var input = 'new lively.obj.foo(5);',
+            expectedOutput = 
+            'lively.__OV__get("obj").__OV__get("foo").__OV__construct(5);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+
+
 
 
 

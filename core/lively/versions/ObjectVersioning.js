@@ -428,6 +428,10 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 targetObject = this.targetObject();
                 
+				if (value === 277) {
+					console.log("here");
+				}
+				
                 // copy-on-write: create and work on a new version of the target
                 // when target was commited with a previous version
                 if (this.shouldObjectBeCopiedBeforeWrite(targetObject) &&
@@ -1222,6 +1226,6 @@ lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 
 // ----- GLOBAL ACTIVATION -----
 
-lively.versions.ObjectVersioning.init();
+lively.versions.ObjectVersioning.start();
 
 });

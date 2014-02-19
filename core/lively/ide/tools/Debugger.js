@@ -204,138 +204,91 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             },
             sourceModule: "lively.morphic.Core",
             submorphs: [{
+                _AutocompletionEnabled: true,
                 _BorderColor: Color.rgb(230,230,230),
                 _BorderRadius: 0,
                 _BorderWidth: 1,
-                _ClipMode: "auto",
                 _Extent: lively.pt(489.5,311.6),
-                _Fill: Color.rgb(255,255,255),
-                className: "lively.morphic.Box",
-                droppingEnabled: true,
-                isCopyMorphRef: true,
-                layout: {
-                    resizeHeight: true,
-                    resizeWidth: true
-                },
-                morphRefId: 2,
-                name: "FrameSourcePane",
-                sourceModule: "lively.morphic.Core",
-                submorphs: [{
-                    _BorderColor: Color.rgb(95,94,95),
-                    _BorderRadius: 4,
-                    _Extent: lively.pt(28.0,100.0),
-                    _FontFamily: "monospace",
-                    _InputAllowed: true,
-                    _Position: lively.pt(1.0,1.1),
-                    accessibleInInactiveWindow: true,
-                    allowInput: true,
-                    className: "lively.morphic.Text",
-                    doNotSerialize: ["parseErrors"],
-                    emphasis: [[0,0,{
-                        fontWeight: "normal",
-                        italics: "normal"
-                    }]],
-                    evalEnabled: false,
-                    fixedHeight: true,
-                    layout: {
-                        resizeHeight: true,
-                        resizeWidth: true
-                    },
-                    name: "FrameSource",
-                    sourceModule: "lively.morphic.TextCore",
-                    submorphs: [{
-                        _Align: "right",
-                        _Extent: lively.pt(16.0,30.0),
-                        _FontFamily: "monospace",
-                        _HandStyle: "default",
-                        _InputAllowed: true,
-                        _MaxTextWidth: 8,
-                        _MinTextWidth: 8,
-                        _PointerEvents: "none",
-                        _Position: lively.pt(0.0,1.0),
-                        _TextColor: Color.rgb(128,128,128),
-                        allowInput: true,
-                        className: "lively.morphic.Text",
-                        emphasis: [[0,0,{
-                            fontWeight: "normal",
-                            italics: "normal"
-                        }]],
-                        evalEnabled: false,
-                        eventsAreDisabled: true,
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        sourceModule: "lively.morphic.TextCore"
-                    }],
-                    boundEval: function boundEval(str) {
-                  var frame = this.get("Debugger").currentFrame;
-                  if (!frame) return;
-                  var str = "function(){\n" + str + "\n}";
-                  var fun = Function.fromString(str).forInterpretation();
-                  fun.lexicalScope = frame;
-                  fun.basicApply = function(f) {
-                    f.mapping = frame.mapping;
-                    return lively.ast.Function.prototype.basicApply.call(this, f);
-                  };
-                  try {
-                    return fun.call(frame.getThis());
-                  } finally {
-                    this.get("FrameScope").updateList(
-                        frame.listItemsForIntrospection()
-                    );
-                  }
-                },
-                    connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "textString", this, "showLineNumbers", {});
-                },
-                    debugSelection: function debugSelection() {
-                  var frame = this.get("Debugger").currentFrame;
-                  if (!frame) return;
-                  var str = "function(){\n" + this.getSelectionOrLineString() + "\n}";
-                  var fun = Function.fromString(str).forInterpretation();
-                  fun.lexicalScope = frame;
-                  try {
-                    return fun.apply(frame.getThis(), [], {breakAtCalls:true});
-                  } catch(e) {
-                    if (e.isUnwindException) {
-                      lively.ast.openDebugger(e.topFrame);
-                    } else {
-                      this.showError(e);
-                    }
-                  } finally {
-                    this.get("FrameScope").updateList(
-                        frame.listItemsForIntrospection()
-                    );
-                  }
-                },
-                    highlightPC: function highlightPC(target) {
-                    var frame = this.get("Debugger").currentFrame;
-                    if (frame && frame.pc !== null) {
-                        var style = { backgroundColor: Color.rgb(255,255,127) };
-                        target.emphasize(style, frame.pc.pos[0], frame.pc.pos[1]);
-                    }
-                },
-                    reset: function reset() {
-                    lively.bindings.disconnectAll(this);
-                    this.textString = '';
-                    this.savedTextString = '';
-                    this.submorphs[0].textString = '';
-                    this.setExtent(pt(100,100));
-                    lively.bindings.connect(this, 'textString', this, 'showLineNumbers');
-                },
-                    showLineNumbers: function showLineNumbers() {
-                    this.setWhiteSpaceHandling("pre");
-                    var lines = this.textString.split("\n");
-                    var numLines = lines.length - (lines.last() == "" ? 1 : 0);
-                    var maxDigits = String(numLines).length;
-                    this.setPadding(new Rectangle(maxDigits * 12 + 8, 2, maxDigits * -12, 0));
-                    this.submorphs[0].setExtent(pt(maxDigits * 12 + 4, 30));
-                    var str = Array.range(1,numLines).join("\n");
-                    this.submorphs[0].textString = str;
-                },
-                    showSource: function showSource(frame) {
-                    this.textString = frame.func ? frame.func.getSource() : '';
+                _FontSize: 12,
+                _LineWrapping: true,
+                _InputAllowed: true,
+                _Position: lively.pt(1.0,1.1),
+                _ShowActiveLine: false,
+                _ShowErrors: true,
+                _ShowGutter: true,
+                _ShowIndents: true,
+                _ShowInvisibles: false,
+                _ShowPrintMargin: false,
+                _ShowWarnings: true,
+                _SoftTabs: true,
+                _TextMode: "javascript",
+                _Theme: lively.Config.get("aceWorkspaceTheme"),
+                _aceInitialized: true,
+                accessibleInInactiveWindow: true,
+                allowInput: true,
+                className: "lively.morphic.CodeEditor",
+                evalEnabled: false,
+                fixedHeight: true,
+                name: "FrameSource",
+                lastSaveSource: '',
+                sourceModule: "lively.ide.CodeEditor",
+                boundEval: function boundEval(str) {
+              var frame = this.get("Debugger").currentFrame;
+              if (!frame) return;
+              var str = "function(){\n" + str + "\n}";
+              var fun = Function.fromString(str).forInterpretation();
+              fun.lexicalScope = frame;
+              fun.basicApply = function(f) {
+                f.mapping = frame.mapping;
+                return lively.ast.Function.prototype.basicApply.call(this, f);
+              };
+              try {
+                return fun.call(frame.getThis());
+              } finally {
+                this.get("FrameScope").updateList(
+                    frame.listItemsForIntrospection()
+                );
+              }
+            },
+                connectionRebuilder: function connectionRebuilder() {
+            },
+                debugSelection: function debugSelection() {
+              var frame = this.get("Debugger").currentFrame;
+              if (!frame) return;
+              var str = "function(){\n" + this.getSelectionOrLineString() + "\n}";
+              var fun = Function.fromString(str).forInterpretation();
+              fun.lexicalScope = frame;
+              try {
+                return fun.apply(frame.getThis(), [], {breakAtCalls:true});
+              } catch(e) {
+                if (e.isUnwindException) {
+                  lively.ast.openDebugger(e.topFrame);
+                } else {
+                  this.showError(e);
                 }
-                }]
+              } finally {
+                this.get("FrameScope").updateList(
+                    frame.listItemsForIntrospection()
+                );
+              }
+            },
+                highlightPC: function highlightPC(target) {
+                var frame = this.get("Debugger").currentFrame;
+                if (frame && frame.pc !== null) {
+                    var style = { backgroundColor: Color.rgb(255,255,127) };
+                    target.emphasize(style, frame.pc.pos[0], frame.pc.pos[1]);
+                }
+            },
+                reset: function reset() {
+                lively.bindings.disconnectAll(this);
+                this.textString = '';
+                this.savedTextString = '';
+                this.submorphs[0].textString = '';
+                this.setExtent(pt(100,100));
+            },
+                showSource: function showSource(frame) {
+                this.textString = frame.func ? frame.func.getSource() : '';
+            }
             },{
                 _BorderColor: Color.rgb(230,230,230),
                 _BorderRadius: 0,

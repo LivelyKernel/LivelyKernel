@@ -8,14 +8,15 @@ Object.extend(lively.ast, {
         return true;
     },
     openDebugger: function openDebugger(frame, title) {
-        var part = lively.PartsBin.getPart("Debugger", "PartsBin/Debugging");
-        part.targetMorph.setTopFrame(frame);
-        if (title) part.setTitle(title);
-        part.openInWorld();
-        var m = part;
-        m.align(
-            m.bounds().topCenter().addPt(pt(0,-20)),
-            lively.morphic.World.current().visibleBounds().topCenter());
+        require('lively.ide.tools.Debugger').toRun(function() {
+            var m = lively.BuildSpec("lively.ide.tools.Debugger").createMorph();
+            m.targetMorph.setTopFrame(frame);
+            if (title) m.setTitle(title);
+            m.openInWorld();
+            m.align(
+                m.bounds().topCenter().addPt(pt(0,-20)),
+                lively.morphic.World.current().visibleBounds().topCenter());
+        });
     },
 });
 

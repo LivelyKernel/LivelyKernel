@@ -705,7 +705,6 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
     testStateLessEntities: function() {
         // create entity with name, source and ID
         var data = this.getSampleData();
-        debugger
         var EntityFactory = new lively.morphic.Charts.EntityFactory();
         
         var Commit = EntityFactory.createEntityTypeFromList("Commit", data, "id");

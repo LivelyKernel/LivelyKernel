@@ -14,6 +14,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.componentBody = this.createComponentBody();
 
         this.layout = {adjustForNewBounds: true};
+        
+        this.minimizeOnHeaderClick();
     },
     createMinimizer: function() {
         // abstract
@@ -85,13 +87,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         header.setBorderStyle();
         header.setAppearanceStylingMode(false);
         
-        // This is useless at the moment, since events are
-        // disabled on the header.
-        var _this = this;
-        header.onMouseUp = function(evt) {
-            _this.minimize(evt);
-        }
-        
         this.addMorph(header);
         
         header.layout = {
@@ -114,7 +109,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         this.errorText = this.createErrorText();
         header.addMorph(this.errorText);
-        header.addMorph(this.createMinimizer());
         
         return header;
     },
@@ -175,8 +169,21 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     getHeaderCSS: function() {
         // abstract
-    }
-
+    },
+    
+    minimizeOnHeaderClick: function() {
+        var _this = this;
+        this.onMouseUp = function(evt) {
+            var headerClicked = _this.componentHeader.fullContainsWorldPoint(pt(evt.pageX, evt.pageY));
+            if (headerClicked) {
+                _this.minimize(evt);
+            }
+        }
+    },
+    
+    wantsToBeDroppedInto: function(dropTarget) {
+        return dropTarget == $world;
+    },
 });
 
 Object.extend(lively.morphic.Charts.Component, {
@@ -217,9 +224,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     
     update: function(data) {
         this.content.update(data);
-    },
-    wantsToBeDroppedInto: function(dropTarget) {
-        return dropTarget == $world;
     },
 
     onDrag: function($super, evt) {
@@ -1781,7 +1785,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     
     migrateFromPart: function(oldComponent) {
         this.codeEditor.setTextString(oldComponent.content.codeEditor.getTextString());
-        debugger;
         var newPrototype = this.getSubmorphsByAttribute("name","PrototypeMorph")[0];
         var oldPrototype = oldComponent.getSubmorphsByAttribute("name","PrototypeMorph")[0];
         var componentBody = this.component.getSubmorphsByAttribute("name","ComponentBody")[0];
@@ -2362,9 +2365,7 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
           return Entity;
         };
         
-        
         _clearBackReferences = function(entity) {
-            debugger;
             var attribute = "referencing" + this.entityTypeName + "s";
             entity[attribute] = [];
         };

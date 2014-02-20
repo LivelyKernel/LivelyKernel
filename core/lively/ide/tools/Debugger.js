@@ -211,21 +211,21 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 _Extent: lively.pt(489.5,311.6),
                 _FontSize: 12,
                 _LineWrapping: true,
-                _InputAllowed: true,
+                _InputAllowed: false,
                 _Position: lively.pt(1.0,1.1),
-                _ShowActiveLine: false,
-                _ShowErrors: true,
+                _ShowActiveLine: true,
+                _ShowErrors: false,
                 _ShowGutter: true,
                 _ShowIndents: true,
                 _ShowInvisibles: false,
                 _ShowPrintMargin: false,
-                _ShowWarnings: true,
+                _ShowWarnings: false,
                 _SoftTabs: true,
                 _TextMode: "javascript",
                 _Theme: lively.Config.get("aceWorkspaceTheme"),
                 _aceInitialized: true,
                 accessibleInInactiveWindow: true,
-                allowInput: true,
+                allowInput: false,
                 className: "lively.morphic.CodeEditor",
                 evalEnabled: false,
                 fixedHeight: true,
@@ -272,11 +272,15 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 );
               }
             },
-                highlightPC: function highlightPC(target) {
+                highlightPC: function highlightPC() {
                 var frame = this.get("Debugger").currentFrame;
                 if (frame && frame.pc !== null) {
-                    var style = { backgroundColor: Color.rgb(255,255,127) };
-                    target.emphasize(style, frame.pc.pos[0], frame.pc.pos[1]);
+                    // var style = { backgroundColor: Color.rgb(255,255,127) };
+                    // target.emphasize(style, frame.pc.pos[0], frame.pc.pos[1]);
+                    var context = frame.func.getAst(),
+                        start = frame.pc.start - context.start,
+                        end = frame.pc.end - context.start;
+                    this.setSelectionRange(start, end);
                 }
             },
                 reset: function reset() {
@@ -446,6 +450,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         setCurrentFrame: function setCurrentFrame(frame) {
         this.currentFrame = frame;
         this.get("FrameSource").showSource(frame);
+        this.get("FrameSource").highlightPC();
         this.get("FrameScope").updateList(frame);
         if (frame.isResuming()) {
             this.get("ContinueButton").isActive = true;

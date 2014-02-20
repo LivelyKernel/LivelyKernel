@@ -59,6 +59,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     onContentChanged: function() {
         // abstract
     },
+
     minimize: function(evt) {
         if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
             if (this.isMinimized) {
@@ -214,6 +215,9 @@ Object.extend(lively.morphic.Charts.Component, {
         } else {
             return new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts[componentName]());
         }
+    },
+    createWindow: function(componentName) {
+        return new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts[componentName]());
     }
 });
 
@@ -224,6 +228,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         $super(content);
         
         this.componentHeader.addMorph(this.createCloser());
+        this.componentHeader.addMorph(this.createSwapper());
         
         this.setExtent(pt(400, 300));
         this.isDragged = true;
@@ -244,12 +249,29 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     },
     
     update: function(data) {
+        this.data = data;
         this.content.update(data);
+    },
+    
+    swapContent: function(newContentName) {
+        var newContent = new lively.morphic.Charts[newContentName]();
+        
+        newContent.setExtent(this.content.getExtent());
+        newContent.setPosition(this.content.getPosition());
+        
+        this.content.remove();
+        this.content = newContent;
+        this.content.component = this;
+        
+        this.componentBody.addMorph(newContent);
+        this.content.update(this.data);
+        
     },
 
     onDrag: function($super, evt) {
         $super();
         this.position = this.getPositionInWorld();
+        console.log(this.position);
     },
     remove: function($super) {
         $super();
@@ -277,6 +299,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         closer.layout = {moveHorizontal: true}
         
         return closer;
+    },
+    createSwapper: function() {
+        var swapper = new lively.morphic.Charts.Swapper();
+        swapper.setPosition(pt(this.getExtent().x - 62, 8));
+        swapper.layout = {moveHorizontal: true}
+        
+        return swapper;
     },
     
     getBodyCSS: function() {
@@ -513,7 +542,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     
     openDataInspector: function(evtPosition) {
         
-        this.viewer = new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts.JsonViewer());
+        this.viewer = lively.morphic.Charts.Component.createWindow("JsonViewer");
         this.viewer.update(this.data);
         this.viewer.openInHand();
         
@@ -530,11 +559,15 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
         this.viewerLine.addMorph(circle);
         $world.addMorph(this.viewerLine);
         
-        var converter = function(pos) {
-            return pos.addPt(pt(190,120));
-        }
+        var spec = {
+            converter: 
+                function(pos) {
+                    console.log(pos);
+                    return pos.addPt(pt(200, 150));
+                }
+        };
         
-        connect(this.viewer, 'position', this.viewerLine.getControlPoints().last(), 'setPos', converter);
+        connect(this.viewer, 'position', this.viewerLine.getControlPoints().last(), 'setPos', spec);
         
     },
     
@@ -1826,7 +1859,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         this.extent = pt(400,200);
         
         this.clearTable();
-         
+        
         this.rows = 0;
         this.columns = 0;
     },
@@ -1837,6 +1870,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         spec.showRowHeads = false;
             
         var table = new lively.morphic.DataGrid(rowCount, columnCount, spec);
+        table.setFill(Color.white);
         //set gridmode of table cells to hidden
         table.rows.each(function(row){
             row.each(function(ea){
@@ -2241,6 +2275,48 @@ onMouseUp: function(evt) {
     
     applyErrorStyle: function() {
         this.line.setBorderColor(Color.rgb(169, 68, 66));
+    }
+});
+
+lively.morphic.Morph.subclass("lively.morphic.Charts.Swapper",
+{
+    initialize: function($super) {
+        $super();
+        
+        var width = 8;
+        var height = 8;
+        
+        this.setFillOpacity(0);
+        this.setExtent(pt(width, height));
+        this.setName("Swapper");
+        
+        var vertices = [pt(0, height / 5),  pt(width / 2, height), pt(width, height / 5)];
+        var line = new lively.morphic.Path(vertices);
+        line.setBorderColor(Color.white);
+        line.setBorderWidth(2);
+        this.addMorph(line);
+        
+        this.submorphs[0].disableEvents();
+    },
+    onMouseUp: function(evt) {
+        
+        if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
+            this.showContentMenu();
+        }
+    },
+    showContentMenu: function() {
+        var component = this.owner.owner;
+        
+        var componentNames = ["JsonViewer", "Table"];
+        
+        var contextItems = componentNames.map(function(ea) {
+            return [ea, function() {
+                component.swapContent(ea);
+            }];
+        });
+        
+        var menu = new lively.morphic.Menu("Select Viewer", contextItems);
+        menu.openIn($world, this.getPositionInWorld());
     }
 });
 

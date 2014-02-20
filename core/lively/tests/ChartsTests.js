@@ -543,8 +543,11 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
         
         var inited = false;
         var _this = this;
-        components[0].content.codeEditor.withAceDo(function() { inited = true; });
-        this.waitFor(function() { return !!inited }, 10, function() {
+        setTimeout(function() {
+            components[0].content.codeEditor.withAceDo(function() { inited = true; });
+        }, 100);
+        
+        this.waitFor(function() { return inited }, 10, function() {
             components[0].onContentChanged();
             
             _this.assertEquals(components[0].data, "testdata");

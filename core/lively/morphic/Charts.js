@@ -1295,7 +1295,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.content.migrateFromPart(oldComponent);
         oldComponent.remove();
         $world.addMorph(this);
-        
     },
 
     getBodyCSS : function() {

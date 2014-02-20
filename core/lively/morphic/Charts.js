@@ -16,6 +16,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.layout = {adjustForNewBounds: true};
         
         this.minimizeOnHeaderClick();
+        this.makeReframeHandles();
     },
     createMinimizer: function() {
         // abstract
@@ -184,6 +185,26 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     wantsToBeDroppedInto: function(dropTarget) {
         return dropTarget == $world;
     },
+    
+    makeReframeHandles: function () {
+        this.spacing = 4;
+        // create three reframe handles (bottom, right, and bottom-right) and align them to the window
+        var e = this.getExtent();
+        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+        this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(this.spacing)));
+        this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(this.spacing)));
+        this.alignAllHandles();
+    },
+    
+    alignAllHandles: function () {
+        var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
+        handles.forEach(function (each) {
+            if (each && each.owner) {
+                each.alignWithWindow();
+            }
+        })
+    }
+    
 });
 
 Object.extend(lively.morphic.Charts.Component, {

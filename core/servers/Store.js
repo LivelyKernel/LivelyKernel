@@ -2,8 +2,9 @@ var f = require('util').format;
 var i = require('util').inspect;
 var vm = require('vm');
 var fs = require('fs');
-var inMemoryStores = {};
+inMemoryStores = {};
 var changes = {};
+inMemoryStores
 
 function loadLivelyCode(path) {
     lively = global.lively || {};
@@ -151,3 +152,5 @@ module.exports = function(route, app) {
         });
     });
 }
+module.exports.read = read;
+module.exports.write = write;

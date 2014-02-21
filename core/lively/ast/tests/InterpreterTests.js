@@ -795,4 +795,80 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 
 });
 
+TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
+'helper', {
+
+    parse: function(src) {
+        return acorn.walk.addAstIndex(lively.ast.acorn.parse(src));
+    }
+
+},
+'testing', {
+
+    test01SimpleSteppingFromStart: function() {
+        var node = this.parse('var x = 1; x = 2;'),
+            program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program),
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            result;
+
+        interpreter.haltAtNextStatement();
+        try {
+            // throws Break
+            interpreter.runWithFrame(node, frame);
+        } catch (e) {
+            result = e;
+        }
+        this.assertEquals('Break', result && result.toString(), 'did not halt before next statement');
+        this.assertEquals(undefined, frame.getScope().get('x'), 'did not execute first statement');
+        this.assertEquals(2, interpreter.runFromPC(frame), 'did not finish resume');
+    },
+
+    test02SimpleSteppingInTheMiddle: function() {
+        var node = this.parse('var x = 1; x = 2; x = 3;'),
+            program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program, { x: undefined }),
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            result;
+
+        frame.setPC(node.body[0]); // var x = 1;
+        interpreter.haltAtNextStatement();
+        try {
+            interpreter.runFromPC(frame);
+        } catch (e) {
+            result = e;
+        }
+        this.assertEquals('Break', result && result.toString(), 'did not halt before next statement');
+        this.assertEquals(1, frame.getScope().get('x'), 'did not execute first statement');
+
+        interpreter.haltAtNextStatement();
+        try {
+            interpreter.runFromPC(frame);
+        } catch (e) {
+            result = e;
+        }
+        this.assertEquals('Break', result && result.toString(), 'did not halt after second statement');
+        this.assertEquals(2, result && result.lastResult, 'did not return last statements result');
+        this.assertEquals(3, interpreter.runFromPC(frame), 'did not finish resume');
+    },
+
+    test03SteppingOverFunction: function() {
+        var node = this.parse('(function() { x = 1; })()'),
+            program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program, { x: 0 }),
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            result;
+
+        frame.setPC(node.body[0]);
+        interpreter.haltAtNextStatement();
+        try {
+            interpreter.runFromPC(frame);
+        } catch (e) {
+            result = e;
+        }
+        this.assertEquals(1, frame.getScope().get('x'), 'did not execute first statement');
+    }
+
+});
+
 }) // end of module

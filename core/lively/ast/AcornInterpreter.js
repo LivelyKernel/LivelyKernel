@@ -6,6 +6,15 @@ module('lively.ast.AcornInterpreter').requires('lively.ast.acorn', 'lively.ast.R
 //       - different arguments handling (immutable)
 */
 Object.subclass('lively.ast.AcornInterpreter.Interpreter',
+'initialization', {
+
+    initialize: function() {
+        this.breakAtStatement = false; // for e.g. step over
+    },
+
+    statements: ['EmptyStatement', 'BlockStatement', 'ExpressionStatement', 'IfStatement', 'LabeledStatement', 'BreakStatement', 'ContinueStatement', 'WithStatement', 'SwitchStatement', 'ReturnStatement', 'TryStatement', 'ThrowStatement', 'WhileStatement', 'DoWhileStatement', 'ForStatement', 'ForInStatement', 'DebuggerStatement', 'VariableDeclaration', 'FunctionDeclaration', 'SwitchCase']
+
+},
 'interface', {
 
     run: function(node, optMapping) {
@@ -19,6 +28,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         return this.runWithFrameAndResult(node, frame, undefined);
     },
 
+    runFromPC: function(frame, lastResult) {
+        return this.runWithFrameAndResult(frame.getOriginalAst(), frame, lastResult);
+    },
+
     runWithFrameAndResult: function(node, frame, result) {
         var state = {
             currentFrame: frame,
@@ -26,12 +39,22 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             result: result
         };
         if (!frame.isResuming()) this.evaluateDeclarations(node, frame);
-        this.accept(node, state);
+
+        try {
+            this.accept(node, state);
+        } catch (e) {
+            if (e.toString() == 'Break')
+                frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
+            throw e;
+        }
+        // finished execution, remove break
+        this.breakAtStatement = false;
         return state.result;
     }
 
 },
 'accessing', {
+
     setVariable: function(name, state) {
         var scope = state.currentFrame.getScope();
         if (name != 'arguments')
@@ -137,6 +160,17 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     }
 
 },
+'execution', {
+
+    haltAtNextStatement: function() {
+        this.breakAtStatement = true;
+    },
+
+    shouldHaltAtNextStatement: function() {
+        return this.breakAtStatement;
+    }
+
+},
 'helper', {
 
     findNodeLabel: function(node, state) {
@@ -176,6 +210,15 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             if (frame.isAlreadyComputed(node.astIndex)) {
                 state.result = frame.alreadyComputed[node.astIndex];
                 return;
+            }
+        } else {
+            if (this.shouldHaltAtNextStatement() && (this.statements.indexOf(node.type) != -1)) {
+                this.breakAtStatement = false;
+                throw {
+                    toString: function() { return 'Break'; },
+                    astIndex: node.astIndex,
+                    lastResult: state.result
+                };
             }
         }
 

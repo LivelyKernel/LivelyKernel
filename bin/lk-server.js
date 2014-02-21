@@ -172,7 +172,7 @@ function startServer(callback) {
         host:                host,
         port:                port,
         fsNode:              options.lkDir, // LivelyKernel directory to serve from
-        dbConf:              options.dbConfig, // lively-davfs
+        dbConf:              dbConfig, // lively-davfs
         enableTesting:       env.LIFE_STAR_TESTING  === 'testing',
         logLevel:            options.logLevel || env.LIFE_STAR_LOG_LEVEL, // log level for logger: error, warning, info, debug
         behindProxy:         options.defined('behindProxy'),

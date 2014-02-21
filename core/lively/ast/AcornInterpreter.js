@@ -1,4 +1,4 @@
-module('lively.ast.AcornInterpreter').requires('lively.ast.acorn').toRun(function() {
+module('lively.ast.AcornInterpreter').requires('lively.ast.acorn', 'lively.ast.Rewriting').toRun(function() {
 
 /*
 // reimplementation of lively.ast.InterpreterVisitor for Mozilla Parser API

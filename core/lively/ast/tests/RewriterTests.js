@@ -897,7 +897,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(6, result, 'resume not working');
     },
 
-    test13DebuggerInInterpretation: function() {
+    test13aDebuggerInInterpretation: function() {
         function code() {
             var sum = 1; debugger; sum += 2; debugger; sum += 3; return sum;
         }
@@ -905,6 +905,18 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
             continuation2 = continuation1.resume(),
             result = continuation2.resume();
         this.assertEquals(6, result, '2x resume not working');
+    },
+
+    test13bNestedDebuggerInInterpretation: function() {
+        function code() {
+            var sum = 1; debugger; (function() { sum += 2; debugger; })(); sum += 3; return sum;
+        }
+
+        var continuation1 = lively.ast.StackReification.run(code, this.astRegistry),
+            continuation2 = continuation1.resume();
+        this.assert(continuation2.currentFrame.getParentFrame() != null, 'nested frame was not created');
+        var result = continuation2.resume();
+        this.assertEquals(6, result, 'second resume not working');
     },
 
     test14ArgumentsInInterpretation: function() {

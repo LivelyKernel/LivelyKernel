@@ -164,6 +164,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
 },
 'visiting', {
+
     accept: function(node, state) {
         var frame = state.currentFrame;
 
@@ -178,7 +179,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             }
         }
 
-        this['visit' + node.type](node, state);
+        try {
+            this['visit' + node.type](node, state);
+        } catch (e) {
+            if (e.isUnwindException && (frame.getPC() == null))
+                frame.setPC(node);
+            throw e;
+        }
     },
 
     visitProgram: function(node, state) {
@@ -922,10 +929,15 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // important: lively.ast.Interpreter.Frame.top is only valid
             // during the native VM-execution time. When the execution
             // of the interpreter is stopped, there is no top frame anymore.
+
             return interpreter.runWithFrame(this.node.body, frame);
-        } finally {
-            // TODO: reactivate?!
-            // lively.ast.AcornInterpreter.Frame.top = null;
+        } catch (ex) {
+            if (ex.isUnwindException) {
+                var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
+                frame.setPC(pc);
+                ex.shiftFrame(frame);
+            }
+            throw ex;
         }
     },
 

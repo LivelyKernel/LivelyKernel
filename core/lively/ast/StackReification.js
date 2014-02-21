@@ -235,7 +235,8 @@ Object.subclass('lively.ast.Continuation',
                 // FIXME: adjust already computed!
                 // frame.setAlreadyComputed(alreadyComputed);
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
-                frame.setPC(pc);
+                // mr 2014-02-21: PC should have been set by accept
+                // frame.setPC(pc);
                 ex.shiftFrame(frame);
                 return { error: ex };
             }

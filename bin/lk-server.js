@@ -50,7 +50,8 @@ var options = args.options([
     [      '--subserver STRING', 'Add a subserver, expects filesystem path to js file like '
                                + '"foo/bar.js" to start subserver bar. Aliasing supported via '
                                + '"baz:foo/bar.js" to start subserver bar.js as baz.'],
-    [      '--use-manifest', 'Enables the creation of manifest file for application cache.']],
+    [      '--use-manifest', 'Enables the creation of manifest file for application cache.'],
+    [      '--no-partsbin-check', 'Don\'t check for PartsBin existance and update the PartsBin.']],
     {},
     "Starts a Lively Kernel server.");
 
@@ -208,7 +209,7 @@ if (options.defined('info')) {
     checkNPMPackages(function(err) {
         if (err) { console.error('error on server start: %s', err); return; }
         require("async").waterfall([
-            require("./helper/download-partsbin.js"),
+            options.defined("noPartsbinCheck") ? function(n) { n(); } : require("./helper/download-partsbin.js"),
             getServerInfo,
             killOldServer, // Ensure that only one server for the given port is running
             startServer,

@@ -30,8 +30,6 @@ function extractPartsBin(next) {
     var proc = exec(util.format("unzip -o -q %s -d %s", zipFile, unzipDir),
         {cwd: lkDir, stdio: 'inherit'},
         function(code) { console.log('PartsBin extracted'); next(code); })
-    proc.stdout.pipe(process.stdout);
-    proc.stderr.pipe(process.stdout);
 }
 
 function movePartsBinExtracted(next) {

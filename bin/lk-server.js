@@ -24,6 +24,7 @@ var options = args.options([
     ['-p', '--port NUMBER', "On which port to run."],
     [      '--log-level STRING', 'Log level, accepted values: error, warning, info, debug.'],
     [      '--lk-dir DIR', 'The directory of the Lively Kernel core repository (git).'],
+    [      '--no-version-control', 'Don\'t version objects and files, this overrides --db-config.'],
     [      '--db-config JSON', 'Stringified JSON object that configures the object DB and lively-davfs\n'
     + "                                 like {\n"
     + '                                   includedFiles: [STRING],\n'
@@ -73,6 +74,10 @@ if (!options.lkDir) {
 var dbConfig;
 if (options.defined('dbConfig')) {
     dbConfig = options.dbConfig;
+}
+
+if (options.defined('noVersionControl')) {
+    dbConfig = JSON.stringify({"enableVersioning": false});
 }
 
 if (!options.defined('noSubservers')) {

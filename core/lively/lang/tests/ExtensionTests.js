@@ -756,6 +756,34 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         function foo(a,b,c) { return '' + a + b + c; }
         this.assertEquals('213', Functions.flip(foo)(1,2,3));
         this.done();
+    },
+    testWaitFor: function() {
+        var x = 0, wasCalled, startTime = Date.now(), endTime, timeout;
+        Functions.waitFor(200, function() { return x === 1; }, function(_timeout) {
+            wasCalled = true; timeout = _timeout; endTime = Date.now();
+        });
+        this.delay(function() { x = 1; }, 100);
+        this.waitFor(function() { return !!wasCalled; }, 20,
+            function() {
+                this.assert(!timeout, 'timout param not OK: ' + timeout);
+                var duration = endTime - startTime;
+                this.assert(duration >= 100, 'wait duration not OK: ' + duration);
+                this.done();
+            });
+    },
+    testWaitForTimeout: function() {
+        var x = 0, wasCalled, startTime = Date.now(), endTime, timeout;
+        Functions.waitFor(200, function() { return x === 1; /*will never be true*/ },
+        function(_timeout) {
+            wasCalled = true; timeout = _timeout; endTime = Date.now();
+        });
+        this.waitFor(function() { return !!wasCalled; }, 20,
+            function() {
+                this.assert(timeout, 'timeout param not OK: ' + timeout);
+                var duration = endTime - startTime;
+                this.assert(duration >= 200, 'wait duration not OK: ' + duration);
+                this.done();
+            });
     }
 });
 

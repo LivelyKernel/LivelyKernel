@@ -541,4 +541,20 @@ Global.Functions = {
             return f.apply(null, args);
         }
     },
+
+    waitFor: function(timeoutMs, waitTesterFunc, thenDo) {
+        // wait for waitTesterFunc to return true, then run thenDo, passing
+        // failure/timout err as first parameter. A timout occurs after
+        // timeoutMs. During the wait period waitTesterFunc might be called
+        // multiple times
+        var start = Date.now();
+        (function test() {
+            if (waitTesterFunc()) return thenDo();
+            var duration = Date.now() - start,
+                timeLeft = timeoutMs - duration;
+            if (timeLeft <= 0) return thenDo(new Error('timeout'));
+            var timeStep = timeLeft < 50 ? timeLeft : 50;
+            setTimeout(test, timeStep);
+        })();
+    }
 };

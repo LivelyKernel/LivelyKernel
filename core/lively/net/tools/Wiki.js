@@ -59,14 +59,12 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             lively.bindings.connect(this, "savedTextString", this.get("VersionViewer"), "setPath", {});
         }
         },{
-            _ClipMode: {
-                x: "hidden",
-                y: "scroll"
-            },
+            _ClipMode: { x: "hidden", y: "scroll" },
             _Extent: lively.pt(339.6,109.2),
             _Fill: Color.rgb(243,243,243),
             _Position: lively.pt(4.2,25.8),
-            changeTriggered: true,
+            isMultipleSelectionList: true,
+            multipleSelectionMode: "multiSelectWithShift",
             className: "lively.morphic.List",
             droppingEnabled: true,
             itemMorphs: [],
@@ -134,6 +132,20 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("VersionViewer"), "revertToVersion", {});
             }
+            }, {
+                _BorderColor: Color.rgb(189,190,192),
+                _BorderRadius: 5,
+                _BorderWidth: 1,
+                _Extent: lively.pt(163.7,21.2),
+                _Position: lively.pt(4.0,4.0),
+                className: "lively.morphic.Button",
+                isPressed: false,
+                label: "Diff",
+                layout: {resizeWidth: true},
+                name: "DiffButton",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("VersionViewer"), "diffSelectedVersions", {});
+            }
             }]
         }],
         getPath: function getPath() {
@@ -149,7 +161,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         var self = this;
         new lively.store.ObjectRepository().getRecords({
             paths: [p],
-            attributes: ['path', 'date', 'author', 'change']
+            attributes: ['path', 'date', 'author', 'change', 'version']
         }, function(err, rows) {
             self.showResult(err, rows);
         });
@@ -225,7 +237,19 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 .withFilename(encodeURIComponent(sel.date)+'/')
                 .withFilename(this.getPath());
             window.open(''+url);
-        }
+        },
+        diffSelectedVersions: function diffSelectedVersions() {
+            var selections = this.get('VersionList').getSelections()
+            if (selections.length < 2) {
+                this.world().inform('Please select two versions (shift click).');
+                return;
+            }
+            var versions = selections.slice(-2),
+                path = versions[0].path,
+                v1 = versions[0].version,
+                v2 = versions[1].version;
+            lively.ide.diffVersions(path, v1, v2, {type: "unified"});
+        },
     }],
     titleBar: "VersionViewer",
     setPath: function setPath(p) {

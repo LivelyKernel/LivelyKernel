@@ -664,7 +664,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     }
 });
 
-lively.morphic.Box.subclass('lively.morphic.List', 
+lively.morphic.Box.subclass('lively.morphic.List',
 'settings', {
     style: {
         fill: Color.white,
@@ -685,6 +685,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
             items = args[0] && Object.isArray(args[0]) ? args.shift() : [];
         $super(bounds);
         this.isMultipleSelectionList = false;
+        this.multipleSelectionMode = 'none';
         this.allowDeselectClick = false;
         this.noSingleSelectionIfMultipleSelected = false;
         this.selectedIndexes = [];
@@ -773,7 +774,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
     set selection(val) {
         this.setSelection(val);
     }
-    
+
 },
 'morph menu', {
     getMenu: function() { /*FIXME actually menu items*/ return [] }
@@ -856,7 +857,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         this.updateSelectionAndLineNo(idx);
         this.updateView();
     },
-    
+
     saveSelectAt: function(idx) {
         this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
     },
@@ -899,7 +900,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
     },
 
     deselectAll: function() {
-        this.selectedIndexes.forEach(function(i) {
+        this.selectedIndexes.clone().forEach(function(i) {
             this.deselectAt(i);
         }, this);
     },
@@ -919,7 +920,11 @@ lively.morphic.Box.subclass('lively.morphic.List',
 
 },
 'multiple selection support', {
-    enableMultipleSelections: function() { this.isMultipleSelectionList = true; },
+    enableMultipleSelections: function(mode) {
+        // mode = 'normal'|'multiSelectWithShift'
+        this.isMultipleSelectionList = true;
+        this.multipleSelectionMode = mode ? mode : 'normal';
+    },
     addSelectedIndex: function(idx) {
         if (!this.selectedIndexes) this.selectedIndexes = [];
         if (typeof idx !== 'number') return null;
@@ -939,7 +944,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
                 c.update(newSelection, oldSelection);
             if (this.selectedLineNo != newSelectedLineNo)
                 return this.selectedLineNo;                 //the updater has vetoed the change
-            if (c.getSourceAttrName() == 'selectedLineNo') 
+            if (c.getSourceAttrName() == 'selectedLineNo')
                 c.update(newSelectedLineNo, oldIdx);
             if (this.selectedLineNo != newSelectedLineNo)
                 return this.selectedLineNo;                 //the updater has vetoed the change
@@ -962,7 +967,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
                 c.update(newSelection, oldSelection);
             if (this.selectedLineNo != newSelectedLineNo)
                 return this.selectedLineNo;                 //the updater has vetoed the change
-            if (c.getSourceAttrName() == 'selectedLineNo') 
+            if (c.getSourceAttrName() == 'selectedLineNo')
                 c.update(newSelectedLineNo, oldIdx);
             if (this.selectedLineNo != newSelectedLineNo)
                 return this.selectedLineNo;                 //the updater has vetoed the change
@@ -1039,10 +1044,23 @@ lively.morphic.Box.subclass('lively.morphic.List',
     },
 
     textOnMouseDown: function onMouseDown(evt) {
-        if (this.owner.owner.allowDeselectClick) {
-            this.setIsSelected(!this.selected);
+        // NOTE! This method is attached to all the list item morphs, so this
+        // in here is NOT the list but each individual list item morph
+        var list = this.owner.owner, // FIXME
+            isMultiSelect = !!list.isMultipleSelectionList;
+        if (!isMultiSelect) {
+            this.setIsSelected(list.allowDeselectClick ? !this.selected : true);
         } else {
-            this.setIsSelected(true);
+            var multiSelectWithShift = list.multipleSelectionMode === 'multiSelectWithShift',
+                hasSelection = !!list.selection,
+                shiftPressed = evt.isShiftDown();
+            if (multiSelectWithShift && !shiftPressed) {
+                var selected = this.selected;
+                list.deselectAll();
+                this.setIsSelected(!selected || !list.allowDeselectClick);
+            } else {
+                this.setIsSelected(!this.selected);
+            }
         }
         evt.stop(); return true;
     }
@@ -1092,7 +1110,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         if (item !== 0 && !item) item = {isitem: true, string: 'invalid list item: ' + item};
         var string = item.string || String(item);
         return string;
-    
+
     },
     removeAllSelectedIndexes: function() {
         var oldIdx = this.selectedLineNo;
@@ -1109,7 +1127,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
                 c.update(undefined, oldSelection);
             if (this.selectedLineNo !== undefined)
                 return this.selectedLineNo;                 //the updater has vetoed the change
-            if (c.getSourceAttrName() == 'selectedLineNo') 
+            if (c.getSourceAttrName() == 'selectedLineNo')
                 c.update(undefined, oldIdx);
             if (this.selectedLineNo !== undefined)
                 return this.selectedLineNo;                 //the updater has vetoed the change

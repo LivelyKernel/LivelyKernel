@@ -222,7 +222,6 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
             lively.ide.RunTestMethodCommand,
             lively.ide.OpenInFileEditorCommand,
             lively.ide.OpenVersionsOfFile,
-            lively.ide.OpenDiffViewerCommand,
             lively.ide.OpenModulePartCommand]
     },
 

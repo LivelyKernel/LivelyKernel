@@ -11,7 +11,7 @@ module('lively.net.Wiki').requires('lively.store.Interface').toRun(function() {
 
 Object.extend(lively.net.Wiki, {
 
-    urlToPath: function(url) { return new URL(url).relativePathFrom(URL.root); },
+    urlToPath: function(url) { return URL.isURL(url) ? new URL(url).relativePathFrom(URL.root) : url; },
     pathToURL: function(path) { return URL.root.withFilename(path); },
 
     getStore: function() {
@@ -19,6 +19,18 @@ Object.extend(lively.net.Wiki, {
     },
 
     getRecords: function(querySpec, thenDo) {
+        // querySpec supports: {
+        //   groupByPaths: BOOL, -- return an object with rows grouped (keys of result)
+        //   attributes: [STRING], -- which attributes to return from stored records
+        //   newest: BOOL, -- only return most recent version of a recored
+        //   paths: [subset of ["path","version","change","author","date","content"]], -- attr filter
+        //   pathPatterns: [STRING], -- pattern to match paths
+        //   version: [STRING|NUMBER], -- the version number
+        //   date: [DATE|STRING], -- last mod date
+        //   newer: [DATE|STRING], -- last mod newer
+        //   older: [DATE|STRING], -- last mod older
+        //   limit: [NUMBER]
+        // }
         this.getStore().getRecords(querySpec, thenDo);
     },
 

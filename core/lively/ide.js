@@ -1,4 +1,4 @@
-module('lively.ide').requires('lively.Helper','lively.ide.SystemCodeBrowser', 'lively.ide.ErrorViewer', 'lively.ide.CommandLineInterface').toRun(function() {
+module('lively.ide').requires('lively.Helper','lively.ide.SystemCodeBrowser', 'lively.ide.ErrorViewer', 'lively.ide.CommandLineInterface', 'lively.ide.tools.Differ').toRun(function() {
 
 if (Config.get("advancedSyntaxHighlighting")) {
     module("lively.ast.IDESupport").load();

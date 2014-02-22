@@ -437,6 +437,12 @@ Object.extend(URL, {
         return url;
     },
 
+    isURL: function(obj) {
+        if (!obj) return false;
+        if (obj.isURL) return true;
+        return /^(http|file).*/.test(String(obj));
+    }
+
 });
 
 (function setupNativeURLObject() {

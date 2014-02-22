@@ -40,16 +40,7 @@ Object.extend(lively.morphic.Clipboard, {
         }
         var items = evt.dataTransfer.items;
         if (items && items.length) {
-            var content = evt.dataTransfer.getData('text/html');
-            if (content) {
-                lively.morphic.HtmlWrapperMorph.renderHTML(content);
-                return;
-            }
-            content = evt.dataTransfer.getData('text/plain');
-            if (content) {
-                this.addCodeEditor({content: content, gutter: false, textMode: 'text'});
-                return;
-            }
+            lively.data.FileUpload.handleDroppedItems(items, evt);
         }
     }
 });

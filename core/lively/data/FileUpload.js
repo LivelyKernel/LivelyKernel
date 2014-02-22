@@ -34,6 +34,10 @@ Object.subclass('lively.data.FileUpload.Handler',
 },
 'handler interface', {
     handles: function(file) { return false; },
+    handlesItems: function(items) { return false; }
+},
+'item processing', {
+    handleItems: function(items) {}
 },
 'file reader', {
 
@@ -96,6 +100,7 @@ Object.subclass('lively.data.FileUpload.Handler',
 });
 
 Object.extend(lively.data.FileUpload, {
+
     handleDroppedFiles: function(files, evt) {
         // handler for specific file types
         var pos = evt.getPosition(), i = 0,
@@ -113,12 +118,35 @@ Object.extend(lively.data.FileUpload, {
                 pos: pos.addXY(15*i,15*i)});
             handler.startReading();
         })
+    },
+
+    handleDroppedItems: function(items, evt) {
+        // handler for specific file types
+        var pos = evt.getPosition(), i = 0,
+            handlerClasses = lively.data.FileUpload.Handler.allSubclasses();
+        var handlerClass = handlerClasses.detect(function(handlerClass) {
+            return handlerClass.prototype.handlesItems(items, evt); });
+        if (handlerClass) {
+            var handler = new handlerClass();
+            handler.handleItems(items, evt);
+        } else {
+            // default behavior, FIXME, should go into handler class...
+            var content = evt.dataTransfer.getData('text/html');
+            if (content) {
+                lively.morphic.HtmlWrapperMorph.renderHTML(content);
+                return;
+            }
+            content = evt.dataTransfer.getData('text/plain');
+            if (content) {
+                this.addCodeEditor({content: content, gutter: false, textMode: 'text'});
+                return;
+            }
+        }
     }
 });
 
 (function loadFileUploadHandlers() {
     var handlerModules = ["lively.data.ODFImport",
-                          "lively.data.FileUpload",
                           "lively.data.PDFUpload",
                           "lively.data.ImageUpload",
                           "lively.data.VideoUpload",

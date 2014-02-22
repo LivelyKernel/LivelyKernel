@@ -7,13 +7,13 @@ lively.ide.BrowserCommand.subclass('lively.ide.AllModulesLoadCommand', {
     isActive: function(pane) {
         return pane === 'Pane1';
     },
-    
+
     loadModules: function() {
         var srcCtrl = lively.ide.SourceControl,
             browser = this.browser,
             files = srcCtrl.interestingLKFileNames(browser.getTargetURL()),
             progressBar = lively.morphic.World.current().addProgressBar();
-        
+
         files.forEachShowingProgress(
             progressBar,
             function(ea) { srcCtrl.addModule(ea) },
@@ -192,11 +192,11 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
     ometaTemplate: function(filename) {
         return 'ometa TestParser <: Parser {\n\texampleRule = 1\n}';
     },
-    
+
     addNewFile: function() {
         var command = this,
             browser = this.browser;
-        
+
         browser.ensureSourceNotAccidentlyDeleted(function() {
             command.world().prompt('Enter filename (something like foo or foo.js or foo.ometa or foo/)',
                 command.createFileOrDir.bind(command));
@@ -557,36 +557,6 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenInFileEditorCommand', {
 
 });
 
-lively.ide.BrowserCommand.subclass('lively.ide.OpenDiffViewerCommand', {
-
-    wantsMenu: Functions.True,
-
-    isActive: function(pane) {
-        var node = this.browser.selectedNode();
-        return node && node.isModuleNode;
-    },
-
-    trigger: function() {
-        return [['diff versions', this.diffVersions.bind(this)]]
-    },
-    diffVersions: function() {
-        var moduleNode = this.browser.getPane1Selection(),
-            moduleName = moduleNode && moduleNode.moduleName;
-        if (!moduleNode || !moduleName) {
-            alert('No module selected');
-            return;
-        }
-        var m = module(moduleName),
-            url = m.uri(),
-            differ = lively.PartsBin.getPart('VersionDiffer', 'PartsBin/Tools'),
-            pos = this.world().visibleBounds().center()
-        differ.openInWorld();
-        differ.align(differ.bounds().center(), pos)
-        differ.targetMorph.setURL(url);
-    },
-
-
-});
 lively.ide.BrowserCommand.subclass('lively.ide.OpenVersionsOfFile', {
 
     wantsMenu: Functions.True,
@@ -608,6 +578,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenVersionsOfFile', {
         });
     },
 });
+
 lively.ide.BrowserCommand.subclass('lively.ide.OpenModulePartCommand', {
 
     wantsMenu: Functions.True,

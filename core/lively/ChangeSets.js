@@ -321,460 +321,8 @@ Object.subclass('lively.ChangeSet',
         return new lively.ChangeSet(this.name, true);
     }
 
-});
+},
 
-
-Object.extend(lively.ChangeSet, {
-
-	existingOrNewChangeSetNamed: function(aName) {
-	    var existing = this.named(aName);
-	    if(existing)
-	        return existing;
-	    return new lively.ChangeSet(aName);
-	},
-
-	current: function() {
-	    if(!this.CurrentChangeSet)
-	        this.newChanges(new this(this.defaultName()));
-		return this.CurrentChangeSet;
-	},
-
-	defaultName: function() {
-	    return this.uniqueNameLike('Unnamed')
-	},
-
-    named: function(aName) {
-        return this.changeSetNames().detect(function(e) {
-            return e == aName;
-        })
-    },
-
-    newChanges: function(aChangeSet) {
-        this.CurrentChangeSet = aChangeSet;
-        localStorage.setItem(this.userStorageRoot + ":defaultChangeSet", aChangeSet.name)
-        var changesetNames = this.changeSetNames();
-        if(!changesetNames.include(aChangeSet.name)) {
-            changesetNames.push(aChangeSet.name);
-            localStorage.setItem(this.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
-        }
-    },
-    
-    uniqueNameLike: function(aString) {
-        if(!this.named(aString))
-            return aString;
-        for(var i= 1; i<100000; i++) {
-            var trial = aString + i;
-            if(!this.named(trial))
-                return trial;
-        }
-        
-    },
-    
-    CurrentChangeSet: null
-
-});
-
-Object.extend(lively.ChangeSet, {
-
-	loadAndcheckVsSystem: function() {
-	    
-	    var changeSet = this.CurrentChangeSet;
-	    if(!changeSet)	        return;
-        if(!changeSet.hasErrors())
-            changeSet.applyChanges();
-        if(changeSet.hasErrors())
-            alert("Some of the changes in your current changeset could not be applied.\nOpen the changes browser for details");
-	},
-    initialize: function() {
-
-		this.userStorageRoot = "LivelyChanges:" + location.pathname + ":author:" + $world.getUserName();
-		var storedNameForDefaultChangeSet = this.defaultChangeSetName();
-		if(!storedNameForDefaultChangeSet)
-		    return;
-        var changeSet = new lively.ChangeSet(storedNameForDefaultChangeSet, true);
-        this.newChanges(changeSet);
-    },
-
-    changeSetNames: function() {
-        var namesString = localStorage.getItem(this.userStorageRoot + ":changesetNames");
-        if(namesString)
-            return JSON.parse(namesString);
-        else
-            return [];
-    },
-
-    defaultChangeSetName: function() {
-        return localStorage.getItem(this.userStorageRoot + ":defaultChangeSet");
-    },
-
-    logDoit: function(source, contextPath) {
-
-        var storageArray = [source];
-        //check if it has any 'this' references
-        var programNode = lively.ast.acorn.parse(source);
-        var thisReferences = false;
-        lively.ast.acorn.simpleWalk(programNode, {
-            ThisExpression: function(node) { thisReferences = true }
-        });
-        if(thisReferences)
-            //otherwise no need for contextPath
-            if(contextPath)
-                storageArray.push(contextPath);
-            else
-                //we need a context path, but there is none
-                return;
-        this.storeArray(storageArray, this.nextTimestamp());
-    },
-
-    logChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousChangeStamp) {
-debugger;
-        return this.current().logChange(sourceOrNil, contextPath, propertyName, categoryOrNil, previousChangeStamp);
-    },
-
-    logFirstChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame) {
-
-        return this.current().logFirstChange(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame);
-    },
-    logFirstRemoval: function(source, contextPath, propertyName, categoryOrNil) {
- 
-        this.current().logFirstRemoval(source, contextPath, propertyName, categoryOrNil);
-    },
-
-    logRemoval: function(contextPath, propertyName, categoryOrNil, previousChangeStamp) {
- 
-        this.current().logRemoval(contextPath, propertyName, categoryOrNil, previousChangeStamp);
-    },
-
-    removeAllFromPersistentStorage: function() {// lively.ChangeSet.removeAllFromPersistentStorage()
-    
-		var storageRoot = "LivelyChanges:" + location.pathname + ":author:" + $world.getUserName();
-
-        var changesetNamesString = localStorage.getItem(storageRoot + ":changesetNames");
-        if(changesetNamesString) {
-            JSON.parse(changesetNamesString).each(function(n) {
-                localStorage.removeItem(storageRoot + ":changesetTimestamps:" + n);
-            });
-            localStorage.removeItem(storageRoot + ":changesetNames");
-        }
-
-        var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
-        if(allTimestampsString) {
-            var timestamps;
-            try {
-                timestamps = JSON.parse("["+ allTimestampsString +"]");
-            } catch(e) {
-                timestamps = allTimestampsString.split(",");
-            }
-            
-            timestamps.each(function(t) {
-                localStorage.removeItem(storageRoot + ":allChanges:" + t);
-            });
-            localStorage.removeItem(storageRoot + ":timestamps");
-        }
-    },
-
-    storeArray: function(array, timestamp) {
-
-        //Step 1: store the actual change
-        localStorage.setItem(this.userStorageRoot + ":allChanges:" + timestamp, JSON.stringify(array));
-
-        //Step 2: mark the change in the "all storage keys"
-        var allTimestampsString = localStorage.getItem(this.userStorageRoot + ":timestamps");
-        if(!allTimestampsString)
-            allTimestampsString = "" + timestamp;
-        else
-            allTimestampsString += "," + timestamp;
-        localStorage.setItem(this.userStorageRoot + ":timestamps", allTimestampsString);
-
-    },
-
-    nextTimestamp: function() {
-        var current = performance.now();
-        while(current == performance.now());
-        return lively.ChangeSets.createTime.getTime() + performance.now();
-    },
-
-    applyChange: function(changeRecord, existingTimestamp) {
-
-        if(changeRecord.originalContextPath) {
-            var originalContext = lively.lookup(changeRecord.originalContextPath);
-            if(!originalContext) {
-                changeRecord.errors.push("Could not resolve the original context "+changeRecord.originalContextPath);
-                return;
-            }
-            if(changeRecord.originalPropertyName) {
-                var code = getFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
-                if(!code) {
-                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+" does not have the  property '"+changeRecord.originalPropertyName+"' anymore");
-                    return;
-                }
-                if(changeRecord.originalSource != code.toString()) {
-                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the original source anymore");
-                    return;
-                }
-            }
-            if(changeRecord.originalCategory) {
-                var originalContainer = originalContext.lvCategoriesContainer();
-                if(changeRecord.originalCategory != originalContainer.lvCategoryForMethod(changeRecord.originalPropertyName))
-{
-    debugger;
-                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the category '"+changeRecord.originalCategory+"' anymore");
-                    return;
-                }
-            }
-        }
-        
-        var context = changeRecord.contextPath && lively.lookup(changeRecord.contextPath);
-        if(changeRecord.type == "doIt") {
-            try {
-                (function() { eval(changeRecord.source) }).call(context);
-            } catch(e) {
-                changeRecord.errors.push("Failed evaluating doit:\n" + changeRecord.source + "\in context " + changeRecord.contextPath + "\n"+ e.name + ": " + e.message);
-                return;
-            }
-            if(!existingTimestamp)
-                this.logDoit(changeRecord.source, changeRecord.contextPath);
-            return;
-        }
-        if(!context) {
-            changeRecord.errors.push("Failed evaluating context path: " + changeRecord.contextPath);
-            return;
-        }
-        var kindOfChange, 
-            timestamp,
-            oldFunc = getFunctionOrAccessor(changeRecord.propertyName, context);
-        switch(changeRecord.type) {
-            case "removed":
-                deleteFunctionOrAccessor(changeRecord.propertyName, context);
-                if(!existingTimestamp)
-                    if(oldFunc.user && oldFunc.timestamp)
-                        //modified
-                        this.logRemoval(changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, oldFunc.timestamp);
-                    else
-                        this.logFirstRemoval(changeRecord.originalSource, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category);
-                return;
-            case "added":
-                if(oldFunc) {
-                    if(oldFunc.toString() != changeRecord.source)
-                        changeRecord.errors.push("Failed to add property. "+changeRecord.contextPath+" already has the property '"+changeRecord.propertyName+"' and it is different from what we are trying to add");
-                    return;
-                }
-                if(!existingTimestamp)
-                    timestamp = this.logAddition(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category);
-                kindOfChange = "added";
-                break;
-            case "moved":
-                if(oldFunc) {
-                    if(oldFunc.toString() != changeRecord.source)
-                        changeRecord.errors.push("Failed to move property. "+changeRecord.contextPath+" already has the property '"+changeRecord.propertyName+"' and it is different from what we are trying to move there");
-                    return;
-                }
-                kindOfChange = "moved from "+changeRecord.originalContextPath;
-                if(!existingTimestamp) {
-                    var sourceOldFunc = getFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
-                    if(sourceOldFunc.user && sourceOldFunc.timestamp)
-                        //already modified
-                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, sourceOldFunc.timestamp);
-                    else
-                        //first change
-                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, changeRecord.originalContext, changeRecord.originalPropertyName);
-                }
-                deleteFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
-                break;
-            case "renamed":
-                if(oldFunc) {
-                    if(oldFunc.toString() != changeRecord.source)
-                        changeRecord.errors.push("Failed to rename property. "+changeRecord.contextPath+" already has the target property '"+changeRecord.propertyName+"' and it is different from what we are trying to set");
-                    return;
-                }
-                kindOfChange = "renamed from "+changeRecord.originalPropertyName;
-                if(!existingTimestamp) {
-                    var sourceOldFunc = getFunctionOrAccessor(changeRecord.originalPropertyName, context);
-                    if(sourceOldFunc.user && sourceOldFunc.timestamp)
-                        //already modified
-                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, sourceOldFunc.timestamp);
-                    else
-                        //first change
-                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, null, changeRecord.originalPropertyName);
-                }
-                deleteFunctionOrAccessor(changeRecord.originalPropertyName, context);
-                break;
-            case "changed source":
-                if(!oldFunc) {
-                    changeRecord.errors.push("Failed to change source. "+changeRecord.contextPath+" does not have the property '"+changeRecord.propertyName+"'");
-                    return;
-                }
-                kindOfChange = "changed source";
-                if(!existingTimestamp)
-                    if(oldFunc.user && oldFunc.timestamp)
-                        //already modified
-                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, oldFunc.timestamp);
-                    else
-                        //first change
-                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, null, null);
-                break;
-            case "changed category":
-                if(!oldFunc) {
-                    changeRecord.errors.push("Failed to change category. "+changeRecord.contextPath+" does not have the property '"+changeRecord.propertyName+"'");
-                    return;
-                }
-                kindOfChange = "changed category from "+changeRecord.originalCategory+" to "+changeRecord.category;
-                if(!existingTimestamp)
-                    if(oldFunc.user && oldFunc.timestamp)
-                        //already modified
-                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, oldFunc.timestamp);
-                    else
-                        //first change
-                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, null, null, null);
-                break;
-            default:
-            debugger;
-                throw new Error("Applying "+changeRecord.type+ " not implemented yet");
-            }
-            if(!oldFunc || changeRecord.source != oldFunc.toString())
-                (function() { eval(functionOrAccessorStoreString(changeRecord.propertyName, changeRecord.source)) }).call(context);
-            var func = getFunctionOrAccessor(changeRecord.propertyName, context);
-            func.kindOfChange = kindOfChange;
-            func.user = $world.getUserName(); 
-
-            if(changeRecord.category && changeRecord.category != changeRecord.originalCategory) {
-                var container = context.lvCategoriesContainer();
-                var originalCategory = changeRecord.originalCategory || "default category";
-                if(originalCategory) {
-                    var originalContainer = container;
-                    var originalPropertyName = changeRecord.originalPropertyName || changeRecord.propertyName;
-                    if(originalContext && context !== originalContext)
-                        originalContainer = originalContext.lvCategoriesContainer();
-                    if(originalContainer)
-                        originalContainer.lvRemoveMethodFromExistingCategory(originalPropertyName, originalCategory);
-                }
-                if(container) {
-                    container.lvAddCategoryIfAbsent(changeRecord.category);
-                    container.lvAddMethodToExistingCategory(func, changeRecord.propertyName, changeRecord.category);
-                }
-            }
-            if(!existingTimestamp) {
-                if(timestamp)
-                    func.timestamp = timestamp;
-            } else
-                func.timestamp = existingTimestamp;
-    },
-
-    hydrateChange: function(t) {
-        var changeRecord = this.getChangeRecord(t);
-        changeRecord.errors = [];
-        if(changeRecord.type == "doIt")
-            return changeRecord;
-
-        var firstChangeStamp = changeRecord.firstChangeStamp;
-        if(firstChangeStamp) {
-            //this is not a first change
-            var firstChangeRecord = this.getChangeRecord(firstChangeStamp);
-            if(firstChangeRecord.type == "added") {
-                if(changeRecord.type == "removed" || changeRecord.type == "added")
-                    return changeRecord;
-                if(firstChangeRecord.contextPath !== changeRecord.contextPath)
-                    changeRecord.type = "moved";    //this may also include renamed, changed category and changed source
-                else if(firstChangeRecord.propertyName !== changeRecord.propertyName)
-                    changeRecord.type = "renamed";  //this may also include changed category and changed source
-                else if(firstChangeRecord.source !== changeRecord.source)
-                    changeRecord.type = "changed source";  //this may also include changed category
-                else if(firstChangeRecord.category !== changeRecord.category &&
-                    (firstChangeRecord.category || changeRecord.category)) {
-                        changeRecord.type = "changed category";
-                } else
-                    changeRecord.type = "added";
-                return changeRecord;
-            }
-            changeRecord.originalContextPath = firstChangeRecord.originalContextPath;
-            changeRecord.originalPropertyName = firstChangeRecord.originalPropertyName;
-            changeRecord.originalCategory = firstChangeRecord.originalCategory;
-            changeRecord.originalSource = firstChangeRecord.originalSource;
-        }
-                
-        if(changeRecord.type == "removed" || changeRecord.type == "added")
-            return changeRecord;
-        if(changeRecord.originalContextPath !== changeRecord.contextPath)
-            changeRecord.type = "moved";    //this may also include renamed, changed category and changed source
-        else if(changeRecord.originalPropertyName !== changeRecord.propertyName)
-            changeRecord.type = "renamed";  //this may also include changed category and changed source
-        else if(changeRecord.originalSource !== changeRecord.source)
-            changeRecord.type = "changed source";  //this may also include changed category
-        else if(changeRecord.originalCategory !== changeRecord.category &&
-            (changeRecord.originalCategory || changeRecord.category))
-                changeRecord.type = "changed category";
-        else
-            throw new Error("invalid change");
-        return changeRecord;
-    },
-
-    changeDataFromStorage: function(array) {
-// There are four main formats for the array. The first 4 elements in each of them, when present, represent the same aspect:
-//
-// 1. For doIts, there is a 1 or 2 element array: 
-//   [source, optContextPath]
-//
-// 2. For the first change representing the addition of a named property, there is a 3 or 4 element array:
-//   [source, contextPath, 
-//    propertyName, optCategory]
-//
-// 3. For subsequent changes of a named property, there is a 6 element array:
-//   [sourceOrNil, contextPath, 
-//    propertyName, categoryOrNil, 
-//    firstChangeStamp, previousChangeStamp]
-//      - sourceOrNil being null means removal
-//
-// 4. For the first change of an existing named property, there is a 5 to 8 element array:
-//   [sourceOrNil, contextPath, 
-//    propertyName, category, 
-//    originalCategory, originalSourceOrNilIfSame, originalContextPathOrNilIfSame, originalPropertyNameOrNilIfSame]
-//      - sourceOrNil being null means removal
-
-    	var entry = {source: array[0], contextPath: array[1]}, 
-    		propertyName = array[2];
-    
-    	if(propertyName) {
-			entry.propertyName = propertyName;
-			if(!entry.source)
-                entry.type = "removed";
-			entry.category = array[3] === 'default category' ? null : array[3];
-			var previous = array[4];
-			if(previous && typeof previous.valueOf() == "number") {
-				//not a first change
-				entry.firstChangeStamp = previous;
-				entry.previousChangeStamp = array[5];
-				return entry;
-			} else if(array.length < 5) {
-    			//addition
-				entry.type = "added";
-				return entry;
-			}
-			entry.originalCategory = previous === 'default category' ? null: previous;
-			entry.originalSource = array[5] || entry.source;
-			entry.originalContextPath = array[6] || array[1] || "Global";
-			entry.originalPropertyName = array[7] || propertyName;
-		} else {
-		//doIt
-			entry.type = "doIt"
-		}
-		return entry;
-    },
-
-    getChangeRecord: function(t) {
-        var dataString = localStorage.getItem(this.userStorageRoot + ":allChanges:" + t);
-        if(!dataString)
-            debugger;
-        return this.changeDataFromStorage(JSON.parse(dataString));
-    },
-
-    logAddition: function(source, contextPath, propertyName, optCategory) {
-
-        return this.current().logAddition(source, contextPath, propertyName, optCategory);
-    }
-
-});
-    
-lively.ChangeSet.addMethods(
     "actions", {
 
     applyChanges: function() {
@@ -803,10 +351,7 @@ lively.ChangeSet.addMethods(
         return this.changeRecords.detect(function(e){ return e.errors.length > 0})
     },
     
-    addChange: function(t) {
-        this.timestamps.push(t);
-        this.changeRecords.push(lively.ChangeSet.hydrateChange(t));
-    },
+
 
     logAddition: function(source, contextPath, propertyName, optCategory) {
 
@@ -943,16 +488,7 @@ lively.ChangeSet.addMethods(
         
         if(!lively.ChangeSet.userStorageRoot) {
             var username = $world.getUserName();
-            var storageRoot = "LivelyChanges:" + location.pathname;
-            var authorsString = localStorage.getItem(storageRoot + ":authors");
-            if(!authorsString)
-                authorsString = "[]";
-            var authors = JSON.parse(authorsString);
-            if(!authors.include(username)) {
-                authorsString = JSON.stringify(authors.push(username))
-                localStorage.setItem(storageRoot + ":authors", authorsString);
-            }
-    		lively.ChangeSet.userStorageRoot = storageRoot + ":author:" + username;
+    		lively.ChangeSet.userStorageRoot = "LivelyChanges:" + location.pathname + ":author:" + username;
         }
         var changesetNames = lively.ChangeSet.changeSetNames();
         if(changesetNames.include(this.name))
@@ -970,6 +506,8 @@ lively.ChangeSet.addMethods(
 
     addTimestamp: function(t) {
 
+        if(this.timestamps.include(t))
+            return;
         this.timestamps.push(t);
         localStorage.setItem(lively.ChangeSet.userStorageRoot + ":changesetTimestamps:" + this.name, JSON.stringify(this.timestamps));
     },
@@ -988,6 +526,463 @@ lively.ChangeSet.addMethods(
     }
 
 });
+
+
+Object.extend(lively.ChangeSet, {
+
+    CurrentChangeSet: null,
+
+	existingOrNewChangeSetNamed: function(aName) {
+	    var existing = this.named(aName);
+	    if(existing)
+	        return existing;
+	    return new lively.ChangeSet(aName);
+	},
+
+	current: function() {
+	    if(!this.CurrentChangeSet)
+	        this.newChanges(new this(this.defaultName()));
+		return this.CurrentChangeSet;
+	},
+
+	defaultName: function() {
+	    return this.uniqueNameLike('Unnamed')
+	},
+
+    named: function(aName) {
+        return this.changeSetNames().detect(function(e) {
+            return e == aName;
+        })
+    },
+
+    newChanges: function(aChangeSet) {
+        this.CurrentChangeSet = aChangeSet;
+        localStorage.setItem(this.userStorageRoot + ":defaultChangeSet", aChangeSet.name)
+        var changesetNames = this.changeSetNames();
+        if(!changesetNames.include(aChangeSet.name)) {
+            changesetNames.push(aChangeSet.name);
+            localStorage.setItem(this.userStorageRoot + ":changesetNames", JSON.stringify(changesetNames));
+        }
+    },
+    
+    uniqueNameLike: function(aString) {
+        if(!this.named(aString))
+            return aString;
+        for(var i= 1; i<100000; i++) {
+            var trial = aString + i;
+            if(!this.named(trial))
+                return trial;
+        }
+        
+    },
+    
+	loadAndcheckVsSystem: function() {
+	    
+	    var changeSet = this.CurrentChangeSet;
+	    if(!changeSet)	        return;
+        if(!changeSet.hasErrors())
+            changeSet.applyChanges();
+        if(changeSet.hasErrors())
+            alert("Some of the changes in your current changeset could not be applied.\nOpen the changes browser for details");
+	},
+    initialize: function() {
+
+		this.userStorageRoot = "LivelyChanges:" + location.pathname + ":author:" + $world.getUserName();
+		var storedNameForDefaultChangeSet = this.defaultChangeSetName();
+		if(!storedNameForDefaultChangeSet)
+		    return;
+        var changeSet = new lively.ChangeSet(storedNameForDefaultChangeSet, true);
+        this.newChanges(changeSet);
+    },
+
+    changeSetNames: function() {
+        var namesString = localStorage.getItem(this.userStorageRoot + ":changesetNames");
+        if(namesString)
+            return JSON.parse(namesString);
+        else
+            return [];
+    },
+
+    defaultChangeSetName: function() {
+        return localStorage.getItem(this.userStorageRoot + ":defaultChangeSet");
+    },
+
+    logDoit: function(source, contextPath) {
+
+        var storageArray = [source];
+        //check if it has any 'this' references
+        var programNode = lively.ast.acorn.parse(source);
+        var thisReferences = false;
+        lively.ast.acorn.simpleWalk(programNode, {
+            ThisExpression: function(node) { thisReferences = true }
+        });
+        if(thisReferences)
+            //otherwise no need for contextPath
+            if(contextPath)
+                storageArray.push(contextPath);
+            else
+                //we need a context path, but there is none
+                return;
+        this.storeArray(storageArray, this.nextTimestamp());
+    },
+
+    logChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousChangeStamp) {
+debugger;
+        return this.current().logChange(sourceOrNil, contextPath, propertyName, categoryOrNil, previousChangeStamp);
+    },
+
+    logFirstChange: function(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame) {
+
+        return this.current().logFirstChange(sourceOrNil, contextPath, propertyName, categoryOrNil, previousCategoryOrNil, previousSourceOrNilIfSame, previousContextPathOrNilIfSame, previousPropertyNameOrNilIfSame);
+    },
+    logFirstRemoval: function(source, contextPath, propertyName, categoryOrNil) {
+ 
+        this.current().logFirstRemoval(source, contextPath, propertyName, categoryOrNil);
+    },
+
+    logRemoval: function(contextPath, propertyName, categoryOrNil, previousChangeStamp) {
+ 
+        this.current().logRemoval(contextPath, propertyName, categoryOrNil, previousChangeStamp);
+    },
+
+    removeAllFromPersistentStorage: function() {// lively.ChangeSet.removeAllFromPersistentStorage()
+    
+		var storageRoot = "LivelyChanges:" + location.pathname + ":author:" + $world.getUserName();
+
+        var changesetNamesString = localStorage.getItem(storageRoot + ":changesetNames");
+        if(changesetNamesString) {
+            JSON.parse(changesetNamesString).each(function(n) {
+                localStorage.removeItem(storageRoot + ":changesetTimestamps:" + n);
+            });
+            localStorage.removeItem(storageRoot + ":changesetNames");
+        }
+
+        var allTimestampsString = localStorage.getItem(storageRoot + ":timestamps");
+        if(allTimestampsString) {
+            var timestamps;
+            try {
+                timestamps = JSON.parse("["+ allTimestampsString +"]");
+            } catch(e) {
+                timestamps = allTimestampsString.split(",");
+            }
+            
+            timestamps.each(function(t) {
+                localStorage.removeItem(storageRoot + ":allChanges:" + t);
+            });
+            localStorage.removeItem(storageRoot + ":timestamps");
+        }
+    },
+
+    storeArray: function(array, timestamp) {
+
+        //Step 1: store the actual change
+        localStorage.setItem(this.userStorageRoot + ":allChanges:" + timestamp, JSON.stringify(array));
+
+        //Step 2: mark the change in the "all storage keys"
+        var allTimestampsString = localStorage.getItem(this.userStorageRoot + ":timestamps");
+        if(!allTimestampsString)
+            allTimestampsString = "" + timestamp;
+        else
+            allTimestampsString += "," + timestamp;
+        localStorage.setItem(this.userStorageRoot + ":timestamps", allTimestampsString);
+
+    },
+
+    nextTimestamp: function() {
+        var current = performance.now();
+        while(current == performance.now());
+        return lively.ChangeSets.createTime.getTime() + performance.now();
+    },
+
+    applyChange: function(changeRecord, existingTimestamp) {
+
+        var context = changeRecord.contextPath && lively.lookup(changeRecord.contextPath);
+        if(context && changeRecord.propertyName) {
+            var code = getFunctionOrAccessor(changeRecord.propertyName, context);
+            var container = context.lvCategoriesContainer();
+            var categoryOrNil = container && container.lvCategoryForMethod(changeRecord.propertyName);
+            if( (!changeRecord.source && !code || changeRecord.source == code) &&
+                (changeRecord.category == categoryOrNil || !changeRecord.category && !categoryOrNil)) {
+                    //Already applied
+                    return;
+            }
+        }
+        if(changeRecord.originalContextPath) {
+            var originalContext = lively.lookup(changeRecord.originalContextPath);
+            if(!originalContext) {
+                changeRecord.errors.push("Could not resolve the original context "+changeRecord.originalContextPath);
+                return;
+            }
+            if(changeRecord.originalPropertyName) {
+                var code = getFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
+                if(!code) {
+                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+" does not have the  property '"+changeRecord.originalPropertyName+"' anymore");
+                    return;
+                }
+                if(changeRecord.originalSource != code.toString()) {
+                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the original source anymore");
+                    return;
+                }
+            }
+            if(changeRecord.originalCategory) {
+                var originalContainer = originalContext.lvCategoriesContainer();
+                if(changeRecord.originalCategory != originalContainer.lvCategoryForMethod(changeRecord.originalPropertyName))
+{
+    debugger;
+                    changeRecord.errors.push("Failed to apply; "+changeRecord.originalContextPath+"."+changeRecord.originalPropertyName+" does not have the category '"+changeRecord.originalCategory+"' anymore");
+                    return;
+                }
+            }
+        }
+        
+        if(changeRecord.type == "doIt") {
+            try {
+                (function() { eval(changeRecord.source) }).call(context);
+            } catch(e) {
+                changeRecord.errors.push("Failed evaluating doit:\n" + changeRecord.source + "\in context " + changeRecord.contextPath + "\n"+ e.name + ": " + e.message);
+                return;
+            }
+            if(!existingTimestamp)
+                this.logDoit(changeRecord.source, changeRecord.contextPath);
+            return;
+        }
+        if(!context) {
+            changeRecord.errors.push("Failed evaluating context path: " + changeRecord.contextPath);
+            return;
+        }
+        var kindOfChange, 
+            timestamp,
+            oldFunc = getFunctionOrAccessor(changeRecord.propertyName, context);
+        switch(changeRecord.type) {
+            case "removed":
+                deleteFunctionOrAccessor(changeRecord.propertyName, context);
+                if(!existingTimestamp)
+                    if(oldFunc.user && oldFunc.timestamp)
+                        //modified
+                        this.logRemoval(changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, oldFunc.timestamp);
+                    else
+                        this.logFirstRemoval(changeRecord.originalSource, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category);
+                return;
+            case "added":
+                if(oldFunc) {
+                    if(oldFunc.toString() != changeRecord.source)
+                        changeRecord.errors.push("Failed to add property. "+changeRecord.contextPath+" already has the property '"+changeRecord.propertyName+"' and it is different from what we are trying to add");
+                    return;
+                }
+                if(!existingTimestamp)
+                    timestamp = this.logAddition(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category);
+                kindOfChange = "added";
+                break;
+            case "moved":
+                if(oldFunc) {
+                    if(oldFunc.toString() != changeRecord.source)
+                        changeRecord.errors.push("Failed to move property. "+changeRecord.contextPath+" already has the property '"+changeRecord.propertyName+"' and it is different from what we are trying to move there");
+                    return;
+                }
+                kindOfChange = "moved from "+changeRecord.originalContextPath;
+                if(!existingTimestamp) {
+                    var sourceOldFunc = getFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
+                    if(sourceOldFunc.user && sourceOldFunc.timestamp)
+                        //already modified
+                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, sourceOldFunc.timestamp);
+                    else
+                        //first change
+                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, changeRecord.originalContext, changeRecord.originalPropertyName);
+                }
+                deleteFunctionOrAccessor(changeRecord.originalPropertyName, originalContext);
+                break;
+            case "renamed":
+                if(oldFunc) {
+                    if(oldFunc.toString() != changeRecord.source)
+                        changeRecord.errors.push("Failed to rename property. "+changeRecord.contextPath+" already has the target property '"+changeRecord.propertyName+"' and it is different from what we are trying to set");
+                    return;
+                }
+                kindOfChange = "renamed from "+changeRecord.originalPropertyName;
+                if(!existingTimestamp) {
+                    var sourceOldFunc = getFunctionOrAccessor(changeRecord.originalPropertyName, context);
+                    if(sourceOldFunc.user && sourceOldFunc.timestamp)
+                        //already modified
+                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, sourceOldFunc.timestamp);
+                    else
+                        //first change
+                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, null, changeRecord.originalPropertyName);
+                }
+                deleteFunctionOrAccessor(changeRecord.originalPropertyName, context);
+                break;
+            case "changed source":
+                if(!oldFunc) {
+                    changeRecord.errors.push("Failed to change source. "+changeRecord.contextPath+" does not have the property '"+changeRecord.propertyName+"'");
+                    return;
+                }
+                kindOfChange = "changed source";
+                if(!existingTimestamp)
+                    if(oldFunc.user && oldFunc.timestamp)
+                        //already modified
+                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, oldFunc.timestamp);
+                    else
+                        //first change
+                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, changeRecord.originalSource, null, null);
+                break;
+            case "changed category":
+                if(!oldFunc) {
+                    changeRecord.errors.push("Failed to change category. "+changeRecord.contextPath+" does not have the property '"+changeRecord.propertyName+"'");
+                    return;
+                }
+                kindOfChange = "changed category from "+changeRecord.originalCategory+" to "+changeRecord.category;
+                if(!existingTimestamp)
+                    if(oldFunc.user && oldFunc.timestamp)
+                        //already modified
+                        timestamp = this.logChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, oldFunc.timestamp);
+                    else
+                        //first change
+                        timestamp = this.logFirstChange(changeRecord.source, changeRecord.contextPath, changeRecord.propertyName, changeRecord.category, changeRecord.originalCategory, null, null, null);
+                break;
+            default:
+            debugger;
+                throw new Error("Applying "+changeRecord.type+ " not implemented yet");
+            }
+            if(!oldFunc || changeRecord.source != oldFunc.toString())
+                (function() { eval(functionOrAccessorStoreString(changeRecord.propertyName, changeRecord.source)) }).call(context);
+            var func = getFunctionOrAccessor(changeRecord.propertyName, context);
+            func.kindOfChange = kindOfChange;
+            func.user = $world.getUserName(); 
+
+            if(changeRecord.category && changeRecord.category != changeRecord.originalCategory) {
+                var container = context.lvCategoriesContainer();
+                var originalCategory = changeRecord.originalCategory || "default category";
+                var originalContainer = container;
+                var originalPropertyName = changeRecord.originalPropertyName || changeRecord.propertyName;
+                if(originalContext && context !== originalContext)
+                    originalContainer = originalContext.lvCategoriesContainer();
+                if(originalContainer && originalContainer.lvCategoryForMethod(originalPropertyName) == originalCategory)
+                    originalContainer.lvRemoveMethodFromExistingCategory(originalPropertyName, originalCategory);
+                    
+                if(container) {
+                    container.lvAddCategoryIfAbsent(changeRecord.category);
+                    container.lvAddMethodToExistingCategory(func, changeRecord.propertyName, changeRecord.category);
+                }
+            }
+            if(!existingTimestamp) {
+                if(timestamp)
+                    func.timestamp = timestamp;
+            } else
+                func.timestamp = existingTimestamp;
+    },
+
+    hydrateChange: function(t) {
+        var changeRecord = this.getChangeRecord(t);
+        changeRecord.errors = [];
+        if(changeRecord.type == "doIt")
+            return changeRecord;
+
+        var firstChangeStamp = changeRecord.firstChangeStamp;
+        if(firstChangeStamp) {
+            //this is not a first change
+            var firstChangeRecord = this.getChangeRecord(firstChangeStamp);
+            if(firstChangeRecord.type == "added") {
+                if(changeRecord.type == "removed" || changeRecord.type == "added")
+                    return changeRecord;
+                if(firstChangeRecord.contextPath !== changeRecord.contextPath)
+                    changeRecord.type = "moved";    //this may also include renamed, changed category and changed source
+                else if(firstChangeRecord.propertyName !== changeRecord.propertyName)
+                    changeRecord.type = "renamed";  //this may also include changed category and changed source
+                else if(firstChangeRecord.source !== changeRecord.source)
+                    changeRecord.type = "changed source";  //this may also include changed category
+                else if(firstChangeRecord.category !== changeRecord.category &&
+                    (firstChangeRecord.category || changeRecord.category)) {
+                        changeRecord.type = "changed category";
+                } else
+                    changeRecord.type = "added";
+                return changeRecord;
+            }
+            changeRecord.originalContextPath = firstChangeRecord.originalContextPath;
+            changeRecord.originalPropertyName = firstChangeRecord.originalPropertyName;
+            changeRecord.originalCategory = firstChangeRecord.originalCategory;
+            changeRecord.originalSource = firstChangeRecord.originalSource;
+        }
+                
+        if(changeRecord.type == "removed" || changeRecord.type == "added")
+            return changeRecord;
+        if(changeRecord.originalContextPath !== changeRecord.contextPath)
+            changeRecord.type = "moved";    //this may also include renamed, changed category and changed source
+        else if(changeRecord.originalPropertyName !== changeRecord.propertyName)
+            changeRecord.type = "renamed";  //this may also include changed category and changed source
+        else if(changeRecord.originalSource !== changeRecord.source)
+            changeRecord.type = "changed source";  //this may also include changed category
+        else if(changeRecord.originalCategory !== changeRecord.category &&
+            (changeRecord.originalCategory || changeRecord.category))
+                changeRecord.type = "changed category";
+        else
+            changeRecord.errors.push("unrecognized change type");
+        return changeRecord;
+    },
+
+    changeDataFromStorage: function(array) {
+// There are four main formats for the array. The first 4 elements in each of them, when present, represent the same aspect:
+//
+// 1. For doIts, there is a 1 or 2 element array: 
+//   [source, optContextPath]
+//
+// 2. For the first change representing the addition of a named property, there is a 3 or 4 element array:
+//   [source, contextPath, 
+//    propertyName, optCategory]
+//
+// 3. For subsequent changes of a named property, there is a 6 element array:
+//   [sourceOrNil, contextPath, 
+//    propertyName, categoryOrNil, 
+//    firstChangeStamp, previousChangeStamp]
+//      - sourceOrNil being null means removal
+//
+// 4. For the first change of an existing named property, there is a 5 to 8 element array:
+//   [sourceOrNil, contextPath, 
+//    propertyName, category, 
+//    originalCategory, originalSourceOrNilIfSame, originalContextPathOrNilIfSame, originalPropertyNameOrNilIfSame]
+//      - sourceOrNil being null means removal
+
+    	var entry = {source: array[0], contextPath: array[1]}, 
+    		propertyName = array[2];
+    
+    	if(propertyName) {
+			entry.propertyName = propertyName;
+			if(!entry.source)
+                entry.type = "removed";
+			entry.category = array[3] === 'default category' ? null : array[3];
+			var previous = array[4];
+			if(previous && typeof previous.valueOf() == "number") {
+				//not a first change
+				entry.firstChangeStamp = previous;
+				entry.previousChangeStamp = array[5];
+				return entry;
+			} else if(array.length < 5) {
+    			//addition
+				entry.type = "added";
+				return entry;
+			}
+			entry.originalCategory = previous === 'default category' ? null: previous;
+			entry.originalSource = array[5] || entry.source;
+			entry.originalContextPath = array[6] || array[1] || "Global";
+			entry.originalPropertyName = array[7] || propertyName;
+		} else {
+		//doIt
+			entry.type = "doIt"
+		}
+		return entry;
+    },
+
+    getChangeRecord: function(t) {
+        var dataString = localStorage.getItem(this.userStorageRoot + ":allChanges:" + t);
+        if(!dataString)
+            debugger;
+        return this.changeDataFromStorage(JSON.parse(dataString));
+    },
+
+    logAddition: function(source, contextPath, propertyName, optCategory) {
+
+        return this.current().logAddition(source, contextPath, propertyName, optCategory);
+    }
+
+});
+
 
 lively.morphic.Panel.subclass('lively.ide.ChangesBrowser',
 
@@ -1278,30 +1273,50 @@ lively.morphic.Panel.subclass('lively.ide.ChangesBrowser',
             }
             this.changePane.setList(JSON.parse("["+ allTimestampsString +"]"));
         } else {
-            if(name === lively.ChangeSet.current().name)
+            if(name === lively.ChangeSet.current().name) {
                 this.changeSet = lively.ChangeSet.current();
-            if(this.changeSet.name !== name || this.changeSet.timestamps.length === 0)
+                this.changeSet.hydrate();
+            }
+            if(!this.changeSet || this.changeSet.name !== name || this.changeSet.timestamps.length === 0)
                 this.changeSet = new lively.ChangeSet(name, true);
-            var oldTimestamp = this.changePane.selection;
             this.changePane.setList(this.changeSet.timestamps.concat([]));
-            if(oldTimestamp && this.changePane.selection == oldTimestamp)
-                this.setChange(oldTimestamp);
         }
     },
 
     getChangeMenu: function() {
         var selected = this.changePane.selection;
         var items = [];
+        var changePane = this.changePane;
+        if(changePane.isMultipleSelectionList)
+            items.push(
+                ['disable multiple select', function() {
+                    changePane.allowDeselectClick = false;
+                    changePane.isMultipleSelectionList = false;}]
+                );
+        else
+            items.push(
+                ['enable multiple select', function() {
+                    changePane.allowDeselectClick = true;
+                    changePane.isMultipleSelectionList = true;}]
+                );
+        var changeSet = this.changeSet || new lively.ChangeSet(lively.ChangeSet.defaultChangeSetName(), true);
+        items.push(
+            ['apply selected', function() {
+                changePane.getSelections().each(function(e){
+                    lively.ChangeSet.applyChange(changeSet.changeRecords[changeSet.timestamps.indexOf(e)], e);
+                });
+                if(selected && !changePane.isMultipleSelectionList)
+                    self.setChange(selected)}]);
         if(!this.changeSet) {
-            if(selected) {
-                var changeSet = new lively.ChangeSet(lively.ChangeSet.defaultChangeSetName(), true);
+            if(selected && !changePane.isMultipleSelectionList) {
                 if(changeSet.timestamps.include(selected))
                     return items;
                 else
-                    return [
+                    items.push(
                             ['add to default changeset', function() {
-                                changeSet.addTimestamp(selected)}]
-                        ];
+                                changePane.getSelections().each(function(e){
+                                    changeSet.addTimestamp(e)})}]
+                        );
             }
             return items;
         }
@@ -1311,18 +1326,21 @@ lively.morphic.Panel.subclass('lively.ide.ChangesBrowser',
         if(timestamps.length > 1)
             items.push(
                 ['apply all', function() {
-                    self.changePane.getList().each(function(e){
+                    changePane.getList().each(function(e){
                         lively.ChangeSet.applyChange(changeRecords[timestamps.indexOf(e)], e);
                     })
-                    if(selected)
+                    if(selected && !changePane.isMultipleSelectionList)
                         self.setChange(selected);
                     }]);
         if(!selected)
             return items;
         items.push(
-            ['apply selected', function() {
-                lively.ChangeSet.applyChange(changeRecords[timestamps.indexOf(selected)], selected);
-                self.setChange(selected)}]);
+            ['remove', function() {
+                changePane.getSelections().each(function(e){
+                    self.removeFromChangeSet(e)})}]
+        );
+        if(changePane.isMultipleSelectionList)
+            return items;
         if(timestamps.indexOf(selected) < timestamps.length - 1)
             items.push(
                 ['move down', function() {
@@ -1331,10 +1349,6 @@ lively.morphic.Panel.subclass('lively.ide.ChangesBrowser',
             items.push(
                 ['move up', function() {
                     self.moveUp(selected)}]);
-        items.push(
-            ['remove', function() {
-                self.removeFromChangeSet(selected)}]
-        );
         return items;
     },
 
@@ -1581,8 +1595,7 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         }
         var categories = [];
         var staticNames = aContainer.lvOwnFunctionNames();
-        if(staticNames.length > 0)
-            categories.push({string: 'default category - static', names: staticNames.sort()});
+        categories.push({string: 'default category - static', names: staticNames.sort()});
         var nonStaticContainer = this.selectedContainerKind.nonStaticContainer(aContainer);
         if(nonStaticContainer) {
             var allProtoNames = nonStaticContainer.lvOwnFunctionNames();
@@ -1645,12 +1658,13 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
         this.codePane.doitContext = target;
         this.owner.setTitle(this.titleFor(this.selectedContainer));
         var text = "// doitContext = "+ target.lvContextPath();
-        if(this.selectedContainerKind.displayInheritanceTree) {
+        if(this.selectedContainerKind && this.selectedContainerKind.displayInheritanceTree) {
             var indent = "\n//                     ";
             while(Object.getPrototypeOf(target)) {
-                text += indent + "...inheriting from " + Object.getPrototypeOf(target).lvContextPath();
-                indent += "   ";
                 target = Object.getPrototypeOf(target);
+                text += indent + "...inheriting from " + (target.lvContextPath() || 
+                                                        "orphan (no known holder) " + Objects.shortPrintStringOf(target));
+                indent += "   ";
             }
         }
         this.codePane.setTextString(text);
@@ -1911,12 +1925,19 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
     },
 
     getFunctionContainerMenu: function getFunctionContainerMenu() {
-        if(this.selectedContainerKind.string != "classes")
-            return [];
+        var items = [];
         var self = this;
-        return [
+        if(this.selectedContainer)
+            items.push(['references', function() {
+                        openFunctionList('references', ' to ', self.selectedContainer.lvContextPath(), true); 
+                        }]
+                    );
+        if(this.selectedContainerKind.string != "classes")
+            return items;
+        items.push(
             ['add class', function() {self.addClass()}]
-        ];
+        );
+        return items;
     },
     getFunctionMenu: function getFunctionMenu() {
         if(!this.selectedFunctionKind)
@@ -1954,15 +1975,15 @@ lively.morphic.Panel.subclass('lively.ide.SimpleCodeBrowser',
                     ['move to...', function() {self.moveProperty()}],
                     ['rename as... ', function() {self.renameProperty()}],
                     ['senders', function() {
-                        openFunctionList('senders', self.selectedFunctionNameInContainer, true); 
+                        openFunctionList('senders', ' of ', self.selectedFunctionNameInContainer, true); 
                         }],
                     ['implementors', function() {
-                        openFunctionList('implementors', self.selectedFunctionNameInContainer); }]
+                        openFunctionList('implementors', ' of ', self.selectedFunctionNameInContainer); }]
                     );
             } else {
                 items.push(
                     ['references', function() {
-                        openFunctionList('senders', self.selectedFunctionNameInContainer.substring(4), true); 
+                        openFunctionList('references', ' to ', self.selectedFunctionNameInContainer.substring(4), true); 
                         }]
                     );
             }
@@ -2358,6 +2379,78 @@ lively.morphic.Panel.subclass('lively.ide.VersionsBrowser',
     },
 });
 
+lively.morphic.Text.addMethods("menu", {
+    getMenuItemsFor : function(selectedText) {
+        var items = [];
+        var indexOfDot = selectedText.lastIndexOf('.')
+        if(indexOfDot + 1 !== selectedText.length) {
+            var firstChar = selectedText.charAt(indexOfDot + 1);
+            if(this.evalEnabled) {
+                var self = this;
+                items.push(['Inspect it', function() {
+                    self.doInspect(); }]);
+                items.push(['Do it', function() {
+                    self.doDoit(); }]);
+                items.push(['Print it', function() {
+                    self.doPrintit(); }]);
+                items.push(['Edit it', function() {
+                    self.doEdit(); }]);
+                items.push(['Debug it', function() {
+                    self.doDebugit(); }]);
+            }
+            if(firstChar.toLowerCase() === firstChar && indexOfDot === -1) {
+                items.push(['Implementors', function() {
+                    openFunctionList('implementors', ' of ', selectedText); }]);
+                items.push(['Senders', function() {
+                    openFunctionList('senders', ' of ', selectedText, true); }]);
+            }
+            var containers = methodContainers(selectedText);
+            if(containers.length > 1)
+                items.push(['Method Containers (classes, traits, etc)', function() {
+                    openFunctionList('methodContainers', ' named ', selectedText); }]);
+            else if(containers.length === 1) 
+                items.push(['Open code browser', function() {
+                    var holder = containers[0];
+                    openCodeBrowserOn(holder.context[holder.names[0]]); }]);
+            items.push(['References', function() {
+                openFunctionList('references', ' to ', selectedText, true); }]);
+        }
+        return items;
+    },
+    onMouseDown: function(evt) {
+        // if clicked in the text we want the default thing to happen, at least in HTML
+        // but do not want other morphs to handle the event as well, so return true for was handled
+
+        if (evt.target.onmousedown) { // handled by text chunk
+            this.blur();
+            return evt.target.onmousedown(evt);
+        }
+        if (evt.isRightMouseButtonDown()) {
+            // delayed because when owner is a window and comes forward the window
+            // would be also in front of the new menu
+            var sel = this.selectionString();
+            var items = this.getMenuItemsFor(sel);
+            if (items.length > 0) lively.morphic.Menu.openAt.curry(evt.getPosition(), null, items).delay(0.1);
+            evt.stop();
+            return true;
+        }
+
+        // FIXME: handled in Morph>>onMouseDown. remove.
+        if (!evt.isLeftMouseButtonDown()) return false;
+        if (evt.isCommandKey()) { // for halos
+            evt.stop();
+            return true;
+        }
+
+        if (this.isFocused()) {
+            this.priorSelectionRange = this.getSelectionRange();  // save for onMouseUp
+        }
+
+        return false;
+    },
+
+});
+
 Object.subclass('lively.ide.Differator',
 'default category', {
 
@@ -2630,14 +2723,20 @@ lively.morphic.Panel.subclass('lively.ide.FunctionListBrowser',
                     functionPane.isMultipleSelectionList = true;}]
                 );
 
-        if (functionPane.selection)
+        if (functionPane.getSelectedIndexes().length == 1) {
             items.push(
                 ['senders', function() {
-                    openFunctionList('senders', functionPane.selection.name, true); 
+                    openFunctionList('senders', ' of ', functionPane.selection.name, true); 
                     }],
                 ['implementors', function() {
-                    openFunctionList('implementors', functionPane.selection.name); }]
+                    openFunctionList('implementors', 'of ', functionPane.selection.name); }]
                 );
+            var target = getFunctionOrAccessor(functionPane.selection.name, functionPane.selection.context);
+            if(target.lvIsConstructor() || !(target instanceof Function))
+                items.push(
+                    ['open in code browser', function() {openCodeBrowserOn(target)}]
+                    );
+        }
         if(functionPane.getSelectedIndexes().length == 2)
             items.push(
                 ['browse differences', function() {self.browseDifferences()}]
@@ -3133,9 +3232,88 @@ Object.extend(Global, {
         });
         return containers
     },
-    openFunctionList: function(kind, searchString, cycleThroughResults) {
+    methodContainers: function(searchString) {
+        var re;
+        var wildcardIndex = searchString.indexOf('*');
+        if(wildcardIndex >= 0) {
+            var queryPattern = searchString.regExpEscape().replace(/\\\*/g, '\\w*');
+            if(wildcardIndex !== 0) {
+                queryPattern = '\\b' + queryPattern;
+            }
+            if(searchString.lastIndexOf('*') != searchString.length - 1) {
+                queryPattern = queryPattern + '\\b';
+            }
+            re = new RegExp(queryPattern, 'i');
+        } else
+            re = new RegExp('\\b' + searchString.regExpEscape() + '\\b');
+        var containers = [];
+        knownFunctionContainers().each(function(e){
+            var path = e.lvContextPath();
+            if(path && lively.lookup(path) === e && path.match(re)) {
+                if((!path.endsWith('.prototype') || searchString.endsWith('.prototype')) && 
+                    (!path.endsWith('.def') || searchString.endsWith('.def')) && 
+                    (!path.endsWith('.attributeStore') || searchString.endsWith('.attributeStore'))) {
+                    if(path.indexOf('.') === -1)
+                        containers.push({context: Global, names: [path]});
+                    else if(path.endsWith(']')) {
+                        var propIndex = path.indexOf('[');
+                        var propName = path.slice(propIndex + 1, -1);
+                        if(searchString.indexOf('[') === -1 && !propName.match(re))
+                            return;
+                        var root = path.substring(0, propIndex);
+                        if(propName - 0 != propName)
+                            containers.push({context: lively.lookup(root), names: [propName]});
+                    } else {
+                        var propIndex = path.lastIndexOf('.');
+                        var propName = path.substring(propIndex + 1);
+                        if(searchString.indexOf('.') === -1 && !propName.match(re))
+                            return;
+                        var root = path.substring(0, propIndex);
+                        containers.push({context: lively.lookup(root), names: [propName]});
+                    }
+                }
+            }
+        });
+        return containers
+    },
+    openCodeBrowserOn: function(container){
+        var browser = new lively.ide.SimpleCodeBrowser(pt(640, 480));
+        browser.openIn($world, 'Simple Code Browser');
+        var kinds = browser.functionContainerKindPane.getList();
+        for(var i=0; i<kinds.length; i++) {
+            var kind = kinds[i];
+            var containers = kind.containers();
+            for(var idx=0; idx<containers.length; idx++) {
+                var c = containers[idx];
+                if(c === container) {
+                    (function() {
+                       browser.functionContainerKindPane.selectAt(i);
+                        (function() {
+                            browser.functionContainerPane.selection = c;
+                        }).delay(0);
+                    }).delay(0);
+                    return;
+                } else if(kind.nonStaticContainer(c) === container) {
+                    (function() {
+                        browser.functionContainerKindPane.selectAt(i);
+                        (function() {
+                            browser.functionContainerPane.selection = c;
+                            (function() {
+                                browser.functionKindPane.selectAt(1);
+                            }).delay(0);
+                        }).delay(0);
+                    }).delay(0);
+                    return;
+                }
+            }
+        }
+        alert("Container not found");
+    },
+
+
+    openFunctionList: function(kind, glue, searchString, cycleThroughResults) {
         var browser = new lively.ide.FunctionListBrowser(pt(640, 480), cycleThroughResults);
-        browser.openIn($world, kind + ' of ' + searchString);
+        browser.openIn($world, kind + glue + searchString);
         var searchResults = Global[kind](searchString);
         var sortList = [];
         searchResults.each(function(e){
@@ -3164,8 +3342,20 @@ Object.extend(Global, {
         var source;
         var foundMarker = new Object();
         var options = {
-            MemberExpression: function(node) { if(node.property.name == searchString) throw foundMarker; },
-            Literal: function(node) {if(node.value == searchString) throw foundMarker; }
+            CallExpression: function(node) { 
+                function matchesProperty(n, string) {
+                    if(n.type == "MemberExpression") {
+                        if(n.computed)
+                            return n.property.type == "Literal" && n.property.value == string;
+                        else return n.property.name == string;
+                    } else return n.type == "Identifier" && n.name == string; }
+                if(matchesProperty(node.callee, searchString))
+                    throw foundMarker;
+                if(node.callee.type == "MemberExpression" &&
+                    (node.callee.property.name == "call" || node.callee.property.name == "apply") &&
+                    matchesProperty(node.callee.object, searchString))
+                        throw foundMarker;
+            }
         }
         var preceding;
         if(searchString in Global) {
@@ -3577,7 +3767,7 @@ alignSubmorphs: function alignSubmorphs() {
             ['Browse Senders...', function(){
                 $world.prompt("Senders of...", function(s) {
                     if (!s) return;
-                    openFunctionList('senders', s, true);
+                    openFunctionList('senders', ' of ', s, true);
                 });
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
@@ -3585,15 +3775,23 @@ alignSubmorphs: function alignSubmorphs() {
             ["Browse Implementors...", function(){
                 $world.prompt("Implementors of...(wildcards accepted)", function(s) {
                     if (!s) return;
-                    openFunctionList('implementors', s);
+                    openFunctionList('implementors', ' of ', s);
                 });
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
                 }],
             ["Browse References...", function(){
-                $world.prompt("References to...(full path expressions accepted)", function(s) {
+                $world.prompt("References to...(path expressions accepted)", function(s) {
                     if (!s) return;
-                    openFunctionList('references', s, true);
+                    openFunctionList('references', ' to ', s, true);
+                });
+                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                self.collapse();
+                }],
+            ["Browse Method Containers (classes, traits, etc)...", function(){
+                $world.prompt("Containers named...(path expressions and wildcards accepted)", function(s) {
+                    if (!s) return;
+                    openFunctionList('methodContainers', ' named ', s);
                 });
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 self.collapse();
@@ -3609,7 +3807,7 @@ alignSubmorphs: function alignSubmorphs() {
                 self.collapse();
                 }]
         );
-        y = 23*6;
+        y = 23*7;
     }
     this.menu = new lively.morphic.Menu(null, items);
     this.menu.openIn(this, pt(0,0), false);
@@ -3669,16 +3867,14 @@ alignSubmorphs: function alignSubmorphs() {
         lively.BuildSpec('ChangesetsFlap').createMorph().openInWorld();
 
         var userName = world.getUserName(true/*don't ask*/),
-            isOff = "off" === localStorage.getItem(
-                Strings.format("LivelyChangesets:%s:%s",
-                    userName, lively.Config.location));
-        if (!userName || isOff) return;
+            isOff = localStorage.getItem("LivelyChangesets:" + userName +":"+ location.pathname);
+        if (!userName || isOff === "off") return;
 
-		(function loadChangeSets() {
+		(function loadChanges() {
 			lively.ChangeSet.initialize();
 			if (Config.automaticChangesReplay)
 				lively.ChangeSet.loadAndcheckVsSystem();
-		}).delay(Config.location.hostname === 'localhost' ? 1 : 10);
+		}).delay(location.hostname === 'localhost' ? 1 : 10);
     });
 })();
 

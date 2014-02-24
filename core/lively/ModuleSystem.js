@@ -17,7 +17,10 @@ Object.extend(lively, {
                 context = context[spec];
             }
             for(i = 1; i < topParts.length; i = i + 2) {
-                spec = JSON.parse(topParts[i]);
+                if(topParts[i][0] === "'")
+                    spec = topParts[i].slice(1, -1);
+                else
+                    spec = JSON.parse(topParts[i]);
                 if (!context)
                     return null;
                 context = context[spec];

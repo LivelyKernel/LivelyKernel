@@ -17,7 +17,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
         this._commandString = commandString;
         options = options || {};
         options.cwd = options.cwd || lively.ide.CommandLineInterface.rootDirectory;
-        options.commandLineServerURL = options.commandLineServerURL = lively.ide.CommandLineInterface.commandLineServerURL;
+        options.commandLineServerURL = options.commandLineServerURL || lively.ide.CommandLineInterface.commandLineServerURL;
         options.ansiAttributesRegexp = options.hasOwnProperty("ansiAttributeEscape") ? options.ansiAttributeEscape : lively.ide.CommandLineInterface.ansiAttributesRegexp;
         this._options = options;
     }

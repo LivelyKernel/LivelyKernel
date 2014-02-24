@@ -291,7 +291,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 this.setExtent(pt(100,100));
             },
                 showSource: function showSource(frame) {
-                this.textString = frame.func ? frame.func.getSource() : '';
+                this.textString = (frame && frame.func) ? frame.func.getSource() : '';
             }
             },{
                 _BorderColor: Color.rgb(230,230,230),
@@ -414,11 +414,17 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 }
             },
                 updateList: function updateList(frame) {
-                this.tree.item = {
-                    name: '<current scope>',
-                    data: frame.getScope()
-                };
-                this.updateScope(this.tree.item);
+                if (frame != null) {
+                    this.tree.item = {
+                        name: '<current scope>',
+                        data: frame.getScope()
+                    };
+                    this.updateScope(this.tree.item);
+                } else { // frame unselected
+                    this.tree.item = {
+                        name: 'no frame selected'
+                    }
+                }
                 this.tree.expand();
                 this.tree.update();
             }
@@ -452,7 +458,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         this.get("FrameSource").showSource(frame);
         this.get("FrameSource").highlightPC();
         this.get("FrameScope").updateList(frame);
-        if (frame.isResuming()) {
+        if (frame && frame.isResuming()) {
             this.get("ContinueButton").isActive = true;
             this.get("StepIntoButton").isActive = true;
             this.get("StepOverButton").isActive = true;
@@ -487,10 +493,26 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         }, this.setTopFrame.bind(this));
     },
         stepOver: function stepOver() {
-        var frame = this.currentFrame;
-        lively.ast.doWithHalt(function() {
-            frame.stepToNextStatement();
-        }, this.setTopFrame.bind(this));
+        var frame = this.currentFrame,
+            node = frame.getOriginalAst().body,
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            result;
+        // FIXME: rather use continuation here
+        interpreter.haltAtNextStatement();
+        try {
+            result = interpreter.runWithFrame(node, frame);
+        } catch (e) {
+            // might throw a Break
+        }
+        if (frame.pc == null) { // finished frame
+            frame = frame.getParentFrame();
+            if (frame) {
+                frame.alreadyComputed[frame.pc.astIndex] = result;
+                this.setTopFrame(frame);
+            } else
+                this.owner.remove();
+        } else
+            this.setCurrentFrame(frame);
     }
     })],
     titleBar: "Debugger"

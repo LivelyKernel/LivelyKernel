@@ -223,12 +223,8 @@ Object.subclass('lively.ast.Continuation',
             if (result.hasOwnProperty('val'))
                 frame.alreadyComputed[frame.pc.astIndex] = result.val;
 
-            // FIXME frames hold on to function ASTs but resuming from a
-            // function is not supported right now. So we set the resumable
-            // node to the functions body here as a quick fix
-            var resumeNode = frame.getOriginalAst().body;
             try {
-                return { val: interpreter.runWithFrameAndResult(resumeNode, frame, result.val) };
+                return { val: interpreter.runFromPC(frame, result.val) };
             } catch (ex) {
                 if (!ex.isUnwindException)
                     throw ex;

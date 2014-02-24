@@ -29,7 +29,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     runFromPC: function(frame, lastResult) {
-        return this.runWithFrameAndResult(frame.getOriginalAst(), frame, lastResult);
+        var node = frame.getOriginalAst();
+        if (frame.func.isFunction())
+            node = node.body;
+        return this.runWithFrameAndResult(node, frame, lastResult);
     },
 
     runWithFrameAndResult: function(node, frame, result) {

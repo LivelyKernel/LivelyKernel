@@ -493,8 +493,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         }, this.setTopFrame.bind(this));
     }
     })],
-    titleBar: "Debugger",
-    withoutLayers: "[GrabbingLayer]"
+    titleBar: "Debugger"
 });
 
 }) // end of module

@@ -399,7 +399,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     },
     
     getTipPosition: function() {
-        return this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, this.getExtent().y));
+        return this.getPositionInWorld().addPt(pt(this.getExtent().x / 2, this.getExtent().y)); 
     },
     
     isActive: function() {
@@ -760,7 +760,9 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     remove: function($super) {
         
         $super();
-        this.onClose();
+        if (!window["migrationProcessIsActive"]) {
+            this.onClose();
+        }
     },
     
     addPreviewMorph: function() {
@@ -1293,6 +1295,9 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.data = oldComponent.data;
         
         this.content.migrateFromPart(oldComponent);
+        if (this.migrateFromPart)
+            this.migrateFromPart(oldComponent);
+        
         oldComponent.remove();
         $world.addMorph(this);
     },
@@ -2158,6 +2163,13 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         }
         
         return null;
+    },
+    
+    migrateFromPart: function(oldComponent) {
+        var _this = this;
+        this.arrows.each(function(ea) {
+            _this.addMorph(ea);
+        })
     }
 });
 

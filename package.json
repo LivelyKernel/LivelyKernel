@@ -16,7 +16,7 @@
     "optparse": "~1.0",
     "colorize": "~0.1",
     "websocket": "1.0.8",
-    "file-fuser": ">=0.0.5",
+    "file-fuser": ">=0.0.6",
     "watch": "~0.8.0"
   },
   "scripts": {

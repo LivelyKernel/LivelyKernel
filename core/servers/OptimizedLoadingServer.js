@@ -105,7 +105,8 @@ function determineCoreFiles() {
     ffuser({
         baseDirectory: directory,
         files: coreFiles,
-        combinedFile: combinedFile
+        combinedFile: combinedFile,
+        sourceRoot: '../..'
     }, function(err, _fuser) { global.fuser = fuser = _fuser; });
 })();
 
@@ -157,8 +158,24 @@ module.exports = function(route, app) {
                     stream = stream.pipe(zlib.createGzip());
                 }
                 res.writeHead(200, header);
-                stream.pipe(res);
+                stream.pipe(res, { end: false });
+                stream.on('end', function() {
+                    var offset = '       \n';
+                    // FIXME: somehow an offset of 8 byte is needed here
+                    res.end(offset + '//# sourceMappingURL=/generated/' + hash + '/combinedModules.jsm\n');
+                });
             });
+        });
+    });
+
+    app.get('/generated/:hash/combinedModules.jsm', function(req, res) {
+        if (!fuser) {
+            res.status(500).end(String('file-fuser could not be started'));
+            return;
+        }
+        fuser.withSourceMapStreamDo(function(err, stream) {
+            res.writeHead(200);
+            stream.pipe(res);
         });
     });
 }

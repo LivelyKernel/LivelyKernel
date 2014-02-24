@@ -917,8 +917,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             }), id: null, params: []
         });
 
-        // TODO: storeComputationResult(fn) is not possible for value
         return rewriter.newNode('BlockStatement', { body: [
+            // debugging = true;
             rewriter.newNode('ExpressionStatement', {
                 expression: rewriter.newNode('AssignmentExpression', {
                     operator: '=',
@@ -926,6 +926,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     right: rewriter.newNode('Literal', { value: true })
                 })
             }),
+            // _[lastNode = xx] = undefined;
+            rewriter.newNode('ExpressionStatement', {
+                expression: rewriter.storeComputationResult(
+                    rewriter.newNode('Identifier', { name: 'undefined' }), n.start, n.end, astIndex)
+            }),
+            // throw { toString: function() { return 'Debugger'; }, astIndex: xx };
             rewriter.newNode('ThrowStatement', {
                 argument: rewriter.newNode('ObjectExpression', {
                     properties: [{

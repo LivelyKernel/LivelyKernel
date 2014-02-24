@@ -71,6 +71,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     debuggerThrow: function() {
         return "{\n" +
             "debugging = true;\n" +
+            this.intermediateResult('undefined;\n') +
             "throw {\n" +
             "toString: function () {\n" +
             "return 'Debugger';\n" +

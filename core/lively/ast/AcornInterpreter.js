@@ -564,6 +564,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             },
             astIndex: node.astIndex
         };
+        state.currentFrame.alreadyComputed[node.astIndex] = undefined;
         throw new UnwindException(e);
     },
 

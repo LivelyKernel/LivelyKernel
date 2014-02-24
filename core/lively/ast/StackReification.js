@@ -220,7 +220,8 @@ Object.subclass('lively.ast.Continuation',
                 return result;
             }
 
-            frame.alreadyComputed[frame.pc.astIndex] = result.val;
+            if (result.hasOwnProperty('val'))
+                frame.alreadyComputed[frame.pc.astIndex] = result.val;
 
             // FIXME frames hold on to function ASTs but resuming from a
             // function is not supported right now. So we set the resumable
@@ -231,9 +232,6 @@ Object.subclass('lively.ast.Continuation',
             } catch (ex) {
                 if (!ex.isUnwindException)
                     throw ex;
-
-                // FIXME: adjust already computed!
-                // frame.setAlreadyComputed(alreadyComputed);
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
                 // mr 2014-02-21: PC should have been set by accept
                 // frame.setPC(pc);

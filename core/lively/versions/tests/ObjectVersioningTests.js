@@ -303,6 +303,87 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         this.assertEquals(Object.isExtensible(obj), false);
     }
 });
+TestCase.subclass('lively.versions.tests.ObjectVersioningTests.AFooTests',
+'default category', {
+    transform: function(sourceString) {
+        var transformer = lively.versions.SourceTransformations;
+        firstPassResult = transformer.transformObjectAccess(sourceString);
+        return transformer.transformObjectCreation(firstPassResult);
+    },
+    test01transformObjectAccessAndCreation: function() {
+        var input = 'var obj = {foo: 5}; obj.foo;',
+            expectedOutput = 
+            'var obj = lively.proxyFor({\n'+
+            '    foo: 5\n' + 
+            '});\n' +
+            '\n' + 
+            'obj.__OV__get(\"foo\");';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+    test02get: function() {
+        var input = 'var obj = {foo: 5}; obj.foo;',
+            expectedResult = 5;
+        
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+    test03set: function() {
+        var input = 'var obj = {}; obj.foo = 5; obj.foo',
+            expectedResult = 5;
+        
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+    test04objectMethodApply: function() {
+        var input = 'var obj = {foo: function() {return 5}}; obj.foo()',
+            expectedResult = 5;
+            
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+    test07objectMethodApplyWithArgs: function() {
+        var input = 'var obj = {bar: 5, foo: function(x, y) {return this.bar + x + y}}; obj.foo(2, 3)',
+            expectedResult = 10;
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+    test08functionApplyWithArgs: function() {
+        var input = 'var foo = function(x, y) {return 5 + x + y}; foo(2, 3)',
+            expectedResult = 10;
+            
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+    test09hasOwn: function() {
+        var input = 'var obj = {foo: function() {return 5}}; obj.hasOwnProperty(\"foo\");',
+            expectedResult = true;
+        var transformed = this.transform(input);
+        debugger;
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+
+
+
+    test05objectMethodApplyWithInnerGet: function() {
+        var input = 'var obj = {bar: 5, foo: function() {return this.bar}}; obj.foo()',
+            expectedResult = 5;
+            
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+    test06constructAndApply: function() {
+        var input = 'var fooClass = function() { this.foo = function() {return 5}};' + 
+                    'new fooClass().foo()',
+            expectedResult = 5;
+                    
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+
+
+
+
+    transformAndEval: function(sourceString) {
+        return eval(this.transform(sourceString));
+    },
+
+
+
+});
 
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxiesMeetNativeCodeTests',
 'testing', {
@@ -626,13 +707,23 @@ TestCase.subclass(
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
-    test10Construct: function() {
+    test10ConstructForObjectMethod: function() {
         var input = 'new lively.obj.foo(5);',
             expectedOutput = 
             'lively.__OV__get("obj").__OV__get("foo").__OV__construct(5);';
         
         this.assertEquals(this.transform(input), expectedOutput);
     },
+    test11ConstructForSimpleVar: function() {
+        var input = 'new foo(5);',
+            expectedOutput = 
+            'foo.__OV__construct(5);';
+        
+        this.assertEquals(this.transform(input), expectedOutput);
+    },
+
+
+
 
 
 

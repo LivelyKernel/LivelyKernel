@@ -386,15 +386,27 @@ Object.subclass('lively.versions.InsertProxiesTransformations', {
 });
 lively.versions.InsertProxiesTransformations.subclass(
     'lively.versions.ObjectAccessTransformations', {
-    transformNode: function(node) { 
+    transformNode: function(node) {
+        
+        var builtInsMap = {hasOwnProperty: "hasOwn"};
+                
         if (node instanceof UglifyJS.AST_Dot) {
-            return new UglifyJS.AST_Call({
-                expression: new UglifyJS.AST_Dot({
-                    expression: node.expression,
-                    property: '__OV__get',
-                }),
-               args: [new UglifyJS.AST_String({value: node.property})],
-            });
+            if (node.property = "hasOwnProperty") {
+                node.property = "hasOwn";
+                return node;
+            }
+            else if (builtInsMap.hasOwnProperty(node.property)) {
+                node.property = builtInsMap[builtIn];
+                return node;
+            } else {
+                return new UglifyJS.AST_Call({
+                    expression: new UglifyJS.AST_Dot({
+                        expression: node.expression,
+                        property: '__OV__get',
+                    }),
+                   args: [new UglifyJS.AST_String({value: node.property})],
+                });
+            }
         }
         
         if (node instanceof UglifyJS.AST_Sub) {
@@ -412,15 +424,13 @@ lively.versions.InsertProxiesTransformations.subclass(
         if (node instanceof UglifyJS.AST_Call) {
             
             if (node instanceof UglifyJS.AST_New) {
-                if (this.isTransformedOVGetCall(node.expression)) {
-                    return new UglifyJS.AST_Call({
-                        expression: new UglifyJS.AST_Dot({
-                            expression: node.expression,
-                            property: '__OV__construct',
-                        }),
-                       args: node.args,
-                    });
-                }
+                return new UglifyJS.AST_Call({
+                    expression: new UglifyJS.AST_Dot({
+                        expression: node.expression,
+                        property: '__OV__construct',
+                    }),
+                   args: node.args,
+                });
             }
             else if (this.isTransformedOVGetCall(node.expression)) {
                 node.expression.expression.property = '__OV__getAndApply'
@@ -428,6 +438,7 @@ lively.versions.InsertProxiesTransformations.subclass(
                 return node.expression;
             } 
             else {
+                
                 // nonObjectFunctionCall such as: var func = function() {}; func();
                 return new UglifyJS.AST_Call({
                     expression: new UglifyJS.AST_Dot({
@@ -465,11 +476,7 @@ lively.versions.InsertProxiesTransformations.subclass(
             node.expression instanceof UglifyJS.AST_Dot &&
             node.expression.property == '__OV__get';
     },
-    isTransformedOVGetAndApplyCall: function(node) {
-        return node instanceof UglifyJS.AST_Call && 
-            node.expression instanceof UglifyJS.AST_Dot &&
-            node.expression.property == '__OV__getAndApply';
-    },
+
 
 
 });

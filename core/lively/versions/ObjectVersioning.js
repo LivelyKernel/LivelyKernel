@@ -847,9 +847,9 @@ Object.extend(lively.versions.ObjectVersioning, {
             });
         }
         
-        handler = this.versioningProxyHandler(target);
-        
-        proxy = new Proxy(this.dummyTargetFor(target), handler, true);
+        //handler = this.versioningProxyHandler(target);
+        //proxy = new Proxy(this.dummyTargetFor(target), handler, true);
+        proxy = this.createTransformProxy(target);
         
         lively.ProxyTable.set(target, proxy);
         
@@ -883,6 +883,687 @@ Object.extend(lively.versions.ObjectVersioning, {
             !Config.get('GlobalSymbolsToWrap').include(obj.name) &&
             !Object.isRootPrototype(obj.prototype);
     },
+    createTransformProxy: function(target) {
+        return new lively.versions.TransformProxy(target);
+    },
+
+});
+Object.subclass('lively.versions.TransformProxy',
+'default category', {
+    initialize: function ($super, target) {
+        this.__targetVersions = (function() {
+            var versions = {};
+            
+            versions[lively.CurrentVersion.ID] = target;
+            
+            return versions;
+        })();
+        
+        this.__shouldVersion = !lively.currentlyInDontVersionScope;
+    },
+    // === helpers ===
+    isProxy: function() { return true },
+    
+    targetObjectInVersion: function(version) {
+        var targetObject;
+
+        while(!targetObject && version) {
+            targetObject = this.__targetVersions[version.ID];
+            version = version.previousVersion;
+        }
+        
+        // FIXME: why is this necessary? is this only necessary for
+        // certain kinds of objects as, for example, for DOM Nodes
+        // and CSSStyleDeclarations?
+        if (!targetObject) {
+            version = lively.CurrentVersion;
+            
+            while(!targetObject && version) {
+                targetObject = this.__targetVersions[version.ID];
+                version = version.nextVersion;
+            }
+            
+        }
+        
+        return targetObject;
+    },
+    targetObject: function() {
+        return this.targetObjectInVersion(lively.CurrentVersion); 
+    },
+    
+    proxyTarget: function() { return this.targetObject() },
+	
+	
+    ensureProxied: function(obj) {
+        if (!Object.isPrimitiveObject(obj) &&
+            !Object.isProxy(obj) &&
+            !Object.isRootPrototype(obj)) {
+            return lively.proxyFor(obj);
+         } else {
+            return obj;
+        }
+    },
+    checkProtoChains: function(proxy, proxyTarget) {
+        var targetAncestor = proxyTarget.__proto__,
+            proxyAncestor = proxy.__proto__;
+        
+        while(targetAncestor) {
+            if (!targetAncestor ===
+                     proxyAncestor.proxyTarget()) {
+                
+                // TODO: in this case, we could try to fix the
+                // proxyTarget's prototype chain
+                throw new Error('proxy-proto-chain inconsistent to ' +
+                    'the object\'s actual prototype chain');
+            }
+            targetAncestor = targetAncestor.__proto__;
+            proxyAncestor = proxyAncestor.__proto__;
+        }
+    },
+    shouldArgumentsBeUnwrappedRecursively: function(func) {
+        return Config.get('NativeCodeWhereArgumentsNeedToBeUnwrappedRecursively').
+            include(func);
+    },
+    unwrapRecursively: function(obj) {
+        if (Object.isPrimitiveObject(obj)) {
+            return obj;
+        }
+        if (Object.isArray(obj)) {
+            return this.unwrapArrayRecursively(obj);
+        }
+        if (Object.isObject(obj)) {
+            return this.unwrapObjectRecursively(obj);
+        }
+        
+        if (Object.isFunction(obj)) {
+            // TODO: what about functions?
+            debugger;
+            throw new Error('not yet implemented...')
+        }
+        
+        throw new Error('not yet implemented...')
+        
+    },
+    unwrapArrayRecursively: function(array) {
+        var newArray = [];
+        
+        array.forEach((function(each, idx) {
+            newArray[idx] = this.unwrapRecursively(each);
+        }).bind(this));
+        
+        return newArray;
+    },
+    unwrapObjectRecursively: function(obj) {
+        var newObject = {};
+        
+        // including vs. excluding inherited props?
+        for (var name in obj) {
+            newObject[name] = this.unwrapRecursively(obj[name]);
+        }
+        
+        return newObject;
+    },
+    shouldObjectBeCopiedBeforeWrite: function(target) {
+        var isDOMElement;
+        
+        // should this object store versions of itself?
+        if (!this.__shouldVersion) {
+            return false;
+        }
+        
+        // don't create new versions of window or DOM or CSS objects
+        isDOMElement = Config.get('DOMTypes').any(function(ea) {
+            return target instanceof ea;
+        });
+        if (target === window || isDOMElement) {
+            
+            return false;
+        }
+        
+        // DEFAULT CASE:
+        // copy objects before writing into them, when there's not yet
+        // a version of the object (= a copy) for the current version
+        // of the runtime
+        return !this.__targetVersions.
+            hasOwnProperty(lively.CurrentVersion.ID);
+    },
+    shouldObjectBeCopiedBeforeApplication: function(thisArg, func) {
+        var funcWillModifyTargetArray = Object.isProxy(thisArg) &&
+                Object.isArray(thisArg) &&
+                Config.get('ModifyingArrayOperations').include(func);
+        
+        return funcWillModifyTargetArray && thisArg.__shouldVersion;
+    },
+    canFunctionHandleProxies: function(func) {
+        // note, however: the following [native code]-check also
+        // incorrectly matches functions that have been bound
+        // using, for example, (Function.protototype.bind())
+        
+        if (Object.isNativeCode(func) &&
+            !Config.get('NativeCodeThatCanHandleProxies').include(func)) {
+            
+            return false;
+        }
+        
+        return true;
+    },
+    
+    // === proxy handler traps ===
+    __OV__set: function(name, value) {
+        var targetObject, newObject, setter, copy;
+        
+        targetObject = this.targetObject();
+        
+		if (value === 277) {
+			console.log("here");
+		}
+		
+        // copy-on-write: create and work on a new version of the target
+        // when target was commited with a previous version
+        if (this.shouldObjectBeCopiedBeforeWrite(targetObject) &&
+            name !== '__newVersionOfTarget') {
+            
+            copy = Object.copyObject(targetObject);
+            this.__targetVersions[lively.CurrentVersion.ID] = copy;
+            lively.ProxyTable.set(copy, receiver);
+            
+            targetObject = copy;
+        }
+        
+        // special cases
+        if (name === '__proto__') {
+            if (Object.isProxy(value)) {
+                
+                Object.defineProperty(targetObject, '__protoProxy', {
+                    value: value,
+                    writable: true
+                });
+                targetObject.__proto__ = value.proxyTarget();
+            } else {
+                Object.defineProperty(targetObject, '__protoProxy', {
+                    value: null,
+                    writable: true
+                });
+                targetObject.__proto__ = value;
+            }
+            return true;
+        }
+        
+        if (name === '__shouldVersion') {
+            this.__shouldVersion = value;
+            
+            return true;
+        }
+        
+        if (name === 'onreadystatechange' && Object.isProxy(value) &&
+            targetObject.constructor.name === 'XMLHttpRequest') {
+            value = value.proxyTarget();
+        }
+        
+        descriptor =
+            Object.getOwnPropertyDescriptor(targetObject, name);
+        setter = (descriptor && descriptor.set) ||
+            Object.prototype.__lookupSetter__.call(targetObject, name);
+        if (setter) {
+            // setting the slot triggers an accessor function, in which
+            // case the target should be proxied
+            
+            setter.call(receiver, value);
+            
+            return true;
+        }
+        
+        // default handling
+        targetObject[name] = value;
+        
+        return true;
+    },
+    __OV__get: function(name) {
+        var result, nextAncestor, proto, targetObject, copy,
+            descriptor, getter, OV = lively.versions.ObjectVersioning;
+        
+        // proxy meta-information
+        if (name === 'isProxy') {
+            return this.isProxy;
+        }
+        if (name === 'proxyTarget') {
+            return this.proxyTarget.bind(this);
+        }
+        if (name === '__shouldVersion') {
+            return this.__shouldVersion;
+        }
+        
+        targetObject = this.targetObject();
+        
+        // special cases
+        if (name === '__proto__') {
+            if (targetObject.__protoProxy) {
+                return targetObject.__protoProxy;
+            } else {
+                proto = targetObject.__proto__;
+                if (Object.isPrimitiveObject(proto) ||
+                    Object.isRootPrototype(proto)) {
+                        return proto;
+                    } else {
+                        return lively.proxyFor(proto);
+                    }
+            }
+        }
+        if (name === 'prototype' && Object.isFunction(targetObject)) {
+            // prototype is already proxied or a root prototype
+            return targetObject.prototype;
+        }
+        
+        if (name === '__createNewVersionOfTarget') {
+            return (function() {
+                copy = Object.copyObject(targetObject);
+                
+                this.__targetVersions[lively.CurrentVersion.ID] = copy;
+            
+                lively.ProxyTable.set(copy, receiver);
+            }).bind(this);
+        }
+        
+        descriptor =
+            Object.getOwnPropertyDescriptor(targetObject, name);
+        getter = (descriptor && descriptor.get) ||
+            Object.prototype.__lookupGetter__.call(targetObject, name);
+        if (getter) {
+            // getting the slot triggers an accessor function, in which
+            // case the target should be proxied
+            
+            return getter.call(receiver);
+        }
+        
+        // default handling
+        if (({}).hasOwnProperty.call(targetObject, name)) {
+            result = targetObject[name];
+        } else {
+            if (targetObject.__protoProxy === null) {
+                var proto = targetObject.__proto__;
+            } else {
+                var proto = targetObject.__protoProxy;
+            }
+            result = proto ? proto[name] : undefined;
+        }
+        
+        return this.ensureProxied(result);
+    },
+    __OV__getAndApply: function(name) {
+        var target = this.targetObject();
+        var providedArgs = [].slice.call(arguments, 1);
+        return target[name].__OV__apply(this, providedArgs);
+    },
+    __OV__apply: function(suppliedThisArg, suppliedArgs) {
+        var result,
+            thisArg = suppliedThisArg,
+            targetObject = suppliedThisArg,
+            args = suppliedArgs,
+            func = this.targetObject(),
+            copy;
+        
+        // when aFunc is Function.prototype.apply or .call, normalize
+        // the arguments as we apply the function below, removing the
+        // apply-meta level here to not have to repeat handling of
+        // special cases ([native code] and stuff)
+        if (func === Function.prototype.apply ||
+              func === Function.prototype.call) {
+            
+            (function normalizeArguments(originalFunc, originalArgs) {
+                func = thisArg.proxyTarget();
+            
+                thisArg = originalArgs[0];
+                targetObject = originalArgs[0];
+            
+                if (originalFunc === Function.prototype.apply) {
+                    args = originalArgs[1];
+                } else {
+                    args = originalArgs.slice(1);
+                }
+            
+                if (args && !Object.isArray(args)) {
+                    args = Array.prototype.slice.call(args);
+                }
+            
+                if (func === Function.prototype.apply ||
+                    func === Function.prototype.call) {
+                    normalizeArguments(func, args);
+                }
+            })(func, args);
+        }
+        
+        // copy-on-write: create and set a new version of the target
+        // before executing native functions that modify the target,
+        // specifically the Array Mutator functions
+        if (this.shouldObjectBeCopiedBeforeApplication(thisArg, func)) {
+            
+            thisArg.__createNewVersionOfTarget();
+            
+        }
+        
+        // some primitive code can't handle proxies,
+        // therefore we unwrap the target and arguments
+        if (!this.canFunctionHandleProxies(func)) {
+            
+            if (thisArg && thisArg.isProxy()) {
+                targetObject = thisArg.proxyTarget();
+            }
+            
+            if (this.shouldArgumentsBeUnwrappedRecursively(func)) {
+                
+                args = this.unwrapRecursively(args);
+                
+            } else {
+                args = args && args.map(function(each) {
+                    return (each && each.isProxy()) ?
+                         each.proxyTarget() : each;
+                })
+            }
+            
+            // TODO: check-up the arguments
+            if (thisArg && thisArg.isProxy()) {
+                this.checkProtoChains(thisArg, thisArg.proxyTarget());
+            }
+        }
+        
+        try {
+            
+            result = func.apply(targetObject, args);
+            
+        } catch (e) {
+            // FIXME: temporary to ease debugging - remove this later
+            
+            // don't debug the following errors. first error occurs
+            // when trying the first of two XPath query alternatives
+            // and is then caught immediately.. second error is a valid
+            // exception indicating that ACE's syntax check found issues
+            if (e.message !== 'An attempt was made to create or ' +
+                'change an object in a way which is incorrect with ' +
+                'regard to namespaces.' &&
+                !e.message.startsWith('Unexpected ')) {
+                
+                // debugger;
+                
+                // result = func.apply(targetObject, args);
+            }
+            
+            throw e;
+        }
+        
+        return this.ensureProxied(result); 
+    },
+    __OV__construct: function(args) {
+        var OriginalConstructor = this.targetObject(),
+            name = OriginalConstructor.name,
+            proto = OriginalConstructor.prototype,
+            newInstance, constructorReturnValue;
+        
+        if (Config.get('GlobalSymbolsToWrap').include(name)) {
+            // new-operator is necessary for constructing new
+            // instances of built-in constructors. also, using them
+            // isn't problematic as the prototype chains of these
+            // built-in objects isn't expected to change
+            
+            newInstance = eval('new OriginalConstructor(' +
+                args.map(function(ea, idx) {
+                    return 'args[' + idx + ']';
+                }).reduce(function (prev, current){
+                    return prev ? prev + ', ' + current : current;
+                }, '') + ')');
+            
+            Object.defineProperty(newInstance, '__protoProxy', {
+                value: null,
+                writable: true
+            });
+            
+            return this.ensureProxied(newInstance);
+        }
+        
+        // we don't use a new-operator on the OriginalConstructor as
+        // the prototype of a function will be proxied and would, thus,
+        // return an object with a proxy as actual prototype, which it
+        // shouldn't have (prototype-traps + no __proto__ assignments)
+        
+        // note that an object constructed from a function always has a
+        // prototype (via __proto__)
+        
+        newInstance = lively.createObject(proto ? proto : {});
+        
+        constructorReturnValue =
+            OriginalConstructor.apply(newInstance, args);
+        
+        // note: newInstance is proxied as lively.createObject already
+        // returns a proxy, but we can't be sure for the constructor's
+        // return value
+        return constructorReturnValue ?
+            lively.proxyFor(constructorReturnValue) : newInstance;
+    },
+
+
+
+    apply: function(dummyTarget, suppliedThisArg, suppliedArgs) {
+        var result,
+            thisArg = suppliedThisArg,
+            targetObject = suppliedThisArg,
+            args = suppliedArgs,
+            func = this.targetObject(),
+            copy;
+        
+        // when aFunc is Function.prototype.apply or .call, normalize
+        // the arguments as we apply the function below, removing the
+        // apply-meta level here to not have to repeat handling of
+        // special cases ([native code] and stuff)
+        if (func === Function.prototype.apply ||
+              func === Function.prototype.call) {
+            
+            (function normalizeArguments(originalFunc, originalArgs) {
+                func = thisArg.proxyTarget();
+            
+                thisArg = originalArgs[0];
+                targetObject = originalArgs[0];
+            
+                if (originalFunc === Function.prototype.apply) {
+                    args = originalArgs[1];
+                } else {
+                    args = originalArgs.slice(1);
+                }
+            
+                if (args && !Object.isArray(args)) {
+                    args = Array.prototype.slice.call(args);
+                }
+            
+                if (func === Function.prototype.apply ||
+                    func === Function.prototype.call) {
+                    normalizeArguments(func, args);
+                }
+            })(func, args);
+        }
+        
+        // copy-on-write: create and set a new version of the target
+        // before executing native functions that modify the target,
+        // specifically the Array Mutator functions
+        if (this.shouldObjectBeCopiedBeforeApplication(thisArg, func)) {
+            
+            thisArg.__createNewVersionOfTarget();
+            
+        }
+        
+        // some primitive code can't handle proxies,
+        // therefore we unwrap the target and arguments
+        if (!this.canFunctionHandleProxies(func)) {
+            
+            if (thisArg && thisArg.isProxy()) {
+                targetObject = thisArg.proxyTarget();
+            }
+            
+            if (this.shouldArgumentsBeUnwrappedRecursively(func)) {
+                
+                args = this.unwrapRecursively(args);
+                
+            } else {
+                args = args && args.map(function(each) {
+                    return (each && each.isProxy()) ?
+                         each.proxyTarget() : each;
+                })
+            }
+            
+            // TODO: check-up the arguments
+            if (thisArg && thisArg.isProxy()) {
+                this.checkProtoChains(thisArg, thisArg.proxyTarget());
+            }
+        }
+        
+        try {
+            
+            result = func.apply(targetObject, args);
+            
+        } catch (e) {
+            // FIXME: temporary to ease debugging - remove this later
+            
+            // don't debug the following errors. first error occurs
+            // when trying the first of two XPath query alternatives
+            // and is then caught immediately.. second error is a valid
+            // exception indicating that ACE's syntax check found issues
+            if (e.message !== 'An attempt was made to create or ' +
+                'change an object in a way which is incorrect with ' +
+                'regard to namespaces.' &&
+                !e.message.startsWith('Unexpected ')) {
+                
+                // debugger;
+                
+                // result = func.apply(targetObject, args);
+            }
+            
+            throw e;
+        }
+        
+        return this.ensureProxied(result);
+    },
+    construct: function(dummyTarget, args) {
+        var OriginalConstructor = this.targetObject(),
+            name = OriginalConstructor.name,
+            proto = OriginalConstructor.prototype,
+            newInstance, constructorReturnValue;
+        
+        if (Config.get('GlobalSymbolsToWrap').include(name)) {
+            // new-operator is necessary for constructing new
+            // instances of built-in constructors. also, using them
+            // isn't problematic as the prototype chains of these
+            // built-in objects isn't expected to change
+            
+            newInstance = eval('new OriginalConstructor(' +
+                args.map(function(ea, idx) {
+                    return 'args[' + idx + ']';
+                }).reduce(function (prev, current){
+                    return prev ? prev + ', ' + current : current;
+                }, '') + ')');
+            
+            Object.defineProperty(newInstance, '__protoProxy', {
+                value: null,
+                writable: true
+            });
+            
+            return this.ensureProxied(newInstance);
+        }
+        
+        // we don't use a new-operator on the OriginalConstructor as
+        // the prototype of a function will be proxied and would, thus,
+        // return an object with a proxy as actual prototype, which it
+        // shouldn't have (prototype-traps + no __proto__ assignments)
+        
+        // note that an object constructed from a function always has a
+        // prototype (via __proto__)
+        
+        newInstance = lively.createObject(proto ? proto : {});
+        
+        constructorReturnValue =
+            OriginalConstructor.apply(newInstance, args);
+        
+        // note: newInstance is proxied as lively.createObject already
+        // returns a proxy, but we can't be sure for the constructor's
+        // return value
+        return constructorReturnValue ?
+            lively.proxyFor(constructorReturnValue) : newInstance;
+    },
+    getPrototypeOf: function(dummyTarget) {
+        var protoProxy = this.targetObject().__protoProxy;
+        
+        if (protoProxy) {
+            return protoProxy;
+        } else {
+            return Object.getPrototypeOf(this.targetObject());
+        }
+    },
+    has: function(dummyTarget, name) {
+        var targetObject = this.targetObject();
+        if (({}).hasOwnProperty.call(targetObject, name)) {
+            return true;
+        } else {
+            if (targetObject.__protoProxy === null) {
+                var proto = targetObject.__proto__;
+            } else {
+                var proto = targetObject.__protoProxy;
+            }
+            return proto ? name in proto : false;
+        }
+    },
+    hasOwn: function(dummyTarget, name) {
+        return ({}).hasOwnProperty.call(this.targetObject(), name);
+    },
+    getOwnPropertyNames: function(dummyTarget) {
+        return Object.getOwnPropertyNames(this.targetObject());
+    },
+    enumerate: function(dummyTarget) {
+        var targetObject = this.targetObject(),
+            enumerableProps = [],
+            nextAncestor;
+        
+        for (var prop in targetObject) {
+            enumerableProps.push(prop);
+        }
+        
+        nextAncestor = targetObject.__protoProxy ?
+            targetObject.__protoProxy.proxyTarget() : null;
+        while (nextAncestor) {
+            for (var prop in nextAncestor) {
+                if (!enumerableProps.include(prop))
+                    enumerableProps.push(prop);
+            }
+            nextAncestor = nextAncestor.__protoProxy ?
+                nextAncestor.__protoProxy.proxyTarget() : null;
+        }
+        
+        return enumerableProps;
+    },
+    keys: function(dummyTarget) {
+        return Object.keys(this.targetObject());
+    },
+    freeze: function(dummyTarget) {
+        return Object.freeze(this.targetObject());
+    },
+    isFrozen: function(dummyTarget) {
+        return Object.isFrozen(this.targetObject());
+    },
+    seal: function(dummyTarget) {
+        return Object.seal(this.targetObject());
+    },
+    isSealed: function(dummyTarget) {
+        return Object.isSealed(this.targetObject());
+    },
+    preventExtensions: function(dummyTarget) {
+        return Object.preventExtensions(this.targetObject());
+    },
+    isExtensible: function(dummyTarget) {
+        return Object.isExtensible(this.targetObject());
+    },
+    defineProperty: function(dummyTarget, name, desc) {
+        Object.defineProperty(this.targetObject(), name, desc);
+        return true;
+    },
+    deleteProperty: function(dummyTarget, name) {
+        var targetObject = this.targetObject();
+        return delete targetObject[name];
+    }
 });
 
 
@@ -1226,6 +1907,6 @@ lively.transformSource = livelyOV.transformSource.bind(livelyOV);
 
 // ----- GLOBAL ACTIVATION -----
 
-lively.versions.ObjectVersioning.start();
+lively.versions.ObjectVersioning.init();
 
 });

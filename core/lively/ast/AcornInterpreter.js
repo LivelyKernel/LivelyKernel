@@ -171,6 +171,22 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     shouldHaltAtNextStatement: function() {
         return this.breakAtStatement;
+    },
+
+    stepToNextStatement: function(frame) {
+        this.haltAtNextStatement();
+        var result;
+        try {
+            // should throw Break
+            if (frame.isResuming())
+                this.runFromPC(frame);
+            else
+                this.runWithFrame(frame.getOriginalAst(), frame);
+        } catch (e) {
+            // TODO: create continuation
+            result = e;
+        }
+        return result;
     }
 
 },

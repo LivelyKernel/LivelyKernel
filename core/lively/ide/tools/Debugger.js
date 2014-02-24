@@ -494,16 +494,10 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
     },
         stepOver: function stepOver() {
         var frame = this.currentFrame,
-            node = frame.getOriginalAst().body,
-            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
-            result;
+            interpreter = new lively.ast.AcornInterpreter.Interpreter();
+
         // FIXME: rather use continuation here
-        interpreter.haltAtNextStatement();
-        try {
-            result = interpreter.runWithFrame(node, frame);
-        } catch (e) {
-            // might throw a Break
-        }
+        var result = interpreter.stepToNextStatement(frame);
         if (frame.pc == null) { // finished frame
             frame = frame.getParentFrame();
             if (frame) {

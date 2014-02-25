@@ -633,6 +633,58 @@ Object.extend(lively.morphic.Charts.Utils, {
             }
         });
     },
+    createCurvedConnection: function (entity1, entity2, connections) {
+        connections.each( function (conn) {
+            
+            var from = conn[entity1];
+            var to = conn[entity2];
+            
+            if (to.morph && from.morph) {
+                var bezierDistance = 50;
+                
+                var getControlPointsForCurve = function(m1, m2) {
+                    var halfDistance = m2.getPosition().subPt(m1.getPosition()).scaleBy(0.5);
+                    return [
+                        m1.getPosition(),
+                        m1.getPosition().addXY(halfDistance.x, 0),
+                        m2.getPosition().addXY(-halfDistance.x, 0),
+                        m2.getPosition()
+                    ];
+                };
+                
+                var controlPoints = getControlPointsForCurve(from.morph, to.morph);
+                
+                conn.morph.updateCurve = function() {
+                    setCurve(getControlPointsForCurve(from.morph, to.morph), this);
+                };
+                
+                var lineWidth = 2;
+                var setCurve = function(controlPoints, connectionMorph) {
+                    var ptToString = function(point) { return point.x + ',' + point.y };
+                    var svgDescriptors = "M" + ptToString(controlPoints[0]) + "C" + controlPoints.slice(1)
+                        .map(ptToString).join(' ');
+                    
+                    var bezierCurve = connectionMorph;
+            
+                    bezierCurve.shape.setPathElements(lively.morphic.Shapes.PathElement.parse(svgDescriptors));
+                    bezierCurve.setPosition(lively.pt(0, 0));
+                    bezierCurve.setBorderWidth(lineWidth);
+            
+                    // this fixes the wrong bounding box which can clip parts of the path
+                    bezierCurve.shape.getBounds = function() {
+                        var b = this.renderContext().pathNode.getBBox();
+                        return new Rectangle(b.x - lineWidth, b.y - lineWidth, b.width + 2 * lineWidth, b.height + 2 * lineWidth);
+                    };
+                    bezierCurve.__dirtyFixTheBorderWidthFlag = true;
+                };
+                
+                setCurve(controlPoints, conn.morph);
+                
+                connect(from.morph, "position", conn.morph, "updateCurve", {});
+                connect(to.morph, "position", conn.morph, "updateCurve", {});
+            }
+        });
+    },
     arrangeHorizontal: function(morphs, y, width) {
         if (!Object.isNumber(y)) {
             var maxY = morphs.pluck("morph").reduce(function (max, el) {
@@ -1712,8 +1764,15 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     },
 
     addElement: function(element, container) {
-        var morph = element.morph.duplicate()
+        var morph = element.morph; //.duplicate();
+        
         container.addMorph(morph);
+        setTimeout(function() {
+            if (morph.__dirtyFixTheBorderWidthFlag) {
+                morph.setBorderWidth(2);
+            }            
+        }, 0);
+
     },
 
     scale: function() {

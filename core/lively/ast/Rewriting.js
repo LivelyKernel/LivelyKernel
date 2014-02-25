@@ -175,7 +175,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 'scoping', {
 
     enterScope: function() {
-        this.scopes.push({localVars: [], computationProgress: []});
+        return this.scopes.push({localVars: [], computationProgress: []});
     },
 
     exitScope: function() {
@@ -289,15 +289,22 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
-    createCatchUnwrap: function(catchVar) {
-        return this.newNode('AssignmentExpression', {
-            operator: '=',
-            left: this.newNode('Identifier', {name: catchVar}),
-            right: this.newNode('ConditionalExpression', {
-                test: this.newMemberExp(catchVar + '.isUnwindException'),
-                consequent: this.newMemberExp(catchVar + '.error'),
-                alternate: this.newNode('Identifier', {name: catchVar})
-            })
+    createCatchScope: function(catchVar) {
+        var scopeIdx = this.scopes.length - 1;
+        return this.newNode('VariableDeclaration', {
+            kind: 'var',
+            declarations: [
+                this.newVariable('_' + scopeIdx, this.newNode('ObjectExpression', {
+                    properties: [{
+                        key: this.newNode('Literal', {value: catchVar}),
+                        kind: 'init', value: this.newNode('ConditionalExpression', {
+                            test: this.newMemberExp(catchVar + '.isUnwindException'),
+                            consequent: this.newMemberExp(catchVar + '.error'),
+                            alternate: this.newNode('Identifier', {name: catchVar})
+                        })
+                    }]
+                }))
+            ]
         });
     },
 
@@ -327,8 +334,8 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     wrapClosure: function(node, idx) {
-        var scopeId = this.scopes.length - 1,
-            scopeIdentifier = scopeId < 0 ?
+        var scopeIdx = this.scopes.length - 1,
+            scopeIdentifier = scopeIdx < 0 ?
                 this.newNode('Literal', {value: null}) :
                 this.newNode('Identifier', { name: '__' + (this.scopes.length - 1) });
         return this.newNode('CallExpression', {
@@ -1224,24 +1231,63 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // param is a node of type Pattern
         // guard is a node of type Expression (optional)
         // body is a node of type BlockStatement
-        var start = n.param.start, end = n.param.end, astIndex = n.astIndex, paramIndex = n.param.astIndex,
-            param = this.accept(n.param, rewriter),
-            body = this.accept(n.body, rewriter),
+        var start = n.param.start, end = n.param.end, astIndex = n.astIndex,
+            param = Object.extend({}, n.param), // manually copy param without wrapping
+            paramIndex = n.param.astIndex,
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
-        // FIXME: catch param should be added to scope variables - temporary, without overriding existing!
+
+        var scopeIdx = rewriter.enterScope() - 1,
+            catchParam = rewriter.registerVars([n.param.name]),
+            body = this.accept(n.body, rewriter);
+        if (paramIndex) {
+            body.body.unshift(
+                // lastNode = xx;
+                rewriter.newNode('ExpressionStatement', {
+                    expression: rewriter.lastNodeExpression(paramIndex)
+                }),
+                // __xx-1 = [_, _xx, __xx-1];
+                rewriter.newNode('ExpressionStatement', {
+                    expression: rewriter.newNode('AssignmentExpression', {
+                        operator: '=',
+                        left: rewriter.newNode('Identifier', { name: '__' + (scopeIdx - 1) }),
+                        right: rewriter.newNode('ArrayExpression', { elements: [
+                            rewriter.newNode('Identifier', { name: '_' }),
+                            rewriter.newNode('Identifier', { name: '_' + scopeIdx }),
+                            rewriter.newNode('Identifier', { name: '__' + (scopeIdx - 1) })
+                        ]})
+                    })
+                })
+            );
+            body.body.push(
+                // __xx-1 = __xx-1[2];
+                rewriter.newNode('ExpressionStatement', {
+                    expression: rewriter.newNode('AssignmentExpression', {
+                        operator: '=',
+                        left: rewriter.newNode('Identifier', { name: '__' + (scopeIdx - 1) }),
+                        right: rewriter.newNode('MemberExpression', {
+                            object: rewriter.newNode('Identifier', { name: '__' + (scopeIdx - 1) }),
+                            property: rewriter.newNode('Literal', { value: 2 }),
+                            computed: true
+                        })
+                    })
+                })
+            );
+        }
         body.body.unshift(
-            // [lastNode = xx] = e = e.isUnwindExpression ? e.error : e
-            rewriter.newNode('ExpressionStatement', {
-                expression: paramIndex != null ? rewriter.storeComputationResult(rewriter.createCatchUnwrap(param.name), start, end, paramIndex) : rewriter.createCatchUnwrap(param.name)
-            }),
-            // if (e.toString() == 'Debugger')
-            //     throw e.unwindException || e;
+            // var _xx = { 'e': e.isUnwindExpression ? e.error : e };
+            rewriter.createCatchScope(param.name),
+            // if (_xx[x].toString() == 'Debugger')
+            //     throw e;
             rewriter.newNode('IfStatement', {
                 test: rewriter.newNode('BinaryExpression', {
                     operator: '==',
                     left: rewriter.newNode('CallExpression', {
                         callee: rewriter.newNode('MemberExpression', {
-                            object: rewriter.newNode('Identifier', { name: param.name }),
+                            object: rewriter.newNode('MemberExpression', {
+                                object: rewriter.newNode('Identifier', { name: '_' + scopeIdx }),
+                                property: rewriter.newNode('Literal', { value: param.name }),
+                                computed: true
+                            }),
                             property: rewriter.newNode('Identifier', { name: 'toString' }),
                             computed: false
                         }), arguments: []
@@ -1249,19 +1295,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     right: rewriter.newNode('Literal', { value: 'Debugger' })
                 }),
                 consequent: rewriter.newNode('ThrowStatement', {
-                    argument: rewriter.newNode('BinaryExpression', {
-                        operator: '||',
-                        left: rewriter.newNode('MemberExpression', {
-                            object: rewriter.newNode('Identifier', { name: param.name }),
-                            property: rewriter.newNode('Identifier', { name: 'unwindException' }),
-                            computed: false
-                        }),
-                        right: rewriter.newNode('Identifier', { name: param.name })
-                    })
+                    argument: rewriter.newNode('Identifier', { name: param.name })
                 }),
                 alternate: null
             })
         );
+        rewriter.exitScope();
         return {
             start: n.start, end: n.end, type: 'CatchClause',
             param: param, guard: guard, body: body

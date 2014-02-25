@@ -417,12 +417,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     visitCatchClause: function(node, state) {
-        var frame = state.currentFrame,
-            catchScope = frame.newScope();
-        catchScope.set(node.param.name, state.error);
-        state.currentFrame.setScope(catchScope);
+        var frame = state.currentFrame;
+        if (!frame.isResuming()) {
+            var catchScope = frame.newScope();
+            catchScope.set(node.param.name, state.error);
+            frame.setScope(catchScope);
+        }
         this.accept(node.body, state);
-        state.currentFrame.setScope(catchScope.getParentScope()); // restore original scope
+        state.currentFrame.setScope(frame.getScope().getParentScope()); // restore original scope
     },
 
     visitThrowStatement: function(node, state) {

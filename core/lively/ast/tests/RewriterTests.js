@@ -54,12 +54,23 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         }
     },
 
-    catchIntro: function(catchVar, storeResult) {
+    catchIntro: function(level, catchVar, storeResult) {
         storeResult = storeResult == null ? true : !!storeResult;
-        var firstLine = catchVar + ' = ' + catchVar + '.isUnwindException ? ' + catchVar + '.error : ' + catchVar + ';\n';
-        return (storeResult ? this.intermediateResult(firstLine) : firstLine) +
-            'if (' + catchVar + '.toString() == \'Debugger\')\n' +
-            'throw ' + catchVar + '.unwindException || ' + catchVar + ';\n';
+        return Strings.format("var _%s = { '%s': %s.isUnwindException ? %s.error : %s };\n"
+            + "if (_%s['%s'].toString() == 'Debugger')\n"
+            + "    throw %s;\n"
+            + (storeResult ? this.pcAdvance() + ";\n"
+                + "__%s = [\n"
+                + "    _,\n"
+                + "    _%s,\n"
+                + "    __%s\n"
+                + "];\n" : ""),
+            level, catchVar, catchVar, catchVar, catchVar,
+            level, catchVar, catchVar, level - 1, level, level - 1);
+    },
+
+    catchOutro: function(level) {
+        return "__" + (level - 1) + " = __" + (level - 1) + "[2];\n";
     },
 
     finallyWrapper: function(stmts) {
@@ -510,7 +521,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             expected = this.tryCatch(0, { },
                 'try {\n' +
                 '} catch (e) {\n' +
-                this.catchIntro('e') +
+                this.catchIntro(1, 'e') +
+                this.catchOutro(1) +
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
@@ -524,7 +536,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 'try {\n' +
                 this.debuggerThrow() +
                 '} catch (e) {\n' +
-                this.catchIntro('e', false) +
+                this.catchIntro(1,'e', false) +
                 '} finally {\n' +
                 this.finallyWrapper('1;\n') +
                 '}\n'
@@ -540,8 +552,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 'try {\n' +
                 this.debuggerThrow() +
                 '} catch (e) {\n' +
-                this.catchIntro('e') +
+                this.catchIntro(1, 'e') +
                 '1;\n' +
+                this.catchOutro(1) +
                 '} finally {\n' +
                 this.finallyWrapper('2;\n') +
                 '}\n'
@@ -982,6 +995,40 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var continuation = lively.ast.StackReification.run(code, this.astRegistry),
             result = continuation.resume();
         this.assertEquals(6, result, 'try-catch did not resume in finally');
+    },
+
+    test16cBreakAndContinueWithinCatchAfterVarReset: function() {
+        function code() {
+            var a = 1;
+            try {
+                throw 2;
+            } catch (e) {
+                e = 3;
+                debugger;
+                a += e;
+            }
+            return a;
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            result = continuation.resume();
+        this.assertEquals(4, result, 'catch variable was not captured correctly');
+    },
+
+    test16dBreakAndContinueWithinCatchWithOverride: function() {
+        function code() {
+            var e = 1;
+            try {
+                throw 2;
+            } catch (e) {
+                debugger;
+                e = 3;
+            }
+            return e;
+        }
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        this.assertEquals(2, continuation.currentFrame.lookup('e'), 'catch variable was not captured correctly');
+        var result = continuation.resume();
+        this.assertEquals(1, result, 'overridden catch variable was not restored correctly');
     }
 
 });

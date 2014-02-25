@@ -528,6 +528,136 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         this.componentMorph.refreshConnectionLines();
     }
 });
+Object.subclass('lively.morphic.Charts.Utils',
+'default category', {
+
+});
+
+Object.extend(lively.morphic.Charts.Utils, {
+    arrangeOnCircle : function(data, radius, center) {
+        // determine the margin, dependent of the maximum extent of all elements and the radius
+        if (!Object.isObject(center)) {
+            var maxOrigin = data.pluck("morph").reduce(function (max, el) {
+                var origin = el.getPosition().subPt(el.bounds().topLeft());
+                var maxValue = Math.max(origin.x, origin.y);
+                return pt(Math.max(maxValue, max.x), Math.max(maxValue, max.y));
+            }, pt(0, 0));
+            center = pt(10 + maxOrigin.x + radius, 10 + maxOrigin.y + radius);
+        }
+
+        var path = [];
+        for (var i = -90; i <= 270; i = i + 1){
+            var radianMeasure = i / 360 * 2 * Math.PI;
+            var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
+            path.push(newPt);
+        }
+        
+        return arrangeOnPath(path, data, true);
+    },
+    arrangeOnPath: function(path, entity, rotateElements) {
+        
+        function sign(x) {
+            return x ? x < 0 ? -1 : 1 : 0;
+        }
+        
+    	var morphs = entity.pluck("morph");
+	
+    	if (!morphs.length)
+    	    return;
+    	
+    	// determine overall length of the path
+    	var length = path.reduce(function (sum, cur, i, all) {
+    		if (i > 0)
+    			return sum + cur.dist(all[i - 1]);
+    		else
+    			return sum;
+    	}, 0);
+      
+        var distance;
+        if (path[0].subPt(path[path.length - 1]).r() < 0.1) {
+            // path is closed, leave space between last and first element
+    	    distance = length / (morphs.length);
+        } else {
+            // path is open, distribute elements evenly from start to end
+            distance = length / (morphs.length - 1);
+        }
+        
+        // set position of first morph and remove it from the array
+        morphs[0].setPosition(path[0]);
+        morphs.splice(0, 1);
+    
+        var lastPt = path[0];
+    	var curPt = path[0];
+    	var lastRotation = 0;
+    	var curPathIndex = 1;
+    	var rotation = 0;
+
+    	morphs.each( function (morph, index) {
+    		var distanceToTravel = distance;
+    		while (distanceToTravel) {
+    			var pieceLength = curPt.dist(path[curPathIndex]);
+    			if (pieceLength >= distanceToTravel || (index == morphs.length - 1 && curPathIndex == path.length - 1)) {
+    			
+    				var direction = path[curPathIndex].subPt(curPt);
+    				curPt = curPt.addPt(direction.normalized().scaleBy(distanceToTravel));
+    				morph.setPosition(curPt);
+    				if (rotateElements) {
+    				    if (curPt.y == lastPt.y) {
+    				        rotation = Math.PI / 4 + sign(curPt.y - lastPt.y) * (Math.PI / 4);
+    				    } else {
+    				        rotation = Math.atan((curPt.x - lastPt.x) / (lastPt.y - curPt.y)) - Math.PI / 2;
+    				    }
+			            morph.setRotation(rotation);
+    				}
+    				//lastPt = curPt;
+    				distanceToTravel = 0;
+    			} else {
+    				curPt = path[curPathIndex];
+    				lastPt = path[curPathIndex - 1];
+    				curPathIndex++;
+    				distanceToTravel -= pieceLength;
+    			}
+    		}
+    	});
+    },
+    createConnection: function (entity1, entity2, connections) {
+        connections.each( function (conn) {
+            conn.morph.setEnd = function (point) {this.setVertices([pt(0, 0), point.subPt(this.getPosition())])};
+            // var from = conn["get" + entity1]();
+            // var to = conn["get" + entity2]();
+            var from = conn[entity1];
+            var to = conn[entity2];
+            if (to.morph && from.morph) {
+                connect(from.morph, "position", conn.morph, "setPosition", {});
+                connect(to.morph, "position", conn.morph, "setEnd", {});
+            }
+        });
+    },
+    arrangeHorizontal: function(morphs, y, width) {
+        if (!Object.isNumber(y)) {
+            y = 10 + morphs[0].morph.getOrigin().y;
+        }
+        if (!Object.isNumber(width)) {
+            width = lively.morphic.Charts.Utils.defaultWidth;
+        }
+        
+        var x = 10 + morphs[0].morph.getOrigin().x;
+        arrangeOnPath([pt(x, y), pt(x + width, y)], morphs);
+    },
+    defaultWidth: 350,
+    arrangeVertical: function(morphs, x, height) {
+        if (!Object.isNumber(x)) {
+            x = 10 + morphs[0].morph.getOrigin().x;
+        }
+        if (!Object.isNumber(height)) {
+            height = lively.morphic.Charts.Utils.defaultWidth;
+        }
+
+        // add margin
+        var y = 10 + morphs[0].morph.getOrigin().y;
+        arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
+    }
+});
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
     onMouseUp: function(e) {
@@ -1623,8 +1753,15 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
+        
+        var utilsString = ""
+        var Utils = lively.morphic.Charts.Utils;
+        Object.getOwnPropertyNames(Utils).each(function (key) {
+            if (typeof Utils[key] === "function" && Utils[key].toString().indexOf("[native code]") == -1)
+                utilsString += "var " + key + " = " + Utils[key] + "; ";
+        });
 
-        var __evalStatement = "(function() {var arrangeOnPath = " + this.arrangeOnPath + "; var createConnection = " + this.createConnection + "; var arrangeOnCircle = " + this.arrangeOnCircle + "; var data = ctx.component.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        var __evalStatement = "(function() {" + utilsString + "var data = ctx.component.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
         
         // see also $super
         
@@ -1686,84 +1823,6 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         // deliver CodeEditor context to onChanged
         var _this = evt.getTargetMorph();
         _this.onChanged.apply(_this, arguments);
-    },
-
-    
-    arrangeOnPath: function(path, entity, rotationCenter) {
-    	var morphs = entity.pluck("morph");
-	
-    	if (!morphs.length)
-    	    return;
-    	
-    	// determine overall length of the path
-    	var length = path.reduce(function (sum, cur, i, all) {
-    		if (i > 0)
-    			return sum + cur.dist(all[i - 1]);
-    		else
-    			return sum;
-    	}, 0);
-      
-        var distance;
-        if (path[0].equals(path[path.length - 1])) {
-            // path is closed, leave space between last and first element
-    	    distance = length / (morphs.length);
-        } else {
-            // path is open, distribute elements evenly from start to end
-            distance = length / (morphs.length - 1);
-        }
-        
-        // set position of first morph and remove it from the array
-        morphs[0].setPosition(path[0]);
-        morphs.splice(0, 1);
-    
-    	var curPt = path[0];
-    	var curPathIndex = 1;
-    	var rotation = 0;
-    
-    	morphs.each( function (morph, index) {
-    		var distanceToTravel = distance;
-    		while (distanceToTravel) {
-    			var pieceLength = curPt.dist(path[curPathIndex]);
-    			if (pieceLength >= distanceToTravel || index == morphs.length - 1) {
-    				var direction = path[curPathIndex].subPt(curPt);
-    				curPt = curPt.addPt(direction.normalized().scaleBy(distanceToTravel));
-    				morph.setPosition(curPt);
-    				if(typeof rotationCenter !== "undefined"){
-    				    rotation = rotation + (Math.asin(distance / curPt.dist(rotationCenter)));
-			            morph.setRotation(rotation);
-    				}
-    				distanceToTravel = 0;
-    			} else {
-    				curPt = path[curPathIndex];
-    				curPathIndex++;
-    				distanceToTravel -= pieceLength;
-    			}
-    		}
-    	})
-    },
-    createConnection: function (entity1, entity2, connections) {
-        connections.each( function (conn) {
-            conn.morph.setEnd = function (point) {this.setVertices([pt(0, 0), point.subPt(this.getPosition())])};
-            // var from = conn["get" + entity1]();
-            // var to = conn["get" + entity2]();
-            var from = conn[entity1];
-            var to = conn[entity2];
-            if (to.morph && from.morph) {
-                connect(from.morph, "position", conn.morph, "setPosition", {});
-                connect(to.morph, "position", conn.morph, "setEnd", {});
-            }
-        });
-    },
-    
-    arrangeOnCircle : function(radius, center, data) {
-        var path = [];
-        for (var i = 0; i <= 360; i = i + 10){
-            var radianMeasure = i/360*2*Math.PI;
-            var newPT = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
-            path.push(newPT);
-        }
-        
-        return arrangeOnPath(path, data, center);
     }
 
 });

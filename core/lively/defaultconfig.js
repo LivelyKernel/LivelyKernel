@@ -180,10 +180,6 @@ Global.Config = {
 
     loadUserConfigModule: function(optUsername) {
         if (!this.get("loadUserConfig")) return;
-        if (!lively.LocalStorage.isAvailable()) {
-            console.warn('cannot load user config because cannot access localStorage!')
-            return;
-        }
         var userName = optUsername || this.get('UserName');
         if (!userName || userName === "undefined") return;
         var userConfigModule = Strings.format('users.%s.config', userName);

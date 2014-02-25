@@ -546,13 +546,14 @@ Object.extend(lively.morphic.Charts.Utils, {
         }
 
         var path = [];
-        for (var i = -90; i <= 270; i = i + 0.1){
+        var curId = 0;
+        for (var i = -90; i <= 270; i = i + 360.0 / (data.length - 1)){
             var radianMeasure = i / 360 * 2 * Math.PI;
             var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
-            path.push(newPt);
+            data[curId].morph.setPosition(newPt);
+            data[curId].morph.setRotation(Math.PI / 2.0 + radianMeasure);
+            curId++;
         }
-        
-        return arrangeOnPath(path, data, true);
     },
     arrangeOnPath: function(path, entity, rotateElements) {
         

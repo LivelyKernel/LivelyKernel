@@ -2594,6 +2594,9 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
     onDragStart: function($super, evt) {
         this.startDragPos = evt.getPosition();
         this.originalTargetExtent = this.owner.getExtent();
+        if (this.owner.onResizeStart) {
+            this.owner.onResizeStart();
+        }
         evt.stop(); return true;
     },
 
@@ -2612,6 +2615,9 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         delete this.originalTargetExtent;
         delete this.startDragPos;
         this.owner.alignAllHandles();
+        if (this.owner.onResizeEnd) {
+            this.owner.onResizeEnd();
+        }
         evt.stop(); return true;
     }
 },

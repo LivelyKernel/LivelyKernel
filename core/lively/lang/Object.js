@@ -480,8 +480,12 @@ Object.extend(lively.PropertyPath.prototype, {
 
     isParentPathOf: function(otherPath) {
         otherPath = otherPath && otherPath.isPathAccessor ? otherPath : lively.PropertyPath(otherPath);
-        var parts = this.parts();
-        return parts.intersect(otherPath.parts()).length === parts.length;
+        var parts = this.parts(),
+            otherParts = otherPath.parts();
+        for(var i = 0; i < parts.length; i ++){
+            if (parts[i] != otherParts[i]) return false
+        }
+        return true
     },
 
     relativePathTo: function(otherPath) {
@@ -511,8 +515,8 @@ Object.extend(lively.PropertyPath.prototype, {
             return current ? current[pathPart] : current; }, obj);
     },
 
-    concat: function(path) {
-        return lively.PropertyPath(this.parts().concat(lively.PropertyPath(path).parts()));
+    concat: function(path, splitter) {
+        return lively.PropertyPath(this.parts().concat(lively.PropertyPath(path, splitter).parts()));
     },
 
     toString: function() { return this.normalizePath(); },

@@ -181,6 +181,15 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
         var obj = {}, p = lively.PropertyPath('foo/bar/baz', '/');
         p.set(obj, 3, true);
         this.assertEquals(3, obj.foo.bar.baz);
+    },
+    testParentPathOf: function() {
+        var pp = lively.PropertyPath,
+            p1 = pp("a.b")
+        this.assert(p1.isParentPathOf(p1));
+        this.assert(pp("a").isParentPathOf(p1))
+        this.assert(pp("").isParentPathOf(pp("")))
+        this.assert(!p1.isParentPathOf(pp("a")))
+        this.assert(!p1.isParentPathOf(pp("b.a")))
     }
 });
 

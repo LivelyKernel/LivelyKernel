@@ -2611,8 +2611,9 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
             var newEntities;
             if (noArray) {
               var eachNewEntity = eachCurrentEntity[sourceListName];
+              eachNewEntity = _getOrAdd(eachNewEntity);
               // replace the reference in the array to avoid multiple objects for the same entity
-              eachCurrentEntity[sourceListName] = _getOrAdd(eachNewEntity);
+              eachCurrentEntity[sourceListName] = eachNewEntity;
               currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
             } else {
               newEntities = eachCurrentEntity[sourceListName];

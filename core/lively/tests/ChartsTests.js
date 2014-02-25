@@ -17,6 +17,24 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
             ea.remove();
         });
     },
+}, 'component functionality', {
+    
+    testMorphCreator: function() {
+        // data of script should be sent to morphCreator which adds morphs to the data
+        var scriptComponent = this.helper.createComponent();
+        var morphCreator = this.helper.createComponent(pt(0, 1), "MorphCreator");
+
+        scriptComponent.arrows[0].activate();
+        morphCreator.arrows[0].activate();
+        
+        scriptComponent.data = [10];
+        scriptComponent.notifyNextComponent();
+        
+        this.assertEquals(scriptComponent.data[0], 10);
+        this.assertEquals(morphCreator.data[0], 10);
+        this.assert(morphCreator.data[0].morph instanceof lively.morphic.Morph);
+    }
+    
 }, 'connection line', {
     
     testToggleWithTarget: function() {
@@ -451,22 +469,6 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         if (drop) {
             this.mouseEvent('up', via.last(), component);
         }
-    },
-    
-    testMorphCreator: function() {
-        // data of script should be sent to morphCreator which adds morphs to the data
-        var scriptComponent = this.helper.createComponent();
-        var morphCreator = this.helper.createComponent(pt(0, 1), "MorphCreator");
-
-        scriptComponent.arrows[0].activate();
-        morphCreator.arrows[0].activate();
-        
-        scriptComponent.data = [10];
-        scriptComponent.notifyNextComponent();
-        
-        this.assertEquals(scriptComponent.data[0], 10);
-        this.assertEquals(morphCreator.data[0], 10);
-        this.assert(morphCreator.data[0].morph instanceof lively.morphic.Morph);
     }
 },
 'layout components', {

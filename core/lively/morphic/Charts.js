@@ -70,7 +70,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
             else {
                 this.maximizedHeight = this.getExtent().y;
                 this.componentBody.setVisible(false);
-                this.setExtent(pt(this.getExtent().x, 24));
+                this.setExtent(pt(this.getExtent().x, 24 + 6));
                 this.isMinimized = true;
             }
         }

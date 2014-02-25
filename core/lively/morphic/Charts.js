@@ -635,7 +635,11 @@ Object.extend(lively.morphic.Charts.Utils, {
     },
     arrangeHorizontal: function(morphs, y, width) {
         if (!Object.isNumber(y)) {
-            y = 10 + morphs[0].morph.getOrigin().y;
+            var maxY = morphs.pluck("morph").reduce(function (max, el) {
+                var origin = el.getPosition().subPt(el.bounds().topLeft());
+                return Math.max(origin.y, max);
+            }, 0);
+            y = 10 + maxY;
         }
         if (!Object.isNumber(width)) {
             width = lively.morphic.Charts.Utils.defaultWidth;
@@ -647,7 +651,11 @@ Object.extend(lively.morphic.Charts.Utils, {
     defaultWidth: 350,
     arrangeVertical: function(morphs, x, height) {
         if (!Object.isNumber(x)) {
-            x = 10 + morphs[0].morph.getOrigin().x;
+            var maxX = morphs.pluck("morph").reduce(function (max, el) {
+                var origin = el.getPosition().subPt(el.bounds().topLeft());
+                return Math.max(origin.x, max);
+            }, 0);
+            x = 10 + maxX;
         }
         if (!Object.isNumber(height)) {
             height = lively.morphic.Charts.Utils.defaultWidth;

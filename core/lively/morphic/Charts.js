@@ -176,6 +176,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     minimizeOnHeaderClick: function() {
         var _this = this;
         this.onMouseUp = function(evt) {
+            if (!(evt.target.className === "Morph ComponentHeader"))
+                return;
+                
             var headerClicked = _this.componentHeader.fullContainsWorldPoint(pt(evt.pageX, evt.pageY));
             if (headerClicked) {
                 _this.minimize(evt);
@@ -295,14 +298,14 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     
     createCloser: function() {
         var closer = new lively.morphic.Charts.Closer();
-        closer.setPosition(pt(this.getExtent().x - 16, 8));
+        closer.setPosition(pt(this.getExtent().x - 18, 7));
         closer.layout = {moveHorizontal: true}
         
         return closer;
     },
     createSwapper: function() {
         var swapper = new lively.morphic.Charts.Swapper();
-        swapper.setPosition(pt(this.getExtent().x - 62, 8));
+        swapper.setPosition(pt(this.getExtent().x - 40, 7));
         swapper.layout = {moveHorizontal: true}
         
         return swapper;
@@ -563,7 +566,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
             converter: 
                 function(pos) {
                     console.log(pos);
-                    return pos.addPt(pt(200, 150));
+                    return pos.addPt(pt(200, 10));
                 }
         };
         
@@ -2283,14 +2286,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Swapper",
     initialize: function($super) {
         $super();
         
-        var width = 8;
-        var height = 8;
+        var width = 10;
+        var height = 10;
         
         this.setFillOpacity(0);
         this.setExtent(pt(width, height));
         this.setName("Swapper");
         
-        var vertices = [pt(0, height / 5),  pt(width / 2, height), pt(width, height / 5)];
+        var vertices = [pt(0, 0),  pt(width / 2, height - 1), pt(width, 0)];
         var line = new lively.morphic.Path(vertices);
         line.setBorderColor(Color.white);
         line.setBorderWidth(2);
@@ -2299,10 +2302,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Swapper",
         this.submorphs[0].disableEvents();
     },
     onMouseUp: function(evt) {
-        
+        console.log("menu");
         if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
             this.showContentMenu();
         }
+        // evt.stopPropagation();
+        return false;
     },
     showContentMenu: function() {
         var component = this.owner.owner;
@@ -2325,8 +2330,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Closer",
     initialize: function($super) {
         $super();
         
-        var width = 8;
-        var height = 8;
+        var width = 10;
+        var height = 10;
         
         this.setFillOpacity(0);
         this.setExtent(pt(width, height));

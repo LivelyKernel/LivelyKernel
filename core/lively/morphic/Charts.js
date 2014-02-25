@@ -1766,8 +1766,12 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     },
 
     addElement: function(element, container) {
-        var morph = element.morph; //.duplicate();
-        
+		var morph;
+        if (element.morph) {
+            morph = element.morph;
+        } else {
+            morph = element;
+        }
         container.addMorph(morph);
         setTimeout(function() {
             if (morph.__dirtyFixTheBorderWidthFlag) {

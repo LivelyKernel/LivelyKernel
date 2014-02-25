@@ -250,7 +250,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 this.newVariable('__' + level,
                     ['_', '_' + level, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
             ]
-        })
+        });
     },
 
     createCatchForUnwind: function(node, originalFunctionIdx, level) {
@@ -1353,7 +1353,6 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         } while (fState && fState != Global);
 
         var alreadyComputed = frameState[0],
-            parentFrameState = frameState[2],
             func = new lively.ast.AcornInterpreter.Function(__getClosure(pointerToOriginalAst), topScope),
             frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
             pc;

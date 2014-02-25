@@ -1,6 +1,6 @@
 module('lively.persistence.tests.StateSync').requires('lively.TestFramework', 'lively.persistence.StateSync').toRun(function() {
 
-AsyncTestCase.subclass('lively.persistence.tests.StateSync.General', 
+AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle', 
 'preparation', {
     setUp: function($super) {
         $super();
@@ -66,5 +66,44 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.General',
         })
     },
 })
+
+lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.tests.StateSync.L2LHandle', 
+'preparation', {
+    setUp: function($super) {
+        $super();
+        this._root = lively.persistence.StateSync.L2LHandle.root()
+    },
+    tearDown: function($super) {
+        $super();
+    },
+},
+'tests', {
+    test01pathAndTreeFunctions: function() {
+        var root = this._root,
+            c1 = root.child("test"),
+            self = this;
+        self.recordedValues = []
+        c1.overwriteWith(undefined, function(err, value) {
+            debugger;
+            if (err) self.assert(false)
+            self.assert(value === undefined)
+        });
+        c1.get(function(err, value) {
+            debugger;
+            if (err) self.assert(false, "Get: There should be no error when being informed of changes...");
+            self.recordedValues.push(value)
+            if (self.recordedValues.length == 2) {
+                self.assertEquals(self.recordedValues, [undefined, 10])
+                self.done()
+            }
+        });
+        c1.overwriteWith(10, function(err, value) { 
+            debugger;
+            if (err) self.assert(false)
+            self.assertEquals(10, value)
+        });
+    },
+})
+
 
 }) // end of module

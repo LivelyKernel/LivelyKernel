@@ -12,7 +12,7 @@ if (!global.lively.PropertyPath) {
 subscribers = [];
 sTracker = require('./SessionTracker').SessionTracker.servers['/nodejs/SessionTracker/']
 
-var storeName = "stateSynchonization",
+var storeName = "stateSynchronization",
     informSubscribers = function(pathName, value) {
         var path = global.lively.PropertyPath(pathName);
         subscribers.forEach(function(request) {
@@ -21,12 +21,11 @@ var storeName = "stateSynchonization",
                     if (err) return // any type of error will result in not informing this connection this time
                     connection.send({
                         action: 'syncValueChanged',
-                        data: {path: path, value: value}
+                        data: {path: path.toString(), value: value}
                     })
                 })
         })
     };
-
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -35,9 +34,11 @@ var stateSynchronizationServices = {
         // provide old and new value,
         // if old == current, then current = new
         // else notify failure and proivde current
-        store.write(storeName, msg.data.path, msg.data.newValue, {type: 'value', value: msg.data.oldValue}, msg.sender, function(err) {
+        lastMessage = msg;
+        store.write(storeName, msg.data.path, msg.data.newValue, {type: 'equality', value: msg.data.oldValue}, msg.sender, function(err) {
             if (err) {
                 return store.read(storeName, msg.data.path, function(err, val) {
+                    console.log("Unsuccessfully tried to store '" + msg.data.newValue + "' in stead of '" + msg.data.oldValue + "'")
                     connection.send({
                         action: msg.action + 'Result',
                         inResponseTo: msg.messageId,
@@ -56,7 +57,10 @@ var stateSynchronizationServices = {
     syncGet: function(sessionServer, connection, msg) {
         // answer current value
         // register callback
-        subscribers.push({path: global.lively.PropertyPath(msg.data), l2lId: msg.sender})
+        // TODO: unionize paths, to inform only about the most general node change...
+        var path = global.lively.PropertyPath(msg.data);
+        if (subscribers.indexOf(function(ea) { return ea.l2lId === msg.sender && ea.path.equal(path)}) === -1)
+            subscribers.push({path: path, l2lId: msg.sender})
         store.read(storeName, msg.data, function(err, val) {
             connection.send({
                 action: msg.action + 'Result',

@@ -38,18 +38,30 @@ Object.subclass('lively.persistence.StateSync.Handle',
     update: function(values, mergeFn, thenDo) {
         // if values is a string or number or date, loose the previous value,
         // otherwise merge with current values
-        throw dbgOn(new Error('To be implemented by a subclass'));
+        this.set(function(oldVal, newVal) {
+            try { var keys = Object.keys(values); }
+            catch (er) { var keys = false }
+            var newVal = mergeFn( keys ? keys.inject({}, function(last, key) { 
+                    last[key] = oldVal[key];
+                    return last
+                }) : oldVal, values)
+            if (!newVal) return; // has to return an object, in order to merge
+            if ( ['number', 'string'].include(typeof newVal) ) return newVal;
+            return Object.merge([oldVal, newVal])
+        }, thenDo)
     },
     
     push: function(value, cb) {
         var length,
             self = this;
-        this.update({length: 0, 0: undefined}, function(oldV, newV) {
+        this.update({length: 0, 0: value}, function(oldV, newV) {
+            debugger;
             length = ((oldV && oldV.length)  || 0) + 1
             var updated = {length: length};
             updated[updated.length - 1] = value
             return updated
         }, function(err, curV) {
+            debugger;
             cb && cb(err, self.child((length - 1).toString()), curV)
         })
     },
@@ -62,6 +74,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
     parent: function() { return this._parent },
     // check whether those are valid? make it a thenDo-function?
     child: function(path) {
+        if (path === "" || (path.isRoot && path.isRoot())) return this
         if (path in this._children) {return this._children[path]}
         else {
             return !path.include('.') ? this._children[path] = new this.constructor(this._store, path, this) : path.split(".").reduce(function(parent, segment) {
@@ -96,7 +109,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
     }
 })
 
-Object.subclass('lively.persistence.StateSync.StoreHandle',
+lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.StoreHandle',
 'initializing', {
     initialize: function($super, store, path, parent) {
         this._store = store;
@@ -130,24 +143,6 @@ Object.subclass('lively.persistence.StateSync.StoreHandle',
             },})
     },
 
-    update: function(values, mergeFn, thenDo) {
-        // if values is a string or number or date, loose the previous value,
-        // otherwise merge with current values
-        this._store.getHandle("").commit({path: this.fullPath(), transaction: function(oldVal) {
-            try { var keys = Object.keys(values); }
-            catch (er) { var keys = false }
-            var newVal = mergeFn( keys ? keys.inject({}, function(last, key) { 
-                    last[key] = oldVal[key];
-                    return last
-                }) : oldVal, values)
-            if (!newVal) return; // has to return an object, in order to merge
-            if ( ['number', 'string'].include(typeof newVal) ) return newVal;
-            return Object.merge([oldVal, newVal])
-        }, callback: function(err, truthErr, currentVal) {
-            thenDo(err, currentVal)
-        },})
-    },
-    
     drop: function(thenDo) {
         if (!this._callbacks) {
             // create error types?
@@ -158,10 +153,9 @@ Object.subclass('lively.persistence.StateSync.StoreHandle',
             if (this._callbacks.length == 0) {
                 this._store.removeSubscriber(this);
                 this._callbacks = undefined;
-                return false
-            } else {
-                return this._callbacks.length < cbs.length
+                return 0 < cbs.length
             }
+            return this._callbacks.length < cbs.length
         }
     },
 },
@@ -189,10 +183,14 @@ Object.subclass('lively.persistence.StateSync.StoreHandle',
     }
 });
 
-Object.subclass('lively.persistence.StateSync.L2LHandle',
+lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHandle',
 'initializing', {
-    initialize: function($super, path, parent) {
-        $super(null, path, parent);
+    initialize: function($super, _, path, parent) {
+        $super(undefined, path, parent);
+        if (!path || path == "" || path._parts == [] || !parent){
+            // This is a root handle. Inform the session handler.
+            this.constructor.ensureCallback(this);
+        }
     }
 },
 'accessing', {
@@ -200,18 +198,59 @@ Object.subclass('lively.persistence.StateSync.L2LHandle',
     get: function(thenDo) {
         // get the value in the database, and call thenDo with it
         // also call on every update change
+        
+        if (!this._callbacks) {
+            // this._store.addSubscriber(this);
+            this._callbacks = [thenDo]
+        } else {
+            this._callbacks.push(thenDo)
+        }
+        var sess = lively.net.SessionTracker.getSession();
+        // TODO?: in case we dont have a session, should we try anything else?
+        if (!sess) return alert("Session lost. Getting aborted.")
+        sess.sendTo(sess.trackerId, 'syncGet', this.fullPath().toString(), function(msg) {
+            thenDo(msg.err, msg.data)
+        })
     },
 
-    set: function(mergeFn, thenDo, newValue, oldValue) {
+    set: function(mergeFn, thenDo, newV, oldV) {
         // looses the previous value
-    },
-
-    update: function(values, mergeFn, thenDo) {
-        // if values is a string or number or date, loose the previous value,
-        // otherwise merge with current values
+        var sess = lively.net.SessionTracker.getSession(),
+            path = this.fullPath().toString();
+        
+        function send(newValue, oldValue) {
+            sess.sendTo(sess.trackerId, 'syncSet', {path: path, newValue: newValue, oldValue: oldValue}, function(msg) {
+                if (!msg.data.successful){
+                    return send(mergeFn(msg.data.value, newValue), msg.data.value)
+                } else {
+                    thenDo(null, msg.data.value)
+                }
+            })
+        }
+        if (!sess) alert("Connection not available. Setting aborted.")
+        else send(newV, oldV);
     },
 
     drop: function(thenDo) {
+        if (!this._callbacks) {
+            // create error types?
+            throw new Error("")
+        } else {
+            var cbs = this._callbacks;
+            this._callbacks = cbs.reject(function(ea) { return ea === thenDo });
+            // if (this._callbacks.length == 0) {
+            //     this._store.removeSubscriber(this);
+            // }
+            return this._callbacks.length < cbs.length
+        }
+    },
+    propagateChange: function(path, value) {
+        // what to do with parents? can we really request the element each time?
+        // or should we request the full value the first time we find a callback, and have a parallel descent?
+        if (path === "") {
+            this._callbacks && this._callbacks.invoke("call", undefined, null, value)
+        } else
+            this.child(path).propagateChange("", value)
     },
 },
 'testing', {
@@ -225,5 +264,35 @@ Object.subclass('lively.persistence.StateSync.L2LHandle',
         return 'L2LHandle(to ' + this._path + ')'
     }
 });
+Object.extend(lively.persistence.StateSync.L2LHandle, {
+    ensureCallback: function(handle) {
+        if (!lively.net.SessionTracker.defaultActions.syncValueChanged){
+            this.registerL2LAction()
+        }
+        this.rootHandles.push(handle);
+    },
+    informHandles: function(path, value) {
+        // path = lively.PropertyPath(path);
+        this.rootHandles.forEach(function(ea) {
+            ea.propagateChange(path, value);
+        })
+    },
+    registerL2LAction: function() {
+        var self = this;
+        lively.net.SessionTracker.registerActions({
+            syncValueChanged: function(msg, session) {
+                // lively.persistence.StateSync.L2LHandle.informHandles
+                self.informHandles(msg.data.path, msg.data.value);
+            },
+        })
+    },
+    root: function() {
+        return (this.rootHandles && this.rootHandles[0]) || new lively.persistence.StateSync.L2LHandle()
+    },
+    rootHandles: [],
+    reset: function() {
+        this.rootHandles = [];
+    },
+})
 
 }) // end of module

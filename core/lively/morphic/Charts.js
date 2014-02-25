@@ -1903,6 +1903,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         
         this.clearTable();
         
+        if (data == null)
+            return;
+        
         if (!Object.isArray(data.first())){
             var attributes = [];
             data.each(function(ea){
@@ -1930,6 +1933,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             
         });
         this.updateTable();
+        
+        return data;
     },
     
     clearTable : function() {
@@ -1986,7 +1991,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
     },
     
     update: function(data) {
-        this.objectTree.inspect(data);
+        if (data != null)
+            this.objectTree.inspect(data);
+            
+        return data;
     }
     
 });

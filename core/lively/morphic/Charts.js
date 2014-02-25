@@ -637,7 +637,6 @@ Object.extend(lively.morphic.Charts.Utils, {
     },
     createCurvedConnection: function (entity1, entity2, connections) {
         connections.each( function (conn) {
-            
             var from = conn[entity1];
             var to = conn[entity2];
             
@@ -648,8 +647,8 @@ Object.extend(lively.morphic.Charts.Utils, {
                     var halfDistance = m2.getPosition().subPt(m1.getPosition()).scaleBy(0.5);
                     return [
                         m1.getPosition(),
-                        m1.getPosition().addXY(halfDistance.x, 0),
-                        m2.getPosition().addXY(-halfDistance.x, 0),
+                        m1.getPosition().addXY(0, halfDistance.y),
+                        m2.getPosition().addXY(0, -halfDistance.y),
                         m2.getPosition()
                     ];
                 };
@@ -660,8 +659,9 @@ Object.extend(lively.morphic.Charts.Utils, {
                     setCurve(getControlPointsForCurve(from.morph, to.morph), this);
                 };
                 
-                var lineWidth = 2;
+                
                 var setCurve = function(controlPoints, connectionMorph) {
+                    var lineWidth = connectionMorph.getBorderWidth();
                     var ptToString = function(point) { return point.x + ',' + point.y };
                     var svgDescriptors = "M" + ptToString(controlPoints[0]) + "C" + controlPoints.slice(1)
                         .map(ptToString).join(' ');
@@ -670,7 +670,6 @@ Object.extend(lively.morphic.Charts.Utils, {
             
                     bezierCurve.shape.setPathElements(lively.morphic.Shapes.PathElement.parse(svgDescriptors));
                     bezierCurve.setPosition(lively.pt(0, 0));
-                    bezierCurve.setBorderWidth(lineWidth);
             
                     // this fixes the wrong bounding box which can clip parts of the path
                     bezierCurve.shape.getBounds = function() {
@@ -1775,8 +1774,8 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         container.addMorph(morph);
         setTimeout(function() {
             if (morph.__dirtyFixTheBorderWidthFlag) {
-                morph.setBorderWidth(2);
-            }            
+                morph.setBorderWidth(morph.getBorderWidth());
+            }
         }, 0);
 
     },

@@ -732,11 +732,15 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             return this.defaultPartsBinURL();
         },
         reloadEverything: function reloadEverything() {
+        this.get('categoryList').updateList([]);
+        this.get('partsBinContents').removeAllMorphs();
         this.setSelectedPartItem(null);
-        this.updateCategoriesDictFromPartsBin();
-        this.addCategory("*latest*", true);
-        this.addCategory("*all*", true);
-        this.addCategory("*search*", true);
+        this.updateCategoriesDictFromPartsBin(function() {
+            this.addCategory("*latest*", true);
+            this.addCategory("*all*", true);
+            this.addCategory("*search*", true);
+            this.get('categoryList').setSelection('Basic');
+        });
     },
         removeCategory: function removeCategory(categoryName) {
         var url = this.getURLForCategoryNamed(categoryName);
@@ -920,11 +924,10 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             pane.animatedInterpolateTo(dest, steps, timePerStep, Functions.Null);
         }
     },
-        updateCategoriesDictFromPartsBin: function updateCategoriesDictFromPartsBin() {
+        updateCategoriesDictFromPartsBin: function updateCategoriesDictFromPartsBin(thenDo) {
         this.ensureCategories();
-        var webR = new WebResource(this.partsBinURL());
-        webR.noProxy().beAsync();
-
+        var webR = new WebResource(this.partsBinURL()).noProxy().beAsync().getSubElements();
+    
         var callback = function(collections) {
             collections.forEach(function(dir) {
                 var unescape = Global.urlUnescape || Global.unescape,
@@ -934,17 +937,16 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 this.categories[name] = this.partsBinURL().withFilename(unescaped);
             }, this);
             this.updateCategoryList(this.categoryName);
+            thenDo && thenDo.call(this);
         }.bind(this);
-
-        connect(webR, 'subCollections', {cb: callback}, 'cb', {
+    
+        lively.bindings.connect(webR, 'subCollections', {cb: callback}, 'cb', {
             updater: function($upd, value) {
                 if (!(this.sourceObj.status && this.sourceObj.status.isDone())) return;
                 if (!value) return;
                 $upd(value);
             }
         });
-
-        webR.getSubElements();
     },
         updateCategoryList: function updateCategoryList(optCategoryName) {
         this.get('categoryList').updateList(

@@ -166,14 +166,14 @@ Object.subclass('lively.net.SessionTrackerConnection',
         this.trackerId = msg.data && msg.data.tracker && msg.data.tracker.id;
         lively.bindings.connect(this.webSocket, 'closed', this, 'connectionClosed', {
             removeAfterUpdate: true});
-        lively.bindings.signal(this, 'established');
+        lively.bindings.signal(this, 'established', this);
         this.startReportingActivities();
         console.log('%s established', this.toString(true));
     },
 
     connectionClosed: function() {
         if (this.sessionId && this.status() === 'connected') { this._status = 'connecting'; this.register(); }
-        else { this._status = 'disconnected'; lively.bindings.signal(this, 'closed'); }
+        else { this._status = 'disconnected'; lively.bindings.signal(this, 'closed', this); }
         console.log('%s closed', this.toString(true));
     },
 
@@ -238,6 +238,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     dispatchLivelyMessage: function(msg, session) {
         var actions = this.getActions(),
             action = actions[msg.action];
+        lively.bindings.signal(session, 'message', {message: msg, session: session});
         if (action) action(msg, session);
         else if (actions.messageNotUnderstood) actions.messageNotUnderstood(msg, session);
     },
@@ -301,7 +302,13 @@ Object.subclass('lively.net.SessionTrackerConnection',
 
 Object.extend(lively.net.SessionTracker, {
 
-    localSessionTrackerURL: URL.create((Config.nodeJSWebSocketURL || Config.nodeJSURL) + '/').withFilename('SessionTracker/'),
+    connections: {sessionCreated: {}, sessionClosed: {}},
+
+    localSessionTrackerURL: (function() {
+        var trackerBaseURL = Config.nodeJSWebSocketURL || Config.nodeJSURL;
+        return URL.create(trackerBaseURL + '/').withFilename('SessionTracker/');
+    })(),
+
     _sessions: lively.net.SessionTracker._sessions || {},
 
     defaultActions: {
@@ -382,7 +389,7 @@ Object.extend(lively.net.SessionTracker, {
             console.warn('Cannot register lively session because no user is logged in');
             return;
         }
-        s = new lively.net.SessionTrackerConnection({
+        this._sessions[url] = s = new lively.net.SessionTrackerConnection({
             sessionTrackerURL: url,
             username: user,
             getSessionsCacheInvalidationTimeout: 10*1000
@@ -394,14 +401,17 @@ Object.extend(lively.net.SessionTracker, {
                 lively.net.SessionTracker.closeSessions();
             }, true);
         }
-        return this._sessions[url] = s;
+        lively.bindings.signal(this, 'sessionCreated', s);
+        return s;
     },
 
     closeSession: function(optURL) {
-        var url = optURL || this.localSessionTrackerURL;
-        if (!this._sessions[url]) return;
-        this._sessions[url].unregister();
+        var url = optURL || this.localSessionTrackerURL,
+            session = this._sessions[url];
+        if (!session) return;
+        session.unregister();
         delete this._sessions[url];
+        lively.bindings.signal(this, 'sessionClosed', session);
     },
 
     closeSessions: function() {
@@ -435,24 +445,6 @@ Object.extend(lively.net.SessionTracker, {
     }
 });
 
-(function setupSessionTrackerConnection() {
-    if (UserAgent.isNodejs || UserAgent.isWorker) return;
-    lively.whenLoaded(function(world) {
-        if (!Config.get('lively2livelyAutoStart')) return;
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // 1) connect to tracker
-        var session = lively.net.SessionTracker.resetSession();
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // start UI
-        if (Config.get('lively2livelyEnableConnectionIndicator')) {
-            require('lively.net.tools.Lively2Lively').toRun(function() {
-                if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();
-                lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
-            });
-        }
-    });
-})();
-
 Object.extend(lively.net.SessionTracker, {
     serverLogin: function(thenDo) {
         var data = {username: $world.getUserName(true), email: null, currentWorld: String(URL.source)};
@@ -477,6 +469,26 @@ Object.extend(lively.net.SessionTracker, {
         }
     }
 });
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// initialization, at load time
+(function setupSessionTrackerConnection() {
+    if (UserAgent.isNodejs || UserAgent.isWorker) return;
+    lively.whenLoaded(function(world) {
+        if (!Config.get('lively2livelyAutoStart')) return;
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // 1) connect to tracker
+        var session = lively.net.SessionTracker.resetSession();
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // start UI
+        if (Config.get('lively2livelyEnableConnectionIndicator')) {
+            require('lively.net.tools.Lively2Lively').toRun(function() {
+                if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();
+                lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
+            });
+        }
+    });
+})();
 
 (function serverLogin() {
     lively.whenLoaded(function(world) {

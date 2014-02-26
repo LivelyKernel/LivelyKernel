@@ -401,22 +401,24 @@ Object.extend(Array.prototype, {
         progressBar.setValue(0);
         var steps = this.length;
         context = context || Global;
-        (this.reverse().inject(
-            function() {
-                progressBar.setValue(1);
-                if (whenDoneFunc) whenDoneFunc.call(context)
-            }, function(nextFunc, item, idx) {
-                return function() {
-                    try {
-                        progressBar.setValue((steps - idx) / steps);
-                        if (labelFunc) progressBar.setLabel(labelFunc.call(context, item, idx));
-                        iterator.call(context, item, idx);
-                    } catch (e) {
-                        console.error(Strings.format('Error in forEachShowingProgress at %s (%s)\n%s\n%s', idx, item, e, e.stack))
-                    }
-                    nextFunc.delay(0);
+        (this.reduceRight(function(nextFunc, item, idx) {
+            return function() {
+                try {
+                    progressBar.setValue(idx / steps);
+                    if (labelFunc) progressBar.setLabel(labelFunc.call(context, item, idx));
+                    iterator.call(context, item, idx);
+                } catch (e) {
+                    console.error(
+                        'Error in forEachShowingProgress at %s (%s)\n%s\n%s',
+                        idx, item, e, e.stack);
                 }
+                nextFunc.delay(0);
+            }
+        }, function() {
+            progressBar.setValue(1);
+            if (whenDoneFunc) whenDoneFunc.call(context);
         }))();
+        return this;
     },
 
     sum: function() {

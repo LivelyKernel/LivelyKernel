@@ -27,44 +27,53 @@ Object.extend(lively.ast.Rewriting, {
     },
 
     rewriteLivelyCode: function() {
-        var modules = lively.Module.bootstrapModules(),
-            pBar = $world.addProgressBar(),
-            astReg = lively.ast.Rewriting.setCurrentASTRegistry([]);
-
-        // Ignore the libs for now
-        modules = modules.reject(function(ea) { return /lib\//.test(ea); });
-
         // 1. Rewrite Lively code and put it into DBG_* files
-        modules.forEachShowingProgress(pBar, function(modulePath) {
-            var rewrittenAst = rewrite(get(modulePath)),
-                // try -> _0 has all global variables
-                globalVars = rewrittenAst.body[0].block.body[0].declarations[2].init.
-                    properties.pluck('key').pluck('value'),
-                globalAssignments = globalVars.map(function(varName) {
-                    return 'Global["' + varName + '"] = _0["' + varName + '"];';
-                }).join('\n');
-            // FIXME: manually wrap code in function so that async load will not temper with _0, etc.
-            putRewritten(modulePath, '(function() {\n' +
-                escodegen.generate(rewrittenAst) + '\n' +
-                globalAssignments + '\n' + // FIXME: add assigments to define global vars
-                '})();');
-        }, Functions.K, function() {
-            pBar.remove();
+        // 2. Create bootstrap code needed to run rewritten code
+        var pBar = $world.addProgressBar(),
+            astReg = lively.ast.Rewriting.setCurrentASTRegistry([]),
+            modules = lively.Module.bootstrapModules()
+                .reject(function(ea) { return /lib\//.test(ea); }); // Ignore the libs for now
+
+        modules.forEachShowingProgress({
+            iterator: createRewrittenModule, 
+            whenDone: createDebuggingBootstrap.curry(astReg)
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // helper
+        function createDebuggingBootstrap() {
             var code = [
                 lively.ast.Rewriting.findNodeByAstIndexBaseDef,
                 lively.ast.Rewriting.createClosureBaseDef,
                 lively.ast.Rewriting.UnwindExceptionBaseDef
             ];
-
             code.push("window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg) + ";");
-
-            // 2. Create bootstrap code needed to run rewritten code
             put("core/lively/ast/BootstrapDebugger.js", code.join('\n'));
-        });
+        }
 
+        function createRewrittenModule(modulePath) {
+            // FIXME: manually wrap code in function so that async load will not temper with _0, etc.
+            var rewrittenAst = rewrite(get(modulePath)),
+                code = Strings.format('(function() {\n%s\n%s\n})();',
+                    escodegen.generate(rewrittenAst),
+                    declarationForGlobals(rewrittenAst));
+            putRewritten(modulePath, code);
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            function declarationForGlobals(rewrittenAst) {
+                // _0 has all global variables
+                var propAccess = lively.PropertyPath('body.0.block.body.0.declarations.3.init.properties'),
+                    globalProps = propAccess.get(rewrittenAst);
+                if (!globalProps) {
+                    show('cannot access global declarations of %s ', modulePath);
+                    return '\n';
+                }
+                var globalVars = globalProps.pluck('key').pluck('value');
+                return globalVars.map(function(varName) {
+                    return Strings.format('Global["%s"] = _0["%s"];', varName, varName);
+                }).join('\n');;
+            }
+        }
 
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // helper
         function get(path) {
             return URL.root.withFilename(path).asWebResource().get().content;
         }

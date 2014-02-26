@@ -212,34 +212,50 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 bindKey: "Alt-Q",
                 handlesCount: true,
                 exec: function(ed, args) {
+
                     // Takes a selection or the current line and will insert line breaks so
                     // that all selected lines are not longer than printMarginColumn or the
                     // specified count parameter. Breaks at word bounds.
                     if (args && args.count === 4/*Ctrl-U*/) { ed.execCommand('joinLines'); return; }
+
                     if (ed.selection.isEmpty()) ed.$morph.selectCurrentLine();
-                    var col = args && args.count || ed.getOption('printMarginColumn') || 80,
-                        rows = ed.$getSelectedRows(), lines = [],
-                        session = ed.session,
-                        range = ed.selection.getRange(),
-                        splitRegex = /[^a-zA-Z_0-9\$\-!\?,\.]+/g,
-                        whitespacePrefixRegex = /^[\s\t]+/;
-                    for (var i = rows.first; i <= rows.last; i++) {
-                        var line = session.getLine(i), isEmptyLine = line.trim() === '',
-                            whitespacePrefixMatch = line.match(whitespacePrefixRegex),
-                            whitespacePrefix = whitespacePrefixMatch ? whitespacePrefixMatch[0] : '';
-                        line = whitespacePrefix + line.trim();
-                        if (line.length <= col) { lines.push(line); if (isEmptyLine && line !== '') lines.push(''); continue; }
-                        while (line.length > col) {
-                            var firstChunk = line.slice(0, col),
-                                splitMatch = Strings.reMatches(firstChunk, splitRegex).last(),
-                                lastWordSplit = splitMatch && splitMatch.start > 0 ? splitMatch.start : col,
-                                firstChunkWithWordBoundary = firstChunk.slice(0, lastWordSplit);
-                            lines.push(firstChunkWithWordBoundary);
-                            line = whitespacePrefix + (firstChunk.slice(lastWordSplit) + line.slice(col)).trimLeft();
-                        }
-                        lines.push(isEmptyLine ? '' : whitespacePrefix + line.trim());
+                    var col                = args && args.count || ed.getOption('printMarginColumn') || 80,
+                        rows               = ed.$getSelectedRows(),
+                        session            = ed.session,
+                        range              = ed.selection.getRange(),
+                        splitRe            = /[ ]+/g,
+                        // splitRe            = /[^a-zA-Z_0-9\$\-!\?,\.]+/g,
+                        whitespacePrefixRe = /^[\s\t]+/;
+
+                    function splitLineIntoChunks(line, whitespacePrefix, n) {
+                        if (line.length <= col) return [whitespacePrefix + line.trim()];
+                        var firstChunk    = line.slice(0, col),
+                            splitMatch    = Strings.reMatches(firstChunk, splitRe).last(),
+                            lastWordSplit = splitMatch && splitMatch.start > 0 ? splitMatch.start : col,
+                            first         = firstChunk.slice(0, lastWordSplit),
+                            rest          = whitespacePrefix + (firstChunk.slice(lastWordSplit) + line.slice(col)).trimLeft();
+                        return [first].concat(splitLineIntoChunks(rest, whitespacePrefix, n+1));
                     }
-                    ed.session.replace(range, lines.join('\n'));
+
+                    function fitRow(row) {
+                        if (row.trim() === '') return [''];
+                        var whitespacePrefixMatch = row.match(whitespacePrefixRe),
+                            whitespacePrefix = whitespacePrefixMatch ? whitespacePrefixMatch[0] : '';
+                        return splitLineIntoChunks(whitespacePrefix + row.trim(), whitespacePrefix);
+                    }
+
+                    function fitParagraph(para) {
+                        return /^\s*$/.test(para) ?
+                            para : fitRow(para.split('\n').join(' ')).join('\n') + '\n';
+                    }
+
+                    var paragraphs = Strings.paragraphs(
+                        Array.range(rows.first, rows.last)
+                            .map(session.getLine.bind(session))
+                            .join('\n'), {keepEmptyLines: true}),
+                        newString = paragraphs.map(fitParagraph).flatten().join('\n');
+
+                    ed.session.replace(range, newString);
                 },
                 multiSelectAction: "forEach"
             }, {

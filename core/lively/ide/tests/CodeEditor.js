@@ -272,19 +272,34 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
     testFitTextToColumn: function() {
         var test = this, e = this.editor,
             testData = [{
-                input: "foo ".times(50) + '\nbar bar bar\n\n',
-                expected: "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
-                         + "foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo\n"
-                         + "foo foo foo foo foo foo foo foo foo foo\n"
+                input: "foo ".times(50) + '\n\nbar bar bar\n\n',
+                expected: "foo ".times(20).trimRight() + '\n'
+                         + "foo ".times(20).trimRight() + '\n'
+                         + "foo ".times(10).trimRight() + '\n\n'
                          + "bar bar bar\n"
             },{ // spaces in front
                 input: "    1 2 3 4 5 6 7 8 9 ",
-                expected: "    1 2 3 4\n    5 6 7 8\n    9",
+                expected: "    1 2 3 4\n    5 6 7 8\n    9\n",
                 fillColumn: 12
             }, {
                 input: "Hello there, world",
-                expected: "Hello\nthere,\nworld",
+                expected: "Hello\nthere,\nworld\n",
                 fillColumn: 11
+            // }],
+            }, { // recognize paragraphs and join lines
+                input: "abc def\n" 
+                     + "ghi jkl\n"
+                     + "mnn\n"
+                     + "pqr stuv\n"
+                     + "\n"
+                     + "abc def ghi jkl mnn\n",
+                expected: "abc def ghi\n"
+                        + "jkl mnn pqr\n"
+                        + "stuv\n"
+                        + "\n"
+                        + "abc def ghi\n"
+                        + "jkl mnn\n",
+                fillColumn: 12
             }],
             commandsMgr = lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance(),
             cmd = commandsMgr.allCommandsOf(e).fitTextToColumn;

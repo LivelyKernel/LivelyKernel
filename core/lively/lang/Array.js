@@ -104,7 +104,6 @@ Object.extend(Array.prototype, {
         return undefined;
     },
 
-
     filterByKey: function(key) {
         return this.filter(function(ea) { return !!ea[key]; });
     },
@@ -397,10 +396,42 @@ Object.extend(Array.prototype, {
         }, endFunc)();
     },
 
-    forEachShowingProgress: function(progressBar, iterator, labelFunc, whenDoneFunc, context) {
+    forEachShowingProgress: function(/*progressBar, iterator, labelFunc, whenDoneFunc, context or spec*/) {
+        var args = Array.from(arguments),
+            steps = this.length,
+            progressBar, iterator, labelFunc, whenDoneFunc, context,
+            progressBarAdded = false;
+
+        // init args
+        if (args.length === 1) {
+            progressBar = args[0].progressBar;
+            iterator = args[0].iterator;
+            labelFunc = args[0].labelFunction;
+            whenDoneFunc = args[0].whenDone;
+            context = args[0].context;
+        } else {
+            progressBar = args[0];
+            iterator = args[1];
+            labelFunc = args[2];
+            whenDoneFunc = args[3];
+            context = args[4];
+        }
+        if (!context) context = Global;
+        if (!labelFunc) labelFunc = Functions.K;
+
+        // init progressbar
+        if (!progressBar) {
+            progressBarAdded = true;
+            var world = Global.lively && lively.morphic && lively.morphic.World.current();
+            progressBar = world ? world.addProgressBar() : {
+                setValue: function(val) {},
+                setLabel: function() {},
+                remove: function() {}
+            };
+        }
         progressBar.setValue(0);
-        var steps = this.length;
-        context = context || Global;
+
+        // nest functions so that the iterator calls the next after a delay
         (this.reduceRight(function(nextFunc, item, idx) {
             return function() {
                 try {
@@ -413,11 +444,13 @@ Object.extend(Array.prototype, {
                         idx, item, e, e.stack);
                 }
                 nextFunc.delay(0);
-            }
+            };
         }, function() {
             progressBar.setValue(1);
+            if (progressBarAdded) (function() { debugger; progressBar.remove(); }).delay(0);
             if (whenDoneFunc) whenDoneFunc.call(context);
         }))();
+
         return this;
     },
 

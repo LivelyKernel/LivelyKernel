@@ -669,6 +669,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 });
 
 Object.extend(lively.ide.CommandLineSearch, {
+
     doGrepFromWorkspace: function(string, path, thenDo) {
         // will automaticelly insert grep results into currently focused workspace
         var focused = lively.morphic.Morph.focusedMorph(),
@@ -684,6 +685,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             sel.clearSelection();
         });
     },
+
     doGrep: function(string, path, thenDo) {
         var lastGrep = lively.ide.CommandLineSearch.lastGrep;
         if (lastGrep) lastGrep.kill();
@@ -693,7 +695,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             fullPath = rootDirectory ? rootDirectory + path : path;
         if (!fullPath.length) fullPath = '.';
         if (fullPath.endsWith('/')) fullPath = fullPath.slice(0,-1);
-        var excludes = '-iname ".svn" -o -iname ".git" -o -iname "node_modules" -o -iname "combined.js"',
+        var excludes = "-iname " + lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname '),
             baseCmd = 'find %s ( %s ) -prune -o -iname "*js" -exec grep -inH %s "{}" ; ',
             platform = lively.ide.CommandLineInterface.getServerPlatform();
         if (platform !== 'win32') {
@@ -704,11 +706,11 @@ Object.extend(lively.ide.CommandLineSearch, {
             if (r.wasKilled()) return;
             lively.ide.CommandLineSearch.lastGrep = null;
             var lines = r.getStdout().split('\n').map(function(line) {
-                // return line.slice(line.indexOf('/core') + 6).replace(/\/\//g, '/'); })
                 return line.replace(/\/\//g, '/'); })
             thenDo && thenDo(lines, fullPath);
         });
     },
+
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // browsing
@@ -719,12 +721,14 @@ Object.extend(lively.ide.CommandLineSearch, {
             browser = widget && widget.isSystemBrowser ? widget : null;
         return browser;
     },
+
     doBrowse: function(spec) {
         var modWrapper = lively.ide.sourceDB().addModule(spec.fileName),
             ff = modWrapper.ast();
         if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
         ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
     },
+
     extractBrowseRefFromGrepLine: function(line, baseDir) {
         // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
         // = {fileName: "lively/morphic/HTML.js", line: 235}
@@ -734,11 +738,13 @@ Object.extend(lively.ide.CommandLineSearch, {
         var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
         return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir} : null;
     },
+
     extractModuleNameFromLine: function(line) {
         var match = line.match(/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+/);
         if (!match || !match[0]) return null;
         return {fileName: module(match[0]).relativePath('js')};
     },
+
     doBrowseGrepString: function(grepString, baseDir) {
         var spec = this.extractBrowseRefFromGrepLine(grepString, baseDir);
         if (!spec) {
@@ -884,6 +890,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             }
         });
     }
+
 });
 
 Object.extend(lively, {

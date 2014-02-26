@@ -26,12 +26,12 @@ Object.extend(String.prototype, {
     startsWith: function(pattern) {
         return this.indexOf(pattern) === 0;
     },
-    startsWithVowel: function() {
-        var char = this[0];
-        return char === 'A' || char === 'E' || char === 'I' || char === 'O' || char === 'U' ||
-            char === 'a' || char === 'e' || char === 'i' || char === 'o' || char === 'u' || false
-    },
 
+    startsWithVowel: function() {
+        var c = this[0];
+        return c === 'A' || c === 'E' || c === 'I' || c === 'O' || c === 'U'
+            || c === 'a' || c === 'e' || c === 'i' || c === 'o' || c === 'u' || false;
+    },
 
     endsWith: function(pattern) {
         var d = this.length - pattern.length;
@@ -235,17 +235,31 @@ Global.Strings = {
         return str.split(/\n\r?/);
     },
 
+    paragraphs: function(string, options) {
+        // Strings.paragraphs('foo\n\nbar')
+        // Strings.paragraphs('foo\n\n\n\n\nbar', {keepEmptyLines: true})
+        if (!options || !options.keepEmptyLines) return string.split(/\n\n+/);
+        function isWhiteSpace(s) { return (/^\s*$/).test(s); }
+        return string.split('\n').concat('').reduce(function(parasAndLast, line) {
+            var paras = parasAndLast[0], last = parasAndLast[1];
+            if (isWhiteSpace(last) === isWhiteSpace(line)) {
+                last += '\n' + line;
+            } else {
+                 last.length && paras.push(last); last = line;
+            }
+            return [paras, last];
+        }, [[], ''])[0];
+    },
+
     nonEmptyLines: function(str) {
-        return Strings.lines(str).reject(function(line) {
-            return line == ''
-        });
+        return Strings.lines(str).compact();
     },
 
     tokens: function(str, regex) {
         // Strings.tokens(' a b c')
         // => ['a', 'b', 'c']
         regex = regex || /\s+/;
-        return str.split(regex).reject(function(tok) { return /^\s*$/.test(tok); });
+        return str.split(regex).reject(function(tok) { return (/^\s*$/).test(tok); });
     },
 
     printNested: function(list, depth) {

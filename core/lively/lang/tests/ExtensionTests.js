@@ -632,7 +632,21 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
         this.assertEquals(4, lookupFunc(23), "char pos: 2");
         this.assertEquals(5, lookupFunc(24), "char pos: 2");
         this.assertEquals(-1, lookupFunc(99), "char pos: 9");
+    },
+
+    testFindParagraphs: function() {
+        var tests = [
+            {string: 'foo', expected: ['foo']},
+            {string: 'foo\nbar', expected: ['foo\nbar']},
+            {string: 'foo\n\nbar', expected: ['foo', 'bar']},
+            {string: 'foo\n\n\n\nbar', expected: ['foo', 'bar']},
+            {string: 'a\n\n\n\nb\nc', expected: ['a', '\n\n', 'b\nc'], options: {keepEmptyLines: true}}
+        ];
+        tests.forEach(function(test) {
+            this.assertEquals(test.expected, Strings.paragraphs(test.string, test.options));
+        }, this);
     }
+
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayProjection', {

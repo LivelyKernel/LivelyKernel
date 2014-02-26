@@ -345,18 +345,25 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.AFooTests',
         this.assertEquals(this.transformAndEval(input), expectedResult);
     },
     test08functionApplyWithArgs: function() {
-        var input = 'var foo = function(x, y) {return 5 + x + y}; foo(2, 3)',
+        var input = 'var foo = function(x, y) {debugger; return 5 + x + y}; foo(2, 3)',
             expectedResult = 10;
-            
         this.assertEquals(this.transformAndEval(input), expectedResult);
     },
-    test09hasOwn: function() {
+    test09hasOwnProperty: function() {
         var input = 'var obj = {foo: function() {return 5}}; obj.hasOwnProperty(\"foo\");',
+            expectedResult = true;
+        this.assertEquals(this.transformAndEval(input), expectedResult);
+    },
+    test10hasProperty: function() {
+        this.assert("addMorph" in (new lively.morphic.Menu()));
+        this.assert(! (new lively.morphic.Menu()).hasOwnProperty("addMorph"));
+        var input = '("addMorph" in (new lively.morphic.Menu()))',
             expectedResult = true;
         var transformed = this.transform(input);
         debugger;
         this.assertEquals(this.transformAndEval(input), expectedResult);
     },
+
 
 
 

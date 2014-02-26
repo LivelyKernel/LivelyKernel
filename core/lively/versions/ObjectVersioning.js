@@ -1201,7 +1201,7 @@ Object.subclass('lively.versions.TransformProxy',
             args = suppliedArgs,
             func = this.targetObject(),
             copy;
-        
+            
         // when aFunc is Function.prototype.apply or .call, normalize
         // the arguments as we apply the function below, removing the
         // apply-meta level here to not have to repeat handling of
@@ -1507,9 +1507,13 @@ Object.subclass('lively.versions.TransformProxy',
             return proto ? name in proto : false;
         }
     },
-    hasOwn: function(dummyTarget, name) {
+    __OV__hasOwn: function(name) {
         return ({}).hasOwnProperty.call(this.targetObject(), name);
     },
+    __OV__functionInvoke: function() {
+        return this.__OV__apply(Global, [].slice.call(arguments));
+    },
+
     getOwnPropertyNames: function(dummyTarget) {
         return Object.getOwnPropertyNames(this.targetObject());
     },

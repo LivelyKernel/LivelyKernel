@@ -387,18 +387,13 @@ Object.subclass('lively.versions.InsertProxiesTransformations', {
 lively.versions.InsertProxiesTransformations.subclass(
     'lively.versions.ObjectAccessTransformations', {
     transformNode: function(node) {
-        
-        var builtInsMap = {hasOwnProperty: "hasOwn"};
                 
         if (node instanceof UglifyJS.AST_Dot) {
-            if (node.property = "hasOwnProperty") {
-                node.property = "hasOwn";
+            if (node.property == "hasOwnProperty") {
+                node.property = "__OV__hasOwn";
                 return node;
             }
-            else if (builtInsMap.hasOwnProperty(node.property)) {
-                node.property = builtInsMap[builtIn];
-                return node;
-            } else {
+            else {
                 return new UglifyJS.AST_Call({
                     expression: new UglifyJS.AST_Dot({
                         expression: node.expression,
@@ -432,18 +427,21 @@ lively.versions.InsertProxiesTransformations.subclass(
                    args: node.args,
                 });
             }
+            else if (node.expression.property == "__OV__hasOwn") {
+                return node;
+            } 
             else if (this.isTransformedOVGetCall(node.expression)) {
                 node.expression.expression.property = '__OV__getAndApply'
                 node.expression.args.pushAll(node.args);
                 return node.expression;
             } 
             else {
-                
-                // nonObjectFunctionCall such as: var func = function() {}; func();
+                // function invocation: such as: var func = function() {}; func() 
+                // different to method invocations such as obj.foo();
                 return new UglifyJS.AST_Call({
                     expression: new UglifyJS.AST_Dot({
                         expression: node.expression,
-                        property: '__OV__apply',
+                        property: '__OV__functionInvoke',
                     }),
                     args: node.args,
                 });

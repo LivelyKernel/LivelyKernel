@@ -29,14 +29,20 @@ Object.extend(lively.ast.Rewriting, {
     rewriteLivelyCode: function() {
         // 1. Rewrite Lively code and put it into DBG_* files
         // 2. Create bootstrap code needed to run rewritten code
-        var pBar = $world.addProgressBar(),
-            astReg = lively.ast.Rewriting.setCurrentASTRegistry([]),
+        var astReg = lively.ast.Rewriting.setCurrentASTRegistry([]),
             modules = lively.Module.bootstrapModules()
-                .reject(function(ea) { return /lib\//.test(ea); }); // Ignore the libs for now
+                .reject(function(ea) { return /lib\//.test(ea); })  // Ignore the libs
+                // ignore rewriting code itself for now as it leads to self
+                // encapsulated exceptions
+                .withoutAll([
+                    "core/lively/ast/Rewriting.js",
+                    "core/lively/ast/StackReification.js"]);
 
-        modules.forEachShowingProgress({
-            iterator: createRewrittenModule, 
-            whenDone: createDebuggingBootstrap.curry(astReg)
+        removeExistingDebugFiles(function() {
+            modules.forEachShowingProgress({
+                iterator: createRewrittenModule, 
+                whenDone: createDebuggingBootstrap.curry(astReg)
+            });
         });
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -91,6 +97,12 @@ Object.extend(lively.ast.Rewriting, {
         function rewrite(source) {
             var ast = lively.ast.acorn.parse(source);
             return lively.ast.Rewriting.rewrite(ast, astReg);
+        }
+
+        function removeExistingDebugFiles(thenDo) {
+            lively.ide.CommandLineSearch.findFiles('DBG_*.js', {}, function(files) {
+                lively.shell.exec('rm ' + files.join(' '), {}, thenDo);
+            });
         }
     }
 

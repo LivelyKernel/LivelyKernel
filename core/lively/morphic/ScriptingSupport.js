@@ -29,7 +29,14 @@ lively.morphic.Morph.addMethods(
     getName: function() { return this.name },
     get: function (name) {
         // search below, search siblings, search upwards
-        return this.getMorphNamed(name) || this.getBreadthFirstUpwards(name);
+        try {
+            return this.getMorphNamed(name) || this.getBreadthFirstUpwards(name);
+        } catch(e) {
+            if (e.constructor == RangeError && e.message == "Maximum call stack size exceeded") {
+                e.message = "'get' failed due to a stack overflow. The most likely source of the problem is using 'get' as part of toString, because 'get' calls 'getBreadthFirstUpwards', which calls 'toString' on this. Try using 'getMorphNamed' instead, which only searches in this' children.";
+            }
+            throw e
+        }
     },
     getMorphNamed: function (name) {
         if (name == "") return null;
@@ -45,7 +52,9 @@ lively.morphic.Morph.addMethods(
         return null;
     },
     getBreadthFirstUpwards: function (name) {
+        // prioritize this over other siblings
         if (this.getName() === name || this.toString() === name) return this;
+        
         var owner = this.owner;
         if (!owner) return null;
         for (var i = 0; i < owner.submorphs.length; i++) {
@@ -434,4 +443,3 @@ Object.extend(Function.prototype, {
         return methods.join('\n\n');
     },
 });// end of module
-

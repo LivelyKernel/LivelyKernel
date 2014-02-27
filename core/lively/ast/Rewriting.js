@@ -442,20 +442,12 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             throw new Error('no a valid function expression/statement? ' + lively.ast.acorn.printAst(node));
         if (!node.id) node.id = this.newNode("Identifier", {name: ""});
 
-        // this.enterScope();
         acorn.walk.addAstIndex(node);
         var astToRewrite = acorn.walk.copy(node);
         this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1;
-        if (astToRewrite.type == 'FunctionDeclaration') {
-            // FIXME: args unused?
-            var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
-        }
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex),
-            // FIXME: decls unused?
-            decls = this.registerDeclarations(astToRewrite, rewriteVisitor), // locals
             rewritten = rewriteVisitor.accept(astToRewrite, this);
-        // this.exitScope();
         // FIXME!
         rewritten = rewritten.expression.arguments[2];
         // this.astRegistry[astRegistryIndex].rewritten = rewritten; // FIXME just for debugging

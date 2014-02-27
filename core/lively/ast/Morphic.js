@@ -1,23 +1,20 @@
-module('lively.ast.Morphic').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.ast.Interpreter','lively.Tracing').toRun(function() {
+module('lively.ast.Morphic').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.ast.Interpreter','lively.Tracing', 'lively.ide.tools.Debugger').toRun(function() {
 
 Object.extend(lively.ast, {
+
     halt: function(frame) {
         (function() {
             lively.ast.openDebugger(frame, "Debugger");
         }).delay(0);
         return true;
     },
-    openDebugger: function openDebugger(frame, title) {
-        require('lively.ide.tools.Debugger').toRun(function() {
-            var m = lively.BuildSpec("lively.ide.tools.Debugger").createMorph();
-            m.targetMorph.setTopFrame(frame);
-            if (title) m.setTitle(title);
-            m.openInWorld();
-            m.align(
-                m.bounds().topCenter().addPt(pt(0,-20)),
-                lively.morphic.World.current().visibleBounds().topCenter());
-        });
-    },
+
+    openDebugger: function(frame, title) {
+        var m = lively.BuildSpec("lively.ide.tools.Debugger").createMorph();
+        m.targetMorph.setTopFrame(frame);
+        if (title) m.setTitle(title);
+        m.openInWorldCenter().comeForward();
+    }
 });
 
 cop.create('DebugScriptsLayer')

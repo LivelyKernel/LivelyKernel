@@ -487,10 +487,12 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         return true;
     },
         stepInto: function stepInto() {
-        var frame = this.currentFrame;
-        lively.ast.doWithHalt(function() {
-            frame.stepToNextStatement(true);
-        }, this.setTopFrame.bind(this));
+        var frame = this.currentFrame,
+            interpreter = new lively.ast.AcornInterpreter.Interpreter();
+
+        // FIXME: rather use continuation here
+        var result = interpreter.stepToNextCallOrStatement(frame);
+        this.updateDebugger(frame, result);
     },
         stepOver: function stepOver() {
         var frame = this.currentFrame,
@@ -498,6 +500,9 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
 
         // FIXME: rather use continuation here
         var result = interpreter.stepToNextStatement(frame);
+        this.updateDebugger(frame, result);
+    },
+        updateDebugger: function updateDebugger(frame, result) {
         if (frame.pc == null) { // finished frame
             frame = frame.getParentFrame();
             if (frame) {

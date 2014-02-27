@@ -861,6 +861,20 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
         var result = interpreter.stepToNextStatement(funcFrame);
         this.assertEquals(1, frame.getScope().get('x'), 'did not execute first statement');
         this.assertEquals(1, interpreter.runFromPC(funcFrame), 'did not finish resume');
+    },
+
+    test05SteppingIntoFunction: function() {
+        var node = this.parse('function foo() { return 1; } var x = foo(); ++x;'),
+            program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program),
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            result;
+
+        interpreter.stepToNextStatement(frame);
+        this.assertEquals(node.body[1], frame.getPC(), 'did not halt at initial position');
+        interpreter.stepToNextCallOrStatement(frame);
+        this.assertEquals(undefined, frame.getScope().get('x'), 'did not halt at call');
+        this.assertEquals(2, interpreter.runFromPC(frame), 'did not finish resume');
     }
 
 });

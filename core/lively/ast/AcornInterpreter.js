@@ -10,6 +10,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     initialize: function() {
         this.breakAtStatement = false; // for e.g. step over
+        this.breakAtCall      = false; // for e.g. step into
     },
 
     statements: ['EmptyStatement', 'BlockStatement', 'ExpressionStatement', 'IfStatement', 'LabeledStatement', 'BreakStatement', 'ContinueStatement', 'WithStatement', 'SwitchStatement', 'ReturnStatement', 'TryStatement', 'ThrowStatement', 'WhileStatement', 'DoWhileStatement', 'ForStatement', 'ForInStatement', 'DebuggerStatement', 'VariableDeclaration', 'FunctionDeclaration', 'SwitchCase']
@@ -187,6 +188,31 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             result = e;
         }
         return result;
+    },
+
+    haltAtNextCall: function() {
+        this.breakAtCall = true;
+    },
+
+    shouldHaltAtNextCall: function() {
+        return this.breakAtCall;
+    },
+
+    stepToNextCallOrStatement: function(frame) {
+        this.haltAtNextCall();
+        this.haltAtNextStatement();
+        var result;
+        try {
+            // should throw Break
+            if (frame.isResuming())
+                this.runFromPC(frame);
+            else
+                this.runWithFrame(frame.getOriginalAst(), frame);
+        } catch (e) {
+            // TODO: create continuation
+            result = e;
+        }
+        return result;
     }
 
 },
@@ -231,8 +257,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 return;
             }
         } else {
-            if (this.shouldHaltAtNextStatement() && (this.statements.indexOf(node.type) != -1)) {
+            if ((this.shouldHaltAtNextStatement() && (this.statements.indexOf(node.type) != -1)) ||
+               (this.shouldHaltAtNextCall() && (node.type == 'CallExpression'))) {
                 this.breakAtStatement = false;
+                this.breakAtCall = false;
                 throw {
                     toString: function() { return 'Break'; },
                     astIndex: node.astIndex,

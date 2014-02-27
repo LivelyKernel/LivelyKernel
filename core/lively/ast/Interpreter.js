@@ -893,7 +893,7 @@ lively.ast.Function.addMethods('interpretation', {
 });
 
 Object.extend(lively.ast, {
-    halt: function(frame) {
+    halt: lively.ast.halt || function(frame) {
         // overwrite this function, e.g. to open a debugger
         return false; // return true to actually stop execution
     },
@@ -902,9 +902,7 @@ Object.extend(lively.ast, {
         lively.ast.halt = halt || Functions.True;
         try {
             func();
-        } finally {
-            lively.ast.halt = oldHalt;
-        }
+        } finally { lively.ast.halt = oldHalt; }
     }
 });
 

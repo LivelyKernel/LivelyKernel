@@ -126,11 +126,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     },
 
     setVar: function(level, varName, inner) {
-        return Strings.format("_%s['%s'] = %s", level, varName, inner);
+        return Strings.format("_%s.%s = %s", level, varName, inner);
     },
 
     getVar: function(level, varName) {
-        return Strings.format("_%s['%s']", level, varName);
+        return Strings.format("_%s.%s", level, varName);
     }
 
 },
@@ -560,6 +560,55 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
+    },
+
+    test30aWithStatement: function() {
+        var src = 'var a = 1; with ({ a: 2 }) { a; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'a': 'undefined' },
+                this.intermediateResult(this.setVar(0, 'a', "1;\n")) +
+                "{\n" +
+                "var _1 = { a: 2 };\n" +
+                "__0 = [\n" +
+                "    _,\n" +
+                "    _1,\n" +
+                "    __0\n" +
+                "];\n" +
+                "(_1.hasOwnProperty('a') ? _1 : _0).a;\n" +
+                "__0 = __0[2];\n" +
+                "}\n"
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test30bNestedWithStatements: function() {
+        var src = 'var a = 1; with ({ a: 2 }) { with ({ b: 3 }) { a; } }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'a': 'undefined' },
+                this.intermediateResult(this.setVar(0, 'a', "1;\n")) +
+                "{\n" +
+                "var _1 = { a: 2 };\n" +
+                "__0 = [\n" +
+                "    _,\n" +
+                "    _1,\n" +
+                "    __0\n" +
+                "];\n" +
+                "{\n" +
+                "var _2 = { b: 3 };\n" +
+                "__0 = [\n" +
+                "    _,\n" +
+                "    _2,\n" +
+                "    __0\n" +
+                "];\n" +
+                "(_2.hasOwnProperty('a') ? _2 : _1.hasOwnProperty('a') ? _1 : _0).a;\n" +
+                "__0 = __0[2];\n" +
+                "}\n" +
+                "__0 = __0[2];\n" +
+                "}\n"
+            );
+        this.assertASTMatchesCode(result, expected);
     }
 
 });
@@ -647,6 +696,49 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
                 return e.message;
             }
             return '321';
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test04aWithStatementScope: function() {
+        function code() {
+            var x = 1, y = 2, z, obj = { x: 3 };
+            with (obj) {
+                z = x + y;
+            }
+            return z;
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test04bNestedWithStatementScope: function() {
+        function code() {
+            var x = 1, y = 2, z, obj1 = { x: 3 }, obj2 = { y: 4 };
+            with (obj1) {
+                with (obj2) {
+                    z = x + y;
+                }
+                z += x + y;
+            }
+            return z;
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test04cWithStatementFunctionExpression: function() {
+        function code() {
+            var x = 1;
+            with ({ x: 2 }) {
+                return (function foo() {
+                    return x;
+                })();
+            }
         }
         var src = Strings.format('(%s)();', code),
             src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));

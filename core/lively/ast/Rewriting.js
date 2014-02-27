@@ -195,12 +195,17 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 },
 'scoping', {
 
-    enterScope: function() {
-        return this.scopes.push({localVars: [], computationProgress: []});
+    enterScope: function(isWith) {
+        isWith = isWith == null ? false : !!isWith;
+        return this.scopes.push({localVars: [], computationProgress: [], isWithScope: isWith});
     },
 
     exitScope: function() {
         this.scopes.pop();
+    },
+
+    lastFunctionScopeId: function() {
+        return this.scopes.pluck('isWithScope').lastIndexOf(false);
     },
 
     registerVars: function(vars) {
@@ -261,6 +266,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 'rewriting', {
 
     createPreamble: function(args, decls, level) {
+        var lastFnLevel = this.lastFunctionScopeId();
         return this.newNode('VariableDeclaration', {
             kind: 'var',
             declarations: [
@@ -269,7 +275,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 this.newVariable('debugging', this.newNode('Literal', {value: false})),
                 this.newVariable('_' + level, this.wrapArgsAndDecls(args, decls)),
                 this.newVariable('__' + level,
-                    ['_', '_' + level, (level - 1) < 0 ? 'Global' : '__' + (level - 1)])
+                    ['_', '_' + level, lastFnLevel < 0 ? 'Global' : '__' + lastFnLevel])
             ]
         });
     },
@@ -336,17 +342,42 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     wrapVar: function(name) {
-        var scopeIdx;
+        var scopeIdx, withScopes = [], that = this;
         for (var i = this.scopes.length - 1; i >= 0; i--) {
-            if (this.scopes[i].localVars.include(name)) { scopeIdx = i; break; }
+            if (this.scopes[i].localVars.include(name)) {
+                scopeIdx = i;
+                break;
+            } else if (this.scopes[i].isWithScope)
+                withScopes.push(i);
         }
+
+        var result = this.newNode('Identifier', { name: name });
         // mr 2014-02-05: if true, the reference is a global one - should throw error?
-        if (scopeIdx === undefined) return this.newNode('Identifier', { name: name });
-        return this.newNode('MemberExpression', {
-            object: this.newNode('Identifier', { name: '_' + scopeIdx }),
-            property: this.newNode('Literal', { value: name }),
-            computed: true
-        });
+        result = (scopeIdx === undefined) ? result :
+            this.newNode('MemberExpression', {
+                property: result,
+                computed: false
+            });
+
+        if (withScopes.length > 0) {
+            result.object = withScopes.reverse().reduce(function(alternate, idx) {
+                // (_xx.hasOwnProperty(name) ? _xx : ...)
+                return that.newNode('ConditionalExpression', {
+                    test: that.newNode('CallExpression', {
+                        callee: that.newNode('MemberExpression', {
+                            object: that.newNode('Identifier', { name: '_' + idx }),
+                            property: that.newNode('Identifier', { name: 'hasOwnProperty'}),
+                            computed: false
+                        }),
+                        arguments: [ that.newNode('Literal', { value: name }) ]
+                    }),
+                    consequent: that.newNode('Identifier', { name: '_' + idx }),
+                    alternate: alternate
+                });
+            }, this.newNode('Identifier', { name: '_' + scopeIdx }));
+        } else
+            result.object = this.newNode('Identifier', { name: '_' + scopeIdx });
+        return result;
     },
 
     isWrappedVar: function(node) {
@@ -358,7 +389,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var scopeIdx = this.scopes.length - 1,
             scopeIdentifier = scopeIdx < 0 ?
                 this.newNode('Literal', {value: null}) :
-                this.newNode('Identifier', { name: '__' + (this.scopes.length - 1) });
+                this.newNode('Identifier', { name: '__' + this.lastFunctionScopeId() });
         return this.newNode('CallExpression', {
             callee: this.newNode('Identifier', {name: '__createClosure'}),
             arguments: [this.newNode('Literal', {value: idx}), scopeIdentifier, node]
@@ -1331,6 +1362,55 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitIdentifier: function(n, rewriter) {
         // n.name has a specific type that is string
         return rewriter.wrapVar(n.name);
+    },
+
+    visitWithStatement: function(n, rewriter) {
+        // object is a node of type Expression
+        // body is a node of type Statement
+        var scopeIdx = rewriter.enterScope(true) - 1,
+            lastFnScopeIdx = rewriter.lastFunctionScopeId(),
+            block = this.accept(n.body, rewriter);
+        rewriter.exitScope();
+        if (block.type != 'BlockStatement')
+            block = rewriter.newNode('BlockStatement', { body: [ block ] });
+
+        block.body.unshift(
+            // var _xx+1 = withObject;
+            rewriter.newNode('VariableDeclaration', {
+                kind: 'var',
+                declarations: [
+                    rewriter.newVariable('_' + scopeIdx, this.accept(n.object, rewriter))
+                ]
+            }),
+            // __xx = [_, _xx+1, __xx];
+            rewriter.newNode('ExpressionStatement', {
+                expression: rewriter.newNode('AssignmentExpression', {
+                    operator: '=',
+                    left: rewriter.newNode('Identifier', { name: '__' + lastFnScopeIdx }),
+                    right: rewriter.newNode('ArrayExpression', { elements: [
+                        rewriter.newNode('Identifier', { name: '_' }),
+                        rewriter.newNode('Identifier', { name: '_' + scopeIdx }),
+                        rewriter.newNode('Identifier', { name: '__' + lastFnScopeIdx })
+                    ]})
+                })
+            })
+        );
+        block.body.push(
+            // __xx = __xx[2];
+            rewriter.newNode('ExpressionStatement', {
+                expression: rewriter.newNode('AssignmentExpression', {
+                    operator: '=',
+                    left: rewriter.newNode('Identifier', { name: '__' + lastFnScopeIdx }),
+                    right: rewriter.newNode('MemberExpression', {
+                        object: rewriter.newNode('Identifier', { name: '__' + lastFnScopeIdx }),
+                        property: rewriter.newNode('Literal', { value: 2 }),
+                        computed: true
+                    })
+                })
+            })
+        );
+
+        return block;
     }
 
 });

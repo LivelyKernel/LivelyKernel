@@ -718,7 +718,7 @@ Object.extend(lively.morphic.Charts.Utils, {
         // add margin
         var y = 10 + morphs[0].morph.getOrigin().y;
         arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
-    }
+    },
 });
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
@@ -2006,12 +2006,19 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             
         var table = new lively.morphic.DataGrid(rowCount, columnCount, spec);
         table.setFill(Color.white);
+        
         //set gridmode of table cells to hidden
         table.rows.each(function(row){
             row.each(function(ea){
+                if (row[0] instanceof lively.morphic.DataGridColHead)
+                    ea.setFill(Color.rgbHex("D6E6F4"));
+                else 
+                    ea.setFill(Color.white)
                 ea.setClipMode("hidden");
+                ea.setBorderColor(Color.rgb(144, 144, 144));
             });
         });
+        
         
         table.disableGrabbing();
         table.disableDragging();
@@ -2039,28 +2046,39 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             return;
         
         if (!Object.isArray(data.first())){
-            var attributes = [];
-            data.each(function(ea){
-                for (var key in ea){
-                    attributes.pushIfNotIncluded(key);
-                }
-            });
-            this.table = this.createTable(attributes.length, data.length + 1);
-            this.table.setColNames(attributes);
+            //if primitive
+            if (typeof data.first().valueOf() != "object") {
+                this.table = this.createTable(1, data.length + 1);
+            } else {
+                var attributes = [];
+                data.each(function(ea){
+                    for (var key in ea){
+                        attributes.pushIfNotIncluded(key);
+                    }
+                });
+                this.table = this.createTable(attributes.length, data.length + 1);
+                this.table.setColNames(attributes);
+            }
         } else {
             this.table = this.createTable(data[0].length, data.length + 1);
         }
         
         var _this = this;
         data.each(function (ea, col){
+            
             if (Object.isArray(ea)) {
                 ea.each(function (el, row){
                     _this.table.atPut(row, col, el.toString())
                 });
             } else {
-                attributes.each(function (attr, row){
-                    _this.table.atPut(row, col, ea[attr] || "-");
-                });
+                //if primitive
+                if (typeof ea.valueOf() != "object") {
+                    _this.table.atPut(0, col, ea || "-");
+                } else {
+                    attributes.each(function (attr, row){
+                        _this.table.atPut(row, col, ea[attr] || "-");
+                    });
+                }
             }
             
         });
@@ -2084,15 +2102,28 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     
     updateCellWidth : function() {
         if(!this.table) return;
-        
+       
         var table = this.table;
         var activeCell = table.rows[table.getActiveRowIndex()][table.getActiveColIndex()];
+        
+        if (table.getActiveRowIndex() == 0){
+            activeCell = this.biggestCell(table.getActiveColIndex());
+        }
+        
         var oldWidth = activeCell.getExtent().x;
-        var newWidth = activeCell.getTextBounds().width + 10;
+        var numberOfLines = activeCell.computeRealTextBounds().height / 20;
+        var newWidth = activeCell.computeRealTextBounds().width * numberOfLines  + 10;
         var index = table.getActiveColIndex();
-        var diff = (newWidth - oldWidth);
         table.setColWidth(index, newWidth);
 
+        //more than on Line
+        if (numberOfLines > 1){
+            newWidth = activeCell.computeRealTextBounds().width + 10;
+            table.setColWidth(index, newWidth);
+        }
+        
+        var diff = newWidth - oldWidth;
+        
         //move all columns right of index
         for (var j = index + 1; j < table.rows[0].length; j++) {
             for (var i = 0; i < table.rows.length; i++) {
@@ -2102,6 +2133,22 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             }
         }
     },
+    
+    biggestCell: function (columnIndex) {
+        var activeCell = this.table.rows[this.table.getActiveRowIndex()][columnIndex];
+        
+        for (var i = 1; i < this.table.rows.length; i++){
+            var curentBounds = this.table.rows[i][columnIndex].computeRealTextBounds();
+            var activeBounds = activeCell.computeRealTextBounds();
+            if ((curentBounds.height > activeBounds.height) || 
+                ((curentBounds.height == activeBounds.height) &&
+                (curentBounds.width > activeBounds.width))){
+                activeCell = this.table.rows[i][columnIndex];
+            }
+        }
+        
+        return activeCell;
+    }
     
 });
 

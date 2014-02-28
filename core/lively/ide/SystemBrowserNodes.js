@@ -718,8 +718,9 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             oldS = target.getSourceCode(),
             success = $super(newSource, sourceControl)
 
-        if (success && pType == this.target.type && pType == "propertyDef" 
-            && this.target.name != propertyName) {
+        if (success && pType == this.target.type 
+            && pType == "propertyDef" && this.target.name != propertyName 
+            && propertyName !== lively.ide.AddMethodToFileFragmentCommand.newMethodName) {
             var browser = this.browser,
                 dontAsk = lively.Config.get("propertyPreservation", true),
                 saveOld = function(answer) {

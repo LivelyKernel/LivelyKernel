@@ -455,11 +455,12 @@ lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddMethodToFileFragment
 'properties', {
     menuName: 'add method',
     targetPane: 'Pane4',
-    nodeType: 'isMemberNode'
+    nodeType: 'isMemberNode',
+    newMethodName: "newMethod"
 },
  'command actions', {
     interactiveAddTo: function(siblingNode) {
-        var methodName = "newMethod",
+        var methodName = this.newMethodName,
             ff = siblingNode.target,
             nextFF = ff.nextElement();
         this.createAndAddSource(siblingNode, methodName);

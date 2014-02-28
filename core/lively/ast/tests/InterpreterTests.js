@@ -813,7 +813,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
             result = interpreter.stepToNextStatement(frame);
 
         this.assertEquals('Break', result && result.toString(), 'did not halt before next statement');
-        this.assertEquals(undefined, frame.getScope().get('x'), 'did not execute first statement');
+        this.assertEquals(undefined, frame.getScope().get('x'), 'did not stop at first statement');
         this.assertEquals(2, interpreter.runFromPC(frame), 'did not finish resume');
     },
 

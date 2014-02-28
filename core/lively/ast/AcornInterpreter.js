@@ -4,6 +4,11 @@ module('lively.ast.AcornInterpreter').requires('lively.ast.acorn', 'lively.ast.R
 // reimplementation of lively.ast.InterpreterVisitor for Mozilla Parser API
 // TODO: implement strict mode ?!
 //       - different arguments handling (immutable)
+//       - with statement would be SyntaxError
+//       - introduction of (global) variables without var declaration
+//       - no variable introduction through evaled code
+//       - different behavior of delete
+//       (to be continued)
 */
 Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'initialization', {

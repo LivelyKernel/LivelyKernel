@@ -190,9 +190,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             // should throw Break
             if (frame.isResuming())
-                this.runFromPC(frame);
+                result = this.runFromPC(frame);
             else
-                this.runWithFrame(frame.getOriginalAst(), frame);
+                result = this.runWithFrame(frame.getOriginalAst(), frame);
         } catch (e) {
             // TODO: create continuation
             result = e;

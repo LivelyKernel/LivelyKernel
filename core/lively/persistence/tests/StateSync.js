@@ -29,6 +29,8 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
         
         this.assertEquals(cs[4].parent().fullPath().toString(), "a", "wrong path 5");
         this.assert(root.isRoot());
+        this.assert(root.child("").isRoot())
+
         this.done()
     },
     test02SettingAndInforming: function() {
@@ -40,7 +42,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
             self.assert(Objects.equal(val, values.shift()));
             if(values.length == 0) self.done()
             })
-        cc.set(function(old, newV) { return newV }, function(err, val) { self.assert(val == 1) }, 1)
+        cc.set(function(old, newV, cb) { cb(newV) }, function(err, val) { self.assert(val == 1) }, 1)
     },
     test03Updating: function() {
         var c = this._root.child("a.a"),
@@ -49,17 +51,17 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
             updateSupplies = [],
             self = this;
         c.overwriteWith({foo: "123", bar: "234"});
-        c.update({foo: "321"}, function(oldV, newV) {
+        c.update({foo: "321"}, function(oldV, newV, cb) {
             self.assert(Objects.equal(oldV, {foo: "123"}), "wrong old value");
             self.assert(Objects.equal(newV, {foo: "321"}), "new value not correctly propagated");
-            return newV
+            cb(newV)
         }, function(err, curV) {
             self.assert(Objects.equal(curV, {foo: "321"}) 
                     ||  Objects.equal(curV, {foo: "321", bar: "234"}), "new value not saved");
         });
-        c.update(null, function(oldV, newV) {
+        c.update(null, function(oldV, newV, cb) {
             self.assert(Objects.equal(oldV, {foo: "321", bar: "234"}), "not all values contributed, when none is specified");
-            return 1
+            cb(1)
         }, function(err, curV) {
             self.assert(curV == 1, "'number' did not overwrite object");
             self.done()
@@ -78,18 +80,16 @@ lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.test
     },
 },
 'tests', {
-    test01pathAndTreeFunctions: function() {
+    test01informingSubscribers: function() {
         var root = this._root,
             c1 = root.child("test"),
             self = this;
         self.recordedValues = []
         c1.overwriteWith(undefined, function(err, value) {
-            debugger;
             if (err) self.assert(false)
             self.assert(value === undefined)
         });
         c1.get(function(err, value) {
-            debugger;
             if (err) self.assert(false, "Get: There should be no error when being informed of changes...");
             self.recordedValues.push(value)
             if (self.recordedValues.length == 2) {
@@ -98,7 +98,6 @@ lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.test
             }
         });
         c1.overwriteWith(10, function(err, value) { 
-            debugger;
             if (err) self.assert(false)
             self.assertEquals(10, value)
         });

@@ -27,27 +27,32 @@ Object.subclass('lively.persistence.StateSync.Handle',
     get: function(thenDo) {
         // get the value in the database, and call thenDo with it
         // also call on every update change
+        // return thenDo!!
         throw dbgOn(new Error('To be implemented from subclass'));
     },
 
     set: function(mergeFn, thenDo, newValue, oldValue) {
         // looses the previous value
+        // mergeFn: function(oldValue, newValue, thenDo: function(mergedValue))
+        // don't call thenDo, when you want to abort the change...
+        // if thenDo is called more than once, a new set process is started, which most likely will lead to calling mergeFn, if the oldValue is different from the currently saved value.
         throw dbgOn(new Error('To be implemented from subclass'));
     },
 
     update: function(values, mergeFn, thenDo) {
         // if values is a string or number or date, loose the previous value,
         // otherwise merge with current values
-        this.set(function(oldVal, newVal) {
+        this.set(function(oldVal, newVal, cb) {
             try { var keys = Object.keys(values); }
             catch (er) { var keys = false }
-            var newVal = mergeFn( keys ? keys.inject({}, function(last, key) { 
-                    last[key] = oldVal[key];
+            mergeFn( keys ? keys.inject({}, function(last, key) { 
+                    last[key] = oldVal && oldVal[key];
                     return last
-                }) : oldVal, values)
-            if (!newVal) return; // has to return an object, in order to merge
-            if ( ['number', 'string'].include(typeof newVal) ) return newVal;
-            return Object.merge([oldVal, newVal])
+                }) : oldVal, values, function(merged) {
+                    if (merged === undefined) return; // has to return an object, in order to merge
+                    if ( ['number', 'string'].include(typeof merged) ) cb(merged);
+                    else cb(Object.merge([oldVal, merged]))
+                })
         }, thenDo)
     },
     
@@ -55,13 +60,11 @@ Object.subclass('lively.persistence.StateSync.Handle',
         var length,
             self = this;
         this.update({length: 0, 0: value}, function(oldV, newV) {
-            debugger;
             length = ((oldV && oldV.length)  || 0) + 1
             var updated = {length: length};
             updated[updated.length - 1] = value
             return updated
         }, function(err, curV) {
-            debugger;
             cb && cb(err, self.child((length - 1).toString()), curV)
         })
     },
@@ -74,7 +77,12 @@ Object.subclass('lively.persistence.StateSync.Handle',
     parent: function() { return this._parent },
     // check whether those are valid? make it a thenDo-function?
     child: function(path) {
-        if (path === "" || (path.isRoot && path.isRoot())) return this
+        if (typeof path !== 'string') {
+            if (!(path.include && path.split) && !path.normalizePath) 
+                throw new Error("Unexpected argument: Neither behaves like a string, nor like a lively.PropertyPath");
+            path = path.normalizePath ? path.normalizePath() : path;
+        }
+        if (path === "") return this
         if (path in this._children) {return this._children[path]}
         else {
             return !path.include('.') ? this._children[path] = new this.constructor(this._store, path, this) : path.split(".").reduce(function(parent, segment) {
@@ -86,7 +94,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
 },
 'accessing derived', {
     overwriteWith: function(value, thenDo) {
-        this.set(function(oldV, newV) { return newV; }, thenDo || function() {}, value);
+        this.set(function(oldV, newV, cb) { cb(newV) }, thenDo || function() {}, value);
     },
     fullPath: function() {
         if (this.isRoot()) return this._path
@@ -98,6 +106,9 @@ Object.subclass('lively.persistence.StateSync.Handle',
 'testing', {
     isRoot: function() {
         return this._parent === undefined;
+    },
+    hasCachedChild: function(path) {
+        return !!this._children[path];
     },
     isHandleForSameStoreAs: function(aHandle) {
         return aHandle._store && aHandle._store === this._store
@@ -134,13 +145,23 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
 
     set: function(mergeFn, thenDo, newValue, oldValue) {
         // looses the previous value
-        this._store.getHandle("").commit({
-            path: this.fullPath(), 
-            transaction: function(oldVal) {
-                return mergeFn(oldVal, newValue)
-            }, callback: function(err, truthErr, currentVal) {
-                thenDo(err, currentVal)
-            },})
+        // only supports part of the interface in that merging has to be synchonous
+        var path = this.fullPath(),
+            store = this._store,
+            storeCb = function(oldV, merged) {
+                store.set(path, merged, {
+                    precondition: {type: 'equality', value: oldV}, 
+                    callback: function(err) {
+                        if (err) getCb(merged)
+                        else thenDo(null, merged)
+                },})
+            },
+            getCb = function(merged) {
+                store.get(path, function(p, v) {
+                    mergeFn(v, merged, storeCb.bind(this, v))})
+            };
+        if (oldValue === undefined || newValue === undefined) getCb(newValue)
+        else storeCb(oldValue, newValue)
     },
 
     drop: function(thenDo) {
@@ -163,7 +184,6 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
     onValueChanged: function(value, path) {
         // Problem: if one of the callbacks changes value, calls the other ones with the old value
         // Second problem: callbacks are unordered??
-        debugger;
         if (!! this._path.relativePathTo(path) ) {
             var self = this;
             self._store.get(self.fullPath(), function(path, value) {
@@ -211,6 +231,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         sess.sendTo(sess.trackerId, 'syncGet', this.fullPath().toString(), function(msg) {
             thenDo(msg.err, msg.data)
         })
+        return thenDo
     },
 
     set: function(mergeFn, thenDo, newV, oldV) {
@@ -220,10 +241,11 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         
         function send(newValue, oldValue) {
             sess.sendTo(sess.trackerId, 'syncSet', {path: path, newValue: newValue, oldValue: oldValue}, function(msg) {
+                var knownOldValue = msg.data.value
                 if (!msg.data.successful){
-                    return send(mergeFn(msg.data.value, newValue), msg.data.value)
+                    mergeFn(knownOldValue, newValue, function(merged) { send(merged, knownOldValue)})
                 } else {
-                    thenDo(null, msg.data.value)
+                    thenDo(null, knownOldValue)
                 }
             })
         }
@@ -245,12 +267,14 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         }
     },
     propagateChange: function(path, value) {
-        // what to do with parents? can we really request the element each time?
-        // or should we request the full value the first time we find a callback, and have a parallel descent?
-        if (path === "") {
-            this._callbacks && this._callbacks.invoke("call", undefined, null, value)
-        } else
-            this.child(path).propagateChange("", value)
+        this._callbacks && this._callbacks.invoke("call", undefined, null, value)
+        if (path.isRoot())
+            return
+            // should also inform all cached children?
+        var next = path.slice(0,1);
+        if (this.hasCachedChild(next)) {
+            this.child(next).propagateChange(path.slice(1), next.get(value))
+        }
     },
 },
 'testing', {
@@ -271,10 +295,10 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
         }
         this.rootHandles.push(handle);
     },
-    informHandles: function(path, value) {
+    informHandles: function(changedPath, valuePath, value) {
         // path = lively.PropertyPath(path);
         this.rootHandles.forEach(function(ea) {
-            ea.propagateChange(path, value);
+            ea.child(valuePath).propagateChange(lively.PropertyPath(changedPath), value);
         })
     },
     registerL2LAction: function() {
@@ -282,7 +306,7 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
         lively.net.SessionTracker.registerActions({
             syncValueChanged: function(msg, session) {
                 // lively.persistence.StateSync.L2LHandle.informHandles
-                self.informHandles(msg.data.path, msg.data.value);
+                self.informHandles(msg.data.changedPath, msg.data.valuePath, msg.data.value);
             },
         })
     },

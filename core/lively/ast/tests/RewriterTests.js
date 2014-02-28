@@ -609,6 +609,26 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 "}\n"
             );
         this.assertASTMatchesCode(result, expected);
+    },
+
+    test30cWithStatementWithoutDeclaredVar: function() {
+        var src = 'with ({ a: 1 }) { a; }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                "{\n" +
+                "var _1 = { a: 1 };\n" +
+                "__0 = [\n" +
+                "    _,\n" +
+                "    _1,\n" +
+                "    __0\n" +
+                "];\n" +
+                "('a' in _1 ? _1 : { 'a': a }).a;\n" +
+                "__0 = __0[2];\n" +
+                "}\n"
+            );
+        console.log(escodegen.generate(result));
+        this.assertASTMatchesCode(result, expected);
     }
 
 });

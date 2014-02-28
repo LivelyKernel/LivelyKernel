@@ -342,22 +342,30 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     wrapVar: function(name) {
-        var scopeIdx, withScopes = [], that = this;
+        var scopeRef, withScopes = [], that = this;
         for (var i = this.scopes.length - 1; i >= 0; i--) {
             if (this.scopes[i].localVars.include(name)) {
-                scopeIdx = i;
+                scopeRef = this.newNode('Identifier', { name: '_' + i });
                 break;
             } else if (this.scopes[i].isWithScope)
                 withScopes.push(i);
         }
 
         var result = this.newNode('Identifier', { name: name });
-        // mr 2014-02-05: if true, the reference is a global one - should throw error?
-        result = (scopeIdx === undefined) ? result :
-            this.newNode('MemberExpression', {
+        if ((scopeRef === undefined) && (withScopes.length > 0)) {
+            // mr 2014-02-05: the reference is a global one - should throw error?
+            scopeRef = this.newNode('ObjectExpression', { properties: [{
+                kind: 'init',
+                key: this.newNode('Literal', { value: name }),
+                value: this.newNode('Identifier', { name: name })
+            }]}); // { name: name }
+        }
+        if (scopeRef !== undefined) {
+            result = this.newNode('MemberExpression', {
                 property: result,
                 computed: false
             });
+        }
 
         if (withScopes.length > 0) {
             result.object = withScopes.reverse().reduce(function(alternate, idx) {
@@ -371,9 +379,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                     consequent: that.newNode('Identifier', { name: '_' + idx }),
                     alternate: alternate
                 });
-            }, this.newNode('Identifier', { name: '_' + scopeIdx }));
+            }, scopeRef);
         } else
-            result.object = this.newNode('Identifier', { name: '_' + scopeIdx });
+            result.object = scopeRef;
         return result;
     },
 

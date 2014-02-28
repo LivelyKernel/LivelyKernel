@@ -575,7 +575,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 "    _1,\n" +
                 "    __0\n" +
                 "];\n" +
-                "(_1.hasOwnProperty('a') ? _1 : _0).a;\n" +
+                "('a' in _1 ? _1 : _0).a;\n" +
                 "__0 = __0[2];\n" +
                 "}\n"
             );
@@ -602,7 +602,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 "    _2,\n" +
                 "    __0\n" +
                 "];\n" +
-                "(_2.hasOwnProperty('a') ? _2 : _1.hasOwnProperty('a') ? _1 : _0).a;\n" +
+                "('a' in _2 ? _2 : 'a' in _1 ? _1 : _0).a;\n" +
                 "__0 = __0[2];\n" +
                 "}\n" +
                 "__0 = __0[2];\n" +
@@ -738,6 +738,20 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
                 return (function foo() {
                     return x;
                 })();
+            }
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test04dWithStatementPrototypeProperty: function() {
+        function code() {
+            var klass = function() {};
+            klass.prototype.x = 2;
+            var obj = new klass(), x = 1;
+            with (obj) {
+                return x;
             }
         }
         var src = Strings.format('(%s)();', code),

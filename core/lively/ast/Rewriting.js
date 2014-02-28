@@ -361,15 +361,12 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
         if (withScopes.length > 0) {
             result.object = withScopes.reverse().reduce(function(alternate, idx) {
-                // (_xx.hasOwnProperty(name) ? _xx : ...)
+                // (name in _xx ? _xx : ...)
                 return that.newNode('ConditionalExpression', {
-                    test: that.newNode('CallExpression', {
-                        callee: that.newNode('MemberExpression', {
-                            object: that.newNode('Identifier', { name: '_' + idx }),
-                            property: that.newNode('Identifier', { name: 'hasOwnProperty'}),
-                            computed: false
-                        }),
-                        arguments: [ that.newNode('Literal', { value: name }) ]
+                    test: that.newNode('BinaryExpression', {
+                        operator: 'in',
+                        left: that.newNode('Literal', { value: name }),
+                        right: that.newNode('Identifier', { name: '_' + idx })
                     }),
                     consequent: that.newNode('Identifier', { name: '_' + idx }),
                     alternate: alternate

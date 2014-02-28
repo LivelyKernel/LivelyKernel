@@ -128,7 +128,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
 
         if (this.shouldInterpret(frame, func)) {
-            func = func.forInterpretation();
+            if (this.shouldHaltAtNextCall()) {
+                this.breakAtStatement = false;
+                this.breakAtCall = false;
+                func = func.startHalted();
+            } else
+                func = func.forInterpretation();
             func.setParentFrame(frame);
         }
         if (isNew) {
@@ -153,9 +158,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     shouldInterpret: function(frame, func) {
         if (this.isNative(func)) return false;
-        return func.hasOwnProperty('forInterpretation');
+        return (func.forInterpretation !== undefined) &&
+            this.shouldHaltAtNextCall();
         // TODO: reactivate when necessary
-            // || frame.breakAtCalls
             // || func.containsDebugger();
     },
 
@@ -262,8 +267,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 return;
             }
         } else {
-            if ((this.shouldHaltAtNextStatement() && (this.statements.indexOf(node.type) != -1)) ||
-               (this.shouldHaltAtNextCall() && (node.type == 'CallExpression'))) {
+            if (this.shouldHaltAtNextStatement() && (this.statements.indexOf(node.type) != -1)) {
+            //   (this.shouldHaltAtNextCall() && (node.type == 'CallExpression'))) {
                 this.breakAtStatement = false;
                 this.breakAtCall = false;
                 throw {
@@ -957,11 +962,10 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         fn.setParentFrame = function(frame) {
             that.parentFrame = frame;
         };
+        fn.startHalted = function() {
+            return function(/*args*/) { return that.apply(this, Array.from(arguments), true); }
+        };
         // TODO: reactivate when necessary
-        // why is this wrapped!? (context)
-        // fn.startHalted = function() {
-        //     return function(/*args*/) { return that.apply(this, Array.from(arguments), true); }
-        // };
         // fn.evaluatedSource = function() { return ...; };
 
         // custom Lively stuff

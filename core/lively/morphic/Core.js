@@ -395,6 +395,21 @@ Object.subclass('lively.morphic.Morph',
     }
 
 },
+'morph replacement', {
+
+    replaceWith: function(otherMorph) {
+        if (!this.owner) return;
+        var pos = this.getPosition(),
+            o = this.owner,
+            idx = o.submorphs.indexOf(this),
+            nextMorph = o.submorphs[idx+1];
+        this.remove();
+        otherMorph.setPosition(pos);
+        o.addMorph(otherMorph, nextMorph);
+        return otherMorph;
+    }
+
+},
 'transformation', {
     localize: function(point) {
         // map world point to local coordinates

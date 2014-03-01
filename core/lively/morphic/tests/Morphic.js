@@ -293,8 +293,24 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         m1.remove();
         this.assertEquals(3, testEnv.onOwnerChangedCallCount, 'onOwnerChanged not called 2');
         this.assertIdentity(null, testEnv.newOwner);
-    }
+    },
 
+    testReplaceMorph: function() {
+        var o = lively.morphic.newMorph({bounds: lively.rect(0,0, 100, 100)}),
+            m1 = lively.morphic.newMorph({bounds: lively.rect(20,20, 20,20), style: {fill: Color.blue}}),
+            m2 = lively.morphic.newMorph({bounds: lively.rect(30,30, 20, 20), style: {fill: Color.red}}),
+            m3 = lively.morphic.newMorph({bounds: lively.rect(40,40, 20, 20), style: {fill: Color.yellow}}),
+            r = lively.morphic.newMorph({bounds: lively.rect(0,0, 20, 20), style: {fill: Color.green}});
+        
+        this.world.addMorph(o);
+        o.addMorph(m1); o.addMorph(m2); o.addMorph(m3);
+        
+        m2.replaceWith(r);
+        this.assert(!m2.owner, 'm2 still has an owner?');
+        this.assertEquals(o, r.owner, 'owner');
+        this.assertEquals(pt(30,30), r.getPosition(), 'position');
+        this.assertEquals(1, o.submorphs.indexOf(r), 'index in owner');
+    }
 
 });
 

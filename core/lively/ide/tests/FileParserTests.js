@@ -1411,6 +1411,23 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
             fragment2 = this.fragmentNamed('m3', function(el) { return el.startIndex > fragment1.startIndex; }),
             result = fragment1.nextElement();
         this.assertIdentity(fragment2, result, ' findNextSibling did not return #m3');
+    },
+    testSaveSourceWithCodeOutsideOfModules: function() {
+        var src = "module('bar').requires().toRun(function() {\n});\n(11);\n";
+        var fileName = 'bar.js';
+        var frag = this.db.prepareForMockModule(fileName, src);
+        var moduleWrapper = this.db.findModuleWrapperForFileName(fileName);
+
+        this.assert(frag.type !== "moduleDef", "this file encompasses more than just the module")
+
+        frag.putSourceCode(src);
+        var newSrc = moduleWrapper.getSource();
+        this.assert(newSrc.trim() === src.trim(), "changing the source failed");
+
+        // P.S.: This doesn't work either, but the parser is structured in such a way,
+        // that it probably never will. A single newline between the curly braces is
+        // sufficient to make it working.
+        // var src = "module('bar').requires().toRun(function() {});\n";
     }
 
 });

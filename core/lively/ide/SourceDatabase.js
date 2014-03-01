@@ -96,7 +96,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         var fileFragments = new JsParser().parseSource(source, {fileName: this.fileName()}),
             root,
             firstRealFragment = fileFragments.detect(function(ea) { return ea.type !== 'comment' });
-        if (firstRealFragment && firstRealFragment.type === 'moduleDef') {
+        if (firstRealFragment && firstRealFragment.type === 'moduleDef' && fileFragments.length == 1) {
             root = firstRealFragment;
         } else {
             root = new lively.ide.FileFragment(

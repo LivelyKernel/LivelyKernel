@@ -187,6 +187,10 @@ Object.subclass('lively.ide.FileFragment',
     },
 
     buildNewFileString: function(newString) {
+        // Dirty fix for a bug in the parser while saving lively.morphic.ScriptingSupport, I was not able to minimize
+        if (this.stopIndex == null) {
+            return newString
+        };
         var fileString    = this.getFileString(),
             beforeString  = fileString.substring(0, this.startIndex),
             trailingCommaOffset = fileString[this.stopIndex + 1] == ',' && /,\s*$/.test(newString) ? 1 : 0,

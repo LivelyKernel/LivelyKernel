@@ -265,6 +265,15 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         },
     },
+    'lively.ide.codeditor.installCompletions': {
+        description: 'install code editor completions',
+        exec: function() {
+            require('lively.ide.codeeditor.Completions').toRun(function() {
+                lively.ide.codeeditor.Completions.setupCompletions();
+            });
+            return true;
+        },
+    },
     'lively.ide.tools.SelectionNarrowing.activateLastActive': {
         description: 'open last active selection narrower',
         exec: function() {

@@ -8,6 +8,11 @@ var log = function log(/*args*/) {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+function withDBDo(doFunc) {
+    // FIXME
+    doFunc(null, lively.repository.fs.storage.db);
+}
+
 module.exports = function(route, app) {
     app.get(route, function(req, res) {
         var err, query = req.query, getRecords;
@@ -28,3 +33,5 @@ module.exports = function(route, app) {
         });
     });
 }
+
+module.exports.withDBDo = withDBDo;

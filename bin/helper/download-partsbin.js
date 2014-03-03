@@ -44,8 +44,9 @@ function cleanup(next) {
 }
 
 function msg(/*args*/) {
+    var args = arguments;
     return function(next) {
-        console.log.apply(console, arguments);
+        console.log.apply(console, args);
         next();
     }
 }

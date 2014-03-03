@@ -2,14 +2,14 @@ var util = require("util"),
     async = require("async"),
     store = require("./Store");
     l2l = require("./LivelyServices");
-require("../lively/lang/Array")
+require("../lively/lang/Array");
 
 if (!global.lively.PropertyPath) {
-    console.log("throw up")
+    console.log("StateSynchonization depends on PropertyPath, which should have been loaded by Store.");
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-[].
+
 subscribers = [];
 sTracker = require('./SessionTracker').SessionTracker.servers['/nodejs/SessionTracker/']
 
@@ -101,7 +101,7 @@ var stateSynchronizationServices = {
                 action: msg.action + 'Result',
                 inResponseTo: msg.messageId,
                 data: { successful: true, value: msg.data.newValue }
-            })
+            });
             informSubscribers(msg.data.path, msg.data.newValue)
         })
     },

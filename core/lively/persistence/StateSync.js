@@ -59,13 +59,13 @@ Object.subclass('lively.persistence.StateSync.Handle',
     push: function(value, cb) {
         var length,
             self = this;
-        this.update({length: 0, 0: value}, function(oldV, newV) {
-            length = ((oldV && oldV.length)  || 0) + 1
+        this.update({length: 0, 0: value}, function(oldV, newV, cb) {
+            length = ((oldV && oldV.length)  || 0) + 1;
             var updated = {length: length};
-            updated[updated.length - 1] = value
-            return updated
+            updated[updated.length - 1] = value;
+            cb(updated);
         }, function(err, curV) {
-            cb && cb(err, self.child((length - 1).toString()), curV)
+            cb && cb(err, self.child((length - 1).toString()), curV);
         })
     },
 
@@ -298,6 +298,7 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     informHandles: function(changedPath, valuePath, value) {
         // path = lively.PropertyPath(path);
         this.rootHandles.forEach(function(ea) {
+            debugger;
             ea.child(valuePath).propagateChange(lively.PropertyPath(changedPath), value);
         })
     },

@@ -23,18 +23,15 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     tryCatch: function(level, varMapping, inner) {
         level = level || 0;
         return Strings.format("try {\n"
-            + "var _ = {}, lastNode = undefined, debugging = false, _%s = %s, __%s = [\n"
-            + "        _,\n"
-            + "        _%s,\n"
-            + "        %s\n"
-            + "    ];\n"
+            + "var _ = {}, lastNode = undefined, debugging = false, __%s = [], _%s = %s;\n"
+            + "__%s.push(_, _%s, %s);\n"
             + "%s"
             + "} catch (e) {\n"
             + "    var ex = e.isUnwindException ? e : new UnwindException(e);\n"
             + "    ex.createAndShiftFrame(this, arguments, __%s, lastNode, %s);\n"
             + "    throw ex;\n"
             + "}\n",
-            level, generateVarMappingString(), level, level,
+            level, level, generateVarMappingString(), level, level,
             level-1 < 0 ? 'Global' : '__' + (level-1),
             inner, level, "__/[0-9]+/__");
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1155,6 +1152,19 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(2, continuation.currentFrame.lookup('e'), 'catch variable was not captured correctly');
         var result = continuation.resume();
         this.assertEquals(1, result, 'overridden catch variable was not restored correctly');
+    },
+
+    test17FrameStateAttachmentToFuncDecl: function() {
+        function code() {
+            function f() {}
+            debugger;
+        }
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            frame = continuation.currentFrame,
+            func = frame.lookup('f');
+        this.assert(func, 'FunctionDeclaration f could not be found');
+        this.assert(func._cachedScopeObject, 'parentFrameState was not attached correctly');
     }
 
 });

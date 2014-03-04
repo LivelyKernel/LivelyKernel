@@ -267,17 +267,32 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     createPreamble: function(args, decls, level) {
         var lastFnLevel = this.lastFunctionScopeId();
-        return this.newNode('VariableDeclaration', {
-            kind: 'var',
-            declarations: [
-                this.newVariable('_', '{}'),
-                this.newVariable('lastNode', this.newNode('Identifier', {name: 'undefined'})),
-                this.newVariable('debugging', this.newNode('Literal', {value: false})),
-                this.newVariable('_' + level, this.wrapArgsAndDecls(args, decls)),
-                this.newVariable('__' + level,
-                    ['_', '_' + level, lastFnLevel < 0 ? 'Global' : '__' + lastFnLevel])
-            ]
-        });
+        return [
+            this.newNode('VariableDeclaration', {
+                kind: 'var',
+                declarations: [
+                    this.newVariable('_', '{}'),
+                    this.newVariable('lastNode', this.newNode('Identifier', {name: 'undefined'})),
+                    this.newVariable('debugging', this.newNode('Literal', {value: false})),
+                    this.newVariable('__' + level, []),
+                    this.newVariable('_' + level, this.wrapArgsAndDecls(args, decls)),
+                ]
+            }),
+            this.newNode('ExpressionStatement', {
+                expression: this.newNode('CallExpression', {
+                    callee: this.newNode('MemberExpression', {
+                        object: this.newNode('Identifier', { name: '__' + level }),
+                        property: this.newNode('Identifier', { name: 'push' }),
+                        computed: false
+                    }),
+                    arguments: [
+                        this.newNode('Identifier', { name: '_' }),
+                        this.newNode('Identifier', { name: '_' + level }),
+                        this.newNode('Identifier', { name: lastFnLevel < 0 ? 'Global' : '__' + lastFnLevel })
+                    ]
+                })
+            })
+        ];
     },
 
     createCatchForUnwind: function(node, originalFunctionIdx, level) {
@@ -337,7 +352,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     wrapSequence: function(node, args, decls, originalFunctionIdx) {
         var level = this.scopes.length;
-        node.body.unshift(this.createPreamble(args, decls, level));
+        Array.prototype.unshift.apply(node.body, this.createPreamble(args, decls, level));
         return this.createCatchForUnwind(node, originalFunctionIdx, level);
     },
 

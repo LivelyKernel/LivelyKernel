@@ -283,7 +283,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             if (!commands || !commands.byName || !commands.byName[cmdName]) return;
             var cmd = Object.extend(Object.extend({}, commands.byName[cmdName]), properties);
             commands.byName[cmdName] = cmd;
-            var ckb = commands.commmandKeyBinding;
+            var ckb = commands.commandKeyBinding;
             if (!cmd.bindKey || !commands.parseKeys || !ckb) return;
             if (typeof cmd.bindKey === 'object' && !commands.platform) return;
             var keySpec = typeof cmd.bindKey === 'object' ? cmd.bindKey[commands.platform] : cmd.bindKey;

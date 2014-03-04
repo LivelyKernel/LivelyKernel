@@ -2028,7 +2028,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         // to be able to activate key combos with arbitrary length
         // Example: if keyPart is "C-c C-l t" then "C-c C-l t" will
         // get command assigned and "C-c" and "C-c C-l" will get
-        // a null command assigned in this.commmandKeyBinding.
+        // a null command assigned in this.commandKeyBinding.
         comboParts.slice(0,-1).reduce(function(keyMapKeys, comboPart, i) {
             var prefix = keyMapKeys[i-1] ? keyMapKeys[i-1] + ' ' : '';
             return keyMapKeys.concat([prefix + comboPart]);
@@ -2108,7 +2108,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         var combo = this.normalizeCombo(prevKeysPressed),
             kbd = focused.aceEditor.keyBinding.$handlers.detect(function(ea) { return ea.isEmacs; });
         // is the current combo a prefix for codeeditor?
-        if (!kbd || kbd.commmandKeyBinding[combo] === undefined) return;
+        if (!kbd || kbd.commandKeyBinding[combo] === undefined) return;
         // the current key will be read in by the editor, just send the last ones
         focused.aceEditor.keyBinding.$data.keyChain = combo;
     },
@@ -2155,7 +2155,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         }
         return codeEditor.withAceDo(function(ed) {
             var kbd = ed.keyBinding.$handlers.first(); //ed.getKeyboardHandler();
-            var bindings = kbd.commmandKeyBinding;
+            var bindings = kbd.commandKeyBinding;
             if (false && kbd.isEmacs) {
                 return Object.keys(bindings).map(function(keys) {
                     if (!bindings[keys]
@@ -2169,8 +2169,8 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
                 }).compact();;
             }
             var keysAndCommands = [];
-            Object.keys(kbd.commmandKeyBinding).forEach(function(hashId) {
-                var cmdsForModifier = kbd.commmandKeyBinding[hashId];
+            Object.keys(kbd.commandKeyBinding).forEach(function(hashId) {
+                var cmdsForModifier = kbd.commandKeyBinding[hashId];
                 var modifiers = modifierHashIdMapping[hashId] || '';
                 modifiers.length > 0 && (modifiers += '-');
                 keysAndCommands.pushAll(

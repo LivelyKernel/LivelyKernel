@@ -870,9 +870,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
             interpreter = new lively.ast.AcornInterpreter.Interpreter(),
             result;
 
-        interpreter.stepToNextStatement(frame);
+        result = interpreter.stepToNextStatement(frame);
+        this.assertEquals('Break', result.toString(), 'first step');
         this.assertEquals(node.body[1], frame.getPC(), 'did not halt at initial position');
-        interpreter.stepToNextCallOrStatement(frame);
+        result = interpreter.stepToNextCallOrStatement(frame);
+        this.assertEquals('Break', result.toString(), 'second step');
         this.assertEquals(undefined, frame.getScope().get('x'), 'did not halt at call');
         this.assertEquals(2, interpreter.runFromPC(frame), 'did not finish resume');
     }

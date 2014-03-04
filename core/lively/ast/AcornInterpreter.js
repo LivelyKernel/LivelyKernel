@@ -128,13 +128,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
 
         if (this.shouldInterpret(frame, func)) {
+            func.setParentFrame(frame);
             if (this.shouldHaltAtNextCall()) {
                 this.breakAtStatement = false;
                 this.breakAtCall = false;
                 func = func.startHalted();
-            } else
+            } else {
                 func = func.forInterpretation();
-            func.setParentFrame(frame);
+            }
         }
         if (isNew) {
             if (this.isNative(func)) return new func();
@@ -210,19 +211,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     stepToNextCallOrStatement: function(frame) {
         this.haltAtNextCall();
-        this.haltAtNextStatement();
-        var result;
-        try {
-            // should throw Break
-            if (frame.isResuming())
-                this.runFromPC(frame);
-            else
-                this.runWithFrame(frame.getOriginalAst(), frame);
-        } catch (e) {
-            // TODO: create continuation
-            result = e;
-        }
-        return result;
+        return this.stepToNextStatement(frame);
     }
 
 },

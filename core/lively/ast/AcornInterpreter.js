@@ -18,7 +18,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         this.breakAtCall      = false; // for e.g. step into
     },
 
-    statements: ['EmptyStatement', 'BlockStatement', 'ExpressionStatement', 'IfStatement', 'LabeledStatement', 'BreakStatement', 'ContinueStatement', 'WithStatement', 'SwitchStatement', 'ReturnStatement', 'TryStatement', 'ThrowStatement', 'WhileStatement', 'DoWhileStatement', 'ForStatement', 'ForInStatement', 'DebuggerStatement', 'VariableDeclaration', 'FunctionDeclaration', 'SwitchCase']
+    statements: ['EmptyStatement', 'ExpressionStatement', 'IfStatement', 'LabeledStatement', 'BreakStatement', 'ContinueStatement', 'WithStatement', 'SwitchStatement', 'ReturnStatement', 'TryStatement', 'ThrowStatement', 'WhileStatement', 'DoWhileStatement', 'ForStatement', 'ForInStatement', 'DebuggerStatement', 'VariableDeclaration', 'FunctionDeclaration', 'SwitchCase'] // without BlockStatement
 
 },
 'interface', {
@@ -129,11 +129,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
 
+        if (this.shouldHaltAtNextCall()) // try to fetch interpreted function
+            func = this.fetchInterpretedFunction(func) || func;
+
         if (this.shouldInterpret(frame, func)) {
             func.setParentFrame(frame);
             if (this.shouldHaltAtNextCall()) {
                 this.breakAtCall = false;
-                this.breakAtStatement = false;
+                this.breakAtStatement = true;
                 func = func.startHalted(this);
             } else {
                 func = func.forInterpretation();
@@ -161,8 +164,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     shouldInterpret: function(frame, func) {
         if (this.isNative(func)) return false;
-        return (func.forInterpretation !== undefined) &&
-            this.shouldHaltAtNextCall();
+        return (func.forInterpretation !== undefined);
         // TODO: reactivate when necessary
             // || func.containsDebugger();
     },
@@ -241,6 +243,29 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         if (node.astIndex < frame.pcStatement.astIndex) return false;
 
         return true;
+    },
+
+    fetchInterpretedFunction: function(func) {
+        if (!func.livelyDebuggingEnabled) return null;
+        if (func.forInterpretation !== undefined) return func;
+
+        // recreate scopes
+        // FIXME: duplicate from lively.ast.Rewriting > UnwindException.prototype.createAndShiftFrame
+        var scope, topScope, newScope,
+            fState = func._cachedScopeObject;
+        do {
+            newScope = new lively.ast.AcornInterpreter.Scope(fState[1]); // varMapping
+            if (scope)
+                scope.setParentScope(newScope);
+            else
+                topScope = newScope;
+            scope = newScope
+            fState = fState[2]; // parentFrameState
+        } while (fState && fState != Global);
+
+        // recreate lively.ast.AcornInterpreter.Function object
+        func = new lively.ast.AcornInterpreter.Function(func._cachedAst, topScope);
+        return func.asFunction();
     }
 
 },
@@ -1030,11 +1055,11 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // important: lively.ast.Interpreter.Frame.top is only valid
             // during the native VM-execution time. When the execution
             // of the interpreter is stopped, there is no top frame anymore.
-            if (!startHalted) {
+            // if (!startHalted) {
                 return interpreter.runWithFrame(this.node.body, frame);
-            } else {
-                return interpreter.resumeToAndBreak(this.node.body.body[0], frame);
-            }
+            // } else {
+                // return interpreter.resumeToAndBreak(this.node.body.body[0], frame);
+            // }
         } catch (ex) {
             if (ex.isUnwindException) {
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);

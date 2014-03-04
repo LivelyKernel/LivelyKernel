@@ -140,7 +140,17 @@ Object.extend(Global, {
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
     __createClosure: function(idx, parentFrameState, f) {
-        f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        // FIXME: Either save idx and use __getClosure later or attach the AST here and now (code dup.)?
+        var ast = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        // FIXME: duplicate from lively.ast.Rewriting > setupUnwindException AND __getClosure
+        if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {
+            // reference instead of complete ast
+            ast = acorn.walk.findNodeByAstIndex(
+                lively.ast.Rewriting.getCurrentASTRegistry()[ast.registryRef],
+                ast.indexRef
+            );
+        }
+        f._cachedAst = ast;
         // parentFrameState = [computedValues, varMapping, parentParentFrameState]
         f._cachedScopeObject = parentFrameState;
         f.livelyDebuggingEnabled = true;

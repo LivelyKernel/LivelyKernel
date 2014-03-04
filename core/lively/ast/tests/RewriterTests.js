@@ -1038,6 +1038,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         function code() {
             var sum = 1; debugger; sum += 2; debugger; sum += 3; return sum;
         }
+
         var continuation1 = lively.ast.StackReification.run(code, this.astRegistry),
             continuation2 = continuation1.resume(),
             result = continuation2.resume();
@@ -1167,7 +1168,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assert(func._cachedScopeObject, 'parentFrameState was not attached correctly');
     },
 
-    test18SteppingAfterContinuation: function() {
+    test18aStepIntoAfterContinuation: function() {
         function code() {
             var x = 2, y = 3;
             function f() {
@@ -1188,11 +1189,45 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 
         result = interpreter.stepToNextStatement(frame); // step over debugger statement
         this.assertEquals('Break', result.toString(), 'did not stop after debugger');
-        this.assertEquals(ast.body.body[3], result.topFrame.getPC(), 'did not stop before return');
+        this.assertEquals(ast.body.body[3], result.top.getPC(), 'did not stop before return');
+
         result = interpreter.stepToNextCallOrStatement(frame);
         this.assertEquals('Break', result.toString(), 'did not stop at call');
-        this.assertEquals(ast.body.body[1].body.body[0], result.topFrame.getPC(), 'did not step into f()');
-        this.assertEquals(undefined, result.topFrame.lookup('x'), 'no new scope was created');
+        this.assertEquals(ast.body.body[1].body.body[0], result.top.getPC(), 'did not step into f()');
+        this.assertEquals(undefined, result.top.lookup('x'), 'no new scope was created');
+    },
+
+    test18bStepOverWithDebuggerAfterContinuation: function() {
+        function code() {
+            var x = 2, y = 3;
+            function f() {
+                var x = 5;
+                debugger;
+                return x;
+            }
+            debugger;
+            return x + f();
+        }
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry),
+            frame = continuation.currentFrame,
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            ast = frame.getOriginalAst(),
+            result;
+        this.assertEquals(2, frame.lookup('x'), 'did not initialize x correctly');
+        this.assertEquals(3, frame.lookup('y'), 'did not initialize y correctly');
+
+        result = interpreter.stepToNextStatement(frame); // step over debugger statement
+        this.assertEquals('Break', result.toString(), 'did not stop after debugger');
+        this.assertEquals(ast.body.body[3], result.top.getPC(), 'did not stop before return');
+
+        result = interpreter.stepToNextStatement(frame); // UnwindException
+        this.assert(result.isUnwindException, 'no UnwindException');
+        this.assertEquals(ast.body.body[1].body.body[1], result.top.getPC(),
+            'did not stop at debugger in f()');
+        this.assert(result.top.getParentFrame(), 'new frame does not have parent frame');
+        this.assertEquals(ast.body.body[3].argument.right, result.top.getParentFrame().getPC(),
+            'parent frame does not have the right PC')
     }
 
 });

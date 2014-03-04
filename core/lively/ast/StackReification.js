@@ -238,10 +238,6 @@ Object.subclass('lively.ast.Continuation',
             } catch (ex) {
                 if (!ex.isUnwindException)
                     throw ex;
-                var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
-                // mr 2014-02-21: PC should have been set by accept
-                // frame.setPC(pc);
-                ex.shiftFrame(frame);
                 return { error: ex };
             }
         }, {});

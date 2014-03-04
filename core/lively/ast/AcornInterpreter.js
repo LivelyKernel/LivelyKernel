@@ -54,7 +54,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         } catch (e) {
             if (e.toString() == 'Break') {
                 frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
-                e.topFrame = e.topFrame || frame;
+                e.top = e.top || frame;
             }
             throw e;
         }
@@ -307,8 +307,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this['visit' + node.type](node, state);
         } catch (e) {
-            if (e.isUnwindException && !frame.getPC())
+            if (e.isUnwindException && e.last != frame) {
                 frame.setPC(node);
+                e.shiftFrame(frame);
+            }
             throw e;
         }
     },

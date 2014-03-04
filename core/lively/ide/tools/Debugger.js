@@ -510,8 +510,10 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 this.setTopFrame(frame);
             } else
                 this.owner.remove();
-        } else
-            this.setCurrentFrame(frame);
+        } else if (result.top && result.top != frame) // new frame
+            this.setTopFrame(result.top);
+        else
+            this.setCurrentFrame(frame); // simple pc advancement
     }
     })],
     titleBar: "Debugger"

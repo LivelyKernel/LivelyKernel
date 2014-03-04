@@ -702,6 +702,21 @@ Object.extend(lively.morphic.Charts.Utils, {
         arrangeOnPath([pt(x, y), pt(x + width, y)], morphs);
     },
     defaultWidth: 350,
+    arrange2D: function(data, propertyX, propertyY, rect) {
+        // TODO: smart margin
+        var bounds = rect || lively.rect(10, 10, 500, 500);
+
+        var xMax = Math.max.apply(null, data.pluck(propertyX));
+        var xMin = Math.min.apply(null, data.pluck(propertyX));
+        var yMax = Math.max.apply(null, data.pluck(propertyY));
+        var yMin = Math.min.apply(null, data.pluck(propertyY));
+
+        data.each(function (ea) {
+            var x = (ea[propertyX] - xMin) / (xMax - xMin);
+            var y = (ea[propertyY] - yMin) / (yMax - yMin);
+            ea.morph.setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
+        });
+    },
     arrangeVertical: function(morphs, x, height) {
         if (!Object.isNumber(x)) {
             var maxX = morphs.pluck("morph").reduce(function (max, el) {

@@ -208,8 +208,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     stepToNextCallOrStatement: function(frame) {
         this.haltAtNextCall();
         return this.stepToNextStatement(frame);
-    }
+    },
 
+    resumeToAndBreak: function(node, frame) {
+        frame.setPC(node);
+        this.breakOnResume = true;
+        return this.runFromPC(frame);
+    }
 },
 'helper', {
 
@@ -240,22 +245,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'visiting', {
 
     accept: function(node, state) {
-        var frame = state.currentFrame;
-
-        if (!this.wantsInterpretation(node, frame)) return;
-
-        if (frame.isResuming()) {
-            if (frame.isPCStatement(node)) frame.resumeReachedPCStatement();
-            if (frame.resumesAt(node)) frame.resumesNow();
-            if (frame.isAlreadyComputed(node.astIndex)) {
-                state.result = frame.alreadyComputed[node.astIndex];
-                return;
-            }
-        }
-        if (this.shouldHaltAtNextStatement() && (this.statements.indexOf(node.type) != -1)) {
-        //   (this.shouldHaltAtNextCall() && (node.type == 'CallExpression'))) {
-            this.breakAtStatement = false;
-            this.breakAtCall = false;
+        function throwBreak() {
             throw {
                 toString: function() { return 'Break'; },
                 astIndex: node.astIndex,
@@ -263,10 +253,34 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             };
         }
 
+        var frame = state.currentFrame;
+
+        if (!this.wantsInterpretation(node, frame)) return;
+
+        if (frame.isResuming()) {
+            if (frame.isPCStatement(node)) frame.resumeReachedPCStatement();
+            if (frame.resumesAt(node)) {
+                frame.resumesNow();
+                if (this.breakOnResume) {
+                    this.breakOnResume = false;
+                    throwBreak();
+                }
+            }
+            if (frame.isAlreadyComputed(node.astIndex)) {
+                state.result = frame.alreadyComputed[node.astIndex];
+                return;
+            }
+        } else if (this.shouldHaltAtNextStatement() && this.statements.include(node.type)) {
+            //   (this.shouldHaltAtNextCall() && (node.type == 'CallExpression'))) {
+            this.breakAtStatement = false;
+            this.breakAtCall = false;
+            throwBreak();
+        }
+
         try {
             this['visit' + node.type](node, state);
         } catch (e) {
-            if (e.isUnwindException && (frame.getPC() == null))
+            if (e.isUnwindException && !frame.getPC())
                 frame.setPC(node);
             throw e;
         }
@@ -1014,11 +1028,11 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // important: lively.ast.Interpreter.Frame.top is only valid
             // during the native VM-execution time. When the execution
             // of the interpreter is stopped, there is no top frame anymore.
-
-            frame.setPC(this.node.body.body[0]); // FIXME
-            return startHalted ?
-                interpreter.stepToNextStatement(frame) :
-                interpreter.runFromPC(frame);
+            if (!startHalted) {
+                return interpreter.runWithFrame(this.node.body, frame);
+            } else {
+                return interpreter.resumeToAndBreak(this.node.body.body[0], frame);
+            }
         } catch (ex) {
             if (ex.isUnwindException) {
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);

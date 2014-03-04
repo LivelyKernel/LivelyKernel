@@ -15,7 +15,7 @@ to experiment and develop with Lively.
 If you want to run your own Lively Kernel server or contribute to the core
 development then make sure you have [node.js installed](http://nodejs.org/download/) and follow the steps below.
 
-_Windows users: On windows some of the node.js dependencies won't install cleanly. Please consider to use [this package](http://lively-kernel.org/other/lively-core-install/LivelyWeb.windows.2013-12-05.zip) to install Lively instead of a manual installation._
+_Windows users: On windows some of the node.js dependencies won't install cleanly. Please consider to use [this package](http://lively-kernel.org/other/lively-core-install/LivelyWeb.windows.latest.zip) to install Lively instead of a manual installation._
 
 1. Checkout this repository,
 2. install the node dependencies,

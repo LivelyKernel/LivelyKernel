@@ -136,7 +136,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             func.setParentFrame(frame);
             if (this.shouldHaltAtNextCall()) {
                 this.breakAtCall = false;
-                this.breakAtStatement = true;
+                this.breakAtStatement = false;
                 func = func.startHalted(this);
             } else {
                 func = func.forInterpretation();
@@ -988,7 +988,8 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             that.parentFrame = frame;
         };
         fn.startHalted = function(interpreter) {
-            return function(/*args*/) { return that.apply(this, Array.from(arguments), true, interpreter); }
+            interpreter.haltAtNextStatement();
+            return function(/*args*/) { return that.apply(this, Array.from(arguments), interpreter); }
         };
         // TODO: reactivate when necessary
         // fn.evaluatedSource = function() { return ...; };
@@ -1029,7 +1030,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
 
 },
 'interpretation', {
-    apply: function(thisObj, argValues, startHalted, interpreter) {
+    apply: function(thisObj, argValues, interpreter) {
         var // mapping = Object.extend({}, this.getVarMapping()),
             argNames = this.argNames();
         // work-around for $super
@@ -1044,10 +1045,10 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         frame.setArguments(argValues);
         // TODO: reactivate when necessary
         // frame.setCaller(lively.ast.Interpreter.Frame.top);
-        return this.basicApply(frame, startHalted, interpreter);
+        return this.basicApply(frame, interpreter);
     },
 
-    basicApply: function(frame, startHalted, interpreter) {
+    basicApply: function(frame, interpreter) {
         interpreter = interpreter || new lively.ast.AcornInterpreter.Interpreter();
         try {
             // TODO: reactivate?!
@@ -1055,11 +1056,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // important: lively.ast.Interpreter.Frame.top is only valid
             // during the native VM-execution time. When the execution
             // of the interpreter is stopped, there is no top frame anymore.
-            // if (!startHalted) {
-                return interpreter.runWithFrame(this.node.body, frame);
-            // } else {
-                // return interpreter.resumeToAndBreak(this.node.body.body[0], frame);
-            // }
+            return interpreter.runWithFrame(this.node.body, frame);
         } catch (ex) {
             if (ex.isUnwindException) {
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);

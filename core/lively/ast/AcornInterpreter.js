@@ -52,8 +52,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node, state);
         } catch (e) {
-            if (e.toString() == 'Break')
+            if (e.toString() == 'Break') {
                 frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
+                e.topFrame = e.topFrame || frame;
+            }
             throw e;
         }
         // finished execution, remove break

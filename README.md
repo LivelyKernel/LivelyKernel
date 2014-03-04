@@ -18,13 +18,11 @@ development then make sure you have [node.js installed](http://nodejs.org/downlo
 _Windows users: On windows some of the node.js dependencies won't install cleanly. Please consider to use [this package](http://lively-kernel.org/other/lively-core-install/LivelyWeb.windows.latest.zip) to install Lively instead of a manual installation._
 
 1. Checkout this repository,
-2. install the node dependencies,
-3. start the server:
+2. start the server:
 
 ```sh
 $ git clone https://github.com/LivelyKernel/LivelyKernel
 $ cd LivelyKernel
-$ npm install
 $ npm start
 ```
 

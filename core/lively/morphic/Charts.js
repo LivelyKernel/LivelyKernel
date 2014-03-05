@@ -6,10 +6,50 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         $super();
         
         this.setExtent(pt(window.innerWidth / 2, window.innerHeight));
-        this.setPosition(pt(window.innerWidth / 2, 0));
+        this.setPosition(pt(window.innerWidth / 2 - 20, 0));
+        this.setFixedPosition(true);
         this.setFill(Color.white);
         this.setClipMode("auto");
         this.setName("Dashboard");
+        this.startLayouting();
+    },
+    
+    startLayouting: function () {
+        this.isLayouting = true;
+        this.startStepping(500, "layoutDashboard");
+    },
+    
+    layoutDashboard: function() {
+        var space = pt(0, 20);
+        this.findMorphsToLayout().inject(pt(20, space.y),
+            function(lastPos, ea) {
+                ea.align(ea.bounds().topLeft(), lastPos);
+                return ea.bounds().bottomLeft().addPt(space);
+            }, this)
+        var halos = this.world().currentHaloTarget &&
+            this.world().currentHaloTarget.halos;
+        if (halos)
+            halos.invoke('alignAtTarget');
+    },
+    
+    findMorphsToLayout: function() {
+        var halos = this.world().currentHaloTarget && this.world().currentHaloTarget.halos;
+        // check if dragging etc...
+        if (halos && halos.detect(function(ea) {
+                return ea.infoLabel && ea.infoLabel.owner
+            })){
+            return [];
+        }
+        return this.submorphs.select(function(ea) {
+            return ea instanceof lively.morphic.Charts.Component; 
+        }, this).reject(function(ea) {
+            return ea.isEpiMorph || (ea instanceof lively.morphic.HandMorph) 
+            || ea == this
+            || ea.isMetaTool
+            || ea instanceof lively.morphic.Window
+        }, this).sortBy(function(ea) {
+            return ea.bounds().topLeft().y
+        })
     },
     
     update: function() {

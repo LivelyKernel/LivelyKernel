@@ -44,6 +44,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         viewer.envKey = envKey;
         viewer.setExtent(pt(this.getExtent().x - 40, viewer.getExtent().y));
         viewer.setPosition(pt(20, 20));
+        viewer.description.setTextString(viewer.description.getTextString() + " - " + envKey);
         
         this.addMorph(viewer);
         
@@ -191,6 +192,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         text.ignoreEvents();
         text.setTextColor(Color.white);
         text.setFontSize(11);
+        text.setWhiteSpaceHandling("nowrap");
         text.setTextString(this.content.description);
         
         this.description = text;

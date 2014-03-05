@@ -447,12 +447,10 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         }, this.setTopFrame.bind(this));
     },
         resume: function resume() {
-        var cont = new lively.ast.Continuation(this.topFrame);
-        cont = cont.resume();
-        if (cont.isContinuation)
-            this.setTopFrame(cont.currentFrame);
-        else
-            this.owner.remove();
+        var frame = this.topFrame,
+            cont = new lively.ast.Continuation(frame),
+            result = cont.resume();
+        this.updateDebugger(frame, result);
     },
         setCurrentFrame: function setCurrentFrame(frame) {
         this.currentFrame = frame;

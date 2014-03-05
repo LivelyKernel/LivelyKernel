@@ -121,9 +121,9 @@ Object.extend(lively.morphic, {
         else console.log(msg);
     },
 
-    log: function(/*msg, args*/) {
-        var args = Array.from(arguments),
-            msg = Strings.format.apply(Strings, args);
+    log: function(msg /*, args*/) {
+        if (arguments.length > 1) // do not interpret % if no args
+            msg = Strings.format.apply(Strings, Array.from(arguments));
         if (Config.verboseLogging) {
             $world.setStatusMessage(msg, Config.get('textColor'), 3);
         } else {

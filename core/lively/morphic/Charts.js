@@ -51,6 +51,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.componentBody.addMorph(newContent);
         this.content.update(this.data);
         
+        this.description.setTextString(this.content.description);
     },
 
     createMinimizer: function() {
@@ -256,6 +257,9 @@ Object.extend(lively.morphic.Charts.Component, {
     },
     createWindow: function(componentName) {
         return new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts[componentName]());
+    },
+    getComponentNames: function() {
+        return ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table"];
     }
 });
 
@@ -454,7 +458,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
     showContextMenu: function(position) {
         var _this = this;
         
-        var componentNames = ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table"];
+        var componentNames = lively.morphic.Charts.Component.getComponentNames();
         
         var contextItems = componentNames.map(function(ea) {
             return [ea, function() {
@@ -1739,10 +1743,12 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {
     update: function(data) {
         // create linear layout containing rects from data
         this.clear();
-        var _this = this;
-        data.each(function(ea) {
-            _this.addElement(ea);
-        });
+        if (this.data) {
+            var _this = this;
+            data.each(function(ea) {
+                _this.addElement(ea);
+            });
+        }
 
         return data;
     }
@@ -1779,10 +1785,12 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         // create linear layout containing rects from data
         this.clear();
         var canvasMorph = new lively.morphic.Box(new rect(0, 0, 10, 10));
-        var _this = this;
-        data.each(function(datum){
-            _this.addElement(datum, canvasMorph);
-        });
+        if (data) {
+            var _this = this;
+            data.each(function(datum){
+                _this.addElement(datum, canvasMorph);
+            });
+        }
         this.addMorph(canvasMorph);
 
         return data;
@@ -2551,7 +2559,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Swapper",
     showContentMenu: function() {
         var component = this.owner.owner;
         
-        var componentNames = ["JsonViewer", "Table"];
+        var componentNames = lively.morphic.Charts.Component.getComponentNames().filter(function(ea) {
+            return ea != "FanIn" && ea != "FanOut"
+        });
         
         var contextItems = componentNames.map(function(ea) {
             return [ea, function() {

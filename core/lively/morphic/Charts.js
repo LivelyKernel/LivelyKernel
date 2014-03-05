@@ -1844,6 +1844,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     initialize: function($super) {
         $super();
         this.disableGutter();
+        this.isAutoEvalActive = true;
     },
     
     boundEval: function(codeStr) {
@@ -1880,12 +1881,14 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         
     },
         
-    onChanged: function() {
-        if (!this.isValid())
+    onChanged: function(optForceEvaluation) {
+        if (!this.isValid()) {
             return;
+        }
         
-        var newSession =  this.aceEditor.getSession().toString();
-        if (this.oldSession) {
+        var newSession = this.aceEditor.getSession().toString();
+        if (!optForceEvaluation && this.oldSession) {
+            
             if (this.oldSession == newSession)
                 return;
         }
@@ -1915,11 +1918,37 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     },
     
     onKeyUp: function(evt) {
-        // deliver CodeEditor context to onChanged
-        var _this = evt.getTargetMorph();
-        _this.onChanged.apply(_this, arguments);
+        var forceEvaluation = false;
+        if (evt.keyCode == 27) {
+            // esc was pressed
+            this.toggleAutoEvaluation();
+            forceEvaluation = true;
+        }
+        
+        if (this.isAutoEvalActive !== false) {
+            // deliver CodeEditor context to onChanged
+            var _this = evt.getTargetMorph();
+            _this.onChanged.call(_this, forceEvaluation);
+        }
+    },
+    
+    toggleAutoEvaluation: function() {
+        // switch is used to avoid reinitialization of existing scenarios
+        if (typeof this.isAutoEvalActive == "boolean") {
+            this.isAutoEvalActive = !this.isAutoEvalActive;
+        } else {
+            this.isAutoEvalActive = false;
+        }
+        this.adaptBackgroundColor();
+    },
+    
+    adaptBackgroundColor: function() {
+        var backgroundColor = Color.white;
+        if (!this.isAutoEvalActive) {
+            backgroundColor = Color.rgbHex("EFEFEF");
+        }
+        this.setFill(backgroundColor);
     }
-
 });
 
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',

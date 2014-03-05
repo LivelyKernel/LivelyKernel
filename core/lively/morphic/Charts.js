@@ -243,8 +243,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
                 each.alignWithWindow();
             }
         })
-    }
+    },
     
+    removalNeedsConfirmation: function() {
+        return this.content.removalNeedsConfirmation();
+    }
 });
 
 Object.extend(lively.morphic.Charts.Component, {
@@ -401,6 +404,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
     
     migrateFromPart: function(oldComponent) {
         // abstract
+    },
+    
+    removalNeedsConfirmation: function() {
+        return false;
     }
 });
 lively.morphic.Charts.Content.subclass("lively.morphic.Charts.NullContent", {
@@ -2044,6 +2051,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         newPrototype.remove();
         componentBody.addMorph(oldPrototype);
+    },
+    
+    removalNeedsConfirmation: function() {
+        return true;
     }
 });
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
@@ -2280,6 +2291,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
     
     migrateFromPart: function(oldComponent) {
         this.codeEditor.setTextString(oldComponent.content.codeEditor.getTextString());
+    },
+    
+    removalNeedsConfirmation: function() {
+        return this.codeEditor.getTextString().length > 0;
     }
 });
 lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JsonFetcher', {
@@ -2289,6 +2304,10 @@ lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JsonFetcher', {
         this.extent = pt(400, 100);
         this.codeEditor.setTextString('data = $.ajax("https://api.github.com/users");');
     },
+    
+    removalNeedsConfirmation: function() {
+        return true;
+    }
 });
 
 
@@ -2607,7 +2626,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Closer",
         var component = this.owner.owner;
         
         if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
-            if (confirm('Are you sure you want to close this component?')) {
+            if (!component.removalNeedsConfirmation() || confirm('Are you sure you want to close this component?')) {
                 component.remove();
             }
         }

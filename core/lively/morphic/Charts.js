@@ -1,4 +1,55 @@
 module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets', 'cop.Layers').toRun(function() {
+    
+lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
+    
+    initialize: function($super) {
+        $super();
+        
+        this.setExtent(pt(window.innerWidth / 2, window.innerHeight));
+        this.setPosition(pt(window.innerWidth / 2, 0));
+        this.setFill(Color.white);
+        this.setClipMode("auto");
+        this.setName("Dashboard");
+    },
+    
+    update: function() {
+        var _this = this;
+        Properties.own(window.env).each(function(ea) {
+            var viewer = _this.getSubmorphsByAttribute("envKey", ea)[0];
+            if (!viewer) {
+                viewer = _this.addViewer(ea);
+            }
+        
+            viewer.update(window.env[ea]);
+            viewer.updated = true;
+        });
+        this.removeUnusedViewers();
+    },
+    
+    removeUnusedViewers: function() {
+        this.submorphs.each(function(ea) {
+            // Leave submorphs without updated-attr. untouched
+            if (ea.updated == undefined) return;
+                
+            if (!ea.updated) {
+                ea.remove();
+            } else {
+                ea.updated = false;
+            }
+        })
+    },
+    
+    addViewer: function(envKey) {
+        var viewer = lively.morphic.Charts.Component.createWindow("JsonViewer");
+        viewer.envKey = envKey;
+        viewer.setExtent(pt(this.getExtent().x - 40, viewer.getExtent().y));
+        viewer.setPosition(pt(20, 20));
+        
+        this.addMorph(viewer);
+        
+        return viewer;
+    }
+});
 
 lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
@@ -222,8 +273,21 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         }
     },
     
-    wantsToBeDroppedInto: function(dropTarget) {
-        return dropTarget == $world;
+    wantsToBeDroppedInto: function($super, target) {
+        var ownerChain = target.ownerChain();
+        ownerChain.unshift(target);
+
+        // find owner which is Charts.Component
+        for (var i = 0; i < ownerChain.length; i++) {
+            var proto = Object.getPrototypeOf(ownerChain[i]);
+            while (proto != null) {
+                if (proto == lively.morphic.Charts.Component.prototype)
+                    return false;
+                proto = Object.getPrototypeOf(proto);
+            }
+        }
+
+        return $super(target);
     },
     
     makeReframeHandles: function () {
@@ -294,10 +358,26 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         this.content.update(data);
     },
     
+<<<<<<< HEAD
+=======
+    swapContent: function(newContentName) {
+        var newContent = new lively.morphic.Charts[newContentName]();
+        
+        newContent.setExtent(this.content.getExtent());
+        newContent.setPosition(this.content.getPosition());
+        
+        this.content.remove();
+        this.content = newContent;
+        this.content.component = this;
+        
+        this.componentBody.addMorph(newContent);
+        this.content.update(this.data);
+    },
+
+>>>>>>> created first version of dashboard
     onDrag: function($super, evt) {
         $super();
         this.position = this.getPositionInWorld();
-        console.log(this.position);
     },
     remove: function($super) {
         $super();
@@ -1132,30 +1212,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     isMerger: function() {
         return false;
     },
-    
-    wantsDroppedMorph: function($super, morphToDrop) {
-        if (morphToDrop instanceof lively.morphic.Charts.Component) {
-            return false;
-        }
-        return $super(morphToDrop);
-    },
-    wantsToBeDroppedInto: function($super, target) {
-        var ownerChain = target.ownerChain();
-
-        // find owner which is Charts.Component
-        for (var i = 0; i < ownerChain.length; i++) {
-            var proto = Object.getPrototypeOf(ownerChain[i]);
-            while (proto != null) {
-                if (proto == lively.morphic.Charts.Component.prototype)
-                    return false;
-                proto = Object.getPrototypeOf(proto);
-            }
-        }
-
-        return $super(target);
-    },
-
-
 
     removeArrowFromArray: function(arrow) {
         

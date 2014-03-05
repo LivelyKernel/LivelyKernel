@@ -17,7 +17,42 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         this.minimizeOnHeaderClick();
         this.makeReframeHandles();
+        
+        this.componentHeader.addMorph(this.createCloser());
+        this.componentHeader.addMorph(this.createSwapper());
     },
+    
+    createCloser: function() {
+        var closer = new lively.morphic.Charts.Closer();
+        closer.setPosition(pt(this.getExtent().x - 18, 7));
+        closer.layout = {moveHorizontal: true}
+        
+        return closer;
+    },
+    
+    createSwapper: function() {
+        var swapper = new lively.morphic.Charts.Swapper();
+        swapper.setPosition(pt(this.getExtent().x - 40, 7));
+        swapper.layout = {moveHorizontal: true}
+        
+        return swapper;
+    },
+    
+    swapContent: function(newContentName) {
+        var newContent = new lively.morphic.Charts[newContentName]();
+        
+        newContent.setExtent(this.content.getExtent());
+        newContent.setPosition(this.content.getPosition());
+        
+        this.content.remove();
+        this.content = newContent;
+        this.content.component = this;
+        
+        this.componentBody.addMorph(newContent);
+        this.content.update(this.data);
+        
+    },
+
     createMinimizer: function() {
         // abstract
     },
@@ -229,14 +264,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
 
     initialize: function($super, content) {
         $super(content);
-        
-        this.componentHeader.addMorph(this.createCloser());
-        this.componentHeader.addMorph(this.createSwapper());
-        
+    
         this.setExtent(pt(400, 300));
         this.isDragged = true;
         this.position = this.getPositionInWorld();
-        
     },
     
     onDragStart: function($super, evt) {
@@ -256,21 +287,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         this.content.update(data);
     },
     
-    swapContent: function(newContentName) {
-        var newContent = new lively.morphic.Charts[newContentName]();
-        
-        newContent.setExtent(this.content.getExtent());
-        newContent.setPosition(this.content.getPosition());
-        
-        this.content.remove();
-        this.content = newContent;
-        this.content.component = this;
-        
-        this.componentBody.addMorph(newContent);
-        this.content.update(this.data);
-        
-    },
-
     onDrag: function($super, evt) {
         $super();
         this.position = this.getPositionInWorld();
@@ -294,21 +310,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         minimizer.layout = {moveHorizontal: true}
         
         return minimizer;
-    },
-    
-    createCloser: function() {
-        var closer = new lively.morphic.Charts.Closer();
-        closer.setPosition(pt(this.getExtent().x - 18, 7));
-        closer.layout = {moveHorizontal: true}
-        
-        return closer;
-    },
-    createSwapper: function() {
-        var swapper = new lively.morphic.Charts.Swapper();
-        swapper.setPosition(pt(this.getExtent().x - 40, 7));
-        swapper.layout = {moveHorizontal: true}
-        
-        return swapper;
     },
     
     getBodyCSS: function() {
@@ -2593,11 +2594,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Closer",
     },
     
     onMouseUp: function(evt) {
-
         var component = this.owner.owner;
         
         if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
-            component.remove();
+            if (confirm('Are you sure you want to close this component?')) {
+                component.remove();
+            }
         }
     },
 });

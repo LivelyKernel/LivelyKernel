@@ -19398,22 +19398,21 @@ oop.inherits(IncrementalSearch, Search);
         this.$options.needle = '';
         this.$options.backwards = backwards;
         ed.keyBinding.addKeyboardHandler(this.$keyboardHandler);
-        this.$originalEditorOnPaste = ed.onPaste;
-        ed.onPaste = this.onPaste.bind(this);
         this.$mousedownHandler = ed.addEventListener('mousedown', this.onMouseDown.bind(this));
-        this.$onPasteHandler = ed.addEventListener('paste', this.onPaste.bind(this));
+        this.$originalEditorOnPaste = ed.onPaste; ed.onPaste = this.onPaste.bind(this);
         this.selectionFix(ed);
         this.statusMessage(true);
     }
 
     this.deactivate = function(reset) {
         this.cancelSearch(reset);
-        this.$editor.keyBinding.removeKeyboardHandler(this.$keyboardHandler);
+        var ed = this.$editor;
+        ed.keyBinding.removeKeyboardHandler(this.$keyboardHandler);
         if (this.$mousedownHandler) {
-            this.$editor.removeEventListener('mousedown', this.$mousedownHandler);
+            ed.removeEventListener('mousedown', this.$mousedownHandler);
             delete this.$mousedownHandler;
         }
-        this.$editor.onPaste = this.$originalEditorOnPaste;
+        ed.onPaste = this.$originalEditorOnPaste;
         this.message('');
     }
 
@@ -19689,6 +19688,12 @@ exports.iSearchCommands = [{
             string = ed.session.getTextRange(range);
         iSearch.addString(string);
     },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: 'recenterTopBottom',
+    bindKey: 'Ctrl-l',
+    exec: function(iSearch) { iSearch.$editor.execCommand('recenterTopBottom'); },
     readOnly: true,
     isIncrementalSearchCommand: true
 }];

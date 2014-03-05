@@ -213,6 +213,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 _LineWrapping: true,
                 _InputAllowed: false,
                 _Position: lively.pt(1.0,1.1),
+                _PointerEvents: 'none',
                 _ShowActiveLine: true,
                 _ShowErrors: false,
                 _ShowGutter: true,

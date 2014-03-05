@@ -357,24 +357,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         this.data = data;
         this.content.update(data);
     },
-    
-<<<<<<< HEAD
-=======
-    swapContent: function(newContentName) {
-        var newContent = new lively.morphic.Charts[newContentName]();
-        
-        newContent.setExtent(this.content.getExtent());
-        newContent.setPosition(this.content.getPosition());
-        
-        this.content.remove();
-        this.content = newContent;
-        this.content.component = this;
-        
-        this.componentBody.addMorph(newContent);
-        this.content.update(this.data);
-    },
 
->>>>>>> created first version of dashboard
     onDrag: function($super, evt) {
         $super();
         this.position = this.getPositionInWorld();
@@ -1392,7 +1375,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     notifyDashboard: function() {
-        var dashboard = $morph("dashboard");
+        var dashboard = $morph("Dashboard");
         if (dashboard) {
             dashboard.update();
         }
@@ -2646,6 +2629,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Swapper",
         
         var menu = new lively.morphic.Menu("Select Viewer", contextItems);
         menu.openIn($world, this.getPositionInWorld());
+        
+        var _this = this;
+        setTimeout(function() {
+            menu.setPosition(_this.getPositionInWorld().subPt(pt(menu.getExtent().x, 0)));
+        }, 0);
     }
 });
 

@@ -48,9 +48,9 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
     },
 
     onSelectionChange: function(evt, codeEditor) {
-        evt.codeEditor = codeEditor;
-        evt.session = codeEditor.getSession();
-        this.invokePlugins('onSelectionChange', evt);
+        this.invokePlugins('onSelectionChange', {
+            codeEditor: codeEditor,
+            session: codeEditor.getSession()});
     }
 },
 'plugins', {

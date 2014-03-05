@@ -326,7 +326,7 @@ Object.extend(lively.morphic.Charts.Component, {
         return new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts[componentName]());
     },
     getComponentNames: function() {
-        return ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table"];
+        return ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table", "EntityViewer"];
     }
 });
 
@@ -2260,6 +2260,42 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         return activeCell;
     }
     
+});
+
+lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
+    
+    initialize : function($super){
+        $super();
+        this.description = "EntityViewer";
+        this.extent = pt(400,200);
+        
+    },
+    
+    update : function(data){
+        //data is array of entities
+        this.data = data;
+        if (data == null) return;
+        this.submorphs.remove();
+        var _this = this;
+        
+        data.each(function (el, index){
+            var table = new lively.morphic.Charts.Table();
+            table.update(el.items);
+            var width = _this.component.getExtent().x - 30;
+            table.setExtent(pt(width, 200));
+            table.setPosition(pt(10, index * 240 + 40));
+            _this.addMorph(table);
+            
+            //create table description
+            var text = new lively.morphic.Text();
+            text.setTextString(el.entityTypeName);
+            text.setFillOpacity(0);
+            text.setBorderWidth(0);
+            text.setExtent(pt(200,20));
+            text.setPosition(pt(10, index * 240 + 10));
+            _this.addMorph(text);
+        });
+    },
 });
 
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',

@@ -484,6 +484,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         } while (frame = frame.getParentFrame());
         this.get("FrameList").updateList(frames);
         this.get("FrameList").setSelection(topFrame);
+        this.setCurrentFrame(topFrame);
         return true;
     },
         stepInto: function stepInto() {

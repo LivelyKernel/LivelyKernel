@@ -176,7 +176,7 @@ Object.subclass('lively.ide.CodeEditor.CodeMarker',
     },
     detach: function(session) {
         this.markerRanges.length = 0;
-        session._emit('changeBackMarker');
+        session._signal('changeBackMarker');
         session.removeMarker(this);
         session.$astFeedbackMarker = null;
     }
@@ -208,7 +208,7 @@ Object.subclass('lively.ide.CodeEditor.CodeMarker',
     },
 
     redraw: function(session) {
-        session._emit('changeBackMarker');
+        session._signal('changeBackMarker');
     }
 });
 

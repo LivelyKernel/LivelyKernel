@@ -76,7 +76,7 @@ Object.subclass("lively.ide.CodeEditorTextOverlay.Overlay",
         });
     },
     redraw: function(session) {
-        session._emit('changeFrontMarker');
+        session._signal('changeFrontMarker');
     }
 },
 "accessing", {

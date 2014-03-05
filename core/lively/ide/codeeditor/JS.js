@@ -228,7 +228,7 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.Chang
 
         // 3. emit session astChange event
         var astChange = {ast: ast, docChange: evt.data, codeEditor: codeEditor};
-        session._emit('astChange', astChange);
+        session._signal('astChange', astChange);
     }
 });
 

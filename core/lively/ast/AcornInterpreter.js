@@ -298,7 +298,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 return;
             }
         } else if (this.shouldHaltAtNextStatement() && this.statements.include(node.type)) {
-            //   (this.shouldHaltAtNextCall() && (node.type == 'CallExpression'))) {
+            if (node.type == 'DebuggerStatement')
+                frame.alreadyComputed[node.astIndex] = undefined;
             this.breakAtStatement = false;
             this.breakAtCall = false;
             throwBreak();

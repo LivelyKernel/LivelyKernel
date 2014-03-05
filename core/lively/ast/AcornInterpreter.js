@@ -52,7 +52,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node, state);
         } catch (e) {
-            if (e.toString() == 'Break') {
+            if (e.toString() == 'Break' && !frame.isResuming()) {
                 frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
                 e.top = e.top || frame;
             }
@@ -923,7 +923,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(arg, state);
             args.push(state.result);
         }, this);
-        state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
+        try {
+            state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
+        } catch (e) {
+            if (e.toString() == 'Break')
+                state.currentFrame.setPC(node);
+            throw e;
+        }
     },
 
     visitMemberExpression: function(node, state) {

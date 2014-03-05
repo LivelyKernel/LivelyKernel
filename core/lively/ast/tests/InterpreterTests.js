@@ -873,10 +873,14 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
         result = interpreter.stepToNextStatement(frame);
         this.assertEquals('Break', result.toString(), 'first step');
         this.assertEquals(node.body[1], frame.getPC(), 'did not halt at initial position');
+
         result = interpreter.stepToNextCallOrStatement(frame);
         this.assertEquals('Break', result.toString(), 'second step');
         this.assertEquals(node.body[0].body.body[0], result.top.getPC(), 'no new top frame returned');
         this.assertEquals(undefined, frame.getScope().get('x'), 'did not halt at call');
+        this.assertEquals(node.body[1].declarations[0].init, frame.getPC(),
+            'parent frame does not have correct PC');
+
         this.assertEquals(2, interpreter.runFromPC(frame), 'did not finish resume');
     }
 

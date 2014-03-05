@@ -175,14 +175,12 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         
         // assert that newComponent is below the component[0]
         var position = newComponent.getPosition();
-        var posBelow = components[0].getPosition().addPt(pt(0, components[0].getExtent().y + components[0].componentOffset));
-        
+        var posBelow = components[0].getGlobalScrollBounds().bottomLeft().addXY(0, components[0].componentOffset);
         this.assertEquals(position, posBelow);
         
         // assert that component[1] is below the newComponent
         position = components[1].getPosition();
         posBelow = newComponent.getPosition().addPt(pt(0, newComponent.getExtent().y + components[0].componentOffset));
-        
         this.assertEquals(position, posBelow);
     },
     

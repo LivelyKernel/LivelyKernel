@@ -1320,6 +1320,14 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     onContentChanged: function() {
         this.notify();
+        this.notifyDashboard();
+    },
+    
+    notifyDashboard: function() {
+        var dashboard = $morph("dashboard");
+        if (dashboard) {
+            dashboard.update();
+        }
     },
 
     notify: function() {

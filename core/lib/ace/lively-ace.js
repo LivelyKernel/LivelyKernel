@@ -19041,6 +19041,8 @@ exports.handler.bindKey = function(key, command) {
 };
 
 exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
+    if (keyCode === -1) return undefined;
+
     var editor = data.editor;
     if (hashId == -1) {
         editor.pushEmacsMark();

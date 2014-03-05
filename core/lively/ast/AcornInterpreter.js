@@ -31,6 +31,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     runWithFrame: function(node, frame) {
+        if (node.type == 'FunctionDeclaration' || node.type =='FunctionExpression')
+            node = node.body;
         return this.runWithFrameAndResult(node, frame, undefined);
     },
 
@@ -1065,7 +1067,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // important: lively.ast.Interpreter.Frame.top is only valid
             // during the native VM-execution time. When the execution
             // of the interpreter is stopped, there is no top frame anymore.
-            return interpreter.runWithFrame(this.node.body, frame);
+            return interpreter.runWithFrame(this.node, frame);
         } catch (ex) {
             if (ex.isUnwindException) {
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
@@ -1189,7 +1191,18 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         copy.pcStatement = this.pcStatement;
         copy.alreadyComputed = Object.extend({}, this.alreadyComputed);
         return copy;
-	}
+	},
+
+    reset: function() {
+        this.scope             = new lively.ast.AcornInterpreter.Scope(null, this.scope.getParentScope());
+        this.returnTriggered   = false;
+        this.breakTriggered    = null;      // null, true or string (labeled break)
+        this.continueTriggered = null;      // null, true or string (labeled continue)
+        this.pc                = null;      // program counter, actually an AST node
+        this.pcStatement       = null;      // statement node of the pc
+        this.alreadyComputed   = {};        // maps astIndex to values. Filled
+                                            // when we unwind from captured state
+    }
 
 },
 'accessing', {

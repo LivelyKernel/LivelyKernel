@@ -441,10 +441,11 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         this.get("FrameScope").reset();
     },
         restart: function restart() {
-        var frame = this.currentFrame;
-        lively.ast.doWithHalt(function() {
-            frame.restart();
-        }, this.setTopFrame.bind(this));
+        var frame = this.currentFrame,
+            interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        frame.reset();
+        var result = interpreter.stepToNextStatement(frame);
+        this.updateDebugger(frame, result);
     },
         resume: function resume() {
         var frame = this.topFrame,

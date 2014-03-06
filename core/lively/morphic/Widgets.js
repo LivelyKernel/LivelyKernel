@@ -1744,38 +1744,11 @@ lively.morphic.World.addMethods(
                 items.push(['Start global tracing', function() {
                     lively.Tracing.startGlobalTracing()
                 }]);
-                items.push(['Start global debugging', function() {
-                    require('lively.ast.Morphic').toRun(function() {
-                        lively.Tracing.startGlobalDebugging()
-                    });
-                }]);
             }
         } else {
             items.push(['Prepare system for tracing/debugging', function() {
                 require("lively.Tracing").toRun(function() {
                     lively.Tracing.installStackTracers();
-                });
-            }]);
-        }
-        if (Global.DebugScriptsLayer && DebugScriptsLayer.isGlobal()) {
-            items.push(['[X] Debug Morphic Scripts', function() {
-                DebugScriptsLayer.beNotGlobal()
-            }]);
-        } else {
-            items.push(['[  ] Debug Morphic Scripts', function() {
-                require('lively.ast.Morphic').toRun(function() {
-                    DebugScriptsLayer.beGlobal()
-                });
-            }]);
-        }
-        if (Global.DebugMethodsLayer && DebugMethodsLayer.isGlobal()) {
-            items.push(['[X] Debug Methods', function() {
-                DebugMethodsLayer.beNotGlobal()
-            }]);
-        } else {
-            items.push(['[  ] Debug Methods', function() {
-                require('lively.ast.Morphic').toRun(function() {
-                    DebugMethodsLayer.beGlobal()
                 });
             }]);
         }

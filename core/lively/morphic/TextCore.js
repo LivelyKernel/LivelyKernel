@@ -770,6 +770,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     doPrintit: function() { this.evalSelection(true) },
     doDebugit: function() {
         var that = this;
+        // FIXME: use new debugging api
         require('lively.ast.Morphic').toRun(function() {
             that.debugSelection();
         });

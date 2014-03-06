@@ -165,8 +165,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     shouldInterpret: function(frame, func) {
-        if (this.isNative(func)) return false;
-        return (func.forInterpretation !== undefined);
+        return !this.isNative(func) && !!func.isInterpretableFunction;
         // TODO: reactivate when necessary
             // || func.containsDebugger();
     },
@@ -249,7 +248,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     fetchInterpretedFunction: function(func) {
         if (!func.livelyDebuggingEnabled) return null;
-        if (func.forInterpretation !== undefined) return func;
+        if (func.isInterpretableFunction !== undefined) return func;
 
         // recreate scopes
         // FIXME: duplicate from lively.ast.Rewriting > UnwindException.prototype.createAndShiftFrame
@@ -973,6 +972,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 });
 
 Object.subclass('lively.ast.AcornInterpreter.Function',
+'settings', {
+    isInterpretableFunction: true
+},
 'initialization', {
     initialize: function(node, scope, optFunc) {
         this.lexicalScope = scope;
@@ -985,31 +987,25 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         if (this._cachedFunction)
             return this._cachedFunction;
 
-        var that = this;
-        function fn(/*args*/) {
-            return that.apply(this, Array.from(arguments));
-        }
-        fn.forInterpretation = function() {
-            return fn;
-        };
-        fn.ast = function() {
-            return that.node;
-        };
-        fn.setParentFrame = function(frame) {
-            that.parentFrame = frame;
-        };
-        fn.startHalted = function(interpreter) {
-            interpreter.haltAtNextStatement();
-            return function(/*args*/) { return that.apply(this, Array.from(arguments), interpreter); }
-        };
-        // TODO: reactivate when necessary
-        // fn.evaluatedSource = function() { return ...; };
-
-        // custom Lively stuff
-        fn.methodName = this.name();
+        var self = this;
+        var fn = Object.extend(function fn(/*args*/) {
+            return self.apply(this, Array.from(arguments));
+        }, {
+            isInterpretableFunction: true,
+            forInterpretation: function() { return fn; },
+            ast: function() { return self.node; },
+            setParentFrame: function(frame) { self.parentFrame = frame; },
+            startHalted: function(interpreter) {
+                interpreter.haltAtNextStatement();
+                return function(/*args*/) { return self.apply(this, Array.from(arguments), interpreter); }
+            },
+            // TODO: reactivate when necessary
+            // evaluatedSource: function() { return ...; },
+            // custom Lively stuff
+            methodName: this.name(),
+        });
 
         // TODO: prepare more stuff from optFunc
-
         this._cachedFunction = fn;
     },
 },

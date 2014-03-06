@@ -12,6 +12,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         this.setClipMode("auto");
         this.setName("Dashboard");
         this.startLayouting();
+        
+        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('left', pt(5, this.getExtent().y)));
+    },
+    alignAllHandles: function() {
+        this.reframeHandle.alignWithWindow();
     },
     
     startLayouting: function () {

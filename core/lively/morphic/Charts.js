@@ -2166,7 +2166,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         this.columns = 0;
     },
     
-    createTable : function(rowCount, columnCount) {
+    createTable : function(rowCount, columnCount, colors) {
         var spec = {};
         spec.showColHeads = true;
         spec.showRowHeads = false;
@@ -2175,10 +2175,16 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         table.setFill(Color.white);
         
         //set gridmode of table cells to hidden
-        table.rows.each(function(row){
-            row.each(function(ea){
-                if (row[0] instanceof lively.morphic.DataGridColHead)
-                    ea.setFill(Color.rgbHex("D6E6F4"));
+        table.rows.each(function(column){
+            column.each(function(ea, index){
+                if (column[0] instanceof lively.morphic.DataGridColHead){
+                        debugger;
+                    if (colors[index]){
+                        ea.setFill(colors[index]);
+                    } else {
+                        ea.setFill(Color.rgbHex("D6E6F4"));
+                    }
+                }
                 else 
                     ea.setFill(Color.white)
                 ea.setClipMode("hidden");
@@ -2210,7 +2216,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         this.table.setExtent(newExtent);
     },
     
-    update : function(data){
+    update : function(data, colors){
         
         this.clearTable();
         
@@ -2220,7 +2226,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         if (!Object.isArray(data.first())){
             //if primitive
             if (typeof data.first().valueOf() != "object") {
-                this.table = this.createTable(1, data.length + 1);
+                this.table = this.createTable(1, data.length + 1, colors);
             } else {
                 var attributes = [];
                 data.each(function(ea){
@@ -2228,11 +2234,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                         attributes.pushIfNotIncluded(key);
                     }
                 });
-                this.table = this.createTable(attributes.length, data.length + 1);
+                this.table = this.createTable(attributes.length, data.length + 1, colors);
                 this.table.setColNames(attributes);
             }
         } else {
-            this.table = this.createTable(data[0].length, data.length + 1);
+            this.table = this.createTable(data[0].length, data.length + 1, colors);
         }
         
         var _this = this;
@@ -2339,7 +2345,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
         
         data.each(function (el, index){
             var table = new lively.morphic.Charts.Table();
-            table.update(el.items);
+            
+            var formattedEntities = _this.formatEntities(el.items);
+            
+            table.update(formattedEntities.items, formattedEntities.colors);
             
             var width = _this.component.getExtent().x - 30;
             if (table.table.numRows != 0 && table.table.numRows < 7){
@@ -2374,6 +2383,45 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
         
         this.component.setExtent(pt(this.getExtent().x, height));//data.length * 240 + 40));
     },
+    
+    formatEntities : function (items){
+        var _this = this;
+        var addColor = function(index){
+            colors[index] = _this.getColors(Properties.own(colors).length); 
+        };
+        var colors = {};
+        var items = items.map(function (row, rowIndex){
+            var newRow = {};
+            Properties.own(row).map(function(cellAttribute, columnIndex){
+                var cell = row[cellAttribute];
+                var entityType = cell._entityType;
+                if (entityType){
+                    if (rowIndex == 0) addColor(columnIndex);
+                    newRow[cellAttribute] = entityType;
+                    return;
+                } else if (Object.isArray(cell)){
+                    entityType = cell.first()._entityType;
+                    if (entityType){
+                        if (rowIndex == 0) addColor(columnIndex);
+                        newRow[cellAttribute] = entityType + "s";
+                        return;
+                    } 
+                } 
+                newRow[cellAttribute] = cell;
+            });
+            return newRow;
+        });
+        return {items: items, colors: colors};
+    },
+    
+    getColors : function(index){
+        var colors = [Color.rgbHex("#428bca"),
+                Color.rgbHex("#47a447"),
+                Color.rgbHex("#39b3d7"),
+                Color.rgbHex("#ed9c28"),
+                Color.rgbHex("#d2322d")];
+        return colors[index % colors.length];
+    }
 });
 
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
@@ -2870,14 +2918,14 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
               eachNewEntity = _getOrAdd(eachNewEntity);
               // replace the reference in the array to avoid multiple objects for the same entity
               eachCurrentEntity[sourceListName] = eachNewEntity;
-              currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
+              currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity, entityTypeName);
             } else {
               newEntities = eachCurrentEntity[sourceListName];
               newEntities.each(function(eachNewEntity, index) {
                 eachNewEntity = _getOrAdd(eachNewEntity);
                 // replace the reference in the array to avoid multiple objects for the same entity
                 newEntities[index] = eachNewEntity;
-                currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity);
+                currentEntityType._addBackReferencesTo(eachNewEntity, eachCurrentEntity, entityTypeName);
               });
             }
           });
@@ -2901,7 +2949,9 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
             extractEntityFromAttribute : __extractEntityFromAttribute,
             _addBackReferencesTo : _addBackReferencesTo,
             _clearBackReferences : _clearBackReferences,
-            getAll : function() { return Entity.items }
+            getAll : function() { return Entity.items },
+            _isEntity: true,
+            _getEntityType: function() {return }
           };
 
           Entity.__proto__ = proto;
@@ -2927,13 +2977,15 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
             entity[attribute] = [];
         };
 
-        _addBackReferencesTo = function(entity, reference) {
+        _addBackReferencesTo = function(entity, reference, entityTypeName) {
 
           var attribute = "referencing" + this.entityTypeName + "s";
-
+          
           if (!entity[attribute])
             entity[attribute] = [];
 
+          entity._entityType = entityTypeName;
+          
           entity[attribute].push(reference);
 
           Object.defineProperty(entity, attribute, {

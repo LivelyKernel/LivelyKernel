@@ -47,6 +47,10 @@
 	color: gray;
 }
 
+.dataflow-clickable {
+	cursor: pointer;
+}
+
 /* for centered button labels let the textNode use table layouting */
 
 .Text.vertically-centered > div {

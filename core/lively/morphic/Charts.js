@@ -553,6 +553,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         this.setBorderColor(Color.rgb(66, 139, 202));
         this.setFill(Color.rgb(66, 139, 202));
         this.setFillOpacity(0);
+        this.addStyleClassName('dataflow-clickable');
         this.positionAtMorph(positionX);
         this.setBorderWidth(1);
         this.deactivate();
@@ -1074,6 +1075,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     onArrowActivated: function(arrow) {
         this.drawConnectionLine(arrow);
         this.update();
+        this.notifyDashboard();
     },
     
     onArrowDeactivated: function(arrow) {
@@ -1084,6 +1086,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         if (component) {
             component.notify();
         }
+        
+        this.notifyDashboard();
     },
     
 
@@ -2594,6 +2598,18 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         if (componentAbove)
             this.data = componentAbove.getData(this);
     },
+    switchFlow: function() {
+        if (this.activeArrowNumber == undefined) { 
+            this.activeArrowNumber = 0; 
+        } else {
+            this.arrows[this.activeArrowNumber].deactivate();
+            this.activeArrowNumber = (this.activeArrowNumber + 1) % this.arrows.length;
+        }
+        this.arrows[this.activeArrowNumber].activate();
+        
+        
+        
+    },
 
     getData : function(target){
         var arrowToTarget = this.arrows.detect(function (arrow){
@@ -2637,6 +2653,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Minimizer",
         this.setFillOpacity(0);
         this.setExtent(pt(width, height));
         this.setName("Minimizer");
+        this.addStyleClassName('dataflow-clickable');
         this.orientation = "up";
         
         var vertices = [pt(0, height), pt(width / 2, 0), pt(width, height)];
@@ -2708,6 +2725,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Swapper",
         this.setFillOpacity(0);
         this.setExtent(pt(width, height));
         this.setName("Swapper");
+        this.addStyleClassName('dataflow-clickable');
         
         var vertices = [pt(0, 0),  pt(width / 2, height - 1), pt(width, 0)];
         var line = new lively.morphic.Path(vertices);
@@ -2759,6 +2777,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Closer",
         this.setFillOpacity(0);
         this.setExtent(pt(width, height));
         this.setName("Closer");
+        this.addStyleClassName('dataflow-clickable');
         
         var vertices = [pt(0, 0), pt(width, height)];
         var line = new lively.morphic.Path(vertices);

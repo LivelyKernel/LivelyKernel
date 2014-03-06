@@ -2601,7 +2601,7 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         this.addStyleClassName('reframe-handle ' + type);
         var style = {};
         if (this.type === 'left' || this.type === 'right' || this.type === 'corner') { style.moveHorizontal = true; }
-        if (this.type === 'bottom' || this.type === 'corner') { style.moveVertical = true; }
+        if (this.type === 'bottom' || this.type === 'top' || this.type === 'corner') { style.moveVertical = true; }
         this.applyStyle(style);
     }
 },
@@ -2615,13 +2615,19 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
 
     onDrag: function($super, evt) {
         var moveDelta = evt.getPosition().subPt(this.startDragPos);
-        if (this.type === 'bottom') { moveDelta.x = 0; }
+        if (this.type === 'bottom' || this.type === 'top') { moveDelta.x = 0; }
         if (this.type === 'right' || this.type === 'left') { moveDelta.y = 0; }
-        var newExtent = this.type === 'left' ? this.originalTargetExtent.subPt(moveDelta) : newExtent = this.originalTargetExtent.addPt(moveDelta);
+        var newExtent;
+        if (this.type === 'left' || this.type === 'top') {
+            newExtent = this.originalTargetExtent.subPt(moveDelta);
+        } else {
+            newExtent = this.originalTargetExtent.addPt(moveDelta);
+        }
         var extentDelta = newExtent.subPt(this.owner.getExtent());
         if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
         if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
-        if (this.type === "left") this.owner.setPosition(this.owner.getPosition().subPt(extentDelta));
+        // When resizing to left or top, we need to reposition the owner accordingly
+        if (this.type === 'left' || this.type === 'top') this.owner.setPosition(this.owner.getPosition().subPt(extentDelta));
         this.owner.setExtent(newExtent);
         evt.stop(); return true;
     },
@@ -2643,6 +2649,11 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         if (this.type === 'corner') {
             this.align(handleBounds.bottomRight(), windowExtent);
         }
+        if (this.type === 'top') {
+            var newExtent = handleExtent.withX(windowExtent.x);
+            this.setExtent(newExtent);
+            this.align(handleBounds.topLeft(), pt(0, 0));
+        }
         if (this.type === 'bottom') {
             var newExtent = handleExtent.withX(windowExtent.x - window.reframeHandle.getExtent().x);
             this.setExtent(newExtent);
@@ -2656,7 +2667,7 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         if (this.type === 'left') {
             var newExtent = handleExtent.withY(windowExtent.y);
             this.setExtent(newExtent);
-            this.align(handleBounds.topLeft(), pt(0,0));
+            this.align(handleBounds.topLeft(), pt(0, 0));
         }
     }
 });

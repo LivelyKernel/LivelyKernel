@@ -102,7 +102,7 @@
 	cursor: e-resize;
 }
 
-.reframe-handle.bottom {
+.reframe-handle.bottom, .reframe-handle.top {
 	cursor: s-resize;
 }
 

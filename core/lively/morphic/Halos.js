@@ -488,6 +488,9 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
             return;
         };
 
+        if (this.copiedTarget.wasDragged !== undefined)
+            this.copiedTarget.wasDragged = true;
+
         // FIXME this is only necessary because transformation in addMorph
         // is only appliedt when owner is present
         this.targetMorph.world().addMorph(this.copiedTarget)
@@ -504,6 +507,8 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
             this.copiedTarget.removeHalos();
             this.copiedTarget.showHalos();
         }
+        if (this.copiedTarget.wasDragged)
+            this.copiedTarget.wasDragged = false;
         this.copiedTarget = null;
     }
 

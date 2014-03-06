@@ -111,6 +111,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.componentBody = this.createComponentBody();
 
         this.layout = {adjustForNewBounds: true};
+        this.wasDragged = false;
         
         this.minimizeOnHeaderClick();
         this.makeReframeHandles();
@@ -1132,7 +1133,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     remove: function($super) {
-        
         $super();
         if (!window["migrationProcessIsActive"]) {
             this.onClose();
@@ -1185,7 +1185,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.wasDragged = true;
         $super(evt);
         this.removeAllConnectionLines();
-        
+
         // Save the upper neighbor, so that it can be notified to redraw
         // its connection lines. It can not be notified at the moment, since
         // since we are still below it. Notification is done in onDropOn.
@@ -1215,7 +1215,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     onDragEnd: function($super, evt) {
         $super(evt);
         // positioning is done in onDropOn
-        
+
         this.removePreviewMorph();
         this.setOpacity(1);
         
@@ -1353,7 +1353,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         }
 
         var componentsAbove = this.getComponentsInDirection(-1);
-        componentsAbove.concat(this.savedUpperNeighbors).each(function (neighbor) {
+        componentsAbove.concat(this.savedUpperNeighbors || []).each(function (neighbor) {
             neighbor.refreshConnectionLines();
         });
         this.savedUpperNeighbors = null;

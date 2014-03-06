@@ -98,7 +98,7 @@
 	cursor: se-resize;
 }
 
-.reframe-handle.right {
+.reframe-handle.left, .reframe-handle.right {
 	cursor: e-resize;
 }
 

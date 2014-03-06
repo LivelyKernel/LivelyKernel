@@ -2600,7 +2600,7 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         this.type = type;
         this.addStyleClassName('reframe-handle ' + type);
         var style = {};
-        if (this.type === 'right' || this.type === 'corner') { style.moveHorizontal = true; }
+        if (this.type === 'left' || this.type === 'right' || this.type === 'corner') { style.moveHorizontal = true; }
         if (this.type === 'bottom' || this.type === 'corner') { style.moveVertical = true; }
         this.applyStyle(style);
     }
@@ -2616,10 +2616,12 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
     onDrag: function($super, evt) {
         var moveDelta = evt.getPosition().subPt(this.startDragPos);
         if (this.type === 'bottom') { moveDelta.x = 0; }
-        if (this.type === 'right') { moveDelta.y = 0; }
-        var newExtent = this.originalTargetExtent.addPt(moveDelta);
+        if (this.type === 'right' || this.type === 'left') { moveDelta.y = 0; }
+        var newExtent = this.type === 'left' ? this.originalTargetExtent.subPt(moveDelta) : newExtent = this.originalTargetExtent.addPt(moveDelta);
+        var extentDelta = newExtent.subPt(this.owner.getExtent());
         if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
         if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
+        if (this.type === "left") this.owner.setPosition(this.owner.getPosition().subPt(extentDelta));
         this.owner.setExtent(newExtent);
         evt.stop(); return true;
     },
@@ -2650,6 +2652,11 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
             var newExtent = handleExtent.withY(windowExtent.y - window.reframeHandle.getExtent().y);
             this.setExtent(newExtent);
             this.align(handleBounds.topRight(), windowExtent.withY(0));
+        }
+        if (this.type === 'left') {
+            var newExtent = handleExtent.withY(windowExtent.y);
+            this.setExtent(newExtent);
+            this.align(handleBounds.topLeft(), pt(0,0));
         }
     }
 });

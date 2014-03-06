@@ -1315,9 +1315,9 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 });
 
 Object.extend(lively.ast.AcornInterpreter.Frame, {
-    create: function(ast, mapping) {
+    create: function(func, mapping) {
         var scope = new lively.ast.AcornInterpreter.Scope(mapping);
-        return new lively.ast.AcornInterpreter.Frame(ast, scope);
+        return new lively.ast.AcornInterpreter.Frame(func, scope);
     },
 
     global: function() {

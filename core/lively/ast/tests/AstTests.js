@@ -23,7 +23,6 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
         }]
 
         tests.forEach(function(test, i) {
-            debugger;
             var ast = acorn.parse(test.src),
                 found = acorn.walk.findStatementOfNode(ast, test.target(ast));
             this.assertIdentity(test.expected(ast), found, 'node not found ' + (i + 1));
@@ -34,6 +33,7 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
 
 TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
 'testing', {
+
     test02RecreateClosure: function() {
         var f = function() { var x = 3; return x + y },
             closure = lively.Closure.fromFunction(f, {y: 2}),
@@ -41,6 +41,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         this.assertEquals(f.toString(), f2.toString());
         this.assertEquals(5, f2());
     },
+
     test03ClosureCanBindThis: function() {
         var obj = {},
             closure = lively.Closure.fromFunction(function() { this.testCalled = true }, {'this': obj});
@@ -48,6 +49,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         obj.foo();
         this.assert(obj.testCalled, 'this not bound');
     },
+
     test04LateBoundThis: function() {
         var obj = {name: 'obj1'},
             closure = lively.Closure.fromFunction(function() { return this.name }, {'this': obj});
@@ -57,6 +59,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         obj2.name = 'obj2';
         this.assertEquals('obj2', obj2.foo());
     },
+
     test05ThisBoundInSuper: function() {
         var obj1 = {bar: function bar() { this.foo = 1 }.asScript()},
             obj2 = Object.inherit(obj1);
@@ -66,6 +69,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         this.assert(!obj1.foo, 'foo was set in obj1');
         this.assert(obj2.hasOwnProperty('foo'), 'foo not set in obj2')
     },
+
     test06SuperBoundStatically: function() {
         var obj1 = {bar: function bar() { this.foo = 1 }.asScript()},
             obj2 = Object.inherit(obj1),
@@ -77,6 +81,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         this.assert(obj2.hasOwnProperty('foo'), 'foo was not set in obj2');
         this.assert(!obj3.hasOwnProperty('foo'), 'foo was set in obj3');
     },
+
     test07StoreFunctionProperties: function() {
         var func = function() { return 99 };
         func.someProperty = 'foo';
@@ -84,6 +89,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
             recreated = closure.recreateFunc();
         this.assertEquals('foo', recreated.someProperty);
     },
+
     test08SuperBoundAndAsArgument: function() {
         var obj = {
             m: function($super) {
@@ -98,7 +104,8 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
             this.assert(false, 'this not bound in super');
         }
         this.assert(obj.superWasCalled, 'super was not called');
-    },
+    }
+
 });
 
 }) // end of module

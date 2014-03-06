@@ -489,6 +489,8 @@ Config.addOptions(
     ['aceDefaultShowIndents', true, "Indicators for indents in the beginning of lines."],
     ['aceDefaultUseJavaScriptLinter', false, "Linting JavaScript code on-the-fly"],
     ['aceDefaultShowActiveLine', false, "Current line is highlighted"],
+    ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
+    ['aceDefaultAutoTriggerAutocompletion', false, "Should autocompletion be triggered when typing?"],
     ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
     ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],

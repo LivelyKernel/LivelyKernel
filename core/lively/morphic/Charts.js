@@ -1954,7 +1954,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
                 utilsString += "var " + key + " = " + Utils[key] + "; ";
         });
 
-        var __evalStatement = "(function() {" + utilsString + "var data = ctx.component.data; str = eval(codeStr); ctx.data = data; return str;}).call(ctx);"
+        var __evalStatement = "(function() {" + utilsString + "var data = ctx.component.data; return eval(codeStr);}).call(ctx);"
         
         // see also $super
         
@@ -2376,6 +2376,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
 
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
         this.codeEditor.setName("CodeEditor");
+        this.codeEditor.setTextString("data");
         this.codeEditor.layout = {
             resizeWidth: true,
             resizeHeight: true
@@ -2401,9 +2402,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
         if (returnValue instanceof Error) {
             this.throwError(returnValue);
         }
-        
-        // codeEditor saves data in this.data
-        return this.data;
+
+        // return value of last expression
+        return returnValue;
     },
     
     migrateFromPart: function(oldComponent) {

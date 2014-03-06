@@ -173,10 +173,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         componentBody.disableGrabbing();
         componentBody.disableDragging();
         
-        this.content.layout = {
-            resizeWidth: true,
-            resizeHeight: true
-        };
+        if (this.content.layout) {
+            this.content.layout.resizeWidth = true;
+            this.content.layout.resizeHeight = true;
+        } else {
+            this.content.layout = {
+                resizeWidth: true,
+                resizeHeight: true
+            };
+        }
+        
         this.content.setExtent(componentBody.getExtent().subPt(pt(6, 6)));
         this.content.setPosition(pt(3, 3));
         componentBody.addMorph(this.content);
@@ -2167,14 +2173,19 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                 else 
                     ea.setFill(Color.white)
                 ea.setClipMode("hidden");
+                ea.setWhiteSpaceHandling("nowrap");
                 ea.setBorderColor(Color.rgb(144, 144, 144));
             });
         });
         
-        
         table.disableGrabbing();
         table.disableDragging();
         
+        this.table = table;
+        if (table.numRows != 0 && table.numRows < 7 && this.component){
+            this.table.setExtent(pt(this.getExtent().x, table.numRows * 30 + 50));
+            this.component.setExtent(pt(this.getExtent().x, table.numRows * 30 + 50));
+        }
         return table;
     },
     
@@ -2267,13 +2278,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         var newWidth = activeCell.computeRealTextBounds().width * numberOfLines  + 10;
         var index = table.getActiveColIndex();
         table.setColWidth(index, newWidth);
-
-        //more than on Line
-        if (numberOfLines > 1){
-            newWidth = activeCell.computeRealTextBounds().width + 10;
-            table.setColWidth(index, newWidth);
-        }
-        
         var diff = newWidth - oldWidth;
         
         //move all columns right of index
@@ -2311,22 +2315,42 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
         this.description = "EntityViewer";
         this.extent = pt(400,200);
         
+        this.layout = {adjustForNewBounds: true};
     },
     
     update : function(data){
         //data is array of entities
         this.data = data;
+        
+        this.submorphs.invoke("remove");
+        
         if (data == null) return;
-        this.submorphs.remove();
         var _this = this;
+        var height = 50;
         
         data.each(function (el, index){
             var table = new lively.morphic.Charts.Table();
             table.update(el.items);
+            
             var width = _this.component.getExtent().x - 30;
-            table.setExtent(pt(width, 200));
-            table.setPosition(pt(10, index * 240 + 40));
+            if (table.table.numRows != 0 && table.table.numRows < 7){
+                table.setExtent(pt(width, (table.table.numRows - 1) * 30 + 50));
+            } else {
+                table.setExtent(pt(width, 200));
+            }    
+            
+            table.setPosition(pt(10, height - 10));
             _this.addMorph(table);
+            
+            if (table.layout) {
+                table.layout.resizeHeight = false;
+            } else {
+                table.layout = {
+                    resizeHeight: false,
+                    resizeWidth: true,
+                    adjustForNewBounds: true
+                }
+            }
             
             //create table description
             var text = new lively.morphic.Text();
@@ -2334,9 +2358,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
             text.setFillOpacity(0);
             text.setBorderWidth(0);
             text.setExtent(pt(200,20));
-            text.setPosition(pt(10, index * 240 + 10));
+            text.setPosition(pt(10, height - 40));
             _this.addMorph(text);
+            height += table.getExtent().y  + 40;
         });
+        
+        this.component.setExtent(pt(this.getExtent().x, height));//data.length * 240 + 40));
     },
 });
 

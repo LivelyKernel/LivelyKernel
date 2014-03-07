@@ -1561,6 +1561,7 @@ lively.morphic.World.addMethods(
 
         // handle copy on shift+move
         if (evt.isShiftDown() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
+            if (!this.doShiftCopy) return false;
             if (evt.hand.submorphs.length > 0) return false;
             if (!targetMorph.owner) return false;
             if (targetMorph instanceof lively.morphic.World) return false;

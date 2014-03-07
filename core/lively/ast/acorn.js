@@ -864,7 +864,7 @@ lively.ide.ModuleWrapper.addMethods(
 
 Object.extend(lively.ast.acorn, {
 
-    parse: function(source) { return acorn.parse(source); },
+    parse: function(source, options) { return acorn.parse(source, options); },
 
     parseFunction: function(source, options) {
         options = options || {};

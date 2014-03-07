@@ -736,6 +736,7 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
     },
 
     compareField: function(field, node1, node2, state) {
+        node2 = lively.PropertyPath(state.completePath.join('.')).get(node2);
         if (node1 && node2 && node1[field] === node2[field]) return true;
         if ((node1 && node1[field] === '*') || (node2 && node2[field] === '*')) return true;
         var fullPath = state.completePath.join('.') + '.' + field, msg;
@@ -748,11 +749,12 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
 
 },
 "visiting", {
-    accept: function(node1, baseNode2, state, path) {
-        var node2 = lively.PropertyPath(path.join('.')).get(baseNode2);
-        if (node1 === '*' || node2 === '*') return;
+
+    accept: function(node1, node2, state, path) {
+        var patternNode = lively.PropertyPath(path.join('.')).get(node2);
+        if (node1 === '*' || patternNode === '*') return;
         var nextState = {
-            completePath: state.completePath.concat(path),
+            completePath: path,
             comparisons: state.comparisons
         };
         if (this.compareType(node1, node2, nextState))

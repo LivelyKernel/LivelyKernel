@@ -525,7 +525,7 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
         if (types.without('null').length !== 1) {
             throw new Error('Invalid array member: ' + Objects.inspect(arrayMember, {maxDepth: 3}));
         } else  if (types[0] === 'node') {
-            var path = options.pathAsParameter ? ', ["' + arrayPropName + '", i]' : '';
+            var path = options.pathAsParameter ? ', path.concat(["' + arrayPropName + '", i])' : '';
             code += f('%s// %s %s of type %s\n',
                 indent, iteratorName, canBeNull ? "can be" : "is", values.pluck('value').join(' or '));
             code += f("%s%sthis.accept(%s%s%s);\n",
@@ -545,7 +545,7 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
                         iteratorName, fieldSpec.key,
                         fieldSpec.value.pluck('value').map(Strings.print).join(' or '))
                 } else if (fieldTypes[0] === 'node') {
-                    var path = options.pathAsParameter ? ', ["' + arrayPropName + '", i, "' + fieldSpec.key + '"]' : '';
+                    var path = options.pathAsParameter ? ', path.concat(["' + arrayPropName + '", i, "' + fieldSpec.key + '"])' : '';
                     code += f('%s// %s.%s %s of type %s\n',
                         indent, iteratorName, fieldSpec.key, fieldCanBeNull ? "can be" : "is", fieldTypes.join(' or '));
                     code += f('%s%sthis.accept(%s.%s%s%s);\n',
@@ -601,7 +601,7 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
             } else {
                 code += f("%s// %s %s\n", indent, memberSpec.key, 'can be ' + choiceTypes.join(' or '));
             }
-            var path = options.pathAsParameter ? ', ["' + memberSpec.key + '"]' : '';
+            var path = options.pathAsParameter ? ', path.concat(["' + memberSpec.key + '"])' : '';
             code += f('%s%sthis.accept(node.%s%s%s);\n',
                 indent, returnAssignment, memberSpec.key, parameterString, path);
         } else if (choiceTypes.include('array')) {
@@ -649,10 +649,12 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
             creationComment = this.printCreation(options),
             parameterString = options.parameters && options.parameters.length ? (', ' + options.parameters.join(', ')) : '',
             pathParam = options.pathAsParameter ? ', path' : '',
-            acceptMethod = Strings.format("%saccept: function(node%s%s) {\n%sreturn this['visit' + node.type](node%s%s);\n%s}",
+            pathFix = options.pathAsParameter ? singleIndent+singleIndent+'path = path || [];\n' : '',
+            acceptMethod = Strings.format("%saccept: function(node%s%s) {\n%s%sreturn this['visit' + node.type](node%s%s);\n%s}",
                 singleIndent,
                 parameterString,
                 pathParam,
+                pathFix,
                 singleIndent+singleIndent,
                 parameterString,
                 pathParam,

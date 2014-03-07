@@ -67,7 +67,7 @@ Object.extend(lively.ast.Rewriting, {
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             function declarationForGlobals(rewrittenAst) {
                 // _0 has all global variables
-                var propAccess = lively.PropertyPath('body.0.block.body.0.declarations.3.init.properties'),
+                var propAccess = lively.PropertyPath('body.0.block.body.0.declarations.4.init.properties'),
                     globalProps = propAccess.get(rewrittenAst);
                 if (!globalProps) {
                     show('cannot access global declarations of %s ', modulePath);

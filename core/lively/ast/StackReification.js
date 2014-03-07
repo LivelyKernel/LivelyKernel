@@ -143,7 +143,7 @@ Object.extend(Global, {
     // halt: lively.ast.StackReification.halt,
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-    __createClosure: function(idx, parentFrameState, f) {
+    __createClosure: Global.__createClosure || function(idx, parentFrameState, f) {
         // FIXME: Either save idx and use __getClosure later or attach the AST here and now (code dup.)?
         var ast = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
         // FIXME: duplicate from lively.ast.Rewriting > setupUnwindException AND __getClosure
@@ -161,7 +161,8 @@ Object.extend(Global, {
         return f;
     },
 
-    __getClosure: function(idx) {
+    // FIXME naming -- actually we return the ast node not a closure
+    __getClosure: Global.__getClosure || function(idx) {
         var entry = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
         if (entry && entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
             // reference instead of complete ast

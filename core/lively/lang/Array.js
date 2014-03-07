@@ -2,7 +2,7 @@
 // Extensions to Array instances
 ///////////////////////////////////////////////////////////////////////////////
 
-Global.NativeArrayFunctions = {
+var NativeArrayFunctions = {
 
     sort: function(sortFunc) {
         if (!sortFunc) {

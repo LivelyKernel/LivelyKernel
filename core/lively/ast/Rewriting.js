@@ -36,11 +36,12 @@ Object.extend(lively.ast.Rewriting, {
                 // encapsulated exceptions
                 .withoutAll([
                     "core/lively/ast/Rewriting.js",
-                    "core/lively/ast/StackReification.js"]);
+                    "core/lively/ast/StackReification.js"])
+                .concat("core/lively/ast/DebugExamples.js");
 
         removeExistingDebugFiles(function() {
             modules.forEachShowingProgress({
-                iterator: createRewrittenModule, 
+                iterator: createRewrittenModule,
                 whenDone: createDebuggingBootstrap.curry(astReg)
             });
         });
@@ -1465,18 +1466,21 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "    var realCode = f.toString();\n"
       + "    f.toStringRewritten = function() { return realCode; };\n"
       + "    f.toString = function toString() {\n"
-      + "        var ast = LivelyDebuggingASTRegistry[idx];\n"
-      + "        if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {\n"
-      + "            // reference instead of complete ast\n"
-      + "            ast = findNodeByAstIndex(\n"
-      + "                LivelyDebuggingASTRegistry[ast.registryRef],\n"
-      + "                ast.indexRef\n"
-      + "            );\n"
-      + "        }\n"
+      + "        var ast = __getClosure(idx);\n"
       + "        var src = escodegen.generate(ast);\n"
       + "        return src;\n"
       + "    };\n"
       + "    return f;\n"
+      + "}\n\n"
+      + "window.__getClosure = function __getClosure(idx) {\n"
+      + "    var ast = LivelyDebuggingASTRegistry[idx];\n"
+      + "    if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {\n"
+      + "        // reference instead of complete ast\n"
+      + "        ast = findNodeByAstIndex(\n"
+      + "            LivelyDebuggingASTRegistry[ast.registryRef],\n"
+      + "            ast.indexRef);\n"
+      + "    }\n"
+      + "    return ast;\n"
       + "}\n";
 
     lively.ast.Rewriting.UnwindExceptionBaseDef =

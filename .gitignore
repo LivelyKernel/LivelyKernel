@@ -26,3 +26,7 @@ users
 
 # Wiki #
 objects.sqlite
+
+# Debugging -- for development, will go away soon #
+DBG_*.js
+

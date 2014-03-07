@@ -1,4 +1,4 @@
-module('lively.ast.tests.AstTests').requires('lively.TestFramework').toRun(function() {
+module('lively.ast.tests.AstTests').requires('lively.ast.AstHelper', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.AstTests.Acorn',
 'testing', {
@@ -26,6 +26,53 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
             var ast = acorn.parse(test.src),
                 found = acorn.walk.findStatementOfNode(ast, test.target(ast));
             this.assertIdentity(test.expected(ast), found, 'node not found ' + (i + 1));
+        }, this);
+    },
+
+    testUpdateSourceCodePositions: function() {
+        var src = 'var x = { z: 3 }; function foo() { var y = 3; return y; } x.z + foo();',
+            prettySrc = 'var x = { z: 3 };\nfunction foo() {\n    var y = 3;\n    return y;\n}\nx.z + foo();',
+            ast = acorn.parse(src),
+            genSrc = escodegen.generate(ast),
+            genAst = acorn.parse(genSrc);
+
+        this.assertEquals(prettySrc, genSrc, 'pretty printed source and generated source do not match');
+        lively.ast.acorn.rematchAstWithSource(ast, genSrc);
+        this.assertMatches(genAst, ast, 'source code positions were not corrected');
+    },
+
+    testUpdateSourceCodeLocations: function() {
+        var src = 'var x = { z: 3 }; function foo() { var y = 3; return y; } x.z + foo();',
+            prettySrc = 'var x = { z: 3 };\nfunction foo() {\n    var y = 3;\n    return y;\n}\nx.z + foo();',
+            ast = acorn.parse(src),
+            genSrc = escodegen.generate(ast),
+            genAst = acorn.parse(genSrc);
+
+        this.assertEquals(prettySrc, genSrc, 'pretty printed source and generated source do not match');
+        lively.ast.acorn.rematchAstWithSource(ast, genSrc, true);
+        this.assertMatches(genAst, ast, 'source code positions were not corrected');
+
+        // sample some locations
+        console.log(ast);
+        var tests = [{  // var = x = { z: 3 };
+            expected: { start: { line: 1, column: 0 }, end: { line: 1, column: 17 } },
+            subject: ast.body[0].loc
+        }, { // function foo() { ... }
+            expected: { start: { line: 2, column: 0 }, end: { line: 5, column: 1 } },
+            subject: ast.body[1].loc
+        }, { // var y = 3;
+            expected: { start: { line: 3, column: 4 }, end: { line: 3, column: 14 } },
+            subject: ast.body[1].body.body[0].loc
+        }, { // y  in  return y;
+            expected: { start: { line: 4, column: 11 }, end: { line: 4, column: 12 } },
+            subject: ast.body[1].body.body[1].argument.loc
+        }, { // x.z + foo();
+            expected: { start: { line: 6, column: 0 }, end: { line: 6, column: 12 } },
+            subject: ast.body[2].loc
+        }];
+
+        tests.forEach(function(test, i) {
+            this.assertMatches(test.expected, test.subject, 'incorrect location for test ' + (i+1));
         }, this);
     }
 

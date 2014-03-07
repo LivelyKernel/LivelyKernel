@@ -941,7 +941,27 @@ Object.extend(lively.ast.acorn, {
             return this['visit' + node.type](node, fullPath, state, path);
         }).call(vis,ast, [], {}, []);
         return found;
+    },
+
+    rematchAstWithSource: function(ast, source, addLocations) {
+        addLocations = !!addLocations;
+        var ast2 = lively.ast.acorn.parse(source, addLocations ? { locations: true } : undefined),
+            visitor = new lively.ast.MozillaAST.BaseVisitor();
+
+        visitor.accept = function(node, depth, state, path) {
+            path = path || [];
+            var node2 = path.reduce(function(node, pathElem) {
+                return node[pathElem];
+            }, ast);
+            node2.start = node.start;
+            node2.end = node.end;
+            if (addLocations) node2.loc = node.loc;
+            return this['visit' + node.type](node, depth, state, path);
+        }
+
+        visitor.accept(ast2);
     }
+
 });
 
 (function extendAcornWalk() {

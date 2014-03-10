@@ -99,8 +99,9 @@ Object.subclass('lively.ast.Interpreter.Frame',
         // lookup in my current function
         var mapping = this.func.getVarMapping();
         if (mapping) {
-            var val = mapping[name];
-            if (val) return {val: val, frame: this};
+            if (mapping.hasOwnProperty(name)) {
+                return {val: mapping[name], frame: this};
+            }
         }
         var containingScope = this.getContainingScope();
         return containingScope ? containingScope.findFrame(name) : null;

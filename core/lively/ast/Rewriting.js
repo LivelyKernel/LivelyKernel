@@ -905,10 +905,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitForStatement: function(n, rewriter) {
         // init is a node of type VariableDeclaration or Expression or null
         var init = n.init ? this.accept(n.init, rewriter) : null;
-        if (init && init.type == 'ExpressionStatement')
+        if (init && init.type == 'ExpressionStatement') {
+            init.expression.astIndex = init.astIndex;
             init = init.expression;
+        }
         return {
-            start: n.start, end: n.end, type: 'ForStatement',
+            start: n.start, end: n.end, type: 'ForStatement', astIndex: n.astIndex,
             init: init,
             // test is a node of type Expression
             test: n.test ? this.accept(n.test, rewriter) : null,
@@ -1109,7 +1111,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitArrayExpression: function(n, rewriter) {
         // each of n.elements can be of type Expression
         return {
-            start: n.start, end: n.end, type: 'ArrayExpression',
+            start: n.start, end: n.end, type: 'ArrayExpression', astIndex: n.astIndex,
             elements: n.elements.map(function(element) {
                 var elem = this.accept(element, rewriter);
                 if (elem.type == 'ExpressionStatement')
@@ -1207,7 +1209,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         return {
             start: n.start, end: n.end, type: 'ConditionalExpression',
             test: this.accept(n.test, rewriter), consequent: consequent,
-            alternate: alternate
+            alternate: alternate, astIndex: n.astIndex
         };
     },
 
@@ -1309,7 +1311,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // param is a node of type Pattern
         // guard is a node of type Expression (optional)
         // body is a node of type BlockStatement
-        var start = n.param.start, end = n.param.end, astIndex = n.astIndex,
+        var start = n.param.start, end = n.param.end,
             param = Object.extend({}, n.param), // manually copy param without wrapping
             paramIndex = n.param.astIndex,
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
@@ -1381,7 +1383,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         rewriter.exitScope();
         return {
             start: n.start, end: n.end, type: 'CatchClause',
-            param: param, guard: guard, body: body
+            param: param, guard: guard, body: body, astIndex: n.astIndex
         };
     },
 

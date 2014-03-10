@@ -99,6 +99,39 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
         lively.ast.acorn.rematchAstWithSource(rewrittenAst, rewrittenSrc, true);
         var result = lively.ast.SourceMap.Generator.mapForASTs(ast, rewrittenAst, 'test.file');
+    },
+
+    test08ConditinalExpressionRewrite: function() {
+        var registry = [],
+            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            ast = lively.ast.acorn.parse('true ? [] : [1]', { locations: true }),
+            rewrittenAst = rewriter.rewrite(ast),
+            rewrittenSrc = escodegen.generate(rewrittenAst);
+
+        lively.ast.acorn.rematchAstWithSource(rewrittenAst, rewrittenSrc, true);
+        var result = lively.ast.SourceMap.Generator.mapForASTs(ast, rewrittenAst, 'test.file');
+    },
+
+    test09ForStatementRewrite: function() {
+        var registry = [],
+            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            ast = lively.ast.acorn.parse('for (var i = 0; i < 10; i++) {}', { locations: true }),
+            rewrittenAst = rewriter.rewrite(ast),
+            rewrittenSrc = escodegen.generate(rewrittenAst);
+
+        lively.ast.acorn.rematchAstWithSource(rewrittenAst, rewrittenSrc, true);
+        var result = lively.ast.SourceMap.Generator.mapForASTs(ast, rewrittenAst, 'test.file');
+    },
+
+    test10TryCatchFinallyRewrite: function() {
+        var registry = [],
+            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            ast = lively.ast.acorn.parse('try { 1; } catch (e) { 2; } finally { 3; }', { locations: true }),
+            rewrittenAst = rewriter.rewrite(ast),
+            rewrittenSrc = escodegen.generate(rewrittenAst);
+
+        lively.ast.acorn.rematchAstWithSource(rewrittenAst, rewrittenSrc, true);
+        var result = lively.ast.SourceMap.Generator.mapForASTs(ast, rewrittenAst, 'test.file');
     }
 
 });

@@ -48,6 +48,18 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
         this.assertMatches(genAst, ast, 'source code positions were not corrected');
     },
 
+    testUpdateSourceCodePositionsInSubTree: function() {
+        var src1 = 'function foo() { var y = 3; return y; }',
+            src2 = 'var x = { z: 3 };\nfunction foo() {\n    var y = 3;\n    return y;\n}\nx.z + foo();',
+            ast1 = acorn.parse(src1).body[0],
+            ast2 = acorn.parse(src2),
+            genSrc = escodegen.generate(ast2),
+            genAst = acorn.parse(genSrc);
+
+        lively.ast.acorn.rematchAstWithSource(ast1, genSrc, null, 'body.1');
+        this.assertMatches(genAst.body[1], ast1, 'source code positions were not corrected');
+    },
+
     testUpdateSourceCodeLocations: function() {
         var src = 'var x = { z: 3 }; function foo() { var y = 3; return y; } x.z + foo();',
             prettySrc = 'var x = { z: 3 };\nfunction foo() {\n    var y = 3;\n    return y;\n}\nx.z + foo();',

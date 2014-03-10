@@ -945,10 +945,11 @@ Object.extend(lively.ast.acorn, {
         return found;
     },
 
-    rematchAstWithSource: function(ast, source, addLocations) {
+    rematchAstWithSource: function(ast, source, addLocations, subTreePath) {
         addLocations = !!addLocations;
         var ast2 = lively.ast.acorn.parse(source, addLocations ? { locations: true } : undefined),
             visitor = new lively.ast.MozillaAST.BaseVisitor();
+        if (subTreePath) ast2 = lively.PropertyPath(subTreePath).get(ast2);
 
         visitor.accept = function(node, depth, state, path) {
             path = path || [];

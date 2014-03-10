@@ -678,10 +678,13 @@ Object.extend(lively.morphic.Charts.Utils, {
         var path = [];
         var curId = 0;
         for (var i = -90; i <= 270; i = i + 360.0 / (data.length - 1)){
+            var morph = data[curId].morph;
             var radianMeasure = i / 360 * 2 * Math.PI;
             var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
-            data[curId].morph.setPosition(newPt);
-            data[curId].morph.setRotation(Math.PI / 2.0 + radianMeasure);
+            morph.setPosition(newPt);
+            if (morph.oldRotation) morph.setRotation(morph.oldRotation);
+            morph.oldRotation = morph.getRotation();
+            morph.rotateBy(Math.PI / 2.0 + radianMeasure);
             curId++;
         }
     },
@@ -719,7 +722,6 @@ Object.extend(lively.morphic.Charts.Utils, {
     
         var lastPt = path[0];
     	var curPt = path[0];
-    	var lastRotation = 0;
     	var curPathIndex = 1;
     	var rotation = 0;
 
@@ -732,6 +734,7 @@ Object.extend(lively.morphic.Charts.Utils, {
     				var direction = path[curPathIndex].subPt(curPt);
     				curPt = curPt.addPt(direction.normalized().scaleBy(distanceToTravel));
     				morph.setPosition(curPt);
+    				if (morph.oldRotation) morph.setRotation(morph.oldRotation);
     				if (rotateElements) {
     				    if (curPt.y == lastPt.y) {
     				        rotation = Math.PI / 2 + sign(lastPt.x - curPt.x) * (Math.PI / 2);
@@ -739,7 +742,8 @@ Object.extend(lively.morphic.Charts.Utils, {
     				        var sign = curPt.y > lastPt.y ? 1 : -1;
     				        rotation = Math.atan((curPt.x - lastPt.x) / (lastPt.y - curPt.y)) + sign * Math.PI / 2;
     				    }
-			            morph.setRotation(rotation);
+    				    morph.oldRotation = morph.getRotation();
+			            morph.rotateBy(rotation);
     				}
     				//lastPt = curPt;
     				distanceToTravel = 0;

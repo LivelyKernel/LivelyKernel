@@ -2178,7 +2178,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         table.rows.each(function(column){
             column.each(function(ea, index){
                 if (column[0] instanceof lively.morphic.DataGridColHead){
-                    if (colors[index]){
+                    if (colors && colors[index]){
                         ea.setFill(colors[index]);
                     } else {
                         ea.setFill(Color.rgbHex("D6E6F4"));

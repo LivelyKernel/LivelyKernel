@@ -4,17 +4,17 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     
     initialize: function($super) {
         $super();
-        
-        this.setExtent(pt(window.innerWidth / 2, window.innerHeight));
-        this.setPosition(pt(window.innerWidth / 2 - 20, 0));
+        var scrollbarOffset = 15;
+        this.setExtent(pt(window.innerWidth / 2, window.innerHeight - scrollbarOffset));
+        this.setPosition(pt(window.innerWidth / 2 - scrollbarOffset, 0));
         this.setFixedPosition(true);
-        this.setFill(Color.white);
+        this.setFill(Color.rgbHex("#e3e3e3"));
         this.setClipMode("auto");
         this.setName("Dashboard");
         this.startLayouting();
         
         this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('left', pt(5, this.getExtent().y)));
-        this.registerForEvent("dblclick", this, "minimize", false)
+        this.registerForEvent("dblclick", this, "minimize", false);
     },
     alignAllHandles: function() {
         this.reframeHandle.alignWithWindow();

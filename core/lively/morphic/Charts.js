@@ -1365,6 +1365,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     update: function() {
+        // ensure that env exists
+        if (!window.env)
+            window.env = {}
+        
         this.refreshData();
         
         var text = this.get("ErrorText");
@@ -1433,6 +1437,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     notifyDashboard: function() {
         var dashboard = $morph("Dashboard");
+        if (!dashboard && !Object.isEmpty(window.env)) {
+            dashboard = new lively.morphic.Charts.Dashboard();
+            dashboard.openInWorld();
+        }
         if (dashboard) {
             dashboard.update();
         }

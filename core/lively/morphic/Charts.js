@@ -14,6 +14,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         this.startLayouting();
         
         this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('left', pt(5, this.getExtent().y)));
+        this.registerForEvent("dblclick", this, "minimize", false)
     },
     alignAllHandles: function() {
         this.reframeHandle.alignWithWindow();
@@ -94,6 +95,13 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         this.addMorph(viewer);
         
         return viewer;
+    },
+    
+    minimize: function() {
+        var minimizedWidth = 25;
+        
+        this.setExtent(pt(minimizedWidth, window.innerHeight));
+        this.setPosition(pt(window.innerWidth - minimizedWidth, 0));
     }
 });
 
@@ -2488,7 +2496,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
 
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
         this.codeEditor.setName("CodeEditor");
-        this.codeEditor.setTextString("data");
+        this.codeEditor.setTextString(this.getDefaultCodeString());
         this.codeEditor.layout = {
             resizeWidth: true,
             resizeHeight: true
@@ -2524,7 +2532,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
     },
     
     removalNeedsConfirmation: function() {
-        return this.codeEditor.getTextString().length > 0;
+        var currentCode = this.codeEditor.getTextString()
+        return currentCode.length > 0 && currentCode != this.getDefaultCodeString();
+    },
+    
+    getDefaultCodeString: function() {
+        return "data";
     }
 });
 lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JsonFetcher', {

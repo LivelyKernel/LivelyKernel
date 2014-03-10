@@ -132,6 +132,19 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
         lively.ast.acorn.rematchAstWithSource(rewrittenAst, rewrittenSrc, true);
         var result = lively.ast.SourceMap.Generator.mapForASTs(ast, rewrittenAst, 'test.file');
+    },
+
+    test11Redefinition: function() {
+        var registry = [],
+            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            ast = lively.ast.acorn.parse('function foo() {} function foo() {}', { locations: true }),
+            rewrittenAst = rewriter.rewrite(ast),
+            rewrittenSrc = escodegen.generate(rewrittenAst);
+
+        lively.ast.acorn.rematchAstWithSource(rewrittenAst, rewrittenSrc, true);
+        // FIXME: right now the last definition wins and is put in _x.foo
+        // var result = lively.ast.SourceMap.Generator.mapForASTs(ast, rewrittenAst, 'test.file');
+        this.assertRaises(lively.ast.SourceMap.Generator.mapForASTs.curry(ast, rewrittenAst, 'test.file'));
     }
 
 });

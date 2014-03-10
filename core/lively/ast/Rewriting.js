@@ -298,7 +298,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     createCatchForUnwind: function(node, originalFunctionIdx, level) {
         return this.newNode('TryStatement', {
-            block: this.newNode('BlockStatement', {body: node.body}),
+            block: this.newNode('BlockStatement', {body: node.body, astIndex: node.astIndex}),
             handler: this.newNode('CatchClause', {guard: null,
                 param: this.newNode('Identifier', {name: 'e'}),
                 body: this.newNode('BlockStatement', {body: [

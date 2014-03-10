@@ -968,8 +968,9 @@ Object.extend(lively.ast.acorn, {
 
 (function extendAcornWalk() {
     
-    acorn.walk.findNodeByAstIndex = function(ast, astIndexToFind) {
-        if (!ast.astIndex) acorn.walk.addAstIndex(ast);
+    acorn.walk.findNodeByAstIndex = function(ast, astIndexToFind, addIndex) {
+        addIndex = addIndex == null ? true : !!addIndex;
+        if (!ast.astIndex && addIndex) acorn.walk.addAstIndex(ast);
         // we need to visit every node, acorn.walk.forEachNode is highly
         // inefficient, the compilled Mozilla visitors are a better fit
         var found = null;

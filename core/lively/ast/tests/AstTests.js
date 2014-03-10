@@ -3,12 +3,19 @@ module('lively.ast.tests.AstTests').requires('lively.ast.AstHelper', 'lively.Tes
 TestCase.subclass('lively.ast.tests.AstTests.Acorn',
 'testing', {
 
-    testFindNodeByAst: function() {
+    testFindNodeByAstIndex: function() {
         var src = 'var x = 3; function foo() { var y = 3; return y }; x + foo();',
             ast = acorn.parse(src),
             expected = ast.body[1].body.body[1].argument, // the y in "return y"
             found = acorn.walk.findNodeByAstIndex(ast, 9);
         this.assertIdentity(expected, found, 'node not found');
+    },
+
+    testFindNodeByAstIndexNoReIndex: function() {
+        var src = 'var x = 3; function foo() { var y = 3; return y }; x + foo();',
+            ast = acorn.parse(src),
+            found = acorn.walk.findNodeByAstIndex(ast, 9, false);
+        this.assertIdentity(null, found, 'node found (but should not add index)');
     },
     
     testFindStatementOfNode: function() {

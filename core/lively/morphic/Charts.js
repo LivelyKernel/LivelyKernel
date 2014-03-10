@@ -2178,7 +2178,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         table.rows.each(function(column){
             column.each(function(ea, index){
                 if (column[0] instanceof lively.morphic.DataGridColHead){
-                        debugger;
                     if (colors[index]){
                         ea.setFill(colors[index]);
                     } else {
@@ -2342,11 +2341,25 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
         if (data == null) return;
         var _this = this;
         var height = 50;
+        var colorConnection = {};
         
         data.each(function (el, index){
             var table = new lively.morphic.Charts.Table();
             
             var formattedEntities = _this.formatEntities(el.items);
+            var color;
+            
+            if (formattedEntities.items[0]._entityType && (color = colorConnection[formattedEntities.items[0]._entityType])){
+                //if table is entity and is referenced (by another table) color whole table head
+                Properties.own(formattedEntities.items[0]).each(function(ea, index){
+                    formattedEntities.colors[index] = color;
+                });
+            } 
+            
+            //add colors to colorConnection 
+            Properties.own(formattedEntities.connections).each(function(ea){
+                colorConnection[ea] = formattedEntities.connections[ea];
+            })
             
             table.update(formattedEntities.items, formattedEntities.colors);
             
@@ -2386,9 +2399,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
     
     formatEntities : function (items){
         var _this = this;
-        var addColor = function(index){
-            colors[index] = _this.getColors(Properties.own(colors).length); 
+        var addColor = function(index, entityType){
+            var color = _this.getColors(Properties.own(colors).length);
+            colors[index] = color; 
+            connections[entityType] = color; 
         };
+        var connections = {};
         var colors = {};
         var items = items.map(function (row, rowIndex){
             var newRow = {};
@@ -2396,13 +2412,13 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
                 var cell = row[cellAttribute];
                 var entityType = cell._entityType;
                 if (entityType){
-                    if (rowIndex == 0) addColor(columnIndex);
+                    if (rowIndex == 0) addColor(columnIndex, entityType);
                     newRow[cellAttribute] = entityType;
                     return;
                 } else if (Object.isArray(cell)){
                     entityType = cell.first()._entityType;
                     if (entityType){
-                        if (rowIndex == 0) addColor(columnIndex);
+                        if (rowIndex == 0) addColor(columnIndex, entityType);
                         newRow[cellAttribute] = entityType + "s";
                         return;
                     } 
@@ -2411,7 +2427,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
             });
             return newRow;
         });
-        return {items: items, colors: colors};
+        return {items: items, colors: colors, connections: connections};
     },
     
     getColors : function(index){

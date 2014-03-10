@@ -39,6 +39,8 @@ Object.extend(lively.ast.Rewriting, {
                     "core/lively/ast/StackReification.js"])
                 .concat("core/lively/ast/DebugExamples.js");
 
+        module('lively.ast.SourceMap').load(true);
+
         removeExistingDebugFiles(function() {
             modules.forEachShowingProgress({
                 iterator: createRewrittenModule,
@@ -60,11 +62,17 @@ Object.extend(lively.ast.Rewriting, {
 
         function createRewrittenModule(modulePath) {
             // FIXME: manually wrap code in function so that async load will not temper with _0, etc.
-            var rewrittenAst = rewrite(get(modulePath)),
+            var originalAst = parse(get(modulePath)),
+                rewrittenAst = rewrite(originalAst),
                 code = Strings.format('(function() {\n%s\n%s\n})();',
                     escodegen.generate(rewrittenAst),
-                    declarationForGlobals(rewrittenAst));
-            putRewritten(modulePath, code);
+                    declarationForGlobals(rewrittenAst)),
+                fileName = modulePath.slice(modulePath.lastIndexOf('/') + 1);
+
+            lively.ast.acorn.rematchAstWithSource(rewrittenAst.body[0], code, true, 'body.0.expression.callee.body.body.0');
+            var srcMap = lively.ast.SourceMap.Generator.mapForASTs(originalAst, rewrittenAst, fileName);
+
+            putRewritten(modulePath, code, srcMap);
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             function declarationForGlobals(rewrittenAst) {
                 // _0 has all global variables
@@ -85,10 +93,15 @@ Object.extend(lively.ast.Rewriting, {
             return URL.root.withFilename(path).asWebResource().get().content;
         }
 
-        function putRewritten(path, rewrittenSource) {
+        function putRewritten(path, rewrittenSource, sourceMap) {
             var idx = path.lastIndexOf('/') + 1,
-                debugPath = path.slice(0,idx) + 'DBG_' + path.slice(idx);
-            put(debugPath, rewrittenSource);
+                debugPath = path.slice(0,idx),
+                debugFile = 'DBG_' + path.slice(idx);
+            if (sourceMap) {
+                put(debugPath + debugFile + 'm', sourceMap);
+                rewrittenSource += '\n\n//# sourceMappingURL=' + debugFile + 'm';
+            }
+            put(debugPath + debugFile, rewrittenSource);
         }
 
         function put(path, source) {
@@ -104,7 +117,7 @@ Object.extend(lively.ast.Rewriting, {
         }
 
         function removeExistingDebugFiles(thenDo) {
-            lively.ide.CommandLineSearch.findFiles('DBG_*.js', {}, function(files) {
+            lively.ide.CommandLineSearch.findFiles('DBG_*.js*', {}, function(files) {
                 lively.shell.exec('rm ' + files.join(' '), {}, thenDo);
             });
         }

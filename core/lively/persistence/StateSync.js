@@ -31,15 +31,16 @@ Object.subclass('lively.persistence.StateSync.Handle',
         throw dbgOn(new Error('To be implemented from subclass'));
     },
 
-    set: function(mergeFn, thenDo, newValue, oldValue) {
+    set: function(mergeFn, thenDo, newValue, oldValue, theCbToIgnore) {
         // looses the previous value
         // mergeFn: function(oldValue, newValue, thenDo: function(mergedValue))
         // don't call thenDo, when you want to abort the change...
         // if thenDo is called more than once, a new set process is started, which most likely will lead to calling mergeFn, if the oldValue is different from the currently saved value.
+        // theCbToIgnore is an optional parameter. It is a callback which should be registered on this handle, and will not be called once the change is broadcasted back. This parameter offers a way to associate getting and setting functionality.
         throw dbgOn(new Error('To be implemented from subclass'));
     },
 
-    update: function(values, mergeFn, thenDo) {
+    update: function(values, mergeFn, thenDo, cbToIgnore) {
         // if values is a string or number or date, loose the previous value,
         // otherwise merge with current values
         this.set(function(oldVal, newVal, cb) {
@@ -53,7 +54,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
                     if ( ['number', 'string'].include(typeof merged) ) cb(merged);
                     else cb(Object.merge([oldVal, merged]))
                 })
-        }, thenDo)
+        }, thenDo, undefined, undefined, cbToIgnore)
     },
     
     push: function(value, cb) {
@@ -93,8 +94,8 @@ Object.subclass('lively.persistence.StateSync.Handle',
     // children?
 },
 'accessing derived', {
-    overwriteWith: function(value, thenDo) {
-        this.set(function(oldV, newV, cb) { cb(newV) }, thenDo || function() {}, value);
+    overwriteWith: function(value, thenDo, cbToIgnore) {
+        this.set(function(oldV, newV, cb) { cb(newV) }, thenDo || function() {}, value, undefined, cbToIgnore);
     },
     fullPath: function() {
         if (this.isRoot()) return this._path
@@ -125,6 +126,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
     initialize: function($super, store, path, parent) {
         this._store = store;
         $super(store, path, parent);
+        this._ignoreCbs = []
     }
 },
 'accessing', {
@@ -143,17 +145,21 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
         return thenDo
     },
 
-    set: function(mergeFn, thenDo, newValue, oldValue) {
+    set: function(mergeFn, thenDo, newValue, oldValue, cbToIgnore) {
         // looses the previous value
         // only supports part of the interface in that merging has to be synchonous
         var path = this.fullPath(),
             store = this._store,
+            ignoreCbs = this._ignoreCbs,
             storeCb = function(oldV, merged) {
                 store.set(path, merged, {
                     precondition: {type: 'equality', value: oldV}, 
                     callback: function(err) {
                         if (err) getCb(merged)
-                        else thenDo(null, merged)
+                        else {
+                            if (cbToIgnore) ignoreCbs.push({value: merged, cb: cbToIgnore})
+                            thenDo(null, merged)
+                        }
                 },})
             },
             getCb = function(merged) {
@@ -165,6 +171,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
     },
 
     drop: function(thenDo) {
+        if (!thenDo) return
         if (!this._callbacks) {
             // create error types?
             throw new Error("")
@@ -187,7 +194,13 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
         if (!! this._path.relativePathTo(path) ) {
             var self = this;
             self._store.get(self.fullPath(), function(path, value) {
-                self._callbacks.invoke("call", undefined, null, value);
+                self._callbacks.filter(function(ea) {
+            var ignoreCb = this._ignoreCbs.detect(function(ignore) { 
+                return ignore.cb === ea && Objects.equal(ignore.value, value)});
+            if (ignoreCb !== undefined)
+                this._ignoreCbs = this._ignoreCbs.without(ignoreCb);
+            return ignoreCb === undefined
+        }, self).invoke("call", undefined, null, value);
             })
         }
     },
@@ -211,6 +224,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
             // This is a root handle. Inform the session handler.
             this.constructor.ensureCallback(this);
         }
+        this._ignoreCbs = []
     }
 },
 'accessing', {
@@ -234,18 +248,20 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         return thenDo
     },
 
-    set: function(mergeFn, thenDo, newV, oldV) {
+    set: function(mergeFn, thenDo, newV, oldV, cbToIgnore) {
         // looses the previous value
         var sess = lively.net.SessionTracker.getSession(),
-            path = this.fullPath().toString();
+            path = this.fullPath().toString(),
+            self = this;
         
         function send(newValue, oldValue) {
             sess.sendTo(sess.trackerId, 'syncSet', {path: path, newValue: newValue, oldValue: oldValue}, function(msg) {
-                var knownOldValue = msg.data.value
+                var currentValue = msg.data.value
                 if (!msg.data.successful){
-                    mergeFn(knownOldValue, newValue, function(merged) { send(merged, knownOldValue)})
+                    mergeFn(currentValue, newValue, function(merged) { send(merged, currentValue)})
                 } else {
-                    thenDo(null, knownOldValue)
+                    if (cbToIgnore) self._ignoreCbs.push({value: currentValue, cb: cbToIgnore})
+                    thenDo(null, currentValue)
                 }
             })
         }
@@ -254,6 +270,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
     },
 
     drop: function(thenDo) {
+        if (!thenDo) return
         if (!this._callbacks) {
             // create error types?
             throw new Error("")
@@ -267,7 +284,13 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         }
     },
     propagateChange: function(path, value) {
-        this._callbacks && this._callbacks.invoke("call", undefined, null, value)
+        this._callbacks && this._callbacks.filter(function(ea) {
+            var ignoreCb = this._ignoreCbs.detect(function(ignore) { 
+                return ignore.cb === ea && Objects.equal(ignore.value, value)});
+            if (ignoreCb !== undefined)
+                this._ignoreCbs = this._ignoreCbs.without(ignoreCb);
+            return ignoreCb === undefined
+        }, this).invoke("call", undefined, null, value)
         if (path.isRoot())
             return
             // should also inform all cached children?
@@ -317,6 +340,61 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     rootHandles: [],
     reset: function() {
         this.rootHandles = [];
+    },
+})
+
+Trait('lively.persistence.StateSync.SynchronizedMorphTrait', {
+    asModel: function asModel() {
+        var obj = {},
+            asModel = arguments.callee;
+        this.submorphs.forEach(function(morph) {
+            if (morph.name) {
+                // only named morphs are candidates for fields
+                if (morph.getModelData) obj[morph.name] = morph.getModelData()
+                else obj[morph.name] = asModel.call(morph)
+            }
+        });
+        obj.toString = this.toString();
+        // :) more to come
+        return obj
+    },
+    findAndSetUniqueName: function() {
+        // copies of the morph should keep the original name
+        return
+    },
+    copy: function(stringify) {
+        var copy = this.constructor.prototype.copy.call(this, stringify);
+        if (!stringify) copy.synchronizationHandles = [];
+        return copy
+    },
+    remove: function() {
+        this.constructor.prototype.remove.call(this)
+        this.synchronizationHandles &&
+        this.synchronizationHandles.forEach(function(handle) {
+            if (this.synchronizationGet)
+                handle.drop(this.synchronizationGet)
+        }, this)
+    },
+    onDropOn: function(aNewOwner) {
+        this.constructor.prototype.onDropOn.call(this, aNewOwner)
+        this.synchronizationHandles &&
+        this.synchronizationHandles.forEach(function(handle) {
+            this.synchronizationGet = this.synchronizationGet || (function(err, val) {
+                if (val !== undefined) this.mergeWithModelData(val)
+            });
+            handle.get(this.synchronizationGet)
+        }, this)
+    },
+    mergeWithModelData: function merge(values) {
+        if (!Object.isObject(values)) return
+        this.submorphs.forEach(function(morph) {
+            if (morph.name) {
+                // only named morphs are candidates for fields
+                if (morph.mergeWithModelData && values[morph.name])
+                    morph.mergeWithModelData(values[morph.name])
+                else merge.call(morph, values[morph.name])
+            }
+        });
     },
 })
 

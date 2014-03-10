@@ -41,7 +41,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
         c.get(function(err, val) { 
             self.assert(Objects.equal(val, values.shift()));
             if(values.length == 0) self.done()
-            })
+        })
         cc.set(function(old, newV, cb) { cb(newV) }, function(err, val) { self.assert(val == 1) }, 1)
     },
     test03Updating: function() {
@@ -67,17 +67,43 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
             self.done()
         })
     },
+    test04SettingAndIgnoringCallbacks: function() {
+        var c = this._root.child("a"),
+            values = [],
+            updateSupplies = [],
+            self = this;
+        c.overwriteWith(2, function() {
+            var cb = c.get(function(err, val) {
+                values.push(val)
+                if (values.length == 3) {
+                    self.assertEquals(values[0], 2, "get should be called with the initial value, which was not set, yet");
+                    self.assert(values[1] != 4, "this value might be 3 or 5, depending on the scheduling sequence, but not 4");
+                    self.assertEquals(values[2], 5, "reported too many values");
+                    self.done();
+                }
+            });
+            c.overwriteWith(3, function(err, val) {
+                c.overwriteWith(4, function(err, val) {
+                    c.overwriteWith(5);
+                }, cb)
+            });
+        })
+    },
 })
 
 lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.tests.StateSync.L2LHandle', 
 'preparation', {
     setUp: function($super) {
         $super();
-        this._root = lively.persistence.StateSync.L2LHandle.root()
+        // create a new root, to be able to reliably remove all callbacks in tearDown
+        this._root = new lively.persistence.StateSync.L2LHandle()
     },
     tearDown: function($super) {
+        // lively.persistence.StateSync.L2LHandle.rootHandles = []
         $super();
-    },
+        lively.persistence.StateSync.L2LHandle.rootHandles = lively.persistence.StateSync.L2LHandle.rootHandles.without(this._root)
+    }
+,
 },
 'tests', {
     test01informingSubscribers: function() {
@@ -85,22 +111,26 @@ lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.test
             c1 = root.child("test"),
             self = this;
         self.recordedValues = []
-        c1.overwriteWith(undefined, function(err, value) {
+        c1.overwriteWith(0, function(err, value) {
             if (err) self.assert(false)
-            self.assert(value === undefined)
+            self.assertEquals(value, 0)
+            
+            c1.get(function(err, value) {
+                if (err) self.assert(false, "Get: There should be no error when being informed of changes...");
+                self.recordedValues.push(value)
+                if (self.recordedValues.length == 2) {
+                    self.assertEquals(self.recordedValues, [0, 10])
+                    self.done()
+                }
+            });
+            c1.overwriteWith(10, function(err, value) { 
+                if (err) self.assert(false)
+                self.assertEquals(10, value)
+            });
         });
-        c1.get(function(err, value) {
-            if (err) self.assert(false, "Get: There should be no error when being informed of changes...");
-            self.recordedValues.push(value)
-            if (self.recordedValues.length == 2) {
-                self.assertEquals(self.recordedValues, [undefined, 10])
-                self.done()
-            }
-        });
-        c1.overwriteWith(10, function(err, value) { 
-            if (err) self.assert(false)
-            self.assertEquals(10, value)
-        });
+    },
+    test04SettingAndIgnoringCallbacks: function($super) {
+        $super();
     },
 })
 

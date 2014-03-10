@@ -6,7 +6,8 @@ inMemoryStores = {};
 var changes = {};
 inMemoryStores
 
-var fileStoreSuffix = '.store.json';
+var fileStoreSuffix = '.json',
+    folder = 'stores';
 
 function loadLivelyCode(path) {
     lively = global.lively || {};
@@ -103,7 +104,7 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
         changes[Date.now()] = {path: String(path), originClientId: clientId};
         path.set(inMemoryStores, value);
         console.log('stored %s in %s', i(value), path);
-        fs.writeFile(storeName + fileStoreSuffix, JSON.stringify(storePath.get(inMemoryStores)), function(err) { if(err) { console.log(err); } });
+        fs.writeFile(folder + '/' + storeName + fileStoreSuffix, JSON.stringify(storePath.get(inMemoryStores)), function(err) { if(err) { console.warn(err); } });
     } else {
         console.warn('could not store %s in %s, error: %s', value, path, i(err));
     }
@@ -111,7 +112,7 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
 }
 
 (function restoreDBFromFiles() {
-    fs.readdir(".", function(err, files) {
+    fs.readdir(folder, function(err, files) {
         if (err) return console.log(err)
         files.filter(function(ea) {
                 return ea.slice(-fileStoreSuffix.length) === fileStoreSuffix })

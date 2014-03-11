@@ -1430,6 +1430,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         var text = this.get("ErrorText");
         text.setTextString("");
+        this.setToolTip("");
         text.error = null;
         
         var promise;
@@ -1658,6 +1659,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     throwError: function(error) {
         var text = this.get("ErrorText");
         text.setTextString(error.toString());
+        this.setToolTip(error.stack || error.toString());
         text.error = error;
         error.alreadyThrown = true;
         throw error;

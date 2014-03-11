@@ -551,10 +551,9 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         
         this.jsonViewer = new lively.morphic.Charts.JsonViewer();
         this.jsonViewer.setName("JsonViewer");
-        //this.jsonViewer.setExtent(pt(this.extent.x / 2, this.extent.y));
         this.jsonViewer.layout = {resizeWidth: true, resizeHeight: true};
         this.addMorph(this.jsonViewer);
-        
+        this.jsonViewer.setExtent(pt(this.extent.x / 2, this.extent.y));
     },
     
     update: function(data) {
@@ -566,15 +565,13 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.jsonViewer.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
     },
     
-
-
-
-
-
-
     wantsDroppedMorph: function(aMorph){
         if ($world.draggedMorph !== aMorph) {
             //ensure that aMorph added to env.interaction
+            if (!($morph("Dashboard").env.interaction)[aMorph.getName()]){
+                connect(aMorph, "textString", $morph("Dashboard").env.interaction, aMorph.getName());
+                $morph("Dashboard").update();   
+            };
             return true;
         }
         return false;

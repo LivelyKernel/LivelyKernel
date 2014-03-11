@@ -1,4 +1,20 @@
-module('lively.ast.SourceMap').requires().requiresLib({url: Config.codeBase + 'lib/source-map/source-map.js', loadTest: function() { return typeof sourceMap !== 'undefined'; }}).toRun(function() {
+var sourceMapLib = {
+    load: function() {
+        var m = module('lively.ast.SourceMap');
+        require("lively.Network").toRun(function() {
+            URL.codeBase.withFilename('lib/source-map/source-map.js').asWebResource().beAsync().get().whenDone(function(content, status) {
+                if (!status.isSuccess()) console.error(status);
+                var code = Strings.format(";(function() {\n%s\n}).call(Global);", content);
+                try { eval(code); } catch (e) { console.error(e); }
+                m.initLibLoadTester();
+            });
+        });
+    },
+
+    loadTest: function() { return typeof sourceMap !== 'undefined'; }
+}
+
+module('lively.ast.SourceMap').requires().requiresLib(sourceMapLib).toRun(function() {
 
 Object.subclass('lively.ast.SourceMap.Generator',
 'initializing', {

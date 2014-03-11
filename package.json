@@ -23,6 +23,9 @@
     "test": "$npm_node_execpath bin/lk-test.js",
     "start": "$npm_node_execpath bin/lk-server.js"
   },
+  "config": {
+    "testQuery": ""
+  },
   "devDependencies": {},
   "optionalDependencies": {}
 }

@@ -40,6 +40,7 @@ var platformConf = config.platformConfigs[process.platform],
                                + "those tests that are in modules matching "
                                + "'testframework' and are\n\t\t\t\tdefined in"
                                + "those test methods that match 'filter'."],
+        ['-q', '--query QUERY', "Additional query parameters to the test page"],
         ['--test-script FILE', "Script file that is sent to the browser and "
                              + "runs the tests. If not specified then \""
                              + env.LK_TEST_WORLD_SCRIPT + "\" is used."],
@@ -56,7 +57,8 @@ var options = {
     testWorld: env.LK_TEST_WORLD_NAME,
     verbose: false,
     maxRequests: env.LK_TEST_TIMEOUT,
-    testFilter: null
+    testFilter: null,
+    query: process.env.npm_package_config_testQuery || ''
 };
 
 var testWorldURL;
@@ -83,6 +85,10 @@ parser.on("notifier", function(name, value) {
 
 parser.on("test-script", function(name, value) {
     options.testScript = value;
+});
+
+parser.on("query", function(name, value) {
+    options.query = value;
 });
 
 parser.on("focus", function(name, value) {
@@ -263,7 +269,8 @@ function buildTestWorldURL(testWorldName, id) {
          + '?testRunId=' + id
          + (options.testScript ? "&loadScript=" + escape(options.testScript) : '')
          + (options.testFilter ? "&testFilter=" + escape(options.testFilter) : '')
-         + (options.modules ? "&additionalModules=" + escape(options.modules) : '');
+         + (options.modules ? "&additionalModules=" + escape(options.modules) : '')
+         + (options.query && options.query != '' ? "&" + options.query : '');
 }
 
 

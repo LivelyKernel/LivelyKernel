@@ -280,6 +280,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         t.setFontSize(10);
         t.setFillOpacity(0);
         t.setBorderWidth(0);
+        t.setClipMode("hidden");
+        t.setWhiteSpaceHandling("nowrap");
         t.layout = {resizeWidth: true};
         t.disableEvents();
         return t;
@@ -351,6 +353,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         return $super(target);
     },
+
     
     makeReframeHandles: function () {
         this.spacing = 4;
@@ -1462,37 +1465,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.update();
     },
     
-    onComponentChanged: function() {
-        var wait = 1000;
-        var now = new Date;
-        
-        var _this = this;
-        var doIt = function() {
-            _this.notify();
-            _this.previous = now;
-        }
-        
-        if (!this.previous) {
-            doIt();
-            return;
-        }
-        
-        var previous = this.previous;
-        
-        var remaining = wait - (now - previous);
-        
-        if (remaining <= 0) {
-            doIt();
-        } else {
-            // setTimeout and check that we only have one at a time
-            if (!this.currentTimeout){
-                this.currentTimeout = setTimeout(function() {
-                    doIt();
-                    _this.currentTimeout = null;
-                }, remaining);
-            }
-        }
-    },
+
     calculateSnappingExtent: function(ignoreComponentAbove) {
 
         var componentAbove = this.getComponentInDirection(-1);
@@ -1647,6 +1620,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         error.alreadyThrown = true;
         throw error;
     },
+
        
     getData : function(target){
         
@@ -2060,7 +2034,9 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         if (this.isAutoEvalActive !== false) {
             // deliver CodeEditor context to onChanged
             var _this = evt.getTargetMorph();
-            _this.onChanged.call(_this, forceEvaluation);
+            Functions.debounceNamed(_this.id, 500, function() {
+                _this.onChanged.call(_this, forceEvaluation);
+            })();
         }
     },
     
@@ -2116,30 +2092,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 
     
     update : function($super, data) {
-        var _this = this;
-        var text = this.get("ErrorText");
-        text.setTextString("");
-        text.error = null;
-        
         if (data) {
-            var prototypeMorph = this.get("PrototypeMorph");
-            
-            (function attachListener() {
-                if (prototypeMorph.__isListenedTo == true)
-                    return;
-                prototypeMorph.__isListenedTo = true;
-                
-                var methods = ["setExtent", "setFill", "setRotation"];
-                
-                methods.each(function(ea) {
-                   var oldFn = prototypeMorph[ea];
-                   
-                   prototypeMorph[ea] = function() {
-                       oldFn.apply(prototypeMorph, arguments);
-                       _this.update();
-                   }
-                });
-            })();
+            var prototypeMorph = this.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
             if (prototypeMorph) {
                 var mappingFunction;
                 eval("mappingFunction = " + this.codeEditor.getTextString());
@@ -2152,10 +2106,37 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                     return ea;
                 });
             } else {
-                alert("No morph with name 'PrototypeMorph' found");
+                this.throwError(new Error("No morph with name 'PrototypeMorph' found"));
             }
             return data;
         }
+    },
+    wantsDroppedMorph: function(aMorph) {
+        if (!(aMorph instanceof lively.morphic.Charts.Component) && $world.draggedMorph !== aMorph) {
+            var _this = this;
+
+            (function attachListener() {
+                if (aMorph.__isListenedTo == true)
+                    return;
+                aMorph.__isListenedTo = true;
+                aMorph.setName("PrototypeMorph");
+                
+                var methods = ["setExtent", "setFill", "setRotation", "setOrigin"];
+                
+                methods.each(function(ea) {
+                   var oldFn = aMorph[ea];
+                   
+                   aMorph[ea] = function() {
+                        oldFn.apply(aMorph, arguments);
+                        Functions.debounceNamed(_this.id, 1000, function() {
+                            _this.component.onContentChanged();
+                        })();
+                   }
+                });
+            })();
+            return true;
+        }
+        return false;
     },
     
     

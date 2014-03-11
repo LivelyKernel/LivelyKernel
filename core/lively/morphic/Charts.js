@@ -2498,12 +2498,13 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
 'default category', {
     
-    initialize: function($super) {   
+    initialize: function($super) {
 
         $super();
         this.description = "JsonViewer";
         this.extent = pt(400, 200);
-        this.objectTree = $world.loadPartItem('ObjectTree', 'PartsBin/BP2013H2');
+        this.objectTree = new lively.morphic.Tree();
+        this.objectTree.setName("ObjectInspectorTree");
         this.addMorph(this.objectTree);
     },
     
@@ -2514,10 +2515,343 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
     
     update: function(data) {
         if (data != null)
-            this.objectTree.inspect(data);
+            this.inspect(data);
             
         return data;
-    }
+    },
+    
+    addChildrenTo: function(item) {
+        var value = item.data;
+        // don't add any children for primitives or empty objects
+        if(this.isPrimitive(value) || Object.isEmpty(value.valueOf())) return;
+        item.children = [];
+        Object.addScript(item, function onExpand() { this.inspector.expand(this); });
+        Object.addScript(item, function onUpdateChildren() { this.inspector.expand(this); });
+    },
+    
+    
+    colorize: function(obj) {
+        if (obj == null) return;
+        switch (typeof obj.valueOf()) {
+            case "string": return {color: Color.web.green};
+            case "number": return {color: Color.rgb(255, 115, 0)};
+            case "boolean" : return {color: Color.web.purple};
+        }
+    },
+    
+    
+    createAccessorItem: function(obj, property) {
+        var item = {data: obj, inspector: this, name: property};
+        this.decorate(item);
+        Object.addScript(item, function onUpdate() {
+            this.inspector.decorate(this);
+        });
+        return item;
+    },
+    
+    
+    createItem: function(obj, property) {
+        var value = obj[property];
+        // try to convert strings to number
+        value = this.tryToParseNumber(value);
+        
+        var item = {data: value, inspector: this, name: property, parent: obj};
+        this.addChildrenTo(item);
+        this.decorate(item);
+    
+        Object.addScript(item, function onUpdate() {
+            this.inspector.decorate(this);
+        });
+        return item;
+    },
+    
+    
+    createPrototypeItem: function(proto, parentItem) {
+        var item = {data: proto, inspector: this, name: " ", doNotSerialize: ["data"], parentItem: parentItem};
+        item.description = "inherited from " + this.prototypename(proto);
+        this.addChildrenTo(item);
+        Object.addScript(item, function onUpdate() {
+            this.description = "inherited from " + this.inspector.prototypename(this.data);
+        });
+        return item;
+    },
+    
+    
+    decorate: function(item) {
+        item.description = this.describe(item.data);
+        item.descriptionStyle = this.colorize(item.data);
+    },
+    
+    
+    describe: function(obj) {
+        var str;
+        if (obj && obj.name) {
+            if(typeof obj.name.valueOf() == 'string')
+                str = obj.name;
+            else if(typeof obj.name == 'function' && obj.name.length == 0) {
+                try {    
+                    str = obj.name();
+                } catch(e) {}
+            }
+        }
+        if (!str) str = Objects.shortPrintStringOf(obj);
+        if (str.length > 32) str = str.substring(0, 32) + '...';
+        return ":  " + str;
+    },
+    
+    
+    expand: function(item) {
+        var alreadyThere = [];
+        var i = item.parentItem;
+        while(i) {
+            i.children.each(function(it) {
+                if(i !== it) {
+                    alreadyThere.push(it.name);
+                }
+            });
+            i = i.parentItem;
+        }
+        var value = Objects.asObject(item.data);
+        var currentFilter = this.getFilter();
+        var filter = currentFilter;
+        if(alreadyThere.length > 0) {
+            filter = function(obj, prop) {
+                return currentFilter(obj, prop) && !alreadyThere.include(prop);
+            }
+        }
+        var props = [], visitedProps = [], accessors = {};
+        Properties.allOwnPropertiesOrFunctions(value, filter).each(function(prop) {
+            if(!visitedProps.include(prop)) {
+                visitedProps.push(prop);
+                var descr = Object.getOwnPropertyDescriptor(value, prop);
+                if(descr) { 
+                    if(descr.get) {
+                        accessors["get " + prop] = descr.get;
+                        props.push("get " + prop);
+                    } else
+                        props.push(prop);
+                    if(descr.set) {
+                        accessors["set " + prop] = descr.set;
+                        props.push("set " + prop);
+                    }
+                } else
+                    props.push(prop);
+            }
+        });
+        // var valueProto = Object.getPrototypeOf(value);
+        // var proto = valueProto;
+        // while(proto) {
+        //     Properties.allOwnPropertiesOrFunctions(proto, filter).each(function(prop) {
+        //         if(!visitedProps.include(prop)) {
+        //             visitedProps.push(prop);
+        //             var descr = Object.getOwnPropertyDescriptor(proto, prop);
+        //             if((!descr || !descr.get) && value[prop] !== proto[prop]) {
+        //                 props.push(prop);
+        //                 if(descr.set) {
+        //                     accessors["set " + prop] = descr.set;
+        //                     props.push("set " + prop);
+        //                 }
+        //             }
+        //         }
+        //     });
+        //     proto = Object.getPrototypeOf(proto);
+        // }
+        if (props.length > 1) props = props.sort();
+        var newChildren = [];
+        if(Array.isArray(value)) {
+            this.expandIndexedChildren(item, newChildren);
+        }
+        var lookupKeys = [], lookupValues = [];
+        item.children.each(function(i) { 
+            lookupKeys.push(i.name);
+            lookupValues.push(i);
+        });
+        props.each(function(prop) {
+            var existingIndex = lookupKeys.indexOf(prop);
+            var accessor = (prop.startsWith("get ") || prop.startsWith("set ")) && accessors[prop];
+            if (existingIndex > -1) {
+                var existing = lookupValues.at(existingIndex);
+                existing.data = accessor ? accessor : value[prop];
+                this.decorate(existing);
+                newChildren.push(existing);
+            } else {
+                newChildren.push(accessor ? this.createAccessorItem(accessor, prop) : this.createItem(value, prop));
+            }
+        }, this);
+        // if (valueProto) {
+        //     var existing = item.children.detect(function(i) { return i.data === valueProto && i.parentItem; });
+        //     if (existing) {
+        //         newChildren.push(existing);
+        //     } else {
+        //         newChildren.push(this.createPrototypeItem(valueProto, item));
+        //     }
+        // }
+        if(newChildren.length == 0) {
+            delete item.children;
+            delete item.onExpand;
+            delete item.onUpdateChildren;
+        }
+        else {
+            item.children = newChildren;
+        }
+    },
+    
+    
+    expandIndexedChildren: function(item, children) {
+        var o = item.data;
+        var lookupKeys = [], lookupValues = [];
+        item.children.each(function(i) { 
+            lookupKeys.push(i.name);
+            lookupValues.push(i);
+        });
+        for(var i = 0; i < (0 | ((o.length + 98) / 100)); i++) {
+            var end = 99;
+            if(i + 1 === (0 | ((o.length + 98) / 100))) {
+                end = (o.length - 1) % 100;
+            }
+            var name = '' + i * 100 + '..' + (i * 100 + end);
+            var existingIndex = lookupKeys.indexOf(name);
+            if (existingIndex > -1) {
+                var existing = lookupValues.at(existingIndex);
+                existing.data = o;
+                children.push(existing);
+            } else {
+                var rangeItem = {data: o, inspector: this, name: name, start: i * 100, end: i * 100 + end};
+                rangeItem.children = [];
+                Object.addScript(rangeItem, function onExpand() { this.inspector.expandRange(this); });
+                Object.addScript(rangeItem, function onUpdateChildren() { this.inspector.expandRange(this); });
+                children.push(rangeItem);
+            }
+        }
+        if(1 === o.length % 100) {
+            var name = '' + (o.length - 1);
+            var existingIndex = lookupKeys.indexOf(name);
+            if (existingIndex > -1) {
+                var existing = lookupValues.at(existingIndex);
+                existing.data = o[o.length - 1];
+                children.push(existing);
+            } else {
+                children.push(this.createItem(o, name));
+            }
+        }
+    },
+    
+    
+    expandRange: function(item) {
+        var o = item.data;
+        var start = item.start;
+        var end = item.end;
+        if(item.children.length - 1 == end - start) {
+            for(var i = start; i <= end; i++) {
+                var existing = item.children[i - start];
+                existing.data = o[i];
+                this.decorate(existing);
+            }
+        } else {
+            var newChildren = [];
+            for(var i = start; i <= end; i++) {
+                newChildren.push(this.createItem(o, '' + i));
+            }
+            item.children = newChildren;
+        }
+    },
+    
+    
+    getFilter: function() {
+        if (!this.filter) {
+            // always show all properties
+            this.setFilter("properties");
+        }
+        return this.filter;
+    },
+    
+    
+    inspect: function(data) {
+        this.tree = this.get("ObjectInspectorTree");
+    
+        // this starts the actual inspection
+        this.tree.setItem(this.createItem({"this": Object.clone(data)}, "this"));
+        
+        function expand(root, maxDepth, depth) {
+            if (!maxDepth) maxDepth = 10;
+            if (!depth) depth = 0;
+            if (depth > maxDepth) return;
+            if (root.toggle) root.toggle()
+            for (var i = 0; i < root.submorphs.length; i++) {
+                expand(root.submorphs[i], maxDepth, depth + 1);
+            }
+        }
+        
+        //expand(this.get("ObjectInspectorTree"), 3)
+    },
+    
+    
+    isPrimitive: function(arg) {
+      return arg == null || (typeof arg.valueOf() != "object");
+    },
+    
+    
+    prototypename: function(proto) {
+        var protoName = proto.constructor.type || proto.constructor.name;
+        if(protoName) {
+            return protoName + '.prototype';
+        }
+        return proto.toString();
+    },
+    
+    
+    reset: function() {
+        this.stopStepping();
+        this.get("ObjectInspectorTree").reset();
+        this.applyLayout();
+    },
+    
+    
+    setFilter: function(str) {
+        var startsAlphaNum = /^[a-zA-Z0-9]/;
+        var fn = {
+            standard: function(obj, prop) {
+                if(Array.isArray(obj) || typeof obj.valueOf() == 'string') {
+                    if((0 | prop) == prop) {
+                        return false;
+                    }
+                }
+                return startsAlphaNum.test(prop) &&
+                    obj.propertyIsEnumerable(prop);
+            },
+            properties: function(obj, prop) {
+                if(Array.isArray(obj) || typeof obj.valueOf() == 'string') {
+                    if((0 | prop) == prop) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+            submorphs: function(obj, prop) {
+                if(Array.isArray(obj)) {
+                    if((0 | prop) == prop) {
+                        return false;
+                    }
+                }
+                return prop == 'submorphs' || 
+                    obj[prop] instanceof lively.morphic.Morph;
+            },
+        };
+        this.filter = fn[str];
+        if(this.tree.item) {
+            this.addChildrenTo(this.tree.item);
+        }
+        var that = this;
+        //this.tree.layoutAfter(function() { that.update(); });
+    },
+    
+    
+    tryToParseNumber: function(value) {
+        if (!isNaN(parseFloat(value)) && isFinite(value)){
+            value = parseFloat(value);
+        }
+        return value;
+    },
     
 });
 

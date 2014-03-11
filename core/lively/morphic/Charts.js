@@ -394,7 +394,7 @@ Object.extend(lively.morphic.Charts.Component, {
         return new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts[componentName]());
     },
     getComponentNames: function() {
-        return ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table", "EntityViewer"];
+        return ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table", "EntityViewer", "InteractionPanel"];
     }
 });
 
@@ -541,6 +541,30 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
         return false;
     }
 });
+
+lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel", {
+    
+    initialize : function($super){
+        $super();
+        this.description = "InteractionPanel";
+        this.extent = pt(400, 200);
+        
+        this.jsonViewer = new lively.morphic.Charts.JsonViewer();
+        this.jsonViewer.setName("JsonViewer");
+        this.jsonViewer.setExtent(pt(this.extent.x / 2, this.extent.y));
+        this.jsonViewer.layout = {resizeWidth: true, resizeHeight: true};
+        this.addMorph(this.jsonViewer);
+        
+    },
+    update: function(data) {
+        this.jsonViewer.update(data);
+    },
+    newMethod: function() {
+        // enter comment here
+    }
+    
+});
+
 lively.morphic.Charts.Content.subclass("lively.morphic.Charts.NullContent", {
     
     initialize : function($super) {

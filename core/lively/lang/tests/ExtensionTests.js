@@ -807,6 +807,22 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
                 this.assert(duration >= 200, 'wait duration not OK: ' + duration);
                 this.done();
             });
+    },
+
+    testAsScriptOf: function() {
+        var obj = {};
+        (function foo() { return 23; }).asScriptOf(obj);
+        this.assertEquals(23, obj.foo());
+        this.done();
+    },
+
+    testAsScriptOfWithSuper: function() {
+        var klass = function() {};
+        klass.prototype.foo = function() { return 3; };
+        var obj = new klass();
+        (function foo() { return $super() + 23; }).asScriptOf(obj);
+        this.assertEquals(26, obj.foo());
+        this.done();
     }
 });
 

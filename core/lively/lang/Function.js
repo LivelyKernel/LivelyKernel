@@ -237,15 +237,13 @@ Object.extend(Function.prototype, {
         if (!name) {
             throw Error("Function that wants to be a script needs a name: " + this);
         }
-        var constructor = obj.constructor,
-            mapping = {
-                "this": obj
-            };
+        var proto = Object.getPrototypeOf(obj),
+            mapping = {"this": obj};
         if (optMapping) mapping = Object.merge([mapping, optMapping]);
-        if (constructor && constructor.prototype && constructor.prototype[name]) {
+        if (proto && proto[name]) {
             var superFunc = function() {
                     try {
-                        return obj.constructor.prototype[name].apply(obj, arguments)
+                        return Object.getPrototypeOf(obj)[name].apply(obj, arguments)
                     } catch (e) {
                         if ($world)
                             $world.logError(e, 'Error in $super call')

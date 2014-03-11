@@ -2,7 +2,7 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
     
 lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     
-    initialize: function($super) {
+    initialize: function($super, env) {
         $super();
         var scrollbarOffset = 15;
         this.setExtent(pt(window.innerWidth / 2, window.innerHeight - scrollbarOffset));
@@ -13,8 +13,11 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         this.setName("Dashboard");
         this.startLayouting();
         
+        this.env = env;
+        if (!this.env.interaction) this.env.interaction = {};
+        
         this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('left', pt(5, this.getExtent().y)));
-        this.registerForEvent("dblclick", this, "minimize", false);
+        this.reframeHandle.registerForEvent("dblclick", this, "minimize", false);
     },
     alignAllHandles: function() {
         this.reframeHandle.alignWithWindow();
@@ -60,13 +63,13 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     
     update: function() {
         var _this = this;
-        Properties.own(window.env).each(function(ea) {
+        Properties.own(this.env).each(function(ea) {
             var viewer = _this.getSubmorphsByAttribute("envKey", ea)[0];
             if (!viewer) {
                 viewer = _this.addViewer(ea);
             }
         
-            viewer.update(window.env[ea]);
+            viewer.update(_this.env[ea]);
             viewer.updated = true;
         });
         this.removeUnusedViewers();
@@ -1380,9 +1383,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     update: function() {
-        // ensure that env exists
-        if (!window.env)
-            window.env = {}
         
         this.refreshData();
         
@@ -1452,8 +1452,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     notifyDashboard: function() {
         var dashboard = $morph("Dashboard");
-        if (!dashboard && !Object.isEmpty(window.env)) {
-            dashboard = new lively.morphic.Charts.Dashboard();
+        if (!dashboard && !Object.isEmpty(this.env)) {
+            dashboard = new lively.morphic.Charts.Dashboard(this.env);
             dashboard.openInWorld();
         }
         if (dashboard) {
@@ -1963,7 +1963,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
                 utilsString += "var " + key + " = " + Utils[key] + "; ";
         });
 
-        var __evalStatement = "(function() {" + utilsString + "var data = ctx.component.data; return eval(codeStr);}).call(ctx);"
+        var __evalStatement = this.createEvalStatement(utilsString);
         
         // see also $super
         
@@ -1985,6 +1985,16 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
             return result;
         } catch(e) {throw e}
         
+    },
+    createEvalStatement: function(util) {
+        var envString;
+        
+        if ($morph("Dashboard")) {
+            envString = "var env = $morph('Dashboard').env;";
+        } else {
+            envString = "var env = {};"
+        }
+        return "(function() {" + envString + util + "var data = ctx.component.data; var ret = eval(codeStr); ctx.component.env = env; return ret;}).call(ctx);"
     },
         
     onChanged: function(optForceEvaluation) {

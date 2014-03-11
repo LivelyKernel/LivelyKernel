@@ -338,7 +338,9 @@ TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
         var sut = new WebResource(this.plainTextFileURL);
         sut.get();
         this.assertEquals(typeof sut.responseHeaders, 'object', 'Response headers were not defined.');
-        this.assertEquals(sut.responseHeaders['Content-Type'], 'text/plain', 'No response header "Content-Type" with  value "text/plain" was found!');
+        var contentType = sut.responseHeaders['content-type'];
+        if (contentType) contentType = contentType.split(';')[0].trim(); // strip parameter
+        this.assertEquals(contentType, 'text/plain', 'No response header "Content-Type" with  value "text/plain" was found!');
     },
 
     testEnsureExistance: function() {

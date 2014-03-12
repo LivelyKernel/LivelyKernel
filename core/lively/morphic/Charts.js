@@ -17,7 +17,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         if (!this.env.interaction) this.env.interaction = {};
         
         this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('left', pt(5, this.getExtent().y)));
-        this.reframeHandle.registerForEvent("dblclick", this, "minimize", false);
+        this.reframeHandle.registerForEvent("dblclick", this, "minimize", true);
     },
     alignAllHandles: function() {
         this.reframeHandle.alignWithWindow();
@@ -102,7 +102,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     
     minimize: function() {
         var minimizedWidth = 25;
-        
+
         this.setExtent(pt(minimizedWidth, window.innerHeight));
         this.setPosition(pt(window.innerWidth - minimizedWidth, 0));
     }
@@ -1656,7 +1656,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     throwError: function(error) {
         var text = this.get("ErrorText");
         text.setTextString(error.toString());
-        this.setToolTip(error.stack || error.toString());
+        this.componentHeader.setToolTip(error.stack || error.toString());
         text.error = error;
         error.alreadyThrown = true;
         throw error;

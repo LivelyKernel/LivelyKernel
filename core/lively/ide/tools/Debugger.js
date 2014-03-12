@@ -475,7 +475,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         var frames = [];
         var frame = topFrame;
         do {
-            var name = frame.func.name();
+            var name = frame.func.name() || '(anonymous function)';
             frames.push({
                 isListItem: true,
                 string: frame.isResuming() ? name : name + " [native]",

@@ -554,6 +554,12 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.jsonViewer.layout = {resizeWidth: true, resizeHeight: true};
         this.addMorph(this.jsonViewer);
         this.jsonViewer.setExtent(pt(this.extent.x / 2, this.extent.y));
+        
+        // TODO
+        // create droppingArea
+        // this.droppingArea = new lively.morphic.Box(new rect(0,0,this.extent.x / 2, this.extent.y));
+        // this.droppingArea.setFill(Color.gray);
+        // this.addMorph(this.droppingArea);
     },
     
     update: function(data) {
@@ -563,19 +569,47 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
     setExtent : function ($super, newExtent){
         $super(newExtent);
         this.jsonViewer.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
+        this.droppingArea.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
+        this.droppingArea.setPosition(pt(this.getExtent().x / 2, 0));
     },
     
     wantsDroppedMorph: function(aMorph){
         if ($world.draggedMorph !== aMorph) {
-            //ensure that aMorph added to env.interaction
+            console.log("dropped morph " + aMorph.getName());
+            // ensure that aMorph added to env.interaction
             if (!($morph("Dashboard").env.interaction)[aMorph.getName()]){
-                connect(aMorph, "textString", $morph("Dashboard").env.interaction, aMorph.getName());
-                $morph("Dashboard").update();   
+                var name = aMorph.getName();
+                // env.interaction[name] is created automatically, when this connection is created
+                // update the value when the text string is changed
+                connect(aMorph, "textString", $morph("Dashboard").env.interaction, name);
+                // update the view when variable changed
+                connect(aMorph, "textString", $morph("Dashboard"), "update");
+                this.attachListener(aMorph);
             };
             return true;
         }
         return false;
     },
+    attachListener: function(aMorph) {
+        var oldRemove = aMorph.remove;
+        
+        aMorph.remove = function() {
+            if (this.owner instanceof lively.morphic.Charts.InteractionPanel)
+                this.owner.removeVariable(this.getName());
+            oldRemove.apply(aMorph, arguments);
+        }
+    },
+    removeVariable: function(name) {
+        console.log("remove var: " + name);
+        delete($morph("Dashboard").env.interaction[name]);
+        $morph("Dashboard").update();
+        
+        // this.valueConnections[name].updateView.disconnect();
+        // this.valueConnections[name].updateValue.disconnect();
+        // delete(this.valueConnections[name]);
+        
+    },
+
 
     
 });
@@ -2779,7 +2813,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
             }
         }
         
-        //expand(this.get("ObjectInspectorTree"), 3)
+        // expand(this.get("ObjectInspectorTree"), 1);
     },
     
     

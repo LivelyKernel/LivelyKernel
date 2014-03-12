@@ -229,12 +229,22 @@ Object.subclass('RealTrait',
             }
         }
     },
+
     removeFromDependents: function() {
+        this.removeFromClasses();
+        this.removeFromTraits();
+        this.removeFromObjects();
+    },
+
+    removeFromClasses: function() {
         Properties.forEachOwn(this.extendedObjectsAndOptions.classes, function(className, options) {
             var klass = lively.Class.forName(className);
             if (!klass) return;
             this.removeFrom(klass.prototype, options);
         }, this);
+    },
+
+    removeFromTraits: function() {
         Properties.forEachOwn(this.extendedObjectsAndOptions.traits, function(traitName, options) {
             var trait = Trait(traitName);
             if (!trait) return;
@@ -242,9 +252,13 @@ Object.subclass('RealTrait',
             this.removeFrom(trait.def);
             trait.updateDependents();
         }, this);
+    },
+
+    removeFromObjects: function() {
         var objConfs = this.extendedObjectsAndOptions.objects;
         objConfs && objConfs.forEach(function(conf) { if (conf.object) this.removeFrom(conf.object); }, this);
     }
+
 },
 'categories', {
     getCategoryNames: function() { return Properties.own(this.categories) }

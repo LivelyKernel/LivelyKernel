@@ -39,7 +39,11 @@ Object.extend(lively.ast.Rewriting, {
                 .withoutAll([
                     "core/lively/ast/Rewriting.js",
                     "core/lively/ast/StackReification.js"])
-                .concat("core/lively/ast/DebugExamples.js");
+                .concat([
+                    "core/lib/acorn/acorn.js",
+                    "core/lib/acorn/acorn-walk.js",
+                    "core/lib/acorn/acorn-loose.js",
+                    "core/lively/ast/DebugExamples.js"]);
 
         module('lively.ast.SourceMap').load(true);
 

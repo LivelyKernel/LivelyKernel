@@ -16,15 +16,15 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
         _Extent: lively.pt(597.0,275.0),
         _FontSize: 12,
         _Position: lively.pt(4.0,22.0),
-        _Theme: "twilight",
         accessibleInInactiveWindow: true,
         className: "lively.morphic.CodeEditor",
         grabbingEnabled: false,
         layout: {resizeHeight: true,resizeWidth: true},
         sourceModule: "lively.ide.CodeEditor",
         textMode: "javascript",
+        _ShowGutter: false,
+        theme: lively.Config.get('aceWorkspaceTheme'),
         textString: "// all this code is evaluated in the server context!\n// try to print it:\nprocess.env.WORKSPACE_LK",
-        theme: "twilight",
         boundEval: function boundEval(string) {
             var nodejsServer = this.serverURL.asWebResource();
             return nodejsServer.post(string).content;

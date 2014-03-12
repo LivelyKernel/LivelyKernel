@@ -92,6 +92,46 @@ lively.morphic.Morph.addMethods(
     basicCopy: function() {
         return lively.persistence.Serializer.copy(this);
     },
+    fastBulkCopy: function(amount) {
+        var original = this;
+        var attributesNeedCopy = ["submorphs", "shape", "derivationIds", "scripts"];
+        var newMorphs = [];
+        var extendedCopies = [];
+        for (var i = 0; i < amount; i++) {
+            extendedCopies.push(jQuery.extend({}, original));
+        }
+
+        for (var i = 0; i < amount; i++) {
+            copy = extendedCopies[i];
+
+            attributesNeedCopy.each(function(attr) {
+                var currentAttributeValue = original[attr];
+                if (Object.isArray(currentAttributeValue)) {
+                    // copy each element of the array
+                    var originalArray = currentAttributeValue;
+                    var newArray = [];
+                    for (var i = 0; i < originalArray.length; i++) {
+                        newArray.push(jQuery.extend({}, originalArray[i]));
+                    }
+                    copy[attr] = newArray;
+                } else {
+                    // just copy the attribute
+                    copy[attr] = jQuery.extend({}, currentAttributeValue);
+                }
+            })
+
+            copy.withAllSubmorphsDo(function(ea) { ea.setNewId() })
+            copy.prepareForNewRenderContext(this.renderContext().newInstance());
+            copy.findAndSetUniqueName();
+            copy.disconnectObsoleteControlPoints();
+            if (typeof copy.onCopy === "function") { copy.onCopy(); }
+
+
+            newMorphs.push(copy)
+        }
+
+        return newMorphs;
+    },    
     restoreRenderContextAfterCopy: function(renderCtx) {
         // DEPRECATED use the function called instead
         this.prepareForNewRenderContext(renderCtx);

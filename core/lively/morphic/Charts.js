@@ -584,12 +584,14 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
                 connect(aMorph, "textString", $morph("Dashboard").env.interaction, name);
                 // update the view when variable changed
                 connect(aMorph, "textString", $morph("Dashboard"), "update");
+                //this.overwriteGetter( $morph("Dashboard").env.interaction, aMorph.getName());
                 this.attachListener(aMorph);
             };
             return true;
         }
         return false;
     },
+
     attachListener: function(aMorph) {
         var oldRemove = aMorph.remove;
         
@@ -610,7 +612,16 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         
     },
 
-
+    overwriteGetter: function(interactions, key) {
+        interactions.__defineGetter__(key, function() {
+            console.log("get", key, "caller", arguments.callee.caller.toString());
+            return interactions["_" + key];
+        })
+        interactions.__defineSetter__(key, function(value) {
+            console.log("set", key);
+            interactions["_" + key] = value;
+        })
+    },
     
 });
 
@@ -1461,7 +1472,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         var text = this.get("ErrorText");
         text.setTextString("");
-        this.setToolTip("");
+        this.componentHeader.setToolTip("");
         text.error = null;
         
         var promise;
@@ -2030,20 +2041,13 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
-        
-        var utilsString = ""
-        var Utils = lively.morphic.Charts.Utils;
-        Object.getOwnPropertyNames(Utils).each(function (key) {
-            if (typeof Utils[key] === "function" && Utils[key].toString().indexOf("[native code]") == -1)
-                utilsString += "var " + key + " = " + Utils[key] + "; ";
-        });
 
-        var __evalStatement = this.createEvalStatement(utilsString);
+        var __evalStatement = this.createEvalStatement();
         
         // see also $super
         
         // Evaluate the string argument in a context in which "this" is
-        // determined by the reuslt of #getDoitContext
+        // determined by the result of #getDoitContext
         var str,
         interactiveEval = function() {
             try {
@@ -2061,15 +2065,28 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         } catch(e) {throw e}
         
     },
-    createEvalStatement: function(util) {
-        var envString;
+    createEvalStatement: function() {
+        var utilsString = "";
+        var Utils = lively.morphic.Charts.Utils;
+        Object.getOwnPropertyNames(Utils).each(function (key) {
+            if (typeof Utils[key] === "function" && Utils[key].toString().indexOf("[native code]") == -1)
+                utilsString += "var " + key + " = " + Utils[key] + "; ";
+        });
         
+        var envString;
         if ($morph("Dashboard")) {
             envString = "var env = $morph('Dashboard').env;";
         } else {
             envString = "var env = {};"
         }
-        return "(function() {" + envString + util + "var data = ctx.component.data; var ret = eval(codeStr); ctx.component.env = env; return ret;}).call(ctx);"
+        return "(function() {" + envString + utilsString + 
+            "   var data = ctx.component.data; \
+                with ((ctx.component.env && ctx.component.env.interaction) || window) { \
+                    var ret = eval(codeStr); \
+                } \
+                ctx.component.env = env; \
+                return ret; \
+            }).call(ctx);"
     },
         
     onChanged: function(optForceEvaluation) {

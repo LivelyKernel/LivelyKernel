@@ -26,7 +26,9 @@ Object.extend(lively.ast.Rewriting, {
         return r.rewriteFunction(node);
     },
 
-    rewriteLivelyCode: function() {
+    rewriteLivelyCode: function(addSourceMaps) {
+        addSourceMaps = !!addSourceMaps;
+
         // 1. Rewrite Lively code and put it into DBG_* files
         // 2. Create bootstrap code needed to run rewritten code
         var astReg = lively.ast.Rewriting.setCurrentASTRegistry([]),
@@ -69,8 +71,10 @@ Object.extend(lively.ast.Rewriting, {
                     declarationForGlobals(rewrittenAst)),
                 fileName = modulePath.slice(modulePath.lastIndexOf('/') + 1);
 
-            lively.ast.acorn.rematchAstWithSource(rewrittenAst.body[0], code, true, 'body.0.expression.callee.body.body.0');
-            var srcMap = lively.ast.SourceMap.Generator.mapForASTs(originalAst, rewrittenAst, fileName);
+            if (addSourceMaps) {
+                lively.ast.acorn.rematchAstWithSource(rewrittenAst.body[0], code, true, 'body.0.expression.callee.body.body.0');
+                var srcMap = lively.ast.SourceMap.Generator.mapForASTs(originalAst, rewrittenAst, fileName);
+            }
 
             putRewritten(modulePath, code, srcMap);
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

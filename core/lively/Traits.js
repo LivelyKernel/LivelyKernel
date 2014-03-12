@@ -51,7 +51,8 @@ Object.subclass('RealTrait',
     },
     mixin: function() {
         var mixinTrait = this.derive({});
-        mixinTrait.applyToClass = function(applyToClass, klass, options) {
+
+        mixinTrait.applyToClass = (function(applyToClass, klass, options) {
             if (!klass.mixinClass) {
                 var cls = klass.superclass.subclass();
                 klass.superclass = cls;
@@ -64,7 +65,34 @@ Object.subclass('RealTrait',
                 klass.addMethods(methods);
             }
             applyToClass.call(this, klass.mixinClass, options);
-        }.curry(mixinTrait.applyToClass);
+        }).curry(mixinTrait.applyToClass);
+
+        mixinTrait.applyToObject = function(obj, options) {
+            // FIXME duplications with base applyToObject
+            var conf = this.optionsConfForObj(obj);
+            conf.options = options;
+            this.extendedObjectsAndOptions.objects.pushIfNotIncluded(conf);
+
+            var methods = Object.extend({}, this.def);
+            methods._mixinProto = this;
+            methods.__proto__ = obj.__proto__;
+            obj.__proto__ = methods;
+            return this;
+        };
+
+        mixinTrait.removeFromObjects = function() {
+            var objConfs = this.extendedObjectsAndOptions.objects;
+            objConfs && objConfs.forEach(function(conf) {
+                if (!conf.object) return;
+                for (var prev = conf.object, p = prev.__proto__;
+                     !!p && !!p.__proto__;
+                     prev = p, p = p.__proto__) {
+                    if (p._mixinProto === this) prev.__proto__ = p.__proto__;
+                }
+            }, this);
+        };
+
+        
         return mixinTrait;
     }
 },

@@ -43,6 +43,7 @@ TestCase.subclass('lively.tests.TraitsTests.BaseTest',
 
 lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreation',
 'testing', {
+
     testCreateTraitNamed: function() {
         this.removeTraitAfterwards('Foo');
         var trait = Trait('Foo', {a: function() { }});
@@ -220,6 +221,7 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         Trait('Foo', {c: function() { return 4 }});
         this.assertEquals(5, obj.c());
     }
+
 });
 
 lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ObjectTraits',
@@ -273,6 +275,46 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ObjectTrait
         Trait('Bar', {a: function() { return 11 }});
         this.assertEquals(22, obj.c(), 'trait1 method result after update not ok');
         this.assertEquals(11, obj.d(), 'trait2 method result after update not ok');
+    },
+
+    testMixinInObject: function() {
+        this.removeTraitAfterwards('Foo');
+
+        var obj = new this.dummyA();
+        (function m2() { return $super() + 1; }).asScriptOf(obj);
+        this.assertEquals(5, obj.m2());
+
+        var trait = Trait('Foo', {m2: function() { return 1 }});
+        trait.mixin().applyTo(obj);
+        this.assertEquals(2, obj.m2());
+
+        trait.remove();
+        this.assertEquals(5, obj.m2());
+        
+    },
+
+    testMixinInObjectWithSuper: function() {
+        this.removeTraitAfterwards('Foo');
+
+        var obj = new this.dummyA();
+        (function m2() { return $super() + 1; }).asScriptOf(obj);
+        this.assertEquals(5, obj.m2());
+
+        // FIXME: this is __NOT__!!! a proper super implementation. Requirement
+        // for implementing Trait/Mixin super is the decision of which super
+        // implementation to use (see Function>>addMethods and
+        // Function>>asScriptOf) and an extraction of this behavior to be reused
+        // in Traits/Mixins
+
+        var trait = Trait('Foo', {m2: function() {
+            return this.constructor.prototype.m2.call(this) + 1;
+        }});
+        trait.mixin().applyTo(obj);
+        this.assertEquals(6, obj.m2());
+
+        trait.remove();
+        this.assertEquals(5, obj.m2());
+        
     }
 });
 

@@ -74,6 +74,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         });
         this.removeUnusedViewers();
     },
+    updateInteractionPanel: function() {
+        var panel = this.getSubmorphsByAttribute("envKey", "interaction")[0];
+        panel.update(this.env.interaction);
+    },
+    renameVariable: function(oldName, newName) {
+        this.env.interaction[newName] = this.env.interaction[oldName];
+        delete(this.env.interaction[oldName]);
+    },
     
     removeUnusedViewers: function() {
         this.submorphs.each(function(ea) {
@@ -99,6 +107,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         
         return viewer;
     },
+
     
     minimize: function() {
         var minimizedWidth = 25;
@@ -564,13 +573,14 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
     
     update: function(data) {
         this.jsonViewer.update(data);
+        this.jsonViewer.objectTree.expand();
     },
     
     setExtent : function ($super, newExtent){
         $super(newExtent);
         this.jsonViewer.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
-        this.droppingArea.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
-        this.droppingArea.setPosition(pt(this.getExtent().x / 2, 0));
+        // this.droppingArea.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
+        // this.droppingArea.setPosition(pt(this.getExtent().x / 2, 0));
     },
     
     wantsDroppedMorph: function(aMorph){
@@ -579,12 +589,12 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
             // ensure that aMorph added to env.interaction
             if (!($morph("Dashboard").env.interaction)[aMorph.getName()]){
                 var name = aMorph.getName();
-                // env.interaction[name] is created automatically, when this connection is created
+                $morph("Dashboard").env.interaction[name] = aMorph.textString;
                 // update the value when the text string is changed
                 connect(aMorph, "textString", $morph("Dashboard").env.interaction, name);
-                // update the view when variable changed
-                connect(aMorph, "textString", $morph("Dashboard"), "update");
                 //this.overwriteGetter( $morph("Dashboard").env.interaction, aMorph.getName());
+                // update the panel view when variable changed
+                connect(aMorph, "textString", $morph("Dashboard"), "updateInteractionPanel");
                 this.attachListener(aMorph);
             };
             return true;
@@ -593,6 +603,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
     },
 
     attachListener: function(aMorph) {
+        var dashboard = $morph("Dashboard");
         var oldRemove = aMorph.remove;
         
         aMorph.remove = function() {
@@ -600,11 +611,27 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
                 this.owner.removeVariable(this.getName());
             oldRemove.apply(aMorph, arguments);
         }
+        
+        var oldOnDropOn = aMorph.onDropOn;
+        
+        aMorph.onDropOn = function() {
+            oldOnDropOn.apply(aMorph, arguments);
+            dashboard.updateInteractionPanel();
+        }
+        
+        var oldSetName = aMorph.setName;
+        
+        aMorph.setName = function() {
+            var oldName = this.getName();
+            oldSetName.apply(aMorph, arguments);
+            dashboard.renameVariable(oldName, this.getName());
+            dashboard.updateInteractionPanel();
+        }
     },
     removeVariable: function(name) {
         console.log("remove var: " + name);
         delete($morph("Dashboard").env.interaction[name]);
-        $morph("Dashboard").update();
+        $morph("Dashboard").updateInteractionPanel();
         
         // this.valueConnections[name].updateView.disconnect();
         // this.valueConnections[name].updateValue.disconnect();

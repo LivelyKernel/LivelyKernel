@@ -15,7 +15,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         _Fill: Color.rgb(245,245,245),
         _Position: lively.pt(3.0,22.0),
         _StyleSheet: ".list-item {\n\
-    	font-family: Monaco, monospace                   !important;\n\
+    	font-family: Monaco, monospace !important;\n\
     }\n\
     \n\
     .list-item.directory {\n\
@@ -790,52 +790,63 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         $super();
         this.goto(lively.ide.CommandLineInterface.getWorkingDirectory());
     },
-        onKeyDown: function onKeyDown(evt) {
-        if (evt.isCommandKey()) return $super(evt);
-        var keys = evt.getKeyString(), wasHandled = true;
-        var fl = this.get('fileList');
-        function ensureSelectionIsInView(topOrBottom) {
-            var visible = fl.getVisibleIndexes();
-            // if (visible.include(fl.selectedLineNo)) return;
-            var newIdx = topOrBottom === 'top' ? visible.first() : visible.last()-1;
-            fl.selectAt(newIdx);
-        }
-        switch (keys) {
-            case 'Enter':
-                var sel = fl.getSelection();
-                if (sel) this.doActionForFileItem(sel);
-                else wasHandled = false;
-                break;
-            case 'Shift-^': this.gotoParentDir(); break;
-            case 'Control-N': case 'Down': fl.selectNext(); break;
-            case 'Control-P': case 'Up': fl.selectPrev(); break;
-            case "Alt-V": case "PageUp": fl.scrollPage('up'); ensureSelectionIsInView('top'); break;
-            case "Control-V": case "PageDown": fl.scrollPage('down'); ensureSelectionIsInView('bottom'); break;
-            case "Alt-Shift->": case "End": fl.scrollToBottom(); ensureSelectionIsInView('bottom'); break;
-            case "Alt-Shift-<": case "Home": fl.scrollToTop(); ensureSelectionIsInView('top'); break;
-            case 'F1': this.get('targetDir').focus(); break;
-            case 'F2': this.get('fileList').focus(); break;
-            case 'F3': this.get('filter').focus(); break;
-            case 'Alt-Down':
-                if (this.get('targetDir').isFocused()) this.get('fileList').focus();
-                if (this.get('fileList').isFocused()) this.get('filter').focus();
-                break;
-            case 'Alt-Up':
-                if (this.get('fileList').isFocused()) this.get('targetDir').focus();
-                if (this.get('filter').isFocused()) this.get('fileList').focus();
-                break;
-            case 'Alt-1': this.execItemAction(fl.selection, 0); break;
-            case 'Alt-2': this.execItemAction(fl.selection, 1); break;
-            case 'Alt-3': this.execItemAction(fl.selection, 2); break;
-            case 'Alt-4': this.execItemAction(fl.selection, 3); break;
-            case 'Alt-5': this.execItemAction(fl.selection, 4); break;
-            case 'Alt-C': this.changeCwd(); break;
-            case 'Alt-S': this.userQueryForSort(); break;
-            default: wasHandled = false;
-        }
-        if (!wasHandled) return $super(evt);
+    onKeyDown: function onKeyDown(evt) {
+    var fl              = this.get('fileList'),
+        dirInput        = this.get('targetDir'),
+        filter          = this.get('filter'),
+        dirInputFocused = dirInput.isFocused(),
+        fileListFocused = fl.isFocused(),
+        filterFocused   = filter.isFocused(),
+        keys            = evt.getKeyString(),
+        wasHandled      = true;
+
+    function ensureSelectionIsInView(topOrBottom) {
+        var visible = fl.getVisibleIndexes();
+        // if (visible.include(fl.selectedLineNo)) return;
+        var newIdx = topOrBottom === 'top' ? visible.first() : visible.last()-1;
+        fl.selectAt(newIdx);
+    }
+
+    switch (keys) {
+        case 'Enter':
+            var sel = !dirInputFocused && fl.getSelection();
+            if (sel) this.doActionForFileItem(sel);
+            else wasHandled = false;
+            break;
+        case 'Shift-^': this.gotoParentDir(); break;
+        case 'Control-N': case 'Down': fl.selectNext(); break;
+        case 'Control-P': case 'Up': fl.selectPrev(); break;
+        case "Alt-V": case "PageUp": fl.scrollPage('up'); ensureSelectionIsInView('top'); break;
+        case "Control-V": case "PageDown": fl.scrollPage('down'); ensureSelectionIsInView('bottom'); break;
+        case "Alt-Shift->": case "End": fl.scrollToBottom(); ensureSelectionIsInView('bottom'); break;
+        case "Alt-Shift-<": case "Home": fl.scrollToTop(); ensureSelectionIsInView('top'); break;
+        case 'F1': dirInput.focus(); break;
+        case 'F2': fl.focus(); break;
+        case 'F3': filter.focus(); break;
+        case 'Alt-Down':
+            if (dirInputFocused) fl.focus();
+            if (fileListFocused) filter.focus();
+            break;
+        case 'Alt-Up':
+            if (fileListFocused) dirInput.focus();
+            if (filterFocused) fl.focus();
+            break;
+        case 'Alt-1': this.execItemAction(fl.selection, 0); break;
+        case 'Alt-2': this.execItemAction(fl.selection, 1); break;
+        case 'Alt-3': this.execItemAction(fl.selection, 2); break;
+        case 'Alt-4': this.execItemAction(fl.selection, 3); break;
+        case 'Alt-5': this.execItemAction(fl.selection, 4); break;
+        case 'Alt-C': this.changeCwd(); break;
+        case 'Alt-S': this.userQueryForSort(); break;
+        default: wasHandled = false;
+    }
+
+    if (!wasHandled) {
+        return dirInputFocused || filterFocused ? false : $super(evt);
+    } else {
         evt.stop(); return true;
-    },
+    }
+},
         onWindowGetsFocus: function onWindowGetsFocus() {
         this.lastFocused.focus();
     },
@@ -855,24 +866,25 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         var self = this;
         Functions.debounceNamed(('render-' + this.id), 40, function() { self.render(); })();
     },
-        renderDirContentFiltered: function renderDirContentFiltered(path) {
-        var fileList = this.get('fileList'),
-            filter = this.dirState.filter,
-            sortKey = this.dirState.sortKey,
-            items = this.dirState.files,
-            processItems = Functions.compose(
-                this.itemsFilter.curry(filter),
-                this.itemsSort.curry(sortKey),
-                this.itemsForList),
-            dirsAndFiles = items.groupBy(function(item) {
-                return item.isDirectory ? 'directory' : 'file'}),
-            dirsAndFilesSorted = dirsAndFiles.mapGroups(function(_, group) {
-                return processItems(group); });
-    fileList.isInLayoutCycle = true
-        fileList.updateList(dirsAndFilesSorted.toArray().flatten());
+    renderDirContentFiltered: function renderDirContentFiltered(path) {
+    var fileList = this.get('fileList'),
+        filter = this.dirState.filter,
+        sortKey = this.dirState.sortKey,
+        items = this.dirState.files,
+        processItems = Functions.compose(
+            this.itemsFilter.curry(filter),
+            this.itemsSort.curry(sortKey),
+            this.itemsForList),
+        dirsAndFiles = items.groupBy(function(item) {
+            return item.isDirectory ? 'directory' : 'file'}),
+        dirsAndFilesSorted = dirsAndFiles.mapGroups(function(_, group) {
+            return processItems(group); });
+    fileList.isInLayoutCycle = true;
+    fileList.updateList(dirsAndFilesSorted.toArray().flatten());
+    if (!fileList.selection) fileList.selectAt(0);
     fileList.isInLayoutCycle = false;
     fileList.applyLayout();
-    },
+},
         reset: function reset() {
         this.dirState = {
             files: [],

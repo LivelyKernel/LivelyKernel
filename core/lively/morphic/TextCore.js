@@ -2106,7 +2106,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             // this.setSelectionRange(selRange[0], selRange[1]);
         } catch(e) {
             alert('Error when doing  toggle' + emphAttributeType + ': ' + e);
-            debugger;
         }
     },
 
@@ -2119,7 +2118,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             this.setSelectionRange(selRange[0], selRange[1]);
         } catch(e) {
             console.error('Error emphasizing' + JSON.stringify(emphSpec) + ': ' + e);
-            debugger;
         }
     },
 

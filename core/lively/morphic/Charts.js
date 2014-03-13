@@ -117,6 +117,81 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     }
 });
 
+lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
+    
+    initialize: function($super, extent) {
+        $super();
+        this.setExtent(extent);
+        this.setFill(Color.gray);
+    },
+    wantsDroppedMorph: function(aMorph){
+        this.attachListener(aMorph);
+        return true;
+    },
+    attachListener: function(aMorph) {
+        // only attach functions once
+        if (aMorph.listenersAttached)
+            return;
+            
+        aMorph.listenersAttached = true;
+        
+        var dashboard = $morph("Dashboard");
+        
+        // attach remove -> remove interaction variable
+        var oldRemove = aMorph.remove;
+        
+        aMorph.remove = function() {
+            if (this.owner instanceof lively.morphic.Charts.DroppingArea) {
+                this.owner.removeVariable(this.getName());
+                this.interactionConnections.each(function(ea) {
+                    ea.disconnect();
+                });
+            }
+            oldRemove.apply(aMorph, arguments);
+        }
+        
+        // attach onDropOn -> create interaction variable and connections
+        var oldOnDropOn = aMorph.onDropOn;
+        
+        aMorph.onDropOn = function() {
+            oldOnDropOn.apply(aMorph, arguments);
+            if (arguments[0] instanceof lively.morphic.Charts.DroppingArea) {
+                var name = this.getName();
+                // create new interaction variable, if it does't exist
+                if (!$morph("Dashboard").env.interaction[name]){
+                    console.log("create interaction variable: " + name);
+                    
+                    $morph("Dashboard").env.interaction[name] = this.textString;
+                    this.interactionConnections = [];
+                    // update the interaction variable value when the text string is changed
+                    this.interactionConnections.push(connect(this, "textString", $morph("Dashboard").env.interaction, name));
+                    // this.overwriteGetter( $morph("Dashboard").env.interaction, this.getName());
+                    
+                    // update the panel view when variable changed
+                    this.interactionConnections.push(connect(this, "textString", $morph("Dashboard"), "updateInteractionPanel"));
+                };
+                dashboard.updateInteractionPanel();
+            }
+        }
+        
+        // attach setName -> update interaction variable, TODO: update connections
+        var oldSetName = aMorph.setName;
+        
+        aMorph.setName = function() {
+            var oldName = this.getName();
+            oldSetName.apply(aMorph, arguments);
+            // TODO
+            // dashboard.renameVariable(oldName, this.getName());
+            // dashboard.updateInteractionPanel();
+        }
+    },
+    removeVariable: function(name) {
+        console.log("remove interaction variable: " + name);
+        delete $morph("Dashboard").env.interaction[name];
+        $morph("Dashboard").updateInteractionPanel();
+    }
+});
+
 lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
     initialize: function($super, content) {
@@ -564,11 +639,8 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.addMorph(this.jsonViewer);
         this.jsonViewer.setExtent(pt(this.extent.x / 2, this.extent.y));
         
-        // TODO
-        // create droppingArea
-        // this.droppingArea = new lively.morphic.Box(new rect(0,0,this.extent.x / 2, this.extent.y));
-        // this.droppingArea.setFill(Color.gray);
-        // this.addMorph(this.droppingArea);
+        this.droppingArea = new lively.morphic.Charts.DroppingArea(pt(this.extent.x - this.jsonViewer.getExtent().x, this.extent.y));
+        this.addMorph(this.droppingArea);
     },
     
     update: function(data) {
@@ -579,76 +651,10 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
     setExtent : function ($super, newExtent){
         $super(newExtent);
         this.jsonViewer.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
-        // this.droppingArea.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
-        // this.droppingArea.setPosition(pt(this.getExtent().x / 2, 0));
+        this.droppingArea.setExtent(newExtent.subPt(pt(this.jsonViewer.getExtent().x, 0)));
+        this.droppingArea.setPosition(pt(this.jsonViewer.getExtent().x, 0));
     },
     
-    wantsDroppedMorph: function(aMorph){
-        this.attachListener(aMorph);
-        return true;
-    },
-
-    attachListener: function(aMorph) {
-        // only attach functions once
-        if (aMorph.listenersAttached)
-            return;
-            
-        aMorph.listenersAttached = true;
-        
-        var dashboard = $morph("Dashboard");
-        
-        // attach remove -> remove interaction variable
-        var oldRemove = aMorph.remove;
-        
-        aMorph.remove = function() {
-            if (this.owner instanceof lively.morphic.Charts.InteractionPanel)
-                this.owner.removeVariable(this.getName());
-            oldRemove.apply(aMorph, arguments);
-        }
-        
-        // attach onDropOn -> create interaction variable and connections
-        var oldOnDropOn = aMorph.onDropOn;
-        
-        aMorph.onDropOn = function() {
-            oldOnDropOn.apply(aMorph, arguments);
-            if (arguments[0] instanceof lively.morphic.Charts.InteractionPanel) {
-                var name = this.getName();
-                console.log("create interaction variable: " + name);
-                // ensure that aMorph added to env.interaction
-                if (!($morph("Dashboard").env.interaction)[name]){
-                    
-                    $morph("Dashboard").env.interaction[name] = this.textString;
-                    // update the value when the text string is changed
-                    connect(this, "textString", $morph("Dashboard").env.interaction, name);
-                    //this.overwriteGetter( $morph("Dashboard").env.interaction, this.getName());
-                    // update the panel view when variable changed
-                    connect(this, "textString", $morph("Dashboard"), "updateInteractionPanel");
-                };
-                dashboard.updateInteractionPanel();
-            }
-        }
-        
-        // attach setName -> update interaction variable, TODO: update connections
-        var oldSetName = aMorph.setName;
-        
-        aMorph.setName = function() {
-            var oldName = this.getName();
-            oldSetName.apply(aMorph, arguments);
-            dashboard.renameVariable(oldName, this.getName());
-            dashboard.updateInteractionPanel();
-        }
-    },
-    removeVariable: function(name) {
-        console.log("remove interaction variable: " + name);
-        delete $morph("Dashboard").env.interaction[name];
-        $morph("Dashboard").updateInteractionPanel();
-        
-        // this.valueConnections[name].updateView.disconnect();
-        // this.valueConnections[name].updateValue.disconnect();
-        // delete(this.valueConnections[name]);
-        
-    },
-
     overwriteGetter: function(interactions, key) {
         interactions.__defineGetter__(key, function() {
             console.log("get", key, "caller", arguments.callee.caller.toString());

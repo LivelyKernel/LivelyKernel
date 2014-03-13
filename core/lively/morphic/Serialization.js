@@ -104,8 +104,15 @@ lively.morphic.Morph.addMethods(
         }
         
         var normalCopy = original.copy();
-        
         var clones = []
+        var clonedSubmorphs = [];
+        
+        // bulk cloning of submorphs
+        normalCopy.submorphs.each(function(eachSubmorph){
+            clonedSubmorphs.push(eachSubmorph.fastBulkCopy(amount));
+        });
+
+        // bulk cloning of the actual morph
         var clone;
         for (var i = amount - 1; i >= 0; i--) {
             clone = {};
@@ -113,12 +120,18 @@ lively.morphic.Morph.addMethods(
             clone.shape = jQuery.extend({}, normalCopy.shape);
             clone.owner = null;
             
+            
+            
             clone._Rotation = normalCopy._Rotation;
             clone.withAllSubmorphsDo(function(ea) { ea.setNewId() })
             clone.prepareForNewRenderContext(clone.renderContext().newInstance());
             clone.findAndSetUniqueName();
             clone.disconnectObsoleteControlPoints();
             if (typeof clone.onCopy === "function") clone.onCopy();
+            
+            clonedSubmorphs.each(function(clonedSubmorphArray) {
+               clone.addMorph(clonedSubmorphArray[i]);
+            });
             
             clones.push(clone)
         }

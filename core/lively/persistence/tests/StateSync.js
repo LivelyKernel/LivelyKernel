@@ -134,5 +134,138 @@ lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.test
     },
 })
 
+AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin', 
+'preparation', {
+    setUp: function($super) {
+        $super();
+        this.trait = Trait('lively.persistence.StateSync.SynchronizedMorphMixin');
+        this.mixin = this.trait.mixin();
+        
+        this._store = new lively.persistence.Sync.LocalStore();
+        this.handle = new lively.persistence.StateSync.StoreHandle(this._store)
+    },
+    tearDown: function($super) {
+        $super();
+    },
+    startSynchronizing: function(someObject) {
+        var name = someObject.name,
+            slot = this._store.db[name] && this._store.db[name].length ? this._store.db[name].length : 0;
+        var syncHandle = this.handle.child(name + "." + slot);
+        if (Object.isArray(someObject.synchronizationHandles)) {
+            someObject.synchronizationHandles.push(syncHandle);
+        } else {
+            someObject.synchronizationHandles = [syncHandle];
+        }
+        if (!this._store.db[name]) this._store.db[name] = {}
+        this._store.db[name].length = slot + 1;
+        this.mixin.applyTo(someObject);
+        this.trait.connectSavingProperties(someObject);
+        return syncHandle
+    },
+},
+'tests', {
+    testNamesRemainTheSame: function() {
+        var gunieaPig = new lively.morphic.Morph();
+        this.mixin.applyTo(gunieaPig);
+        gunieaPig.setName("gunieaPig");
+        
+        var controlGroup = gunieaPig.copy();
+        this.assertEquals(controlGroup.getName(), gunieaPig.getName(), 'copies should retain the same naming scheme');
+        this.done();
+    },
+    testCopiesAreNotSynchronized: function() {
+        var gunieaPig = new lively.morphic.Morph()
+        this.mixin.applyTo(gunieaPig);
+        gunieaPig.synchronizationHandles = [];
+        gunieaPig.setName("gunieaPig");
+
+        var self = this;
+        this.handle.child(gunieaPig.name).push(
+            gunieaPig.asModel(),
+            function(err, handle, curV) {
+                gunieaPig.synchronizationHandles.push(handle);
+                self.assertEquals(gunieaPig.synchronizationHandles.length, 1);
+                var controlGroup = gunieaPig.copy();
+                self.assertEquals(controlGroup.synchronizationHandles.length, 0, "the synchronization handles should be lost when copying");
+                self.done();
+            });
+    },
+    testRemove: function() {
+        var gunieaPig = new lively.morphic.Morph(),
+            self = this;
+        this.testBeingDropped(gunieaPig, function() {
+            gunieaPig.remove();
+            // based on the fact that bath [] and undefined are falsy
+            self.assert(!self.handle.child("gunieaPig.0")._callbacks, "synchronization not stopped");
+            self.assert(gunieaPig.synchronizationHandles != [], "callbacks are lost, but synchronization should not be stopped altogether")
+            self.done()
+        })
+    },
+    testBeingDropped: function(aMorph, thenDo) {
+        var gunieaPig = aMorph || new lively.morphic.Morph(),
+            self = this;
+        gunieaPig.setName("gunieaPig");
+        var syncHandle = this.startSynchronizing(gunieaPig);
+        
+        gunieaPig.mergeWithModelData = function(newV) {
+            self.assertEquals("endIt", newV, "wrong value supplied");
+            (thenDo && thenDo()) || self.done()};
+        
+        var foo = new lively.morphic.Morph();
+        gunieaPig.dropOn(foo);
+        this.assertEquals(foo.submorphs[0], gunieaPig, "morph not added to scenegraph");
+        this.assertEquals(syncHandle._callbacks[0], gunieaPig.synchronizationGet, "morph did not register update routines");
+        this.assert(!gunieaPig.synchronizedValues);
+        syncHandle.overwriteWith("endIt");
+    },
+})
+
+lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests.StateSync.StickyNote', 
+'preparation', {
+    setUp: function($super) {
+        $super();
+    },
+    tearDown: function($super) {
+        $super();
+    },
+    getStickyNote: function() {
+        var background = new lively.morphic.Box(lively.rect(0, 0, 200, 150)),
+            content = new lively.morphic.Text(lively.rect(5, 5, 190, 140), "");
+        background.setName("stickyNote");
+        content.setName("content");
+        content.fixedHeight = true;
+        background.addMorph(content);
+        return background;
+    },
+},
+'tests', {
+    testAsModel: function( thenDo ) {
+        // background morph named stickyNote with one text submorph named content
+        var gunieaPig = this.getStickyNote();
+        gunieaPig.submorphs[0].textString = "some text";
+        this.startSynchronizing(gunieaPig);
+        
+        var model = gunieaPig.asModel();
+        this.assert(model.content && Object.isNumber(model.content.timestamp), "for texts, there is no change timestamping");
+        model.content.timestamp = 10;
+        this.assertEqualState(model, {content: {timestamp: 10, string: "some text"}, shortString: model.shortString}, "model generation not successful");
+        
+        (thenDo && thenDo.call(this, gunieaPig)) || this.done()
+    },
+    testAsModelConnections: function() {
+        this.testAsModel(function(gunieaPig) {
+        
+        gunieaPig.submorphs[0].textString = "some different text";
+        var model = gunieaPig.asModel()
+        this.assertEqualState(model, {content: {timestamp: gunieaPig.submorphs[0].changeTime || 0, string: "some different text"}, shortString: model.shortString}, "model not updated successful")
+        
+        this.epsilon = 100
+        this.assertEqualsEpsilon(model.content.timestamp, Date.now(), "changing the text should change the last update timestamp")
+        
+        this.done();
+        return true;
+        })
+    },
+})
 
 }) // end of module

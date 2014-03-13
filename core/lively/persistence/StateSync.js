@@ -19,7 +19,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
     initialize: function(store, path, parent) {
         this._parent = parent || undefined;
         this._path = lively.PropertyPath(path || this.path);
-        this._children = [];
+        this._children = {};
     }
 },
 'accessing', {
@@ -191,7 +191,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
     onValueChanged: function(value, path) {
         // Problem: if one of the callbacks changes value, calls the other ones with the old value
         // Second problem: callbacks are unordered??
-        if (!! this._path.relativePathTo(path) ) {
+        if (!! this.fullPath().relativePathTo(path) ) {
             var self = this;
             self._store.get(self.fullPath(), function(path, value) {
                 self._callbacks.filter(function(ea) {
@@ -343,21 +343,8 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     },
 })
 
-Trait('lively.persistence.StateSync.SynchronizedMorphTrait', {
-    asModel: function asModel() {
-        var obj = {},
-            asModel = arguments.callee;
-        this.submorphs.forEach(function(morph) {
-            if (morph.name) {
-                // only named morphs are candidates for fields
-                if (morph.getModelData) obj[morph.name] = morph.getModelData()
-                else obj[morph.name] = asModel.call(morph)
-            }
-        });
-        obj.toString = this.toString();
-        // :) more to come
-        return obj
-    },
+Trait('lively.persistence.StateSync.SynchronizedMorphMixin', 
+'morphic', {
     findAndSetUniqueName: function() {
         // copies of the morph should keep the original name
         return
@@ -376,26 +363,89 @@ Trait('lively.persistence.StateSync.SynchronizedMorphTrait', {
         }, this)
     },
     onDropOn: function(aNewOwner) {
-        this.constructor.prototype.onDropOn.call(this, aNewOwner)
+        this.constructor.prototype.onDropOn.call(this, aNewOwner);
+        var aMorph = this;
         this.synchronizationHandles &&
         this.synchronizationHandles.forEach(function(handle) {
             this.synchronizationGet = this.synchronizationGet || (function(err, val) {
-                if (val !== undefined) this.mergeWithModelData(val)
+                if (val !== undefined) aMorph.mergeWithModelData(val)
             });
             handle.get(this.synchronizationGet)
         }, this)
     },
-    mergeWithModelData: function merge(values) {
-        if (!Object.isObject(values)) return
-        this.submorphs.forEach(function(morph) {
-            if (morph.name) {
-                // only named morphs are candidates for fields
-                if (morph.mergeWithModelData && values[morph.name])
-                    morph.mergeWithModelData(values[morph.name])
-                else merge.call(morph, values[morph.name])
-            }
-        });
+}, 'model Synchronization', {
+    save: function(value, source, connection) {
+        alertOK("empty save: " + value);
     },
+    mergeWithModelData: function merge(someValue) {
+        this.recursivelyWalk({
+            text: function(functions, values) {
+                if (values.string && values.timestamp && this.changeTime < values.timestamp) {
+                    this.textString = this.savedTextString = values.string;
+                    this.changeTime = values.timestamp;
+                }
+            },
+            base: function(functions, values) {
+                if (!Object.isObject(values)) return
+                this.submorphs.forEach(function(morph) {
+                    if (morph.name) {
+                        // only named morphs are candidates for fields
+                        if (morph.mergeWithModelData && values[morph.name])
+                            morph.mergeWithModelData(values[morph.name])
+                        else merge.call(morph, values[morph.name])
+                    }
+                });
+            },
+        }, someValue)
+    },
+    asModel: function() {
+        var obj = this.recursivelyWalk({
+            text: function() { 
+                return {timestamp: this.changeTime || 0, string: this.textString}; }, 
+            base: function(functions) {
+                var obj = {};
+                this.submorphs.forEach(function(morph) {
+                    if (morph.getName()) {
+                        // only named morphs are candidates for fields
+                        if (morph.getModelData) obj[morph.name] = morph.getModelData()
+                        else obj[morph.name] = functions.walk.call(morph, functions)
+                    }
+                });
+                return obj;
+            },
+        })
+        obj.shortString = this.toString();
+        return obj
+    },
+    recursivelyWalk: function(functions) {
+        // the general strukture here stops recursion whenever there is a match, 
+        // i.e. submorphs of textmorphs a.o. are not synchronized
+        functions.walk = functions.walk || arguments.callee;
+        // text case (duck typing)
+        if (functions.text && this.hasOwnProperty("textString") || this.__lookupGetter__("textString"))
+            return functions.text.apply(this, arguments);
+
+        // base case
+        return functions.base.apply(this, arguments);
+    },
+})
+
+Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), function connectSavingProperties(anObject, options) {
+    anObject.recursivelyWalk({
+        text: function(functions, syncMorph) {
+            connect(this, this.isCodeEditor ? "savedTextString" : "textString", 
+                    syncMorph, "save", {
+                updater: function($upd, value) {
+                    this.sourceObj.changeTime = Date.now();
+                    $upd(value, this.sourceObj, this);
+                }});
+        }, 
+        base: function(functions, syncMorph) {
+            this.submorphs.forEach(function(morph) {
+                if (morph.name)
+                    functions.walk.call(morph, functions, syncMorph)
+            });
+        },}, anObject)
 })
 
 }) // end of module

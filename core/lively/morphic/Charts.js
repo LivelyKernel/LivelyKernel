@@ -143,9 +143,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
         aMorph.remove = function() {
             if (this.owner instanceof lively.morphic.Charts.DroppingArea) {
                 this.owner.removeVariable(this.getName());
-                this.interactionConnections.each(function(ea) {
-                    ea.disconnect();
-                });
+                if (this.interactionConnections)
+                    this.interactionConnections.each(function(ea) {
+                        ea.disconnect();
+                    });
             }
             oldRemove.apply(aMorph, arguments);
         }
@@ -159,18 +160,32 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
                 var name = this.getName();
                 // create new interaction variable, if it does't exist
                 if (!$morph("Dashboard").env.interaction[name]){
-                    console.log("create interaction variable: " + name);
-                    
-                    $morph("Dashboard").env.interaction[name] = this.textString;
-                    this.interactionConnections = [];
-                    // update the interaction variable value when the text string is changed
-                    this.interactionConnections.push(connect(this, "textString", $morph("Dashboard").env.interaction, name));
-                    // this.overwriteGetter( $morph("Dashboard").env.interaction, this.getName());
-                    
-                    // update the panel view when variable changed
-                    this.interactionConnections.push(connect(this, "textString", $morph("Dashboard"), "updateInteractionPanel"));
-                };
-                dashboard.updateInteractionPanel();
+                    var _this = this;
+                    var createInteractionVariable = function(attribute) {
+                        if (attribute == null) {
+                            alertOK("Variable creation cancled!");
+                            return;
+                        }
+                        if (!(attribute in _this)) {
+                            alert(attribute + " does not exist in " + name);
+                            return;
+                        }
+                        console.log("create interaction variable: " + name);
+                        
+                        $morph("Dashboard").env.interaction[name] = _this[attribute];
+                        _this.interactionConnections = [];
+                        // update the interaction variable value when the text string is changed
+                        _this.interactionConnections.push(connect(_this, attribute, $morph("Dashboard").env.interaction, name));
+                        // _this.overwriteGetter( $morph("Dashboard").env.interaction, _this.getName());
+                        
+                        // update the panel view when variable changed
+                        _this.interactionConnections.push(connect(_this, attribute, $morph("Dashboard"), "updateInteractionPanel"));
+                        
+                        dashboard.updateInteractionPanel();
+                    }
+                    var dialog = new lively.morphic.EditDialog("Choose attribute of " + name, createInteractionVariable, {input: "e.g. value"});
+                    dialog.openIn($world, pt(window.innerWidth / 2, window.innerHeight / 2));
+                }
             }
         }
         

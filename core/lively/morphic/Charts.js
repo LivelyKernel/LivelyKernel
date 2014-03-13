@@ -2238,6 +2238,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         prototypeMorph.setName("PrototypeMorph");
         prototypeMorph.layout = {moveHorizontal: true, moveVertical: true};
         this.addMorph(prototypeMorph);
+        this.attachListener(prototypeMorph);
     },
     
     setExtent: function($super, newExtent) {
@@ -2257,8 +2258,23 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             if (prototypeMorph) {
                 var mappingFunction;
                 eval("mappingFunction = " + this.codeEditor.getTextString());
-                data = data.map(function(ea) {
-                    var prototypeInstance = prototypeMorph.copy();
+                
+                var bulkCopy = this.smartBulkCopy(prototypeMorph, data.length);
+                var copiedMorphs = bulkCopy.copiedMorphs;
+                this.copiedMorphs = copiedMorphs;
+                data = data.map(function(ea, index) {
+                    var prototypeInstance = copiedMorphs[index];
+                    
+                    // if the morphs weren't cloned, replay the actions which were applied on the PrototypeMorph
+                    if (!bulkCopy.cloned) {
+                        if (prototypeMorph.__appliedCommands) {
+                            for (var commandName in prototypeMorph.__appliedCommands) {
+                                var command = prototypeMorph.__appliedCommands[commandName];
+                                command.fn.apply(prototypeInstance, command.args);
+                            }
+                        }
+                    }
+                    
                     mappingFunction(prototypeInstance, ea);
                     // ensure that each datum is a object (primitives will get wrapped here)
                     ea = ({}).valueOf.call(ea);
@@ -2271,29 +2287,65 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             return data;
         }
     },
+    
+    smartBulkCopy: function(prototypeMorph, amount) {
+        // TODO: determine type at runtime 
+        var type = "dontUseCopyByInstantiation",
+            copiedMorphs = [],
+            newMorph;
+        var useFastBulkCopy = true;
+        var cloned = false;
+        
+        if (type == "box") {
+            // box
+            for (var i = 0; i < amount; i++) {
+    			newMorph = new lively.morphic.Morph()
+    			newMorph.setExtent(pt(100.0,100.0))
+    			newMorph.setFill(Color.blue)    
+			    copiedMorphs.push(newMorph);
+			}
+        } else if (type == "circle") {
+            // circle
+            for (var i = 0; i < amount; i++) {
+			    newMorph = lively.morphic.Morph.makeCircle(pt(100, 100), 100, 0, Color.black, Color.blue)
+			    copiedMorphs.push(newMorph);
+			}
+        } else if (type == "line") {
+            // line
+            for (var i = 0; i < amount; i++) {
+			    var verts = [pt(0.0,0.0), pt(100.0,100.0)];
+			    newMorph = lively.morphic.Morph.makeLine(verts, 1, Color.black)
+			    copiedMorphs.push(newMorph);
+			}
+        } else if (type == "text") {
+			// text
+			for (var i = 0; i < amount; i++) {
+    			newMorph = new lively.morphic.Text(lively.rect(0, 0, 75, 25), "Some Text")
+    			newMorph.setFillOpacity(0)
+    			newMorph.setBorderStyle("hidden")
+    			copiedMorphs.push(newMorph);
+			}
+        } else if (useFastBulkCopy) {
+            // fastBulkCopy
+            copiedMorphs = prototypeMorph.fastBulkCopy(amount);
+            cloned = true;
+        } else {
+            // normal copy
+            for (var i = amount - 1; i >= 0; i--) {
+                copiedMorphs.push(prototypeMorph.copy());
+            }
+            cloned = true;
+        }
+        
+        return {
+            copiedMorphs: copiedMorphs,
+            cloned: cloned,
+        };
+    },
+    
     wantsDroppedMorph: function(aMorph) {
         if (!(aMorph instanceof lively.morphic.Charts.Component) && $world.draggedMorph !== aMorph) {
-            var _this = this;
-
-            (function attachListener() {
-                if (aMorph.__isListenedTo == true)
-                    return;
-                aMorph.__isListenedTo = true;
-                aMorph.setName("PrototypeMorph");
-                
-                var methods = ["setExtent", "setFill", "setRotation", "setOrigin"];
-                
-                methods.each(function(ea) {
-                   var oldFn = aMorph[ea];
-                   
-                   aMorph[ea] = function() {
-                        oldFn.apply(aMorph, arguments);
-                        Functions.debounceNamed(_this.id, 1000, function() {
-                            _this.component.onContentChanged();
-                        })();
-                   }
-                });
-            })();
+            this.attachListener(aMorph);
             return true;
         }
         return false;
@@ -2312,6 +2364,42 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     
     removalNeedsConfirmation: function() {
         return true;
+    },
+    
+    attachListener: function attachListener(aMorph) {
+        var _this = this;
+        if (aMorph.__isListenedTo == true)
+            return;
+        aMorph.__isListenedTo = true;
+        aMorph.setName("PrototypeMorph");
+        
+        var methods = ["setExtent", "setFill", "setRotation", "setOrigin"];
+        
+        methods.each(function(methodName) {
+           var oldFn = aMorph[methodName];
+           
+           aMorph[methodName] = function() {
+                var argsForOldFn = Array.prototype.slice.call(arguments);
+
+                oldFn.apply(aMorph, argsForOldFn);
+                if (_this.copiedMorphs) {
+                    _this.copiedMorphs.map(function(copiedMorph) {
+                        oldFn.apply(copiedMorph, argsForOldFn);
+                    });
+                }
+                
+                // save the function call so that it can be replayed
+                aMorph.__appliedCommands = aMorph.__appliedCommands || {};
+                
+                var appliedCommand = {fn: oldFn, args: argsForOldFn};
+                
+                aMorph.__appliedCommands[methodName] = appliedCommand;
+                
+                Functions.debounceNamed(_this.id, 1000, function() {
+                    _this.component.onContentChanged();
+                })();
+           };
+        });
     }
 });
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {

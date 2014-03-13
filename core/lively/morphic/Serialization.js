@@ -94,43 +94,40 @@ lively.morphic.Morph.addMethods(
     },
     fastBulkCopy: function(amount) {
         var original = this;
-        var attributesNeedCopy = ["submorphs", "shape", "derivationIds", "scripts"];
-        var newMorphs = [];
-        var extendedCopies = [];
-        for (var i = 0; i < amount; i++) {
-            extendedCopies.push(jQuery.extend({}, original));
+        var oldOwner = null;
+        if (original.owner) {
+            oldOwner = original.owner
+            original.remove();
+            delete original.owner;
+            delete original.eventHandler;
+            delete original.EventHandler;
         }
-
-        for (var i = 0; i < amount; i++) {
-            copy = extendedCopies[i];
-
-            attributesNeedCopy.each(function(attr) {
-                var currentAttributeValue = original[attr];
-                if (Object.isArray(currentAttributeValue)) {
-                    // copy each element of the array
-                    var originalArray = currentAttributeValue;
-                    var newArray = [];
-                    for (var i = 0; i < originalArray.length; i++) {
-                        newArray.push(jQuery.extend({}, originalArray[i]));
-                    }
-                    copy[attr] = newArray;
-                } else {
-                    // just copy the attribute
-                    copy[attr] = jQuery.extend({}, currentAttributeValue);
-                }
-            })
-
-            copy.withAllSubmorphsDo(function(ea) { ea.setNewId() })
-            copy.prepareForNewRenderContext(this.renderContext().newInstance());
-            copy.findAndSetUniqueName();
-            copy.disconnectObsoleteControlPoints();
-            if (typeof copy.onCopy === "function") { copy.onCopy(); }
-
-
-            newMorphs.push(copy)
+        
+        var normalCopy = original.copy();
+        
+        var clones = []
+        var clone;
+        for (var i = amount - 1; i >= 0; i--) {
+            clone = {};
+            clone.__proto__ = normalCopy;
+            clone.shape = jQuery.extend({}, normalCopy.shape);
+            clone.owner = null;
+            
+            clone._Rotation = normalCopy._Rotation;
+            clone.withAllSubmorphsDo(function(ea) { ea.setNewId() })
+            clone.prepareForNewRenderContext(clone.renderContext().newInstance());
+            clone.findAndSetUniqueName();
+            clone.disconnectObsoleteControlPoints();
+            if (typeof clone.onCopy === "function") clone.onCopy();
+            
+            clones.push(clone)
         }
-
-        return newMorphs;
+        
+        if (oldOwner) {
+            oldOwner.addMorph(original);
+        }
+        
+        return clones;
     },    
     restoreRenderContextAfterCopy: function(renderCtx) {
         // DEPRECATED use the function called instead

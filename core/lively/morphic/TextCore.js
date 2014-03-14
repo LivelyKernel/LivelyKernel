@@ -523,6 +523,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             style.minHeight = null;
         }
     },
+
     computeRealTextBounds: function() {
         var node = this.renderContext().textNode,
             clone = node.cloneNode(true),
@@ -532,6 +533,33 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         var domBounds = lively.$(clone).bounds();
         node.parentNode.removeChild(clone);
         return rect(pt(domBounds.left,domBounds.top), pt(domBounds.right,domBounds.bottom));
+    },
+
+    computeCharBounds: function() {
+        // FIXME this currently does not work for rich text
+        var domBoundsToLively = function(domBounds) { return rect(pt(domBounds.left,domBounds.top), pt(domBounds.right,domBounds.bottom)); };
+        var string = this.textString,
+            node = this.renderContext().textNode,
+            clone = node.cloneNode(false)
+
+        var attrs = ["width", "height", "min-width", "min-height", "max-width", "max-height"];
+        attrs.forEach(function(attr) { clone.style[attr] = '' });
+
+        try {
+            node.parentNode.appendChild(clone);
+            string.split('').forEach(function(c, i) {
+                var span = document.createElement('span');
+                span.id = String(i);
+                span.textContent=c;
+                clone.appendChild(span)
+            });
+    
+            return Array.from(clone.childNodes).map(function(el) {
+                return domBoundsToLively(lively.$(el).bounds());
+            });
+        } finally {
+            node.parentNode.removeChild(clone);
+        }
     }
 
 

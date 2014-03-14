@@ -183,7 +183,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
                         
                         dashboard.updateInteractionPanel();
                     }
-                    var dialog = new lively.morphic.EditDialog("Choose attribute of " + name, createInteractionVariable, {input: "e.g. value"});
+                    var description = "Choose attribute of " + name + " to connect with";
+                    var dialog = new lively.morphic.PromptDialog(description, createInteractionVariable, {input: "value"});
                     dialog.openIn($world, pt(window.innerWidth / 2, window.innerHeight / 2));
                 }
             }

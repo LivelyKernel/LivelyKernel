@@ -1183,6 +1183,12 @@ handleOnCapture);
         if (this.placeholder) {
             placeholderPosition = this.placeholder.getPosition();
         }
+        
+        var layouter = aMorph.getLayouter();
+        if (layouter) {
+            layouter.removeAllPlaceholders();
+        }
+        
         aMorph.addMorph(this);
         this.onDropOn(aMorph);
         delete this.previousOwner;
@@ -1191,10 +1197,6 @@ handleOnCapture);
             delete(this.placeholder);
             this.setPosition(placeholderPosition.subPt(this.getOrigin())); //.subPt(pt(1,1)));
             aMorph.applyLayout();
-        }
-        var layouter = aMorph.getLayouter();
-        if (layouter) {
-            layouter.removeAllPlaceholders();
         }
     },
 

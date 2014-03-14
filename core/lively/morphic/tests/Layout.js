@@ -76,7 +76,22 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
         this.assert(!placeholder.isBeingDragged);
         this.assertEquals(Color.gray, placeholder.getFill());
         this.assert(!placeholder.hasOwnProperty('foo'), 'placeholder is full copy');
-    }
+    },
+test07PlaceholdersAreReplaced: function() {
+    debugger;
+    var m = new lively.morphic.Morph(),
+        t = new lively.morphic.Morph();
+    m.setExtent(lively.pt(120, 100));
+    t.setExtent(lively.pt(10, 10));
+    t.setLayouter(new lively.morphic.Layout.HorizontalLayout(t));
+    t.getLayouter().showPlaceholderFor(m, {hand: this.world.firstHand(), getPosition: function() { return lively.pt(5, 5); }, stop: Functions.Null});
+    var extent = t.getExtent();
+    this.assert(extent.x >= 120 && extent.y >= 100, "in order to show the placeholder, t should have grown");
+    var hand = $world.hand();
+    hand.addMorphWithShadow(m);
+    hand.dropContentsOn(t);
+    this.assertEquals(t.getExtent(), extent, "on dropping a morph onto a second, layoutet morph, that second morph should not resize")
+},
 });
 lively.morphic.tests.LayoutTests.subclass('lively.morphic.tests.TileLayoutTest',
 'testing', {

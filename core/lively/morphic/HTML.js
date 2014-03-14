@@ -112,7 +112,11 @@ Trait('RadialGradientCSSTrait',
 
 lively.morphic.Rendering.RenderContext.subclass('lively.morphic.HTML.RenderContext',
 'settings', {
+
     renderContextTableName: 'htmlDispatchTable',
+
+    speedUpTrait: Trait('HTMLRenderer')
+
 });
 
 lively.morphic.Morph.addMethods(
@@ -1248,6 +1252,158 @@ Object.subclass('lively.morphic.CSS.Fill',
             node.style.background = this.cssBackgroundString;
         }
     }
+});
+
+Trait('HTMLRenderer',
+'updating', {
+
+    // setTransform: function(value) {
+    // },
+
+    setPosition: function(value) {
+        this.cachedBounds = null;
+        if (value === undefined) {
+            delete this._Position;
+        } else {
+            this._Position = value;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (ctx.morphNode)
+            ctx.domInterface.setPosition(ctx.morphNode, value);
+    },
+
+    // setFixedPosition: function(bool) {
+    //     if (ctx.morphNode)
+    //         ctx.morphNode.style['position'] = bool ? 'fixed': 'absolute';
+    // },
+
+    setRotation: function(rad) {
+        this.cachedBounds = null;
+        if (rad === undefined) {
+            delete this._Rotation;
+        } else {
+            this._Rotation = rad;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (ctx.morphNode)
+            ctx.domInterface.setHTMLTransform(ctx.morphNode, rad, this.getScale(), this.getPivotPoint());
+    },
+
+    // setExtent: function(value) {
+    //     if (ctx.morphNode)
+    //         ctx.domInterface.setExtent(ctx.morphNode, value);
+    // },
+
+    setScale: function(scale) {
+        this.cachedBounds = null;
+        if (scale === undefined) {
+            delete this._Scale;
+        } else {
+            this._Scale = scale;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (ctx.morphNode)
+            ctx.domInterface.setHTMLTransform(ctx.morphNode,
+                                              this.getRotation(),
+                                              scale === undefined ? 1 : scale,
+                                              this.getPivotPoint());
+    },
+
+    setVisible: function(bool) {
+        if (bool === undefined) {
+            delete this._Visible;
+        } else {
+            this._Visible = bool;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (ctx.morphNode)
+            ctx.morphNode.style.visibility = bool ? '' : 'hidden';
+    },
+
+    setZIndex: function(index) {
+        if (index === undefined) {
+            delete this._ZIndex;
+        } else {
+            this._ZIndex = index;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (ctx.morphNode)
+            ctx.morphNode.style.zIndex = index ? index : null;
+    },
+
+    setPivotPoint: function(value) {
+        // experimental
+        if (value === undefined) {
+            delete this._PivotPoint;
+        } else {
+            this._PivotPoint = value;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
+    },
+
+    setClipMode: function(clipMode) {
+        // Sets the overflow property of the morph node.
+        // Clipmode can be either 'visible', 'hidden', 'scroll',
+        // 'auto' or 'inherit', or an object with x and y parameters
+        // (i.e. {x: 'hidden', y: 'scroll'}).
+        if (clipMode === undefined) {
+            delete this._ClipMode;
+        } else {
+            this._ClipMode = clipMode;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (!ctx.shapeNode || this.delayedClipMode) {
+            this.delayedClipMode = clipMode;
+            return;
+        }
+        this.setClipModeHTMLForNode(ctx, ctx.shapeNode, clipMode);
+    },
+
+    setHandStyle: function(styleName) {
+        // CSS cursor style. Value can be:
+        // auto, default, crosshair, pointer, move, ne-resize, e-resize, se-resize,
+        // s-resize, sw-resize, w-resize, nw-resize, text, wait, help, progress
+        if (styleName === undefined) {
+            delete this._HandStyle;
+        } else {
+            this._HandStyle = styleName;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (!ctx.morphNode) return;
+        if (!styleName || styleName == '') ctx.morphNode.style.cursor = null;
+        else ctx.morphNode.style.cursor = styleName;
+    },
+
+    setToolTip: function(string) {
+        if (string === undefined) {
+            delete this._ToolTip;
+        } else {
+            this._ToolTip = string;
+        }
+        if (!this._renderContext)
+            if (!this.renderContext()) return;
+        var ctx = this._renderContext;
+        if (ctx.morphNode)
+            ctx.morphNode.setAttribute('title', string)
+    }
+
 });
 
 }) // end of module

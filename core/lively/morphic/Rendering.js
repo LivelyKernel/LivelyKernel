@@ -19,6 +19,16 @@ Trait('lively.morphic.Renderable',
         if (newRenderContext) {
             newRenderContext[this.renderContextTableType] = Object.mergePropertyInHierarchy(
                 this, newRenderContext.renderContextTableName);
+            // install shortcut if available
+            var speedUpTrait = newRenderContext.speedUpTrait;
+            if (speedUpTrait) {
+                speedUpTrait.applyTo(this, { override:
+                    Object.getOwnPropertyNames(speedUpTrait.def).select(function(fnName) {
+                        // only override if current method is the original of lively.morphic.Morph
+                        return Object.valuesInPropertyHierarchy(this, fnName).last() == lively.morphic.Morph.prototype[fnName];
+                    }, this)
+                });
+            }
         }
         this._renderContext = newRenderContext;
     },

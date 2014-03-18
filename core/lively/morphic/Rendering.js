@@ -344,6 +344,22 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         return pt(noScrollbarWidth-scrollbarWidth, noScrollbarHeight-scrollbarHeight);
     },
 
+    showsHorizontalScrollBarHTML: function(node, borderWidth) {
+        if (!node) return false;
+        if (!borderWidth) borderWidth = 0;
+        var fullHeight = node.offsetHeight - borderWidth*2,
+            innerHeight = node.clientHeight;
+        return innerHeight > 0 && fullHeight !== innerHeight;
+    },
+
+    showsVerticalScrollBarHTML: function (node, borderWidth) {
+        if (!node) return false;
+        if (!borderWidth) borderWidth = 0;
+        var fullWidth = node.offsetWidth - borderWidth*2,
+            innerWidth = node.clientWidth;
+        return innerWidth > 0 && fullWidth !== innerWidth;
+    },
+
     getCssInt: function(node, key) {
         var result = parseInt(node.style[key]);
         if (isNaN(result)) {

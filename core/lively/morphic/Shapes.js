@@ -136,8 +136,16 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
 },
 'accessing', {
     getExtent: function() {
-        // FIXME: this does not work in Firefox
-        return this.renderContextDispatch('getExtent') || pt(0,0);
+        var baseVal = this.renderContextDispatch('getExtent') || pt(0,0), // FIXME: this does not work in Firefox
+            ctx = this.renderContext(),
+            borderW = this.getBorderWidth(),
+            hasScrollBarH = ctx.domInterface.showsVerticalScrollBarHTML(ctx.shapeNode, borderW),
+            hasScrollBarV = ctx.domInterface.showsHorizontalScrollBarHTML(ctx.shapeNode, borderW);
+        if (hasScrollBarV || hasScrollBarH) {
+            var scrollbarExt = lively.morphic.Morph.prototype.getScrollBarExtent();
+            baseVal = baseVal.addXY(hasScrollBarH ? scrollbarExt.x : 0, hasScrollBarV ? scrollbarExt.y : 0);
+        }
+        return baseVal.addXY(borderW*2, borderW*2);
     }
 });
 

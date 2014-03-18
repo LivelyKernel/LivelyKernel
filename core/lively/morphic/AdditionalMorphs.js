@@ -794,6 +794,15 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         }
         return JSON.stringify(result);
     },
+
+    exportToDocument: function(url) {
+        if (!url) {
+            if (this.name) url = URL.source.withFilename(this.name + '.html');
+            else url = URL.source.withFilename('exported-html-wrapper.html');
+        }
+        new WebResource(url).put(this.getHTML(), 'text/html');
+    }
+
 },
 "HTML access", {
     appendElement: function(elementMap) {
@@ -847,6 +856,12 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         }]);
         items.push(['open in web page', function() {
             window.open('data:text/html;charset=utf-8,' + encodeURIComponent(target.getHTML()));
+        }]);
+        items.push(['save as html document...', function() {
+            $world.prompt("Please enter the URL for the document", function(urlString) {
+                if (!urlString) return show('aborted');
+                target.exportToDocument(urlString);
+            }, URL.source.withFilename('index.html').toString());
         }]);
         return items;
     },

@@ -660,9 +660,8 @@ Object.extend(lively.ide.commands.byName, {
         description: 'open directory viewer',
         isActive: true,
         exec: function(directory) {
-            require('lively.ide.tools.DirViewer', 'lively.ide.CommandLineInterface').toRun(function() {
-                var viewer = lively.BuildSpec('lively.ide.tools.DirViewer').createMorph().openInWorldCenter().comeForward();
-                viewer.targetMorph.goto.bind(viewer.targetMorph, directory || lively.shell.cwd()).delay(0);
+            require('lively.ide.tools.DirViewer').toRun(function() {
+                lively.BuildSpec('lively.ide.tools.DirViewer').createMorph().openInWorldCenter().comeForward();
             });
         }
     },

@@ -719,6 +719,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         goto: function goto(dir) {
         this.dirState.path = dir;
         this.get('targetDir').textString = dir;
+        this.getWindow().setTitle('Dir: ' + dir);
         this.fetchAndDisplayDirContent();
     },
         gotoParentDir: function gotoParentDir() {
@@ -788,7 +789,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
     },
         onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         $super();
-        this.goto(lively.ide.CommandLineInterface.getWorkingDirectory());
+        this.goto(lively.ide.CommandLineInterface.cwd());
     },
     onKeyDown: function onKeyDown(evt) {
     var fl              = this.get('fileList'),

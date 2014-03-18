@@ -1,6 +1,22 @@
 module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec').toRun(function() {
 
 Object.extend(lively.net.tools.Lively2Lively, {
+
+    openWorkspaceForSession: function(sess) {
+        var world = lively.morphic.World.current();
+        var workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
+        workspace.openInWorldCenter().comeForward();
+        (function() {
+            workspace.targetMorph.showSessionIdInput();
+            (function() {
+                var sel = workspace.get('ConnectionInput').getList().detect(function(item) {
+                    return item.value.id === sess.id;
+                });
+                workspace.get('ConnectionInput').setSelection(sel);
+            }).delay(.5);
+        }).delay(0);
+    },
+
     withWikiRecordsDo: function(lastUpdate, thenDo) {
         lively.net.Wiki.getRecords({
             limit: 10,

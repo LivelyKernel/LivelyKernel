@@ -1991,16 +1991,18 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             return combo.startsWith(prefix) ? combo : null; }).compact();
     },
 
-    addTempKeyCombo: function(combo, cmdName, tempGroup) {
+    addTempKeyCombo: function(rawCombo, cmdName, tempGroup) {
         if (!tempGroup) throw new Error('addTempKeyCombo needs a tempGroup name');
-        var existingCommand = this.lookupAll(combo.split(' '));
+        var existingCommand = this.lookupAll(rawCombo.split(' '));
         if (existingCommand) {
+            var combo = this.normalizeCombo(rawCombo.split(' '));
             if (!this.bindings.$overwrites) this.bindings.$overwrites = {};
             if (!this.bindings.$overwrites[combo]) this.bindings.$overwrites[combo] = existingCommand;
         }
-        return this.addKeyCombo(combo, cmdName);
+        return this.addKeyCombo(rawCombo, cmdName);
     },
-    removeTempKeyCombo: function(combo) {
+    removeTempKeyCombo: function(rawCombo) {
+        var combo = this.normalizeCombo(rawCombo.split(' '));
         if (this.bindings.$overwrites && this.bindings.$overwrites[combo]) {
             this.addKeyCombo(combo, this.bindings.$overwrites[combo]);
             delete this.bindings.$overwrites[combo];

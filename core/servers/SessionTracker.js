@@ -11,8 +11,9 @@ function uuid() { // helper
 }
 
 var debugLevel = 1;
-
 var debugThreshold = 1;
+var logSessionLifetime = true;
+
 function log(/*level, msg, arguments*/) {
     // the smaller logLevel the more important the message
     var args = Array.prototype.slice.call(arguments);
@@ -38,11 +39,35 @@ var sessionActions = {
     },
 
     registerClient: function(sessionServer, connection, msg) {
+        // Adds a lively2lively session object for the client identified with
+        // msg.data.id (or reuses the old session if client is already registered).
+        // Note that there is a difference between the session object created
+        // here and the (HTTP/websocket) connection object used to send/receive
+        // messages: The session can persist even though the underlaying
+        // connection may change or be closed. Session objects have the structure: {
+        //     timeOfCreation: NUMBER,    -- timestamp of session creation, reported by client
+        //     timeOfRegistration: NUMBER -- timestamp of session registration, attached by server
+        //     lastActivity: NUMBER,      -- timestamp of last reported activity
+        //     user: STRING,              -- name of the session, not unique
+        //     worldURL: STRING           -- the URL of the connected "world"
+        //     id: STRING                 -- unique, identifies the client, looks like 'client-session:E25F3CCC-F82D-41F4-B3E7-CDA398BD7D2D'
+        //     remoteAddress: STRING      -- ip
+        // }
         var sessions = sessionServer.getLocalSessions()[sessionServer.id()],
-            session = sessions[msg.sender] = sessions[msg.sender] || {};
+            session = sessions[msg.sender],
+            isNewSession = false;
+
+        if (!session) {
+            isNewSession = true;
+            session = sessions[msg.sender] = {}
+        }
+
         util._extend(session, msg.data);
-        util._extend(session, {remoteAddress: connection.remoteAddress,
-            timeOfRegistration: new Date().getTime()});
+        util._extend(session, {
+            remoteAddress: connection.remoteAddress,
+            timeOfRegistration: new Date().getTime()
+        });
+
         connection.id = msg.data.id;
         connection.on('close', function() {
             // remove the session registration after the connection closes
@@ -55,9 +80,19 @@ var sessionActions = {
                 if (!newConnection) {
                     log(2, '%s removes local session of %s', sessionServer, msg.sender);
                     delete sessions[msg.sender];
+                    if (logSessionLifetime) {
+                        console.log('l2l deregistration "%s" %s %s %s',
+                            session.user, session.worldURL, session.id, session.remoteAddress);
+                    }
                 }
             }, sessionServer.inactiveSessionRemovalTime);
         });
+
+        if (logSessionLifetime && isNewSession) {
+            console.log('l2l registration "%s" %s %s %s',
+                session.user, session.worldURL, session.id, session.remoteAddress);
+        }
+
         connection.send({
             action: msg.action + 'Result',
             inResponseTo: msg.messageId,
@@ -178,7 +213,10 @@ function SessionTracker(options) {
         var sessionTracker = this;
         return Object.keys(services).reduce(function(actions, name) {
             if (informFunc) {
-                actions[name] = function(con, msg) { informFunc(sessionTracker, con, msg); services[name](sessionTracker, con, msg) };
+                actions[name] = function(con, msg) {
+                    informFunc(sessionTracker, con, msg);
+                    services[name](sessionTracker, con, msg);
+                };
             } else {
                 actions[name] = services[name].bind(null, sessionTracker);
             }

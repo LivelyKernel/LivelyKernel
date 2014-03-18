@@ -326,8 +326,7 @@ util.inherits(WebSocketServer, EventEmitter);
         c.request = request;
 
         c.on('close', function(msg) {
-            if (c.id) log(this.debugLevel, 'websocket %s closed', c.id)
-            else log(this.debugLevel, 'a websocket connection was closed');
+            log(this.debugLevel, 'ws connection ' + (c.id?'('+c.id+')' : '') + ' was closed');
             server.removeConnection(c);
         });
 
@@ -356,7 +355,7 @@ util.inherits(WebSocketServer, EventEmitter);
         if (!c) return;
         var id = typeof c === 'string' && c;
         if (id) {
-            this.getConnections(id).forEach(function(c) { this.removeConnection(c); }, this);
+            this.getConnections(id).forEach(this.removeConnection.bind(this));
             return;
         }
         c && c.close();
@@ -366,7 +365,7 @@ util.inherits(WebSocketServer, EventEmitter);
     }
 
     this.removeConnections = function() {
-        [].concat(this.connections).forEach(function(c) { this.removeConnection(c); }, this);
+        [].concat(this.connections).forEach(this.removeConnection.bind(this));
     }
 
     this.getConnection = function(id) {
@@ -374,14 +373,15 @@ util.inherits(WebSocketServer, EventEmitter);
     }
 
     this.getConnections = function(id) {
-        if (!id) return [].concat(this.connections);
-        return this.connections.filter(function(c) { return c.id === id; })
+        return id ?
+            this.connections.filter(function(c) { return c.id === id; }) :
+            [].concat(this.connections);
     }
 
     this.addConnection = function(c) {
         if (c.id) {
             var existing = this.getConnections(c.id);
-            existing.forEach(function(ea) { this.removeConnection(ea); }, this);
+            existing.forEach(this.removeConnection.bind(this));
         }
         this.connections.push(c);
         return c;

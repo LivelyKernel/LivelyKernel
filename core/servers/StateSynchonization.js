@@ -9,6 +9,7 @@ if (!global.lively.PropertyPath) {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// subscribers[0].paths
 
 subscribers = [];
 sTracker = require('./SessionTracker').SessionTracker.servers['/nodejs/SessionTracker/']
@@ -21,8 +22,10 @@ var storeName = "stateSynchronization",
             if (path = request.paths.detect(function(ea) { 
                     return ea.isParentPathOf(changedPath) || changedPath.isParentPathOf(ea)}))
                 sTracker.findConnection(request.l2lId, function(err, connection) {
-                    if (err) return // any type of error will result in not informing this connection this time
-                    if (path.equal(changedPath))
+                    if (err) 
+                        return // any type of error will result in not informing this connection this time
+                        // should  the connection be removed?
+                    if (path.equals(changedPath))
                         connection.send({
                             action: 'syncValueChanged',
                             data: {changedPath: path.toString(), value: value, valuePath: path.toString()}
@@ -71,6 +74,7 @@ var subscribe = function(sender, path, subscribers) {
     assert.ok(subscribers.length == 1 && subscribers[0].paths.length == 2, "adding child failed")
     subscribe("1", pp("a"), subscribers)
     assert.ok(subscribers.length == 1 && subscribers[0].paths.length == 1, "merge paths with newcomer failed")
+    subscribers = [];
 })()
 
 var retry = function(connection, msg) {

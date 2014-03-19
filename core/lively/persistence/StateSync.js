@@ -321,7 +321,6 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     informHandles: function(changedPath, valuePath, value) {
         // path = lively.PropertyPath(path);
         this.rootHandles.forEach(function(ea) {
-            debugger;
             ea.child(valuePath).propagateChange(lively.PropertyPath(changedPath), value);
         })
     },
@@ -375,12 +374,18 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     },
 }, 'model Synchronization', {
     save: function(value, source, connection) {
-        alertOK("empty save: " + value);
+        if (this.noSave) return;
+        var model = this.asModel();
+        this.synchronizationHandles &&
+        this.synchronizationHandles.forEach(function(handle) {
+            handle.overwriteWith(model, function(err, val) {  }, this.synchronizationGet)
+        })
     },
     mergeWithModelData: function merge(someValue) {
+        this.noSave = true;
         this.recursivelyWalk({
             text: function(functions, values) {
-                if (values.string && values.timestamp && this.changeTime < values.timestamp) {
+                if (values.string && values.timestamp && (!this.changeTime || this.changeTime < values.timestamp)) {
                     this.textString = this.savedTextString = values.string;
                     this.changeTime = values.timestamp;
                 }
@@ -392,11 +397,12 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
                         // only named morphs are candidates for fields
                         if (morph.mergeWithModelData && values[morph.name])
                             morph.mergeWithModelData(values[morph.name])
-                        else merge.call(morph, values[morph.name])
+                        else functions.walk.call(morph, functions, values[morph.name])
                     }
                 });
             },
         }, someValue)
+        this.noSave = false;
     },
     asModel: function() {
         var obj = this.recursivelyWalk({
@@ -418,11 +424,9 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         return obj
     },
     recursivelyWalk: function(functions) {
-        // the general strukture here stops recursion whenever there is a match, 
-        // i.e. submorphs of textmorphs a.o. are not synchronized
         functions.walk = functions.walk || arguments.callee;
         // text case (duck typing)
-        if (functions.text && this.hasOwnProperty("textString") || this.__lookupGetter__("textString"))
+        if (functions.text && (this.hasOwnProperty("textString") || this.__lookupGetter__("textString")))
             return functions.text.apply(this, arguments);
 
         // base case
@@ -430,7 +434,8 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     },
 })
 
-Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), function connectSavingProperties(anObject, options) {
+Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+function connectSavingProperties(anObject, options) {
     anObject.recursivelyWalk({
         text: function(functions, syncMorph) {
             connect(this, this.isCodeEditor ? "savedTextString" : "textString", 

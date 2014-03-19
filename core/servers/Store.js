@@ -1,6 +1,5 @@
 var f = require('util').format;
 var i = require('util').inspect;
-var vm = require('vm');
 var fs = require('fs');
 inMemoryStores = {};
 var changes = {};
@@ -13,8 +12,8 @@ function loadLivelyCode(path) {
     lively = global.lively || {};
     Global = global;
     try {
-        fileContent = fs.readFileSync(require.resolve('../' + path));
-        vm.runInThisContext(fileContent, {Global: global});
+        var fileContent = fs.readFileSync(require.resolve('../' + path));
+        require('vm').runInThisContext(fileContent, {Global: global});
     } catch(e) {
         console.error(e);
         return false;
@@ -22,7 +21,7 @@ function loadLivelyCode(path) {
     return true;
 }
 
-loadLivelyCode('lively/lang/Object');
+loadLivelyCode('lively/lang/Object.js');
 
 // ---------------------------------
 
@@ -118,10 +117,12 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
                 return ea.slice(-fileStoreSuffix.length) === fileStoreSuffix })
             .forEach(function(ea) {
                 console.log("restoring %s", ea)
-                fs.readFile(ea, function(err, data) {
+                fs.readFile(folder + "/" + ea, function(err, data) {
                     var storeName = ea.slice(0, -fileStoreSuffix.length);
                     if (inMemoryStores[storeName] === undefined)
-                        inMemoryStores[storeName] = JSON.parse(data);
+                        try{
+                            inMemoryStores[storeName] = JSON.parse(data);
+                        } catch (e) {}
                 })
         })
     })

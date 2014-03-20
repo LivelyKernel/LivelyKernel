@@ -8,6 +8,7 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ObjectLookupTest',
     }
 },
 'testing', {
+
     testLookupAndAssignObjectPath: function() {
         var context = lively.tests.ModuleSystemTests;
         this.assert(!context.foo, 'setup failed');
@@ -23,6 +24,40 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ObjectLookupTest',
         this.assertIdentity(foo2, lively.lookup("foo", context), 'assignObjectToPath 2');
         lively.assignObjectToPath(foo1, "lively.tests.ModuleSystemTests.foo");
         this.assertIdentity(foo1, lively.lookup("foo", context), 'assignObjectToPath 3');
+    },
+
+    testLookupPathWithBrackets: function() {
+        var context = {foo: ['a', 'b', {c: 55}], 'zork-foo': {x: 3}};
+        this.assertIdentity(context.foo[2].c, lively.lookup('foo[2].c', context), '1');
+        this.assertIdentity(context.foo[2].c, lively.lookup('foo["2"].c', context), '2');
+        this.assertIdentity(context.foo[2].c, lively.lookup('foo[\'2\'].c', context), '3');
+        this.assertIdentity(context.foo[2], lively.lookup('foo[2]', context), '4');
+        this.assertIdentity(context['zork-foo'].x, lively.lookup('["zork-foo"].x', context), '5');
+        this.assertIdentity(context['zork-foo'].x, lively.lookup('["zork-foo"]["x"]', context), '6');
+    },
+
+    testParseObjectPath: function() {
+        var test = this,
+            paths = [{expected: ['foo', '0'], string: 'foo[0]'},
+                     {expected: ['foo', '2', 'c'], string: 'foo[2].c'},
+                     {expected: ['foo', '2', 'c'], string: 'foo[2]["c"]'},
+                     {expected: ['foo', '2', 'c'], string: 'foo[2][c]'},
+                     {expected: ['foo'], string: 'foo'},
+                     {expected: ['bar', 'zork-foo'], string: 'bar["zork-foo"]'},
+                     {expected: ['bar', 'zork-foo'], string: 'bar[zork-foo]'},
+                     {expected: ['x-y'], string: '[x-y]'},
+                     {expected: ['foo', 'bar'], string: 'foo.bar'},
+                     {expected: ['f.o.o\\"]', 'x'], string: '["f.o.o\\"]"].x'}];
+
+        function assertSplits(expected, string, result) {
+            test.assertEquals(expected, result,
+                Strings.format('didn\'t split %s into\n%s but\n%s',
+                    string, Strings.print(expected), Strings.print(result)));
+        }
+
+        paths.forEach(function(test) {
+            assertSplits(test.expected, test.string, lively.parsePath(test.string));
+        });
     }
 });
 

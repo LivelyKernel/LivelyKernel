@@ -325,8 +325,9 @@ util.inherits(WebSocketServer, EventEmitter);
         var c = request.accept('lively-json', request.origin), server = this;
         c.request = request;
 
+        var self = this;
         c.on('close', function(msg) {
-            log(this.debugLevel, 'ws connection ' + (c.id?'('+c.id+')' : '') + ' was closed');
+            log(self.debugLevel, 'ws connection ' + (c.id?'('+c.id+')' : '') + ' was closed');
             server.removeConnection(c);
         });
 

@@ -2220,73 +2220,54 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
     // phase! We do this by attaching another handler dynamically that will only
     // be called when morphs to not actively handle (= calling evt.stop()) the
     // event
-    lively.morphic.Events.GlobalEvents.unregister('keydown', "defaulGlobalKeyHandler", true);
-    lively.morphic.Events.GlobalEvents.unregister('keydown', "doGlobalActionsOnBubble", false);
-    lively.morphic.Events.GlobalEvents.register('keydown', defaulGlobalKeyHandler, true);
-    lively.morphic.Events.GlobalEvents.register('keydown', doGlobalActionsOnBubble, false);
-    // ---------------------
-    function doGlobalActionsOnBubble(evt) { // <-- bubbling phase
-        var result = lively.morphic.KeyboardDispatcher.handleGlobalKeyEvent(evt);
-        if (!result) return false;
-        evt.stop(); return true;
-    }
-    // ---------------------
-    function defaulGlobalKeyHandler(evt) { // <-- capturing phase
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function defaulGlobalKeyHandler(evt) { // 1. capturing phase, outer -> inner
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false});
         if (doDefaultEscapeAction(evt, keys)) return true;
         if (ensureFocusedMorph(evt, keys)) return undefined;
-        if (triggerHalosViaKeyCombo(evt, keys)) return true;
         if (transferKeyPrefixFromCodeEditor(evt, keys)) return true;
         if (showPressedKeys(evt, keys)) return true;
         return undefined;
     }
-    // ---------------------
+
+    function doGlobalActionsOnBubble(evt) { // 2. bubbling phase, in -> out
+        var result = lively.morphic.KeyboardDispatcher.handleGlobalKeyEvent(evt);
+        if (!result) return false;
+        evt.stop(); return true;
+    }
+
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "defaulGlobalKeyHandler", true);
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "doGlobalActionsOnBubble", false);
+    lively.morphic.Events.GlobalEvents.register('keydown', defaulGlobalKeyHandler, true);
+    lively.morphic.Events.GlobalEvents.register('keydown', doGlobalActionsOnBubble, false);
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // helpers
+
     function doDefaultEscapeAction(evt, keys) {
         return keys === 'Esc'
             && lively.ide.commands.exec('lively.morphic.World.escape');
     }
-    // ---------------------
+
     function ensureFocusedMorph(evt, keys) {
         var focused = lively.morphic.Morph.focusedMorph(),
-            world = focused && focused.world() || evt.world || lively.morphic.World.current();
-        var focused = lively.morphic.Morph.focusedMorph();
+            world = focused && focused.world() || evt.world || lively.morphic.World.current(),
+            focused = lively.morphic.Morph.focusedMorph();
         if (focused) return false;
         world.focus.bind(world).delay();
         return true;
     }
-    // ---------------------
+
     function transferKeyPrefixFromCodeEditor() {
         var handler = lively.morphic.KeyboardDispatcher.global();
         handler.keyInputState = handler.transferPrefixFromActiveCodeEditor(handler.keyInputState);
     }
-    // ---------------------
+
     function showPressedKeys(evt, keys) {
         if (!evt.world.showPressedKeys) return false;
         var keysNoModifier = evt.getKeyString({ignoreModifiersIfNoCombo: true});
         keysNoModifier && keysNoModifier.length > 0 && lively.log(keysNoModifier);
         return true;
-    }
-    // ---------------------
-    // trigger halos via Command-Alt press. This is an experimental feature
-    // that might soon be removed
-    var haloTriggerCount = 0;
-    function triggerHalosViaKeyCombo(evt, keys) {
-        if (keys === 'Command-Alt') haloTriggerCount++;
-        else if (keys !== 'Command' && keys !== 'Alt') haloTriggerCount = 0;
-        if (haloTriggerCount !== 2) return false;
-        evt.mousePoint = evt.hand.getPosition();
-        var target;
-        if (!evt.world.currentHaloTarget
-         || !evt.world.currentHaloTarget.fullContainsWorldPoint(evt.getPosition())
-         || evt.world.currentHaloTarget === evt.world) {
-            target = evt.hand.morphUnderMe();
-        } else {
-            target = evt.world.currentHaloTarget;
-        }
-        target.toggleHalos(evt);
-        haloTriggerCount = 0;
-        evt.stop(); return true;
     }
 })();
 

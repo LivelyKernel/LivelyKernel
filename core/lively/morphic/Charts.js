@@ -97,7 +97,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     },
     
     addViewer: function(envKey) {
-        var viewer = lively.morphic.Charts.Component.createWindow("JsonViewer");
+        var content;
+        if (envKey === "interaction") {
+            content = "InteractionPanel";
+        } else if (envKey.indexOf("canvas") != -1){
+            // envKey contains "canvas"
+            content = "FreeLayout";
+        } else {
+            content = "JsonViewer";
+        }
+        var viewer = lively.morphic.Charts.Component.createWindow(content);
         viewer.envKey = envKey;
         viewer.setExtent(pt(this.getExtent().x - 40, viewer.getExtent().y));
         viewer.setPosition(pt(20, 20));
@@ -185,6 +194,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
                     }
                     var description = "Choose attribute of " + name + " to connect with";
                     var dialog = new lively.morphic.PromptDialog(description, createInteractionVariable, {input: "value"});
+                    console.log("Dialog opened")
                     dialog.openIn($world, pt(window.innerWidth / 2, window.innerHeight / 2));
                 }
             }
@@ -525,6 +535,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         this.data = data;
         this.content.update(data);
     },
+
 
     onDrag: function($super, evt) {
         $super();
@@ -2013,7 +2024,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     initialize: function($super) {
         $super();
         this.description = "Canvas";
-        this.extent = pt(600, 600);
+        this.extent = pt(600, 300);
         
         this.setFill(Color.white);
         this.setName("Canvas");
@@ -2100,7 +2111,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
-
+        
         var __evalStatement = this.createEvalStatement();
         
         // see also $super

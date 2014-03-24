@@ -438,8 +438,13 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 'accessing', {
     setChecked: function(bool) {
         // FIXME: render context dependent
+        var self = this;
         this.checked = bool;
-        this.renderContext().shapeNode.checked = bool;
+        function setDOMState() {
+            self.renderContext().shapeNode.checked = bool;
+        }
+        if (this.isRendered()) setDOMState()
+        else this.whenOpenedInWorld(setDOMState)
         return bool;
     }
 },

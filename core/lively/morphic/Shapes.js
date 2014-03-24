@@ -137,8 +137,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
 'accessing', {
     getExtent: function() {
         var baseVal = this.renderContextDispatch('getExtent') || pt(0,0), // FIXME: this does not work in Firefox
-            ctx = this.renderContext(),
-            borderW = this.getBorderWidth(),
+            ctx = this.renderContext();
+        if (!ctx) return baseVal;
+        var borderW = this.getBorderWidth(),
             hasScrollBarH = ctx.domInterface.showsVerticalScrollBarHTML(ctx.shapeNode, borderW),
             hasScrollBarV = ctx.domInterface.showsHorizontalScrollBarHTML(ctx.shapeNode, borderW);
         if (hasScrollBarV || hasScrollBarH) {

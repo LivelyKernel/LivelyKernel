@@ -2394,7 +2394,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 var argsForOldFn = Array.prototype.slice.call(arguments);
 
                 oldFn.apply(aMorph, argsForOldFn);
-                if (_this.copiedMorphs) {
+                var applyToExistingCopies = false;
+                if (applyToExistingCopies && _this.copiedMorphs) {
                     _this.copiedMorphs.map(function(copiedMorph) {
                         oldFn.apply(copiedMorph, argsForOldFn);
                     });

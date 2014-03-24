@@ -120,10 +120,9 @@ lively.morphic.Morph.addMethods(
             clone.shape = jQuery.extend({}, normalCopy.shape);
             clone.owner = null;
             
-            
-            
             clone._Rotation = normalCopy._Rotation;
-            clone.withAllSubmorphsDo(function(ea) { ea.setNewId() })
+            clone.textString = normalCopy.textString;
+            clone.withAllSubmorphsDo(function(ea) { ea.setNewId() });
             clone.prepareForNewRenderContext(clone.renderContext().newInstance());
             clone.findAndSetUniqueName();
             clone.disconnectObsoleteControlPoints();

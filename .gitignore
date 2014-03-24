@@ -2,7 +2,7 @@
 .DS_Store
 
 # optimized loading #
-combined.js
+combined.js*
 
 # Scripts #
 workspace/

@@ -1120,7 +1120,7 @@
         }
     };
 
-    Global.LivelyMigrationSupport = {
+    var LivelyMigrationSupport = Global.LivelyMigrationSupport = {
         // increase this value by hand if you make a change that effects
         // object layout LivelyMigrationSupport.migrationLevel
         migrationLevel: 8,
@@ -1131,42 +1131,41 @@
 
         extractMigrationLevel: function(doc) {
             // LivelyMigrationSupport.extractMigrationLevel(document);
-            var node = doc.getElementById(this.migrationLevelNodeId);
+            var node = doc.getElementById(LivelyMigrationSupport.migrationLevelNodeId);
             return node ? Number(node.textContent) : 0;
         },
 
         setDocumentMigrationLevel: function(doc) {
-            this.documentMigrationLevel = this.extractMigrationLevel(doc);
+            LivelyMigrationSupport.documentMigrationLevel = LivelyMigrationSupport.extractMigrationLevel(doc);
         },
 
         // module renaming
         fixModuleName: function(name) {
             if (/^Global\./.test(name)) name = name.substring(7/*Global.*/);
             if (/^\.\.\//.test(name)) name = name.substring(3/*../*/);
-            for (var oldName in this.moduleRenameDict) {
-                if (oldName === name) return this.moduleRenameDict[oldName];
-            }
+            for (var oldName in LivelyMigrationSupport.moduleRenameDict)
+                if (oldName === name)
+                    return LivelyMigrationSupport.moduleRenameDict[oldName];
             return name;
         },
 
         addModuleRename: function(oldName, newName, migrationLevel) {
-            this.moduleRenameDict[oldName] = newName;
+            LivelyMigrationSupport.moduleRenameDict[oldName] = newName;
         },
 
         addWorldJsoTransform: function(func) {
-            this.worldJsoTransforms.push(func);
+            LivelyMigrationSupport.worldJsoTransforms.push(func);
         },
 
         applyWorldJsoTransforms: function(jso) {
-            this.worldJsoTransforms.forEach(function(func) { jso = func(jso) });
+            LivelyMigrationSupport.worldJsoTransforms.forEach(function(func) { jso = func(jso) });
             return jso;
         },
 
         fixCSS: function(doc) {
-            var styles = document.getElementsByTagName('style')
-            for (var i = styles.length-1; i >= 0; i--) {
-                styles[i].parentNode.removeChild(styles[i]);
-            }
+            Array.prototype.slice.call(document.getElementsByTagName('style'))
+                .reverse()
+                .forEach(function(node) { node.parentNode.removeChild(node); });
         }
     };
 

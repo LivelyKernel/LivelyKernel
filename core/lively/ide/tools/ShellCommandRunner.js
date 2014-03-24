@@ -175,6 +175,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         this.get('output').append(string);
     },
         onKeyDown: function onKeyDown(evt) {
+        if (this.showsHalos) return $super(evt);
         var sig = evt.getKeyString();
         switch(sig) {
             case 'Alt-Up': case 'F1': this.get('output').focus(); evt.stop(); return true;

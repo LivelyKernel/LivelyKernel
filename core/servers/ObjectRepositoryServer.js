@@ -27,6 +27,8 @@ module.exports = function(route, app) {
             res.status(400).end(JSON.stringify({error: err && err.stack || err || 'Need query.getRecords!'}));
             return;
         }
+        if (getRecords.paths)
+            getRecords.paths = getRecords.paths.map(function(path) { return decodeURI(path); });
         lively.repository.getRecords(getRecords, function(err, rows) {
             if (err) res.status(400).end(String(err))
             else res.json(rows);

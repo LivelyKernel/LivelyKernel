@@ -49,6 +49,11 @@ Object.extend(lively, {
 
     module: function module(moduleName) {
         moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
+        var module = createNamespaceModule(moduleName);
+        module.requires = basicRequire.curry(module);
+        return module;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         function isNamespaceAwareModule(moduleName) {
             return moduleName && !moduleName.endsWith('.js');
@@ -70,17 +75,20 @@ Object.extend(lively, {
         }
 
         function basicRequire(/*module, requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
-            // support modulenames as array and parameterlist
+            // support module names as array and parameterlist
+
             var args = Array.from(arguments),
                 module = args.shift(),
                 preReqModuleNames = Object.isArray(args[0]) ? args[0] : args,
                 requiredModules = [];
-            for (var i = 0; i < preReqModuleNames.length; i++) {
-                var name = LivelyMigrationSupport.fixModuleName(preReqModuleNames[i]),
-                    reqModule = createNamespaceModule(name);
-                module.addRequiredModule(reqModule);
-                requiredModules.push(reqModule);
-            }
+
+            preReqModuleNames
+                .map(LivelyMigrationSupport.fixModuleName)
+                .map(createNamespaceModule)
+                .forEach(function(reqModule) {
+                    module.addRequiredModule(reqModule);
+                    requiredModules.push(reqModule);
+                })
 
             function requiresLib(libSpec) {
                 if (libSpec) module.addRequiredLib(libSpec);
@@ -118,9 +126,6 @@ Object.extend(lively, {
             return toRunOrRequiresLibObj;
         };
 
-        var module = createNamespaceModule(moduleName);
-        module.requires = basicRequire.curry(module);
-        return module;
     },
 
     require: function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
@@ -132,6 +137,7 @@ Object.extend(lively, {
             try { throw new Error() } catch(e) { m.defStack = e.stack }
         return m.requires(Object.isArray(args[0]) ? args[0] : args);
     }
+
 });
 
 Object.extend(Global, {

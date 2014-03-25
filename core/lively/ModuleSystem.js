@@ -78,7 +78,7 @@ Object.extend(lively, {
             // support module names as array and parameterlist
 
             var args = Array.from(arguments),
-                module = args.shift(),
+                thisModule = args.shift(),
                 preReqModuleNames = Object.isArray(args[0]) ? args[0] : args,
                 requiredModules = [];
 
@@ -86,36 +86,36 @@ Object.extend(lively, {
                 .map(LivelyMigrationSupport.fixModuleName)
                 .map(createNamespaceModule)
                 .forEach(function(reqModule) {
-                    module.addRequiredModule(reqModule);
+                    thisModule.addRequiredModule(reqModule);
                     requiredModules.push(reqModule);
-                })
+                });
 
             function requiresLib(libSpec) {
-                if (libSpec) module.addRequiredLib(libSpec);
+                if (libSpec) thisModule.addRequiredLib(libSpec);
                 return toRunOrRequiresLibObj;
             }
 
             function moduleExecute(code) {
                 var debugCode = code;
                  // pass in own module name for nested requirements
-                code = code.curry(module);
+                code = code.curry(thisModule);
                  // run code with namespace modules as additional parameters
                 function codeWrapper() {
                     try {
-                        module.activate();
+                        thisModule.activate();
                         code.apply(this, requiredModules);
-                        module._isLoaded = true;
+                        thisModule._isLoaded = true;
                     } catch(e) {
-                        module.logError(e, debugCode);
+                        thisModule.logError(e, debugCode);
                     } finally {
-                        module.deactivate();
+                        thisModule.deactivate();
                     }
                 }
-                module.addOnloadCallback(codeWrapper, 0/*add as first callback*/);
+                thisModule.addOnloadCallback(codeWrapper, 0/*add as first callback*/);
                 // wasDefined: module body and module requirements encountered but
                 // body not necessarily executed or requirements loaded
-                module.wasDefined = true;
-                module.load();
+                thisModule.wasDefined = true;
+                thisModule.load();
             }
 
             var toRunOrRequiresLibObj = {
@@ -129,10 +129,10 @@ Object.extend(lively, {
     },
 
     require: function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
-        var getUniqueName = function() { return 'anonymous_module_' + require.counter },
+        var getUniqueName = function() { return 'anonymous_module_' + lively.require.counter },
             args = Array.from(arguments);
-        require.counter !== undefined ? require.counter++ : require.counter = 0;
-        var m = module(getUniqueName()).beAnonymous();
+        lively.require.counter !== undefined ? lively.require.counter++ : lively.require.counter = 0;
+        var m = lively.module(getUniqueName()).beAnonymous();
         if (lively.Config.showModuleDefStack)
             try { throw new Error() } catch(e) { m.defStack = e.stack }
         return m.requires(Object.isArray(args[0]) ? args[0] : args);
@@ -140,12 +140,7 @@ Object.extend(lively, {
 
 });
 
-Object.extend(Global, {
-    module: lively.module,
-    require: lively.require
-});
-
-Object.subclass('lively.Module',
+var Module = Object.subclass('lively.Module',
 'properties', {
     isLivelyModule: true
 },
@@ -500,6 +495,23 @@ Object.subclass('lively.Module',
     }
 });
 
+(function createLivelyNamespace(Global) {
+    // let Global act like a namespace itself
+    Object.extend(Global, {namespaceIdentifier: 'Global'});
+    Object.extend(Global, Module.prototype);
+    Global.isLoaded = Functions.True;
+
+    // make "lively" a proper lively.Module and get the properties of a
+    // potentially predefined "lively" object over to the namespace lively object
+    var helper = Global.lively,
+        lively = new Module(Global, 'lively');
+    for (var name in helper) lively[name] = helper[name];
+    lively.Module = Module;
+    Global.module = lively.module;
+    Global.require = lively.require;
+    Global.lively = lively;
+})(Global);
+
 Object.extend(lively.Module, {
 
     namespaceStack: [Global],
@@ -619,22 +631,6 @@ Object.extend(lively.Module, {
     }
 });
 
-(function createLivelyNamespace(Global) {
-    Object.extend(Global, {namespaceIdentifier: 'Global'});
-    // let Global act like a namespace itself
-    Object.extend(Global, Global.lively.Module.prototype);
-    Global.isLoaded = Functions.True;
-    // make "lively" a proper lively.Module
-    var helper = Global.lively,
-        lively = new Global.lively.Module(Global, 'lively');
-    // FIXME this is just a hack to get properties of a potentially
-    // predefined "lively" object over to the namespace lively object
-    // namespaces should deal with this in general
-    for (var name in helper) {
-        lively[name] = helper[name];
-    }
-    Global.lively = lively;
-})(Global);
 
 (function addUsefulStuffToLivelyNS(Global, lively) {
     lively.assert = Global.assert;

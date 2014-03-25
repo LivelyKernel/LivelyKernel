@@ -406,7 +406,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         found = i;
                         if (!isEmptyLine(lines[i-1]) && isEmptyLine(lines[i])) break;
                     }
-                    ed.selection.moveCursorToPosition({row: pos.row+found, column: 0});
+                    ed.selection[ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: pos.row+found, column: 0});
                 },
                 readOnly: true
             }, {
@@ -420,7 +420,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         found = i;
                         if (!isEmptyLine(lines[i+1]) && isEmptyLine(lines[i])) break;
                     }
-                    ed.selection.moveCursorToPosition({row: found, column: 0});
+                    ed.selection[ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: found, column: 0});
                 },
                 readOnly: true
             }, {

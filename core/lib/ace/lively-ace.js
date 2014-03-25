@@ -19502,24 +19502,25 @@ exports.handler.addCommands({
     exchangePointAndMark: {
         exec: function (editor, args) {
             var restoreMarks = [];
-            editor.forEachSelection({
-                exec: function() {
-                    var sel = editor.selection;
-                    if (args.count) { // replace mark and point
-                        var pos = {row: sel.lead.row, column: sel.lead.column};
-                        restoreMarks.push(pos);
-                        sel.clearSelection();
-                        sel.moveCursorToPosition(editor.popEmacsMark());
-                    } else if (sel.isEmpty()) { // move to mark, forget point
-                        var lastMark = editor.popEmacsMark();
-                        restoreMarks.push(lastMark);
-                        sel.selectToPosition(lastMark);
-                    } else { // just invert selection
-                        sel.setSelectionRange(sel.getRange(), !sel.isBackwards());
-                    }
-                }
-            });
+            if (editor.inMultiSelectMode) editor.forEachSelection({exec: doExchange});
+            else doExchange();
             restoreMarks.reverse().forEach(function(p) { editor.pushEmacsMark(p); });
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            function doExchange() {
+                var sel = editor.selection;
+                if (args.count) { // replace mark and point
+                    var pos = {row: sel.lead.row, column: sel.lead.column};
+                    restoreMarks.push(pos);
+                    sel.clearSelection();
+                    sel.moveCursorToPosition(editor.popEmacsMark());
+                } else if (sel.isEmpty()) { // move to mark, forget point
+                    var lastMark = editor.popEmacsMark();
+                    restoreMarks.push(lastMark);
+                    sel.selectToPosition(lastMark);
+                } else { // just invert selection
+                    sel.setSelectionRange(sel.getRange(), !sel.isBackwards());
+                }
+            }
         },
         readonly: true,
         handlesCount: true
@@ -19711,7 +19712,7 @@ oop.inherits(IncrementalSearch, Search);
         return Range.fromPoints(this.$currentPos, this.$currentPos);
     }
 
-    this.highlightAndFindWithNeedle = function(moveToNext, needleUpdateFunc) {
+    this.highlightAndFindWithNeedle = function (moveToNext, needleUpdateFunc) {
         if (!this.$editor) return null;
         var options = this.$options;
         if (needleUpdateFunc) {
@@ -19723,16 +19724,17 @@ oop.inherits(IncrementalSearch, Search);
         };
         options.start = this.$currentPos;
         var session = this.$editor.session,
-            found = this.find(session);
+            found = this.find(session),
+            shouldSelect = !!this.$editor.emacsMark();
         if (found) {
             if (options.backwards) found = Range.fromPoints(found.end, found.start);
-            this.$editor.moveCursorToPosition(found.end);
+            this.$editor.selection.setRange(Range.fromPoints(shouldSelect ? this.$startPos : found.end, found.end));
             if (moveToNext) this.$currentPos = found.end;
             this.highlight(options.re)
         }
-
+    
         this.statusMessage(found);
-
+    
         return found;
     }
 

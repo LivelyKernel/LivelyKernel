@@ -384,29 +384,23 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
 
     test26InstantiateClass: function() {
         var className = 'Dummy_test26InstantiateClass';
-        try {
-            var klass = Object.subclass(className, { a: 1 }),
-                src = Strings.format('var obj = new %s(); obj.a;', className),
-                node = this.parse(src),
-                mapping = {};
-            mapping[className] = klass;
-            this.assertEquals(1, this.interpret(node, mapping));
-            this.assert(lively.Class.isClass(Global[className]), 'Class changed!')
-        } finally {
-            delete Global[className];
-        }
+        this.onTearDown(function() { delete Global[className]; })
+        var klass = Object.subclass(className, { a: 1 }),
+            src = Strings.format('var obj = new %s(); obj.a;', className),
+            node = this.parse(src),
+            mapping = {};
+        mapping[className] = klass;
+        this.assertEquals(1, this.interpret(node, mapping));
+        this.assert(lively.Class.isClass(Global[className]), 'Class changed!');
     },
 
     test27ArgumentsOfConstructorAreUsed: function() {
         var className = 'Dummy_test27ArgumentsOfConstructorAreUsed';
-        try {
-            Object.subclass(className, { initialize: function(n) { this.n = n } });
-            var src = Strings.format('var obj = new %s(1); obj.n;', className),
-                node = this.parse(src);
-            this.assertEquals(1, this.interpret(node, Global));
-        } finally {
-            delete Global[className];
-        }
+        this.onTearDown(function() { delete Global[className]; })
+        Object.subclass(className, { initialize: function(n) { this.n = n } });
+        var src = Strings.format('var obj = new %s(1); obj.n;', className),
+            node = this.parse(src);
+        this.assertEquals(1, this.interpret(node, Global));
     },
 
     test28aSpecialVarArguments: function() {

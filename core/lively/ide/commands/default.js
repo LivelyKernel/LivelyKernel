@@ -232,6 +232,17 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+    'lively.morphic.Window.resizeVisibleMorphsToFitIntoVisibleBounds': {
+        description: 'Resize visible morphs to fit into visible world bounds.',
+        exec: function() {
+            $world.submorphs.forEach(function(ea) {
+                var vB = $world.visibleBounds(), b = ea.bounds();
+                if (!vB.containsPoint(b.topLeft()) || vB.containsPoint(b.bottomRight())) return;
+                ea.setBounds(rect(b.topLeft(), b.bottomRight().minPt(vB.bottomRight())));
+            });
+            return true;
+        }
+    },
     'lively.morphic.Window.selectAll': {
         description: 'Select all windows',
         exec: function() {

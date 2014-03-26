@@ -50,7 +50,7 @@ Object.extend(lively.ast.Rewriting, {
         removeExistingDebugFiles(function() {
             modules.forEachShowingProgress({
                 iterator: createRewrittenModule,
-                whenDone: createDebuggingBootstrap.curry(astReg)
+                whenDone: createDebuggingBootstrap
             });
         });
 

@@ -879,9 +879,11 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                     if (sel && sel.isEmpty()) sel.selectLine();
                 }
             }
-            this.remoteEval(text, function(err, result) {
-                output(String(result), err);
-            });
+            try {
+                this.remoteEval(text, function(err, result) {
+                    output(String(result), err);
+                });
+            } catch (e) { output(e, true); }
         },
             printInspect: function printInspect(options) {
             var self = this,

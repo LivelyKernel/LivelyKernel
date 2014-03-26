@@ -3,6 +3,7 @@ Object.extend(lively, {
     parsePath: function(string) {
         // STRING -> [STRING]
         // ex: 'foo["bar"].x[0] -> ['foo', 'bar', x, '0']'
+        // optimized version of https://gist.github.com/rksm/9774371
         var parts = [], index = 0, term = '.';
         while (true) {
             if (string.length === 0) break;
@@ -457,8 +458,10 @@ var Module = Object.subclass('lively.Module',
     deactivate: function() {
         var m = this.constructor.namespaceStack.pop();
         if (m !== this) { // sanity check
-            throw new Error('Wrong module: ' + this.namespaceIdentifier
-                           + ' instead of expected ' + m.namespaceIdentifier);
+            throw new Error(
+                'Module>>deactivate: Wrong module: '
+              + this.namespaceIdentifier
+              + ' instead of expected ' + m.namespaceIdentifier);
         }
     }
 },

@@ -488,12 +488,9 @@ var Module = Object.subclass('lively.Module',
             world = Global.lively && lively.morphic
                  && lively.morphic.World && lively.morphic.World.current();
         if (e.stack) msg += e.stack;
-        if (optCode) msg += ("code:\n" + optCode).truncate(1000);
-        if (world && world.logError) {
-            world.logError(e);
-        } else {
-            console.error(msg);
-        }
+        if (false && optCode) msg += ("code:\n" + optCode).truncate(1000);
+        if (world && world.logError) world.logError(e);
+        else console.error(msg);
         dbgOn(true);
     }
 });

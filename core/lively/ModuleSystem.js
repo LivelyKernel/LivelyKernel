@@ -1,49 +1,40 @@
 Object.extend(lively, {
 
-    lookup: function(spec, context, createMissing) {
-        function createNamespaceObject(spec, context) {
-            spec = spec.valueOf();
-            if (typeof spec !== 'string') throw new TypeError();
-            var topParts = spec.split(/[\[\]]/);
-            var parts = topParts[0].split('.');
-            for (var i = 0, len = parts.length; i < len; i++) {
-                spec = parts[i];
-                if (!context[spec]) {
-                    if (!createMissing) return null;
-                    if (!lively.Class.isValidIdentifier(spec))
-                        throw new Error('"' + spec + '" is not a valid name for a module.');
-                    context[spec] =  new lively.Module(context, spec);
-                }
-                context = context[spec];
+    parsePath: function(string) {
+        // STRING -> [STRING]
+        // ex: 'foo["bar"].x[0] -> ['foo', 'bar', x, '0']'
+        var parts = [], index = 0, term = '.';
+        while (true) {
+            if (string.length === 0) break;
+            if (string[index] === '\\') { index += 2; continue; }
+            if (index >= string.length) { if (string.length > 0) parts.push(string); break; }
+            var newTerm, skip = 0;
+            if (string.slice(index, index+term.length) === term) newTerm = '.';
+            else if (string[index] === '[') {
+                if (string[index+1] === '\'') { newTerm = '\']'; skip = 1; }
+                else if (string[index+1] === '"') { newTerm = '"]'; skip = 1; }
+                else { newTerm = ']'; skip = 0; }
             }
-            for(i = 1; i < topParts.length; i = i + 2) {
-                spec = JSON.parse(topParts[i]);
-                if (!context)
-                    return null;
-                context = context[spec];
-                parts = topParts[i + 1].split('.');
-                for (var j = 1, len = parts.length; j < len; j++) {
-                    spec = parts[j];
-					if (!context)
-						return null;
-                    context = context[spec];
-                }
-            }
-            return context;
+            if (!newTerm) { index++; continue; }
+            if (index > 0) parts.push(string.slice(0, index));
+            string = string.slice(index + term.length + skip);
+            index = 0;
+            term = newTerm;
+            newTerm = null;
         }
+        return parts;
+    },
+
+    lookup: function(string, context, createMissing) {
+        // Takes a string an tries to interpret as it a path into a JS object
+        // Example: lively.lookup('foo.bar', {foo: {bar: 3}}) returns 3
         context = context || Global;
-        if(spec.indexOf('.') == -1)
-			if (!context[spec]) {
-				if (!createMissing) return null;
-			} else return context[spec];
-        var codeDB;
-        if (spec[0] == '$') {
-            codeDB = spec.substring(1, spec.indexOf('.'));
-            spec = spec.substring(spec.indexOf('.') + 1);
+        for (var i = 0, keys = lively.parsePath(string), len = keys.length; i < len; i++) {
+            if (!context) return null;
+            var key = keys[i];
+            context = context[key] || (createMissing && (context[key] = new lively.Module(context, key)));
         }
-        var ret = createNamespaceObject(spec, context);
-        if (codeDB) { ret.fromDB = codeDB; }
-        return ret;
+        return context;
     },
 
     assignObjectToPath: function(obj, path, context) {
@@ -165,11 +156,13 @@ Object.subclass('lively.Module',
 },
 'accessing nested objects', {
     gather: function(selector, condition, recursive) {
-        var result = Object.values(this).select(function(ea) {
-            return condition.call(this, ea) }, this);
+        var result = [];
+        for (var key in this)
+            if (condition.call(this, this[key]))
+                result.push(this[key]);
         if (!recursive) return result;
-        return this.subNamespaces().inject(result, function(result, ns) {
-            return result.concat(ns[selector](true)) });
+        return this.subNamespaces().reduce(function(result, ns) {
+            return result.concat(ns[selector](true)) }, result);
     },
 
     subNamespaces: function(recursive) {
@@ -196,7 +189,7 @@ Object.subclass('lively.Module',
             function(ea) {
                 return ea
                     && !lively.Class.isClass(ea)
-                    && Object.isFunction(ea)
+                    && typeof ea === 'function'
                     && !ea.declaredClass
                     && this.requires !== ea
                     && ea.getOriginal() === ea; },
@@ -351,7 +344,7 @@ Object.subclass('lively.Module',
     },
 
     removeRequiredModule: function(requiredModule) {
-        if (this.pendingRequirements && !this.pendingRequirements.include(requiredModule)) {
+        if (this.pendingRequirements && this.pendingRequirements.indexOf(requiredModule) === -1) {
             throw dbgOn(new Error('requiredModule not there'));
         }
         this.pendingRequirements = this.pendingRequirements.without(requiredModule);
@@ -376,14 +369,14 @@ Object.subclass('lively.Module',
 
     wasRequiredBy: function() {
         return Global.subNamespaces(true).select(function(m) {
-            return m.privateRequirements && m.privateRequirements.include(this);
+            return m.privateRequirements && m.privateRequirements.indexOf(this) > -1;
         }, this);
     }
 },
 'load callbacks', {
     addOnloadCallback: function(cb, idx) {
         if (!this.callbacks) this.callbacks = [];
-        if (Object.isNumber(idx)) this.callbacks.splice(idx,0,cb);
+        if (typeof idx === 'number') this.callbacks.splice(idx,0,cb);
         else this.callbacks.push(cb);
     },
 
@@ -417,7 +410,7 @@ Object.subclass('lively.Module',
 
     isLoading: function() {
         if (this.isLoaded()) return false;
-        if (this.uri().include('anonymous')) return true;
+        if (this.uri().match(/anonymous/)) return true;
         return JSLoader.isLoading(this.uri());
     },
 
@@ -533,7 +526,7 @@ Object.extend(lively.Module, {
             var canBeLoaded = modules.select(function(module) {
                 if (!module.privateRequirements) return true;
                 return module.privateRequirements.all(function(requirement) {
-                    return sortedModules.include(requirement) }); });
+                    return sortedModules.indexOf(requirement) > -1 }); });
             var modulesAndLibs = canBeLoaded.reduce(function(modulesAndLibs, module) {
                 if (module.requiredLibs)
                     modulesAndLibs.pushAll(module.requiredLibs.map(function(libSpec) {

@@ -4,8 +4,7 @@ var path             = require('path'),
     exec             = require('child_process').exec,
     checkNPMPackages = require("./helper/check-modules"),
     env              = require('./env'),
-    args             = require('./helper/args'),
-    cmdAndArgs       = [];
+    args             = require('./helper/args');
 
 /*
  * This script starts up a node.js server for lively. The server itself is

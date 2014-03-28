@@ -30,12 +30,15 @@ function ensureNodeBin(thenDo) {
     }).on("error", function(err) {});
 }
 
-function findMissingNPMPackages(thenDo) {
+function findMissingNPMPackages(dev, thenDo) {
     var packageJson        = path.join(lkDir, "package.json"),
         packageJsonContent = fs.readFileSync(packageJson),
         packageJso         = JSON.parse(packageJsonContent),
-        requiredDepNames   = Object.keys(packageJso.dependencies),
-        nodeModulesDir     = path.join(lkDir, "node_modules"),
+        requiredDepNames   = Object.keys(packageJso.dependencies);
+    if (dev && packageJso.devDependencies) {
+        requiredDepNames   = requiredDepNames.concat(Object.keys(packageJso.devDependencies));
+    }
+    var nodeModulesDir     = path.join(lkDir, "node_modules"),
         actualDepNames     = fs.existsSync(nodeModulesDir) ? fs.readdirSync(nodeModulesDir) : [],
         uninstalled        = requiredDepNames.reduce(function(reqDeps, name) {
             if (actualDepNames.indexOf(name) == -1) reqDeps.push(name);
@@ -81,8 +84,15 @@ function install(pkgName, thenDo) {
     exec("npm install " + pkgName, {cwd: lkDir}, thenDo);
 }
 
-function checkNPMPackages(thenDo) {
-    findMissingNPMPackages(function(err, missing) {
+function checkNPMPackages(options, thenDo) {
+    // options = {
+    //   dev: BOOL, -- replace Lively Kernel modules with Git repositories
+    // }
+    if (typeof options === 'function') {
+        thenDo = options;
+        options = undefined;
+    }
+    findMissingNPMPackages(options && options.dev, function(err, missing) {
         err && console.error(err);
         missing = missing || [];
         sanityCheckWithNpmList(function(err, missing2) {

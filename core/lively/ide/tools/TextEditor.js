@@ -156,6 +156,9 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 case "diff": $upd("diff"); return;
                 case "xhtml": case "html": $upd("html"); return;
                 case "js": $upd("javascript"); return;
+                case "json": $upd("json"); return;
+                case "jade": $upd("jade"); return;
+                case "ejs": $upd("ejs"); return;
                 case "markdown": case "md": $upd("markdown"); return;
                 case "sh": $upd("sh"); return;
                 case "xml": $upd("xml"); return;
@@ -275,13 +278,13 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         switch(sig) {
             case 'Alt-Up': case 'F1': this.get('urlText').focus(); evt.stop(); return true;
             case 'Alt-Down': case 'F2': this.get('editor').focus(); evt.stop(); return true;
-            case "Command-U": 
+            case "Command-U":
                 $world.confirm('Revert input / reload file?', function(input) {
                     if (!input) { alertOK('Revert canceled'); return; }
                     this.loadFile();
                 }.bind(this));
                 evt.stop(); return true;
-            default: return $super(evt);        
+            default: return $super(evt);
         }
     }
 });

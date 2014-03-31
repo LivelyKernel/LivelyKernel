@@ -956,14 +956,25 @@
         // ------- load world ---------------
         //
         loadMain: function(doc, startupFunc) {
+
             LoadingScreen.add('Loading');
-            var bootstrapModules = [
+
+            if (lively.Config.moduleLoadTestTimeout) {
+                setTimeout(function testModuleLoad() {
+                    // note that with slow network connections it is possible that the module load
+                    // test will fail although the modules will load eventually
+                    lively.Module.checkModuleLoadStates();
+                }, lively.Config.moduleLoadTestTimeout);
+            }
+
+            var requiredModulesForWorldStart = [
                 'lively.ChangeSets',
                 'lively.lang.Closure',
                 'lively.lang.UUID',
                 'lively.bindings',
                 'lively.Main'];
-            lively.require(bootstrapModules).toRun(function() {
+
+            lively.require(requiredModulesForWorldStart).toRun(function() {
                 lively.Config.loadUserConfigModule();
                 var loader = lively.Main.getLoader(doc);
                 lively.whenLoaded(function() {
@@ -972,6 +983,7 @@
                 });
                 loader.systemStart(doc);
             });
+
         },
 
         startFromSerializedWorld: function(startupFunc) {

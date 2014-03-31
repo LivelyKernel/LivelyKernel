@@ -644,9 +644,3 @@ Object.extend(lively.Module, {
         installStackTracers: Functions.Null
     };
 })(lively);
-
-(function testModuleLoad() {
-    // note that with slow network connections it is possible that the module load
-    // test will fail although the modules will load eventually
-    lively.Module.checkModuleLoadStates();
-}).delay(10);

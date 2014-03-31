@@ -4,10 +4,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     
     initialize: function($super, env) {
         $super();
-        var scrollbarOffset = 15;
-        this.setExtent(pt(window.innerWidth / 2, window.innerHeight - scrollbarOffset));
-        this.setPosition(pt(window.innerWidth / 2 - scrollbarOffset, 0));
-        this.setFixedPosition(true);
+        this.reposition();
         this.setFill(Color.rgbHex("#e3e3e3"));
         this.setClipMode("auto");
         this.setName("Dashboard");
@@ -123,7 +120,25 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
 
         this.setExtent(pt(minimizedWidth, window.innerHeight));
         this.setPosition(pt(window.innerWidth - minimizedWidth, 0));
-    }
+    },
+    
+    reposition: function() {
+        var scrollbarOffset = 15;
+        var height = window.innerHeight;
+        var width = window.innerWidth / 2;
+        
+        //interaction panel should have max 800 px width and min of half window width
+        if (width > 800){
+            width = 800;
+        }
+        
+        this.setExtent(lively.pt(width, height - scrollbarOffset));
+        this.setPosition(lively.pt(window.innerWidth - width - scrollbarOffset, 0))
+        
+        this.setFixedPosition(true);
+        this.sendToBack();
+    },
+
 });
 
 lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {

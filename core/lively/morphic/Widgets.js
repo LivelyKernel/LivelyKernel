@@ -1833,6 +1833,15 @@ lively.morphic.World.addMethods(
                 ['File tree', this.openFileTree.bind(this)],
                 ['Git Control', this.openGitControl.bind(this)]
             ]],
+            ['ChartsParts', 
+                (function menu(){
+                    var components = lively.morphic.Charts.Component.getComponentNames();
+                    return components.map(function(name){
+                        return [name, function(){ require("lively.morphic.Charts").toRun(function() {
+                        (new lively.morphic.Charts.Component.create(name)).openInWorld(); }); }]
+                    })
+                })()
+            ],
             ['Stepping', [
                 ['Start stepping',  function() { world.submorphs.each(
                         function(ea) {ea.startSteppingScripts && ea.startSteppingScripts()})}],

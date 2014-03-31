@@ -160,6 +160,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
         this._store.db[name].length = slot + 1;
         this.mixin.applyTo(someObject);
         this.trait.connectSavingProperties(someObject);
+        someObject.save();
         return syncHandle
     },
 },
@@ -208,6 +209,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
         var syncHandle = this.startSynchronizing(gunieaPig);
         
         gunieaPig.mergeWithModelData = function(newV) {
+            if (Objects.equal(newV, this.asModel())) return;
             self.assertEquals("endIt", newV, "wrong value supplied");
             (thenDo && thenDo()) || self.done()};
         
@@ -218,6 +220,28 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
         this.assert(!gunieaPig.synchronizedValues);
         syncHandle.overwriteWith("endIt");
     },
+    testAddingSubmorph: function() {
+        var gunieaPig = new lively.morphic.Morph(),
+            self = this;
+        gunieaPig.setName("gunieaPig");
+        var syncHandle = this.startSynchronizing(gunieaPig);
+        debugger;
+        syncHandle.get(function(err, value) {
+            if (value == "endIt") return self.done();
+            var model = gunieaPig.asModel();
+            self.assert(Objects.equal(value, model), "The saved value is not equal to the model: " + Objects.inspect(value) + Objects.inspect(model));
+        });
+        var foo = new lively.morphic.Morph();
+        foo.setName('foo');
+        foo.getModelData = function() { return "foo" };
+        gunieaPig.addMorph(foo);
+        this.assertEquals(gunieaPig.submorphs[0], foo, "morph not added to scenegraph");
+
+        var model = gunieaPig.asModel();
+        this.assert(model.foo && model.foo == "foo", 'foo is not available in the model');
+        syncHandle.overwriteWith("endIt")
+    },
+    
 })
 
 lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests.StateSync.StickyNote', 

@@ -320,6 +320,7 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     },
     informHandles: function(changedPath, valuePath, value) {
         // path = lively.PropertyPath(path);
+        // alert("We got a new value for " + changedPath + ": " + value)
         this.rootHandles.forEach(function(ea) {
             ea.child(valuePath).propagateChange(lively.PropertyPath(changedPath), value);
         })
@@ -350,7 +351,10 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     },
     copy: function(stringify) {
         var copy = this.constructor.prototype.copy.call(this, stringify);
-        if (!stringify) copy.synchronizationHandles = [];
+        if (!stringify) {
+            copy.synchronizationHandles = [];
+            copy.setName(this.getName());
+        }
         return copy
     },
     remove: function() {
@@ -436,6 +440,8 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
 
 Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
 function connectSavingProperties(anObject, options) {
+    // if there is another implementation of save, don't connect to it, rely on the user to do the connecting.
+    if ((options && options.forceConnecting) || anObject.hasOwnProperty("save")) return;
     anObject.recursivelyWalk({
         text: function(functions, syncMorph) {
             connect(this, this.isCodeEditor ? "savedTextString" : "textString", 
@@ -448,7 +454,12 @@ function connectSavingProperties(anObject, options) {
         base: function(functions, syncMorph) {
             this.submorphs.forEach(function(morph) {
                 if (morph.name)
-                    functions.walk.call(morph, functions, syncMorph)
+                    if (morph.connectTo)
+                        morph.connectTo(syncMorph, "save", {
+                            updater: function($upd, value) {
+                                $upd(value, this.sourceObj, this);
+                        }});
+                    else functions.walk.call(morph, functions, syncMorph)
             });
         },}, anObject)
 })

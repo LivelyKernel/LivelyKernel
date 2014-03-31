@@ -469,7 +469,25 @@ Object.extend(lively.ide.commands.byName, {
                     callback(candidates);
                 });
             });
-            function candidateBuilder(input, callback) { callback(['searching...']); greper(input, callback); };
+
+            function candidateBuilder(input, callback) {
+              callback(['searching...']);
+              greper(input, callback);
+            };
+
+            function openInTextEditor(candidate) {
+                if (Object.isString(candidate)) return;
+                var parts = candidate.match.split(':'),
+                    path = parts[0], line = parts[1];
+                if (line) path += ':' + line;
+                lively.ide.openFile(path);
+            }
+
+            function openInSCB(candidate) {
+                if (Object.isString(candidate)) return;
+                lively.ide.CommandLineSearch.doBrowseGrepString(candidate.match, candidate.baseDir);
+            }
+
             var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
                 name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
                 reactivateWithoutInit: true,
@@ -481,27 +499,26 @@ Object.extend(lively.ide.commands.byName, {
                     candidatesUpdater: candidateBuilder,
                     keepInputOnReactivate: true,
                     actions: [{
-                        name: 'open in system browser',
+                        name: 'open',
                         exec: function(candidate) {
                             if (Object.isString(candidate)) return;
-                            lively.ide.CommandLineSearch.doBrowseGrepString(candidate.match, candidate.baseDir);
+                            var isLively = candidate.match.match(/\.?\/?core\//) && candidate.baseDir.match(/\.?\/?/);
+                            if (isLively) openInSCB(candidate);
+                            else openInTextEditor(candidate);
                         }
                     }, {
+                        name: 'open in system browser',
+                        exec: openInSCB
+                    }, {
                         name: 'open in text editor',
-                        exec: function(candidate) {
-                            if (Object.isString(candidate)) return;
-                            var parts = candidate.match.split(':'),
-                                path = parts[0], line = parts[1];
-                            if (line) path += ':' + line;
-                            lively.ide.openFile(path);
-                        }
+                        exec: openInTextEditor
                     }, {
                         name: "open grep results in workspace",
                         exec: function() {
                             var state = narrower.state,
                                 content = narrower.getFilteredCandidates(state.originalState || state).pluck('match').join('\n'),
                                 title = 'search for: ' + narrower.getInput();
-                            $world.addCodeEditor({title: title, content: content, textMode: 'text'});
+                            $world.addCodeEditor({title: title, content: content, textMode: 'text'}).getWindow().comeForward();
                         }
                     }]
                 }
@@ -644,7 +661,7 @@ Object.extend(lively.ide.commands.byName, {
             })
             ed.startStepping(700, 'update');
             return ed;
-        
+
             return true;
         }
     },

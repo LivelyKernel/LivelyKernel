@@ -694,7 +694,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (!fullPath.length) fullPath = '.';
         if (fullPath.endsWith('/')) fullPath = fullPath.slice(0,-1);
         var excludes = '-iname ".svn" -o -iname ".git" -o -iname "node_modules" -o -iname "combined.js"',
-            baseCmd = 'find %s ( %s ) -prune -o -iname "*js" -exec grep -inH %s "{}" ; ',
+            baseCmd = 'find %s ( %s ) -prune -o \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -exec grep -inH %s "{}" ; ',
             platform = lively.ide.CommandLineInterface.getServerPlatform();
         if (platform !== 'win32') {
             baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
@@ -756,7 +756,8 @@ Object.extend(lively.ide.CommandLineSearch, {
             if (!spec) {
                 show("cannot extract browse ref from %s", str);
             } else {
-                this.doBrowse(spec);
+                // this.doBrowse(spec);
+                lively.ide.openFile(spec.fileName + (spec.line ? ':' + spec.line : ''));
             }
         } catch(e) {
             show('failure in doBrowseAtPointOrRegion: %s', e.stack);

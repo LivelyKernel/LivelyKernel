@@ -485,6 +485,7 @@ Config.addOptions(
     ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"],
     ['aceDefaultShowActiveLine', false, "Current line is highlighted"],
     ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
+    ['aceDefaultAutoTriggerAutocompletion', false, "Should autocompletion be triggered when typing?"],
     ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
     ['computeCodeEditorCompletionsOnStartup', true, 'when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions'],

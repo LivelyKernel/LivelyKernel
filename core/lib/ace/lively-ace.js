@@ -17546,7 +17546,8 @@ var lang = require("./lib/lang");
 var snippetManager = require("./snippets").snippetManager;
 
 var Autocomplete = function() {
-    this.autoInsert = true;
+    // Only do auto insertion if the autocompletion isn't triggered automatically.
+    this.autoInsert = !Config.get('aceDefaultAutoTriggerAutocompletion');
     this.keyboardHandler = new HashHandler();
     this.keyboardHandler.bindKeys(this.commands);
 

@@ -190,6 +190,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setTabSize(this.getTabSize());
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
+        this.initializeAutoTriggerAutocompletion();
         this.setShowWarnings(this.getShowWarnings());
         this.setInputAllowed(this.inputAllowed());
 
@@ -465,6 +466,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     showsCompleter: function() {
         return this.withAceDo(function(ed) {
             return ed.completer && ed.completer.activated; })
+    },
+
+    initializeAutoTriggerAutocompletion: function() {
+        this.setAutoTriggerAutocompletionEnabled(Config.get('aceDefaultAutoTriggerAutocompletion'));
+        var editor = this.aceEditor;
+        var _this = this;
+        editor.commands.on("afterExec", function(e){
+            if (_this.getAutoTriggerAutocompletionEnabled()) {
+                if (e.command.name == "insertstring" && /^[\w.]$/.test(e.args)) {
+                    editor.execCommand("startAutocomplete")
+                }
+            }
+        })
     }
 
 },
@@ -1192,7 +1206,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.hasOwnProperty("_AutocompletionEnabled") ? this._AutocompletionEnabled : this.withAceDo(function(ed) {
             return ed.getOption("enableBasicAutocompletion"); });
     },
-
+    setAutoTriggerAutocompletionEnabled: function(bool) {
+        this._AutoTriggerAutocompletionEnabled = bool;
+    },
+    getAutoTriggerAutocompletionEnabled: function() {
+        return this._AutoTriggerAutocompletionEnabled;
+    },
     setShowWarnings: function(bool) { return this._ShowWarnings = bool; },
     getShowWarnings: function() {
         return this.hasOwnProperty("_ShowWarnings") ? this._ShowWarnings : true
@@ -1330,6 +1349,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowWarnings", menuString: "show warnings"}, settingsItems);
         boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);
         boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, settingsItems);
+        boolItem({name: "AutoTriggerAutocompletionEnabled", menuString: "automatically trigger Autocompletion"}, settingsItems);
         items.push(['settings', settingsItems]);
 
         var mac = UserAgent.isMacOS;

@@ -496,7 +496,7 @@ Object.extend(lively.PropertyPath.prototype, {
         return obj && obj.isPathAccessor && this.parts().equals(obj.parts());
     },
 
-    equal: function(obj) {
+    equals: function(obj) {
         return obj && obj.isPathAccessor && this.parts().equals(obj.parts());
     },
 

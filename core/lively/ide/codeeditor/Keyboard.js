@@ -300,6 +300,43 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     if (prevPos) { sel.clearSelection(); sel.moveCursorToPosition(prevPos); }
                 },
                 multiSelectAction: "forEach"
+            }, {
+                name: "commentBox",
+                exec: function(ed, args) {
+                    var range = ed.selection.getRange();
+                    if (range.isEmpty()) {
+                        ed.selection.selectLine();
+                        range = ed.selection.getRange();
+                    }
+
+                    var startLine = range.start.row,
+                        endLine = range.end.column === 0 ? range.end.row - 1 : range.end.row,
+                        lines = ed.$morph.getSelectionOrLineString().split('\n'),
+                        indent = [range.start.column].concat(lines.map(function(line) { return line.match(/^\s*/); }).flatten().compact().pluck('length')).min(),
+                        length = lines.pluck('length').max() - indent,
+                        fence = Array(Math.ceil(length / 2) + 1).join('-=') + '-';
+
+                    // comment range
+                    ed.toggleCommentLines();
+                    ed.clearSelection();
+
+                    // insert upper fence
+                    ed.moveCursorTo(startLine, 0);
+                    ed.insert(Strings.indent(fence + '\n', ' ', indent));
+                    ed.selection.moveCursorUp();
+                    ed.toggleCommentLines();
+                    // insert fence below
+                    ed.moveCursorTo(endLine+2, 0);
+
+                    ed.insert(Strings.indent(fence + '\n', ' ', indent));
+                    ed.selection.moveCursorUp();
+                    ed.selection.moveCursorLineEnd();
+                    ed.toggleCommentLines();
+
+                    // select it all
+                    ed.selection.setRange({start: {row: startLine, column: 0}, end: ed.getCursorPosition()});
+                },
+                multiSelectAction: "forEach"
             }]);
     },
 
@@ -752,6 +789,31 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 require('lively.ast.Visualization').toRun(function() {
                     lively.ast.visualize(code).openInWorldCenter();
                 });
+            },
+            multiSelectAction: 'forEach',
+            readOnly: true
+        }, {
+            name: 'gotoNextErrorOrWarning',
+            exec: function(ed, args) {
+                var marker = ed.session.$livelyCodeMarker;
+                if (!marker || !marker.markerRanges) return;
+                var pos = ed.$morph.getCursorPositionAce(),
+                    idx = ed.$morph.positionToIndex(pos),
+                    rev = args && args.backwards,
+                    markers = rev ? marker.markerRanges.clone().reverse() : marker.markerRanges,
+                    next = markers.detect(function(markerRange) {
+                        return rev ? markerRange.start < idx : markerRange.start > idx; }),
+                    nextPos = next && ed.$morph.indexToPosition(next.start);
+                if (!nextPos) return;
+                ed.pushEmacsMark(pos);
+                ed.moveCursorToPosition(nextPos)
+            },
+            multiSelectAction: 'forEach',
+            readOnly: true
+        }, {
+            name: 'gotoPrevErrorOrWarning',
+            exec: function(ed, args) {
+                ed.execCommand('gotoNextErrorOrWarning', {backwards: true});
             },
             multiSelectAction: 'forEach',
             readOnly: true

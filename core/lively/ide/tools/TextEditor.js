@@ -139,6 +139,15 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
         lively.bindings.connect(this, 'contentLoaded', this, 'gotoLocationLine');
         lively.bindings.connect(this, 'contentLoaded', this, 'updateWindowTitle');
+        lively.bindings.connect(this, 'contentLoaded', editor, 'setTabSize', {updater: function($upd) {
+            this.sourceObj.get('editor').withAceDo(function(ed) {
+                var tabSize = ed.session.getLines(0, 100)
+                    .map(function(l) { return l.match(/^\s+/)})
+                    .compact().flatten().pluck('length')
+                    .filter(function(length) { return length % 2 === 0}).min();
+                $upd(tabSize);
+            });
+        }});
         lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
             var ext = this.sourceObj.getFileExtension().toLowerCase();
             switch(ext) {

@@ -2589,22 +2589,46 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         $super();
         this.description = "Table";
         this.extent = pt(400,200);
-        
-        this.clearTable();
-        
-        this.rows = 0;
-        this.columns = 0;
     },
     
-    createTable : function(rowCount, columnCount, colors) {
-        var spec = {};
-        spec.showColHeads = true;
-        spec.showRowHeads = false;
+    createTable : function(columnCount, rowCount, colors) {
+        var table = this.table;
+        //use existing table and try to add only columns rows
+        if (this.table){
+            while (this.table.numRows - rowCount < 0){
+                this.table.addRow(new Array(this.table.numCols));
+            }
+            while (this.table.numRows - rowCount > 0){
+                this.table.removeRow();
+            }
             
-        var table = new lively.morphic.DataGrid(rowCount, columnCount, spec);
-        table.setFill(Color.white);
+            while (this.table.numCols - columnCount < 0){
+                this.table.addCol("defaultName");
+            }
+            while (this.table.numCols - columnCount > 0){
+                this.table.removeCol();
+            }
+        } else {
+            //create table
+            var spec = {};
+            spec.showColHeads = true;
+            spec.showRowHeads = false;
+                
+            table = new lively.morphic.DataGrid(columnCount, rowCount, spec);
+            table.setFill(Color.white);
+            
+            table.disableGrabbing();
+            table.disableDragging();
+            
+            this.table = table;
+            if (table.numRows != 0 && table.numRows < 7 && this.component){
+                this.table.setExtent(pt(this.getExtent().x, table.numRows * 30 + 50));
+                this.component.setExtent(pt(this.getExtent().x, table.numRows * 30 + 50));
+            }
+        }
         
         //set gridmode of table cells to hidden
+        //set colors of cells
         table.rows.each(function(column){
             column.each(function(ea, index){
                 if (column[0] instanceof lively.morphic.DataGridColHead){
@@ -2621,36 +2645,28 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                 ea.setBorderColor(Color.rgb(144, 144, 144));
             });
         });
-        
-        table.disableGrabbing();
-        table.disableDragging();
-        
-        this.table = table;
-        if (table.numRows != 0 && table.numRows < 7 && this.component){
-            this.table.setExtent(pt(this.getExtent().x, table.numRows * 30 + 50));
-            this.component.setExtent(pt(this.getExtent().x, table.numRows * 30 + 50));
-        }
         return table;
     },
     
     updateTable : function(){
         this.submorphs.invoke("remove");
-        this.table.setClipMode("auto");
-        this.addMorph(this.table);
-        this.table.setExtent(this.getExtent());
-        this.table.layout = {resizeWidth: true, resizeHeight: true};
+        if (this.table){
+            this.table.setClipMode("auto");
+            this.addMorph(this.table);
+            this.table.setExtent(this.getExtent());
+            this.table.layout = {resizeWidth: true, resizeHeight: true};
+        }
     },
     setExtent: function($super, newExtent) {
         $super(newExtent);
-        this.table.setExtent(newExtent);
+        if (this.table) this.table.setExtent(newExtent);
     },
     
     update : function(data, colors){
-        
-        this.clearTable();
-        
-        if (data == null)
+        if (data == null || data == [] || data == {}){
+            this.clearTable();
             return;
+        }
         
         if (!Object.isArray(data.first())){
             //if primitive
@@ -2670,6 +2686,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             this.table = this.createTable(data[0].length, data.length + 1, colors);
         }
         
+        //add data to table
         var _this = this;
         data.each(function (ea, col){
             
@@ -2695,7 +2712,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     },
     
     clearTable : function() {
-        this.table = this.createTable(0,0);
+        if (this.table){
+            this.table.remove();
+            this.table = undefined;
+        }
         this.updateTable();
     },
     

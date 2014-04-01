@@ -368,9 +368,9 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
             this.colHeads.push(head);
             this.rows[0].push(head);
         }
-
-        var numCellRows = this.numRows - (this.hideColHeads ? 0 : 1);
-        for (var i = 0; i < numCellRows; i++) {
+        
+        var start = this.hideColHeads ? 0 : 1;
+        for (var i = start; i < this.numRows; i++) {
             var cell = this.createCell(this.numCols, i, this.hideRowHeads ? 0 : 1, this.hideColHeads ? 0 : 1);
             this.rows[i].push(cell);
         }

@@ -124,7 +124,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     
     reposition: function() {
         var scrollbarOffset = 15;
-        var height = window.innerHeight;
+        var height = window.innerHeight - scrollbarOffset;
         var width = window.innerWidth / 2;
         
         //interaction panel should have max 800 px width and min of half window width
@@ -132,8 +132,15 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
             width = 800;
         }
         
-        this.setExtent(lively.pt(width, height - scrollbarOffset));
+        this.setExtent(lively.pt(width, height));
         this.setPosition(lively.pt(window.innerWidth - width - scrollbarOffset, 0))
+        
+        //update exentent of all viewers in the dashboard
+        this.submorphs.each(function (viewer){
+            if (viewer instanceof lively.morphic.Charts.Component){
+                viewer.setExtent(pt(width - 40, viewer.getExtent().y));
+            }
+        });
         
         this.setFixedPosition(true);
         this.sendToBack();

@@ -259,14 +259,27 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
         this.attachListener(aMorph);
         return true;
     },
+    overrideGetter: function(interactions, key) {
+        interactions.__defineGetter__(key, function() {
+            console.log("get", key, "args", window.activeComponent);
+            if (window.activeComponent) {
+                window.activeComponent.interactionVariables.pushIfNotIncluded(key);
+            }
+            return interactions["_" + key];
+        })
+        interactions.__defineSetter__(key, function(value) {
+            interactions["_" + key] = value;
+        })
+    },
     attachListener: function(aMorph) {
-        // only attach functions once
+        // only attach listener once
         if (aMorph.listenersAttached)
             return;
-            
+
         aMorph.listenersAttached = true;
         
         var dashboard = $morph("Dashboard");
+        var droppingArea = this;
         
         // attach remove -> remove interaction variable
         var oldRemove = aMorph.remove;
@@ -294,7 +307,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
                     var _this = this;
                     var createInteractionVariable = function(attribute) {
                         if (attribute == null) {
-                            alertOK("Variable creation cancled!");
+                            alertOK("Variable creation canceled!");
                             return;
                         }
                         if (!(attribute in _this)) {
@@ -307,10 +320,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
                         _this.interactionConnections = [];
                         // update the interaction variable value when the text string is changed
                         _this.interactionConnections.push(connect(_this, attribute, $morph("Dashboard").env.interaction, name));
-                        // _this.overwriteGetter( $morph("Dashboard").env.interaction, _this.getName());
+                        droppingArea.overrideGetter($morph("Dashboard").env.interaction, aMorph.getName());
                         
                         // update the panel view when variable changed
                         _this.interactionConnections.push(connect(_this, attribute, $morph("Dashboard"), "updateInteractionPanel"));
+                        
+                        // update all components that use this interaction variable
+                        var targetObject = {updateObservers: function (value) {droppingArea.updateObservers(value, name);}};
+                        _this.interactionConnections.push(connect(_this, attribute, targetObject, "updateObservers"));
                         
                         dashboard.updateInteractionPanel();
                     }
@@ -331,10 +348,25 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
             // dashboard.updateInteractionPanel();
         }
     },
+    updateObservers: function(value, key) {
+        this.getObservers(key).each(function (ea) {
+            ea.notify();
+        })
+    },
     removeVariable: function(name) {
         console.log("remove interaction variable: " + name);
         delete $morph("Dashboard").env.interaction[name];
+        delete $morph("Dashboard").env.interaction["_" + name];
+        this.getObservers(name).each(function (ea) {
+            ea.interactionVariables.remove(name);
+        })
         $morph("Dashboard").updateInteractionPanel();
+    },
+    getObservers: function(interactionVariable) {
+        var all = lively.morphic.Charts.DataFlowComponent.getAllComponents();
+        return all.filter(function (ea) {
+            return ea.interactionVariables.indexOf(interactionVariable) >= 0
+        });
     }
 });
 
@@ -353,6 +385,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         this.layout = {adjustForNewBounds: true};
         this.wasDragged = false;
+        this.interactionVariables = [];
         
         this.minimizeOnHeaderClick();
         this.makeReframeHandles();
@@ -625,6 +658,14 @@ Object.extend(lively.morphic.Charts.Component, {
     }
 });
 
+Object.extend(lively.morphic.Charts.DataFlowComponent, {
+    getAllComponents: function() {
+        return $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.Charts.DataFlowComponent;
+        });
+    }
+});
+
 
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent", {
 
@@ -798,18 +839,6 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.droppingArea.setExtent(newExtent.subPt(pt(this.jsonViewer.getExtent().x, 0)));
         this.droppingArea.setPosition(pt(this.jsonViewer.getExtent().x, 0));
     },
-    
-    overwriteGetter: function(interactions, key) {
-        interactions.__defineGetter__(key, function() {
-            console.log("get", key, "caller", arguments.callee.caller.toString());
-            return interactions["_" + key];
-        })
-        interactions.__defineSetter__(key, function(value) {
-            console.log("set", key);
-            interactions["_" + key] = value;
-        })
-    },
-    
 });
 
 lively.morphic.Charts.Content.subclass("lively.morphic.Charts.NullContent", {
@@ -1493,7 +1522,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         });
         
         // save cached position for the automatic layouting
-        this.getAllComponents().each(function (ea) {
+        lively.morphic.Charts.DataFlowComponent.getAllComponents().each(function (ea) {
             ea.cachedPosition = ea.getPosition();
         });
         
@@ -1508,7 +1537,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.removePreviewMorph();
         this.setOpacity(1);
         
-        this.getAllComponents().each(function (ea) {
+        lively.morphic.Charts.DataFlowComponent.getAllComponents().each(function (ea) {
             ea.cachedPosition = null;
         });
     },
@@ -1554,7 +1583,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         var previewMorph = $morph("PreviewMorph" + this);
         
         // reset the position of all components
-        var all = this.getAllComponents();
+        var all = lively.morphic.Charts.DataFlowComponent.getAllComponents();
         all.each(function (ea) {
             ea.setPosition(ea.getCachedPosition());
         })
@@ -1605,11 +1634,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         }
     },
 
-    getAllComponents: function() {
-        return $world.withAllSubmorphsSelect(function(el) {
-            return el instanceof lively.morphic.Charts.DataFlowComponent;
-        });
-    },
+
     
     createMinimizer: function() {
         var minimizer = new lively.morphic.Charts.Minimizer();
@@ -1656,7 +1681,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     update: function() {
         
         this.refreshData();
-        
+
         var text = this.get("ErrorText");
         text.setTextString("");
         this.componentHeader.setToolTip("");
@@ -1664,7 +1689,9 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         var promise;
         try {
+            window.activeComponent = this;
             promise = this.updateComponent();
+            window.activeComponent = null;
             this.applyDefaultStyle();
             
         } catch (e) {
@@ -1777,7 +1804,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     getComponentInDirectionFrom: function(direction, point) {
         // direction should be an int, which indicates the vertical direction
         // -1 is up and 1 is down
-        var allComponents = this.getAllComponents();
+        var allComponents = lively.morphic.Charts.DataFlowComponent.getAllComponents();
         var closestComponent = null;
 
         // choose the top middle point as myPosition as default

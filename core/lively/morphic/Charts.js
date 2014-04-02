@@ -658,14 +658,6 @@ Object.extend(lively.morphic.Charts.Component, {
     }
 });
 
-Object.extend(lively.morphic.Charts.DataFlowComponent, {
-    getAllComponents: function() {
-        return $world.withAllSubmorphsSelect(function(el) {
-            return el instanceof lively.morphic.Charts.DataFlowComponent;
-        });
-    }
-});
-
 
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent", {
 
@@ -2106,6 +2098,14 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             border-width: 1px !important;\
         }";
     },
+});
+
+Object.extend(lively.morphic.Charts.DataFlowComponent, {
+    getAllComponents: function() {
+        return $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.Charts.DataFlowComponent;
+        });
+    }
 });
 
 lively.morphic.Charts.Content.subclass("lively.morphic.Charts.LinearLayout", {

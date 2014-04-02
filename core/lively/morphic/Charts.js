@@ -1218,11 +1218,11 @@ Object.extend(lively.morphic.Charts.Utils, {
             y = 10 + maxY;
         }
         if (!Object.isNumber(width)) {
-            width = lively.morphic.Charts.Utils.defaultWidth;
+            width = this.defaultWidth;
         }
         
         var x = 10 + morphs[0].morph.getOrigin().x;
-        arrangeOnPath([pt(x, y), pt(x + width, y)], morphs);
+        this.arrangeOnPath([pt(x, y), pt(x + width, y)], morphs);
     },
     defaultWidth: 350,
     arrange2D: function(data, propertyX, propertyY, rect) {
@@ -1249,12 +1249,12 @@ Object.extend(lively.morphic.Charts.Utils, {
             x = 10 + maxX;
         }
         if (!Object.isNumber(height)) {
-            height = lively.morphic.Charts.Utils.defaultWidth;
+            height = this.defaultWidth;
         }
 
         // add margin
         var y = 10 + morphs[0].morph.getOrigin().y;
-        arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
+        this.arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
     },
 });
 
@@ -2341,7 +2341,7 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     boundEval: function(codeStr) {
         var ctx = this.getDoitContext() || this;
         
-        var __evalStatement = this.createEvalStatement();
+        var __evalStatement = this.createEvalStatement(ctx, codeStr);
         
         // see also $super
         
@@ -2364,28 +2364,27 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         } catch(e) {throw e}
         
     },
-    createEvalStatement: function() {
-        var utilsString = "";
-        var Utils = lively.morphic.Charts.Utils;
-        Object.getOwnPropertyNames(Utils).each(function (key) {
-            if (typeof Utils[key] === "function" && Utils[key].toString().indexOf("[native code]") == -1)
-                utilsString += "var " + key + " = " + Utils[key] + "; ";
-        });
+    
+    createEvalStatement: function(ctx, codeStr) {
+        // The parameters ctx and codeStr are not strictly necessary for calling this function.
+        // Instead, this should highlight the fact that these variables need to be in the scope
+        // when evaluating the evalStatement.
         
-        var envString;
-        if ($morph("Dashboard")) {
-            envString = "var env = $morph('Dashboard').env;";
-        } else {
-            envString = "var env = {};"
-        }
-        return "(function() {" + envString + utilsString + 
-            "   var data = ctx.component.data; \
-                with ((ctx.component.env && ctx.component.env.interaction) || window) { \
-                    var ret = eval(codeStr); \
-                } \
-                ctx.component.env = env; \
-                return ret; \
-            }).call(ctx);"
+        var evalFunction = (function() {
+            var env = $morph("Dashboard") ? $morph('Dashboard').env : {};
+
+            var data = ctx.component.data;
+            with ((ctx.component.env && ctx.component.env.interaction) || window) {
+                with (lively.morphic.Charts.Utils) {
+                    var ret = eval(codeStr);
+                }
+            }
+            ctx.component.env = env;
+            return ret;
+        }).toString()
+
+        var evalStatement = "(" + evalFunction + ")();"
+        return evalStatement;
     },
         
     onChanged: function(optForceEvaluation) {
@@ -2539,49 +2538,47 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var position = pt(4, this.prototypeArea.getExtent().y - this.addButton.getExtent().y - 4);
         this.addButton.setPosition(position);
     },
-    
 
-
-
-    
     update : function($super, data) {
-        if (data) {
-            var prototypeMorph = this.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
-            if (prototypeMorph) {
-                var mappingFunction;
-                this.codeEditor.doitContext = this;
-                this.data = data;
-                var ctx = this.codeEditor.getDoitContext() || this.codeEditor;
-                var codeStr = "mappingFunction = " + this.codeEditor.getTextString();
-                eval(this.codeEditor.createEvalStatement());
-                
-                var bulkCopy = this.smartBulkCopy(prototypeMorph, data.length);
-                var copiedMorphs = bulkCopy.copiedMorphs;
-                this.copiedMorphs = copiedMorphs;
-                data = data.map(function(ea, index) {
-                    var prototypeInstance = copiedMorphs[index];
-                    
-                    // if the morphs weren't cloned, replay the actions which were applied on the PrototypeMorph
-                    if (!bulkCopy.cloned) {
-                        if (prototypeMorph.__appliedCommands) {
-                            for (var commandName in prototypeMorph.__appliedCommands) {
-                                var command = prototypeMorph.__appliedCommands[commandName];
-                                command.fn.apply(prototypeInstance, command.args);
-                            }
-                        }
-                    }
-                    
-                    mappingFunction(prototypeInstance, ea);
-                    // ensure that each datum is a object (primitives will get wrapped here)
-                    ea = ({}).valueOf.call(ea);
-                    ea.morph = prototypeInstance;
-                    return ea;
-                });
-            } else {
-                this.throwError(new Error("No morph with name 'PrototypeMorph' found"));
-            }
-            return data;
+        if (!data) {
+            return;
         }
+        
+        var prototypeMorph = this.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
+        if (!prototypeMorph) {
+            this.throwError(new Error("No morph with name 'PrototypeMorph' found"));
+        }
+        
+        var mappingFunction;
+        this.codeEditor.doitContext = this;
+        var ctx = this.codeEditor.getDoitContext() || this.codeEditor;
+        var codeStr = "mappingFunction = " + this.codeEditor.getTextString();
+        eval(this.codeEditor.createEvalStatement(ctx, codeStr));
+        
+        var bulkCopy = this.smartBulkCopy(prototypeMorph, data.length);
+        var copiedMorphs = bulkCopy.copiedMorphs;
+        this.copiedMorphs = copiedMorphs;
+        data = data.map(function(ea, index) {
+            var prototypeInstance = copiedMorphs[index];
+            
+            // if the morphs weren't cloned, replay the actions which were applied on the PrototypeMorph
+            if (!bulkCopy.cloned) {
+                if (prototypeMorph.__appliedCommands) {
+                    for (var commandName in prototypeMorph.__appliedCommands) {
+                        var command = prototypeMorph.__appliedCommands[commandName];
+                        command.fn.apply(prototypeInstance, command.args);
+                    }
+                }
+            }
+            
+            mappingFunction(prototypeInstance, ea);
+            // ensure that each datum is a object (primitives will get wrapped here)
+            ea = ({}).valueOf.call(ea);
+            ea.morph = prototypeInstance;
+            return ea;
+        });
+        
+        return data;
     },
     
     smartBulkCopy: function(prototypeMorph, amount) {

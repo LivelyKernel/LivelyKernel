@@ -325,8 +325,8 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
     },
 
     overrideGetter: function(interactions, key) {
+        interactions["_" + key] = interactions[key];
         interactions.__defineGetter__(key, function() {
-            console.log("get", key, "args", window.activeComponent);
             if (window.activeComponent) {
                 window.activeComponent.interactionVariables.pushIfNotIncluded(key);
             }
@@ -1339,7 +1339,11 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
 
     
     updateComponent : function() {
+        // refresh interactionVariables array
+        this.interactionVariables = []
+        window.activeComponent = this;
         var newData = this.content.update(this.data);
+        window.activeComponent = null;
         // check whether the return value already was a promise
         if (newData && typeof newData.done == "function") {
             return newData;
@@ -1764,9 +1768,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         var promise;
         try {
-            window.activeComponent = this;
             promise = this.updateComponent();
-            window.activeComponent = null;
             this.applyDefaultStyle();
             
         } catch (e) {

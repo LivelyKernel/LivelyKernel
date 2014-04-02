@@ -2,11 +2,13 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
     
 lively.morphic.Morph.subclass("lively.morphic.Charts.AddButton",
 {
-    initialize: function($super, contextItems) {
+    initialize: function($super, contextItems, optColor) {
         $super();
         
         var width = 10;
         var height = 10;
+        // Bootstrap-blue as default
+        if (!optColor) optColor = Color.rgb(66, 139, 202);
         
         this.contextItems = contextItems;
         
@@ -17,13 +19,13 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.AddButton",
         
         var vertices = [pt(0, height / 2), pt(width, height / 2)];
         var line = new lively.morphic.Path(vertices);
-        line.setBorderColor(Color.rgb(66, 139, 202));
+        line.setBorderColor(optColor);
         line.setBorderWidth(2);
         this.addMorph(line);
         
         vertices = [pt(width / 2, 0), pt(width / 2, height)];
         line = new lively.morphic.Path(vertices);
-        line.setBorderColor(Color.rgb(66, 139, 202));
+        line.setBorderColor(optColor);
         line.setBorderWidth(2);
         this.addMorph(line);
         
@@ -248,7 +250,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
 
 });
 
-lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
+lively.morphic.Morph.subclass("lively.morphic.Charts.InteractionArea", {
     
     initialize: function($super, extent) {
         $super();
@@ -287,7 +289,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
         var oldRemove = aMorph.remove;
         
         aMorph.remove = function() {
-            if (this.owner instanceof lively.morphic.Charts.DroppingArea) {
+            if (this.owner instanceof lively.morphic.Charts.InteractionArea) {
                 this.owner.removeVariable(this.getName());
                 if (this.interactionConnections)
                     this.interactionConnections.each(function(ea) {
@@ -302,7 +304,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
         
         aMorph.onDropOn = function() {
             oldOnDropOn.apply(aMorph, arguments);
-            if (arguments[0] instanceof lively.morphic.Charts.DroppingArea) {
+            if (arguments[0] instanceof lively.morphic.Charts.InteractionArea) {
                 var name = this.getName();
                 // create new interaction variable, if it does't exist
                 if (!$morph("Dashboard").env.interaction[name]){
@@ -818,7 +820,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.addMorph(this.jsonViewer);
         this.jsonViewer.setExtent(pt(this.extent.x / 2, this.extent.y));
         
-        this.droppingArea = new lively.morphic.Charts.DroppingArea(pt(this.extent.x - this.jsonViewer.getExtent().x, this.extent.y));
+        this.droppingArea = new lively.morphic.Charts.InteractionArea(pt(this.extent.x - this.jsonViewer.getExtent().x, this.extent.y));
         this.addMorph(this.droppingArea);
     },
     

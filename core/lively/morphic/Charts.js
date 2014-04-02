@@ -363,7 +363,18 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         aMorph.onDropOn = function() {
             oldOnDropOn.apply(aMorph, arguments);
             if (arguments[0] instanceof lively.morphic.Charts.InteractionArea) {
-                this.createInteractionVariable();
+                // When dropping arbitrary morphs into the InteractionArea, we ask the user for the connectionAttribute
+                if (!this.connectionAttribute) {
+                    var _this = this;
+                    var setConnectionAttribute = function(attr) {
+                        _this.connectionAttribute = attr;
+                        _this.createInteractionVariable();
+                    }
+                    var description = "Choose attribute of to connect with";
+                    $world.prompt(description, setConnectionAttribute, {input: "value"})
+                } else {
+                    this.createInteractionVariable();
+                }
             }
         }
         

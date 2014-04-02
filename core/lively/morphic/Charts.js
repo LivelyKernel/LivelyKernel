@@ -253,7 +253,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
     initialize: function($super, extent) {
         $super();
         this.setExtent(extent);
-        this.setFill(Color.gray);
+        this.setFill(Color.white);
+        this.setBorderWidth(1);
+        this.setBorderColor(Color.rgb(144, 144, 144));
     },
     wantsDroppedMorph: function(aMorph){
         this.attachListener(aMorph);
@@ -2552,11 +2554,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     },
     
     wantsDroppedMorph: function(aMorph) {
-        if (!(aMorph instanceof lively.morphic.Charts.Component) && $world.draggedMorph !== aMorph) {
-            this.attachListener(aMorph);
-            return true;
-        }
-        return false;
+        return (!(aMorph instanceof lively.morphic.Charts.Component) && $world.draggedMorph !== aMorph);
     },
     
     
@@ -2574,42 +2572,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         return true;
     },
     
-    attachListener: function attachListener(aMorph) {
-        var _this = this;
-        if (aMorph.__isListenedTo == true)
-            return;
-        aMorph.__isListenedTo = true;
-        aMorph.setName("PrototypeMorph");
-        
-        var methods = ["setExtent", "setFill", "setRotation", "setOrigin"];
-        
-        methods.each(function(methodName) {
-           var oldFn = aMorph[methodName];
-           
-           aMorph[methodName] = function() {
-                var argsForOldFn = Array.prototype.slice.call(arguments);
 
-                oldFn.apply(aMorph, argsForOldFn);
-                var applyToExistingCopies = false;
-                if (applyToExistingCopies && _this.copiedMorphs) {
-                    _this.copiedMorphs.map(function(copiedMorph) {
-                        oldFn.apply(copiedMorph, argsForOldFn);
-                    });
-                }
-                
-                // save the function call so that it can be replayed
-                aMorph.__appliedCommands = aMorph.__appliedCommands || {};
-                
-                var appliedCommand = {fn: oldFn, args: argsForOldFn};
-                
-                aMorph.__appliedCommands[methodName] = appliedCommand;
-                
-                Functions.debounceNamed(_this.id, 1000, function() {
-                    _this.component.onContentChanged();
-                })();
-           };
-        });
-    }
 });
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     

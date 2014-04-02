@@ -127,7 +127,8 @@ lively.morphic.Morph.addMethods(
             clone.findAndSetUniqueName();
             clone.disconnectObsoleteControlPoints();
             if (typeof clone.onCopy === "function") clone.onCopy();
-            
+            clone.scripts = [];
+            clone.submorphs = [];
             clonedSubmorphs.each(function(clonedSubmorphArray) {
                clone.addMorph(clonedSubmorphArray[i]);
             });

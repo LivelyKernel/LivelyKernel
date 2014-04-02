@@ -1746,6 +1746,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         if (!dashboard && !Object.isEmpty(this.env)) {
             dashboard = new lively.morphic.Charts.Dashboard(this.env);
             dashboard.openInWorld();
+            dashboard.sendToBack();
         }
         if (dashboard) {
             dashboard.update();

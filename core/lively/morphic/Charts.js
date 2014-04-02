@@ -240,13 +240,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         });
         this.removeUnusedViewers();
     },
-    updateInteractionPanel: function() {
-        var panel = this.getSubmorphsByAttribute("envKey", "interaction")[0];
-        panel.update(this.env.interaction);
-    },
-    renameVariable: function(oldName, newName) {
-        this.env.interaction[newName] = this.env.interaction[oldName];
-        delete(this.env.interaction[oldName]);
+
+    renameVariable: function(oldName, inputMorph) {
+        delete this.env.interaction[oldName];
+        inputMorph.createInteractionVariable();
     },
     
     removeUnusedViewers: function() {
@@ -366,39 +363,41 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         aMorph.onDropOn = function() {
             oldOnDropOn.apply(aMorph, arguments);
             if (arguments[0] instanceof lively.morphic.Charts.InteractionArea) {
-                var name = this.getName();
-                // create new interaction variable, if it does't exist
-                if (!$morph("Dashboard").env.interaction[name]){
-                    var _this = this;
-                    var createInteractionVariable = function(attribute) {
-                        if (attribute == null) {
-                            alertOK("Variable creation canceled!");
-                            return;
-                        }
-                        if (!(attribute in _this)) {
-                            alert(attribute + " does not exist in " + name);
-                            return;
-                        }
-                        console.log("create interaction variable: " + name);
-                        
-                        $morph("Dashboard").env.interaction[name] = _this[attribute];
-                        _this.interactionConnections = [];
-                        // update the interaction variable value when the text string is changed
-                        _this.interactionConnections.push(connect(_this, attribute, $morph("Dashboard").env.interaction, name));
-                        droppingArea.overrideGetter($morph("Dashboard").env.interaction, aMorph.getName());
-                        
-                        // update the panel view when variable changed
-                        _this.interactionConnections.push(connect(_this, attribute, $morph("Dashboard"), "updateInteractionPanel"));
-                        
-                        // update all components that use this interaction variable
-                        var targetObject = {updateObservers: function (value) {droppingArea.updateObservers(value, name);}};
-                        _this.interactionConnections.push(connect(_this, attribute, targetObject, "updateObservers"));
-                        
-                        dashboard.updateInteractionPanel();
-                    }
-                    var description = "Choose attribute of " + name + " to connect with";
-                    $world.prompt(description, createInteractionVariable, {input: "value"});
-                }
+                this.createInteractionVariable();
+            }
+        }
+        
+        aMorph.createInteractionVariable = function() {
+            var name = this.getName();
+            var attribute = this.connectionAttribute;
+            
+            // create new interaction variable, if it does't exist
+            if (!dashboard.env.interaction[name]){
+                console.log("create interaction variable: " + name);
+                
+                // Create text field for the variable's name
+                var nameField = new lively.morphic.Text(rect(0, 0, 100, 25), name);
+                nameField.setPosition(pt(this.getExtent().x + 2, 0));
+                connect(nameField, "textString", this, "setName");
+                this.addMorph(nameField);
+                
+                // Create text field for the variable's value
+                var valueField = new lively.morphic.Text(rect(0, 0, 100, 25), this[attribute]);
+                valueField.setPosition(nameField.getPosition().addPt(pt(nameField.getExtent().x + 2, 0)));
+                connect(this, attribute, valueField, "setTextString");
+                this.addMorph(valueField);
+                
+                // Create interaction variable
+                dashboard.env.interaction[name] = this[attribute];
+                this.interactionConnections = [];
+                
+                // update the interaction variable value when the attribute is changed
+                this.interactionConnections.push(connect(this, attribute, dashboard.env.interaction, name));
+                droppingArea.overrideGetter(dashboard.env.interaction, aMorph.getName());
+                
+                // update all components that use this interaction variable
+                var targetObject = {updateObservers: function (value) {droppingArea.updateObservers(value, name);}};
+                this.interactionConnections.push(connect(this, attribute, targetObject, "updateObservers"));
             }
         }
         
@@ -408,9 +407,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         aMorph.setName = function() {
             var oldName = this.getName();
             oldSetName.apply(aMorph, arguments);
-            // TODO
-            // dashboard.renameVariable(oldName, this.getName());
-            // dashboard.updateInteractionPanel();
+            dashboard.renameVariable(oldName, this);
         }
     },
     updateObservers: function(value, key) {
@@ -421,17 +418,45 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
     getContextMenuComponents: function() {
         var componentNames = [
             {
-                name: "Range",
+                name: "range",
                 create: function() {
-                    return $world.loadPartItem("Slider", "PartsBin/Inputs");
-                }
+                    var part = $world.loadPartItem("Slider", "PartsBin/Inputs");
+                    part.connectionAttribute = "value";
+                    return part;
+                },
             },
             {
-                name: "String",
+                name: "text",
                 create: function() {
-                    return $world.loadPartItem("Text", "PartsBin/Basic");
-                }
-            }
+                    var part = $world.loadPartItem("InputField", "PartsBin/Inputs");
+                    part.connectionAttribute = "textString";
+                    return part;
+                },
+            },
+            {
+                name: "color",
+                create: function() {
+                    var part = $world.loadPartItem("ColorPickerButton", "PartsBin/Inputs");
+                    part.connectionAttribute = "color";
+                    return part;
+                },
+            },
+            {
+                name: "toggle",
+                create: function() {
+                    var part = $world.loadPartItem("ToggleButton", "PartsBin/Inputs");
+                    part.connectionAttribute = "isToggled";
+                    return part;
+                },
+            },
+            {
+                name: "dropdown",
+                create: function() {
+                    var part = $world.loadPartItem("DropDownList", "PartsBin/Inputs");
+                    part.connectionAttribute = "selection";
+                    return part;
+                },
+            },
         ];
         
         return componentNames;
@@ -443,7 +468,6 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         this.getObservers(name).each(function (ea) {
             ea.interactionVariables.remove(name);
         })
-        $morph("Dashboard").updateInteractionPanel();
     },
     getObservers: function(interactionVariable) {
         var all = lively.morphic.Charts.DataFlowComponent.getAllComponents();
@@ -542,6 +566,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         this.content.layout.resizeWidth = true;
         this.content.layout.resizeHeight = true;
+        this.content.layout.adjustForNewBounds = true;
         
         this.content.setExtent(componentBody.getExtent().subPt(pt(6, 6)));
         this.content.setPosition(pt(3, 3));
@@ -896,27 +921,18 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.description = "InteractionPanel";
         this.extent = pt(400, 200);
         
-        this.jsonViewer = new lively.morphic.Charts.JsonViewer();
-        this.jsonViewer.setName("JsonViewer");
-        this.jsonViewer.layout = {resizeWidth: true, resizeHeight: true};
-        this.addMorph(this.jsonViewer);
-        this.jsonViewer.setExtent(pt(this.extent.x / 2, this.extent.y));
-        
-        this.droppingArea = new lively.morphic.Charts.InteractionArea(pt(this.extent.x - this.jsonViewer.getExtent().x, this.extent.y));
+        // don't ask why there is an extend of pt(0, 0)...
+        this.droppingArea = new lively.morphic.Charts.InteractionArea(pt(0, 0));
+        this.droppingArea.layout.resizeWidth = true;
+        this.droppingArea.layout.resizeHeight = true;
         this.addMorph(this.droppingArea);
     },
     
     update: function(data) {
-        this.jsonViewer.update(data);
-        this.jsonViewer.objectTree.expand();
+        // nothing to do
     },
     
-    setExtent : function ($super, newExtent){
-        $super(newExtent);
-        this.jsonViewer.setExtent(newExtent.subPt(pt(this.getExtent().x / 2, 0)));
-        this.droppingArea.setExtent(newExtent.subPt(pt(this.jsonViewer.getExtent().x, 0)));
-        this.droppingArea.setPosition(pt(this.jsonViewer.getExtent().x, 0));
-    },
+
 });
 
 lively.morphic.Charts.Content.subclass("lively.morphic.Charts.NullContent", {

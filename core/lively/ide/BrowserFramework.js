@@ -108,7 +108,9 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             padding: Rectangle.inset(5,5,5,5),
             scaleProportional: true
         });
-
+        
+        this.fixSourceInputWidth(codeEditor);
+        
         codeEditor.evalEnabled = false; // no eval on save
         codeEditor.plugTo(this, {
             setTextString: {dir: '<-', name: 'setSourceString', options: {
@@ -765,6 +767,14 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             index = textMorph.textString.indexOf(string);
         textMorph.requestKeyboardFocus(lively.morphic.World.current().firstHand());
         textMorph.setSelectionRange(index, index + string.length);
+    },
+    fixSourceInputWidth: function(codeEditor) {
+        var _this = this;
+        setTimeout(function() {
+            var panelBounds = _this.panel.bounds();
+            var extent = lively.pt(panelBounds.width, panelBounds.height - _this.navigationHeight());
+            codeEditor.setExtent(extent);
+        }, 100);
     }
 },
 'debugging', {

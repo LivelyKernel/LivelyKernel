@@ -2549,7 +2549,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             var prototypeMorph = this.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
             if (prototypeMorph) {
                 var mappingFunction;
-                eval("mappingFunction = " + this.codeEditor.getTextString());
+                this.codeEditor.doitContext = this;
+                this.data = data;
+                var ctx = this.codeEditor.getDoitContext() || this.codeEditor;
+                var codeStr = "mappingFunction = " + this.codeEditor.getTextString();
+                eval(this.codeEditor.createEvalStatement());
                 
                 var bulkCopy = this.smartBulkCopy(prototypeMorph, data.length);
                 var copiedMorphs = bulkCopy.copiedMorphs;

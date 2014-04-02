@@ -1835,6 +1835,7 @@ lively.morphic.World.addMethods(
             ]],
             ['ChartsParts', 
                 (function menu(){
+                    module("lively.morphic.Charts").load();
                     var components = lively.morphic.Charts.Component.getComponentNames();
                     return components.map(function(name){
                         return [name, function(){ require("lively.morphic.Charts").toRun(function() {

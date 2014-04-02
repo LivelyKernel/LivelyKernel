@@ -701,18 +701,21 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
 
     
-    makeReframeHandles: function () {
-        this.spacing = 4;
+    makeReframeHandles: function (optMorph) {
+        var context = optMorph || this;
+        context.spacing = 4;
         // create three reframe handles (bottom, right, and bottom-right) and align them to the window
-        var e = this.getExtent();
-        this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
-        this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(this.spacing)));
-        this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(this.spacing)));
-        this.alignAllHandles();
+        var e = context.getExtent();
+        context.reframeHandle = context.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+        context.rightReframeHandle = context.addMorph(new lively.morphic.ReframeHandle('right', e.withX(context.spacing)));
+        context.bottomReframeHandle = context.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(context.spacing)));
+        context.alignAllHandles = this.alignAllHandles;
+        context.alignAllHandles();
     },
     
-    alignAllHandles: function () {
-        var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
+    alignAllHandles: function (optMorph) {
+        var context = optMorph || this;
+        var handles = [context.reframeHandle, context.bottomReframeHandle, context.rightReframeHandle];
         handles.forEach(function (each) {
             if (each && each.owner) {
                 each.alignWithWindow();
@@ -3489,7 +3492,15 @@ lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
     updateComponent: function() {
         // nothing needs to be done, just resolve with the old data
         return new $.Deferred().resolve(this.data);
-    }
+    },
+    
+    makeReframeHandles: function ($super) {
+        $super(this.componentHeader);
+    },
+    
+    alignAllHandles: function ($super) {
+        $super(this.componentHeader);
+    },
 });
 
 lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',

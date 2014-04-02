@@ -1811,7 +1811,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         var _this = this;
         promise.done(function() {
-            if (arguments.length == 1) {
+            // return content of arguments or arguments[0] for ajaxCalls
+            if (arguments.length == 1 || arguments[1] == "success") {
                 _this.data = arguments[0];
             } else {
                 _this.data = arguments;

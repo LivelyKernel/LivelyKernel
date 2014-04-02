@@ -415,15 +415,21 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
     },
     updateObservers: function(value, key) {
         this.getObservers(key).each(function (ea) {
-            ea.notify();
+            ea.onContentChanged();
         })
     },
     getContextMenuComponents: function() {
         var componentNames = [
             {
-                name: "Slider",
+                name: "Range",
                 create: function() {
                     return $world.loadPartItem("Slider", "PartsBin/Inputs");
+                }
+            },
+            {
+                name: "String",
+                create: function() {
+                    return $world.loadPartItem("Text", "PartsBin/Basic");
                 }
             }
         ];

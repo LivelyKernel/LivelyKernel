@@ -2975,6 +2975,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
         $super();
         this.description = "JsonViewer";
         this.extent = pt(400, 200);
+        this.setClipMode("auto");
         this.objectTree = new lively.morphic.Tree();
         this.objectTree.setName("ObjectInspectorTree");
         this.addMorph(this.objectTree);
@@ -3248,13 +3249,24 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
             if (!maxDepth) maxDepth = 10;
             if (!depth) depth = 0;
             if (depth > maxDepth) return;
-            if (root.toggle) root.toggle()
-            for (var i = 0; i < root.submorphs.length; i++) {
-                expand(root.submorphs[i], maxDepth, depth + 1);
+            if (root.toggle) root.toggle();
+            // expand only the first tree in the first level
+            if (depth <= Object.isArray(data) ? 1 : 0) {
+                var firstTree = root.submorphs.find(function (ea) {
+                    return ea instanceof lively.morphic.Tree;
+                })
+                if (firstTree)
+                    expand(firstTree, maxDepth, depth + 1);
+            } else {
+                // expand all subtrees of the first element
+                for (var i = 0; i < root.submorphs.length; i++) {
+                    if (root.submorphs[i] instanceof lively.morphic.Tree)
+                        expand(root.submorphs[i], maxDepth, depth + 1);
+                }
             }
         }
-        
-        // expand(this.get("ObjectInspectorTree"), 1);
+
+        expand(this.get("ObjectInspectorTree"), 3);
     },
     
     

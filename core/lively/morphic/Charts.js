@@ -241,10 +241,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         this.removeUnusedViewers();
     },
 
-    renameVariable: function(oldName, inputMorph) {
-        delete this.env.interaction[oldName];
-        inputMorph.createInteractionVariable();
-    },
+
     
     removeUnusedViewers: function() {
         this.submorphs.each(function(ea) {
@@ -342,7 +339,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         aMorph.listenersAttached = true;
         
         var dashboard = $morph("Dashboard");
-        var droppingArea = this;
+        var interactionArea = this;
         
         // attach remove -> remove interaction variable
         var oldRemove = aMorph.remove;
@@ -405,10 +402,10 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 
                 // update the interaction variable value when the attribute is changed
                 this.interactionConnections.push(connect(this, attribute, dashboard.env.interaction, name));
-                droppingArea.overrideGetter(dashboard.env.interaction, aMorph.getName());
+                interactionArea.overrideGetter(dashboard.env.interaction, aMorph.getName());
                 
                 // update all components that use this interaction variable
-                var targetObject = {updateObservers: function (value) {droppingArea.updateObservers(value, name);}};
+                var targetObject = {updateObservers: function (value) {interactionArea.updateObservers(value, name);}};
                 this.interactionConnections.push(connect(this, attribute, targetObject, "updateObservers"));
             }
         }
@@ -419,13 +416,17 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         aMorph.setName = function() {
             var oldName = this.getName();
             oldSetName.apply(aMorph, arguments);
-            dashboard.renameVariable(oldName, this);
+            interactionArea.renameVariable(oldName, this);
         }
     },
     updateObservers: function(value, key) {
         this.getObservers(key).each(function (ea) {
             ea.onContentChanged();
         })
+    },
+    renameVariable: function(oldName, inputMorph) {
+        this.removeVariable(oldName);
+        inputMorph.createInteractionVariable();
     },
     getContextMenuComponents: function() {
         var componentNames = [
@@ -466,6 +467,14 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 create: function() {
                     var part = $world.loadPartItem("DropDownList", "PartsBin/Inputs");
                     part.connectionAttribute = "selection";
+                    return part;
+                },
+            },
+            {
+                name: "spinner",
+                create: function() {
+                    var part = $world.loadPartItem("Spinner", "PartsBin/Inputs");
+                    part.connectionAttribute = "value";
                     return part;
                 },
             },

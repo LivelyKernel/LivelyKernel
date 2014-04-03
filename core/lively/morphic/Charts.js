@@ -16,6 +16,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PlusButton",
         this.setExtent(pt(width, height));
         this.setName("PlusButton");
         this.addStyleClassName('dataflow-clickable');
+        // do not be affected by VerticalLayout of InteractionArea
+        this.isLayoutable = false;
         
         var vertices = [pt(0, height / 2), pt(width, height / 2)];
         var line = new lively.morphic.Path(vertices);
@@ -96,6 +98,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.PrototypeArea
         this.setBorderColor(Color.rgb(66, 139, 202));
         this.setBorderRadius(5);
     },
+
     getContextMenuComponents: function() {
         var componentNames = [
             {
@@ -332,6 +335,13 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         })
     },
     attachListener: function(aMorph) {
+        // This is actually the wrong place to do this, but if it's done
+        // during initiaization, the PlusButton can not be positioned at the 
+        // bottom left corner, although it is not layouted at all!
+        if (!this.getLayouter()) {
+            // have a Layout to sort the interaction parts vertically
+            this.setLayouter(new lively.morphic.Layout.VerticalLayout());
+        }
         // only attach listener once
         if (aMorph.listenersAttached)
             return;
@@ -387,12 +397,14 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 // Create text field for the variable's name
                 var nameField = new lively.morphic.Text(rect(0, 0, 100, 25), name);
                 nameField.setPosition(pt(this.getExtent().x + 2, 0));
+                nameField.setName("NameField");
                 connect(nameField, "textString", this, "setName");
                 this.addMorph(nameField);
                 
                 // Create text field for the variable's value
                 var valueField = new lively.morphic.Text(rect(0, 0, 100, 25), this[attribute]);
                 valueField.setPosition(nameField.getPosition().addPt(pt(nameField.getExtent().x + 2, 0)));
+                valueField.setName("ValueField");
                 connect(this, attribute, valueField, "setTextString");
                 this.addMorph(valueField);
                 
@@ -954,7 +966,10 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.droppingArea = new lively.morphic.Charts.InteractionArea(pt(0, 0));
         this.droppingArea.layout.resizeWidth = true;
         this.droppingArea.layout.resizeHeight = true;
+        
         this.addMorph(this.droppingArea);
+        
+        
     },
     
     update: function(data) {

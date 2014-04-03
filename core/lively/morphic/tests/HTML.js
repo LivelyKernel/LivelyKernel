@@ -52,7 +52,10 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.RenderingTest'
 
     test03MorphSetsDataAttributeToBackpoint: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        this.world.addMorph(m1);
         this.assertIdentity(m1, $(m1.renderContext().morphNode).data('morph'));
+        m1.remove();
+        this.assertIdentity(undefined, $(m1.renderContext().morphNode).data('morph'));
     }
 
 });

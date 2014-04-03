@@ -149,10 +149,15 @@ var browserTests = [
     "apps.tests.Handlebars"
 ];
 
-var testList = baseTests;
-if (!Global.testRun || !testRun.isNodeJS) {
-    testList.pushAll(browserTests);
-}
+chartsTests = [
+    "lively.tests.ChartsTests"
+];
+
+// var testList = baseTests;
+// if (!Global.testRun || !testRun.isNodeJS) {
+//     testList.pushAll(browserTests);
+// }
+var testList = chartsTests;
 
 var additionalModules = getURLParam('additionalModules');
 if (additionalModules) {

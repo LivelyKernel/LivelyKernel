@@ -1414,6 +1414,42 @@ Object.extend(lively.morphic.Charts.Utils, {
         var y = 10 + morphs[0].morph.getOrigin().y;
         this.arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
     },
+    
+    aggregateBy: function (data, attribute, aggregationType){
+        if (data == null) return;
+        
+        var avg = function(aggregated, separated){
+            sum(aggregated, separated);
+            Properties.own(aggregated).each(function(key){
+                if (Object.isNumber(aggregated[key]))
+                    aggregated[key] /= separated.size();
+            });
+        }
+        var sum = function(aggregated, separated){
+            // take keys for aggregated object from first separated object
+            Properties.own(separated[0]).each(function(key){
+                var sum = separated.pluck(key).sum()
+                if (Object.isNumber(sum))
+                    aggregated[key] = sum;
+            });
+        }
+        
+        var newData = [];
+        var grouped = data.groupByKey(attribute);
+        Properties.own(grouped).each(function(key){
+            var datum = {};
+            datum[attribute] = key;
+            
+            //add numbers
+            if (aggregationType == "avg")
+                avg(datum, grouped[key]);
+            else if (aggregationType == "sum")
+                sum(datum, grouped[key]);
+                
+            newData.push(datum)
+        });
+        return newData;
+    }
 });
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
@@ -2932,7 +2968,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                     _this.table.atPut(0, col, ea || "-");
                 } else {
                     attributes.each(function (attr, row){
-                        _this.table.atPut(row, col, ea[attr] || "-");
+                        if (ea[attr] == 0)
+                            _this.table.atPut(row, col, 0);
+                        else
+                            _this.table.atPut(row, col, ea[attr] || "-");
                     });
                 }
             }

@@ -745,6 +745,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         return $super(target);
     },
+    remove: function($super) {
+        $super();
+
+        if (!this.wasDragged) {
+            // notify the content of the removal
+            this.content.remove();
+        }
+    },
 
     
     makeReframeHandles: function (optMorph) {
@@ -942,7 +950,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.description = "InteractionPanel";
         this.extent = pt(400, 200);
         
-        // don't ask why there is an extend of pt(0, 0)...
+        // don't ask why there is an extent of pt(0, 0)...
         this.droppingArea = new lively.morphic.Charts.InteractionArea(pt(0, 0));
         this.droppingArea.layout.resizeWidth = true;
         this.droppingArea.layout.resizeHeight = true;
@@ -951,6 +959,16 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
     
     update: function(data) {
         // nothing to do
+    },
+    remove: function($super) {
+        $super();
+        
+        var _this = this;
+        Properties.own($morph("Dashboard").env.interaction).each(function (ea) {
+            if (ea.indexOf("_") != 0) {
+                _this.droppingArea.removeVariable(ea);
+            }
+        })
     },
     
 

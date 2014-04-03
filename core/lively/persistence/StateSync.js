@@ -121,6 +121,9 @@ Object.subclass('lively.persistence.StateSync.Handle',
     }
 })
 
+Object.extend(lively.persistence.StateSync.Handle, {
+});
+
 lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.StoreHandle',
 'initializing', {
     initialize: function($super, store, path, parent) {
@@ -379,6 +382,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
 }, 'model Synchronization', {
     save: function(value, source, connection) {
         if (this.noSave) return;
+        this.changeTime = Date.now();
         var model = this.asModel();
         this.synchronizationHandles &&
         this.synchronizationHandles.forEach(function(handle) {
@@ -387,11 +391,12 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     },
     mergeWithModelData: function merge(someValue) {
         this.noSave = true;
+        if (this.changeTime && this.changeTime > someValue.changeTime)
+            return alertOK("Change ignored due to never changes in this world.");
         this.recursivelyWalk({
             text: function(functions, values) {
-                if (values.string && values.timestamp && (!this.changeTime || this.changeTime < values.timestamp)) {
+                if (values.string && this.textString !== values.string) {
                     this.textString = this.savedTextString = values.string;
-                    this.changeTime = values.timestamp;
                 }
             },
             base: function(functions, values) {
@@ -411,7 +416,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     asModel: function() {
         var obj = this.recursivelyWalk({
             text: function() { 
-                return {timestamp: this.changeTime || 0, string: this.textString}; }, 
+                return {string: this.textString}; }, 
             base: function(functions) {
                 var obj = {};
                 this.submorphs.forEach(function(morph) {
@@ -425,6 +430,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             },
         })
         obj.shortString = this.toString();
+        obj.changeTime = this.changeTime || 0;
         return obj
     },
     recursivelyWalk: function(functions) {
@@ -463,5 +469,29 @@ function connectSavingProperties(anObject, options) {
             });
         },}, anObject)
 })
+Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+function openMorphFor(modelPath, rootHandle, noMorphCb) {
+    var path = lively.PropertyPath(modelPath),
+        name = path.parts()[path.parts().length - 2],
+        partStencil = lively.PartsBin.getPartItem(name, "PartsBin/BYOIE"),
+        trait = this;
+    if (!partStencil) {
+        return noMorphCb(modelPath)
+    }
+    partStencil.loadPart(true, undefined, undefined, function(err, part) {
+        if (err) return alert(err);
+        var handle = rootHandle.child(modelPath);
+        part.setName(name);
+        trait.mixin().applyTo(part);
+        trait.connectSavingProperties(part);
+        part.synchronizationHandles ? 
+            part.synchronizationHandles.push(handle) : 
+            part.synchronizationHandles = [handle];
+        part.dropOn($world);
+        part.openInHand();
+        part.setPosition(lively.pt(0, 0))
+    });
+})
+
 
 }) // end of module

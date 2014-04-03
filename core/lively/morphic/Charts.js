@@ -319,6 +319,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
     
     initialize: function($super, extent) {
         $super(extent);
+        this.setName("InteractionArea");
         this.setBorderColor(Color.rgb(144, 144, 144));
     },
 
@@ -343,7 +344,8 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             this.setLayouter(new lively.morphic.Layout.VerticalLayout());
         }
         // only attach listener once
-        if (aMorph.listenersAttached)
+        // don't attach listeners, if a container is dragged around
+        if (aMorph.listenersAttached || aMorph.isContainer)
             return;
 
         aMorph.listenersAttached = true;
@@ -369,21 +371,58 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         var oldOnDropOn = aMorph.onDropOn;
         
         aMorph.onDropOn = function() {
-            oldOnDropOn.apply(aMorph, arguments);
             if (arguments[0] instanceof lively.morphic.Charts.InteractionArea) {
                 // When dropping arbitrary morphs into the InteractionArea, we ask the user for the connectionAttribute
                 if (!this.connectionAttribute) {
                     var _this = this;
                     var setConnectionAttribute = function(attr) {
                         _this.connectionAttribute = attr;
+                        _this.createContainer();
                         _this.createInteractionVariable();
                     }
                     var description = "Choose attribute of to connect with";
                     $world.prompt(description, setConnectionAttribute, {input: "value"})
                 } else {
+                    this.createContainer();
                     this.createInteractionVariable();
                 }
             }
+        }
+        
+        aMorph.createContainer = function() {
+            var name = this.getName();
+            var attribute = this.connectionAttribute;
+            
+            // Create text field for the variable's name
+            var nameField = new lively.morphic.Text(rect(0, 0, 100, 25), name);
+            nameField.setPosition(pt(this.getExtent().x + 2, 0));
+            nameField.setName("NameField");
+            connect(nameField, "textString", this, "setName");
+            
+            // Create text field for the variable's value
+            var valueField = new lively.morphic.Text(rect(0, 0, 100, 25), this[attribute]);
+            valueField.setPosition(nameField.getPosition().addPt(pt(nameField.getExtent().x + 2, 0)));
+            valueField.setName("ValueField");
+            connect(this, attribute, valueField, "setTextString");
+            
+            // Create container
+            var container = new lively.morphic.Box(rect(0, 0, 10, 10));
+            container.setFill(Color.gray);
+            container.isContainer = true;
+            container.setLayouter(new lively.morphic.Layout.HorizontalLayout());
+            container.addMorph(nameField);
+            container.addMorph(valueField);
+            container.addMorph(this);
+            
+            var oldRemove = container.remove;
+            
+            container.remove = function() {
+                interactionArea.removeVariable(name);
+                oldRemove.apply(container, arguments);
+            }
+            
+            $morph("InteractionArea").addMorph(container);
+            
         }
         
         aMorph.createInteractionVariable = function() {
@@ -393,20 +432,6 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             // create new interaction variable, if it does't exist
             if (!dashboard.env.interaction[name]){
                 console.log("create interaction variable: " + name);
-                
-                // Create text field for the variable's name
-                var nameField = new lively.morphic.Text(rect(0, 0, 100, 25), name);
-                nameField.setPosition(pt(this.getExtent().x + 2, 0));
-                nameField.setName("NameField");
-                connect(nameField, "textString", this, "setName");
-                this.addMorph(nameField);
-                
-                // Create text field for the variable's value
-                var valueField = new lively.morphic.Text(rect(0, 0, 100, 25), this[attribute]);
-                valueField.setPosition(nameField.getPosition().addPt(pt(nameField.getExtent().x + 2, 0)));
-                valueField.setName("ValueField");
-                connect(this, attribute, valueField, "setTextString");
-                this.addMorph(valueField);
                 
                 // Create interaction variable
                 dashboard.env.interaction[name] = this[attribute];
@@ -428,6 +453,9 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         aMorph.setName = function() {
             var oldName = this.getName();
             oldSetName.apply(aMorph, arguments);
+            this.interactionConnections.each(function(ea) {
+                ea.disconnect();
+            })
             interactionArea.renameVariable(oldName, this);
         }
     },
@@ -937,6 +965,11 @@ getHeaderCSS: function() {
 });
 
 lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
+    
+    initialize: function($super) {
+        $super();
+        this.setClipMode("auto");
+    },
 
     update: function(data) {
         // abstract
@@ -2332,7 +2365,6 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         
         this.setFill(Color.white);
         this.setName("Canvas");
-        this.setClipMode("auto");
         this.layout = {
             resizeHeight: true,
             resizeWidth: true
@@ -2558,8 +2590,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.prototypeArea.layout.resizeHeight = true;
         this.prototypeArea.layout.moveHorizontal = true;
         this.addMorph(this.prototypeArea);
-        
-        // this.createPlusButton();
         
         var prototypeMorph = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,60));
         prototypeMorph.setFill(Color.rgb(66, 139, 202));
@@ -3048,7 +3078,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
         $super();
         this.description = "JsonViewer";
         this.extent = pt(400, 200);
-        this.setClipMode("auto");
         this.objectTree = new lively.morphic.Tree();
         this.objectTree.setName("ObjectInspectorTree");
         this.addMorph(this.objectTree);

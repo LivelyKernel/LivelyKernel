@@ -250,7 +250,6 @@ lively.morphic.Morph.addMethods(
     initHTML: function(ctx) {
         var node = ctx.morphNode || (ctx.morphNode = ctx.domInterface.htmlRect());
         node.className = 'morphNode';
-        this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
         ctx.domInterface.setHTMLTransform(node, this.getRotation(), this.getScale(), this.getPivotPoint());
         this.setFixedPositionHTML(ctx, this.hasFixedPosition());
@@ -270,8 +269,13 @@ lively.morphic.Morph.addMethods(
         $(ctx.morphNode).data('morph', this);
     },
 
+    removeMorphDataHTML: function(ctx) {
+        $(ctx.morphNode).removeData('morph');
+    },
+
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
+        this.setMorphDataHTML(ctx);
         var parentNode = ctx.morphNode.parentNode;
         if (!parentNode) {
             var ownerCtx = this.owner && this.owner.renderContext();
@@ -325,6 +329,7 @@ lively.morphic.Morph.addMethods(
 'removing', {
     removeHTML: function(ctx) {
         ctx.removeNode(ctx.morphNode);
+        this.removeMorphDataHTML(ctx);
         // remove the style node if there is any
         if (ctx.styleNode) { ctx.removeNode(ctx.styleNode); }
     },

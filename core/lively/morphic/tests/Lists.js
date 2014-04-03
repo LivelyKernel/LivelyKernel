@@ -172,7 +172,48 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList', lively.morphic.
         this.assertEquals(['1', '2', '3', '4'], list.getItemMorphs().pluck('textString'), 'rendered list 3');
         this.assertMatches(['1', '2', '3', {isListItem: true, string: '4', value: text1}], list.itemList, 'itemList 3');
         this.done();
-    }
+    },
+
+    testhasOwnListItemBehavior: function() {
+        var list = new lively.morphic.MorphList(new lively.Rectangle(0, 0, 200, 100)),
+            self = this;
+        list.addScript(function renderFunction(listItem) {
+            var string = listItem.string || String(listItem),
+                morph =  new lively.morphic.Box(new lively.Rectangle(0, 0, 80, 19)),
+                text = lively.morphic.Text.makeLabel(string, {
+                    position: pt(0, 0),
+                    extent: pt(80, 19),
+                });
+            morph.isListItemMorph = true;
+            morph.addMorph(text);
+            morph.item = listItem;
+            morph.id = 0;
+            return morph;
+        });
+        list.addItem("0");
+        var clickable = list.submorphs[0].submorphs[0];
+        var evt = {
+            getTargetMorph: function() { return clickable },
+            stop: Functions.Empty,
+            isCommandKey: Functions.False,
+            isShiftDown: Functions.False
+        }
+
+        // first case: the clicked item has behavior
+        clickable.hasOwnListItemBehavior = true;
+        list.onMouseDown(evt);
+        list.onMouseUp(evt);
+        this.assert(!list.selection, "no element should be selected 01")
+
+        // second case: the whole morph wants all clicks to go to it or its submorphs
+        delete clickable.hasOwnListItemBehavior;
+        clickable.owner.hasOwnListItemBehavior = true;
+        list.onMouseDown(evt);
+        list.onMouseUp(evt);
+        this.assert(!list.selection, "no element should be selected 02")
+
+        this.done()
+    },
 });
 
 AsyncTestCase.subclass('lively.morphic.tests.Lists.List',

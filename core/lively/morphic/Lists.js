@@ -667,8 +667,10 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         if (this.itemMorphs.include(morph)) return morph;
         var owners = morph.ownerChain();
         if (!owners.include(this)) return null;
-        return owners.detect(function(ea) {
-            return this.itemMorphs.include(ea); }, this);
+        var listElementMorph = owners.detect(function(ea) {
+                return this.itemMorphs.include(ea); }, this);
+        if (listElementMorph.hasOwnListItemBehavior) return null;
+        return listElementMorph;
     },
 
     onMouseDown: function onMouseDown(evt) {
@@ -681,6 +683,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
 
     onMouseUp: function onMouseUp(evt) {
         if (evt.isCommandKey()) return false;
+        // in getListItemFromEvent, the list checks whether the clicked element wants to handle the event
         var item = this.getListItemFromEvent(evt);
         if (!item) return false;
         var clickedDownId = this._mouseDownOn;

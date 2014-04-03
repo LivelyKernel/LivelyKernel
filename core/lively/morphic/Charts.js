@@ -298,6 +298,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
             width = 800;
         }
         
+        this.setFixedPosition(true);
+
         this.setExtent(lively.pt(width, height));
         this.setPosition(lively.pt(window.innerWidth - width - scrollbarOffset, 0))
         
@@ -308,7 +310,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
             }
         });
         
-        this.setFixedPosition(true);
         this.sendToBack();
     },
 

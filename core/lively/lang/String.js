@@ -610,5 +610,10 @@ Global.Strings = {
                     return line / 2;
             return -1;
         }
+    },
+
+    diff: function(s1, s2) {
+        if (typeof JsDiff === "undefined") return 'diff not supported';
+        return JsDiff.convertChangesToXML(JsDiff.diffWordsWithSpace(s1, s2));
     }
 };

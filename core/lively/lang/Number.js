@@ -82,6 +82,10 @@ Global.Numbers = {
         return (max - x + eps >= 0) && (min - x - eps <= 0);
     },
 
+    sort: function(arr) {
+        return arr.sort(function(a,b) { return a-b; });
+    },
+
     parseLength: function(string, toUnit) {
         // Numbers.parseLength('3cm')
         // This converts the length value to pixels or the specified toUnit.

@@ -654,7 +654,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                         }
                     }
                 }
-                return worldName + ' (' + user + ', ' + lastActivity + ')';
+                return user + ', ' + lastActivity + ' (' + worldName+ ')';
             },
         onLoad: function onLoad() {
                     this.updateSessions();
@@ -1033,7 +1033,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
         }, forceFreshList);
     },
         withTargetSession: function withTargetSession(doFunc) {
-        if (!this._targetSession) return doFunc(null, null);
+        if (!this._targetSession) return doFunc(new Error('Cannot find target session'), null);
         // target session can be an object with an id or a user/worldURL pair
         if (this._targetSession.id) return doFunc(null, this._targetSession);
         if (this._targetSession.user && this._targetSession.worldURL) {

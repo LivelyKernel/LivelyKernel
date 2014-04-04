@@ -170,9 +170,9 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         });
         midResizer.addScalingBelow(panel.sourcePane);
 
-        (function() {
+        panel.whenOpenedInWorld(function() {
             midResizer.divideRelativeToParent(1-Config.get("defaultSCBSourcePaneToListPaneRatio"));
-        }).delay(0);
+        });
 
         midResizer.linkToStyles(["Browser_resizer"]);
     },

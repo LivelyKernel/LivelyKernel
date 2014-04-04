@@ -3173,11 +3173,17 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     },
 },
 'accessing', {
+
     world: function($super) {
         return $super() || this.owner || this.myWorld
     },
+
+    adaptBorders: function($super) {
+        return this.withoutPropagationDo($super);
+    },
+
     setBorderWidth: function($super, width) {
-        if (!this.selectedMorphs  || !this.isPropagating())  $super(width);
+        if (!this.selectedMorphs  || !this.isPropagating()) $super(width);
         else this.selectedMorphs.invoke('withAllSubmorphsDo',
             function(ea) { ea.setBorderWidth(width)});
     },
@@ -3358,7 +3364,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         this.setRotation(0)
         this.setScale(1)
         this.removeOnlyIt();
-        this.removeSelecitonIndicators();
+        this.removeSelectionIndicators();
         this.adjustOrigin(pt(0,0));
     },
 
@@ -3367,18 +3373,20 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         this.selectedMorphs = selectedMorphs;
 
         // add selection indicators for all selected morphs
-        this.removeSelecitonIndicators();
+        this.removeSelectionIndicators();
         selectedMorphs.forEach(function(ea) {
             var innerBounds = ea.getTransform().inverse().transformRectToRect(ea.bounds().insetBy(-4)),
                 bounds = ea.getTransform().transformRectToRect(innerBounds),
                 selectionIndicator = new lively.morphic.Morph.makeRectangle(innerBounds);
-            selectionIndicator.name = 'Selection of ' + ea;
-            selectionIndicator.isEpiMorph = true;
-            selectionIndicator.isSelectionIndicator = true;
-            selectionIndicator.setBorderStylingMode(true);
-            selectionIndicator.setAppearanceStylingMode(true);
-            selectionIndicator.addStyleClassName('selection-indicator');
-            ea.addMorph(selectionIndicator);
+            this.withoutPropagationDo(function() {
+                selectionIndicator.name = 'Selection of ' + ea;
+                selectionIndicator.isEpiMorph = true;
+                selectionIndicator.isSelectionIndicator = true;
+                selectionIndicator.setBorderStylingMode(true);
+                selectionIndicator.setAppearanceStylingMode(true);
+                selectionIndicator.addStyleClassName('selection-indicator');
+                ea.addMorph(selectionIndicator);
+            });
             this.selectionIndicators.push(selectionIndicator);
         }, this);
 
@@ -3389,7 +3397,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         this.withoutPropagationDo(function() { this.setBounds(selBounds); });
     },
 
-    removeSelecitonIndicators: function() {
+    removeSelectionIndicators: function() {
         if (this.selectionIndicators)
             this.selectionIndicators.invoke('remove');
         this.selectionIndicators.clear();

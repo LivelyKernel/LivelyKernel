@@ -3730,6 +3730,196 @@ Object.extend(lively.morphic.HTMLParser, {
     },
 });
 
+lively.morphic.Text.Fonts = {
+
+    availableFonts: function(fontNames) {
+    	var testText = 'CmmwwmmwwmmwwmmL',
+    		parent = document.body,
+    		span = document.createElement('span');
+    	span.textContent = testText;
+    	span.style.fontSize = '72px';
+    	parent.appendChild(span);
+    	var defaultWidth = span.offsetWidth, defaultHeight = span.offsetHeight;
+    	var availableFonts = fontNames.select(function(fontName) {
+    		try {
+    			if (Global.getComputedStyle(span).fontFamily == fontName) return true;
+    			span.style.fontFamily = fontName;
+    			var available = defaultWidth !== span.offsetWidth || defaultHeight !== span.offsetHeight;
+    			return available;
+    		} catch(e) { return false; }
+    	});
+    	parent.removeChild(span);
+    	return availableFonts;
+    },
+
+    getKnownFonts: function(fontNames) {
+    	return ['academy engraved let',
+    		'algerian',
+    		'amaze',
+    		'arial',
+    		'arial black',
+    		'balthazar',
+    		'bart',
+    		'bimini',
+    		'comic sans ms',
+    		'book antiqua',
+    		'bookman old style',
+    		'braggadocio',
+    		'britannic bold',
+    		'brush script mt',
+    		'century gothic',
+    		'century schoolbook',
+    		'chasm',
+    		'chicago',
+    		'colonna mt',
+    		'comic sans ms',
+    		'commercialscript bt',
+    		'coolsville ',
+    		'courier',
+    		'courier new',
+    		'cursive',
+    		'dayton',
+    		'desdemona',
+    		'fantasy',
+    		'flat brush ',
+    		'footlight mt light ',
+    		'futurablack bt',
+    		'futuralight bt',
+    		'garamond',
+    		'gaze',
+    		'geneva',
+    		'georgia',
+    		'geotype tt',
+    		'helterskelter',
+    		'helvetica',
+    		'herman',
+    		'highlight let',
+    		'impact',
+    		'jester',
+    		'joan',
+    		'john handy let',
+    		'jokerman let',
+    		'kelt',
+    		'kids',
+    		'kino mt',
+    		'la bamba let',
+    		'lithograph',
+    		'lucida console',
+    		'map symbols',
+    		'marlett',
+    		'matteroffact',
+    		'matisse itc ',
+    		'matura mt script capitals',
+    		'mekanik let',
+    		'monaco ',
+    		'monospace',
+    		'monotype sorts',
+    		'ms linedraw',
+    		'new york',
+    		'olddreadfulno7 bt',
+    		'orange let',
+    		'palatino ',
+    		'playbill',
+    		'pump demi bold let',
+    		'puppylike',
+    		'roland',
+    		'sans-serif',
+    		'scripts',
+    		'scruff let',
+    		'serif',
+    		'short hand',
+    		'signs normal',
+    		'simplex',
+    		'simpson',
+    		'stylus bt',
+    		'superfrench',
+    		'surfer',
+    		'swis721 bt',
+    		'swis721 blkoul bt',
+    		'symap',
+    		'symbol',
+    		'tahoma',
+    		'technic',
+    		'tempus sans itc',
+    		'terk ',
+    		'times',
+    		'times new roman',
+    		'trebuchet ms',
+    		'trendy',
+    		'txt',
+    		'verdana',
+    		'victorian let',
+    		'vineta bt',
+    		'vivian',
+    		'webdings',
+    		'wingdings',
+    		'western ',
+    		'westminster',
+    		'westwood let',
+    		'wide latin',
+    		'zapfellipt bt',
+    		// these are for linux
+    		'URW Chancery L',
+    		'URW Gothic L',
+    		'Century Schoolbook L',
+    		'URW Bookman L',
+    		'URW Palladio L',
+    		'Nimbus Mono L',
+    		'Nimbus Sans L',
+    		'Nimbus Roman No',
+    		'DejaVu Sans',
+    		'DejaVu Sans Mono',
+    		'DejaVu Serif',
+    		'DejaVu Sans Light',
+    		'Bitstream Charter',
+    		'DejaVu Sans Condensed',
+    		'DejaVu Serif Condensed',
+    		'Courier ',
+    		'Liberation Mono',
+    		'Liberation Serif',
+    		'FreeSerif',
+    		'Liberation Sans',
+    		'FreeMono',
+    		'FreeSans',
+    		'Arial',
+    		'Courier New',
+    		'Times New Roman',
+    		'Verdana',
+    		'Lohit Bengali',
+    		'Lohit Gujarati',
+    		'Lohit Punjabi',
+    		'Lohit Tamil',
+    		'UnDotum',
+    		'Georgia',
+    		'Trebuchet MS',
+    		'Arial Black',
+    		'Impact',
+    		'Andale Mono',
+    		'Bitstream Vera Sans Mono',
+    		'Comic Sans MS',
+    		'Bitstream Vera Sans',
+    		'Waree'].uniq().sort();
+    },
+
+    openFontBook: function() {
+    	/*this. listAvailableFonts()*/
+    	var list = new lively.morphic.MorphList(lively.rect(0,0, 200, 500));
+        var fonts = this.availableFonts(this.getKnownFonts());
+        var items = fonts.map(function(font) {
+            var text = new lively.morphic.Text(lively.rect(0,0, list.getExtent().x,20), font);
+    		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false})
+    		text.ignoreEvents();
+    		return text;
+        });
+        items.forEach(list.addMorph.bind(list));
+        list.layout.layouter.setBorderSize(0);
+        list.layout.layouter.setSpacing(5);
+        $world.addFramedMorph(list, 'Font Book');
+        return list;
+    }
+
+};
+
 Object.subclass('lively.morphic.Text.ShortcutHandler',
 'bindings', {
     addBinding: function(shortcutString, handler) {

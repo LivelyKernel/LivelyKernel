@@ -495,7 +495,9 @@ Object.extend(lively.bindings, {
         var con = this.connect(source, sourceProp, target, targetProp, spec);
         var userVisualConnectOverride = Global.event && Global.event.isShiftDown();
         if (Config.visualConnectEnabled || userVisualConnectOverride) {
-            var connector = this.showConnection(con);
+            var connector = this.showConnection(con),
+                currentValue = source[sourceProp];
+            if (currentValue !== undefined) con.update(currentValue, currentValue)
         }
         return con;
     },

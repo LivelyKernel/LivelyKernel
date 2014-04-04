@@ -175,7 +175,31 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
             expected = ['    var x = this.text(),', '        bla = this.bar.foo();'],
             result = [cleaner(lines[0], 0, lines), cleaner(lines[1], 1, lines)];
         this.assertEqualState(expected, result);
+    },
 
+    testCharBoundsWithRichText: function() {
+        var text = new lively.morphic.Text();
+        text.openInWorld();
+        this.onTearDown(function() { text.remove(); });
+
+        // measure one char manually to have a value to test for
+        var n = text.renderContext().textNode
+        var span = document.createElement('span');
+        span.setAttribute('style', 'font-family: Times; font-size: 21pt;');
+        span.textContent = 's'
+        n.appendChild(span);
+        var expectedHeight = span.getBoundingClientRect().height;
+        n.removeChild(span);
+
+        text.textString = 'small\nbig';
+        text.emphasizeRanges([
+            [0,6,{ fontFamily: 'Times', fontSize: 21 }],
+            [6,9,{ fontFamily: 'Times', fontSize: 24 }]]);
+        var bounds = text.computeCharBounds(),
+            smallHeight = bounds.slice(0, 5).pluck('height').uniq(),
+            bigHeight = bounds.slice(6,9).pluck('height').uniq();
+        this.assertEquals(expectedHeight, smallHeight, 'smallHeight');
+        this.assert(smallHeight < bigHeight, 'smallHeight < bigHeight ?');
     }
 
 });

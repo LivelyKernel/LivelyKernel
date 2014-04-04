@@ -536,7 +536,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     },
 
     computeCharBounds: function() {
-        // FIXME this currently does not work for rich text
         var domBoundsToLively = function(domBounds) { return rect(pt(domBounds.left,domBounds.top), pt(domBounds.right,domBounds.bottom)); };
         var string = this.textString,
             node = this.renderContext().textNode,
@@ -547,16 +546,22 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 
         try {
             node.parentNode.appendChild(clone);
-            string.split('').forEach(function(c, i) {
-                var span = document.createElement('span');
+            // use the span nodes of the text chunks for creating
+            // textString.length spans (to be able to measure every character)
+            return this.getTextChunks().reduce(function(spans, chunk) {
+                var chars = chunk.textString.split(''),
+                    protoSpan = chunk.chunkNode.cloneNode(false);
+                return spans.concat(chars.map(function(char) {
+                    var span = protoSpan.cloneNode(false);
+                    span.textContent = char;
+                    return span;
+                }));
+            }, []).map(function(span, i) {
                 span.id = String(i);
-                span.textContent=c;
-                clone.appendChild(span)
+                clone.appendChild(span);
+                return domBoundsToLively(lively.$(span).bounds());
             });
-    
-            return Array.from(clone.childNodes).map(function(el) {
-                return domBoundsToLively(lively.$(el).bounds());
-            });
+
         } finally {
             node.parentNode.removeChild(clone);
         }

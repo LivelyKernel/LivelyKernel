@@ -1542,6 +1542,9 @@ lively.morphic.World.addMethods(
 
         evt.hand.move(evt);
 
+        var focused = this.focusedMorph();
+        if (!focused || focused === this) evt.stop();
+
         // dargging was initiated before, just call onDrag
         if (this.draggedMorph) {
             this.draggedMorph.onDrag && this.draggedMorph.onDrag(evt);

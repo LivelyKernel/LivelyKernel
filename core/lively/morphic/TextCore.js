@@ -1557,7 +1557,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         // FIXME this only works for textNodes that have the form
         // <div><span></text*></span*></div> or <div></text*></div>
         var parent = this.renderContext().textNode;
-        if (!parent) return [0,0];
+        if (!parent || !this.isFocused()) return this.priorSelectionRange;
         var textNodeType = parent.TEXT_NODE;
         var textNodes = [];
 

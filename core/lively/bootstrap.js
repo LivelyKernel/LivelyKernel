@@ -997,8 +997,22 @@
                 base = this.rootPath,
                 timemachineActive = /timemachine/.test(Config.rootPath),
                 urlOption = Global.JSLoader.getOption('quickLoad'),
+                runCodeOption = Global.JSLoader.getOption('runCode'),
                 optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive,
                 combinedModulesHash;
+
+            if (runCodeOption) {
+                Global.lively.whenLoaded(function() {
+                    setTimeout(function() {
+                        console.log('Evaluating code passed in by URL:\n%s', runCodeOption);
+                        try {
+                            eval(runCodeOption);
+                        } catch(e) {
+                            console.error('Running URL code, error: ', e);
+                        }
+                    }, 0);
+                });
+            }
 
             if (dontBootstrap) { thenDoFunc(); return; }
 

@@ -79,7 +79,7 @@ var sessionActions = {
                 var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
                 if (!newConnection) {
                     log(2, '%s removes local session of %s', sessionServer, msg.sender);
-                    delete sessions[msg.sender];
+                    sessionServer.removeLocalSessionOf(msg.sender);
                     if (logSessionLifetime) {
                         console.log('l2l deregistration "%s" %s %s %s',
                             session.user, session.worldURL, session.id, session.remoteAddress);
@@ -101,7 +101,11 @@ var sessionActions = {
     },
 
     unregisterClient: function(sessionServer, connection, msg) {
-        sessionServer.removeLocalSessionOf(msg.sender);
+        var session = sessionServer.removeLocalSessionOf(msg.sender);
+        if (logSessionLifetime) {
+            console.log('l2l deregistration "%s" %s %s %s',
+                session.user, session.worldURL, session.id, session.remoteAddress);
+        }
         connection.send({
             action: msg.action + 'Result',
             inResponseTo: msg.messageId, data: {success: true}});
@@ -266,6 +270,7 @@ function SessionTracker(options) {
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // message dispatch
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
     this.dispatchLivelyMessage = function(msg, connection) {
         if (msg.target && msg.target !== this.trackerId) {
             this.routeMessage(msg, connection); return; }
@@ -361,8 +366,10 @@ function SessionTracker(options) {
 
     this.removeLocalSessionOf = function(sessionId) {
         var sessions = this.getLocalSessions()[this.id()];
+        var session = sessions[sessionId];
         delete sessions[sessionId];
         this.websocketServer.removeConnection(sessionId);
+        return session;
     }
 
     this.getServerToServerSessionList = function(options, thenDo) {

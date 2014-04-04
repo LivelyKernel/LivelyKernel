@@ -354,25 +354,25 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: true
             }, {
                 name: 'moveForwardToMatching',
-                bindKey: {win: 'Ctrl-Right',  mac: 'Command-Right'},
+                bindKey: {win: 'Ctrl-M',  mac: 'Command-Right'},
                 exec: this.morphBinding("moveForwardToMatching", [false, true]),
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: 'moveBackwardToMatching',
-                bindKey: {win: 'Ctrl-Left',  mac: 'Command-Left'},
+                bindKey: {win: 'Ctrl-Alt-M',  mac: 'Command-Left'},
                 exec: this.morphBinding("moveBackwardToMatching", [false, true]),
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: 'selectToMatchingForward',
-                bindKey: {win: 'Ctrl-Shift-Right',  mac: 'Command-Shift-Right'},
+                bindKey: {win: 'Ctrl-Shift-M',  mac: 'Command-Shift-Right'},
                 exec: this.morphBinding("moveForwardToMatching", [true, true]),
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: 'selectToMatchingBackward',
-                bindKey: {win: 'Ctrl-Shift-Left',  mac: 'Command-Shift-Left'},
+                bindKey: {win: 'Ctrl-Shift-Alt-M',  mac: 'Command-Shift-Left'},
                 exec: this.morphBinding("moveBackwardToMatching", [true, true]),
                 multiSelectAction: "forEach",
                 readOnly: true
@@ -469,6 +469,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 }
             }]);
             kbd.bindKey("Alt-Shift-.", 'gotoend');
+
+            // move foldall from "Ctrl-Alt-0" to "Ctrl-Alt-Shift-0" on windows
+            // b/c of the move commands
+            if (kbd.platform === 'win') {
+                kbd.bindKey("Ctrl-Alt-0", null);
+                kbd.bindKey("Ctrl-Alt-Shift-0", "foldall");
+            }
     },
 
     setupSearchBindings: function(kbd) {

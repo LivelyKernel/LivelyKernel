@@ -42,6 +42,15 @@ Trait('TextChunkOwner',
 
     getChunkStyles: function() {
         return this.getTextChunks().collect(function(ea) { return ea.getStyle() });
+    },
+
+    getChunkStyleAndRanges: function() {
+        return this.getChunkRanges()
+                .zip(this.getChunkStyles())
+                .map(function(rangeAndStyle) {
+                    return [rangeAndStyle[0][0],
+                            rangeAndStyle[0][1],
+                            rangeAndStyle[1]]})
     }
 
 },

@@ -1064,7 +1064,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             
                 if (script.timestamp && script.user) 
                     annotation = Strings.format('// changed at %s by %s  \n', script.timestamp, script.user);
-                scriptSource = Strings.format('this.addScript(%s)', script.getOriginal());
+                scriptSource = Strings.format('this.addScript(%s)', this.getOriginal().originalSource || this.getOriginal());
                 tagScript = Strings.format('.tag(%s);', this.printTags(script));
             
                 return annotation + scriptSource + tagScript;
@@ -1628,7 +1628,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             
                 if (script.timestamp && script.user) 
                     annotation = Strings.format('// changed at %s by %s  \n', script.timestamp, script.user);
-                scriptSource = Strings.format('this.addScript(%s)', script.getOriginal());
+                scriptSource = Strings.format('this.addScript(%s)', script.getOriginal().originalSource || script.getOriginal());
                 tagScript = Strings.format('.tag(%s);', this.printTags(script));
             
                 return annotation + scriptSource + tagScript;
@@ -2097,7 +2097,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         
             if (script.timestamp && script.user) 
                 annotation = Strings.format('// changed at %s by %s  \n', script.timestamp, script.user);
-            scriptSource = Strings.format('this.addScript(%s)', script.getOriginal());
+            scriptSource = Strings.format('this.addScript(%s)', script.getOriginal().originalSource || script.getOriginal());
             tagScript = Strings.format('.tag(%s);', this.printTags(script));
         
             return annotation + scriptSource + tagScript;

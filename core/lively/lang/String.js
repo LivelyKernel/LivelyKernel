@@ -238,7 +238,8 @@ Global.Strings = {
     paragraphs: function(string, options) {
         // Strings.paragraphs('foo\n\nbar')
         // Strings.paragraphs('foo\n\n\n\n\nbar', {keepEmptyLines: true})
-        if (!options || !options.keepEmptyLines) return string.split(/\n\n+/);
+        var sep = options ? options.sep : '\n\n';
+        if (!options || !options.keepEmptyLines) return string.split(new RegExp(sep + '+'));
         function isWhiteSpace(s) { return (/^\s*$/).test(s); }
         return string.split('\n').concat('').reduce(function(parasAndLast, line) {
             var paras = parasAndLast[0], last = parasAndLast[1];

@@ -1136,6 +1136,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
             }
     },
         addTextStylerFor: function addTextStylerFor(morph) {
+
         var tabs = this.get("TabContainer").getTabBar().getTabs(),
             textTab = this.get("TabContainer").addTabLabeled('Text'),
             cssTab = tabs[1],
@@ -1151,8 +1152,8 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
 
         var scroll = $world.getScroll();
         (function() {
-            this.target.selectAll();
-            this.target.focus();
+        //     this.target.selectAll();
+        //     this.target.focus();
             textAttrEd.selectTextMorph(this.target);
             $world.scrollTo(scroll[0], scroll[1])
         }).bind(this).delay(0);
@@ -1879,17 +1880,19 @@ this.submorphs.reject(function(ea) { return ea === this.get('selectedTextName') 
     selectTextMorph: function selectTextMorph(morph) {
     this.targetMorph = morph;
     if (!morph) return;
-    this.get('selectedTextName').textString = morph ? morph.name || String(morph) : 'no text selected'
-    this.get('FontChooserButton').setLabel(morph.getFontFamily());
-    this.get('FontSizeText').textString = morph.getFontSize();
-    this.get('FontWeightText').setSelectionMatching('normal');
-    this.get('FontDecorationText').setSelectionMatching('normal');
-    this.get('FontColorField').setFill(morph.getTextColor())
-
-    this.get('fixedWidthCheckBox').setChecked(morph.fixedWidth)
-    this.get('fixedHeightCheckBox').setChecked(morph.fixedHeight)
-    this.get('clipModeInput').setSelectionMatching(morph.getClipMode())
-    this.get('paddingInput').setTextString(String(this.targetMorph.getPadding()))
+    lively.bindings.noUpdate(function() {
+        this.get('selectedTextName').textString = morph ? morph.name || String(morph) : 'no text selected'
+        this.get('FontChooserButton').setLabel(morph.getFontFamily());
+        this.get('FontSizeText').textString = morph.getFontSize();
+        this.get('FontWeightText').setSelectionMatching('normal');
+        this.get('FontDecorationText').setSelectionMatching('normal');
+        this.get('FontColorField').setFill(morph.getTextColor())
+    
+        this.get('fixedWidthCheckBox').setChecked(morph.fixedWidth)
+        this.get('fixedHeightCheckBox').setChecked(morph.fixedHeight)
+        this.get('clipModeInput').setSelectionMatching(morph.getClipMode())
+        this.get('paddingInput').setTextString(String(this.targetMorph.getPadding()))
+    }.bind(this));
 },
     setupConnections: function setupConnections() {
 // disconnectAll(this.get('FontChooserComboBox'))

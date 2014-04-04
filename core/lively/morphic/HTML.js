@@ -247,6 +247,7 @@ lively.morphic.Morph.addMethods(
     renderWithHTML: function() {
         this.replaceRenderContextCompletely(new lively.morphic.HTML.RenderContext());
     },
+
     initHTML: function(ctx) {
         var node = ctx.morphNode || (ctx.morphNode = ctx.domInterface.htmlRect());
         node.className = 'morphNode';
@@ -263,14 +264,6 @@ lively.morphic.Morph.addMethods(
         var tooltip = this.morphicGetter('ToolTip');
         tooltip && this.setToolTipHTML(ctx, tooltip);
         if (UserAgent.fireFoxVersion) node['-moz-user-modify'] = 'read-only';
-    },
-
-    setMorphDataHTML: function(ctx) {
-        $(ctx.morphNode).data('morph', this);
-    },
-
-    removeMorphDataHTML: function(ctx) {
-        $(ctx.morphNode).removeData('morph');
     },
 
     appendHTML: function(ctx, optMorphAfter) {
@@ -305,6 +298,7 @@ lively.morphic.Morph.addMethods(
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
         this.getShape().renderUsing(ctx);
     },
+
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {
         if (!optAfterNode || !Array.from(parentNode.childNodes).include(optAfterNode)) {
             if (morphNode.parentNode === parentNode) return;
@@ -314,9 +308,11 @@ lively.morphic.Morph.addMethods(
         if (morphNode.nextSibling === optAfterNode) return;
         parentNode.insertBefore(morphNode, optAfterNode);
     },
+
     replaceRenderContextHTML: function(oldCtx, newCtx) {
         oldCtx.removeNode(oldCtx.morphNode);
     },
+
     onRenderFinishedHTML: function(ctx) {
         // FIXME, this is a hack
         if (this.delayedClipMode) {
@@ -376,6 +372,19 @@ lively.morphic.Morph.addMethods(
         }
         return node === ctx.morphNode;
     }
+},
+'morph data', {
+
+    setMorphDataHTML: function(ctx) {
+        $(ctx.morphNode).data('morph', this);
+    },
+
+    removeMorphDataHTML: function(ctx) {
+        $(ctx.morphNode).removeData('morph');
+        this.submorphs.forEach(function(ea) {
+            ea.removeMorphDataHTML(ea.renderContext()); });
+    }
+
 });
 
 lively.morphic.World.addMethods(
@@ -985,7 +994,7 @@ lively.morphic.Shapes.Ellipse.addMethods(
         var a = (p.x-c.x)/bnds.width, b = (p.y-c.y)/bnds.height;
 
         // If it is filled, then any inside point is a hit
-        if (this.getFill() != null) return a*a + b*b <= 0.25; 
+        if (this.getFill() != null) return a*a + b*b <= 0.25;
 
         // Case of unfilled ellipse we allow outer ring
         return a*a + b*b > 0.20 && a*a + b*b < 0.25;

@@ -11,15 +11,13 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _BorderWidth: 1,
-        _Extent: lively.pt(319.8,455.4),
+        _Extent: lively.pt(323,460),
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(4.0,22.0),
         className: "lively.morphic.Box",
         droppingEnabled: true,
-        isCopyMorphRef: true,
         layout: { adjustForNewBounds: true, resizeHeight: true, resizeWidth: true },
         layoutProps: ["adjustForNewBounds","resizeWidth","resizeHeight","moveVertical","moveHorizontal","centeredHorizontal","centeredVertical","scaleHorizontal","scaleVertical"],
-        morphRefId: 1,
         name: "StyleEditorPane",
         submorphs: [{
             _Align: "center",
@@ -29,27 +27,28 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
             _FontFamily: "Arial, sans-serif",
             _FontSize: 12,
             _Position: lively.pt(10.0,10.0),
+            _HandStyle: 'pointer',
             className: "lively.morphic.Text",
             dontUpdate: false,
             fixedWidth: true,
-            isCopyMorphRef: true,
             layout: { adjustForNewBounds: false, resizeWidth: true },
-            morphRefId: 1,
             name: "TargetName",
             textString: "Text",
             onChange: function onChange() {
-            
             var morph = this.get(this.textString);
             if (morph) {
                 this.setFill(Color.rgbHex("#EEE"));
-            
-                    this.owner.setTarget(morph);
-        
+                this.owner.setTarget(morph);
             }
             else {
                 this.setFill(Color.red);
             }
-            
+
+        },
+            onMouseDown: function onMouseDown(evt) {
+            var morph = this.get(this.textString);
+            morph && morph.show();
+            evt.stop(); return true;
         }
         },{
             _BorderColor: Color.rgb(204,204,204),
@@ -105,7 +104,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                 },{
                     _BorderColor: Color.rgb(204,204,204),
                     _BorderWidth: 1,
-                    _Extent: lively.pt(98.0,30.0),
+                    _Extent: lively.pt(60.0,30.0),
                     _Fill: Color.rgb(204,204,204),
                     _Position: lively.pt(98.0,0.0),
                     className: "lively.morphic.Tab",
@@ -133,13 +132,13 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         isLabel: true,
                         textString: "CSS"
                     }],
-                    tabBarOffset: 98
+                    tabBarOffset: 60
                 },{
                     _BorderColor: Color.rgb(204,204,204),
                     _BorderWidth: 1,
-                    _Extent: lively.pt(98.0,30.0),
+                    _Extent: lively.pt(60.0,30.0),
                     _Fill: Color.rgb(204,204,204),
-                    _Position: lively.pt(196.0,0.0),
+                    _Position: lively.pt(158,0.0),
                     className: "lively.morphic.Tab",
                     droppingEnabled: true,
                     isActive: false,
@@ -165,7 +164,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         isLabel: true,
                         textString: "Layout"
                     }],
-                    tabBarOffset: 196
+                    tabBarOffset: 158
                 }]
             },{
                 _BorderColor: Color.rgb(204,204,204),
@@ -238,7 +237,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "adjustForNewBounds",
                     name: "adjustForNewBoundsCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                                 var style = {},
                             		prop = this.sourceObj.layoutProperty;
@@ -254,7 +253,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "resizeWidth",
                     name: "resizeWidthCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -270,7 +269,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "resizeHeight",
                     name: "resizeHeightCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -286,7 +285,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "moveVertical",
                     name: "moveVerticalCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -302,7 +301,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "moveHorizontal",
                     name: "moveHorizontalCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -318,7 +317,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "centeredHorizontal",
                     name: "centeredHorizontalCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -359,7 +358,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "centeredVertical",
                     name: "centeredVerticalCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -376,7 +375,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "scaleHorizontal",
                     name: "scaleHorizontalCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -393,7 +392,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     layoutProperty: "scaleVertical",
                     name: "scaleVerticalCheckBox",
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (bool) {
                         		var style = {},
                         			prop = this.sourceObj.layoutProperty;
@@ -504,7 +503,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Padding: lively.rect(5,5,0,0),
                     _Position: lively.pt(90.0,300.0),
                     className: "lively.morphic.Text",
-    
+
                     emphasis: [[0,10,{
                         fontWeight: "normal",
                         italics: "normal"
@@ -530,19 +529,19 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     // connect(this.get("CSSCodePane"), 'savedTextString', this, 'onFire');
                     var morph = this.get("StyleEditorPane").target,
                         css = this.get("CSSCodePane").textString;
-                
+
                     if (morph && morph.setStyleSheet) {
                         if (css.trim().length > 1) {
                             morph.setStyleSheet(css);
                             this.get("CSSCodePane").textString = morph.getStyleSheet() || '';
                         }
-                
+
                         morph.setStyleClassNames(this.get("ClassEdit").textString.split(' '));
                         this.get("ClassEdit").textString = morph.getStyleClassNames().join(' ');
                     }
-                
+
                     this.get("CSSCodePane").setStatusMessage('CSS applied', Color.green, 2);
-                
+
                 }
                 },{
                     _BorderColor: null,
@@ -636,7 +635,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         valueScale: 20,
                         connectionRebuilder: function connectionRebuilder() {
                         lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                        lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                        lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                     function (v) { return {borderWidth: v} }});
                     }
                     },{
@@ -668,7 +667,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         valueScale: 50,
                         connectionRebuilder: function connectionRebuilder() {
                         lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                        lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                        lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                     function (v) { return {borderRadius: v} }});
                     }
                     },{
@@ -697,7 +696,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         _Position: lively.pt(20.0,70.0),
                         _Visible: false,
                         className: "lively.morphic.Text",
-        
+
                         emphasis: [[0,34,{
                             fontWeight: "normal",
                             italics: "normal"
@@ -739,7 +738,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         toggle: false,
                         value: false,
                         connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                        lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                     function (fill) { return {borderColor: fill} }});
                     }
                     },{
@@ -757,7 +756,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         selection: "solid",
                         valueScale: 1,
                         connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                        lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                     function (v) { return {borderStyle: v} }});
                     }
                     },{
@@ -786,7 +785,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         _Position: lively.pt(20.0,70.0),
                         _Visible: true,
                         className: "lively.morphic.Text",
-        
+
                         emphasis: [[0,7,{
                             fontWeight: "normal",
                             italics: "normal"
@@ -824,7 +823,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         valueScale: 1,
                         connectionRebuilder: function connectionRebuilder() {
                         lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                        lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                        lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                     function (v) { return {opacity: v} }});
                     }
                     },{
@@ -833,7 +832,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         _FontSize: 11,
                         _Position: lively.pt(20.0,10.0),
                         className: "lively.morphic.Text",
-        
+
                         emphasis: [[0,4,{
                             fontWeight: "bold",
                             italics: "normal"
@@ -848,7 +847,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         _Position: lively.pt(20.0,40.0),
                         _Visible: true,
                         className: "lively.morphic.Text",
-        
+
                         emphasis: [[0,6,{
                             fontWeight: "normal",
                             italics: "normal"
@@ -864,7 +863,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         _Position: lively.pt(20.0,40.0),
                         _Visible: false,
                         className: "lively.morphic.Text",
-        
+
                         emphasis: [[0,32,{
                             fontWeight: "normal",
                             italics: "normal"
@@ -905,7 +904,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         toggle: false,
                         value: false,
                         connectionRebuilder: function connectionRebuilder() {
-                        lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                        lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                     function (fill) { return {fill: fill} }});
                     }
                     },{
@@ -926,7 +925,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _FontSize: 11,
                     _Position: lively.pt(20.0,290.0),
                     className: "lively.morphic.Text",
-    
+
                     emphasis: [[0,4,{
                         fontWeight: "bold",
                         italics: "normal"
@@ -949,7 +948,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     selection: "visible",
                     valueScale: 1,
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                    lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                 function (v) { return {clipMode: v} }});
                 }
                 },{
@@ -969,7 +968,6 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                 }],
                 tab: 0
             }],
-            tabBar: "<lively.morphic.TabBar#F909A...>",
             tabBarStrategy: "lively.morphic.TabStrategyTop",
             tabPaneExtent: lively.pt(300.0,300.0)
         }],
@@ -985,20 +983,20 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
         configurator.setTarget(this.target.getLayouter());
     },
         reset: function reset() {
-    	this.get('borderWidthSlider').valueScale = 20
-    	this.get('borderRadiusSlider').valueScale = 50
-            this.get('layouterList').setSelection(null)
-            this.layoutProps = ['adjustForNewBounds', 'resizeWidth', 'resizeHeight', 'moveVertical', 'moveHorizontal', 'centeredHorizontal', 'centeredVertical', 'scaleHorizontal', 'scaleVertical'];
-            this.resetTarget()
+    	this.get('borderWidthSlider').valueScale = 20;
+    	this.get('borderRadiusSlider').valueScale = 50;
+        this.get('layouterList').setSelection(null);
+        this.layoutProps = ['adjustForNewBounds', 'resizeWidth', 'resizeHeight', 'moveVertical', 'moveHorizontal', 'centeredHorizontal', 'centeredVertical', 'scaleHorizontal', 'scaleVertical'];
+        this.resetTarget()
     },
         resetTarget: function resetTarget() {
     	this.target = undefined;
     },
         setAppearanceMode: function setAppearanceMode(override) {
         //alert("SetAppearance!");
-        
+
         if (this.target) {
-        
+
         var direct =[
             "StyleEditorFillColorLabel",
             "StyleEditorOpacityLabel",
@@ -1008,24 +1006,24 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
         var css =[
             "StyleEditorFillMsg"
         ];
-    
+
         if (override){
             this.setMorphsVisibility(direct, css);
         }
         else {
             this.setMorphsVisibility(css, direct);
         }
-        
+
         if (this.target.setAppearanceStylingMode) {
             this.target.setAppearanceStylingMode(!override);
         }
         }
-    
+
     },
         setBorderMode: function setBorderMode(override) {
-        
+
         if (this.target) {
-            
+
         var direct =[
             "StyleEditorBorderColorLabel",
             "StyleEditorBorderWidthLabel",
@@ -1039,31 +1037,31 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
         var css =[
             "StyleEditorBorderMsg"
         ];
-    
+
         if (override){
             this.setMorphsVisibility(direct, css);
         }
         else {
             this.setMorphsVisibility(css, direct);
         }
-        
+
         if (this.target.setBorderStylingMode) {
             this.target.setBorderStylingMode(!override);
         }
         }
-        
+
     },
         setLayouter: function setLayouter(layoutClassName) {
         if (layoutClassName && layoutClassName !== 'none')
             var newLayoutClass = lively.Class.forName(layoutClassName);
-    
+
         if (!this.target) return;
-    
-        var currentLayoutClass = this.target.getLayouter() && 
+
+        var currentLayoutClass = this.target.getLayouter() &&
             lively.Class.getConstructor(this.target.getLayouter());
-    
+
         if (currentLayoutClass === newLayoutClass) return;
-    
+
         this.target.setLayouter(newLayoutClass && new newLayoutClass(this.target));
         this.target.applyLayout();
     },
@@ -1086,56 +1084,81 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                 theMorph && theMorph.setVisible(false);
             }
         }, this);
-    
+
     },
         setTarget: function setTarget(morph) {
-            if (this.dontUpdate || !morph) return;
+        if (this.dontUpdate || !morph) return;
     	this.target = morph;
-    	this.get('StyleFillColorField').setColor(morph.getFill());	
+    	this.get('StyleFillColorField').setColor(morph.getFill());
     	this.get('StyleBorderColorField').setColor(morph.getBorderColor());
-    
+
     	this.get('borderWidthSlider').setValue(morph.getBorderWidth());
-    
+
     	this.get('borderRadiusSlider').setValue(morph.getBorderRadius());
-    
+
             this.get('opacitySlider').setValue(morph.getOpacity());
-    
+
             this.get('borderStyleList').setSelection(morph.getBorderStyle());
-    
+
             this.get('ClipModeList').setSelection(morph.getClipMode());
-    
+
             var layouter = morph.getLayouter();
             this.get('layouterList').setSelection(layouter && layouter.constructor.type);
-    
+
             if (morph.getStyleSheet && morph.getStyleClassNames) {
                 // check if style sheet module is loaded
                 this.get("CSSCodePane").textString = morph.getStyleSheet() || '';
-    
+
                 this.get("ClassEdit").textString = morph.getStyleClassNames().join(" ");
-    
+
                 this.get("AppearanceCheckBox").setChecked(!morph.getAppearanceStylingMode());
                 this.get("BorderCheckBox").setChecked(!morph.getBorderStylingMode());
             } else {
                 this.get("AppearanceCheckBox").remove();
                 this.get("BorderCheckBox").remove();
-                 this.get("TabContainer").tabBar.tabs.splice(1,1);
+                this.get("TabContainer").tabBar.tabs.splice(1,1);
                 this.get("TabContainer").tabBar.get('CSS').remove();
-                
             }
-    
+
             this.get('TargetName').textString = morph.getName() || morph.toString();
-    
-    	// layout
-    	var layout = morph.layout;
-    	if (layout) {
+
+        	// layout
+        	var layout = morph.layout;
+        	if (layout) {
                 this.layoutProps.forEach(function(attr) {
-    		var checkBox = this.get(attr + 'CheckBox');
-    		checkBox.setChecked(layout[attr])
-    	   }, this);
+            		var checkBox = this.get(attr + 'CheckBox');
+            		checkBox.setChecked(layout[attr])
+        	    }, this);
             }
-            
-    
-    
+
+            if (morph.isText) {
+                this.addTextStylerFor(morph);
+            }
+    },
+        addTextStylerFor: function addTextStylerFor(morph) {
+        var tabs = this.get("TabContainer").getTabBar().getTabs(),
+            textTab = this.get("TabContainer").addTabLabeled('Text'),
+            cssTab = tabs[1],
+            layoutTab = tabs[2];
+        cssTab.setBounds(rect(90,0, 60, 30));
+        layoutTab.setBounds(rect(90+60, 0, 60, 30));
+        textTab.setBounds(rect(90+60+60, 0, 70, 30));
+        textTab.getPane().setExtent(cssTab.getPane().getExtent());
+
+        var textAttrEd = lively.BuildSpec('lively.ide.tools.TextAttributeEditor').createMorph();
+        textAttrEd.setPosition(pt(0,0));
+        textTab.getPane().addMorph(textAttrEd);
+
+        var scroll = $world.getScroll();
+        (function() {
+            this.target.selectAll();
+            this.target.focus();
+            textAttrEd.selectTextMorph(this.target);
+            $world.scrollTo(scroll[0], scroll[1])
+        }).bind(this).delay(0);
+
+        this.get("TabContainer").activateTab(tabs[0]);
+        // (function() { this.target.focus(); }).bind(this).delay(0);
     },
         setTargetStyle: function setTargetStyle(style) {
     	// alert(JSON.stringify(style))
@@ -1145,34 +1168,33 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
     // newShowMorph(this.get('borderWidthSlider'))
     // this.get('borderWidthSlider').attributeConnections
     // disconnectAll(this.get('borderWidthSlider'))
-    // 
+    //
     // newShowMorph(this.get('borderRadiusSlider'))
     // this.get('borderRadiusSlider').attributeConnections
     // disconnectAll(this.get('borderRadiusSlider'))
-    
-    
-    	connect(this.get('borderWidthSlider'), 'value',
+
+    	lively.bindings.connect(this.get('borderWidthSlider'), 'value',
     	this, "setTargetStyle", {
     		converter: function(v) { return {borderWidth: v} }});
-    
-    	connect(this.get('borderRadiusSlider'), 'value',
+
+    	lively.bindings.connect(this.get('borderRadiusSlider'), 'value',
     		this, "setTargetStyle", {
     		converter: function(v) { return {borderRadius: v} }});
-    
-    	connect(this.get('opacitySlider'), 'value',
+
+    	lively.bindings.connect(this.get('opacitySlider'), 'value',
     		this, "setTargetStyle", {
     		converter: function(v) { return {opacity: v} }});
-    
-    	connect(this.get('borderStyleList'), 'selection',
+
+    	lively.bindings.connect(this.get('borderStyleList'), 'selection',
     		this, "setTargetStyle", {
     		converter: function(v) { return {borderStyle: v} }});
-    		
-    	connect(this.get('ClipModeList'), 'selection',
+
+    	lively.bindings.connect(this.get('ClipModeList'), 'selection',
     		this, "setTargetStyle", {
     		converter: function(v) { return {clipMode: v} }});
-    
-            connect(this.get('layouterList'), 'selection', this, 'setLayouter')
-    
+
+            lively.bindings.connect(this.get('layouterList'), 'selection', this, 'setLayouter')
+
             this.layoutProps.forEach(function(attr) {
             	var checkBox = this.get(attr + 'CheckBox');
             	checkBox.layoutProperty = attr;
@@ -1185,13 +1207,772 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
             		return style
             	}})
             }, this);
-    
+
     }
     }],
     titleBar: "StyleEditorPane",
     setTarget: function setTarget(target) {
     this.get('StyleEditorPane').setTarget(target);
 }
-})
+
+});
+
+
+lively.BuildSpec('lively.ide.tools.TextAttributeEditor', {
+    _Extent: lively.pt(275.1,348.3),
+    _Fill: Color.rgb(255,255,255),
+    className: "lively.morphic.Box",
+    doNotSerialize: ["layer","withoutLayers","targetMorph"],
+    draggingEnabled: false,
+    droppingEnabled: false,
+    grabbingEnabled: false,
+    isCopyMorphRef: true,
+    layout: {
+        adjustForNewBounds: false,
+        borderSize: 6,
+        extentWithoutPlaceholder: lively.pt(303.7,408.2),
+        resizeHeight: true,
+        resizeWidth: true,
+        spacing: 2,
+        type: "lively.morphic.Layout.VerticalLayout"
+    },
+    morphRefId: 1,
+    name: "TextAttributePanel",
+    selectedFont: null,
+    submorphs: [{
+        _Align: "center",
+        _BorderColor: Color.rgb(95,95,95),
+        _BorderRadius: 4,
+        _BorderWidth: 1,
+        _Extent: lively.pt(262.0,20.0),
+        _Fill: Color.rgb(238,238,238),
+        _FontFamily: "Arial, sans-serif",
+        _FontSize: 12,
+        _MaxTextWidth: 255.336,
+        _MinTextWidth: 255.336,
+        _Position: lively.pt(6.6,6.6),
+        _WordBreak: "break-all",
+        className: "lively.morphic.Text",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        fixedHeight: true,
+        fixedWidth: true,
+        grabbingEnabled: false,
+        layout: {resizeWidth: true},
+        name: "selectedTextName",
+        sourceModule: "lively.morphic.TextCore",
+        textString: ""
+    },{
+        _Extent: lively.pt(262.0,28.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,28.7),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: { extentWithoutPlaceholder: lively.pt(112.3,29.3), resizeWidth: true },
+        sourceModule: "lively.morphic.Core",
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            name: "fontColorLabel",
+            sourceModule: "lively.morphic.TextCore",
+            textString: "font color:"
+        },{
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(40.0,20.0),
+            _Fill: Color.rgb(102,102,102),
+            _Position: lively.pt(126.0,4.0),
+            _Visible: true,
+            className: "lively.morphic.AwesomeColorField",
+            color: Color.rgb(74,109,209),
+            colorDisplay: { isMorphRef: true, path: "submorphs.0" },
+            droppingEnabled: false,
+            grabbingEnabled: false,
+            isPressed: false,
+            layout: { adjustForNewBounds: true },
+            name: "FontColorField",
+            sourceModule: "lively.morphic.ColorChooserDraft",
+            submorphs: [{
+                _BorderColor: Color.rgb(204,0,0),
+                _BorderRadius: 3,
+                _Extent: lively.pt(32.0,12.0),
+                _Fill: Color.rgb(74,109,209),
+                _Position: lively.pt(4.0,4.0),
+                className: "lively.morphic.Box",
+                droppingEnabled: true,
+                grabbingEnabled: false,
+                halosEnabled: false,
+                layout: { resizeHeight: true, resizeWidth: true }
+            }],
+            toggle: false,
+            value: false,
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "color", this.get("TextAttributePanel"), "updateFontColor", {});
+        }
+        }]
+    },{
+        _Extent: lively.pt(262.0,28.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,58.8),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            extentWithoutPlaceholder: lively.pt(233.8,37.8),
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        sourceModule: "lively.morphic.Core",
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            name: "fontColorLabel1",
+            textString: "background color:"
+        },{
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(40.0,20.0),
+            _Position: lively.pt(126.0,4.0),
+            _Visible: true,
+            className: "lively.morphic.AwesomeColorField",
+            color: Color.rgb(141,218,201),
+            colorDisplay: { isMorphRef: true, path: "submorphs.0" },
+            droppingEnabled: false,
+            grabbingEnabled: false,
+            isPressed: false,
+            layout: { adjustForNewBounds: true },
+            name: "BackgroundColorField",
+            sourceModule: "lively.morphic.ColorChooserDraft",
+            submorphs: [{
+                _BorderColor: Color.rgb(204,0,0),
+                _BorderRadius: 3,
+                _Extent: lively.pt(32.0,12.0),
+                _Fill: Color.rgb(141,218,201),
+                _Position: lively.pt(4.0,4.0),
+                className: "lively.morphic.Box",
+                droppingEnabled: true,
+                grabbingEnabled: false,
+                halosEnabled: false,
+                layout: { resizeHeight: true, resizeWidth: true }
+            }],
+            toggle: false,
+            value: false,
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "color", this.get("TextAttributePanel"), "updateBackgroundColor", {});
+        }
+        }]
+    },{
+        _Extent: lively.pt(263.0,27.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,88.9),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        sourceModule: "lively.morphic.Core",
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            name: "fontColorLabel1",
+            sourceModule: "lively.morphic.TextCore",
+            textString: "size:"
+        },{
+            _Extent: lively.pt(121.0,17.0),
+            _FontFamily: "Arial, sans-serif",
+            _MaxTextWidth: 120,
+            _MinTextWidth: 120,
+            _Padding: lively.rect(5,5,0,0),
+            _Position: lively.pt(126.0,4.0),
+            className: "lively.morphic.Text",
+            droppingEnabled: false,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            name: "FontSizeText",
+            selection: 10,
+            textString: "10",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "textString", this, "selection", {updater: 
+        function ($upd, v) {
+            var val = parseInt(v);
+            // mainly to sort out 1 during typing
+            if (val < 6) return
+            $upd(val)
+        }});
+            lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateFontSize", {});
+        }
+        }]
+    },{
+        _Extent: lively.pt(262.0,28.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,119.0),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            extentWithoutPlaceholder: lively.pt(261.0,27.0),
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            name: "fontColorLabel1",
+            textString: "weight:"
+        },{
+            _ClipMode: "auto",
+            _Extent: lively.pt(130.0,20.0),
+            _Fill: Color.rgb(243,243,243),
+            _FontSize: 10,
+            _Position: lively.pt(126.0,4.0),
+            changeTriggered: true,
+            className: "lively.morphic.DropDownList",
+            droppingEnabled: true,
+            grabbingEnabled: false,
+            itemList: ["normal","bold"],
+            name: "FontWeightText",
+            selectedLineNo: 0,
+            selection: "normal",
+            sourceModule: "lively.morphic.Lists",
+            textString: "normal",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateFontWeight", {});
+        }
+        }]
+    },{
+        _Extent: lively.pt(262.0,32.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,149.2),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            extentWithoutPlaceholder: lively.pt(261.0,32.0),
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.HorizontalLayout"
+        },
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            name: "fontColorLabel1",
+            textString: "decoration:"
+        },{
+            _ClipMode: "auto",
+            _Extent: lively.pt(130.0,20.0),
+            _Fill: Color.rgb(243,243,243),
+            _FontSize: 10,
+            _Position: lively.pt(126.0,4.0),
+            changeTriggered: true,
+            className: "lively.morphic.DropDownList",
+            droppingEnabled: true,
+            grabbingEnabled: false,
+            itemList: ["none","underline","line-through","overline","blink"],
+            name: "FontDecorationText",
+            selectedLineNo: 0,
+            selection: "none",
+            sourceModule: "lively.morphic.Lists",
+            textString: "normal",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateFontDecoration", {});
+        }
+        }]
+    },{
+        _Extent: lively.pt(262.0,28.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,183.3),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            name: "fontColorLabel1",
+            textString: "font family:"
+        },{
+            _Extent: lively.pt(130.0,20.0),
+            _Position: lively.pt(126.0,4.0),
+            className: "lively.morphic.Button",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            list: [],
+            listMorph: null,
+            name: "FontChooserButton",
+            label: 'font ...',
+            submorphs: [],
+            connectionRebuilder: function connectionRebuilder() {
+                connect(this, 'fire', this.get('TextAttributePanel'), 'openFontBook');
+            }
+        }]
+    },{
+        _Extent: lively.pt(262.0,28.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,213.4),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            extentWithoutPlaceholder: lively.pt(261.0,27.0),
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            emphasis: [[0,10,{
+                backgroundColor: "rgb(255,255,255)",
+                color: "rgb(0,0,0)",
+                fontFamily: "Arial,sans-serif",
+                fontSize: "15px",
+                fontWeight: "normal",
+                italics: "normal",
+                textAlign: "-webkit-auto"
+            }]],
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            name: "fontColorLabel1",
+            textString: "clip mode:"
+        },{
+            _ClipMode: "auto",
+            _Extent: lively.pt(130.0,20.0),
+            _Fill: Color.rgb(243,243,243),
+            _FontSize: 10,
+            _Position: lively.pt(126.0,4.0),
+            changeTriggered: false,
+            className: "lively.morphic.DropDownList",
+            droppingEnabled: true,
+            grabbingEnabled: false,
+            itemList: ["visible","hidden","scroll","auto"],
+            name: "clipModeInput",
+            selectedLineNo: 1,
+            selection: "hidden",
+            sourceModule: "lively.morphic.Lists",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter: 
+        function (input) { return {clipMode: input}}});
+        }
+        }]
+    },{
+        _Extent: lively.pt(262.0,32.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,243.5),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        name: "Rectangle10",
+        sourceModule: "lively.morphic.Core",
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,24.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            lastDragTime: 1315407805804,
+            name: "fontColorLabel1",
+            sourceModule: "lively.morphic.TextCore",
+            textString: "fixed width:"
+        },{
+            _BorderColor: Color.rgb(204,0,0),
+            _Extent: lively.pt(24.0,24.0),
+            _Fill: Color.rgb(255,255,255),
+            _Position: lively.pt(126.0,4.0),
+            checked: false,
+            className: "lively.morphic.CheckBox",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            grabbingEnabled: false,
+            name: "fixedWidthCheckBox",
+            sourceModule: "lively.morphic.Widgets",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+        function (bool) { return {fixedWidth: bool}}});
+        }
+        }]
+    },{
+        _Extent: lively.pt(262.0,31.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,277.6),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        name: "Rectangle11",
+        sourceModule: "lively.morphic.Core",
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,23.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            lastDragTime: 1315407805804,
+            name: "fontColorLabel1",
+            sourceModule: "lively.morphic.TextCore",
+            textString: "fixed height:"
+        },{
+            _BorderColor: Color.rgb(204,0,0),
+            _Extent: lively.pt(24.0,24.0),
+            _Fill: Color.rgb(255,255,255),
+            _Position: lively.pt(126.0,4.0),
+            checked: false,
+            className: "lively.morphic.CheckBox",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            grabbingEnabled: false,
+            name: "fixedHeightCheckBox",
+            sourceModule: "lively.morphic.Widgets",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+        function (bool) { return {fixedHeight: bool}}});
+        }
+        }]
+    },{
+        _Extent: lively.pt(262.0,28.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(6.6,310.8),
+        className: "lively.morphic.Box",
+        draggingEnabled: false,
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        layout: {
+            borderSize: 4,
+            resizeWidth: true,
+            spacing: 2,
+            type: "lively.morphic.Layout.TightHorizontalLayout"
+        },
+        submorphs: [{
+            _ClipMode: "hidden",
+            _Extent: lively.pt(120.0,19.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _Position: lively.pt(4.0,4.0),
+            _WordBreak: "break-all",
+            allowInput: false,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            eventsAreIgnored: true,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            isLabel: true,
+            lastDragTime: 1315407805804,
+            sourceModule: "lively.morphic.TextCore",
+            textString: "padding:"
+        },{
+            _Extent: lively.pt(125.0,20.0),
+            _Fill: Color.rgb(255,255,255),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 12,
+            _Position: lively.pt(126.0,4.0),
+            allowInput: true,
+            className: "lively.morphic.Text",
+            draggingEnabled: false,
+            droppingEnabled: false,
+            fixedHeight: true,
+            grabbingEnabled: false,
+            isInputLine: true,
+            name: "paddingInput",
+            textString: "lively.rect(4,2,0,0)",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "savedTextString", this.get("TextAttributePanel"), "updateStyle", {converter: 
+        function (input) {
+            try {
+                var r = eval(input);
+                if (!r.constructor === lively.Rectangle)
+                    throw new Error('Not a rectangle: ' + r)
+            } catch(e) {
+                alert('Cannot set padding: ' + e)
+                return;
+            }
+            return {padding: r}
+        
+        }});
+        }
+        }]
+    }],
+    openFontBook: function() {
+        var fontList = lively.morphic.Text.Fonts.openFontBook();
+        lively.bindings.connect(fontList, 'selection', this, 'updateFontFamily', {
+            converter: function(itemMorph) { return itemMorph.item.string; }
+        });
+    },
+    reset: function reset() {
+    disconnectAll(this)
+    connect(this, 'focusedText', this, 'selectTextMorph')
+    this.selectTextMorph(null)
+    if (!this.hasOwnProperty('doNotSerialize'))
+        this.doNotSerialize = [];
+/*
+this.doNotSerialize = this.doNotSerialize.uniq()
+this.doNotSerialize = ['layer', 'withoutLayers', '$$focusedText', 'targetMorph']
+this.onLoadFromPartsBin
+this === this.constructor.prototype
+this.getPartsBinMetaInfo().addRequiredModule('lively.LayerableMorphs')
+this.constructor.prototype._renderContext
+module('lively.LayerableMorphs').load(true)
+this.submorphs.reject(function(ea) { return ea === this.get('selectedTextName') }, this).invoke('moveBy', pt(-2,0))
+*/
+},
+    selectTextMorph: function selectTextMorph(morph) {
+    this.targetMorph = morph;
+    if (!morph) return;
+    this.get('selectedTextName').textString = morph ? morph.name || String(morph) : 'no text selected'
+    this.get('FontChooserButton').setLabel(morph.getFontFamily());
+    this.get('FontSizeText').textString = morph.getFontSize();
+    this.get('FontWeightText').setSelectionMatching('normal');
+    this.get('FontDecorationText').setSelectionMatching('normal');
+    this.get('FontColorField').setFill(morph.getTextColor())
+
+    this.get('fixedWidthCheckBox').setChecked(morph.fixedWidth)
+    this.get('fixedHeightCheckBox').setChecked(morph.fixedHeight)
+    this.get('clipModeInput').setSelectionMatching(morph.getClipMode())
+    this.get('paddingInput').setTextString(String(this.targetMorph.getPadding()))
+},
+    setupConnections: function setupConnections() {
+// disconnectAll(this.get('FontChooserComboBox'))
+    connect(this.get('FontChooserButton'), 'fire', this, 'openFontBook');
+    connect(this.get('FontSizeText'), 'selection', this, 'updateFontSize');
+    connect(this.get('FontWeightText'), 'selection', this, 'updateFontWeight');
+    connect(this.get('FontDecorationText'), 'selection', this, 'updateFontDecoration');
+    connect(this.get('FontColorField'), 'color', this, 'updateFontColor');
+    connect(this.get('BackgroundColorField'), 'color', this, 'updateBackgroundColor')
+
+    // connect(this.get('unselectButton'), 'fire', this, 'updateFontColor');
+
+    connect(this.get('fixedWidthCheckBox'), 'checked', this, 'updateStyle', {
+            converter: function(bool) { return {fixedWidth: bool}}});
+
+    connect(this.get('fixedHeightCheckBox'), 'checked', this, 'updateStyle', {
+            converter: function(bool) { return {fixedHeight: bool}}});
+
+    connect(this.get('clipModeInput'), 'savedTextString', this, 'updateStyle', {
+            converter: function(input) { return {clipMode: input}}});
+},
+    updateBackgroundColor: function updateBackgroundColor(value) {
+    var m = this.targetMorph, selRange = m.getSelectionRange();
+    if (selRange) selRange = Numbers.sort(selRange);
+    if (!selRange || selRange[0] === selRange[1]) selRange = [0, m.textString.length];
+    m.changeEmphasis(selRange[0], selRange[1], function(prevEmph, doEmph) {
+        doEmph({backgroundColor: value})
+    });
+},
+    updateFontColor: function updateFontColor(value) {
+    var m = this.targetMorph, selRange = m.getSelectionRange();
+    if (selRange) selRange = Numbers.sort(selRange);
+    if (!selRange || selRange[0] == selRange[1]) m.setTextColor(value);
+    else m.changeEmphasis(
+        selRange[0], selRange[1],
+        function(prevEmph, doEmph) { doEmph({color: value}) })
+},
+    updateFontDecoration: function updateFontDecoration(value) {
+    var m = this.targetMorph, selRange = m.getSelectionRange();
+    if (selRange) selRange = Numbers.sort(selRange);
+    if (!selRange || selRange[0] === selRange[1]) selRange = [0, m.textString.length];
+    var emphObject;
+    if (value === 'italic') {
+        emphObject = {italics: value, textDecoration: 'normal'}
+    } else {
+        emphObject = {textDecoration: value, italics: 'normal'}
+    }
+    m.changeEmphasis(selRange[0], selRange[1], function(prevEmph, doEmph) {
+        doEmph(emphObject);
+    });
+    
+},
+    updateFontFamily: function updateFontFamily(value) {
+    var m = this.targetMorph, selRange = m.getSelectionRange();
+    if (selRange) selRange = Numbers.sort(selRange);
+    if (!selRange || selRange[0] == selRange[1]) m.setFontFamily(value);
+    else m.changeEmphasis(selRange[0], selRange[1], function(prevEmph, doEmph) {
+        doEmph({fontFamily: value})
+    });
+
+},
+    updateFontSize: function updateFontSize(value) {
+    var m = this.targetMorph, selRange = m.getSelectionRange();
+    if(selRange) selRange = Numbers.sort(selRange);
+    if (!selRange || selRange[0] == selRange[1]) m.setFontSize(value);
+    else m.changeEmphasis(selRange[0], selRange[1], function(prevEmph, doEmph) {
+        doEmph({fontSize: value})
+    });
+
+},
+    updateFontWeight: function updateFontWeight(value) {
+    var m = this.targetMorph, selRange = m.getSelectionRange();
+    if(selRange) selRange = Numbers.sort(selRange);
+    if (!selRange || selRange[0] === selRange[1]) selRange = [0, m.textString.length];
+    else m.changeEmphasis(selRange[0], selRange[1], function(prevEmph, doEmph) {
+        doEmph({fontWeight: value})
+    });
+
+},
+    updateStyle: function updateStyle(style) {
+    var m = this.targetMorph;
+    m && m.applyStyle(style);
+}
+});
 
 }) // end of module

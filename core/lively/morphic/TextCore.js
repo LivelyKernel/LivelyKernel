@@ -743,7 +743,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             case "k": { this.toggleEmphasisForSelection('Link'); return true; }
             case "o": { this.toggleEmphasisForSelection('Doit'); return true; }
             case "t": { alert("browser intercepts this t"); return true;}
-            case "l": { this.toggleEmphasisForSelection('Font'); return true; }
             case "u": { this.toggleEmphasisForSelection('Underline'); return true; }
 
             case "1": { this.applyStyle({align: 'left'}); return true; }
@@ -2119,22 +2118,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 if (input == '') input = null;
                 doEmph({doit: input ? {code: input, context: null} : null})
             }, emph.doit && emph.doit.code);
-        })
-    },
-
-    toggleFont: function(from, to) {
-        var world = this.world(), text = this;
-        this.changeEmphasis(from, to, function(emph, doEmph) {
-        // this.priorSelectionRange = this.getSelectionRange();
-            var fontChooser = $morph('TextAttributePanel');
-            if (!fontChooser) {
-                fontChooser = lively.PartsBin.getPart('TextAttributePanel', 'PartsBin/Tools');
-                world.addMorph(fontChooser);
-                fontChooser.align(fontChooser.bounds().topLeft().addPt(pt(-30,-30)),
-                     world.firstHand().getPosition());
-
-            }
-            fontChooser.selectTextMorph(text)
         })
     },
 

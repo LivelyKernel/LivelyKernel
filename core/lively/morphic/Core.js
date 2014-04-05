@@ -2,7 +2,13 @@ module('lively.morphic.Core').requires('lively.morphic.Shapes', 'lively.Traits')
 
 Object.subclass('lively.morphic.Morph',
 'properties', {
-    style: {enableDropping: true, enableHalos: true},
+    style: {
+        enableDropping: true,
+        enableHalos: true,
+        borderWidth: 0,
+        borderColor: null,
+        fill: null
+    },
     isMorph: true
 },
 'initializing', {
@@ -549,6 +555,20 @@ Object.subclass('lively.morphic.Morph',
         // if style has serveral definitions in my hierarchy than return a merged object
         return Object.mergePropertyInHierarchy(this, 'style');
     },
+
+    getOwnStyle: function() {
+        // if style has serveral definitions in my hierarchy than return a merged object
+        var style = this.getStyle();
+        Object.keys(style).forEach(function(key) {
+            if (this.hasOwnProperty(key)) { style[key] = this[key]; return; }
+            var privateKey = '_' + key.capitalize();
+            if (this.hasOwnProperty(privateKey)) { style[key] = this[privateKey]; return; }
+            var accessor = 'get' + key.capitalize();
+            if (typeof this[accessor] === 'function' && this[accessor].length === 0) { style[key] = this[accessor](); return; }
+        }, this);
+        return style;
+    },
+
     applyStyle: function(spec) {
         if (!spec) return this;
 

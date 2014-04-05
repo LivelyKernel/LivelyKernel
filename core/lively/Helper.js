@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2006-2009 Sun Microsystems, Inc.
- * Copyright (c) 2008-2011 Hasso Plattner Institute
- *
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 module('lively.Helper').requires('lively.LogHelper').toRun(function() {
 
 /*
@@ -189,5 +165,51 @@ Object.subclass('lively.Helper.XMLConverter', {
     }
 
 });
+
+lively.test = {
+
+    run: function(testFuncOrFunctions) {
+        return this.basicRun({tests: testFuncOrFunctions, callback: null});
+    },
+
+    runAndLog: function(testFunc) {
+        var result = this.run(testFunc);
+        if (result.failureList().length > 0) {
+            $world.alert(result.failureList().join('\n'));
+        } else {
+            $world.alertOK(result.printResult());
+        }
+        return result;
+    },
+
+    basicRun: function(options) {
+        var tests = typeof options.tests === 'function' ? [options.tests] : options.tests;
+        var callback = options.callback;
+        var m = lively.module('lively.TestFramework');
+
+        m.isLoaded() || m.load(true);
+        var id = Strings.newUUID().replace(/-/g, '_');
+        var klass = (!!callback ? AsyncTestCase : TestCase).subclass('lively.test.Test_' + id);
+
+        if (tests.setUp) { klass.addMethods({setUp: tests.setUp}); delete tests.setUp; }
+        if (tests.tearDown) { klass.addMethods({tearDown: tests.tearDown}); delete tests.tearDown; }
+
+        var testMethods = tests.reduce(function(methods, method, i) {
+            methods['test' + (method.name || String(i)).capitalize()] = method;
+            return methods;
+        }, {});
+        klass.addMethods(testMethods);
+
+        var t = new klass();
+        var result;
+        t.runAllThenDo(null, function() {
+            result = t.result;
+            klass.remove();
+            callback && callback(result);
+        });
+        return !callback ? result : undefined;
+    }
+
+}
 
 });

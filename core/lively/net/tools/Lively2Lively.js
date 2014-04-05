@@ -87,6 +87,9 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     _Extent: lively.pt(130.0,30.0),
     _Fill: Color.rgba(255,255,255,0.8),
     _HandStyle: "pointer",
+    _StyleSheet: ".Menu {\n"
+               + "	box-shadow: none;\n"
+               + "}\n",
     className: "lively.morphic.Box",
     currentMenu: null,
     doNotSerialize: ["currentMenu"],
@@ -156,8 +159,16 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
 },
     expand: function expand() {
     var self = this;
-    var items = [
-        ['open chat', function() {
+    var isConnected = lively.net.SessionTracker.isConnected();
+    var items = [];
+    if (!isConnected) {
+        items.push(['connect', function() {
+            lively.net.SessionTracker.resetSession();
+            self.update.bind(self).delay(0.2);
+            self.collapse();
+        }]);
+    } else {
+        items = [['open chat', function() {
             if ($morph('Lively2LivelyChat')) $morph('Lively2LivelyChat').openInWorldCenter().comeForward();
             else lively.BuildSpec('lively.net.tools.Lively2LivelyChat').createMorph().openInWorldCenter();
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -169,34 +180,61 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         }],
         ['reset connection', function() {
             lively.net.SessionTracker.resetSession();
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             self.collapse();
-        }]
-    ];
-    this.menu = new lively.morphic.Menu(null, items);
-    this.menu.openIn(this, pt(0,0), false);
-    this.menu.setBounds(lively.rect(0,-66,130,23*3));
+        }],
+        ['disconnect', function() {
+            lively.net.SessionTracker.closeSessions();
+            self.update.bind(self).delay(0.2);
+            self.collapse();
+        }]];
+    }
+    var m = this.menu = new lively.morphic.Menu(null, items);
+    m.openIn(this, pt(0,-items.length * 23), false);
     this.withCSSTransitionForAllSubmorphsDo(function() {
-        this.setExtent(pt(140, 115));
+        this.setExtent(pt(140, this.getExtent().y + m.getExtent().y + 10));
         this.alignInWorld();
         this.alignNotificationIcon();
     }, 500, function() {});
 },
-    onConnect: function onConnect() {
+    messageReceived: function messageReceived(msgAndSession) {
+    var msg = msgAndSession.message, s = msgAndSession.session;
+    if (msg.action === 'remoteEvalRequest') {
+        var msg = Strings.format(
+            'got %s\n%s\n from %s',
+            msg.action,
+            msg.data.expr.replace(/\n/g, '').truncate(100),
+            msg.sender);
+        $world.setStatusMessage(msg, Color.gray);
+    }
+},
+    onConnect: function onConnect(session) {
+    if (!this.informsAboutMessages && lively.Config.get('lively2livelyInformAboutReceivedMessages')) {
+        var self = this;
+        function onClose() {
+            self.informsAboutMessages = false;
+            lively.bindings.disconnect(session, 'message', self, 'messageReceived');
+            lively.bindings.disconnect(session, 'sessionClosed', onClose, 'call');
+        }
+        this.informsAboutMessages = true;
+        lively.bindings.connect(session, 'message', this, 'messageReceived');
+        lively.bindings.connect(session, 'sessionClosed', onClose, 'messageReceived');
+    }
     this.statusText.textString = 'Connected';
     this.statusText.applyStyle({textColor: Color.green.lighter()});
 },
-    onConnecting: function onConnecting() {
+    onConnecting: function onConnecting(session) {
+    this.informsAboutMessages = false;
     this.statusText.textString = 'Connecting';
     this.statusText.applyStyle({textColor: Color.gray});
 },
-    onDisconnect: function onDisconnect() {
+    onDisconnect: function onDisconnect(session) {
     // this.onDisconnect()
+    this.informsAboutMessages = false;
     this.statusText.textString = 'Disconnected'
     this.statusText.applyStyle({textColor: Color.red});
 },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-        $super();
+        // $super();
         this.onLoad();
     },
     onLoad: function onLoad() {
@@ -204,7 +242,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     this.openInWorld();
     this.setFixed(true);
     this.alignInWorld();
-    this.onConnecting();
+    this.onConnecting(null);
     this.update();
     this.statusText.setHandStyle('pointer');
     this.isEpiMorph = true;
@@ -264,9 +302,9 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     var s = this.session();
     switch (s && s.status()) {
         case null: case undefined:
-        case 'disconnected': this.onDisconnect(); break;
-        case 'connected': this.onConnect(); break;
-        case 'connecting': this.onConnecting(); break;
+        case 'disconnected': this.onDisconnect(s); break;
+        case 'connected': this.onConnect(s); break;
+        case 'connecting': this.onConnecting(s); break;
     }
 }
 })

@@ -442,7 +442,13 @@ Object.extend(lively.net.SessionTracker, {
         s = this.createSession();
         s.ensureServerToServerConnection();
         return s;
+    },
+
+    isConnected: function() {
+        var s = this.getSession();
+        return s && s.isConnected();
     }
+
 });
 
 Object.extend(lively.net.SessionTracker, {

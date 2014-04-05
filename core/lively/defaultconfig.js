@@ -516,7 +516,8 @@ Config.addOptions(
     ['lively2livelyAutoStart', true, 'Whether to automatically connect to a session tracker server and enable Lively-to-Lively connections.'],
     ["lively2livelyCentral", "http://lively-web.org/nodejs/SessionTracker/", 'Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate.'],
     ["lively2livelyAllowRemoteEval", true, 'Allow eval actions from other Lively worlds.'],
-    ["lively2livelyEnableConnectionIndicator", true, 'Show a morph that indicates whether lively2lively is running and which provides access to collab actions.']
+    ["lively2livelyEnableConnectionIndicator", true, 'Show a morph that indicates whether lively2lively is running and which provides access to collab actions.'],
+    ["lively2livelyInformAboutReceivedMessages", true, 'Visually log when receiving a lively2lively message.']
 ],
 
 "Wiki", [

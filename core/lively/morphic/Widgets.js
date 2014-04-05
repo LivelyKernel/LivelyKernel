@@ -1092,6 +1092,8 @@ lively.morphic.Morph.addMethods(
             idx > -1 && items.pushAt(['Reset', this.reset.bind(this)], idx+1);
         }
 
+        items.push(['Select all submorphs', function(evt) { self.world().setSelectedMorphs(self.submorphs.clone()); }]);
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // morphic hierarchy / windows
         items.push(['Open in...', [

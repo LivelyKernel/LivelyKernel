@@ -1274,4 +1274,83 @@ lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.
 
 });
 
+lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.RichTextSpec',
+'running', {
+
+    setUp: function($super) {
+        $super();
+        this.text.textString = '';
+        this.text.applyStyle({fontSize: 12});
+    }
+
+},
+'testing', {
+
+    testSetRichTextMarkup: function() {
+        this.text.setRichTextMarkup([
+            ['Hello', {fontWeight: "bold"}],
+            [' ', {}],
+            ['World', {color: Color.red}]
+        ]);
+        this.assertEquals('Hello World', this.text.textString);
+        this.assertEquals('bold', this.text.getEmphasisAt(0).fontWeight)
+        this.assertEquals(Color.red, this.text.getEmphasisAt(6).color)
+    },
+
+    testGetRichTextMarkup: function() {
+        this.text.textString = 'Hello World';
+        this.text.emphasizeRanges([[0,5,{fontWeight: "bold"}],[5,6,{}],[6,11,{color: Color.rgb(204,0,0)}]]);
+        var markup = this.text.getRichTextMarkup();
+        var expected = [
+            ['Hello', {fontWeight: "bold"}],
+            [' ', {}],
+            ['World', {color: Color.red}]
+        ];
+        this.assertMatches(expected, markup);
+    },
+
+    testGetRichTextMarkupString: function() {
+        this.text.textString = 'Hello World';
+        this.text.emphasizeRanges([[0,5,{fontWeight: "bold"}],[5,6,{}],[6,11,{color: Color.rgb(204,0,0)}]]);
+        var markupString = this.text.getRichTextMarkupString()
+        var expected = "'Hello' {fontWeight: \"bold\"}\n"
+                     + "' ' {}\n"
+                     + "'World' {color: Color.rgb(204,0,0)}\n";
+        this.assert(markupString.include('fontSize: 12'), 'whole morph style spec');
+        this.assert(markupString.endsWith(expected), 'markupString \n' + Strings.diff(expected,markupString));
+    },
+
+    testReadRichTextMarkupString: function() {
+        this.text.readRichTextMarkupString("'Hel\nlo' {fontWeight: \"bold\"}\n"
+                                    + "' ' {}\n"
+                                    + "'World' {color: Color.red}\n");
+        this.assertEquals('Hel\nlo World', this.text.textString);
+        this.assertEquals('bold', this.text.getEmphasisAt(0).fontWeight);
+        this.assertEquals(Color.red, this.text.getEmphasisAt(7).color);
+    },
+
+    testReadRichTextMarkupStringWithNullLengthRange: function() {
+        this.text.readRichTextMarkupString("'' {color: Color.green}\n"
+                                    + "'Hel\nlo' {fontWeight: \"bold\"}\n"
+                                    + "' ' {}\n"
+                                    + "'World' {color: Color.red}\n");
+        this.assertEquals('Hel\nlo World', this.text.textString);
+        this.assertEquals('bold', this.text.getEmphasisAt(0).fontWeight);
+        this.assertEquals(Color.red, this.text.getEmphasisAt(7).color);
+    },
+
+    testReadRichTextMarkupStringWithStyleSpec: function() {
+        this.text.textString = '';
+        this.text.readRichTextMarkupString("{fontSize: 20}\n"
+                                    + "'Hel\nlo' {fontWeight: \"bold\"}\n"
+                                    + "' ' {}\n"
+                                    + "'World' {color: Color.red}\n");
+        this.assertEquals('Hel\nlo World', this.text.textString);
+        this.assertEquals(20, this.text.getFontSize());
+        this.assertEquals('bold', this.text.getEmphasisAt(0).fontWeight);
+        this.assertEquals(Color.red, this.text.getEmphasisAt(7).color);
+    }
+
+});
+
 });

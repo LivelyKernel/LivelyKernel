@@ -752,6 +752,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             case "o": { this.toggleEmphasisForSelection('Doit'); return true; }
             case "t": { alert("browser intercepts this t"); return true;}
             case "u": { this.toggleEmphasisForSelection('Underline'); return true; }
+            case "l": { this.openRichTextSpecEditor(); return true; }
 
             case "1": { this.applyStyle({align: 'left'}); return true; }
             case "2": { this.applyStyle({align: 'right'});; return true; }
@@ -1783,7 +1784,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 };
         try {
             var result = interactiveEval.call(ctx);
-            if (Config.changesetsExperiment && $world.getUserName() && 
+            if (Config.changesetsExperiment && $world.getUserName() &&
         localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off")
                 lively.ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
@@ -2210,6 +2211,137 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             from = to;
         }
         return result;
+    }
+
+},
+'rich text spec', {
+
+    openRichTextSpecEditor: function() {
+        var ed = this.world().addCodeEditor({
+            title: 'text markup for ' + String(this),
+            content: '',
+            textMode: 'text',
+            lineWrapping: true
+        });
+        ed.evalEnabled = false;
+        ed.target = this;
+
+        ed.addScript(function updateWithRichTextMarkupString() {
+            this.textString = this.target.getRichTextMarkupString({separator: '\n\n'});
+        });
+
+        ed.addScript(function saveRichTextMarkup() {
+            this.target.readRichTextMarkupString(this.textString);
+        });
+
+        lively.bindings.connect(ed, 'savedTextString', ed, 'saveRichTextMarkup');
+
+        ed.updateWithRichTextMarkupString();
+        ed.getWindow().comeForward();
+    },
+
+    setRichTextMarkup: function(markupList) {
+        var richTextSpec = markupList.reduce(function(result, spec) {
+            var nextPos = result.pos + spec[0].length;
+            if (nextPos <= result.pos) return result;
+            result.ranges.push([result.pos, result.pos + nextPos, spec[1]]);
+            result.string += spec[0];
+            result.pos = nextPos;
+            return result;
+        }, {pos: 0, string: '', ranges: []});
+        this.textString = richTextSpec.string;
+        this.emphasizeRanges(richTextSpec.ranges);
+    },
+
+    getRichTextMarkup: function() {
+        var string = this.textString;
+        return this.getChunkStyleAndRanges().reduce(function(result, ea) {
+            return result.concat([[string.slice(ea[0], ea[1]), ea[2]]]);
+        }, []);
+    },
+
+    getRichTextMarkupString: function(options) {
+        options = options || {};
+        if (!options.separator) options.separator = '\n';
+        var markupString = this.getRichTextMarkup().reduce(function(result, markupSpec) {
+            return result.concat([Strings.format(
+                "'%s' %s",
+                markupSpec[0],
+                Objects.inspect(markupSpec[1].asSpec())
+                    .replace(/\n/g, '')
+                    .replace(/^\{\s*/, '{')
+                    .replace(/\s\s+/, ' '))]);
+        }, []).join(options.separator) + '\n';
+
+        var morphStyle = this.getOwnStyle();
+        var interestingStyleKeys = ["allowInput","fixedWidth","fixedHeight","fontFamily",
+            "fontSize","textColor","fontWeight","fontStyle","textDecoration","padding",
+            "align","verticalAlign","lineHeight","display","whiteSpaceHandling",
+            "wordBreak","syntaxHighlighting","cssStylingMode"];
+        Properties.forEachOwn(morphStyle, function(key, val) {
+            if (!interestingStyleKeys.include(key)) delete morphStyle[key];
+        });
+
+        return Objects.inspect(morphStyle) + '\n\n' + markupString;
+    },
+
+    readRichTextMarkupString: function(text) {
+        // text is expected to be in the form of "'...' {style: attributes}", e.g.
+        // 'Hel
+        // lo' {fontWeight: "bold"}
+        // ' ' {}
+        // 'World' {color: Color.red}
+
+        var richTextMarkup = [];
+
+        function read(text, terminator, includingOrExluding) {
+            if (!terminator) {
+                terminator = text[0];
+                var result = read(text.slice(1), terminator, includingOrExluding);
+                if (includingOrExluding === 'including') result[0] = text[0] + result[0];
+                return result;
+            }
+            var idx = text.indexOf(terminator);
+            if (idx === -1) return [text, ''];
+            if (text[idx-1] === '\\') {
+                var splitted = read(text.slice(idx+1), terminator, includingOrExluding);
+                return [text.slice(0, idx) + splitted[0], splitted[1]];
+            }
+            return [
+                text.slice(0, idx + (includingOrExluding === 'including' ? 1 : 0)),
+                text.slice(idx+1)];
+        }
+
+        function readStyleSpec(text) {
+            var end = text.indexOf('\n');
+            if (end === -1) end = text.length;
+            var style;
+            try { style = eval('(' + text.slice(0, end) + ')'); } catch (e) { style = {}; }
+            return [style, text.slice(end+1)];
+        }
+
+        function readGenericObject(text) {
+            var result = read(text.trim(), '}', 'including');
+            var obj;
+            try { obj = eval('(' + result[0] + ')'); } catch (e) { obj = {}; }
+            return [obj, result[1]];
+        }
+
+        var textStyleAndRest = text.trim()[0] !== '\'' && text.trim()[0] !== '"' ?
+            readGenericObject(text) : [{}, text];
+
+        var remaining = textStyleAndRest[1];
+
+        while (remaining.length) {
+            // var stringAndRest = read(remaining.trim(), null, 'including');
+            var stringAndRest = read(remaining.trim(), null, 'excluding');
+            var styleAndRest = readStyleSpec(stringAndRest[1]);
+            richTextMarkup.push([stringAndRest[0], styleAndRest[0]]);
+            remaining = styleAndRest[1];
+        }
+
+        this.applyStyle(textStyleAndRest[0]);
+        this.setRichTextMarkup(richTextMarkup);
     }
 
 },

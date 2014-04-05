@@ -1291,7 +1291,9 @@ lively.morphic.Morph.addMethods(
 lively.morphic.Text.addMethods(
 'menu', {
     morphMenuItems: function($super) {
-        var self = this, items = $super(), textItems = ['Text...'];
+        var self = this;
+        var items = $super();
+        var self = this, textItems = ['Text...'];
         textItems.push([[
             (self.inputAllowed() ? '[X]' : '[  ]') + ' input allowed',
             function() { self.setInputAllowed(!self.inputAllowed()); }
@@ -1325,6 +1327,9 @@ lively.morphic.Text.addMethods(
             ]]
         ]);
         items.push(textItems);
+
+        items.push(['markup edit', self.openRichTextSpecEditor.bind(self)]);
+
         return items;
     },
 

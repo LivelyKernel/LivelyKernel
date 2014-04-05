@@ -550,11 +550,11 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenInFileEditorCommand', {
     trigger: function() {
         return [['open in text editor', this.openFile.bind(this)]]
     },
-    openFile: function() {
-        var url = URL.codeBase.withFilename(this.browser.selectedNode().moduleName);
-        lively.ide.openFile(url)
-    },
 
+    openFile: function() {
+        var url = this.browser.getSelectedModule().uri()
+        lively.ide.openFile(url)
+    }
 
 });
 

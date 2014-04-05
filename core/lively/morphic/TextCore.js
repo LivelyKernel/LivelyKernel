@@ -3353,7 +3353,7 @@ Object.subclass('lively.morphic.TextEmphasis',
         var spec = {};
         Properties.forEachOwn(this.styleAttributes, function(name, attr) {
             var val = attr.get.call(this);
-            if (val !== undefined) spec[name] = val;
+            if (val !== undefined && val !== 'normal') spec[name] = val;
         }, this);
         return spec;
     }

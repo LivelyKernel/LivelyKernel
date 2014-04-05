@@ -198,7 +198,11 @@ Object.subclass('TestCase',
 
         if (a == b) return;
 
-        this.assert(false, (msg ? msg : '') + ' (' + a +' != ' + b +')');
+        var remainder = ' (' + a +' != ' + b +')';
+        if (typeof a === 'string' || typeof b === 'string')
+            remainder += '\n<diff>\n' + Strings.diff(a, b) + '\n</diff>\n';
+
+        this.assert(false, (msg || '') + remainder);
     },
     assertEqualsEpsilon: function(a, b, msg) {
         var eps = this.epsilon || 0;

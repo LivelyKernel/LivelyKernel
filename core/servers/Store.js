@@ -112,7 +112,7 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
 
 (function restoreDBFromFiles() {
     fs.readdir(folder, function(err, files) {
-        if (err) return console.log(err)
+        if (err) return console.error("Failed to load existing store: " + err)
         files.filter(function(ea) {
                 return ea.slice(-fileStoreSuffix.length) === fileStoreSuffix })
             .forEach(function(ea) {

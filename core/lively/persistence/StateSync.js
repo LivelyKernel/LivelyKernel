@@ -445,6 +445,35 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         // base case
         return functions.base.apply(this, arguments);
     },
+}, 'form synchronization', {
+    saveForm: function() {
+        // the copy neither has synchronization handles, nor injected behavior
+        var copy = this.copy(false),
+            name = this.getName(),
+            trait = Trait("lively.persistence.StateSync.SynchronizedMorphMixin");
+        copy.copyToPartsBin("PartsBin/BYOIE");
+        this.setPartsBinMetaInfo(copy.getPartsBinMetaInfo())
+        // now update all other versions of this form in this world
+        $world.withAllSubmorphsSelect(function(ea, depth) {
+            return ea !== this && ea.getName() == name
+                && ea.synchronizationHandles && ea.synchronizationHandles.length !== 0
+        }, this).forEach(function(me) {
+            var newMe = this.copy(false);
+            newMe.setName(name);
+            newMe.synchronizationHandles = me.synchronizationHandles;
+            trait.mixin().applyTo(newMe);
+            trait.connectSavingProperties(newMe);
+            newMe.dropOn($world);
+            newMe.setPosition(me.getPosition());
+            me.remove();
+            // me.setPosition(me.getPosition().addXY(newMe.getExtent().x, 0));
+        }, copy)
+    },
+    // addMorph: function(aMorph, other) {
+    //     var result = this.constructor.prototype.addMorph.call(this, aMorph, other);
+    //     if (aMorph.owner == this && !aMorph.isPlaceholder) this.saveForm();
+    //     return result;
+    // },
 })
 
 Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 

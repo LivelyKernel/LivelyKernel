@@ -607,14 +607,13 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
         $super(container, submorphs);
         this.adjustExtent(container, submorphs);
     },
+
     ensureOnlyFixedSubmorphs: function(submorphs) {
         submorphs.forEach(function(each) {
-            if (each.layout && each.layout.resizeHeight) {
-                each.layout.resizeHeight = false;
-            }
-            if (typeof each["growOrShrinkToFit"] == 'function') {
+            var l = each.layout;
+            if (l && l.resizeHeight) l.resizeHeight = false;
+            if (l && (l.resizeHeight || l.resizeWidth) && typeof each["growOrShrinkToFit"] == 'function')
                 each.growOrShrinkToFit();
-            }
         });
     },
 

@@ -10,7 +10,7 @@ Object.extend(lively.morphic, {
 
     show: function(obj) {
         function newShowPt(/*pos or x,y, duration, extent*/) {
-            var args = $A(arguments);
+            var args = Array.from(arguments);
             // pos either specified using point object or two numbers
             var pos = args[0].constructor == lively.Point ? args.shift() : pt(args.shift(), args.shift()),
                 duration = args.shift(),
@@ -74,11 +74,11 @@ Object.extend(lively.morphic, {
         }
 
         function newShowMorph (morph) {
-            newShowRect(morph.getGlobalTransform().transformRectToRect(morph.innerBounds()))
+            return newShowRect(morph.getGlobalTransform().transformRectToRect(morph.innerBounds()))
         }
 
         function newShowElement(el) {
-            lively.$(el).bounds({withMargin: true, withPadding: true}).show(2000);
+            return lively.$(el).bounds({withMargin: true, withPadding: true}).show(2000);
         }
 
         function newShowThenHide (morphOrMorphs, duration) {
@@ -88,21 +88,21 @@ Object.extend(lively.morphic, {
             duration = duration || 3;
             morphs.invoke('openInWorld');
             if (duration) { // FIXME use scheduler
-                (function() { morphs.invoke('remove') }).delay(duration);
+                (function() { morphs.invoke('remove'); }).delay(duration);
             }
+            return morphOrMorphs;
         }
 
-        if (!obj && !Object.isString(obj)) { lively.morphic.show(String(obj)); }
-        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); lively.morphic.alert(msg); }
-        else if (Object.isArray(obj)) obj.forEach(function(ea) { lively.morphic.show(ea) });
-        else if (obj instanceof lively.Point) newShowPt(obj);
-        else if (obj instanceof lively.Line) newShowLine(obj);
-        else if (obj instanceof lively.Rectangle) newShowRect(obj);
-        else if (obj.isMorph) newShowMorph(obj);
-        else if (obj instanceof Global.HTMLElement) newShowElement(obj);
-        else if (obj instanceof Global.Element && obj.getBoundingClientRect) { var b = obj.getBoundingClientRect(); newShowRect(lively.rect(b.left,b.top,b.width,b.height)); }
-        else { var msg = Strings.format("%o", obj); lively.morphic.alert(msg); }
-        return obj;
+        if (!obj && !Object.isString(obj)) { return lively.morphic.show(String(obj)); }
+        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); return lively.morphic.alert(msg); }
+        else if (Object.isArray(obj)) return obj.map(function(ea) { return lively.morphic.show(ea) });
+        else if (obj instanceof lively.Point) return newShowPt(obj);
+        else if (obj instanceof lively.Line) return newShowLine(obj);
+        else if (obj instanceof lively.Rectangle) return newShowRect(obj);
+        else if (obj.isMorph) return newShowMorph(obj);
+        else if (obj instanceof Global.HTMLElement) return newShowElement(obj);
+        else if (obj instanceof Global.Element && obj.getBoundingClientRect) { var b = obj.getBoundingClientRect(); return newShowRect(lively.rect(b.left,b.top,b.width,b.height)); }
+        else { var msg = Strings.format("%o", obj); return lively.morphic.alert(msg); }
     },
 
     alertDbg: function(msg) {

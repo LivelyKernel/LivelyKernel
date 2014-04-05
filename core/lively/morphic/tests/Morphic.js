@@ -1040,5 +1040,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RenderingTest',
 
 });
 
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.StylingTests',
+'testing', {
+
+    testGetOwnStyle: function() {
+        var m = lively.morphic.newMorph({style: {fill: Color.red}});
+        var style = m.getOwnStyle();
+        this.assertEquals(Color.red, style.fill);
+    }
+
+});
 
 }) // end of module

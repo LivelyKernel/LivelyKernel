@@ -377,6 +377,8 @@ lively.morphic.Morph.addMethods(
 
     setMorphDataHTML: function(ctx) {
         $(ctx.morphNode).data('morph', this);
+        this.submorphs.forEach(function(ea) {
+            ea.setMorphDataHTML(ea.renderContext()); });
     },
 
     removeMorphDataHTML: function(ctx) {

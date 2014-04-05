@@ -355,10 +355,13 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     copy: function(stringify) {
         var copy = this.constructor.prototype.copy.call(this, stringify);
         if (!stringify) {
-            copy.synchronizationHandles = [];
+            delete copy.synchronizationHandles;
+            delete copy.noSave;
+            delete copy.synchronizationGet;
+            delete copy.changeTime;
             copy.setName(this.getName());
         }
-        return copy
+        return copy;
     },
     remove: function() {
         this.constructor.prototype.remove.call(this)
@@ -454,7 +457,8 @@ function connectSavingProperties(anObject, options) {
                     syncMorph, "save", {
                 updater: function($upd, value) {
                     this.sourceObj.changeTime = Date.now();
-                    $upd(value, this.sourceObj, this);
+                    if (typeof this.targetObj[this.targetMethodName] == "function")
+                        $upd(value, this.sourceObj, this);
                 }});
         }, 
         base: function(functions, syncMorph) {
@@ -463,7 +467,9 @@ function connectSavingProperties(anObject, options) {
                     if (morph.connectTo)
                         morph.connectTo(syncMorph, "save", {
                             updater: function($upd, value) {
-                                $upd(value, this.sourceObj, this);
+                                this.sourceObj.changeTime = Date.now();
+                                if (typeof this.targetObj[this.targetMethodName] == "function")
+                                    $upd(value, this.sourceObj, this);
                         }});
                     else functions.walk.call(morph, functions, syncMorph)
             });

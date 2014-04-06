@@ -2244,13 +2244,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         var richTextSpec = markupList.reduce(function(result, spec) {
             var nextPos = result.pos + spec[0].length;
             if (nextPos <= result.pos) return result;
-            result.ranges.push([result.pos, result.pos + nextPos, spec[1]]);
+            result.ranges.push([result.pos, nextPos, spec[1]]);
             result.string += spec[0];
             result.pos = nextPos;
             return result;
         }, {pos: 0, string: '', ranges: []});
         this.textString = richTextSpec.string;
         this.emphasizeRanges(richTextSpec.ranges);
+        return richTextSpec;
     },
 
     getRichTextMarkup: function() {
@@ -2266,16 +2267,18 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         var markupString = this.getRichTextMarkup().reduce(function(result, markupSpec) {
             return result.concat([Strings.format(
                 "'%s' %s",
-                markupSpec[0],
+                markupSpec[0].replace(/'/g, '\\\''),
                 Objects.inspect(markupSpec[1].asSpec())
+                    .replace(/\\\\n\\\n/g, '') // for strings like "\n\"
+                    .replace(/\\n\\\n/g, '\\\\n')
                     .replace(/\n/g, '')
                     .replace(/^\{\s*/, '{')
-                    .replace(/\s\s+/, ' '))]);
+                    .replace(/\s\s+/g, ' '))]);
         }, []).join(options.separator) + '\n';
 
         var morphStyle = this.getOwnStyle();
         var interestingStyleKeys = ["allowInput","fixedWidth","fixedHeight","fontFamily",
-            "fontSize","textColor","fontWeight","fontStyle","textDecoration","padding",
+            "fontSize","textColor","fontWeight","fontStyle","textDecoration",
             "align","verticalAlign","lineHeight","display","whiteSpaceHandling",
             "wordBreak","syntaxHighlighting","cssStylingMode"];
         Properties.forEachOwn(morphStyle, function(key, val) {
@@ -2292,7 +2295,24 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         // ' ' {}
         // 'World' {color: Color.red}
 
-        var richTextMarkup = [];
+        var richTextMarkup = [],
+            textStyleAndRest = text.trim()[0] !== '\'' && text.trim()[0] !== '"' ?
+            readGenericObject(text) : [{}, text],
+            remaining = textStyleAndRest[1];
+
+        while (remaining.length) {
+            var stringAndRest = read(remaining.trim(), null, 'excluding'),
+                styleAndRest = readStyleSpec(stringAndRest[1]);
+            richTextMarkup.push([stringAndRest[0].replace(/\\/g, ''), styleAndRest[0]]);
+            remaining = styleAndRest[1];
+        }
+
+        this.applyStyle(textStyleAndRest[0]);
+        this.setRichTextMarkup(richTextMarkup);
+
+        return richTextMarkup;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         function read(text, terminator, includingOrExluding) {
             if (!terminator) {
@@ -2305,7 +2325,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             if (idx === -1) return [text, ''];
             if (text[idx-1] === '\\') {
                 var splitted = read(text.slice(idx+1), terminator, includingOrExluding);
-                return [text.slice(0, idx) + splitted[0], splitted[1]];
+                return [text.slice(0, idx+1) + splitted[0], splitted[1]];
             }
             return [
                 text.slice(0, idx + (includingOrExluding === 'including' ? 1 : 0)),
@@ -2326,22 +2346,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             try { obj = eval('(' + result[0] + ')'); } catch (e) { obj = {}; }
             return [obj, result[1]];
         }
-
-        var textStyleAndRest = text.trim()[0] !== '\'' && text.trim()[0] !== '"' ?
-            readGenericObject(text) : [{}, text];
-
-        var remaining = textStyleAndRest[1];
-
-        while (remaining.length) {
-            // var stringAndRest = read(remaining.trim(), null, 'including');
-            var stringAndRest = read(remaining.trim(), null, 'excluding');
-            var styleAndRest = readStyleSpec(stringAndRest[1]);
-            richTextMarkup.push([stringAndRest[0], styleAndRest[0]]);
-            remaining = styleAndRest[1];
-        }
-
-        this.applyStyle(textStyleAndRest[0]);
-        this.setRichTextMarkup(richTextMarkup);
     }
 
 },
@@ -3485,7 +3489,7 @@ Object.subclass('lively.morphic.TextEmphasis',
         var spec = {};
         Properties.forEachOwn(this.styleAttributes, function(name, attr) {
             var val = attr.get.call(this);
-            if (val !== undefined && val !== 'normal') spec[name] = val;
+            if (val !== undefined) spec[name] = val;
         }, this);
         return spec;
     }

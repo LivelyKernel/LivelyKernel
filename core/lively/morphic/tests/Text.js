@@ -1286,6 +1286,12 @@ lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.
 },
 'testing', {
 
+
+    testSetRichTextMarkup2: function() {
+        this.text.setRichTextMarkup([["abcd ",{}],["x",{fontWeight: "bold"}],["defghijk ",{}]])
+        this.assertEquals('bold', this.text.getEmphasisAt(5).fontWeight, 'x not bold');
+        this.assertEquals(undefined, this.text.getEmphasisAt(6).fontWeight, 'd bold?');
+    },
     testSetRichTextMarkup: function() {
         this.text.setRichTextMarkup([
             ['Hello', {fontWeight: "bold"}],
@@ -1320,6 +1326,13 @@ lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.
         this.assert(markupString.endsWith(expected), 'markupString \n' + Strings.diff(expected,markupString));
     },
 
+    testGetRichTextMarkupStringWithQuote: function() {
+        this.text.textString = "I'm an error";
+        var markupString = this.text.getRichTextMarkupString()
+        var expected = "'I\\'m an error' {}\n";
+        this.assert(markupString.endsWith(expected), 'markupString \n' + markupString);
+    },
+
     testReadRichTextMarkupString: function() {
         this.text.readRichTextMarkupString("'Hel\nlo' {fontWeight: \"bold\"}\n"
                                     + "' ' {}\n"
@@ -1349,6 +1362,13 @@ lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.
         this.assertEquals(20, this.text.getFontSize());
         this.assertEquals('bold', this.text.getEmphasisAt(0).fontWeight);
         this.assertEquals(Color.red, this.text.getEmphasisAt(7).color);
+    },
+
+    testReadRichTextMarkupStringWithQuote: function() {
+        this.text.textString = '';
+        this.text.readRichTextMarkupString("'Hel\\'lo' {fontWeight: \"bold\"}\n"
+                                    + "' World' {color: Color.red}\n");
+        this.assertEquals("Hel'lo World", this.text.textString);
     }
 
 });

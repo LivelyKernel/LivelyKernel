@@ -600,36 +600,29 @@ lively.ide.tests.SCBTests.BrowserNodeTest.subclass('lively.ide.tests.SCBTests.Cl
 'testing', {
     testSaveWithPreservation: function() {
         this.buildTestSource();
-        var browser = this.browser, preserve, self = this, foo;
-
+        var browser = this.browser, self = this;
         browser.buildView();
+
         // browsing it, to create the needed BrowserNodes
         this.m1.basicBrowseIt({browser: browser});
 
-        try{
-            preserve = lively.Config.get("propertyPreservation", true)
-            lively.Config.set("propertyPreservation", true);
-            foo = Global.Foo
-            
-            browser.envaluate = true;
-            browser.pane2Selection.evalSource(browser.pane2Selection.savedSource);
-            var obj = new Foo();
+        var preserve = lively.Config.get("propertyPreservation", true);
+        lively.Config.set("propertyPreservation", true);
+        this.onTearDown(function() { lively.Config.set("propertyPreservation", preserve); })
 
-            this.assertEquals(obj.m1(), 23);
-            browser.pane4Selection.newSource("    n1: function() { return 22 }");
-            this.assertEquals(obj.n1(), 22);
-            // this.assertEquals(obj.m1(), 23);
-            connect(Global.Foo.prototype, "m1", {done: function() {
-                if (!obj.m1 || obj.m1() != 23)
-                    self.failure("m1 was set, but behaves unexpectedly.");
-                Global.Foo = foo;
-                self.done();
-            },}, "done", {removeAfterUpdate: true})
-        } finally{
-            lively.Config.set("propertyPreservation", preserve);
-        }
-
-
+        var obj = new Foo();
+        this.assertEquals(obj.m1(), 23);
+        var noOfMethods = browser.getPane4Content().length;
+        browser.getPane4Selection().newSource("    n1: function() { return 22 }");
+        this.assertEquals(obj.n1(), 22);
+        this.delay(function() {
+            this.assert(noOfMethods + 1, browser.getPane4Content().length, "number of methods in browser?.");
+            this.assert(obj.m1, "m1 not a method of Foo class?.");
+            this.assertEquals(23, obj.m1(), "m1 was set, but behaves unexpectedly." + obj.m1());
+            this.assert(obj.n1, "n1 not a method of Foo class?.");
+            this.assert(22, obj.n1(), "n1 value?.");
+            this.done();
+        }, 100);
     }
 });
 

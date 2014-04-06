@@ -711,6 +711,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         return src;
     },
     saveSource: function($super, newSource, sourceControl) {
+        // saves the source code of an object method or property.
+        // in case that the property name changes we offer to either add it as
+        // a new property or modify the old.
+
         // save the old values for later access, $super modifies this.target heavily
         var self = this, target = this.target,
             propertyName = target.name,
@@ -718,26 +722,30 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             oldS = target.getSourceCode(),
             success = $super(newSource, sourceControl)
 
-        if (success && pType == this.target.type 
-            && pType == "propertyDef" && this.target.name != propertyName 
-            && propertyName !== lively.ide.AddMethodToFileFragmentCommand.newMethodName) {
-            var browser = this.browser,
-                dontAsk = lively.Config.get("propertyPreservation", true),
-                saveOld = function(answer) {
-                    if (answer) {
-                        var sibling = target.addSibling(oldS);
-                        try { (new lively.ide.ClassElemFragmentNode(sibling, browser, self.parent))
-                                .evalSource(oldS) }
-                        catch(e){ browser.setStatusMessage(e, Color.red) }
-                        browser.allChanged();
-                    }};
-            // The method has to be readded after it was removed, therefore the delay.
-            (dontAsk === undefined) 
-                ? $world.confirm("You saved with a changed property name. " 
-                    + "Do you want to preserve the old property?", saveOld)
-                : saveOld.delay(0, dontAsk)
+
+        if (!success || pType !== this.target.type 
+         || pType !== "propertyDef"
+         || this.target.name === propertyName 
+         || propertyName === lively.ide.AddMethodToFileFragmentCommand.prototype.newMethodName)
+            return success;
+
+        function saveOld(answer) {
+            if (!answer) return;
+            var sibling = target.addSibling(oldS);
+            try {
+                (new lively.ide.ClassElemFragmentNode(sibling, browser, self.parent))
+                    .evalSource(oldS);
+            } catch(e){ browser.setStatusMessage(e, Color.red); }
+            browser.allChanged();
         }
-        return success;
+
+        var browser = this.browser,
+            preserve = lively.Config.get("propertyPreservation", true);
+        // The method has to be readded after it was removed, therefore the delay.
+        if (preserve === undefined) $world.confirm("You changed the name of the method / property.\n" 
+                              + "Click OK to add the current code as a new method / property.\n"
+                              + "Click Cancel to change the original method / property.", saveOld);
+        else saveOld.delay(0, preserve);
     },
 
 
@@ -992,12 +1000,5 @@ lively.ide.FileFragmentNode.subclass('lively.ide.BuildSpecFragmentNode', {
         return true;
     }
 });
-
-lively.Config.addOption({
-    name: 'propertyPreservation', 
-    value: undefined, 
-    docString: 'When saving a method (property) with a changed name, save the old behavior, or loose it. If not set (undefined), you are asked.', 
-    group: 'lively.ide.tools', 
-    type: 'trilean', });
 
 }) // end of module

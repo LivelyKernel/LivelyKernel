@@ -63,6 +63,8 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             if (highlighting != "none")
                 lively.ast.Parser.parse(newSource, highlighting);
         } catch (e) {
+            // e should be of form [src,rule,msg,idx]
+            if (!Object.isArray(e)) return cop.proceed(newSource); // otherwise, fall back
             throw OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]/*src, rule, msg, idx*/);
         }
         var newFragment = cop.proceed(newSource);

@@ -20,20 +20,24 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PlusButton",
         this.isLayoutable = false;
         
         var vertices = [pt(0, height / 2), pt(width, height / 2)];
-        var line = new lively.morphic.Path(vertices);
-        line.setBorderColor(optColor);
-        line.setBorderWidth(2);
-        this.addMorph(line);
+        this.line1 = new lively.morphic.Path(vertices);
+        this.line1.setBorderColor(optColor);
+        this.line1.setBorderWidth(2);
+        this.addMorph(this.line1);
         
         vertices = [pt(width / 2, 0), pt(width / 2, height)];
-        line = new lively.morphic.Path(vertices);
-        line.setBorderColor(optColor);
-        line.setBorderWidth(2);
-        this.addMorph(line);
+        this.line2 = new lively.morphic.Path(vertices);
+        this.line2.setBorderColor(optColor);
+        this.line2.setBorderWidth(2);
+        this.addMorph(this.line2);
         
         this.submorphs[0].disableEvents();
         this.submorphs[1].disableEvents();
         
+    },
+    setColor: function(color) {
+        this.line1.setBorderColor(color);
+        this.line2.setBorderColor(color);
     },
     
     onMouseUp: function(evt) {
@@ -67,6 +71,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
         this.addMorph(plusButton);
         var position = pt(4, this.getExtent().y - plusButton.getExtent().y - 4);
         plusButton.setPosition(position);
+        this.plusButton = plusButton;
     },
     
     wantsDroppedMorph: function(aMorph){
@@ -184,7 +189,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     initialize: function($super, env) {
         $super();
         this.reposition();
-        this.setFill(Color.rgbHex("#e3e3e3"));
+        this.setFill(Color.rgbHex("#f0ad4e"));
+        this.setFillOpacity(0.1);
         this.setClipMode("auto");
         this.setName("Dashboard");
         this.startLayouting();
@@ -315,7 +321,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
             width = 800;
         }
         
-        this.setFixedPosition(true);
 
         this.setExtent(lively.pt(width, height));
         this.setPosition(lively.pt(window.innerWidth - width - scrollbarOffset, 0))
@@ -327,7 +332,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
             }
         });
         
-        this.sendToBack();
+        // while reloading the world, everything else must be done before doing this
+        var _this = this;
+        setTimeout(function() {
+            _this.sendToBack();
+            _this.setFixedPosition(true);
+        }, 0);
     },
 
 });
@@ -338,7 +348,8 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         $super(extent);
         this.setName("InteractionArea");
         this.dashboard = $morph("Dashboard");
-        this.setBorderColor(Color.rgb(144, 144, 144));
+        this.setBorderWidth(0);
+        this.plusButton.setColor(Color.rgbHex("f0ad4e"));
     },
 
     overrideGetter: function(interactions, key) {
@@ -428,7 +439,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             var container = new lively.morphic.Box(rect(0, 0, 10, 10));
             container.setFill(Color.white);
             container.setBorderWidth(1);
-            container.setBorderColor(Color.gray);
+            container.setBorderColor(Color.rgb(240,173,78));
             container.setBorderRadius(5);
             container.isContainer = true;
             container.setLayouter(new lively.morphic.Layout.HorizontalLayout());
@@ -929,11 +940,11 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         return minimizer;
     },
     
-    getBodyCSS: function() {
+getBodyCSS: function() {
         return ".ComponentBody {\
             background-color: rgb(255, 255, 255) !important;\
             border-width: 1px !important;\
-            border-color: rgb(144, 144, 144) !important;\
+            border-color: #f0ad4e !important;\
             display: block !important;\
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
             font-size: 14px !important;\
@@ -955,14 +966,14 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     
 getHeaderCSS: function() {
     return	".ComponentHeader { \
-        background-color: rgb(144, 144, 144) !important; \
+        background-color: #f0ad4e !important; \
         color: white !important; \
         background-attachment: scroll !important;\
         background-clip: border-box !important;\
         background-image: none !important;\
         background-origin: padding-box !important;\
         background-size: auto !important;\
-        border-bottom-color: rgb(144, 144, 144) !important;\
+        border-bottom-color: #f0ad4e !important;\
         border-bottom-style: solid !important;\
         border-bottom-width: 1px !important;\
         border-image-outset: 0px !important;\
@@ -970,13 +981,13 @@ getHeaderCSS: function() {
         border-image-slice: 100% !important;\
         border-image-source: none !important;\
         border-image-width: 1 !important;\
-        border-left-color: rgb(144, 144, 144) !important;\
+        border-left-color: #f0ad4e !important;\
         border-left-style: solid !important;\
         border-left-width: 1px !important;\
-        border-right-color: rgb(144, 144, 144) !important;\
+        border-right-color: #f0ad4e !important;\
         border-right-style: solid !important;\
         border-right-width: 1px !important;\
-        border-top-color: rgb(144, 144, 144) !important;\
+        border-top-color: #f0ad4e !important;\
         border-top-style: solid !important;\
         border-top-width: 1px !important;\
         box-sizing: border-box !important;\

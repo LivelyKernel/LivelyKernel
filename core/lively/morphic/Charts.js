@@ -148,6 +148,11 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.PrototypeArea
         if (!force && aMorph.listenersAttached)
             return;
         aMorph.listenersAttached = true;
+        
+        if (!aMorph.layout) {
+            aMorph.layout = {};
+        }
+        aMorph.layout.adjustForNewBounds = true;
 
         aMorph.setName("PrototypeMorph");
         
@@ -636,6 +641,13 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.content.remove();
         this.content = newContent;
         this.content.component = this;
+        
+        if (!this.content.layout) {
+            this.content.layout = {};
+        }
+        this.content.layout.resizeWidth = true;
+        this.content.layout.resizeHeight = true;
+        this.content.layout.adjustForNewBounds = true;
         
         this.componentBody.addMorph(newContent);
         this.content.update(this.data);
@@ -3170,6 +3182,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
         $super();
         this.description = "JsonViewer";
         this.extent = pt(400, 200);
+        
         this.objectTree = new lively.morphic.Tree();
         this.objectTree.setName("ObjectInspectorTree");
         this.addMorph(this.objectTree);

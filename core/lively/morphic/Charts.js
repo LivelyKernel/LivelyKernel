@@ -243,6 +243,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         });
         this.removeUnusedViewers();
     },
+    onRestore: function($super) {
+        $super();
+        var _this = this;
+        // do this at the very end of loading the world, since it uses sendToBack
+        // and this should be called after all other morphs have been created
+        setTimeout(function() {
+            _this.reposition();
+        }, 0);
+        
+    },
 
 
     
@@ -407,7 +417,10 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             
             // Create container
             var container = new lively.morphic.Box(rect(0, 0, 10, 10));
-            container.setFill(Color.gray);
+            container.setFill(Color.white);
+            container.setBorderWidth(1);
+            container.setBorderColor(Color.gray);
+            container.setBorderRadius(5);
             container.isContainer = true;
             container.setLayouter(new lively.morphic.Layout.HorizontalLayout());
             container.addMorph(nameField);
@@ -515,6 +528,14 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 create: function() {
                     var part = $world.loadPartItem("Spinner", "PartsBin/Inputs");
                     part.connectionAttribute = "value";
+                    return part;
+                },
+            },
+            {
+                name: "checkbox",
+                create: function() {
+                    var part = $world.loadPartItem("CheckBox", "PartsBin/Inputs");
+                    part.connectionAttribute = "checked";
                     return part;
                 },
             },
@@ -1400,7 +1421,6 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
         var spec = {
             converter: 
                 function(pos) {
-                    console.log(pos);
                     return pos.addPt(pt(200, 10));
                 }
         };

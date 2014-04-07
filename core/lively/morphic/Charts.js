@@ -2,7 +2,7 @@ module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.Code
     
 lively.morphic.Morph.subclass("lively.morphic.Charts.PlusButton",
 {
-    initialize: function($super, contextItems, optColor) {
+    initialize: function($super, droppingArea, optColor) {
         $super();
         
         var width = 10;
@@ -10,7 +10,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PlusButton",
         // Bootstrap-blue as default
         if (!optColor) optColor = Color.rgb(66, 139, 202);
         
-        this.contextItems = contextItems;
+        this.droppingArea = droppingArea;
         
         this.setFillOpacity(0);
         this.setExtent(pt(width, height));
@@ -37,10 +37,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PlusButton",
     },
     
     onMouseUp: function(evt) {
+        var contextMenuComponents = this.droppingArea.getContextMenuComponents();
+        var items = contextMenuComponents.map(function(ea) {
+            return [ea.name, function() {
+                var morph = ea.create();
+                morph.openInHand();
+            }];
+        });
         
-        var menu = new lively.morphic.Menu("Add new data flow component", this.contextItems);
+        var menu = new lively.morphic.Menu("Add new data flow component", items);
         menu.openIn($world, this.getPositionInWorld());
-        
     },
 
 });
@@ -56,16 +62,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
         this.createPlusButton();
     },
     createPlusButton: function() {
-        var componentNames = this.getContextMenuComponents();
-        
-        var contextItems = componentNames.map(function(ea) {
-            return [ea.name, function() {
-                var morph = ea.create();
-                morph.openInHand();
-            }];
-        });
-        
-        var plusButton = new lively.morphic.Charts.PlusButton(contextItems);
+        var plusButton = new lively.morphic.Charts.PlusButton(this);
         plusButton.layout = {moveVertical: true};
         this.addMorph(plusButton);
         var position = pt(4, this.getExtent().y - plusButton.getExtent().y - 4);
@@ -253,7 +250,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         });
         this.removeUnusedViewers();
     },
-    onRestore: function($super) {
+    onrestore: function($super) {
         $super();
         var _this = this;
         // do this at the very end of loading the world, since it uses sendToBack
@@ -470,10 +467,15 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 
                 // update all components that use this interaction variable
                 this.interactionConnections.push(connect(this, attribute, this, "updateObservers"));
+                
+                interactionArea.overrideGetter(dashboard.env.interaction, aMorph.getName());
             }
         }
         
-        this.overrideGetter(dashboard.env.interaction, aMorph.getName());
+        // if all the listeners are forced to reattach, overrideGetters again
+        if (force) {
+            this.overrideGetter(dashboard.env.interaction, aMorph.getName());
+        }
         
         // attach setName -> update interaction variable, TODO: update connections
         var oldSetName = aMorph.setName;

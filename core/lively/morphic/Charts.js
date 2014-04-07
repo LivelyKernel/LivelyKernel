@@ -872,7 +872,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     
     onDragStart: function($super, evt) {
         this.isDragged = true;
-        
+        this.wasDragged = true;
         $super(evt);
     },
     
@@ -1403,6 +1403,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
         
         this.viewer = lively.morphic.Charts.Component.createWindow("JsonViewer");
         this.viewer.update(this.data);
+        this.viewer.wasDragged = true;
         this.viewer.openInHand();
         
         this.viewerLine = new lively.morphic.Path([evtPosition, evtPosition]);

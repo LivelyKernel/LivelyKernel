@@ -58,11 +58,17 @@ Object.extend(lively.ast.Rewriting, {
         // helper
         function createDebuggingBootstrap() {
             var code = [
-                lively.ast.Rewriting.findNodeByAstIndexBaseDef,
-                lively.ast.Rewriting.createClosureBaseDef,
-                lively.ast.Rewriting.UnwindExceptionBaseDef
-            ];
-            code.push("window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg) + ";");
+                    lively.ast.Rewriting.findNodeByAstIndexBaseDef,
+                    lively.ast.Rewriting.createClosureBaseDef,
+                    lively.ast.Rewriting.UnwindExceptionBaseDef
+                ],
+                flatRegistry = JSON.stringify(astReg, function(key, value) {
+                    if (this.type == 'Literal' && this.value instanceof RegExp && key == 'value')
+                        return { regexp: this.raw };
+                    else
+                        return value;
+                }).replace(/\{"regexp":("\/.*?\/[gimy]*")\}/g, 'eval($1)');
+            code.push("window.LivelyDebuggingASTRegistry=" + flatRegistry + ";");
             put("core/lively/ast/BootstrapDebugger.js", code.join('\n'));
         }
 

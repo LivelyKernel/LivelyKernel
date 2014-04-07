@@ -79,6 +79,15 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
         }
         return false;
     },
+    onrestore: function($super) {
+        $super();
+        this.withAllSubmorphsDo(function (submorph) {
+            // only submorphs which already had listenersAttached
+            if (submorph.listenersAttached) {
+                this.attachListener(submorph, true);
+            }
+        }, this, 1);
+    },
     
     attachListener: function(aMorph) {
         // abstract
@@ -132,11 +141,12 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.PrototypeArea
         
         return componentNames;
     },
-    attachListener: function attachListener(aMorph) {
+    attachListener: function attachListener(aMorph, force) {
         var _this = this;
-        if (aMorph.__isListenedTo == true)
+        if (!force && aMorph.listenersAttached)
             return;
-        aMorph.__isListenedTo = true;
+        aMorph.listenersAttached = true;
+
         aMorph.setName("PrototypeMorph");
         
         var methods = ["setExtent", "setFill", "setRotation", "setOrigin"];
@@ -330,6 +340,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
     initialize: function($super, extent) {
         $super(extent);
         this.setName("InteractionArea");
+        this.dashboard = $morph("Dashboard");
         this.setBorderColor(Color.rgb(144, 144, 144));
     },
 
@@ -345,9 +356,10 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             interactions["_" + key] = value;
         })
     },
-    attachListener: function(aMorph) {
+
+    attachListener: function(aMorph, force) {
         // This is actually the wrong place to do this, but if it's done
-        // during initiaization, the PlusButton can not be positioned at the 
+        // during initialization, the PlusButton can not be positioned at the 
         // bottom left corner, although it is not layouted at all!
         if (!this.getLayouter()) {
             // have a Layout to sort the interaction parts vertically
@@ -355,12 +367,12 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         }
         // only attach listener once
         // don't attach listeners, if a container is dragged around
-        if (aMorph.listenersAttached || aMorph.isContainer)
+        if ((!force && aMorph.listenersAttached) || aMorph.isContainer)
             return;
 
         aMorph.listenersAttached = true;
         
-        var dashboard = $morph("Dashboard");
+        var dashboard = this.dashboard;
         var interactionArea = this;
         
         // attach remove -> remove interaction variable
@@ -379,7 +391,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         
         // attach onDropOn -> create interaction variable and connections
         var oldOnDropOn = aMorph.onDropOn;
-        
+
         aMorph.onDropOn = function() {
             if (arguments[0] instanceof lively.morphic.Charts.InteractionArea) {
                 // When dropping arbitrary morphs into the InteractionArea, we ask the user for the connectionAttribute
@@ -435,7 +447,10 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             }
             
             $morph("InteractionArea").addMorph(container);
+        }
             
+        aMorph.updateObservers = function(value) {
+            interactionArea.updateObservers(value, this.getName());
         }
         
         aMorph.createInteractionVariable = function() {
@@ -452,13 +467,13 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 
                 // update the interaction variable value when the attribute is changed
                 this.interactionConnections.push(connect(this, attribute, dashboard.env.interaction, name));
-                interactionArea.overrideGetter(dashboard.env.interaction, aMorph.getName());
                 
                 // update all components that use this interaction variable
-                var targetObject = {updateObservers: function (value) {interactionArea.updateObservers(value, name);}};
-                this.interactionConnections.push(connect(this, attribute, targetObject, "updateObservers"));
+                this.interactionConnections.push(connect(this, attribute, this, "updateObservers"));
             }
         }
+        
+        this.overrideGetter(dashboard.env.interaction, aMorph.getName());
         
         // attach setName -> update interaction variable, TODO: update connections
         var oldSetName = aMorph.setName;
@@ -1016,6 +1031,8 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
         this.description = "InteractionPanel";
         this.extent = pt(400, 200);
         
+        this.dashboard = $morph("Dashboard");
+        
         // don't ask why there is an extent of pt(0, 0)...
         this.droppingArea = new lively.morphic.Charts.InteractionArea(pt(0, 0));
         this.droppingArea.layout.resizeWidth = true;
@@ -1029,6 +1046,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.InteractionPanel",
     update: function(data) {
         // nothing to do
     },
+
     remove: function($super) {
         $super();
         

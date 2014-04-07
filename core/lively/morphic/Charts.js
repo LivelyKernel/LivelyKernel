@@ -478,8 +478,9 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 dashboard.env.interaction[name] = this[attribute];
                 this.interactionConnections = [];
                 
-                // update the interaction variable value when the attribute is changed
+                // update the interaction variable value when the attribute is changed and vice versa
                 this.interactionConnections.push(connect(this, attribute, dashboard.env.interaction, name));
+                this.interactionConnections.push(connect(dashboard.env.interaction, "_" + name, this, attribute));
                 
                 // update all components that use this interaction variable
                 this.interactionConnections.push(connect(this, attribute, this, "updateObservers"));
@@ -501,7 +502,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             oldSetName.apply(aMorph, arguments);
             this.interactionConnections.each(function(ea) {
                 ea.disconnect();
-            })
+            });
             interactionArea.renameVariable(oldName, this);
         }
     },

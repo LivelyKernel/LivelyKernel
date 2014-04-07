@@ -847,7 +847,7 @@ lively.ast.Node.subclass('lively.ast.Call',
 },
 'conversion', {
 	asJS: function (depth) {
-                return Strings.format('%s(%s)',
+                return Strings.format('(%s)(%s)',
                                       this.fn.asJS(depth), this.args.invoke('asJS').join(','));
             },
 },

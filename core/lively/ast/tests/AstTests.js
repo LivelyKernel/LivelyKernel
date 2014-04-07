@@ -322,6 +322,11 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
             };
         this.assertMatches(expected, r.children[0]);
     },
+    test07CallAstToJavaScript: function() {
+        var src = "(function() { return 23; })()";
+        var ast = lively.ast.Parser.parse(src, "topLevel");
+        this.assertEquals(eval(src), eval(ast.asJS()));
+    }
 })
 
 

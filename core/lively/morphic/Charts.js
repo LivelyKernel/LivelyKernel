@@ -1134,8 +1134,9 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         
         var contextItems = componentNames.map(function(ea) {
             return [ea, function() {
-                _this.activate();
+                _this.deactivate();
                 _this.createComponent(ea);
+                _this.activate();
                 _this.componentMorph.notifyNextComponent();
             }];
         });

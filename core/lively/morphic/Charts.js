@@ -1431,38 +1431,72 @@ Object.extend(lively.morphic.Charts.Utils, {
     
     aggregateBy: function (data, attribute, aggregationType){
         if (data == null) return;
-        
-        var avg = function(aggregated, separated){
-            sum(aggregated, separated);
-            Properties.own(aggregated).each(function(key){
-                if (Object.isNumber(aggregated[key]))
-                    aggregated[key] /= separated.size();
-            });
-        }
-        var sum = function(aggregated, separated){
-            // take keys for aggregated object from first separated object
-            Properties.own(separated[0]).each(function(key){
-                var sum = separated.pluck(key).sum()
-                if (Object.isNumber(sum))
-                    aggregated[key] = sum;
-            });
-        }
-        
-        var newData = [];
-        var grouped = data.groupByKey(attribute);
-        Properties.own(grouped).each(function(key){
-            var datum = {};
-            datum[attribute] = key;
+
+        var showChildrenFunction = function(){
+            if (this.children.length == 0) return;
             
-            //add numbers
-            if (aggregationType == "avg")
-                avg(datum, grouped[key]);
-            else if (aggregationType == "sum")
-                sum(datum, grouped[key]);
-                
-            newData.push(datum)
+            this.morph.setVisible(false);
+            this.children.each(function(child){
+                child.morph.setVisible(true);
+            });
+        }
+        var showParentFunction = function(){
+            if (!this.parent) return;
+            
+            // hide all children of this parent
+            this.parent.children.each(function(child){
+                child.morph.setVisible(false);
+            });
+            
+            this.parent.morph.setVisible(true);
+        }
+        
+        var grouped = {};
+        Properties.own(data).each(function(key){
+            var obj = data[key];
+            var value = obj[attribute];
+            if (!grouped[value]){
+                grouped[value] = {};
+            }
+            grouped[value][key] = obj;
+            obj.parent = grouped[value];
+            obj.hasParent = function(){ return true};
+            obj.hasChildren = function(){ return false};
+            obj.showParent = showParentFunction;
+            obj.showChildren = showChildrenFunction;
         });
-        return newData;
+        
+        var size = 0;
+        //add children
+        Properties.own(grouped).each(function (key){
+            var ea = grouped[key];
+            ea.children = Properties.own(ea).map(function(key){
+                return ea[key];
+            });;
+            size += ea.children.length + 1;
+            ea.showChildren = showChildrenFunction;
+            ea.hasParent = function(){ return false};
+            ea.hasChildren = function(){ return true};
+        });
+        
+        var index = 0;
+        grouped.map = function(fn){
+            var list = [];
+            grouped.children.each(function (ea){
+                list.push(fn.apply(ea, [ea, index++]));
+                ea.children.each(function(childValue){
+                    list.push(fn.apply(childValue, [childValue, index++]));
+                })
+            });
+            return list;
+        };
+        
+        grouped.children = Properties.own(grouped).map(function(key){
+            return grouped[key];
+        });
+        console.log("index",size )
+        grouped.length = size;
+        return grouped;
     }
 });
 
@@ -2768,7 +2802,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.copiedMorphs = copiedMorphs;
         data = data.map(function(ea, index) {
             var prototypeInstance = copiedMorphs[index];
-            
             // if the morphs weren't cloned, replay the actions which were applied on the PrototypeMorph
             if (!bulkCopy.cloned) {
                 if (prototypeMorph.__appliedCommands) {

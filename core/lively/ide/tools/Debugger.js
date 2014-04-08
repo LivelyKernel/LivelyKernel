@@ -213,6 +213,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 _LineWrapping: true,
                 _InputAllowed: false,
                 _Position: lively.pt(1.0,1.1),
+                _PointerEvents: 'none',
                 _ShowActiveLine: true,
                 _ShowErrors: false,
                 _ShowGutter: true,
@@ -440,18 +441,17 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         this.get("FrameScope").reset();
     },
         restart: function restart() {
-        var frame = this.currentFrame;
-        lively.ast.doWithHalt(function() {
-            frame.restart();
-        }, this.setTopFrame.bind(this));
+        var frame = this.currentFrame,
+            interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        frame.reset();
+        var result = interpreter.stepToNextStatement(frame);
+        this.updateDebugger(frame, result);
     },
         resume: function resume() {
-        var cont = new lively.ast.Continuation(this.topFrame);
-        cont = cont.resume();
-        if (cont.isContinuation)
-            this.setTopFrame(cont.currentFrame);
-        else
-            this.owner.remove();
+        var frame = this.topFrame,
+            cont = new lively.ast.Continuation(frame),
+            result = cont.resume();
+        this.updateDebugger(frame, result);
     },
         setCurrentFrame: function setCurrentFrame(frame) {
         this.currentFrame = frame;
@@ -475,7 +475,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         var frames = [];
         var frame = topFrame;
         do {
-            var name = frame.func.name();
+            var name = frame.func.name() || '(anonymous function)';
             frames.push({
                 isListItem: true,
                 string: frame.isResuming() ? name : name + " [native]",
@@ -484,6 +484,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         } while (frame = frame.getParentFrame());
         this.get("FrameList").updateList(frames);
         this.get("FrameList").setSelection(topFrame);
+        this.setCurrentFrame(topFrame);
         return true;
     },
         stepInto: function stepInto() {

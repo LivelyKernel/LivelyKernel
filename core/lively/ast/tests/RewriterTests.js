@@ -171,7 +171,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                         this.intermediateResult(
                             this.setVar(0, 'i', '0;\n')
                           + this.getVar(0, 'i')
-                          + ';\n', 3/*astIndex of "var i = 0"*/));
+                          + ';\n', 2/*astIndex of "i = 0"*/));
         this.assertASTMatchesCode(result, expected);
     },
 

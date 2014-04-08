@@ -65,9 +65,6 @@ var baseTests = [
     "lively.ast.tests.AstTests",
     "lively.ast.tests.InterpreterTests",
     "lively.ast.tests.RewriterTests",
-    // to be changed:
-    // "lively.ast.tests.DeprecatedJSParserTests",
-    // "lively.ast.tests.OldDebuggerTests",
 
     // persistence
     "lively.persistence.tests.BuildSpec",

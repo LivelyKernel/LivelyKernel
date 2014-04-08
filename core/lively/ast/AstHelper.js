@@ -5,6 +5,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
 // lively.ast.MozillaAST.createVisitorCode({pathAsParameter: true, asLivelyClass: true, parameters: ["depth","state"], name: "lively.ast.MozillaAST.BaseVisitor", useReturn: true, openWindow: true});
 "visiting", {
     accept: function(node, depth, state, path) {
+        path = path || [];
         return this['visit' + node.type](node, depth, state, path);
     },
 
@@ -12,7 +13,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.body.forEach(function(ea, i) {
             // ea is of type Statement
-            retVal = this.accept(ea, depth, state, ["body", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["body", i]));
         }, this);
         return retVal;
     },
@@ -21,28 +22,28 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.id) {
             // id is a node of type Identifier
-            retVal = this.accept(node.id, depth, state, ["id"]);
+            retVal = this.accept(node.id, depth, state, path.concat(["id"]));
         }
 
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            retVal = this.accept(ea, depth, state, ["params", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["params", i]));
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                retVal = this.accept(ea, depth, state, ["defaults", i]);
+                retVal = this.accept(ea, depth, state, path.concat(["defaults", i]));
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            retVal = this.accept(node.rest, depth, state, ["rest"]);
+            retVal = this.accept(node.rest, depth, state, path.concat(["rest"]));
         }
 
         // body is a node of type BlockStatement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
@@ -66,7 +67,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.body.forEach(function(ea, i) {
             // ea is of type Statement
-            retVal = this.accept(ea, depth, state, ["body", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["body", i]));
         }, this);
         return retVal;
     },
@@ -74,21 +75,21 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitExpressionStatement: function(node, depth, state, path) {
         var retVal;
         // expression is a node of type Expression
-        retVal = this.accept(node.expression, depth, state, ["expression"]);
+        retVal = this.accept(node.expression, depth, state, path.concat(["expression"]));
         return retVal;
     },
 
     visitIfStatement: function(node, depth, state, path) {
         var retVal;
         // test is a node of type Expression
-        retVal = this.accept(node.test, depth, state, ["test"]);
+        retVal = this.accept(node.test, depth, state, path.concat(["test"]));
 
         // consequent is a node of type Statement
-        retVal = this.accept(node.consequent, depth, state, ["consequent"]);
+        retVal = this.accept(node.consequent, depth, state, path.concat(["consequent"]));
 
         if (node.alternate) {
             // alternate is a node of type Statement
-            retVal = this.accept(node.alternate, depth, state, ["alternate"]);
+            retVal = this.accept(node.alternate, depth, state, path.concat(["alternate"]));
         }
         return retVal;
     },
@@ -96,10 +97,10 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitLabeledStatement: function(node, depth, state, path) {
         var retVal;
         // label is a node of type Identifier
-        retVal = this.accept(node.label, depth, state, ["label"]);
+        retVal = this.accept(node.label, depth, state, path.concat(["label"]));
 
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
@@ -107,7 +108,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.label) {
             // label is a node of type Identifier
-            retVal = this.accept(node.label, depth, state, ["label"]);
+            retVal = this.accept(node.label, depth, state, path.concat(["label"]));
         }
         return retVal;
     },
@@ -116,7 +117,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.label) {
             // label is a node of type Identifier
-            retVal = this.accept(node.label, depth, state, ["label"]);
+            retVal = this.accept(node.label, depth, state, path.concat(["label"]));
         }
         return retVal;
     },
@@ -124,21 +125,21 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitWithStatement: function(node, depth, state, path) {
         var retVal;
         // object is a node of type Expression
-        retVal = this.accept(node.object, depth, state, ["object"]);
+        retVal = this.accept(node.object, depth, state, path.concat(["object"]));
 
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
     visitSwitchStatement: function(node, depth, state, path) {
         var retVal;
         // discriminant is a node of type Expression
-        retVal = this.accept(node.discriminant, depth, state, ["discriminant"]);
+        retVal = this.accept(node.discriminant, depth, state, path.concat(["discriminant"]));
 
         node.cases.forEach(function(ea, i) {
             // ea is of type SwitchCase
-            retVal = this.accept(ea, depth, state, ["cases", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["cases", i]));
         }, this);
 
         // node.lexical has a specific type that is boolean
@@ -150,7 +151,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.argument) {
             // argument is a node of type Expression
-            retVal = this.accept(node.argument, depth, state, ["argument"]);
+            retVal = this.accept(node.argument, depth, state, path.concat(["argument"]));
         }
         return retVal;
     },
@@ -158,28 +159,28 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitThrowStatement: function(node, depth, state, path) {
         var retVal;
         // argument is a node of type Expression
-        retVal = this.accept(node.argument, depth, state, ["argument"]);
+        retVal = this.accept(node.argument, depth, state, path.concat(["argument"]));
         return retVal;
     },
 
     visitTryStatement: function(node, depth, state, path) {
         var retVal;
         // block is a node of type BlockStatement
-        retVal = this.accept(node.block, depth, state, ["block"]);
+        retVal = this.accept(node.block, depth, state, path.concat(["block"]));
 
         if (node.handler) {
             // handler is a node of type CatchClause
-            retVal = this.accept(node.handler, depth, state, ["handler"]);
+            retVal = this.accept(node.handler, depth, state, path.concat(["handler"]));
         }
 
         node.guardedHandlers.forEach(function(ea, i) {
             // ea is of type CatchClause
-            retVal = this.accept(ea, depth, state, ["guardedHandlers", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["guardedHandlers", i]));
         }, this);
 
         if (node.finalizer) {
             // finalizer is a node of type BlockStatement
-            retVal = this.accept(node.finalizer, depth, state, ["finalizer"]);
+            retVal = this.accept(node.finalizer, depth, state, path.concat(["finalizer"]));
         }
         return retVal;
     },
@@ -187,20 +188,20 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitWhileStatement: function(node, depth, state, path) {
         var retVal;
         // test is a node of type Expression
-        retVal = this.accept(node.test, depth, state, ["test"]);
+        retVal = this.accept(node.test, depth, state, path.concat(["test"]));
 
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
     visitDoWhileStatement: function(node, depth, state, path) {
         var retVal;
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         // test is a node of type Expression
-        retVal = this.accept(node.test, depth, state, ["test"]);
+        retVal = this.accept(node.test, depth, state, path.concat(["test"]));
         return retVal;
     },
 
@@ -208,34 +209,34 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.init) {
             // init is a node of type VariableDeclaration
-            retVal = this.accept(node.init, depth, state, ["init"]);
+            retVal = this.accept(node.init, depth, state, path.concat(["init"]));
         }
 
         if (node.test) {
             // test is a node of type Expression
-            retVal = this.accept(node.test, depth, state, ["test"]);
+            retVal = this.accept(node.test, depth, state, path.concat(["test"]));
         }
 
         if (node.update) {
             // update is a node of type Expression
-            retVal = this.accept(node.update, depth, state, ["update"]);
+            retVal = this.accept(node.update, depth, state, path.concat(["update"]));
         }
 
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
     visitForInStatement: function(node, depth, state, path) {
         var retVal;
         // left is a node of type VariableDeclaration
-        retVal = this.accept(node.left, depth, state, ["left"]);
+        retVal = this.accept(node.left, depth, state, path.concat(["left"]));
 
         // right is a node of type Expression
-        retVal = this.accept(node.right, depth, state, ["right"]);
+        retVal = this.accept(node.right, depth, state, path.concat(["right"]));
 
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         // node.each has a specific type that is boolean
         if (node.each) {/*do stuff*/}
@@ -245,13 +246,13 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitForOfStatement: function(node, depth, state, path) {
         var retVal;
         // left is a node of type VariableDeclaration
-        retVal = this.accept(node.left, depth, state, ["left"]);
+        retVal = this.accept(node.left, depth, state, path.concat(["left"]));
 
         // right is a node of type Expression
-        retVal = this.accept(node.right, depth, state, ["right"]);
+        retVal = this.accept(node.right, depth, state, path.concat(["right"]));
 
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
@@ -259,15 +260,15 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.head.forEach(function(ea, i) {
             // ea.id is of type node
-            retVal = this.accept(ea.id, depth, state, ["head", i, "id"]);
+            retVal = this.accept(ea.id, depth, state, path.concat(["head", i, "id"]));
             if (ea.init) {
                 // ea.init can be of type node
-                retVal = this.accept(ea.init, depth, state, ["head", i, "init"]);
+                retVal = this.accept(ea.init, depth, state, path.concat(["head", i, "init"]));
             }
         }, this);
 
         // body is a node of type Statement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
@@ -284,27 +285,27 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitFunctionDeclaration: function(node, depth, state, path) {
         var retVal;
         // id is a node of type Identifier
-        retVal = this.accept(node.id, depth, state, ["id"]);
+        retVal = this.accept(node.id, depth, state, path.concat(["id"]));
 
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            retVal = this.accept(ea, depth, state, ["params", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["params", i]));
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                retVal = this.accept(ea, depth, state, ["defaults", i]);
+                retVal = this.accept(ea, depth, state, path.concat(["defaults", i]));
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            retVal = this.accept(node.rest, depth, state, ["rest"]);
+            retVal = this.accept(node.rest, depth, state, path.concat(["rest"]));
         }
 
         // body is a node of type BlockStatement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
@@ -318,7 +319,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.declarations.forEach(function(ea, i) {
             // ea is of type VariableDeclarator
-            retVal = this.accept(ea, depth, state, ["declarations", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["declarations", i]));
         }, this);
 
         // node.kind is "var" or "let" or "const"
@@ -328,11 +329,11 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitVariableDeclarator: function(node, depth, state, path) {
         var retVal;
         // id is a node of type Pattern
-        retVal = this.accept(node.id, depth, state, ["id"]);
+        retVal = this.accept(node.id, depth, state, path.concat(["id"]));
 
         if (node.init) {
             // init is a node of type Expression
-            retVal = this.accept(node.init, depth, state, ["init"]);
+            retVal = this.accept(node.init, depth, state, path.concat(["init"]));
         }
         return retVal;
     },
@@ -352,7 +353,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         node.elements.forEach(function(ea, i) {
             if (ea) {
                 // ea can be of type Expression or 
-                retVal = this.accept(ea, depth, state, ["elements", i]);
+                retVal = this.accept(ea, depth, state, path.concat(["elements", i]));
             }
         }, this);
         return retVal;
@@ -362,9 +363,9 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.properties.forEach(function(ea, i) {
             // ea.key is of type node
-            retVal = this.accept(ea.key, depth, state, ["properties", i, "key"]);
+            retVal = this.accept(ea.key, depth, state, path.concat(["properties", i, "key"]));
             // ea.value is of type node
-            retVal = this.accept(ea.value, depth, state, ["properties", i, "value"]);
+            retVal = this.accept(ea.value, depth, state, path.concat(["properties", i, "value"]));
             // ea.kind is "init" or "get" or "set"
         }, this);
         return retVal;
@@ -374,28 +375,28 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.id) {
             // id is a node of type Identifier
-            retVal = this.accept(node.id, depth, state, ["id"]);
+            retVal = this.accept(node.id, depth, state, path.concat(["id"]));
         }
 
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            retVal = this.accept(ea, depth, state, ["params", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["params", i]));
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                retVal = this.accept(ea, depth, state, ["defaults", i]);
+                retVal = this.accept(ea, depth, state, path.concat(["defaults", i]));
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            retVal = this.accept(node.rest, depth, state, ["rest"]);
+            retVal = this.accept(node.rest, depth, state, path.concat(["rest"]));
         }
 
         // body is a node of type BlockStatement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
@@ -409,23 +410,23 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.params.forEach(function(ea, i) {
             // ea is of type Pattern
-            retVal = this.accept(ea, depth, state, ["params", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["params", i]));
         }, this);
 
         if (node.defaults) {
             node.defaults.forEach(function(ea, i) {
                 // ea is of type Expression
-                retVal = this.accept(ea, depth, state, ["defaults", i]);
+                retVal = this.accept(ea, depth, state, path.concat(["defaults", i]));
             }, this);
         }
 
         if (node.rest) {
             // rest is a node of type Identifier
-            retVal = this.accept(node.rest, depth, state, ["rest"]);
+            retVal = this.accept(node.rest, depth, state, path.concat(["rest"]));
         }
 
         // body is a node of type BlockStatement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         // node.generator has a specific type that is boolean
         if (node.generator) {/*do stuff*/}
@@ -439,7 +440,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.expressions.forEach(function(ea, i) {
             // ea is of type Expression
-            retVal = this.accept(ea, depth, state, ["expressions", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["expressions", i]));
         }, this);
         return retVal;
     },
@@ -453,7 +454,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         if (node.prefix) {/*do stuff*/}
 
         // argument is a node of type Expression
-        retVal = this.accept(node.argument, depth, state, ["argument"]);
+        retVal = this.accept(node.argument, depth, state, path.concat(["argument"]));
         return retVal;
     },
 
@@ -463,10 +464,10 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         // "==" | "!=" | "===" | "!==" | | "<" | "<=" | ">" | ">=" | | "<<" | ">>" | ">>>" | | "+" | "-" | "*" | "/" | "%" | | "|" | "^" | "&" | "in" | | "instanceof" | ".."
 
         // left is a node of type Expression
-        retVal = this.accept(node.left, depth, state, ["left"]);
+        retVal = this.accept(node.left, depth, state, path.concat(["left"]));
 
         // right is a node of type Expression
-        retVal = this.accept(node.right, depth, state, ["right"]);
+        retVal = this.accept(node.right, depth, state, path.concat(["right"]));
         return retVal;
     },
 
@@ -476,10 +477,10 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
 
         // left is a node of type Expression
-        retVal = this.accept(node.left, depth, state, ["left"]);
+        retVal = this.accept(node.left, depth, state, path.concat(["left"]));
 
         // right is a node of type Expression
-        retVal = this.accept(node.right, depth, state, ["right"]);
+        retVal = this.accept(node.right, depth, state, path.concat(["right"]));
         return retVal;
     },
 
@@ -489,7 +490,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         // "++" | "--"
 
         // argument is a node of type Expression
-        retVal = this.accept(node.argument, depth, state, ["argument"]);
+        retVal = this.accept(node.argument, depth, state, path.concat(["argument"]));
 
         // node.prefix has a specific type that is boolean
         if (node.prefix) {/*do stuff*/}
@@ -502,34 +503,34 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         // "||" | "&&"
 
         // left is a node of type Expression
-        retVal = this.accept(node.left, depth, state, ["left"]);
+        retVal = this.accept(node.left, depth, state, path.concat(["left"]));
 
         // right is a node of type Expression
-        retVal = this.accept(node.right, depth, state, ["right"]);
+        retVal = this.accept(node.right, depth, state, path.concat(["right"]));
         return retVal;
     },
 
     visitConditionalExpression: function(node, depth, state, path) {
         var retVal;
         // test is a node of type Expression
-        retVal = this.accept(node.test, depth, state, ["test"]);
+        retVal = this.accept(node.test, depth, state, path.concat(["test"]));
 
         // alternate is a node of type Expression
-        retVal = this.accept(node.alternate, depth, state, ["alternate"]);
+        retVal = this.accept(node.alternate, depth, state, path.concat(["alternate"]));
 
         // consequent is a node of type Expression
-        retVal = this.accept(node.consequent, depth, state, ["consequent"]);
+        retVal = this.accept(node.consequent, depth, state, path.concat(["consequent"]));
         return retVal;
     },
 
     visitNewExpression: function(node, depth, state, path) {
         var retVal;
         // callee is a node of type Expression
-        retVal = this.accept(node.callee, depth, state, ["callee"]);
+        retVal = this.accept(node.callee, depth, state, path.concat(["callee"]));
 
         node.arguments.forEach(function(ea, i) {
             // ea is of type Expression
-            retVal = this.accept(ea, depth, state, ["arguments", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["arguments", i]));
         }, this);
         return retVal;
     },
@@ -537,11 +538,11 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitCallExpression: function(node, depth, state, path) {
         var retVal;
         // callee is a node of type Expression
-        retVal = this.accept(node.callee, depth, state, ["callee"]);
+        retVal = this.accept(node.callee, depth, state, path.concat(["callee"]));
 
         node.arguments.forEach(function(ea, i) {
             // ea is of type Expression
-            retVal = this.accept(ea, depth, state, ["arguments", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["arguments", i]));
         }, this);
         return retVal;
     },
@@ -549,10 +550,10 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitMemberExpression: function(node, depth, state, path) {
         var retVal;
         // object is a node of type Expression
-        retVal = this.accept(node.object, depth, state, ["object"]);
+        retVal = this.accept(node.object, depth, state, path.concat(["object"]));
 
         // property is a node of type Identifier
-        retVal = this.accept(node.property, depth, state, ["property"]);
+        retVal = this.accept(node.property, depth, state, path.concat(["property"]));
 
         // node.computed has a specific type that is boolean
         if (node.computed) {/*do stuff*/}
@@ -563,7 +564,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.argument) {
             // argument is a node of type Expression
-            retVal = this.accept(node.argument, depth, state, ["argument"]);
+            retVal = this.accept(node.argument, depth, state, path.concat(["argument"]));
         }
         return retVal;
     },
@@ -571,16 +572,16 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitComprehensionExpression: function(node, depth, state, path) {
         var retVal;
         // body is a node of type Expression
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         node.blocks.forEach(function(ea, i) {
             // ea is of type ComprehensionBlock
-            retVal = this.accept(ea, depth, state, ["blocks", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["blocks", i]));
         }, this);
 
         if (node.filter) {
             // filter is a node of type Expression
-            retVal = this.accept(node.filter, depth, state, ["filter"]);
+            retVal = this.accept(node.filter, depth, state, path.concat(["filter"]));
         }
         return retVal;
     },
@@ -588,16 +589,16 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitGeneratorExpression: function(node, depth, state, path) {
         var retVal;
         // body is a node of type Expression
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
 
         node.blocks.forEach(function(ea, i) {
             // ea is of type ComprehensionBlock
-            retVal = this.accept(ea, depth, state, ["blocks", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["blocks", i]));
         }, this);
 
         if (node.filter) {
             // filter is a node of type Expression
-            retVal = this.accept(node.filter, depth, state, ["filter"]);
+            retVal = this.accept(node.filter, depth, state, path.concat(["filter"]));
         }
         return retVal;
     },
@@ -606,15 +607,15 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.head.forEach(function(ea, i) {
             // ea.id is of type node
-            retVal = this.accept(ea.id, depth, state, ["head", i, "id"]);
+            retVal = this.accept(ea.id, depth, state, path.concat(["head", i, "id"]));
             if (ea.init) {
                 // ea.init can be of type node
-                retVal = this.accept(ea.init, depth, state, ["head", i, "init"]);
+                retVal = this.accept(ea.init, depth, state, path.concat(["head", i, "init"]));
             }
         }, this);
 
         // body is a node of type Expression
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
@@ -627,9 +628,9 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.properties.forEach(function(ea, i) {
             // ea.key is of type node
-            retVal = this.accept(ea.key, depth, state, ["properties", i, "key"]);
+            retVal = this.accept(ea.key, depth, state, path.concat(["properties", i, "key"]));
             // ea.value is of type node
-            retVal = this.accept(ea.value, depth, state, ["properties", i, "value"]);
+            retVal = this.accept(ea.value, depth, state, path.concat(["properties", i, "value"]));
         }, this);
         return retVal;
     },
@@ -639,7 +640,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         node.elements.forEach(function(ea, i) {
             if (ea) {
                 // ea can be of type Pattern or 
-                retVal = this.accept(ea, depth, state, ["elements", i]);
+                retVal = this.accept(ea, depth, state, path.concat(["elements", i]));
             }
         }, this);
         return retVal;
@@ -649,12 +650,12 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         if (node.test) {
             // test is a node of type Expression
-            retVal = this.accept(node.test, depth, state, ["test"]);
+            retVal = this.accept(node.test, depth, state, path.concat(["test"]));
         }
 
         node.consequent.forEach(function(ea, i) {
             // ea is of type Statement
-            retVal = this.accept(ea, depth, state, ["consequent", i]);
+            retVal = this.accept(ea, depth, state, path.concat(["consequent", i]));
         }, this);
         return retVal;
     },
@@ -662,25 +663,25 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
     visitCatchClause: function(node, depth, state, path) {
         var retVal;
         // param is a node of type Pattern
-        retVal = this.accept(node.param, depth, state, ["param"]);
+        retVal = this.accept(node.param, depth, state, path.concat(["param"]));
 
         if (node.guard) {
             // guard is a node of type Expression
-            retVal = this.accept(node.guard, depth, state, ["guard"]);
+            retVal = this.accept(node.guard, depth, state, path.concat(["guard"]));
         }
 
         // body is a node of type BlockStatement
-        retVal = this.accept(node.body, depth, state, ["body"]);
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
         return retVal;
     },
 
     visitComprehensionBlock: function(node, depth, state, path) {
         var retVal;
         // left is a node of type Pattern
-        retVal = this.accept(node.left, depth, state, ["left"]);
+        retVal = this.accept(node.left, depth, state, path.concat(["left"]));
 
         // right is a node of type Expression
-        retVal = this.accept(node.right, depth, state, ["right"]);
+        retVal = this.accept(node.right, depth, state, path.concat(["right"]));
 
         // node.each has a specific type that is boolean
         if (node.each) {/*do stuff*/}
@@ -735,6 +736,7 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
     },
 
     compareField: function(field, node1, node2, state) {
+        node2 = lively.PropertyPath(state.completePath.join('.')).get(node2);
         if (node1 && node2 && node1[field] === node2[field]) return true;
         if ((node1 && node1[field] === '*') || (node2 && node2[field] === '*')) return true;
         var fullPath = state.completePath.join('.') + '.' + field, msg;
@@ -747,11 +749,12 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
 
 },
 "visiting", {
-    accept: function(node1, baseNode2, state, path) {
-        var node2 = lively.PropertyPath(path.join('.')).get(baseNode2);
-        if (node1 === '*' || node2 === '*') return;
+
+    accept: function(node1, node2, state, path) {
+        var patternNode = lively.PropertyPath(path.join('.')).get(node2);
+        if (node1 === '*' || patternNode === '*') return;
         var nextState = {
-            completePath: state.completePath.concat(path),
+            completePath: path,
             comparisons: state.comparisons
         };
         if (this.compareType(node1, node2, nextState))
@@ -940,13 +943,35 @@ Object.extend(lively.ast.acorn, {
             return this['visit' + node.type](node, fullPath, state, path);
         }).call(vis,ast, [], {}, []);
         return found;
+    },
+
+    rematchAstWithSource: function(ast, source, addLocations, subTreePath) {
+        addLocations = !!addLocations;
+        var ast2 = lively.ast.acorn.parse(source, addLocations ? { locations: true } : undefined),
+            visitor = new lively.ast.MozillaAST.BaseVisitor();
+        if (subTreePath) ast2 = lively.PropertyPath(subTreePath).get(ast2);
+
+        visitor.accept = function(node, depth, state, path) {
+            path = path || [];
+            var node2 = path.reduce(function(node, pathElem) {
+                return node[pathElem];
+            }, ast);
+            node2.start = node.start;
+            node2.end = node.end;
+            if (addLocations) node2.loc = node.loc;
+            return this['visit' + node.type](node, depth, state, path);
+        }
+
+        visitor.accept(ast2);
     }
+
 });
 
 (function extendAcornWalk() {
     
-    acorn.walk.findNodeByAstIndex = function(ast, astIndexToFind) {
-        if (!ast.astIndex) acorn.walk.addAstIndex(ast);
+    acorn.walk.findNodeByAstIndex = function(ast, astIndexToFind, addIndex) {
+        addIndex = addIndex == null ? true : !!addIndex;
+        if (!ast.astIndex && addIndex) acorn.walk.addAstIndex(ast);
         // we need to visit every node, acorn.walk.forEachNode is highly
         // inefficient, the compilled Mozilla visitors are a better fit
         var found = null;

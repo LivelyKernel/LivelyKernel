@@ -1,14 +1,21 @@
-module('lively.ast.tests.AstTests').requires('lively.TestFramework').toRun(function() {
+module('lively.ast.tests.AstTests').requires('lively.ast.AstHelper', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.AstTests.Acorn',
 'testing', {
 
-    testFindNodeByAst: function() {
+    testFindNodeByAstIndex: function() {
         var src = 'var x = 3; function foo() { var y = 3; return y }; x + foo();',
             ast = acorn.parse(src),
             expected = ast.body[1].body.body[1].argument, // the y in "return y"
             found = acorn.walk.findNodeByAstIndex(ast, 9);
         this.assertIdentity(expected, found, 'node not found');
+    },
+
+    testFindNodeByAstIndexNoReIndex: function() {
+        var src = 'var x = 3; function foo() { var y = 3; return y }; x + foo();',
+            ast = acorn.parse(src),
+            found = acorn.walk.findNodeByAstIndex(ast, 9, false);
+        this.assertIdentity(null, found, 'node found (but should not add index)');
     },
 
     testFindStatementOfNode: function() {
@@ -23,10 +30,68 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
         }]
 
         tests.forEach(function(test, i) {
-            debugger;
             var ast = acorn.parse(test.src),
                 found = acorn.walk.findStatementOfNode(ast, test.target(ast));
             this.assertIdentity(test.expected(ast), found, 'node not found ' + (i + 1));
+        }, this);
+    },
+
+    testUpdateSourceCodePositions: function() {
+        var src = 'var x = { z: 3 }; function foo() { var y = 3; return y; } x.z + foo();',
+            prettySrc = 'var x = { z: 3 };\nfunction foo() {\n    var y = 3;\n    return y;\n}\nx.z + foo();',
+            ast = acorn.parse(src),
+            genSrc = escodegen.generate(ast),
+            genAst = acorn.parse(genSrc);
+
+        this.assertEquals(prettySrc, genSrc, 'pretty printed source and generated source do not match');
+        lively.ast.acorn.rematchAstWithSource(ast, genSrc);
+        this.assertMatches(genAst, ast, 'source code positions were not corrected');
+    },
+
+    testUpdateSourceCodePositionsInSubTree: function() {
+        var src1 = 'function foo() { var y = 3; return y; }',
+            src2 = 'var x = { z: 3 };\nfunction foo() {\n    var y = 3;\n    return y;\n}\nx.z + foo();',
+            ast1 = acorn.parse(src1).body[0],
+            ast2 = acorn.parse(src2),
+            genSrc = escodegen.generate(ast2),
+            genAst = acorn.parse(genSrc);
+
+        lively.ast.acorn.rematchAstWithSource(ast1, genSrc, null, 'body.1');
+        this.assertMatches(genAst.body[1], ast1, 'source code positions were not corrected');
+    },
+
+    testUpdateSourceCodeLocations: function() {
+        var src = 'var x = { z: 3 }; function foo() { var y = 3; return y; } x.z + foo();',
+            prettySrc = 'var x = { z: 3 };\nfunction foo() {\n    var y = 3;\n    return y;\n}\nx.z + foo();',
+            ast = acorn.parse(src),
+            genSrc = escodegen.generate(ast),
+            genAst = acorn.parse(genSrc);
+
+        this.assertEquals(prettySrc, genSrc, 'pretty printed source and generated source do not match');
+        lively.ast.acorn.rematchAstWithSource(ast, genSrc, true);
+        this.assertMatches(genAst, ast, 'source code positions were not corrected');
+
+        // sample some locations
+        console.log(ast);
+        var tests = [{  // var = x = { z: 3 };
+            expected: { start: { line: 1, column: 0 }, end: { line: 1, column: 17 } },
+            subject: ast.body[0].loc
+        }, { // function foo() { ... }
+            expected: { start: { line: 2, column: 0 }, end: { line: 5, column: 1 } },
+            subject: ast.body[1].loc
+        }, { // var y = 3;
+            expected: { start: { line: 3, column: 4 }, end: { line: 3, column: 14 } },
+            subject: ast.body[1].body.body[0].loc
+        }, { // y  in  return y;
+            expected: { start: { line: 4, column: 11 }, end: { line: 4, column: 12 } },
+            subject: ast.body[1].body.body[1].argument.loc
+        }, { // x.z + foo();
+            expected: { start: { line: 6, column: 0 }, end: { line: 6, column: 12 } },
+            subject: ast.body[2].loc
+        }];
+
+        tests.forEach(function(test, i) {
+            this.assertMatches(test.expected, test.subject, 'incorrect location for test ' + (i+1));
         }, this);
     }
 
@@ -34,6 +99,7 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
 
 TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
 'testing', {
+
     test02RecreateClosure: function() {
         var f = function() { var x = 3; return x + y },
             closure = lively.Closure.fromFunction(f, {y: 2}),
@@ -41,6 +107,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         this.assertEquals(f.toString(), f2.toString());
         this.assertEquals(5, f2());
     },
+
     test03ClosureCanBindThis: function() {
         var obj = {},
             closure = lively.Closure.fromFunction(function() { this.testCalled = true }, {'this': obj});
@@ -48,6 +115,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         obj.foo();
         this.assert(obj.testCalled, 'this not bound');
     },
+
     test04LateBoundThis: function() {
         var obj = {name: 'obj1'},
             closure = lively.Closure.fromFunction(function() { return this.name }, {'this': obj});
@@ -57,6 +125,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         obj2.name = 'obj2';
         this.assertEquals('obj2', obj2.foo());
     },
+
     test05ThisBoundInSuper: function() {
         var obj1 = {bar: function bar() { this.foo = 1 }.asScript()},
             obj2 = Object.inherit(obj1);
@@ -66,6 +135,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         this.assert(!obj1.foo, 'foo was set in obj1');
         this.assert(obj2.hasOwnProperty('foo'), 'foo not set in obj2')
     },
+
     test06SuperBoundStatically: function() {
         var obj1 = {bar: function bar() { this.foo = 1 }.asScript()},
             obj2 = Object.inherit(obj1),
@@ -77,6 +147,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
         this.assert(obj2.hasOwnProperty('foo'), 'foo was not set in obj2');
         this.assert(!obj3.hasOwnProperty('foo'), 'foo was set in obj3');
     },
+
     test07StoreFunctionProperties: function() {
         var func = function() { return 99 };
         func.someProperty = 'foo';
@@ -84,6 +155,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
             recreated = closure.recreateFunc();
         this.assertEquals('foo', recreated.someProperty);
     },
+
     test08SuperBoundAndAsArgument: function() {
         var obj = {
             m: function($super) {
@@ -98,7 +170,8 @@ TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
             this.assert(false, 'this not bound in super');
         }
         this.assert(obj.superWasCalled, 'super was not called');
-    },
+    }
+
 });
 
 }) // end of module

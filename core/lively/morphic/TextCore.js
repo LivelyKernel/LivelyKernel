@@ -811,6 +811,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     doPrintit: function() { this.evalSelection(true) },
     doDebugit: function() {
         var that = this;
+        // FIXME: use new debugging api
         require('lively.ast.Morphic').toRun(function() {
             that.debugSelection();
         });
@@ -2130,7 +2131,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             // this.setSelectionRange(selRange[0], selRange[1]);
         } catch(e) {
             alert('Error when doing  toggle' + emphAttributeType + ': ' + e);
-            debugger;
         }
     },
 
@@ -2143,7 +2143,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             this.setSelectionRange(selRange[0], selRange[1]);
         } catch(e) {
             console.error('Error emphasizing' + JSON.stringify(emphSpec) + ': ' + e);
-            debugger;
         }
     },
 

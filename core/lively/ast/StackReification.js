@@ -106,10 +106,12 @@ Object.extend(lively.ast.StackReification, {
         }
     },
 
-    halt: function() {
-        var frame = lively.ast.Interpreter.Frame.create();
-        throw {isUnwindException: true, lastFrame: frame, topFrame: frame}
-    },
+    // TODO: reactivate if really necessary (use debugger instead?!)
+    // halt: function() {
+    //     // FIXME: cannot be called without Function object
+    //     var frame = lively.ast.AcornInterpreter.Frame.create(/* func */);
+    //     throw { isUnwindException: true, lastFrame: frame, topFrame: frame };
+    // },
 
     run: function(func, astRegistry, args, optMapping) {
         // FIXME: __getClosure - needed for UnwindExceptions also used here - uses
@@ -135,11 +137,13 @@ Object.extend(lively.ast.StackReification, {
 });
 
 Object.extend(Global, {
+
     catchUnwind: lively.ast.StackReification.run,
-    halt: lively.ast.StackReification.halt,
+    // TODO: reactivate if really necessary (use debugger instead?!)
+    // halt: lively.ast.StackReification.halt,
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-    __createClosure: function(idx, parentFrameState, f) {
+    __createClosure: Global.__createClosure || function(idx, parentFrameState, f) {
         // FIXME: Either save idx and use __getClosure later or attach the AST here and now (code dup.)?
         var ast = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
         // FIXME: duplicate from lively.ast.Rewriting > setupUnwindException AND __getClosure
@@ -157,7 +161,8 @@ Object.extend(Global, {
         return f;
     },
 
-    __getClosure: function(idx) {
+    // FIXME naming -- actually we return the ast node not a closure
+    __getClosure: Global.__getClosure || function(idx) {
         var entry = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
         if (entry && entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
             // reference instead of complete ast
@@ -168,6 +173,7 @@ Object.extend(Global, {
         }
         return entry; // ast
     }
+
 });
 
 Object.extend(Function.prototype, {
@@ -193,9 +199,12 @@ Object.extend(Function.prototype, {
 
 Object.subclass('lively.ast.Continuation',
 'settings', {
+
     isContinuation: true
+
 },
 'initializing', {
+
     initialize: function(frame) {
         this.currentFrame = frame; // the frame in which the the unwind was triggered
     },
@@ -203,15 +212,19 @@ Object.subclass('lively.ast.Continuation',
     copy: function() {
         return new this.constructor(this.currentFrame.copy());
     }
+
 },
 'accessing', {
+
     frames: function() {
         var frame = this.currentFrame, result = [];
         do { result.push(frame); } while (frame = frame.getParentFrame());
         return result;
     }
+
 },
 'resuming', {
+
     resume: function() {
         // FIXME: outer context usually does not have original AST
         // attaching the program node would possibly be right (otherwise the pc's context is missing)
@@ -247,13 +260,16 @@ Object.subclass('lively.ast.Continuation',
         else
             return result.val;
     }
+
 });
 
 Object.extend(lively.ast.Continuation, {
+
     fromUnwindException: function(e) {
         if (!e.isUnwindException) console.error("No unwind exception?");
         return new this(e.top);
     }
+
 });
 
 }) // end of module

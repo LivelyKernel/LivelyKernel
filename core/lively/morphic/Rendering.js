@@ -419,7 +419,6 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
             var msg = 'morphDispatchTable does no include: ' + aspect + ' for renderContext: ' + this;
             console.warn(msg)
             alert(msg);
-            debugger
             return null;
         }
         return morph[methodName](this, arg);

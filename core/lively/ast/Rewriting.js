@@ -26,7 +26,9 @@ Object.extend(lively.ast.Rewriting, {
         return r.rewriteFunction(node);
     },
 
-    rewriteLivelyCode: function() {
+    rewriteLivelyCode: function(addSourceMaps) {
+        addSourceMaps = !!addSourceMaps;
+
         // 1. Rewrite Lively code and put it into DBG_* files
         // 2. Create bootstrap code needed to run rewritten code
         var astReg = lively.ast.Rewriting.setCurrentASTRegistry([]),
@@ -36,12 +38,19 @@ Object.extend(lively.ast.Rewriting, {
                 // encapsulated exceptions
                 .withoutAll([
                     "core/lively/ast/Rewriting.js",
-                    "core/lively/ast/StackReification.js"]);
+                    "core/lively/ast/StackReification.js"])
+                .concat([
+                    "core/lib/acorn/acorn.js",
+                    "core/lib/acorn/acorn-walk.js",
+                    "core/lib/acorn/acorn-loose.js",
+                    "core/lively/ast/DebugExamples.js"]);
+
+        module('lively.ast.SourceMap').load(true);
 
         removeExistingDebugFiles(function() {
             modules.forEachShowingProgress({
-                iterator: createRewrittenModule, 
-                whenDone: createDebuggingBootstrap.curry(astReg)
+                iterator: createRewrittenModule,
+                whenDone: createDebuggingBootstrap
             });
         });
 
@@ -49,25 +58,39 @@ Object.extend(lively.ast.Rewriting, {
         // helper
         function createDebuggingBootstrap() {
             var code = [
-                lively.ast.Rewriting.findNodeByAstIndexBaseDef,
-                lively.ast.Rewriting.createClosureBaseDef,
-                lively.ast.Rewriting.UnwindExceptionBaseDef
-            ];
-            code.push("window.LivelyDebuggingASTRegistry=" + JSON.stringify(astReg) + ";");
+                    lively.ast.Rewriting.findNodeByAstIndexBaseDef,
+                    lively.ast.Rewriting.createClosureBaseDef,
+                    lively.ast.Rewriting.UnwindExceptionBaseDef
+                ],
+                flatRegistry = JSON.stringify(astReg, function(key, value) {
+                    if (this.type == 'Literal' && this.value instanceof RegExp && key == 'value')
+                        return { regexp: this.raw };
+                    else
+                        return value;
+                }).replace(/\{"regexp":("\/.*?\/[gimy]*")\}/g, 'eval($1)');
+            code.push("window.LivelyDebuggingASTRegistry=" + flatRegistry + ";");
             put("core/lively/ast/BootstrapDebugger.js", code.join('\n'));
         }
 
         function createRewrittenModule(modulePath) {
             // FIXME: manually wrap code in function so that async load will not temper with _0, etc.
-            var rewrittenAst = rewrite(get(modulePath)),
+            var originalAst = parse(get(modulePath)),
+                rewrittenAst = rewrite(originalAst),
                 code = Strings.format('(function() {\n%s\n%s\n})();',
                     escodegen.generate(rewrittenAst),
-                    declarationForGlobals(rewrittenAst));
-            putRewritten(modulePath, code);
+                    declarationForGlobals(rewrittenAst)),
+                fileName = modulePath.slice(modulePath.lastIndexOf('/') + 1);
+
+            if (addSourceMaps) {
+                lively.ast.acorn.rematchAstWithSource(rewrittenAst.body[0], code, true, 'body.0.expression.callee.body.body.0');
+                var srcMap = lively.ast.SourceMap.Generator.mapForASTs(originalAst, rewrittenAst, fileName);
+            }
+
+            putRewritten(modulePath, code, srcMap);
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             function declarationForGlobals(rewrittenAst) {
                 // _0 has all global variables
-                var propAccess = lively.PropertyPath('body.0.block.body.0.declarations.3.init.properties'),
+                var propAccess = lively.PropertyPath('body.0.block.body.0.declarations.4.init.properties'),
                     globalProps = propAccess.get(rewrittenAst);
                 if (!globalProps) {
                     show('cannot access global declarations of %s ', modulePath);
@@ -84,23 +107,31 @@ Object.extend(lively.ast.Rewriting, {
             return URL.root.withFilename(path).asWebResource().get().content;
         }
 
-        function putRewritten(path, rewrittenSource) {
+        function putRewritten(path, rewrittenSource, sourceMap) {
             var idx = path.lastIndexOf('/') + 1,
-                debugPath = path.slice(0,idx) + 'DBG_' + path.slice(idx);
-            put(debugPath, rewrittenSource);
+                debugPath = path.slice(0,idx),
+                debugFile = 'DBG_' + path.slice(idx);
+            if (sourceMap) {
+                put(debugPath + debugFile + 'm', sourceMap);
+                rewrittenSource += '\n\n//# sourceMappingURL=' + debugFile + 'm';
+            }
+            put(debugPath + debugFile, rewrittenSource);
         }
 
         function put(path, source) {
             URL.root.withFilename(path).asWebResource().put(source);
         }
 
-        function rewrite(source) {
-            var ast = lively.ast.acorn.parse(source);
+        function parse(source) {
+            return lively.ast.acorn.parse(source, { locations: true });
+        }
+
+        function rewrite(ast) {
             return lively.ast.Rewriting.rewrite(ast, astReg);
         }
 
         function removeExistingDebugFiles(thenDo) {
-            lively.ide.CommandLineSearch.findFiles('DBG_*.js', {}, function(files) {
+            lively.ide.CommandLineSearch.findFiles('DBG_*.js*', {}, function(files) {
                 lively.shell.exec('rm ' + files.join(' '), {}, thenDo);
             });
         }
@@ -208,15 +239,16 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         return this.scopes.pluck('isWithScope').lastIndexOf(false);
     },
 
-    registerVars: function(vars) {
+    registerVars: function(varIdentifiers) {
         if (!this.scopes.length) return undefined;
         var scope = this.scopes.last(),
             that = this;
-        return vars.reduce(function(res, varName) {
+        return varIdentifiers.reduce(function(res, varIdentifier) {
+            var varName = varIdentifier.name;
             if (scope.localVars.indexOf(varName) == -1) {
                 scope.localVars.push(varName);
             }
-            res.push(that.newNode('Identifier', { name: varName }));
+            res.push(that.newNode('Identifier', { name: varName, astIndex: varIdentifier.astIndex }));
             return res;
         }, []);
     },
@@ -297,7 +329,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     createCatchForUnwind: function(node, originalFunctionIdx, level) {
         return this.newNode('TryStatement', {
-            block: this.newNode('BlockStatement', {body: node.body}),
+            block: this.newNode('BlockStatement', {body: node.body, astIndex: node.astIndex}),
             handler: this.newNode('CatchClause', {guard: null,
                 param: this.newNode('Identifier', {name: 'e'}),
                 body: this.newNode('BlockStatement', {body: [
@@ -435,7 +467,8 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         return this.newNode('AssignmentExpression', {
             operator: '=',
             left: this.newNode('Identifier', {name: 'lastNode'}),
-            right: this.newNode('Literal', {value: astIndex})
+            right: this.newNode('Literal', {value: astIndex}),
+            astIndex: astIndex
         });
     },
 
@@ -446,7 +479,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1;
         if (astToRewrite.type == 'FunctionDeclaration') {
-            var args = this.registerVars(astToRewrite.params.pluck('name')); // arguments
+            var args = this.registerVars(astToRewrite.params); // arguments
         }
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex),
             decls = this.registerDeclarations(astToRewrite, rewriteVisitor), // locals
@@ -484,7 +517,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         this.enterScope();
         this.astRegistry.push({ registryRef: originalRegistryIndex, indexRef: node.astIndex });
         var astRegistryIndex = this.astRegistry.length - 1,
-            args = this.registerVars(node.params.pluck('name')), // arguments
+            args = this.registerVars(node.params), // arguments
             rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(originalRegistryIndex),
             decls = this.registerDeclarations(node.body, rewriteVisitor), // locals
             rewritten = rewriteVisitor.accept(astToRewrite.body, this);
@@ -880,7 +913,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             expr = expr.expression; // unwrap
         return {
             start: n.start, end: n.end, type: 'ExpressionStatement',
-            expression: expr
+            expression: expr, astIndex: n.astIndex
         };
     },
 
@@ -892,17 +925,19 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             arg = arg.expression; // unwrap
         return {
             start: n.start, end: n.end, type: 'ReturnStatement',
-            argument: arg
+            argument: arg, astIndex: n.astIndex
         };
     },
 
     visitForStatement: function(n, rewriter) {
         // init is a node of type VariableDeclaration or Expression or null
         var init = n.init ? this.accept(n.init, rewriter) : null;
-        if (init && init.type == 'ExpressionStatement')
+        if (init && init.type == 'ExpressionStatement') {
+            init.expression.astIndex = init.astIndex;
             init = init.expression;
+        }
         return {
-            start: n.start, end: n.end, type: 'ForStatement',
+            start: n.start, end: n.end, type: 'ForStatement', astIndex: n.astIndex,
             init: init,
             // test is a node of type Expression
             test: n.test ? this.accept(n.test, rewriter) : null,
@@ -918,12 +953,17 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // right is a node of type Expression
         // body is a node of type Statement
         // n.each has a specific type that is boolean
-        var left = this.accept(n.left.type == 'VariableDeclaration' ?
-                n.left.declarations[0].id :
-                n.left, rewriter),
-            right = this.accept(n.right, rewriter),
+        var left, right = this.accept(n.right, rewriter),
             body = this.accept(n.body, rewriter),
             start = n.start, end = n.end, astIndex = n.right.astIndex;
+        if (n.left.type == 'VariableDeclaration') {
+            left = this.accept(n.left.declarations[0].id, rewriter);
+            // fake astIndex for source mapping
+            left.astIndex = n.left.astIndex;
+            left.object.astIndex = n.left.declarations[0].astIndex;
+            left.property.astIndex = n.left.declarations[0].id.astIndex;
+        } else
+            left = this.accept(n.left, rewriter);
         if (body.type !== 'BlockStatement') {
             body = rewriter.newNode('BlockStatement', {body: [body]})
         }
@@ -973,7 +1013,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         return {
             start: n.start, end: n.end, type: 'ForInStatement',
             left: left, right: right, body: body,
-            each: n.each
+            each: n.each, astIndex: n.astIndex
         };
     },
 
@@ -1046,7 +1086,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         rewriter.enterScope();
         rewriter.astRegistry.push({ registryRef: this.registryIndex, indexRef: n.astIndex });
         var astRegistryIndex = rewriter.astRegistry.length - 1,
-            args = rewriter.registerVars(n.params.pluck('name')), // arguments
+            args = rewriter.registerVars(n.params), // arguments
             decls = rewriter.registerDeclarations(n.body, this), // locals
             rewritten = this.accept(n.body, rewriter);
         rewriter.exitScope();
@@ -1054,7 +1094,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             start: n.start, end: n.end, type: 'FunctionExpression',
             body: rewriter.newNode('BlockStatement', {
                 body: [rewriter.wrapSequence(rewritten, args, decls, astRegistryIndex)]}),
-            id: n.id || null, params: args
+            id: n.id || null, params: args, astIndex: n.astIndex
         }, astRegistryIndex);
         wrapped = rewriter.newNode('ExpressionStatement', {
             expression: rewriter.storeComputationResult(wrapped, start, end, astIndex),
@@ -1071,7 +1111,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         var decls = n.declarations.map(function(decl) {
             if (decl.init == null) { // no initialization, e.g. var x;
                 // only advance the pc
-                return rewriter.lastNodeExpression(n.astIndex);
+                var node = rewriter.lastNodeExpression(decl.astIndex);
+                node.right.astIndex = decl.id.astIndex; // fake astIndex for source mapping
+                return node;
             }
 
             var value = this.accept(decl.init, rewriter);
@@ -1080,22 +1122,23 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 operator: '=',
                 right: (decl.init && decl.init.type == 'FunctionExpression') ?
                     value.expression : // unwrap
-                    value
+                    value,
+                astIndex: decl.astIndex
             });
-            return rewriter.storeComputationResult(value, start, end, astIndex);
+            return rewriter.storeComputationResult(value, start, end, decl.astIndex);
         }, this);
 
-        return decls.length == 1 ?
-            rewriter.newNode('ExpressionStatement', {expression: decls[0]}) :
-            rewriter.newNode('ExpressionStatement', {
-                expression: rewriter.newNode('SequenceExpression', {expressions: decls})
-            });
+        return rewriter.newNode('ExpressionStatement', {
+            expression: decls.length == 1 ? decls[0] :
+                rewriter.newNode('SequenceExpression', {expressions: decls}),
+            astIndex: astIndex
+        });
     },
 
     visitArrayExpression: function(n, rewriter) {
         // each of n.elements can be of type Expression
         return {
-            start: n.start, end: n.end, type: 'ArrayExpression',
+            start: n.start, end: n.end, type: 'ArrayExpression', astIndex: n.astIndex,
             elements: n.elements.map(function(element) {
                 var elem = this.accept(element, rewriter);
                 if (elem.type == 'ExpressionStatement')
@@ -1110,7 +1153,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // each.value of n.properties is of type node
         // each.kind of n.properties is "init" or "get" or "set"
         return {
-            start: n.start, end: n.end, type: 'ObjectExpression',
+            start: n.start, end: n.end, type: 'ObjectExpression', astIndex: n.astIndex,
             properties: n.properties.map(function(prop) {
                 var value = this.accept(prop.value, rewriter);
                 if (prop.kind != 'init') { // set or get
@@ -1120,7 +1163,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 var key = prop.key.type == 'Identifier' ?
                     { // original identifier rule
                         start: prop.key.start, end: prop.key.end, type: 'Identifier',
-                        name: prop.key.name
+                        name: prop.key.name, astIndex: prop.key.astIndex
                     } : this.accept(prop.key, rewriter);
                 return {
                     key: key,
@@ -1176,7 +1219,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             right = right.expression; // unwrap
         return {
             start: n.start, end: n.end, type: 'LogicalExpression',
-            left: left, operator: n.operator, right: right
+            left: left, operator: n.operator, right: right, astIndex: n.astIndex
         };
     },
 
@@ -1193,7 +1236,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         return {
             start: n.start, end: n.end, type: 'ConditionalExpression',
             test: this.accept(n.test, rewriter), consequent: consequent,
-            alternate: alternate
+            alternate: alternate, astIndex: n.astIndex
         };
     },
 
@@ -1239,7 +1282,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         }
         return rewriter.storeComputationResult({
             type: 'CallExpression', callee: callee,
-            arguments: args
+            arguments: args, astIndex: astIndex
         }, start, end, astIndex);
     },
 
@@ -1252,13 +1295,13 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 this.accept(n.property, rewriter) :
                 { // original identifier rule
                     start: n.property.start, end: n.property.end, type: 'Identifier',
-                    name: n.property.name
+                    name: n.property.name, astIndex: n.property.astIndex
                 };
         if (object.type == 'ExpressionStatement')
             object = object.expression;
         return {
             start: n.start, end: n.end, type: 'MemberExpression',
-            object: object, property: property, computed: n.computed
+            object: object, property: property, computed: n.computed, astIndex: n.astIndex
         };
     },
 
@@ -1295,13 +1338,13 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         // param is a node of type Pattern
         // guard is a node of type Expression (optional)
         // body is a node of type BlockStatement
-        var start = n.param.start, end = n.param.end, astIndex = n.astIndex,
+        var start = n.param.start, end = n.param.end,
             param = Object.extend({}, n.param), // manually copy param without wrapping
             paramIndex = n.param.astIndex,
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
 
         var scopeIdx = rewriter.enterScope() - 1,
-            catchParam = rewriter.registerVars([n.param.name]),
+            catchParam = rewriter.registerVars([n.param]),
             body = this.accept(n.body, rewriter);
         if (paramIndex) {
             body.body.unshift(
@@ -1367,13 +1410,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         rewriter.exitScope();
         return {
             start: n.start, end: n.end, type: 'CatchClause',
-            param: param, guard: guard, body: body
+            param: param, guard: guard, body: body, astIndex: n.astIndex
         };
     },
 
     visitIdentifier: function(n, rewriter) {
         // n.name has a specific type that is string
-        return rewriter.wrapVar(n.name);
+        var node = rewriter.wrapVar(n.name);
+        node.astIndex = n.astIndex;
+        return node;
     },
 
     visitWithStatement: function(n, rewriter) {
@@ -1465,18 +1510,21 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "    var realCode = f.toString();\n"
       + "    f.toStringRewritten = function() { return realCode; };\n"
       + "    f.toString = function toString() {\n"
-      + "        var ast = LivelyDebuggingASTRegistry[idx];\n"
-      + "        if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {\n"
-      + "            // reference instead of complete ast\n"
-      + "            ast = findNodeByAstIndex(\n"
-      + "                LivelyDebuggingASTRegistry[ast.registryRef],\n"
-      + "                ast.indexRef\n"
-      + "            );\n"
-      + "        }\n"
+      + "        var ast = __getClosure(idx);\n"
       + "        var src = escodegen.generate(ast);\n"
       + "        return src;\n"
       + "    };\n"
       + "    return f;\n"
+      + "}\n\n"
+      + "window.__getClosure = function __getClosure(idx) {\n"
+      + "    var ast = LivelyDebuggingASTRegistry[idx];\n"
+      + "    if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {\n"
+      + "        // reference instead of complete ast\n"
+      + "        ast = findNodeByAstIndex(\n"
+      + "            LivelyDebuggingASTRegistry[ast.registryRef],\n"
+      + "            ast.indexRef);\n"
+      + "    }\n"
+      + "    return ast;\n"
       + "}\n";
 
     lively.ast.Rewriting.UnwindExceptionBaseDef =

@@ -31,6 +31,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     runWithFrame: function(node, frame) {
+        if (node.type == 'FunctionDeclaration' || node.type =='FunctionExpression')
+            node = node.body;
         return this.runWithFrameAndResult(node, frame, undefined);
     },
 
@@ -52,7 +54,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node, state);
         } catch (e) {
-            if (e.toString() == 'Break') {
+            if (e.toString() == 'Break' && !frame.isResuming()) {
                 frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
                 e.top = e.top || frame;
             }
@@ -163,8 +165,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     },
 
     shouldInterpret: function(frame, func) {
-        if (this.isNative(func)) return false;
-        return (func.forInterpretation !== undefined);
+        return !this.isNative(func) && !!func.isInterpretableFunction;
         // TODO: reactivate when necessary
             // || func.containsDebugger();
     },
@@ -247,7 +248,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     fetchInterpretedFunction: function(func) {
         if (!func.livelyDebuggingEnabled) return null;
-        if (func.forInterpretation !== undefined) return func;
+        if (func.isInterpretableFunction !== undefined) return func;
 
         // recreate scopes
         // FIXME: duplicate from lively.ast.Rewriting > UnwindException.prototype.createAndShiftFrame
@@ -298,7 +299,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 return;
             }
         } else if (this.shouldHaltAtNextStatement() && this.statements.include(node.type)) {
-            //   (this.shouldHaltAtNextCall() && (node.type == 'CallExpression'))) {
+            if (node.type == 'DebuggerStatement')
+                frame.alreadyComputed[node.astIndex] = undefined;
             this.breakAtStatement = false;
             this.breakAtCall = false;
             throwBreak();
@@ -922,7 +924,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(arg, state);
             args.push(state.result);
         }, this);
-        state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
+        try {
+            state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
+        } catch (e) {
+            if (e.toString() == 'Break')
+                state.currentFrame.setPC(node);
+            throw e;
+        }
     },
 
     visitMemberExpression: function(node, state) {
@@ -964,6 +972,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 });
 
 Object.subclass('lively.ast.AcornInterpreter.Function',
+'settings', {
+    isInterpretableFunction: true
+},
 'initialization', {
     initialize: function(node, scope, optFunc) {
         this.lexicalScope = scope;
@@ -976,31 +987,25 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         if (this._cachedFunction)
             return this._cachedFunction;
 
-        var that = this;
-        function fn(/*args*/) {
-            return that.apply(this, Array.from(arguments));
-        }
-        fn.forInterpretation = function() {
-            return fn;
-        };
-        fn.ast = function() {
-            return that.node;
-        };
-        fn.setParentFrame = function(frame) {
-            that.parentFrame = frame;
-        };
-        fn.startHalted = function(interpreter) {
-            interpreter.haltAtNextStatement();
-            return function(/*args*/) { return that.apply(this, Array.from(arguments), interpreter); }
-        };
-        // TODO: reactivate when necessary
-        // fn.evaluatedSource = function() { return ...; };
-
-        // custom Lively stuff
-        fn.methodName = this.name();
+        var self = this;
+        var fn = Object.extend(function fn(/*args*/) {
+            return self.apply(this, Array.from(arguments));
+        }, {
+            isInterpretableFunction: true,
+            forInterpretation: function() { return fn; },
+            ast: function() { return self.node; },
+            setParentFrame: function(frame) { self.parentFrame = frame; },
+            startHalted: function(interpreter) {
+                interpreter.haltAtNextStatement();
+                return function(/*args*/) { return self.apply(this, Array.from(arguments), interpreter); }
+            },
+            // TODO: reactivate when necessary
+            // evaluatedSource: function() { return ...; },
+            // custom Lively stuff
+            methodName: this.name(),
+        });
 
         // TODO: prepare more stuff from optFunc
-
         this._cachedFunction = fn;
     },
 },
@@ -1027,7 +1032,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     },
 
     getSource: function() {
-        return this.getAst().source;
+        return this.getAst().source || escodegen.generate(this.getAst());;
     }
 
 },
@@ -1058,7 +1063,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // important: lively.ast.Interpreter.Frame.top is only valid
             // during the native VM-execution time. When the execution
             // of the interpreter is stopped, there is no top frame anymore.
-            return interpreter.runWithFrame(this.node.body, frame);
+            return interpreter.runWithFrame(this.node, frame);
         } catch (ex) {
             if (ex.isUnwindException) {
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
@@ -1182,7 +1187,18 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         copy.pcStatement = this.pcStatement;
         copy.alreadyComputed = Object.extend({}, this.alreadyComputed);
         return copy;
-	}
+	},
+
+    reset: function() {
+        this.scope             = new lively.ast.AcornInterpreter.Scope(null, this.scope.getParentScope());
+        this.returnTriggered   = false;
+        this.breakTriggered    = null;      // null, true or string (labeled break)
+        this.continueTriggered = null;      // null, true or string (labeled continue)
+        this.pc                = null;      // program counter, actually an AST node
+        this.pcStatement       = null;      // statement node of the pc
+        this.alreadyComputed   = {};        // maps astIndex to values. Filled
+                                            // when we unwind from captured state
+    }
 
 },
 'accessing', {
@@ -1299,9 +1315,9 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 });
 
 Object.extend(lively.ast.AcornInterpreter.Frame, {
-    create: function(ast, mapping) {
+    create: function(func, mapping) {
         var scope = new lively.ast.AcornInterpreter.Scope(mapping);
-        return new lively.ast.AcornInterpreter.Frame(ast, scope);
+        return new lively.ast.AcornInterpreter.Frame(func, scope);
     },
 
     global: function() {

@@ -750,6 +750,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     doDebugit: function() {
         var text = this.getSelectionMaybeInComment(),
             that = this;
+        // FIXME: use new debugging api
         require('lively.ast.Morphic').toRun(function() {
             var str = "function(){\n" + text + "\n}",
                 fun = Function.fromString(str).forInterpretation(),

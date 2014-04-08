@@ -3486,7 +3486,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
         // this starts the actual inspection
         this.tree.setItem(this.createItem({"this": Object.clone(data)}, "this"));
         
+        var startTime = new Date().getTime();
+        var maximalTime = 500;
         function expand(root, maxDepth, depth) {
+            var endTime = new Date().getTime();
+
+            if (endTime - startTime > maximalTime) {
+                return;
+            }
+            
             if (!maxDepth) maxDepth = 10;
             if (!depth) depth = 0;
             if (depth > maxDepth) return;

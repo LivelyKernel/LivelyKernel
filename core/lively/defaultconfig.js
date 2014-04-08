@@ -452,7 +452,6 @@ Config.addOptions(
     ["ignoreAdvice", false, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
     ["showLivelyConsole", false, "Open up our console"],
     ["debugExtras", false, "Enable advanced debugging options"],
-    ["advancedSyntaxHighlighting", true, "Enable ast-based source code highlighting and error checking"],
     ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
     ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html", "Where to report bugs"]
 ],
@@ -467,7 +466,10 @@ Config.addOptions(
     ["useSoftTabs", true],
     ["defaultTabSize", 4],
     ["disableSyntaxHighlighting", false],
-    ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
+    ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"]
+],
+
+'lively.morphic.CodeEditor', [
     ['defaultCodeFontSize', 12, "In which pt size code appears."],
     ['defaultCodeFontFamily', "Monaco,monospace", "Code font"],
     ['autoIndent', true, "Automatically indent new lines."],
@@ -482,14 +484,18 @@ Config.addOptions(
     ['aceDefaultShowInvisibles', false, "Indicators for whitespace / non-print chars."],
     ['aceDefaultShowPrintMargin', false, "Show a vertical line at the print margin column."],
     ['aceDefaultShowIndents', true, "Indicators for indents in the beginning of lines."],
-    ['aceDefaultUseJavaScriptLinter', true, "Linting JavaScript code on-the-fly"],
+    ['aceDefaultUseJavaScriptLinter', false, "Linting JavaScript code on-the-fly"],
     ['aceDefaultShowActiveLine', false, "Current line is highlighted"],
-    ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
     ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
+    ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
     ['computeCodeEditorCompletionsOnStartup', true, 'when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions'],
     ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."],
-    ['improvedJavaScriptEval', false, "Eval that changes semantics of how object literals and if statements are evaluated."],
+    ['improvedJavaScriptEval', false, "Eval that changes semantics of how object literals and if statements are evaluated."]
+],
+
+'lively.ide.Search', [
+    ['codeSearchGrepExclusions', [".svn", ".git", "node_modules", "combined.js", "BootstrapDebugger.js"], "Patterns for files to exclude from grep code search."]
 ],
 
 'lively.morphic.StyleSheets', [
@@ -527,6 +533,7 @@ Config.addOptions(
 'lively.Worker', [
     ['lively.Worker.idleTimeOfPoolWorker', 60*1000, 'Seconds a lively.Worker that is automatically added to the worker pool is kept alive.']
 ],
+
 "Changesets", [
     ['changesetsExperiment', true, 'track changes and provide a UI for a changesets-based worlkflow'],
     ['automaticChangesReplay', true, 'restore changes automatically on world load']

@@ -103,6 +103,12 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 multiSelectAction: "forEach",
                 readOnly: true // false if this command should not apply in readOnly mode
             }, {
+                name: 'debugit',
+                bindKey: {win: 'Ctrl-Shift-D',  mac: 'Command-Shift-D'},
+                exec: function(ed) { ed.$morph.doDebugit(); },
+                multiSelectAction: "forEach",
+                readOnly: true // false if this command should not apply in readOnly mode
+            }, {
                 name: 'printit',
                 bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
                 exec: function(ed) { doEval(ed, true); },

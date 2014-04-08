@@ -2192,6 +2192,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         newChunk.styleText(style);
         this.coalesceChunks();
         this.cachedTextString = null;
+    },
+
+    getStyleRanges: function() {
+        var chunks = this.getTextChunks();
+        var from = 0, len = chunks.length, result = new Array(chunks.length);
+        for (var i = 0; i < len; i++) {
+            var to = from + chunks[i].textString.length;
+            result[i] = [from, to, chunks[i].getStyle()];
+            from = to;
+        }
+        return result;
     }
 
 },
@@ -2266,6 +2277,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     }
 },
 'syntax highlighting', {
+
     highlightSyntax: function() {
         if (Config.get('disableSyntaxHighlighting')) return null;
         var syntaxHighlighter = this.syntaxHighlighter;
@@ -2307,9 +2319,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     },
 
     disableSyntaxHighlighting: function() {
+        var styles = this.getStyleRanges();
         this.syntaxHighlightingWhileTyping = false;
         delete this.highlightSyntaxDebounced;
         disconnect(this, 'textString', this, 'highlightSyntaxDebounced');
+        this.emphasizeRanges(styles);
     },
 
     enableSyntaxHighlightingOnSave: function() {

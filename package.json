@@ -10,7 +10,7 @@
   },
   "main": "core/lively/bootstrap.js",
   "dependencies": {
-    "life_star": ">=0.4.5",
+    "life_star": ">=0.4.9",
     "async": "~0.2",
     "shelljs": "~0.2",
     "optparse": "~1.0",

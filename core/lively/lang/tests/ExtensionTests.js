@@ -654,6 +654,68 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
         tests.forEach(function(test) {
             this.assertEquals(test.expected, Strings.paragraphs(test.string, test.options));
         }, this);
+    },
+
+    testPrintTree: function() {
+        var tree = tree = {
+            string: "root",
+            children: [{
+                string: "a",
+                children: [{
+                    string: "b",
+                    children: [{string: "c"},{string: "d"}]
+                }],
+            },{
+                string: "e",
+                children: [{
+                    string: "f",
+                    children: [{ string: "g" },{ string: "h" }]
+                }]
+            }]
+        };
+        var expected = "root\n"
+                     + "|---a\n"
+                     + "|   \\---b\n"
+                     + "|       |---c\n"
+                     + "|       \\---d\n"
+                     + "\\---e\n"
+                     + "    \\---f\n"
+                     + "        |---g\n"
+                     + "        \\---h";
+        var actual = Strings.printTree(tree,
+                function(n) { return n.string; },
+                function(n) { return n.children; }, '    ');
+        this.assertEquals(expected, actual);
+    },
+
+    testStringMatch: function() {
+        var sucesses = [
+            {string: "foo bar", pattern: "foo bar"},
+            {string: "foo    bar", pattern: "foo bar", normalizeWhiteSpace: true},
+            {string: "foo bar", pattern: "foo __/bar/__"},
+            {string: "foo bar 123 baz", pattern: "foo bar __/[0-9]+/__ baz"},
+            {string: "  foo\n   123\n bla", pattern: "foo\n __/[0-9]+/__\n       bla", ignoreIndent: true}];
+        sucesses.forEach(function(ea) {
+            var match = Strings.stringMatch(
+                ea.string, ea.pattern,
+                {normalizeWhiteSpace: ea.normalizeWhiteSpace, ignoreIndent: ea.ignoreIndent});
+            this.assert(match.matched,
+                'stringMatch not matching:\n' + ea.string
+              + '\nwith:\n'+ ea.pattern
+              + '\nbecause:\n ' + Objects.inspect(match));
+        }, this);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        var failures = [
+            {string: "foo bar 12x baz", pattern: "foo bar __/[0-9]+/__ baz"}];
+        failures.forEach(function(ea) {
+            var match = Strings.stringMatch(
+                ea.string, ea.pattern,
+                {normalizeWhiteSpace: ea.normalizeWhiteSpace});
+            this.assert(!match.matched,
+                'stringMatch unexpectedly matched:\n' + ea.string
+              + '\nwith:\n'+ ea.pattern
+              + '\nbecause:\n ' + Objects.inspect(match));
+        }, this);
     }
 
 });

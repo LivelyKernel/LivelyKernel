@@ -78,12 +78,14 @@ Object.subclass('lively.Closure',
     },
 
     firstParameter: function(src) {
-        return this.parameterNames(src)[0] || null
+        return this.parameterNames(src)[0] || null;
     }
+
 },
 'function creation', {
+
     recreateFunc: function() {
-        return this.recreateFuncFromSource(this.getFuncSource())
+        return this.recreateFuncFromSource(this.getFuncSource());
     },
 
     recreateFuncFromSource: function(funcSource) {
@@ -97,15 +99,32 @@ Object.subclass('lively.Closure',
             if (!this.varMapping.hasOwnProperty(name)) continue;
             if (name == 'this') {
                 thisFound = true;
-                continue
-            };
+                continue;
+            }
             closureVars.push(name + '=this.varMapping["' + name + '"]');
         }
+        // FIXME: problem with rewriting variables when _2 is rewritten by eval below
+        // if (this.originalFunc && this.originalFunc.livelyDebuggingEnabled) {
+        //     var scopeObject = this.originalFunc._cachedScopeObject,
+        //         depth = -1,
+        //         path = ''
+        //     while (scopeObject && scopeObject != Global) {
+        //         depth++;
+        //         scopeObject = scopeObject[2]; // descend in scope
+        //     }
+        //     scopeObject = this.originalFunc._cachedScopeObject;
+        //     var path = 'this.originalFunc._cachedScopeObject';
+        //     for (var i = depth; i >= 0; i--) {
+        //         closureVars.push('_' + depth + '=' + path + '[1]');
+        //         closureVars.push('__' + depth + '=' + path);
+        //         path += '[2]';
+        //     }
+        // }
         var src = closureVars.length > 0 ? 'var ' + closureVars.join(',') + ';\n' : '';
-        if (specificSuperHandling) src += '(function superWrapperForClosure() { return '
+        if (specificSuperHandling) src += '(function superWrapperForClosure() { return ';
         src += '(' + funcSource + ')';
 
-        if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat($A(arguments))) })'
+        if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat(Array.from(arguments))) })';
 
         try {
             var func = eval(src) || this.couldNotCreateFunc(src);
@@ -114,8 +133,8 @@ Object.subclass('lively.Closure',
             return func;
         } catch (e) {
             alert('Cannot create function ' + e + ' src: ' + src);
-            throw e
-        };
+            throw e;
+        }
     },
 
     addFuncProperties: function(func) {

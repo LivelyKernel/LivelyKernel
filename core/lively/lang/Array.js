@@ -2,35 +2,99 @@
 // Extensions to Array instances
 ///////////////////////////////////////////////////////////////////////////////
 
-Object.extend(Array.prototype, {
+Global.NativeArrayFunctions = {
 
-    each: Array.prototype.forEach || function(iterator, context) {
-        for (var i = 0, len = this.length; i < len; i++) {
-            iterator.call(context, this[i], i); }
-        return this;
+    sort: function(sortFunc) {
+        if (!sortFunc) {
+            sortFunc = function(x,y) {
+                if (x < y) return -1;
+                if (x > y) return 1;
+                return 0;
+            };
+        }
+        var len = this.length, sorted = [];
+        for (var i = 0; i < this.length; i++) {
+            var inserted = false;
+            for (var j = 0; j < sorted.length; j++) {
+                if (1 === sortFunc(sorted[j], this[i])) {
+                    inserted = true;
+                    sorted[j+1] = sorted[j];
+                    sorted[j] = this[i];
+                    break;
+                }
+            }
+            if (!inserted) sorted.push(this[i]);
+        }
+        return sorted;
     },
 
-    all: Array.prototype.every || function(iterator, context) {
+    filter: function(iterator, context) {
+        var results = [];
+        for (var i = 0; i < this.length; i++) {
+            if (!this.hasOwnProperty(i)) continue;
+            var value = this[i];
+            if (iterator.call(context, value, i)) results.push(value);
+        }
+        return results;
+    },
+
+    forEach: function(iterator, context) {
+        for (var i = 0, len = this.length; i < len; i++) {
+            iterator.call(context, this[i], i, this); }
+    },
+
+    some: function(iterator, context) {
+        return this.detect(iterator, context) !== undefined;
+    },
+
+    every: function(iterator, context) {
         var result = true;
         for (var i = 0, len = this.length; i < len; i++) {
-            result = result && !! iterator.call(context || Global, this[i], i);
+            result = result && !! iterator.call(context, this[i], i);
             if (!result) break;
         }
         return result;
     },
 
-    any: Array.prototype.some || function(iterator, context) {
-        return this.detect(iterator, context) !== undefined;
-    },
-
-    collect: Array.prototype.map || (function(iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Prototype.K;
+    map: function(iterator, context) {
+        // if (typeof iterator !== 'function')
+            // throw new TypeError(arguments[0] + ' is not a function');
         var results = [];
         this.forEach(function(value, index) {
-            results.push(iterator(value, index));
+            results.push(iterator.call(context, value, index));
         });
         return results;
-    }),
+    },
+
+    reduce: function(iterator, memo, context) {
+        var start = 0;
+        if (!arguments.hasOwnProperty(1)) { start = 1; memo = this[0]; }
+        for (var i = start; i < this.length; i++)
+            memo = iterator.call(context, memo, this[i], i, this);
+        return memo;
+    },
+
+    reduceRight: function(iterator, memo, context) {
+        var start = this.length-1;
+        if (!arguments.hasOwnProperty(1)) { start--; memo = this[this.length-1]; }
+        for (var i = start; i >= 0; i--)
+            memo = iterator.call(context, memo, this[i], i, this);
+        return memo;
+    }
+
+};
+
+Object.extend(Array.prototype, {
+
+    each: Array.prototype.forEach || NativeArrayFunctions.forEach,
+
+    all: Array.prototype.every || NativeArrayFunctions.every,
+
+    any: Array.prototype.some || NativeArrayFunctions.some,
+
+    collect: Array.prototype.map || NativeArrayFunctions.map,
+
+    findAll: Array.prototype.filter || NativeArrayFunctions.filter,
 
     detect: function(iterator, context) {
         for (var value, i = 0, len = this.length; i < len; i++) {
@@ -40,15 +104,6 @@ Object.extend(Array.prototype, {
         return undefined;
     },
 
-    findAll: Array.prototype.filter || function(iterator, context) {
-        var results = [];
-        for (var i = 0; i < this.length; i++) {
-            if (!this.hasOwnProperty(i)) continue;
-            var value = this[i];
-            if (iterator.call(context, value, i)) results.push(value);
-        }
-        return results;
-    },
     filterByKey: function(key) {
         return this.filter(function(ea) { return !!ea[key]; });
     },
@@ -186,9 +241,7 @@ Object.extend(Array.prototype, {
 
     last: function() { return this[this.length - 1]; },
 
-    compact: function() {
-        return this.select(Functions.K);
-    },
+    compact: function() { return this.select(Functions.K); },
 
     mutableCompact: function() {
         // fix gaps that were created with 'delete'
@@ -380,26 +433,62 @@ Object.extend(Array.prototype, {
         return value;
     },
 
-    forEachShowingProgress: function(progressBar, iterator, labelFunc, whenDoneFunc, context) {
+    forEachShowingProgress: function(/*progressBar, iterator, labelFunc, whenDoneFunc, context or spec*/) {
+        var args = Array.from(arguments),
+            steps = this.length,
+            progressBar, iterator, labelFunc, whenDoneFunc, context,
+            progressBarAdded = false;
+
+        // init args
+        if (args.length === 1) {
+            progressBar = args[0].progressBar;
+            iterator = args[0].iterator;
+            labelFunc = args[0].labelFunction;
+            whenDoneFunc = args[0].whenDone;
+            context = args[0].context;
+        } else {
+            progressBar = args[0];
+            iterator = args[1];
+            labelFunc = args[2];
+            whenDoneFunc = args[3];
+            context = args[4];
+        }
+        if (!context) context = Global;
+        if (!labelFunc) labelFunc = Functions.K;
+
+        // init progressbar
+        if (!progressBar) {
+            progressBarAdded = true;
+            var world = Global.lively && lively.morphic && lively.morphic.World.current();
+            progressBar = world ? world.addProgressBar() : {
+                setValue: function(val) {},
+                setLabel: function() {},
+                remove: function() {}
+            };
+        }
         progressBar.setValue(0);
-        var steps = this.length;
-        context = context || Global;
-        (this.reverse().inject(
-            function() {
-                progressBar.setValue(1);
-                if (whenDoneFunc) whenDoneFunc.call(context)
-            }, function(nextFunc, item, idx) {
-                return function() {
-                    try {
-                        progressBar.setValue((steps - idx) / steps);
-                        if (labelFunc) progressBar.setLabel(labelFunc.call(context, item, idx));
-                        iterator.call(context, item, idx);
-                    } catch (e) {
-                        console.error(Strings.format('Error in forEachShowingProgress at %s (%s)\n%s\n%s', idx, item, e, e.stack))
-                    }
-                    nextFunc.delay(0);
+
+        // nest functions so that the iterator calls the next after a delay
+        (this.reduceRight(function(nextFunc, item, idx) {
+            return function() {
+                try {
+                    progressBar.setValue(idx / steps);
+                    if (labelFunc) progressBar.setLabel(labelFunc.call(context, item, idx));
+                    iterator.call(context, item, idx);
+                } catch (e) {
+                    console.error(
+                        'Error in forEachShowingProgress at %s (%s)\n%s\n%s',
+                        idx, item, e, e.stack);
                 }
+                nextFunc.delay(0);
+            };
+        }, function() {
+            progressBar.setValue(1);
+            if (progressBarAdded) (function() { debugger; progressBar.remove(); }).delay(0);
+            if (whenDoneFunc) whenDoneFunc.call(context);
         }))();
+
+        return this;
     },
 
     sum: function() {

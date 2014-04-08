@@ -242,16 +242,17 @@ Object.extend(Function.prototype, {
         if (optMapping) mapping = Object.merge([mapping, optMapping]);
         if (proto && proto[name]) {
             var superFunc = function() {
-                    try {
-                        return Object.getPrototypeOf(obj)[name].apply(obj, arguments)
-                    } catch (e) {
-                        if ($world)
-                            $world.logError(e, 'Error in $super call')
-                        else
-                            alert('Error in $super call: ' + e + '\n' + e.stack);
-                        return null;
-                    }
-                };
+                try {
+                    // FIXME super is supposed to be static
+                    return Object.getPrototypeOf(obj)[name].apply(obj, arguments);
+                } catch (e) {
+                    if ($world)
+                        $world.logError(e, 'Error in $super call')
+                    else
+                        alert('Error in $super call: ' + e + '\n' + e.stack);
+                    return null;
+                }
+            };
             mapping["$super"] = lively.Closure.fromFunction(superFunc, {
                 "obj": obj,
                 name: name

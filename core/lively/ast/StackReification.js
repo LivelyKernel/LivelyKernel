@@ -1,185 +1,205 @@
-/*
- * Copyright (c) 2008-2011 Hasso Plattner Institute
- *
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-module('lively.ast.StackReification').requires('lively.ast.Interpreter', 'lively.ast.Parser').toRun(function() {
+module('lively.ast.StackReification').requires('lively.ast.AcornInterpreter', 'lively.ast.Rewriting').toRun(function() {
 
 lively.Closure.subclass('lively.ast.RewrittenClosure',
 'initializing', {
+
     initialize: function($super, func, varMapping, source) {
         $super(func, varMapping, source);
         this.ast = null;
     }
+
 },
 'accessing', {
-    getRewrittenFunc: function() { return this.recreateFuncFromSource(this.getRewrittenSource()) },
-    getRewrittenSource: function() { return this.ast && this.ast.asJS() },
-    getOriginalFunc: function() { return this.addClosureInformation(this.getFunc()) }
+
+    getRewrittenFunc: function() {
+        var func = this.recreateFuncFromSource(this.getRewrittenSource());
+        func.livelyDebuggingEnabled = true;
+        return func;
+    },
+
+    getRewrittenSource: function() {
+        return this.ast && escodegen.generate(this.ast);
+    },
+
+    getOriginalFunc: function() {
+        return this.addClosureInformation(this.getFunc());
+    }
+
 },
 'rewriting', {
-    rewrite: function(rewriter) {
-        var ast = this.getFunc().ast();
-        rewriter.rewrite(ast);
-        this.ast = ast;
+
+    rewrite: function(astRegistry) {
+        var src = this.getFuncSource(),
+            ast = lively.ast.acorn.parseFunction(src);
+        return this.ast = lively.ast.Rewriting.rewriteFunction(ast, astRegistry);
     }
-});
 
-Object.subclass('lively.ast.StackReification.Rewriter',
-'interface', {
-    rewrite: function(ast) {
-        return this.rewriteCallsInAST(ast, 'isolateAndCatchCall');
-    }
-},
-'code rewrite', {
-
-    rewriteCallsInAST: function(ast, rewriteMode) {
-        // for each statement in sequence find calls, extract them, put them in front of stmt
-        // and assign them to a temp var. the temp var replaces the calls in stmt
-        var rewriter = this,
-            calls = ast.nodesMatching(function(node) { return node.isCall || node.isSend }),
-            callIndexes = calls.collect(function(node) { return node.astIndex() }); // "pc"s
-
-        // rewrite mode is either isolateCall or isolateAndCatchCall
-        calls.forEach(function(call, i) { rewriter[rewriteMode](call, callIndexes[i], ast) });
-
-        return ast;
-    },
-
-    isolateCall: function(callNode, callIdx, funcNode) {
-        var seq = callNode.parentSequence(),
-            callVarAccess = callNode.replaceWith(this.tempVarFor(callNode, callIdx)),
-            callAssignment = this.tempVarAssignmentFor(callNode, callIdx);
-
-        if (!seq) throw new Error('isolateAndCatchCall: Cannot find sequence for ' + callNode);
-        seq.insertBefore(callAssignment, callVarAccess);
-
-        return callAssignment;
-    },
-
-    isolateAndCatchCall: function(callNode, callIdx, funcNode) {
-        var varAndArgNamesToCapture = this.findVarAndArgNamesInScope(funcNode),
-            safeCall = this.unwindTemplate(varAndArgNamesToCapture, callIdx);
-
-        var callAssignment = this.isolateCall(callNode, callIdx, funcNode);
-
-        callAssignment.replaceWith(safeCall);
-        safeCall.nodesMatching(function(node) {
-            return node.name == 'REPLACE_WITH_CALL';
-        })[0].replaceWith(callAssignment);
-
-        return safeCall;
-    },
-
-    unwindTemplate: function(varAndArgNamesToCapture, callIdx) {
-        // new lively.ast.StackReification.Rewriter().unwindTemplate().asJS()
-
-        varAndArgNamesToCapture = varAndArgNamesToCapture || [];
-        var src = ' try { REPLACE_WITH_CALL } catch(e) {' +
-            '   if (e.isUnwindException) {' +
-            '     e.lastFrame = e.lastFrame.addCallingFrame(REPLACE_WITH_LITERAL, ' + callIdx + ', arguments.callee.livelyClosure.getOriginalFunc())' +
-            '   };' +
-            '   throw e' +
-            ' }',
-            ast = lively.ast.Parser.parse(src, 'stmt'),
-            captureLiteral = this.objectLiteralNodeForCapturingVarAndArgsList(varAndArgNamesToCapture);
-        ast.replaceNodesMatching(function(node) {return node.name == 'REPLACE_WITH_LITERAL'}, captureLiteral);
-        return ast;
-    },
-
-    objectLiteralNodeForCapturingVarAndArgsList: function(varsAndArgs) {
-        var src = '{' + varsAndArgs.collect(function(ea) {return ea + ':' + ea}).join(',') + '}',
-            node = lively.ast.Parser.parse(src, 'expr');
-        return node;
-    }
-},
-'ast node creation', {
-  tempVarFor: function(callNode, callIdx) {
-      return new lively.ast.Variable([0,0], "result" + callIdx + "_" + callNode.getName());
-  },
-  tempVarAssignmentFor: function(callNode, callIdx) {
-      return new lively.ast.VarDeclaration([0,0], "result" + callIdx + "_" + callNode.getName(), callNode)
-  }
-},
-'stack examination', {
-    findVarAndArgNamesInScope: function(rootNode) {
-        var result = [];
-        rootNode.withAllChildNodesDo(function(node) {
-            if (node.isFunction && node != rootNode) return false;
-            if (node.isFunction) result = result.concat(node.args);
-            if (node.isVarDeclaration) result.push(node.name);
-            return true;
-        });
-        return result;
-    }
 });
 
 Object.extend(lively.ast.StackReification, {
+
+    debugReplacements: {
+        Function: {
+            bind: {},
+            call: {},
+            applyt: {}
+        },
+        Array: {
+            sort: {
+                dbg: NativeArrayFunctions.sort
+            },
+            filter: {
+                dbg: NativeArrayFunctions.filter
+            },
+            forEach: {
+                dbg: NativeArrayFunctions.forEach
+            },
+            some: {
+                dbg: NativeArrayFunctions.some
+            },
+            every: {
+                dbg: NativeArrayFunctions.every
+            },
+            map: {
+                dbg: NativeArrayFunctions.map
+            },
+            reduce: {
+                dbg: NativeArrayFunctions.reduce
+            },
+            reduceRight: {
+                dbg: NativeArrayFunctions.reduceRight
+            }
+        },
+        String: {
+            // TODO: second parameter can be function (replaceValue)
+            replace: {}
+        },
+        JSON: {
+            // TODO: second parameter can be function (replacer)
+            stringify: {}
+        }
+    },
+
+    enableDebugSupport: function(astRegistry) {
+        // FIXME currently only takes care of Array
+        try {
+            var replacements = lively.ast.StackReification.debugReplacements;
+            for (var method in replacements.Array) {
+                if (!replacements.Array.hasOwnProperty(method)) continue;
+                var spec = replacements.Array[method],
+                    dbgVersion = spec.dbg.stackCaptureMode(null, astRegistry);
+                if (!spec.original) spec.original = Array.prototype[method];
+                Array.prototype[method] = dbgVersion;
+            }
+        } catch(e) {
+            this.disableDebugSupport();
+            throw e;
+        }
+    },
+
+    disableDebugSupport: function() {
+        var replacements = lively.ast.StackReification.debugReplacements;
+        for (var method in replacements.Array) {
+            var spec = replacements.Array[method],
+                original = spec.original || Array.prototype[method];
+            Array.prototype[method] = original;
+        }
+    },
 
     halt: function() {
         var frame = lively.ast.Interpreter.Frame.create();
         throw {isUnwindException: true, lastFrame: frame, topFrame: frame}
     },
 
-    run: function(func) {
+    run: function(func, astRegistry, args, optMapping) {
+        // FIXME: __getClosure - needed for UnwindExceptions also used here - uses
+        //        lively.ast.Rewriting.getCurrentASTRegistry()
+        astRegistry = astRegistry || lively.ast.Rewriting.getCurrentASTRegistry();
+        lively.ast.StackReification.enableDebugSupport(astRegistry);
+        if (!func.livelyDebuggingEnabled)
+            func = func.stackCaptureMode(optMapping, astRegistry);
         try {
-            return func();
-        } catch(e) {
-            if (e.isUnwindException) {
-                e.lastFrame.setContainingScope(lively.ast.Interpreter.Frame.global());
+            return { isContinuation: false, returnValue: func.apply(null, args || []) };
+        } catch (e) {
+            // e will not be an UnwindException in rewritten system (gets unwrapped)
+            e = e.isUnwindException ? e : e.unwindException;
+            if (e.error instanceof Error)
+                throw e.error;
+            else
                 return lively.ast.Continuation.fromUnwindException(e);
-            }
-            throw e;
+        } finally {
+            lively.ast.StackReification.disableDebugSupport(astRegistry);
         }
     }
+
 });
 
 Object.extend(Global, {
     catchUnwind: lively.ast.StackReification.run,
-    halt: lively.ast.StackReification.halt
+    halt: lively.ast.StackReification.halt,
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    __createClosure: function(idx, parentFrameState, f) {
+        // FIXME: Either save idx and use __getClosure later or attach the AST here and now (code dup.)?
+        var ast = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        // FIXME: duplicate from lively.ast.Rewriting > setupUnwindException AND __getClosure
+        if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {
+            // reference instead of complete ast
+            ast = acorn.walk.findNodeByAstIndex(
+                lively.ast.Rewriting.getCurrentASTRegistry()[ast.registryRef],
+                ast.indexRef
+            );
+        }
+        f._cachedAst = ast;
+        // parentFrameState = [computedValues, varMapping, parentParentFrameState]
+        f._cachedScopeObject = parentFrameState;
+        f.livelyDebuggingEnabled = true;
+        return f;
+    },
+
+    __getClosure: function(idx) {
+        var entry = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        if (entry && entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
+            // reference instead of complete ast
+            entry = findNodeByAstIndex(
+                lively.ast.Rewriting.getCurrentASTRegistry()[entry.registryRef],
+                entry.indexRef
+            );
+        }
+        return entry; // ast
+    }
 });
 
 Object.extend(Function.prototype, {
-    stackCaptureMode: function(varMapping) {
-        var rewriter = new lively.ast.StackReification.Rewriter(),
-            closure = new lively.ast.RewrittenClosure(this, varMapping);
-        closure.rewrite(rewriter);
-        var rewrittenFunc = closure.getRewrittenFunc();
+
+    asRewrittenClosure: function(varMapping, astRegistry) {
+        var closure = new lively.ast.RewrittenClosure(this, varMapping);
+        closure.rewrite(astRegistry);
+        return closure;
+    },
+
+    stackCaptureMode: function(varMapping, astRegistry) {
+        var closure = this.asRewrittenClosure(varMapping, astRegistry),
+            rewrittenFunc = closure.getRewrittenFunc();
         if (!rewrittenFunc) throw new Error('Cannot rewrite ' + this);
         return rewrittenFunc;
     },
 
-    stackCaptureSource: function(varMapping) {
-        var rewriter = new lively.ast.StackReification.Rewriter(),
-            closure = new lively.ast.RewrittenClosure(this, varMapping);
-        closure.rewrite(rewriter)
-        return closure.getRewrittenSource();
+    stackCaptureSource: function(varMapping, astRegistry) {
+        return this.asRewrittenClosure(astRegistry).getRewrittenSource();
     }
+
 });
 
 Object.subclass('lively.ast.Continuation',
+'settings', {
+    isContinuation: true
+},
 'initializing', {
     initialize: function(frame) {
         this.currentFrame = frame; // the frame in which the the unwind was triggered
     },
+
     copy: function() {
         return new this.constructor(this.currentFrame.copy());
     }
@@ -187,35 +207,52 @@ Object.subclass('lively.ast.Continuation',
 'accessing', {
     frames: function() {
         var frame = this.currentFrame, result = [];
-        while (frame) {
-            result.push(frame);
-            frame = frame.getContainingScope();
-        }
+        do { result.push(frame); } while (frame = frame.getParentFrame());
         return result;
     }
 },
 'resuming', {
     resume: function() {
-        if (!this.currentFrame.getFunc())
-            throw new Error('Cannot resume because frame has no function!');
+        // FIXME: outer context usually does not have original AST
+        // attaching the program node would possibly be right (otherwise the pc's context is missing)
+        if (!this.currentFrame.getOriginalAst())
+            throw new Error('Cannot resume because frame has no AST!');
         if (!this.currentFrame.pc)
             throw new Error('Cannot resume because frame has no pc!');
-        var frame = this.currentFrame, result;
-        // go through all frames on the stack. beginning with the top most, resume each of them
-        while (frame && frame.getFunc()) { // !frame.func means we reached the last frame
-            if (frame.hasNextStatement()) { // dont repeat halt!
-                frame.jumpToNextStatement();
-                result = frame.resume();
-            } else { result = undefined } // FIXME
-            frame = frame.getContainingScope();
-        }
-        return result;
+
+        var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+
+        // go through all frames on the stack. beginning with the top most,
+        // resume each of them
+        var result = this.frames().reduce(function(result, frame, i) {
+            if (result.error) {
+                result.error.shiftFrame(frame);
+                return result;
+            }
+
+            if (result.hasOwnProperty('val'))
+                frame.alreadyComputed[frame.pc.astIndex] = result.val;
+
+            try {
+                return { val: interpreter.runFromPC(frame, result.val) };
+            } catch (ex) {
+                if (!ex.isUnwindException)
+                    throw ex;
+                return { error: ex };
+            }
+        }, {});
+
+        if (result.error)
+            return lively.ast.Continuation.fromUnwindException(result.error);
+        else
+            return result.val;
     }
 });
 
 Object.extend(lively.ast.Continuation, {
     fromUnwindException: function(e) {
-        return new this(e.topFrame.getContainingScope());
+        if (!e.isUnwindException) console.error("No unwind exception?");
+        return new this(e.top);
     }
 });
 

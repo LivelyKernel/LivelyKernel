@@ -194,10 +194,14 @@ Object.subclass('AttributeConnection',
         // This method is optimized for Safari and Chrome.
         // See lively.bindings.tests.BindingTests.BindingsProfiler
         // The following requirements exists:
+        // - Complete Customization of control (how often, if at all, binding
+        //   should be activated, parameters passed, delay,... )
         // - run converter with oldValue and newValue
         // - when updater is existing run converter only if update is proceeded
         // - bind is slow
-        // - arguments is slow when it's items are accessed or it's converted using $A
+        // - arguments is slow when it's items are accessed or it's converted
+        //   using Array.from. Note 2014-02-10: We currently need to modify the
+        //   argument array for allowing conversion.
 
         if (this.isActive/*this.isRecursivelyActivated()*/) return null;
         var connection = this, updater = this.getUpdater(), converter = this.getConverter(),
@@ -216,9 +220,13 @@ Object.subclass('AttributeConnection',
             // that no bind is necessary and oldValue is accessible. Note that
             // when updater calls this method arguments can be more than just
             // the new value
-            if (converter) newValue = converter.call(connection, newValue, oldValue);
+            var args = Array.from(arguments);
+            if (converter) {
+                newValue = converter.call(connection, newValue, oldValue);
+                args[0] = newValue;
+            }
             var result = (typeof targetMethod === 'function') ?
-                targetMethod.apply(target, arguments) :
+                targetMethod.apply(target, args) :
                 target[propName] = newValue;
             if (connection.removeAfterUpdate) connection.disconnect();
             return result;
@@ -546,7 +554,7 @@ Object.extend(lively.bindings, {
     disconnect: function(sourceObj, attrName, targetObj, targetMethodName) {
         if (!sourceObj.attributeConnections) return;
 
-        sourceObj.attributeConnections.clone().forEach(function(con) { 
+        sourceObj.attributeConnections.clone().forEach(function(con) {
             if (con.getSourceAttrName() == attrName
             &&  con.getTargetObj() === targetObj
             &&  con.getTargetMethodName() == targetMethodName) con.disconnect(); });

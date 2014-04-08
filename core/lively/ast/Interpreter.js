@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Meta', 'lively.ast.Rewriting').toRun(function() {
+module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Rewriting').toRun(function() {
 
 Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
@@ -37,8 +37,8 @@ Object.subclass('lively.ast.Interpreter.Frame',
         this.bp = null; // "break point", actually an AST node
         this.values = {}; // stores the results of computed expressions and statements
     },
-    newScope: function(mapping) {
-        var newFrame = new lively.ast.Interpreter.Frame(mapping);
+    newScope: function(func, mapping) {
+        var newFrame = new lively.ast.Interpreter.Frame(func, mapping);
         newFrame.setContainingScope(this);
         return newFrame;
     },
@@ -801,9 +801,6 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor',
 });
 
 lively.ast.Node.addMethods('interpretation', {
-    position: function() {
-        return this.pos[0] + "-" + this.pos[1];
-    },
     startInterpretation: function(optMapping) {
         var interpreter = new lively.ast.InterpreterVisitor();
         return interpreter.run(this, optMapping);
@@ -834,7 +831,6 @@ lively.ast.GetSlot.addMethods('interpretation', {
 
 lively.ast.Function.addMethods('interpretation', {
     position: function() {
-        //return (this.pos[1] - 1) + "-" + this.pos[1];
         return this.pos[0] + "-" + this.pos[1];
     },
     basicApply: function(frame) {
@@ -866,7 +862,7 @@ lively.ast.Function.addMethods('interpretation', {
         return this.basicApply(newFrame);
     },
     asFunction: function(optFunc) {
-        if (this._chachedFunction) return this._chachedFunction;
+        if (this._cachedFunction) return this._cachedFunction;
         var that = this;
         function fn(/*args*/) {
             return that.apply(this, Array.from(arguments));
@@ -888,7 +884,7 @@ lively.ast.Function.addMethods('interpretation', {
             if (optFunc.declaredObject) fn.declaredObject = optFunc.declaredObject;
             if (optFunc.name) fn.methodName = optFunc.name;
         }
-        return this._chachedFunction = fn;
+        return this._cachedFunction = fn;
     }
 },
 'continued interpretation', {
@@ -898,7 +894,7 @@ lively.ast.Function.addMethods('interpretation', {
 });
 
 Object.extend(lively.ast, {
-    halt: function(frame) {
+    halt: lively.ast.halt || function(frame) {
         // overwrite this function, e.g. to open a debugger
         return false; // return true to actually stop execution
     },
@@ -907,9 +903,7 @@ Object.extend(lively.ast, {
         lively.ast.halt = halt || Functions.True;
         try {
             func();
-        } finally {
-            lively.ast.halt = oldHalt;
-        }
+        } finally { lively.ast.halt = oldHalt; }
     }
 });
 
@@ -1090,6 +1084,28 @@ Function.addMethods(
     containsDebugger: function() {
         return new lively.ast.ContainsDebuggerVisitor().visit(this.ast());
     }
+},
+'meta programming interface', {
+    toSource: function() {
+        if (!this.source) {
+            var name = this.methodName || this.name || "anonymous";
+            this.source = this.toString()
+                .replace(/^function[^\(]*/, "function " + name);
+        }
+        return this.source;
+    },
+    browse: function() {
+        if (this.sourceModule && this.methodName && this.declaredClass) {
+            require('lively.ide.SystemCodeBrowser').toRun(function() {
+                return lively.ide.browse(
+                    this.declaredClass,
+                    this.methodName,
+                    this.sourceModule.name());
+            }.bind(this));
+        }
+        //TODO: Add browse implementation for Morphic scripts with ObjectEditor
+        throw new Error('Cannot browse anonymous function ' + this);
+    },
 });
 
 }); // end of module

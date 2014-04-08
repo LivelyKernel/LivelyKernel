@@ -551,7 +551,7 @@
                 if (onLoadCb) scriptEl.onload = onLoadCb;
                 return Global;
             } :
-            function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+            function(url, onLoadCb, loadSync, okToUseCache, cacheQuery, suppressDebug) {
                 // Deprecation: loading css files via loadJs is no longer
                 // supported
                 if (url.match(/\.css$/) || url.match(/\.css\?/)) {
@@ -561,6 +561,26 @@
 
                 if (this.isLoading(url)) return null;
                 this.markAsLoading(url);
+
+                // FIXME This is just a test to see if the system can load from rewritten code;
+                var loadDebugCode = JSLoader.getOption('loadRewrittenCode')
+                                 && !suppressDebug
+                                 && !this.isCrossDomain(url);
+                if (loadDebugCode) {
+                    var idx = url.lastIndexOf('/') + 1,
+                        dbgURL = url.slice(0,idx) + 'DBG_' + url.slice(idx),
+                        wasLoaded = false;
+                    JSLoader.getViaXHR(loadSync, dbgURL, function(err, content) {
+                        if (err) {
+                            JSLoader.loadedURLs = JSLoader.loadedURLs.filter(function(ea) { return ea !== url; });
+                            JSLoader.loadJs(url, onLoadCb, loadSync, okToUseCache, cacheQuery, true)
+                            // JSLoader.getViaXHR(loadSync, url, function(err, content) {})
+                        } else {
+                            JSLoader.evalJavaScriptFromURL(dbgURL, content, onLoadCb);
+                        }
+                    });
+                    return;
+                }
 
                 if (okToUseCache === undefined) okToUseCache = true;
 
@@ -706,7 +726,7 @@
 
         loadAll: function(urls, cb) {
             [].concat(urls).reverse().reduce(function(loadPrevious, url) {
-                return function() { Global.JSLoader.loadJs(url, loadPrevious); };
+                return function() { Global.JSLoader.loadJs(url, loadPrevious, url.indexOf('BootstrapDebugger.js') >= -1); };
             }, function() { if (cb) cb(); })();
         },
 
@@ -854,6 +874,14 @@
                 callback(xhr.statusText, null);
             };
             xhr.send(null);
+        },
+
+        isCrossDomain: function(url) {
+            // does url start with protocol, hostname, and port -> then no xdomain
+            var l = document.location;
+            if (url.indexOf(l.protocol) !== 0) return false; // relative
+            var domainRe = new RegExp("^" + l.protocol + "/*" + l.hostname + (l.port.length ? ':' + l.port : ''));
+            return !domainRe.test(url);
         }
 
     };
@@ -862,21 +890,25 @@
     // activate loading on ios 5
     var libsFile = /*useMinifiedLibs ? 'core/lib/lively-libs.js' :*/ 'core/lib/lively-libs-debug.js',
         libsFiles = [libsFile],
-        bootstrapFiles = [
-            'core/lively/Migration.js',
-            'core/lively/JSON.js',
-            'core/lively/lang/Object.js',
-            'core/lively/lang/Function.js',
-            'core/lively/lang/String.js',
-            'core/lively/lang/Array.js',
-            'core/lively/lang/Number.js',
-            'core/lively/lang/Date.js',
-            'core/lively/lang/Worker.js',
-            'core/lively/lang/LocalStorage.js',
-            'core/lively/defaultconfig.js',
-            'core/lively/Base.js',
-            'core/lively/ModuleSystem.js'
-        ],
+        bootstrapFiles = (function() {
+            var normalBootstrapFiles = [
+                'core/lively/Migration.js',
+                'core/lively/JSON.js',
+                'core/lively/lang/Object.js',
+                'core/lively/lang/Function.js',
+                'core/lively/lang/String.js',
+                'core/lively/lang/Array.js',
+                'core/lively/lang/Number.js',
+                'core/lively/lang/Date.js',
+                'core/lively/lang/Worker.js',
+                'core/lively/lang/LocalStorage.js',
+                'core/lively/defaultconfig.js',
+                'core/lively/Base.js',
+                'core/lively/ModuleSystem.js']
+            return JSLoader.getOption('loadRewrittenCode') ?
+                ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles) :
+                normalBootstrapFiles;
+        })(),
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
                 parentDir;

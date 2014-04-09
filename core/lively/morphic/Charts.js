@@ -1435,9 +1435,9 @@ Object.extend(lively.morphic.Charts.Utils, {
         var showChildrenFunction = function(){
             if (this.children.length == 0) return;
             
-            this.morph.setVisible(false);
+            this.morph.setOpacityAnimated(0, 1000);
             this.children.each(function(child){
-                child.morph.setVisible(true);
+                child.morph.setOpacityAnimated(1, 1000);
             });
         }
         var showParentFunction = function(){
@@ -1445,10 +1445,11 @@ Object.extend(lively.morphic.Charts.Utils, {
             
             // hide all children of this parent
             this.parent.children.each(function(child){
-                child.morph.setVisible(false);
+                child.morph.setOpacityAnimated(0, 1000);
             });
             
-            this.parent.morph.setVisible(true);
+            
+            this.parent.morph.setOpacityAnimated(1, 1000);
         }
         
         var grouped = {};
@@ -1460,6 +1461,7 @@ Object.extend(lively.morphic.Charts.Utils, {
             }
             grouped[value][key] = obj;
             obj.parent = grouped[value];
+            obj.key = key;
             obj.hasParent = function(){ return true};
             obj.hasChildren = function(){ return false};
             obj.showParent = showParentFunction;
@@ -1475,6 +1477,17 @@ Object.extend(lively.morphic.Charts.Utils, {
             });;
             size += ea.children.length + 1;
             ea.showChildren = showChildrenFunction;
+            
+            // TODO: fix this cheat
+            var keys = ["population", "Energy"]
+            keys.each(function(eachKey) {
+                ea[eachKey] = ea.children.pluck(eachKey).filter(function(eachValue){
+                    return !isNaN(eachValue);
+                }).sum() / ea.children.length;
+            });
+            ea["summedPopulation"] = ea["population"] * ea.children.length;
+            
+            ea.key = key;
             ea.hasParent = function(){ return false};
             ea.hasChildren = function(){ return true};
         });
@@ -1488,6 +1501,7 @@ Object.extend(lively.morphic.Charts.Utils, {
                     list.push(fn.apply(childValue, [childValue, index++]));
                 })
             });
+            index = 0;
             return list;
         };
         
@@ -1497,6 +1511,22 @@ Object.extend(lively.morphic.Charts.Utils, {
         console.log("index",size )
         grouped.length = size;
         return grouped;
+    },
+    hashStringToColor: function(str) {
+       function djb2(str){
+          var hash = 5381;
+          for (var i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
+          }
+          return hash;
+        }
+        
+      var hash = djb2(str);
+      var r = (hash & 0xFF0000) >> 16;
+      var g = (hash & 0x00FF00) >> 8;
+      var b = hash & 0x0000FF;
+      var colorString = "#" + ("0" + r.toString(16)).substr(-2) + ("0" + g.toString(16)).substr(-2) + ("0" + b.toString(16)).substr(-2);
+      return Color.fromString(colorString);
     }
 });
 

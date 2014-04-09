@@ -2510,12 +2510,28 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     update: function(data) {
         // create linear layout containing rects from data
         this.clear();
+        var _this = this;
         var canvasMorph = new lively.morphic.Box(new rect(0, 0, 10, 10));
-        if (data) {
-            var _this = this;
+        if (Object.isArray(data)) {
             data.each(function(datum){
                 _this.addElement(datum, canvasMorph);
             });
+        } else if (Object.isObject(data) && data.morphs) {
+            if (data.scaleX) {
+                this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x, data.scaleX);
+                this.scaleX.setPosition(this.getBounds().bottomLeft().subPt(pt(0, 5)));
+                this.addMorph(this.scaleX);
+            }
+            if (data.scaleY) {
+                this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y, data.scaleY);
+                this.scaleY.setPosition(pt(0, 0));
+                this.addMorph(this.scaleY);
+            }
+            data.morphs.each(function(datum){
+                _this.addElement(datum, canvasMorph);
+            });
+            if (this.scaleX) this.scaleX.update(data.morphs);
+            if (this.scaleY) this.scaleY.update(data.morphs);
         }
         this.addMorph(canvasMorph);
 
@@ -4156,6 +4172,41 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
 
 
 
+});
+
+lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
+    initialize: function($super, dimension, length, property) {
+        this.dimension = dimension;
+        this.property = property;
+        this.margin = 20;
+
+        if (dimension == "x") {
+            $super([pt(this.margin, -this.margin), pt(length - this.margin, -this.margin)]);
+        } else if (dimension == "y") {
+            $super([pt(this.margin, length - this.margin), pt(this.margin, this.margin)]);
+        }
+    },
+    
+    update: function(data) {
+        var length = this.getExtent()[this.dimension];
+
+        var max = Math.max.apply(null, data.pluck(this.property));
+        var min = Math.min.apply(null, data.pluck(this.property));
+
+        var _this = this;
+        data.each(function (ea) {
+            // calculate relative position on scale, LINEAR
+            var relValue = ((ea[_this.property] || 0) - min) / (max - min);
+            var absValue = relValue * length;
+            var scalePosition = _this.getPosition();
+            var newPosition = ea.morph.getPosition();
+            if (_this.dimension == "x")
+                newPosition.x = absValue + scalePosition.x + _this.margin;
+            else
+                newPosition.y = length - absValue + scalePosition.y + _this.margin;
+            ea.morph.setPosition(newPosition);
+        });
+    }
 });
 
 }) // end of module

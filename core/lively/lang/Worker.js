@@ -81,8 +81,8 @@ lively.Worker = {
                     passInWhenDoneCallback = !!options.useWhenDone,
                     codeTemplate = passInWhenDoneCallback ?
                         'self.isBusy = true;\n'
-                      + 'function whenDone(err, result) { self.isBusy = false; postMessage({type: "runResponse", error: err, result: result}); }\n;'
-                      + ';(%s).apply(self, [whenDone].concat(evt.data.args));' :
+                      + 'function whenDone(err, result) { self.isBusy = false; postMessage({type: "runResponse", error: err, result: result}); }\n'
+                      + '(%s).apply(self, [whenDone].concat(evt.data.args));' :
                         ';(%s).apply(self, evt.data.args);',
                     code = Strings.format(codeTemplate, func);
                 worker.postMessage({command: 'eval', silent: true, source: code, args: args || []});

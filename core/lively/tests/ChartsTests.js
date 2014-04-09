@@ -616,6 +616,63 @@ Object.subclass('lively.tests.ChartsTests.Helper',
         });
     }
 });
+
+TestCase.subclass('lively.tests.ChartsTests.UtilsTest',
+'default category', {
+    testAggregateBy: function() {
+        var sampleData = [
+            {country: "Germany", continent : "Europe", population: 80000000},
+            {country: "Spain", continent : "Europe"},
+            {country: "England", continent : "Europe"},
+            
+            {country: "China", continent : "Asia", population: 100},
+            {country: "Japan", continent : "Asia", population: 200},
+            {country: "India", continent : "Asia", population: 30},
+            {country: "Korea", continent : "Asia", population: 50},
+            
+            {country: "USA", continent: "North America"},
+            {country: "Canada", continent: "North America"}
+        ];
+        
+        var expectedData = [
+            {continent: "Europe", children: [
+                {country: "Germany", continent : "Europe", population: 80000000},
+                {country: "Spain", continent : "Europe"},
+                {country: "England", continent : "Europe"}
+            ]},
+            
+            {continent: "Asia", children: [
+                {country: "China", continent : "Asia", population: 100},
+                {country: "Japan", continent : "Asia", population: 200},
+                {country: "India", continent : "Asia", population: 30},
+                {country: "Korea", continent : "Asia", population: 50}
+            ]},
+            
+            {continent: "North America", children: [
+                {country: "USA", continent: "North America"},
+                {country: "Canada", continent: "North America"}
+            ]}
+        ];
+        
+        var aggregatedData = lively.morphic.Charts.Utils.aggregateBy(sampleData, "continent");
+
+        this.assertEquals(expectedData.length, aggregatedData.length);
+        var aggregatedAsia = aggregatedData.find(function(ea) { return ea.continent == "Asia" });
+        var expectedAsia = expectedData.find(function(ea) { return ea.continent == "Asia" });
+        
+        this.assertEquals(aggregatedAsia.length, expectedAsia.length);
+        this.assertEquals(aggregatedAsia.get("population", "sum"), 380);
+        
+        var aggregatedGermany = aggregatedData.find(function(ea) { return ea.continent == "Europe" })
+            .children.find(function(ea) { return ea.country == "Germany"});
+        var expectedGermany = expectedData.find(function(ea) { return ea.continent == "Europe" })
+            .children.find(function(ea) { return ea.country == "Germany"});
+        
+        this.assertEquals(aggregatedGermany.population, expectedGermany.population);
+        this.assertEquals(aggregatedGermany.parent.continent, "Europe");
+    }
+});
+
 TestCase.subclass('lively.tests.ChartsTests.EntityTest',
 'default category', {
     getSampleData: function() {

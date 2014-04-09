@@ -1428,8 +1428,63 @@ Object.extend(lively.morphic.Charts.Utils, {
         var y = 10 + morphs[0].morph.getOrigin().y;
         this.arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
     },
+    hashStringToColor: function(str) {
+       function djb2(str){
+          var hash = 5381;
+          for (var i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
+          }
+          return hash;
+        }
+        
+      var hash = djb2(str);
+      var r = (hash & 0xFF0000) >> 16;
+      var g = (hash & 0x00FF00) >> 8;
+      var b = hash & 0x0000FF;
+      var colorString = "#" + ("0" + r.toString(16)).substr(-2) + ("0" + g.toString(16)).substr(-2) + ("0" + b.toString(16)).substr(-2);
+      return Color.fromString(colorString);
+    },
+
+    aggregateBy: function (data, attribute) {
+        var getFunction = function(propertyName, optAggregationFunction) {
+            // optAggregationFunction may be empty, "sum", "avg" or a function which takes an array as a parameter
+            
+            if (!this.children)
+                return this[propertyName];
+            
+            if (!optAggregationFunction || optAggregationFunction == "sum") {
+                return this.children.pluck(propertyName).sum();
+            } else if (optAggregationFunction == "avg") {
+                return this.children.pluck(propertyName).sum() / this.children.length;
+            } else if(Object.isFunction(optAggregationFunction)) {
+                return optAggregationFunction(this.children.pluck(propertyName));
+            }
+        };
+
+        var groupsAsObject = data.groupByKey(attribute);
+
+        var groupsAsArray = Properties.own(groupsAsObject).map(function(groupIdentifier) {
+            var groupChildren = groupsAsObject[groupIdentifier];
+
+            var eachCategory = {
+                children : groupChildren,
+                get : getFunction
+            };
+
+            eachCategory[attribute] = groupIdentifier;
+
+            // add link from children to parent
+            groupChildren.each(function(child) {
+                child.parent = eachCategory;
+            })
+
+            return eachCategory;
+        });
+
+        return groupsAsArray;
+    },
     
-    aggregateBy: function (data, attribute, aggregationType){
+    aggregateByOld: function (data, attribute, aggregationType){
         if (data == null) return;
 
         var showChildrenFunction = function(){
@@ -1512,22 +1567,27 @@ Object.extend(lively.morphic.Charts.Utils, {
         grouped.length = size;
         return grouped;
     },
-    hashStringToColor: function(str) {
-       function djb2(str){
-          var hash = 5381;
-          for (var i = 0; i < str.length; i++) {
-            hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
-          }
-          return hash;
+    
+    show: function(morphOrMorphs) {
+        this.animateOpacity(morphOrMorphs, 1);
+    },
+    
+    hide: function(morphOrMorphs) {
+        this.animateOpacity(morphOrMorphs, 0);
+    },
+    
+    animateOpacity: function(morphOrMorphs, value) {
+        if (Object.isArray(morphOrMorphs)) {
+            morphOrMorphs.each(function(eachMorph) {
+                morph.setOpacityAnimated(value, 1000);
+            })
+        } else {
+            var morph = morphOrMorphs;
+            morph.setOpacityAnimated(value, 1000);
         }
         
-      var hash = djb2(str);
-      var r = (hash & 0xFF0000) >> 16;
-      var g = (hash & 0x00FF00) >> 8;
-      var b = hash & 0x0000FF;
-      var colorString = "#" + ("0" + r.toString(16)).substr(-2) + ("0" + g.toString(16)).substr(-2) + ("0" + b.toString(16)).substr(-2);
-      return Color.fromString(colorString);
     }
+    
 });
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Line", {

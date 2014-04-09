@@ -1046,10 +1046,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
                 {tagName: 'div', childNodes: [ // world shape
                     {tagName: 'div',
                      childNodes: [{tagName: 'span'}],
-                     style: {minWidth: function(val) { return val.test(/calc\(100%-)/)}}} // m and its shape
+                     style: { minWidth: /calc\(100%-/ }} // m and its shape
                 ]}
             ]};
-
         this.assertNodeMatches(expected, this.text.renderContext().getMorphNode());
     },
 

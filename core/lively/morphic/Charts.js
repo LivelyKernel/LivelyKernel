@@ -1405,7 +1405,12 @@ Object.extend(lively.morphic.Charts.Utils, {
         var xMin = Math.min.apply(null, data.pluck(propertyX));
         var yMax = Math.max.apply(null, data.pluck(propertyY));
         var yMin = Math.min.apply(null, data.pluck(propertyY));
-
+        
+        var invalidNumbers = [xMax, xMin, yMax, yMin].some(function(ea) { return isNaN(ea)});
+        if (invalidNumbers) {
+            alert("arrange2D encountered NaN values in data");
+        }
+        
         data.each(function (ea) {
             var x = (ea[propertyX] - xMin) / (xMax - xMin);
             var y = (ea[propertyY] - yMin) / (yMax - yMin);
@@ -1473,14 +1478,28 @@ Object.extend(lively.morphic.Charts.Utils, {
 
             eachCategory[attribute] = groupIdentifier;
 
-            // add link from children to parent
+            // add getFunction and link from children to parent
             groupChildren.each(function(child) {
                 child.parent = eachCategory;
-            })
+                child.get = getFunction;
+            });
 
             return eachCategory;
         });
-
+        
+        groupsAsArray.map = function(fn){
+            var index = 0;
+            var list = [];
+            groupsAsArray.each(function (ea){
+                list.push(fn.apply(ea, [ea, index++]));
+                ea.children.each(function(childValue){
+                    list.push(fn.apply(childValue, [childValue, index++]));
+                });
+            });
+            index = 0;
+            return list;
+        };
+        groupsAsArray.length = groupsAsArray.length + groupsAsArray.pluck("children").pluck("length").sum();
         return groupsAsArray;
     },
     
@@ -1577,15 +1596,15 @@ Object.extend(lively.morphic.Charts.Utils, {
     },
     
     animateOpacity: function(morphOrMorphs, value) {
+        var time = 1000;
         if (Object.isArray(morphOrMorphs)) {
             morphOrMorphs.each(function(eachMorph) {
-                morph.setOpacityAnimated(value, 1000);
+                eachMorph.setOpacityAnimated(value, time);
             })
         } else {
             var morph = morphOrMorphs;
-            morph.setOpacityAnimated(value, 1000);
-        }
-        
+            morph.setOpacityAnimated(value, time);
+        }   
     }
     
 });

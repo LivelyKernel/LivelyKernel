@@ -671,6 +671,71 @@ TestCase.subclass('lively.tests.ChartsTests.UtilsTest',
         
         this.assertEquals(aggregatedGermany.population, expectedGermany.population);
         this.assertEquals(aggregatedGermany.parent.continent, "Europe");
+    },
+    
+    testJoin: function() {
+        var employmentData = [
+            {2006: 56,  2007: 55.70000076, employment: "Afghanistan"},
+            {2006: 51.40000153, 2007: 51.40000153, employment: "Albania"},
+        ];
+
+        var cellphoneData = [
+            {2006: 35.072609372, 2007: 41.4160788358, cellphones: "Afghanistan"},
+            {2006: 103.7751487718, 2007: 116.6229320736, cellphones: "Albania"},
+            {2006: 76.6446034137, 2007: 82.4719584424, cellphones: "United States"}
+        ];
+        
+        var populationData = [
+            {2006: 100000, 2007: 100001, population: "Germany"},
+            {2006: 23421348, 2008: 9320736, population: "Albania"},
+            {2006: 34137, 2007: 19584424, population: "United States"}
+        ];
+        
+        var expectedResult = [
+            { 
+                country: "Afghanistan",
+                cellphones: { 2006: 35.072609372, 2007: 41.4160788358 },
+                employment: { 2006: 56,  2007: 55.70000076},
+            },
+            {
+                country: "Albania",
+                cellphones: { 2006: 103.7751487718, 2007: 116.6229320736 },
+                employment: { 2006: 51.40000153, 2007: 51.40000153 },
+                population: {2006: 23421348, 2008: 9320736}
+            },
+            {
+                country: "Germany",
+                population: {2006: 100000, 2007: 100001}
+            },
+            {
+                country: "United States",
+                cellphones: { 2006: 76.6446034137, 2007: 82.4719584424 },
+                population: {2006: 34137, 2007: 19584424}
+            }
+        ];
+        
+        
+        var options = {
+            sources : [employmentData, cellphoneData, populationData],
+            sourceAttributes : ["employment", "cellphones", "population"],
+            targetAttribute : "country"
+        };
+        
+        var join = lively.morphic.Charts.Utils.join(options);
+        join = join.sort(function(a, b) {
+            return a.country > b.country;
+        });
+        
+        this.assertEquals(expectedResult[0].cellphones[2006], join[0].cellphones[2006]);
+        this.assertEquals(expectedResult[1].employment[2007], join[1].employment[2007]);
+        this.assertEquals(join[3].employment, undefined);
+        this.assertEquals(expectedResult.length, join.length);
+        this.assertEquals(expectedResult[1].country, join[1].country);
+        
+        this.assertEquals(expectedResult[2].country, join[2].country);
+        this.assertEquals(expectedResult[2].population[2007], join[2].population[2007]);
+        this.assertEquals(expectedResult[2].employment, undefined);
+        
     }
 });
 

@@ -1605,6 +1605,47 @@ Object.extend(lively.morphic.Charts.Utils, {
             var morph = morphOrMorphs;
             morph.setOpacityAnimated(value, time);
         }   
+    },
+    
+    join: function(options) {
+        // options should be an object with the following keys:
+        // sources : array of datasets
+        // sourceAttributes: array of attributes which define the join
+        // targetAttribute: the name of the attribute which holds the joined attribute
+        
+        var joined = [];
+        var targetAttribute = options.targetAttribute;
+        
+        var getOrCreateElement = function(value) {
+            var el = joined.find(function(ea) { return ea[targetAttribute] == value });
+            if (!el) {
+                el = {};
+                el[targetAttribute] = value;
+                joined.push(el);    
+            }
+            return el;
+        }
+        
+        options.sources.each(function(eachSource, sourceIndex) {
+            eachSource.each(function(eachSourceElement) {
+                var currentSourceAttribute = options.sourceAttributes[sourceIndex];
+                var attributeValue = eachSourceElement[currentSourceAttribute];
+
+                var joinElement = getOrCreateElement(attributeValue);
+                
+                var clonedObject = {}
+                
+                Properties.own(eachSourceElement).each(function(eachKey) {
+                    if (currentSourceAttribute == eachKey)
+                        return;
+                    
+                    clonedObject[eachKey] = eachSourceElement[eachKey];
+                });
+                joinElement[currentSourceAttribute] = clonedObject;
+            });
+        });
+        
+        return joined;
     }
     
 });

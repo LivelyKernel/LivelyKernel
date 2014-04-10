@@ -386,7 +386,15 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.coalesceChunks();
     },
 
-    setTextColor: function(color) { return this.morphicSetter('TextColor', color) },
+    setTextColor: function(color) { 
+        this.getTextChunks().forEach(
+            function (ea) { 
+                var style = ea.getStyle();
+                style.setColor(color);
+                ea.styleText(style);
+            })
+        return this.morphicSetter('TextColor', color); 
+    },
     getTextColor: function() { return this.morphicGetter('TextColor') || Color.black },
     setFontSize: function(size) { return this.morphicSetter('FontSize', size) },
     getFontSize: function() { return this.morphicGetter('FontSize') },

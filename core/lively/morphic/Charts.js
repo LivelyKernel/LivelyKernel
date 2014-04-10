@@ -2667,15 +2667,16 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
                 _this.addElement(datum, canvasMorph);
             });
         } else if (Object.isObject(data) && data.morphs) {
+            var margin = 20;
             if (data.scaleX) {
-                this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x, data.scaleX);
-                this.scaleX.setPosition(this.getBounds().bottomLeft().subPt(pt(0, 5)));
-                this.addMorph(this.scaleX);
+                this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x - 2 * margin, data.scaleX);
+                this.scaleX.setPosition(this.innerBounds().bottomLeft().addPt(pt(margin, -margin)));
+                canvasMorph.addMorph(this.scaleX);
             }
             if (data.scaleY) {
-                this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y, data.scaleY);
-                this.scaleY.setPosition(pt(0, 0));
-                this.addMorph(this.scaleY);
+                this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y - 2 * margin, data.scaleY);
+                this.scaleY.setPosition(pt(margin, margin));
+                canvasMorph.addMorph(this.scaleY);
             }
             data.morphs.each(function(datum){
                 _this.addElement(datum, canvasMorph);
@@ -4328,34 +4329,91 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     initialize: function($super, dimension, length, property) {
         this.dimension = dimension;
         this.property = property;
-        this.margin = 20;
 
         if (dimension == "x") {
-            $super([pt(this.margin, -this.margin), pt(length - this.margin, -this.margin)]);
+            $super([pt(0, 0), pt(length, 0)]);
         } else if (dimension == "y") {
-            $super([pt(this.margin, length - this.margin), pt(this.margin, this.margin)]);
+            $super([pt(0, length), pt(0, 0)]);
         }
+
+        this.createArrowHeadEnd();
+    },
+    addPitchlines: function(min, max) {
+        var tickCount = Math.ceil(this.length / 20) - 1;
+        var tickRange = this.calculateTickRange(max - min, tickCount);
+        
+        this.min = tickRange * Math.floor(min / tickRange);
+        this.max = tickRange * Math.ceil(1 + max / tickRange);
+        
+        if (this.fixedMin != undefined)
+            this.fixedMin = this.min;
+        if (this.fixedMax != undefined)
+            this.fixedMax = this.max;
+        
+        // fight rounding errors
+        var epsilon = 0.01;
+        for (var absValue = 0, i = 0; absValue < (this.length - epsilon); absValue += this.length / tickCount, i++) {
+            this.addPitchlineAt(absValue, i % 5 == 0);
+        }
+        console.log("tickRange: " + tickRange + " lower: " + this.min + " upper: " + this.max);
+    },
+    addPitchlineAt: function(absValue, isMajor) {
+        var pitchlineLength = isMajor ? 10 : 5;
+        var borderWidth = this.getBorderWidth();
+        if (this.dimension == "x") {
+            var line = new lively.morphic.Path([
+                pt(absValue, 0),
+                pt(absValue, pitchlineLength)
+            ]);
+        } else if (this.dimension == "y") {
+            var line = new lively.morphic.Path([
+                pt(0, this.length - absValue - borderWidth),
+                pt(-pitchlineLength, this.length - absValue - borderWidth)
+            ]);
+        }
+        this.addMorph(line);
+    },
+    calculateTickRange: function(range, tickCount) {
+        var unroundedTickSize = range /(tickCount - 1);
+        var x = Math.ceil(Math.log(unroundedTickSize, 10) / Math.LN10 - 1);
+        var pow10x = Math.pow(10, x);
+        var roundedTickRange = Math.ceil(unroundedTickSize / pow10x) * pow10x;
+        return roundedTickRange;
     },
     
     update: function(data) {
-        var length = this.getExtent()[this.dimension];
+        this.length = this.getExtent()[this.dimension];
+        var values = data.pluck(this.property).filter(function (ea) { return ea !== undefined});
+        var max = (this.fixedMax != undefined) ? this.fixedMax : Math.max.apply(null, values);
+        var min = (this.fixedMin != undefined) ? this.fixedMin : Math.min.apply(null, values);
 
-        var max = Math.max.apply(null, data.pluck(this.property));
-        var min = Math.min.apply(null, data.pluck(this.property));
-
+        if (max != this.max || min != this.min) {
+            // addPitchlines will set this.min and this.max
+            this.addPitchlines(min, max);
+        }
+            
+        this.positionMorphs(data, this.min, this.max);
+    },
+    positionMorphs: function(data, min, max) {
         var _this = this;
         data.each(function (ea) {
             // calculate relative position on scale, LINEAR
             var relValue = ((ea[_this.property] || 0) - min) / (max - min);
-            var absValue = relValue * length;
+            var absValue = relValue * _this.length;
             var scalePosition = _this.getPosition();
             var newPosition = ea.morph.getPosition();
             if (_this.dimension == "x")
-                newPosition.x = absValue + scalePosition.x + _this.margin;
+                newPosition.x = absValue + scalePosition.x;
             else
-                newPosition.y = length - absValue + scalePosition.y + _this.margin;
+                newPosition.y = _this.length - absValue + scalePosition.y;
             ea.morph.setPosition(newPosition);
         });
+    },
+    createArrow: function () {
+        var arrowHead = new lively.morphic.Path([pt(0,0), pt(10,4.5), pt(0,9)]);
+        arrowHead.applyStyle({borderWidth: 1, borderColor: Color.black})
+        arrowHead.adjustOrigin(pt(10, 6));
+        return arrowHead;
     }
 });
 

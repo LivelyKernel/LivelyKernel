@@ -146,12 +146,15 @@ lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.Cou
 
 lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.ObjectRepository',
 'running', {
+
     setUp: function($super) {
         $super();
         this.createWebSpy();
     }
+
 },
 'tests', {
+
     test01QueryObjectRecords: function() {
         var repo = new lively.store.ObjectRepository(URL.root),
             d = new Date(),
@@ -169,7 +172,23 @@ lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.Obj
             // this.assertEqualState(recordsFromRepo, receivedRecords, 'records');
             this.done()
         });
+    },
+
+    test02QueryObjectRecordsSync: function() {
+        var repo = new lively.store.ObjectRepository(URL.root),
+            d = new Date(),
+            querySpec = {paths: ['foo.js'], date: d, attributes: ['path', 'date']},
+            recordsFromRepo = [{path: 'foo.js', date: d.toISOString()}],
+            receivedRecords;
+        this.webSpy.statusAndContentOnGet({isDone: Functions.True, isSuccess: Functions.True}, JSON.stringify(recordsFromRepo));
+        var receivedRecords = repo.getRecords(querySpec);
+        var expectedURL = URL.nodejsBase.withFilename('ObjectRepositoryServer/').withQuery({
+            getRecords: encodeURIComponent(JSON.stringify(querySpec))
+        });
+        this.assertEquals(1, this.webSpy.getCount, "get count 1");
+        this.assertEquals(expectedURL, this.webSpy.getUrl);
     }
+
 });
 
 }); // end of module

@@ -1839,7 +1839,10 @@ lively.morphic.World.addMethods(
                     var components = lively.morphic.Charts.Component.getComponentNames();
                     return components.map(function(name){
                         return [name, function(){ require("lively.morphic.Charts").toRun(function() {
-                        (new lively.morphic.Charts.Component.create(name)).openInWorld(); }); }]
+                            var component = new lively.morphic.Charts.Component.create(name);
+                            component.setPosition(pt(25, 25));
+                            $world.addMorph(component);
+                        }); }]
                     })
                 })()
             ],

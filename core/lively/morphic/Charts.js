@@ -1499,7 +1499,7 @@ Object.extend(lively.morphic.Charts.Utils, {
             index = 0;
             return list;
         };
-        groupsAsArray.length = groupsAsArray.length + groupsAsArray.pluck("children").pluck("length").sum();
+        groupsAsArray.totalLength = groupsAsArray.length + groupsAsArray.pluck("children").pluck("length").sum();
         return groupsAsArray;
     },
     
@@ -2922,7 +2922,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var codeStr = "mappingFunction = " + this.codeEditor.getTextString();
         eval(this.codeEditor.createEvalStatement(ctx, codeStr));
         
-        var bulkCopy = this.smartBulkCopy(prototypeMorph, data.length);
+        var bulkCopy = this.smartBulkCopy(prototypeMorph, data.totalLength || data.length);
         var copiedMorphs = bulkCopy.copiedMorphs;
         this.copiedMorphs = copiedMorphs;
         data = data.map(function(ea, index) {

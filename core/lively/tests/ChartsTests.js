@@ -653,10 +653,11 @@ TestCase.subclass('lively.tests.ChartsTests.UtilsTest',
                 {country: "Canada", continent: "North America"}
             ]}
         ];
+        expectedData.totalLength = 12;
         
         var aggregatedData = lively.morphic.Charts.Utils.aggregateBy(sampleData, "continent");
 
-        this.assertEquals(expectedData.length, aggregatedData.length);
+        this.assertEquals(expectedData.totalLength, aggregatedData.totalLength);
         var aggregatedAsia = aggregatedData.find(function(ea) { return ea.continent == "Asia" });
         var expectedAsia = expectedData.find(function(ea) { return ea.continent == "Asia" });
         

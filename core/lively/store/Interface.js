@@ -88,23 +88,38 @@ Object.subclass('lively.store.CouchDBStorage',
 
 Object.subclass("lively.store.ObjectRepository",
 "initializing", {
+
     initialize: function(url) {
         this.repoURL;
     }
+
 },
 "accessing", {
+
     getServerInterfaceURL: function() {
         return URL.nodejsBase.withFilename("ObjectRepositoryServer/");
     }
+
 },
 "querying", {
+
     getRecords: function(querySpec, thenDo)  {
         // new lively.store.ObjectRepository().getRecords()
-        this.getServerInterfaceURL().withQuery({getRecords: encodeURIComponent(JSON.stringify(querySpec))})
-            .asWebResource().withJSONWhenDone(function(json, status) {
-                 thenDo(status.isSuccess() ? null : status, json); }).beAsync().get();
-        return this;
+        var res = this.getServerInterfaceURL().withQuery({getRecords: encodeURIComponent(JSON.stringify(querySpec))}).asWebResource();
+        if (thenDo != null) {
+            res.withJSONWhenDone(function(json, status) {
+                thenDo(status.isSuccess() ? null : status, json); }).beAsync().get();
+            return this;
+        } else {
+            var content = res.beSync().get().content;
+            if (!res.status.isSuccess())
+                throw new Error(content);
+            var json;
+            try { json = JSON.parse(content); } catch(e) { json = {error: e} }
+            return json;
+        }
     }
+
 });
 
 }); // end of module

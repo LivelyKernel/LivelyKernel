@@ -187,6 +187,7 @@ lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.Obj
         });
         this.assertEquals(1, this.webSpy.getCount, "get count 1");
         this.assertEquals(expectedURL, this.webSpy.getUrl);
+        this.done(); // FIXME: this test is not async!
     }
 
 });

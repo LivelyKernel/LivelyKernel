@@ -1029,8 +1029,9 @@
                 base = this.rootPath,
                 timemachineActive = /timemachine/.test(Config.rootPath),
                 urlOption = Global.JSLoader.getOption('quickLoad'),
+                useRewritten = !!JSLoader.getOption('loadRewrittenCode'),
                 runCodeOption = Global.JSLoader.getOption('runCode'),
-                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive,
+                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive && !useRewritten,
                 combinedModulesHash;
 
             if (runCodeOption) {

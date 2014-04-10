@@ -1,4 +1,4 @@
-module('lively.store.Interface').requires().toRun(function() {
+module('lively.store.Interface').requires('lively.Network').toRun(function() {
 
 Object.extend(lively.store, {
     cachedStorageAccessors: {},

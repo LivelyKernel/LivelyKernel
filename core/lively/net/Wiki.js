@@ -18,6 +18,30 @@ Object.extend(lively.net.Wiki, {
         return this._store || (this._store = new lively.store.ObjectRepository());
     },
 
+    diff: function(pathA, pathB, options, thenDo) {
+        // urla = "http://lively-web.org/users/robertkrahn/lively-cheat-sheet.html"
+        // urlb = "http://lively-web.org/users/robertkrahn/lively-cheat-sheet.html"
+        // versionA = 41
+        // versionB = 42
+        // lively.net.Wiki.diff(urla, urlb, {
+        //     versionA: versionA,
+        //     versionB: versionB,
+        //     isJSON: true, isLivelyWorld: true}, show)
+        var a = {
+            paths: [this.urlToPath(pathA)],
+            version: options.versionA,
+            date: options.timestampA,
+            newest: options.versionA || options.timestampA ? undefined : true
+        };
+        var b = {
+            paths: [this.urlToPath(pathB)],
+            version: options.versionB,
+            date: options.timestampB,
+            newest: options.versionB || options.timestampB ? undefined : true
+        };
+        lively.net.Wiki.getStore().diff(a,b, options, thenDo);
+    },
+
     getRecords: function(querySpec, thenDo) {
         // querySpec supports: {
         //   groupByPaths: BOOL, -- return an object with rows grouped (keys of result)

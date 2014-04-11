@@ -128,6 +128,18 @@ Object.subclass("lively.store.ObjectRepository",
         var json;
         try { json = JSON.parse(content); } catch(e) { json = {error: e} }
         return json;
+    },
+
+    diff: function(querySpecA, querySpecB, options, thenDo)  {
+        options = options || {};
+        this.getServerInterfaceURL().withFilename('diff').withQuery({
+            getRecordsA: encodeURIComponent(JSON.stringify(querySpecA)),
+            getRecordsB: encodeURIComponent(JSON.stringify(querySpecB)),
+            isJSON: !!options.isJSON,
+            isLivelyWorld: !!options.isLivelyWorld
+        }).asWebResource().withJSONWhenDone(function(json, status) {
+             thenDo(status.isSuccess() ? null : status, json); }).beAsync().get();
+        return this;
     }
 
 });

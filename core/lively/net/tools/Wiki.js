@@ -248,7 +248,19 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 path = versions[0].path,
                 v1 = versions[0].version,
                 v2 = versions[1].version;
-            lively.ide.diffVersions(path, v1, v2, {type: "unified"});
+            // lively.ide.diffVersions(path, v1, v2, {type: "unified"});
+            lively.net.Wiki.diff(path, path, {
+                versionA: v1,
+                versionB: v2,
+                isJSON: path.endsWith('.html') || path.endsWith('.json'),
+                isLivelyWorld: path.endsWith('.html')
+            }, function(err, diff) {
+                    $world.addCodeEditor({
+                        title: Strings.format('Diff %s@%s with %s@%s', path, v1, path, v2),
+                        content: err || diff.diff,
+                        textMode: 'diff'
+                    });
+                });
         },
     }],
     titleBar: "VersionViewer",

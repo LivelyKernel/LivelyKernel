@@ -177,7 +177,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
         if (!thenDo) return
         if (!this._callbacks) {
             // create error types?
-            throw new Error("")
+            throw new Error("Can not drop callback that is not there.")
         } else {
             var cbs = this._callbacks;
             this._callbacks = cbs.reject(function(ea) { return ea === thenDo });
@@ -276,7 +276,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         if (!thenDo) return
         if (!this._callbacks) {
             // create error types?
-            throw new Error("")
+            throw new Error("Can not drop callback that is not there.")
         } else {
             var cbs = this._callbacks;
             this._callbacks = cbs.reject(function(ea) { return ea === thenDo });
@@ -365,24 +365,32 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         }
         return copy;
     },
-    remove: function() {
-        this.constructor.prototype.remove.call(this)
-        this.synchronizationHandles &&
-        this.synchronizationHandles.forEach(function(handle) {
-            if (this.synchronizationGet)
-                handle.drop(this.synchronizationGet)
-        }, this);
-    },
-    onDropOn: function(aNewOwner) {
-        this.constructor.prototype.onDropOn.call(this, aNewOwner);
-        var aMorph = this;
-        this.synchronizationHandles &&
-        this.synchronizationHandles.forEach(function(handle) {
+    onOwnerChanged: function(newOwner) {
+        this.constructor.prototype.onOwnerChanged.call(this, newOwner)
+        if (!this.synchronizationHandles) return
+        if (newOwner == null || this.world() == null) {
+            // removed and should therefore stop synchronizing
+            this.synchronizationHandles.forEach(function(handle) {
+                if (this.synchronizationGet)
+                    try {
+                        handle.drop(this.synchronizationGet)
+                        this.form.handle.drop(this.form.cb);
+                    } catch(e){
+                        debugger;
+                        if (e.message !== "Can not drop callback that is not there.") throw e;
+                    }
+            }, this);
+        } else {
+            // (re-)added and should therefore start getting updates again
+            var aMorph = this;
             this.synchronizationGet = this.synchronizationGet || (function(error, val) {
                 if (val !== undefined) aMorph.mergeWithModelData(val)
             });
-            handle.get(this.synchronizationGet)
-        }, this);
+            this.synchronizationHandles.forEach(function(handle) {
+                handle.get(this.synchronizationGet)
+            }, this);
+            this.form.handle.get(this.form.cb);
+        }
     },
 }, 'model Synchronization', {
     save: function(value, source, connection) {
@@ -457,10 +465,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             confirmed = true, register = false;
         
         var newFormJSON = lively.persistence.Serializer.serialize(copy);
-        if (!this.form.handle) {
-            this.form.handle = this.synchronizationHandles[0].parent().child(".form");
-        }
-        
+
         // now update all other versions of this form
         this.form.handle.set(function(old, newV, thenDo) {
             if (self.form.json !== "" && confirm("There seem to have been changes to the form elsewhere. Are you sure you want to overwrite those changes?")) {
@@ -472,9 +477,6 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         }, function(error, v) {
             if (confirmed)
                 self.form.json = v;
-            if (!self.form.handle._callbacks 
-                    || !self.form.handle._callbacks.include(self.form.cb))
-                self.form.handle.get(self.form.cb);
         }, newFormJSON, this.form.json, this.form.cb)
     },
     // addMorph: function(aMorph, other) {
@@ -526,9 +528,8 @@ function openMorphFor(modelPath, rootHandle, noMorphCb) {
             handle = rootHandle.child(modelPath);
         part.setName(name);
         trait.mixInto(part, handle, false);
-        part.dropOn($world);
+        part.setPosition(pt(0, 0))
         part.openInHand();
-        part.setPosition(lively.pt(0, 0))
     }, Functions.Empty)
 });
 
@@ -562,12 +563,10 @@ function mixInto(aMorph, morphHandle, saveForm) {
         
         // 3 synchronize it
         if (aMorph.owner)
-            aMorph.dropOn(aMorph.owner);
+            aMorph.onOwnerChanged(aMorph.owner);
         
         // 4 save the form
         if (saveForm) aMorph.saveForm && aMorph.saveForm();
-        // 5 start listening on the form
-        formHandle.get(aMorph.form.cb);
 
     };
     if (morphHandle.isRoot())
@@ -590,7 +589,8 @@ function formUpdate(me, error, value) {
     this.mixInto(newMe, me.synchronizationHandles[0], false);
     newMe.form.json = value;
     if (me.owner) {
-        newMe.dropOn(me.owner);
+        newMe.setPosition(me.getPosition());
+        me.owner.addMorph(newMe, me);
         newMe.setPosition(me.getPosition());
         me.remove();
     }

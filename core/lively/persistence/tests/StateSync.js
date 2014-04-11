@@ -211,11 +211,13 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
             (thenDo && thenDo()) || self.done()};
         
         var foo = new lively.morphic.Morph();
+        foo.openInWorld()
         gunieaPig.dropOn(foo);
         this.assertEquals(foo.submorphs[0], gunieaPig, "morph not added to scenegraph");
         this.assertEquals(syncHandle._callbacks[0], gunieaPig.synchronizationGet, "morph did not register update routines");
         this.assert(!gunieaPig.synchronizedValues);
         syncHandle.overwriteWith("endIt");
+        foo.remove();
     },
     testAddingSubmorph: function() {
         var gunieaPig = new lively.morphic.Morph(),
@@ -296,9 +298,9 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
                 test.assert(form, "form information not saved");
                 test.assert(form.json !== "", "form information (json) not updated");
                 test.assert(form.cb, "form not registered");
-                test.assert(form.handle._callbacks && form.handle._callbacks.include(form.cb), "note is not interesseted in the form...");
+                test.assert(form.handle && form.handle.parent() === note.synchronizationHandles[0].parent(), "note is interesseted in the wrong form...");
                 test.done();
-        }});
+        }, varMapping: {note: note}});
         debugger;
         note.saveForm();
     },

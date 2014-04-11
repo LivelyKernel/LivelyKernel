@@ -3242,23 +3242,22 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
 
     spaceVertically: function() {
         // Sort the morphs vertically
-        var morphs = this.selectedMorphs.clone().sort(function(m,n) {return m.getPosition().y - n.getPosition().y});
+        var morphs = this.selectedMorphs.clone().sort(function(m,n) { return m.bounds().top() - n.bounds().top(); });
         // Align all morphs to same left x as the top one.
-        var minX = morphs[0].getPosition().x;
-        var minY = morphs[0].getPosition().y;
+        var minX = morphs[0].bounds().left();
+        var minY = morphs[0].bounds().top();
         // Compute maxY and sumOfHeights
-        var maxY = minY;
         var sumOfHeights = 0;
-        morphs.forEach(function(m) {
+        var maxY = morphs.reduce(function(maxY, m) {
             var ht = m.innerBounds().height;
             sumOfHeights += ht;
-            maxY = Math.max(maxY, m.getPosition().y + ht);
-        });
+            return Math.max(maxY, m.bounds().bottom());
+        }, minY);
         // Now spread them out to fit old top and bottom with even spacing between
-        var separation = (maxY - minY - sumOfHeights)/Math.max(this.selectedMorphs.length - 1, 1);
+        var separation = Math.max(0, (maxY - minY - sumOfHeights)/Math.max(this.selectedMorphs.length - 1, 1));
         var y = minY;
         morphs.forEach(function(m) {
-            m.setPosition(pt(minX, y));
+            m.setPosition(pt(m.getPosition().x, y));
             y += m.innerBounds().height + separation;
         });
     },
@@ -3272,17 +3271,16 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         var minX = morphs[0].getPosition().x;
         var minY = morphs[0].getPosition().y;
         // Compute maxX and sumOfWidths
-        var maxX = minY;
         var sumOfWidths = 0;
-        morphs.forEach(function(m) {
+        var maxX = morphs.reduce(function(maxX, m) {
             var wid = m.innerBounds().width;
             sumOfWidths += wid;
-            maxX = Math.max(maxX, m.getPosition().x + wid);
-        }); // Now spread them out to fit old top and bottom with even spacing between
-        var separation = (maxX - minX - sumOfWidths)/Math.max(this.selectedMorphs.length - 1, 1);
+            return Math.max(maxX, m.getPosition().x + wid);
+        }, minX); // Now spread them out to fit old top and bottom with even spacing between
+        var separation = Math.max(0, (maxX - minX - sumOfWidths)/Math.max(this.selectedMorphs.length - 1, 1));
         var x = minX;
         morphs.forEach(function(m) {
-            m.setPosition(pt(x, minY));
+            m.setPosition(pt(x, m.getPosition().y));
             x += m.innerBounds().width + separation;
         });
     },

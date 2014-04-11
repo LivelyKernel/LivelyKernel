@@ -727,7 +727,6 @@ lively.morphic.World.addMethods(
 'debugging', {
     logError: function (er, optName) {
         Global.LastError = er;
-        debugger;
         if (!Config.get('verboseLogging')) return;
         var msg = (optName || 'LOGERROR: ') + String(er) + "\nstack:" + er.stack;
         this.setStatusMessage(msg, Color.red, 10, function() {

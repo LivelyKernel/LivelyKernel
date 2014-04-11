@@ -1362,6 +1362,7 @@ Object.extend(Color, {
 Object.extend(Color, {
     // extended again to make use of Color.rgb
     black:         new Color(0,0,0),
+    almostBlack:   Color.rgb(64, 64, 64),
     white:         new Color(1,1,1),
     gray:          new Color(0.8,0.8,0.8),
     red:           new Color(0.8,0,0),

@@ -2272,8 +2272,12 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
 
     function showPressedKeys(evt, keys) {
         if (!evt.world.showPressedKeys) return false;
-        var keysNoModifier = evt.getKeyString({ignoreModifiersIfNoCombo: true});
-        keysNoModifier && keysNoModifier.length > 0 && lively.log(keysNoModifier);
+        if (evt.world.attributeConnections.any(function(ea) { return ea.sourceAttrName === 'pressedKeys'; })) {
+            lively.bindings.signal(evt.world, 'pressedKeys', evt.getKeyString());
+        } else {
+            var keysNoModifier = evt.getKeyString({ignoreModifiersIfNoCombo: true});
+            keysNoModifier && keysNoModifier.length > 0 && lively.log(keysNoModifier);
+        }
         return true;
     }
 })();

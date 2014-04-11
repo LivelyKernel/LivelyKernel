@@ -46,7 +46,7 @@ module.exports = function(route, app) {
     app.get(route, function(req, res) {
         var query = req.query;
         if (query.getRecords) {
-            withRecordsDo(query, function(err, rows) {
+            withRecordsDo(query.getRecords, function(err, rows) {
                 if (err) res.status(400).json({error: String(err)});
                 else res.json(rows);
             });

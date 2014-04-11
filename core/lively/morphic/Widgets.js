@@ -314,6 +314,9 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 
 
 lively.morphic.Morph.subclass('lively.morphic.Image',
+'properties', {
+    isImage: true
+},
 'initializing', {
     initialize: function($super, bounds, url, useNativeExtent) {
         var imageShape = this.defaultShape(bounds.extent().extentAsRectangle(), url);

@@ -186,51 +186,75 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _FontSize: 9,
                     _Position: lively.pt(20.0,20.0),
                     className: "lively.morphic.Text",
-                    name: "Text10",
-                    textString: "adjustForNewBounds"
+                    name: "adjustForNewBoundsLabel",
+                    textString: "inform submorphs"
                 },{
-                    _Extent: lively.pt(64.0,15.0),
+                    _Extent: lively.pt(100,15.0),
                     _FontFamily: "Arial, sans-serif",
                     _FontSize: 9,
                     _Position: lively.pt(20.0,40.0),
                     className: "lively.morphic.Text",
-                    name: "Text11",
-                    textString: "resizeWidth"
+                    name: "resizeWidthLabel",
+                    textString: "resize width"
                 },{
-                    _Extent: lively.pt(69.0,15.0),
+                    _Extent: lively.pt(100,15.0),
                     _FontFamily: "Arial, sans-serif",
                     _FontSize: 9,
                     _Position: lively.pt(20.0,60.0),
                     className: "lively.morphic.Text",
-                    name: "Text12",
-                    textString: "resizeHeight"
+                    name: "resizeHeightLabel",
+                    textString: "resize height"
                 },{
-                    _Extent: lively.pt(71.0,15.0),
+                    _Extent: lively.pt(100,15.0),
                     _FontFamily: "Arial, sans-serif",
                     _FontSize: 9,
                     _Position: lively.pt(20.0,80.0),
                     className: "lively.morphic.Text",
-                    name: "Text13",
-                    textString: "moveVertical"
+                    name: "moveVerticalLabel",
+                    textString: "move vertical"
                 },{
-                    _Extent: lively.pt(86.0,15.0),
+                    _Extent: lively.pt(100,15.0),
                     _FontFamily: "Arial, sans-serif",
                     _FontSize: 9,
                     _Position: lively.pt(20.0,100.0),
                     className: "lively.morphic.Text",
-                    name: "Text14",
-                    textString: "moveHorizontal"
+                    name: "moveHorizontalLabel",
+                    textString: "move horizontal"
                 },{
-                    _Extent: lively.pt(104.0,15.0),
+                    _Extent: lively.pt(100,15.0),
                     _FontFamily: "Arial, sans-serif",
                     _FontSize: 9,
                     _Position: lively.pt(20.0,120.0),
                     className: "lively.morphic.Text",
-                    name: "Text15",
-                    textString: "centeredHorizontal"
+                    name: "centeredHorizontalLabel",
+                    textString: "center horizontally"
+                },{
+                    _Extent: lively.pt(100,15.0),
+                    _FontFamily: "Arial, sans-serif",
+                    _FontSize: 9,
+                    _Position: lively.pt(20.0,140.0),
+                    className: "lively.morphic.Text",
+                    name: "centeredVerticalLabel",
+                    textString: "center vertically"
+                },{
+                    _Extent: lively.pt(100,15.0),
+                    _FontFamily: "Arial, sans-serif",
+                    _FontSize: 9,
+                    _Position: lively.pt(20.0,160.0),
+                    className: "lively.morphic.Text",
+                    name: "scaleHorizontalLabel",
+                    textString: "scale horizontally"
+                },{
+                    _Extent: lively.pt(100,15.0),
+                    _FontFamily: "Arial, sans-serif",
+                    _FontSize: 9,
+                    _Position: lively.pt(20.0,180.0),
+                    className: "lively.morphic.Text",
+                    name: "scaleVerticalLabel",
+                    textString: "scale vertically"
                 },{
                     _BorderColor: Color.rgb(204,0,0),
-                    _Extent: lively.pt(12.0,12.0),
+                    _Extent: lively.pt(12,12.0),
                     _Position: lively.pt(170.0,20.0),
                     className: "lively.morphic.CheckBox",
                     droppingEnabled: true,
@@ -325,30 +349,6 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                         		return style
                         	}});
                 }
-                },{
-                    _Extent: lively.pt(89.0,15.0),
-                    _FontFamily: "Arial, sans-serif",
-                    _FontSize: 9,
-                    _Position: lively.pt(20.0,140.0),
-                    className: "lively.morphic.Text",
-                    name: "Text16",
-                    textString: "centeredVertical"
-                },{
-                    _Extent: lively.pt(85.0,15.0),
-                    _FontFamily: "Arial, sans-serif",
-                    _FontSize: 9,
-                    _Position: lively.pt(20.0,160.0),
-                    className: "lively.morphic.Text",
-                    name: "Text17",
-                    textString: "scaleHorizontal"
-                },{
-                    _Extent: lively.pt(70.0,15.0),
-                    _FontFamily: "Arial, sans-serif",
-                    _FontSize: 9,
-                    _Position: lively.pt(20.0,180.0),
-                    className: "lively.morphic.Text",
-                    name: "Text18",
-                    textString: "scaleVertical"
                 },{
                     _BorderColor: Color.rgb(204,0,0),
                     _Extent: lively.pt(12.0,12.0),

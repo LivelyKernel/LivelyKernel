@@ -46,9 +46,10 @@ Object.extend(lively.ide.DirectoryWatcher, {
             while ((cb = watchState.callbacks.shift())) cb(watchState.files);
         }
         function extend(statObj) { // convert date string into a date object
+            if (!statObj) statObj = {};
             statObj.isDirectory = !!(statObj.mode & 0x4000);
             ['atime', 'mtime', 'ctime'].forEach(function(field) {
-                statObj[field] = new Date(statObj[field]); });
+                if (statObj[field]) statObj[field] = new Date(statObj[field]); });
             return statObj;
         }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

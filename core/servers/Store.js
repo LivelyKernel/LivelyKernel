@@ -1,12 +1,17 @@
 var f = require('util').format;
 var i = require('util').inspect;
 var fs = require('fs');
+var path = require('path');
+var async = require("async");
+
 inMemoryStores = {};
 var changes = {};
-inMemoryStores
+inMemoryStores.stateSynchronization
 
 var fileStoreSuffix = '.json',
     folder = 'stores';
+
+
 
 function loadLivelyCode(path) {
     lively = global.lively || {};
@@ -15,7 +20,7 @@ function loadLivelyCode(path) {
         var fileContent = fs.readFileSync(require.resolve('../' + path));
         require('vm').runInThisContext(fileContent, {Global: global});
     } catch(e) {
-        console.error(e);
+        console.error("Store: " + e);
         return false;
     }
     return true;
@@ -60,19 +65,19 @@ function retrieveChanges(since, requestingClientId, callback) {
     Object.keys(changes).forEach(function(time) {
         time = Number(time);
         var change = changes[time];
-        console.log('testing for %s for client %s', i(change), requestingClientId);
+        console.log('Store: testing for %s for client %s', i(change), requestingClientId);
         if (time < result.startTime || time > result.endTime) return;
-        console.log('time ok');
+        console.log('Store: time ok');
         if (pathsRead.indexOf(change.path) >= 0) return;
-        console.log('not yet added');
+        console.log('Store: not yet added');
         if (requestingClientId && change.hasOwnProperty("originClientId")
          && requestingClientId == change.originClientId) return;
-        console.log('change from a different client');
-        console.log('adding %s', i(change));
+        console.log('Store: change from a different client');
+        console.log('Store: adding %s', i(change));
         result.changes.push(change);
         pathsRead.push(change.path);
     });
-    console.log("changes: %s, result: %s", i(changes), i(result));
+    console.log("Store: changes: %s, result: %s", i(changes), i(result));
     callback(null, result);
 }
 
@@ -102,31 +107,34 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
     if (!err) {
         changes[Date.now()] = {path: String(path), originClientId: clientId};
         path.set(inMemoryStores, value);
-        console.log('stored %s in %s', i(value), path);
+        console.log('Store: stored %s in %s', i(value), path);
         fs.writeFile(folder + '/' + storeName + fileStoreSuffix, JSON.stringify(storePath.get(inMemoryStores)), function(err) { if(err) { console.warn(err); } });
     } else {
-        console.warn('could not store %s in %s, error: %s', value, path, i(err));
+        console.warn('Store: could not store %s in %s, error: %s', value, path, i(err));
     }
     thenDo(err);
 }
 
 (function restoreDBFromFiles() {
+    if (!fs.existsSync(folder)) fs.mkdirSync(folder);
     fs.readdir(folder, function(err, files) {
-        if (err) return console.error("Failed to load existing store: " + err)
+        if (err) return console.error("Store: Failed to load existing store: " + err)
         files.filter(function(ea) {
                 return ea.slice(-fileStoreSuffix.length) === fileStoreSuffix })
             .forEach(function(ea) {
-                console.log("restoring %s", ea)
-                fs.readFile(folder + "/" + ea, function(err, data) {
+                console.log("Store: restoring %s", ea)
+                fs.readFile(path.join(folder, ea), function(err, data) {
                     var storeName = ea.slice(0, -fileStoreSuffix.length);
                     if (inMemoryStores[storeName] === undefined)
                         try{
                             inMemoryStores[storeName] = JSON.parse(data);
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error('Store: Error loading inMemoryStore ' + e);
+                        }
                 })
         })
     })
-})()
+})();
 
 function read(storeName, pathString, thenDo) {
     var path = lively.PropertyPath(pathString),

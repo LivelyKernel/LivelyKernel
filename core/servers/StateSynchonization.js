@@ -118,7 +118,7 @@ var stateSynchronizationServices = {
                 action: msg.action + 'Result',
                 inResponseTo: msg.messageId,
                 data: val,
-                err: err
+                error: err
             })
         })
     },

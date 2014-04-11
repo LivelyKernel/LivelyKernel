@@ -139,7 +139,6 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
     setUp: function($super) {
         $super();
         this.trait = Trait('lively.persistence.StateSync.SynchronizedMorphMixin');
-        this.mixin = this.trait.mixin();
         
         this._store = new lively.persistence.Sync.LocalStore();
         this.handle = new lively.persistence.StateSync.StoreHandle(this._store)
@@ -158,8 +157,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
         }
         if (!this._store.db[name]) this._store.db[name] = {}
         this._store.db[name].length = slot + 1;
-        this.mixin.applyTo(someObject);
-        this.trait.connectSavingProperties(someObject);
+        this.trait.mixInto(someObject, syncHandle, false);
         someObject.save();
         return syncHandle
     },
@@ -167,8 +165,8 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
 'tests', {
     testNamesRemainTheSame: function() {
         var gunieaPig = new lively.morphic.Morph();
-        this.mixin.applyTo(gunieaPig);
         gunieaPig.setName("gunieaPig");
+        this.startSynchronizing(gunieaPig);
         
         var controlGroup = gunieaPig.copy();
         this.assertEquals(controlGroup.getName(), gunieaPig.getName(), 'copies should retain the same naming scheme');
@@ -176,18 +174,17 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
     },
     testCopiesAreNotSynchronized: function() {
         var gunieaPig = new lively.morphic.Morph()
-        this.mixin.applyTo(gunieaPig);
-        gunieaPig.synchronizationHandles = [];
         gunieaPig.setName("gunieaPig");
+        this.startSynchronizing(gunieaPig);
 
         var self = this;
         this.handle.child(gunieaPig.name).push(
             gunieaPig.asModel(),
             function(err, handle, curV) {
                 gunieaPig.synchronizationHandles.push(handle);
-                self.assertEquals(gunieaPig.synchronizationHandles.length, 1);
+                self.assertEquals(gunieaPig.synchronizationHandles.length, 2);
                 var controlGroup = gunieaPig.copy();
-                self.assertEquals(controlGroup.synchronizationHandles.length, 0, "the synchronization handles should be lost when copying");
+                self.assert(!controlGroup.synchronizationHandles || controlGroup.synchronizationHandles.length == 0, "the synchronization handles should be lost when copying");
                 self.done();
             });
     },
@@ -270,9 +267,9 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         this.startSynchronizing(gunieaPig);
         
         var model = gunieaPig.asModel();
-        this.assert(model.content && Object.isNumber(model.content.timestamp), "for texts, there is no change timestamping");
-        model.content.timestamp = 10;
-        this.assertEqualState(model, {content: {timestamp: 10, string: "some text"}, shortString: model.shortString}, "model generation not successful");
+        this.assert(model.content && Object.isNumber(model.changeTime), "for texts, there is no change changeTime-ing");
+        model.changeTime = 10;
+        this.assertEqualState(model, {changeTime: 10, content: {string: "some text"}, shortString: model.shortString}, "model generation not successful");
         
         (thenDo && thenDo.call(this, gunieaPig)) || this.done()
     },
@@ -281,14 +278,29 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         
         gunieaPig.submorphs[0].textString = "some different text";
         var model = gunieaPig.asModel()
-        this.assertEqualState(model, {content: {timestamp: gunieaPig.submorphs[0].changeTime || 0, string: "some different text"}, shortString: model.shortString}, "model not updated successful")
+        this.assertEqualState(model, {changeTime: gunieaPig.changeTime || 0, content: {string: "some different text"}, shortString: model.shortString}, "model not updated successful")
         
         this.epsilon = 100
-        this.assertEqualsEpsilon(model.content.timestamp, Date.now(), "changing the text should change the last update timestamp")
+        this.assertEqualsEpsilon(model.changeTime, Date.now(), "changing the text should change the last update timestamp")
         
         this.done();
         return true;
         })
+    },
+    testSaveForm: function(json) {
+        var note = this.getStickyNote();
+        this.startSynchronizing(note);
+        connect(note.form, "json", this, "testSaveForm", {updater: function($upd, val) {
+            var test = this.targetObj,
+                form = this.sourceObj;
+                test.assert(form, "form information not saved");
+                test.assert(form.json !== "", "form information (json) not updated");
+                test.assert(form.cb, "form not registered");
+                test.assert(form.handle._callbacks && form.handle._callbacks.include(form.cb), "note is not interesseted in the form...");
+                test.done();
+        }});
+        debugger;
+        note.saveForm();
     },
 })
 

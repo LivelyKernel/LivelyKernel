@@ -65,8 +65,8 @@ Object.subclass('lively.persistence.StateSync.Handle',
             var updated = {length: length};
             updated[updated.length - 1] = value;
             cb(updated);
-        }, function(err, curV) {
-            cb && cb(err, self.child((length - 1).toString()), curV);
+        }, function(error, curV) {
+            cb && cb(error, self.child((length - 1).toString()), curV);
         })
     },
 
@@ -157,8 +157,8 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
             storeCb = function(oldV, merged) {
                 store.set(path, merged, {
                     precondition: {type: 'equality', value: oldV}, 
-                    callback: function(err) {
-                        if (err) getCb(merged)
+                    callback: function(error) {
+                        if (error) getCb(merged)
                         else {
                             if (cbToIgnore) ignoreCbs.push({value: merged, cb: cbToIgnore})
                             thenDo(null, merged)
@@ -246,7 +246,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         // TODO?: in case we dont have a session, should we try anything else?
         if (!sess) return alert("Session lost. Getting aborted.")
         sess.sendTo(sess.trackerId, 'syncGet', this.fullPath().toString(), function(msg) {
-            thenDo(msg.err, msg.data)
+            thenDo(msg.error, msg.data)
         })
         return thenDo
     },
@@ -346,6 +346,7 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     },
 })
 
+// Although there is the ability to have more than one synchronizationHandle, for the time being we assume there is exactly one, and the DB morph should be refactored so that that assumption is true
 Trait('lively.persistence.StateSync.SynchronizedMorphMixin', 
 'morphic', {
     findAndSetUniqueName: function() {
@@ -359,6 +360,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             delete copy.noSave;
             delete copy.synchronizationGet;
             delete copy.changeTime;
+            delete copy.form;
             copy.setName(this.getName());
         }
         return copy;
@@ -369,18 +371,18 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         this.synchronizationHandles.forEach(function(handle) {
             if (this.synchronizationGet)
                 handle.drop(this.synchronizationGet)
-        }, this)
+        }, this);
     },
     onDropOn: function(aNewOwner) {
         this.constructor.prototype.onDropOn.call(this, aNewOwner);
         var aMorph = this;
         this.synchronizationHandles &&
         this.synchronizationHandles.forEach(function(handle) {
-            this.synchronizationGet = this.synchronizationGet || (function(err, val) {
+            this.synchronizationGet = this.synchronizationGet || (function(error, val) {
                 if (val !== undefined) aMorph.mergeWithModelData(val)
             });
             handle.get(this.synchronizationGet)
-        }, this)
+        }, this);
     },
 }, 'model Synchronization', {
     save: function(value, source, connection) {
@@ -389,7 +391,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         var model = this.asModel();
         this.synchronizationHandles &&
         this.synchronizationHandles.forEach(function(handle) {
-            handle.overwriteWith(model, function(err, val) {  }, this.synchronizationGet)
+            handle.overwriteWith(model, function(error, val) {  }, this.synchronizationGet)
         })
     },
     mergeWithModelData: function merge(someValue) {
@@ -447,27 +449,33 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     },
 }, 'form synchronization', {
     saveForm: function() {
+        if (!this.form || this.synchronizationHandles.length < 1) return alert("No form to save, or no place to save it to.")
         // the copy neither has synchronization handles, nor injected behavior
         var copy = this.copy(false),
-            name = this.getName(),
-            trait = Trait("lively.persistence.StateSync.SynchronizedMorphMixin");
-        copy.copyToPartsBin("PartsBin/BYOIE");
-        this.setPartsBinMetaInfo(copy.getPartsBinMetaInfo())
-        // now update all other versions of this form in this world
-        $world.withAllSubmorphsSelect(function(ea, depth) {
-            return ea !== this && ea.getName() == name
-                && ea.synchronizationHandles && ea.synchronizationHandles.length !== 0
-        }, this).forEach(function(me) {
-            var newMe = this.copy(false);
-            newMe.setName(name);
-            newMe.synchronizationHandles = me.synchronizationHandles;
-            trait.mixin().applyTo(newMe);
-            trait.connectSavingProperties(newMe);
-            newMe.dropOn($world);
-            newMe.setPosition(me.getPosition());
-            me.remove();
-            // me.setPosition(me.getPosition().addXY(newMe.getExtent().x, 0));
-        }, copy)
+            self = this,
+            trait = Trait("lively.persistence.StateSync.SynchronizedMorphMixin"),
+            confirmed = true, register = false;
+        
+        var newFormJSON = lively.persistence.Serializer.serialize(copy);
+        if (!this.form.handle) {
+            this.form.handle = this.synchronizationHandles[0].parent().child(".form");
+        }
+        
+        // now update all other versions of this form
+        this.form.handle.set(function(old, newV, thenDo) {
+            if (self.form.json !== "" && confirm("There seem to have been changes to the form elsewhere. Are you sure you want to overwrite those changes?")) {
+                self.form.json = old;
+                thenDo(newV);
+            } else {
+                confirmed = false
+            }
+        }, function(error, v) {
+            if (confirmed)
+                self.form.json = v;
+            if (!self.form.handle._callbacks 
+                    || !self.form.handle._callbacks.include(self.form.cb))
+                self.form.handle.get(self.form.cb);
+        }, newFormJSON, this.form.json, this.form.cb)
     },
     // addMorph: function(aMorph, other) {
     //     var result = this.constructor.prototype.addMorph.call(this, aMorph, other);
@@ -508,25 +516,85 @@ Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"),
 function openMorphFor(modelPath, rootHandle, noMorphCb) {
     var path = lively.PropertyPath(modelPath),
         name = path.parts()[path.parts().length - 2],
-        partStencil = lively.PartsBin.getPartItem(name, "PartsBin/BYOIE"),
         trait = this;
-    if (!partStencil) {
-        return noMorphCb(modelPath)
-    }
-    partStencil.loadPart(true, undefined, undefined, function(err, part) {
-        if (err) return alert(err);
-        var handle = rootHandle.child(modelPath);
+    
+    var formHandle = rootHandle.child(path).parent().child(".form");
+    // FIXME: a hack to get the stored value exactly once
+    formHandle.set(function(formJSON, _, __) {
+        if (formJSON === "" || formJSON === undefined) return noMorphCb(modelPath);
+        var part = lively.persistence.Serializer.deserialize(formJSON),
+            handle = rootHandle.child(modelPath);
         part.setName(name);
-        trait.mixin().applyTo(part);
-        trait.connectSavingProperties(part);
-        part.synchronizationHandles ? 
-            part.synchronizationHandles.push(handle) : 
-            part.synchronizationHandles = [handle];
+        trait.mixInto(part, handle, false);
         part.dropOn($world);
         part.openInHand();
         part.setPosition(lively.pt(0, 0))
-    });
-})
+    }, Functions.Empty)
+});
 
+Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+function mixInto(aMorph, morphHandle, saveForm) {
+    if (!aMorph.name) 
+        throw new Error("Any morph being synchronized has to have a name.");
+    if (!morphHandle)
+        throw new Error("Can not synchronize Morph whithout knowing where it is synchronized.");
+    var formHandle = (morphHandle.isRoot()
+        ? morphHandle.child(aMorph.name)
+        : morphHandle.parent())
+            .child(".form");
+
+    // 1 apply the mixin
+    this.mixin().applyTo(aMorph);
+    this.connectSavingProperties(aMorph);
+    
+    aMorph.form = {
+        json: "", 
+        cb: this.formUpdate.bind(this, aMorph),
+        handle: formHandle};
+    aMorph.synchronizationHandles = aMorph.synchronizationHandle || [];
+
+    // 2 ensure there is a handle
+    var thenDoFirst = function(err, handle) {
+        if (err) throw new Error("Synchronization failed: " + err);
+        
+        if (!aMorph.synchronizationHandles.include(handle))
+            aMorph.synchronizationHandles.push(handle);
+        
+        // 3 synchronize it
+        if (aMorph.owner)
+            aMorph.dropOn(aMorph.owner);
+        
+        // 4 save the form
+        if (saveForm) aMorph.saveForm && aMorph.saveForm();
+        // 5 start listening on the form
+        formHandle.get(aMorph.form.cb);
+
+    };
+    if (morphHandle.isRoot())
+        morphHandle.child(aMorph.name).push(aMorph.asModel(), thenDoFirst);
+    else
+        thenDoFirst(null, morphHandle)
+    
+});
+
+Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+function formUpdate(me, error, value) {
+    if (error) return alert(error);
+    if (value === me.form.json) return;
+    if (value === undefined) return; //throw new Error("Can not deserialize " + value);
+    if (me.synchronizationHandles.length < 1)
+        throw new Error("It makes no sense to update the form of something which is not synchronized.");
+    var newMe = lively.persistence.Serializer.deserialize(value);
+    newMe.setName(me.getName());
+    newMe.synchronizationHandles = me.synchronizationHandles;
+    this.mixInto(newMe, me.synchronizationHandles[0], false);
+    newMe.form.json = value;
+    if (me.owner) {
+        newMe.dropOn(me.owner);
+        newMe.setPosition(me.getPosition());
+        me.remove();
+    }
+    // me.setPosition(me.getPosition().addXY(newMe.getExtent().x, 0));
+});
 
 }) // end of module

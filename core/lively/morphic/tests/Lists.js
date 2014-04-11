@@ -174,6 +174,17 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList', lively.morphic.
         this.done();
     },
 
+    testReorderingMorphsAffectsItemList: function() {
+        var list = new lively.morphic.MorphList(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
+        this.assertEquals(['1', '2', '3'], list.itemList);
+        var itemMorph = list.getItemMorphs().last(); // 3
+        this.assertEquals("3", itemMorph.textString, 'setup error?');
+        itemMorph.remove();
+        list.addMorph(itemMorph, list.getItemMorphs().first()/*1*/);
+        this.assertEquals(['3', '1', '2'], list.getItemMorphs().pluck('textString'), 'rendered list');
+        this.done()
+    },
+
     testhasOwnListItemBehavior: function() {
         var list = new lively.morphic.MorphList(new lively.Rectangle(0, 0, 200, 100)),
             self = this;

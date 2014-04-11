@@ -446,7 +446,8 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         } else if (!item.morph) {
             item.morph = morph;
         }
-        this.addItem(item);
+        var index = this.submorphs.indexOf(optMorphBefore);
+        this.addItem(item, index);
         return morph;
     },
     removeMorph: function($super, morph) {
@@ -476,9 +477,10 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         if (!items) items = [];
         this.itemList = items;
         var oldItemMorphs = this.getItemMorphs();
-        this.itemMorphs = items.collect(function(ea) { return list.renderFunction(ea); });
-        oldItemMorphs.withoutAll(this.itemMorphs).invoke('remove');
-        this.itemMorphs.forEach(function(ea) { list.submorphs.include(ea) || list.addMorph(ea); });
+        var itemMorphs = this.itemMorphs = items.collect(function(ea) { return list.renderFunction(ea); });
+        oldItemMorphs.withoutAll(itemMorphs).invoke('remove');
+        itemMorphs.forEach(function(ea, i) {
+            list.submorphs.include(ea) || list.addMorph(ea, itemMorphs[i+1]); });
     },
 
     getItemMorphs: function() { return this.itemMorphs || []; },
@@ -489,8 +491,11 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
             null;
     },
 
-    addItem: function(item) {
-        this.updateList(this.itemList.concat([item]));
+    addItem: function(item, index) {
+        var newList = this.itemList.clone();
+        if (typeof index !== 'number' || index < 0) index = newList.length;
+        newList.splice(index, 0, item);
+        this.updateList(newList);
     },
 
     find: function (itemOrValue) {

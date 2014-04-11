@@ -803,6 +803,10 @@ handleOnCapture);
         return false;
     },
 
+    onMouseOver: function(evt) {
+        return false;
+    },
+
     onMouseDownEntry: function(evt, allHits) {
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
             // Click point was not really on this morph;  try next thing below

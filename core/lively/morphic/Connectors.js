@@ -39,7 +39,7 @@ lively.morphic.Box.subclass('lively.morphic.MagnetHalo',
         halo.alignAtTarget();
         halo.prevDragPos = evt.getPosition()
         this.currentHalo = halo;
-
+show(halo)
         return;
     },
     onDragEnd: function(evt) {
@@ -152,54 +152,6 @@ Object.subclass('lively.morphic.MagnetSet',
 
 require('lively.LayerableMorphs').toRun(function() {
 
-cop.create('ConnectorLayer')
-.refineClass(lively.morphic.World, {
-    getMagnets: function() {
-        return []
-    }
-})
-.refineClass(lively.morphic.PathVertexControlPointHalo, {
-    onDragStart: function(evt) {
-        // alertOK('onDragStart')
-        this.magnetSet = new lively.morphic.MagnetSet(this.world());
-        this.magnetSet.helperMorphs  = []
-        // this.magnetSet.magnets.forEach(function(ea) {
-            // var m = newShowPt(ea.getCachedGlobalPosition(), 60);
-            // m.setFill(Color.gray)
-            // m.setOpacity(0.5)
-            // this.magnetSet.helperMorphs.push(m)
-        // }, this)
-        return cop.proceed(evt)
-    },
-    onDrag: function(evt) {
-        cop.proceed(evt);
-        var newOffset = evt.getPosition().subPt(this.bounds().center());
-        this.dragAction(evt, newOffset);
-        if (!this.magnetSet) {
-            return
-            throw new Error('onDragStart was not called for ' + this)
-        }
-
-        var nearestMagnets = this.magnetSet.nearestMagnetsToControlPoint(this.controlPoint)
-        if (nearestMagnets.length == 0) {
-            this.controlPoint.setConnectedMagnet(null)
-            return true
-        }
-        this.controlPoint.setConnectedMagnet(nearestMagnets[0]);
-
-        this.align( this.bounds().center(),this.controlPoint.getGlobalPos())
-
-        return true
-    },
-    onDragEnd: function(evt) {
-        if (!this.magnetSet) return; // onDragStart not called?
-        this.magnetSet.helperMorphs.invoke('remove')
-        delete this.magnetSet;
-
-        return cop.proceed(evt)
-    },
-})
-
 cop.create('lively.morphic.VisualBindingsLayer')
 .refineClass(lively.morphic.World, {
     morphMenuItems: function() {
@@ -239,8 +191,6 @@ cop.create('lively.morphic.VisualBindingsLayer')
     }
 })
 .beGlobal();
-
-ConnectorLayer.beGlobal();
 
 // cop.create('NoMagnetsLayer')
 // .refineClass(lively.morphic.Morph, {
@@ -419,6 +369,11 @@ lively.morphic.Morph.addMethods(
     getVisualBindingsBuilderFor: function(connectionPointName) {
         return new lively.morphic.ConnectionBuilder(this, connectionPointName);
     }
+});
+
+lively.morphic.World.addMethods(
+'visual connectors', {
+    getMagnets: function() { return []; }
 });
 
 lively.morphic.Path.addMethods(

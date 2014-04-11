@@ -305,6 +305,12 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
             .select(function(name) { return obj[name].getOriginal().hasLivelyClosure })
             .sortBy(function(name) { return name.toLowerCase() }); 
     },
+},
+'connectors', {
+    getMagnets: function() {
+        // Don't connect to halo items by accident
+        return [];
+    }
 });
 
 lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',

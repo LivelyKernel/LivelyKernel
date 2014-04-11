@@ -438,6 +438,10 @@ Config.addOptions(
     ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."]
 ],
 
+'lively.morphic.Connectors', [
+    ["enableMagneticConnections", true, "Connectors / lines can \"dock\" to magnet points of morphs."]
+],
+
 'lively.morphic.Events', [
     ["useMetaAsCommand", false, "Use the meta modifier (maps to Command on the Mac) instead of alt"],
     ["showGrabHalo", false, "enable grab halo (alternative to shadow) on objects in the hand."],

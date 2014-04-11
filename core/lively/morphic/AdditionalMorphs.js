@@ -672,9 +672,11 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPo
     isVertexControlHalo: true
 },
 'halo behavior', {
+
     computePositionAtTarget: function() {
         return this.controlPoint.getGlobalPos().subPt(this.getExtent().scaleBy(0.5));
     },
+
     dragAction: function (evt, moveDelta) {
         this.overOther = this.highlightIfOverOther();
 
@@ -685,17 +687,46 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPo
 
         this.controlPoint.moveBy(newDelta);
         if (this.targetMorph.halos)
-            this.targetMorph.halos.invoke('alignAtTarget')
+            this.targetMorph.halos.invoke('alignAtTarget');
+
+        if (lively.Config.get('enableMagneticConnections') && this.magnetSet) {
+            var nearestMagnets = this.magnetSet.nearestMagnetsToControlPoint(this.controlPoint)
+            if (nearestMagnets.length == 0) {
+                this.controlPoint.setConnectedMagnet(null);
+            } else {
+                this.controlPoint.setConnectedMagnet(nearestMagnets[0]);
+                this.align(this.bounds().center(),this.controlPoint.getGlobalPos())
+            }
+        }
+    
+    },
+
+    dragStartAction: function(evt) {
+        this.targetMorph.removeHalosWithout(this.world(), [this]);
+
+        if (lively.Config.get('enableMagneticConnections')) {
+            this.magnetSet = new lively.morphic.MagnetSet(this.world());
+            this.magnetSet.helperMorphs  = [];
+        }
+    
     },
 
     dragEndAction: function(evt) {
+        this.targetMorph.removeHalos();
+        this.targetMorph.showHalos();
+
         if (!this.overOther) return;
         if (this.controlPoint.next() !== this.overOther.controlPoint &&
             this.controlPoint.prev() !== this.overOther.controlPoint) return;
         if (this.controlPoint.isLast() || this.controlPoint.isFirst()) return;
+
         this.controlPoint.remove();
-        this.targetMorph.removeHalos()
-        this.targetMorph.showHalos()
+
+        if (lively.Config.get('enableMagneticConnections') && this.magnetSet) {
+            this.magnetSet.helperMorphs.invoke('remove');
+            delete this.magnetSet;
+        }    
+
     },
 
     findIntersectingControlPoint: function() {

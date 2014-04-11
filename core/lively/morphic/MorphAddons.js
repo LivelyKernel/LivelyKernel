@@ -968,6 +968,7 @@ lively.morphic.World.addMethods(
 'auth', {
 
     askForUserName: function(prompt) {
+        if (!Object.isString(prompt)) prompt = null;
         var world = this, oldUserName = world.getUserName(true);
         world.prompt(prompt || "Please enter your user name.", function(name) {
             if (name && name.length > 0) {

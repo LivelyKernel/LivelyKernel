@@ -962,6 +962,7 @@ handleOnCapture);
 
     onContextMenu: function(evt) {
         // we are invoking menus in onMouseDown
+        if (evt.getTargetMorph() !== this) return false;
         var nativeMenu = this.isNativeContextMenuEvt(evt);
         if (!nativeMenu) evt.stop();
         return nativeMenu;

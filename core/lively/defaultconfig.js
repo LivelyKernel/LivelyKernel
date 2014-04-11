@@ -450,6 +450,7 @@ Config.addOptions(
 'lively.debugging', [
     ["ignoreAdvice", false, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
     ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
+    ["enableDebuggerStatements", false, "Whether to throw Debugger exceptions in rewritten code"],
     ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html", "Where to report bugs"]
 ],
 

@@ -77,7 +77,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     },
 
     debuggerThrow: function() {
-        return "{\n" +
+        return "if (lively.Config.enableDebuggerStatements) {\n" +
             "debugging = true;\n" +
             this.intermediateResult('undefined;\n') +
             "throw {\n" +
@@ -785,11 +785,14 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         $super();
         this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
         lively.ast.Rewriting.setCurrentASTRegistry(this.astRegistry = []);
+        this.config = lively.Config.enableDebuggerStatements;
+        lively.Config.enableDebuggerStatements = true;
     },
 
     tearDown: function($super) {
         $super();
         lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
+        lively.Config.enableDebuggerStatements = this.config;
     }
 
 },

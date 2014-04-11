@@ -1028,33 +1028,46 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             }), id: null, params: []
         });
 
-        return rewriter.newNode('BlockStatement', { body: [
-            // debugging = true;
-            rewriter.newNode('ExpressionStatement', {
-                expression: rewriter.newNode('AssignmentExpression', {
-                    operator: '=',
-                    left: rewriter.newNode('Identifier', { name: 'debugging' }),
-                    right: rewriter.newNode('Literal', { value: true })
-                })
+        return rewriter.newNode('IfStatement', {
+            // if (lively.Config.enableDebuggerStatements)
+            test: rewriter.newNode('MemberExpression', {
+                object: rewriter.newNode('MemberExpression', {
+                    object: rewriter.newNode('Identifier', { name: 'lively' }),
+                    property: rewriter.newNode('Identifier', { name: 'Config' }),
+                    computed: false
+                }),
+                property: rewriter.newNode('Identifier', { name: 'enableDebuggerStatements' }),
+                computed: false
             }),
-            // _[lastNode = xx] = undefined;
-            rewriter.newNode('ExpressionStatement', {
-                expression: rewriter.storeComputationResult(
-                    rewriter.newNode('Identifier', { name: 'undefined' }), n.start, n.end, astIndex)
-            }),
-            // throw { toString: function() { return 'Debugger'; }, astIndex: xx };
-            rewriter.newNode('ThrowStatement', {
-                argument: rewriter.newNode('ObjectExpression', {
-                    properties: [{
-                        key: rewriter.newNode('Identifier', { name: 'toString' }),
-                        kind: 'init', value: fn
-                    }, {
-                        key: rewriter.newNode('Identifier', { name: 'astIndex' }),
-                        kind: 'init', value: rewriter.newNode('Literal', {value: astIndex})
-                    }]
+            consequent: rewriter.newNode('BlockStatement', { body: [
+                // debugging = true;
+                rewriter.newNode('ExpressionStatement', {
+                    expression: rewriter.newNode('AssignmentExpression', {
+                        operator: '=',
+                        left: rewriter.newNode('Identifier', { name: 'debugging' }),
+                        right: rewriter.newNode('Literal', { value: true })
+                    })
+                }),
+                // _[lastNode = xx] = undefined;
+                rewriter.newNode('ExpressionStatement', {
+                    expression: rewriter.storeComputationResult(
+                        rewriter.newNode('Identifier', { name: 'undefined' }), n.start, n.end, astIndex)
+                }),
+                // throw { toString: function() { return 'Debugger'; }, astIndex: xx };
+                rewriter.newNode('ThrowStatement', {
+                    argument: rewriter.newNode('ObjectExpression', {
+                        properties: [{
+                            key: rewriter.newNode('Identifier', { name: 'toString' }),
+                            kind: 'init', value: fn
+                        }, {
+                            key: rewriter.newNode('Identifier', { name: 'astIndex' }),
+                            kind: 'init', value: rewriter.newNode('Literal', {value: astIndex})
+                        }]
+                    })
                 })
-            })
-        ]});
+            ]}),
+            alternate: null
+        });
     },
 
     visitFunctionDeclaration: function(n, rewriter) {

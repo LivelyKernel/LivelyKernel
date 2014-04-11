@@ -191,13 +191,18 @@ lively.BuildSpec('lively.ide.tools.Differ', {
         this.diffStrings(this.get('a').textString, this.get('b').textString, options);
     },
     unifiedDiff: function unifiedDiff(stringA, stringB, options, thenDo) {
-        var resultText = this.get('result')
-        lively.shell.diff(stringA, stringB, function(diff) {
-            resultText.textString = diff;
-            resultText.emphasizeRegex(/^-.*/gm, {backgroundColor: Color.red, color: Color.white});
-            resultText.emphasizeRegex(/^\+.*/gm, {backgroundColor: Color.green, color: Color.white});
-            thenDo && thenDo(null, diff);
-        });
+        var resultText = this.get('result');
+        if (false) {
+            lively.shell.diff(stringA, stringB, function(diff) {
+                resultText.textString = diff;
+                resultText.emphasizeRegex(/^-.*/gm, {backgroundColor: Color.red, color: Color.white});
+                resultText.emphasizeRegex(/^\+.*/gm, {backgroundColor: Color.green, color: Color.white});
+                thenDo && thenDo(null, diff);
+            });
+        } else {
+            var patch = JsDiff.createPatch("foo", stringA, stringB);
+            thenDo && thenDo(null, patch);
+        }
     },
     diffWithJsDiff: function diffWithJsDiff(stringA, stringB, options, thenDo) {
         var diffLibURL = URL.codeBase.withFilename("lib/jsdiff/jsdiff.js").toString();

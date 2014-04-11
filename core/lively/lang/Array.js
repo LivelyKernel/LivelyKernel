@@ -553,7 +553,17 @@ Object.extend(Array.prototype, {
         // select every element in this for which arr's element is truthy
         // Example: [1,2,3].mask([false, true, false]) => [2]
         return this.select(function(_, i) { return !!arr[i]; });
+    },
+
+    shuffle: function() {
+        var unusedIndexes = Array.range(0, this.length-1);
+        return this.reduce(function(shuffled, ea, i) {
+            var shuffledIndex = unusedIndexes.splice(Math.round(Math.random() * (unusedIndexes.length-1)), 1);
+            shuffled[shuffledIndex] = ea;
+            return shuffled;
+        }, Array(this.length));
     }
+
 });
 
 Object.extend(Array.prototype, {

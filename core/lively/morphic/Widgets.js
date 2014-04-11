@@ -359,6 +359,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         var items = $super();
         items.push(['open as canvas morph', function() { lively.morphic.CanvasMorph.fromImageMorph(this).openInHand(); }.bind(this)]);
         items.push(['set to original extent', this.setNativeExtent.bind(this)]);
+        items.push(['resample image to fit bounds', this.resampleImageToFitBounds.bind(this)]);
         items.push(['inline image data', this.convertToBase64.bind(this)]);
         return items;
     },
@@ -409,7 +410,15 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
                 });
             });
         }
+    },
+
+    resampleImageToFitBounds: function() {
+        var ext = this.getExtent();
+        var canvasMorph = new lively.morphic.CanvasMorph(ext);
+        canvasMorph.getContext().drawImage(this.renderContext().imgNode, 0, 0, ext.x, ext.y);
+        this.setImageURL(canvasMorph.toDataURI(), true);
     }
+
 });
 Object.extend(lively.morphic.Image, {
     fromURL: function(url, optBounds) {

@@ -447,11 +447,8 @@ Config.addOptions(
     ["touchBeMouse", UserAgent.isTouch]
 ],
 
-'lively.morphic.Debugging', [
-    ["captureThatOnAltClick", true, 'Alt/Option click assigns morph to "that" pointer.'],
+'lively.debugging', [
     ["ignoreAdvice", false, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
-    ["showLivelyConsole", false, "Open up our console"],
-    ["debugExtras", false, "Enable advanced debugging options"],
     ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
     ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html", "Where to report bugs"]
 ],

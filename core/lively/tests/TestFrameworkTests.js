@@ -498,13 +498,6 @@ TestCase.subclass('lively.tests.TestFrameworkTests.RememberStackTest', {
         this.b(1);
     },
 
-    // testOpenStackViewer: function() {
-    // 	Config.debugExtras = true;
-    // 	var result = this.debugTest("testError");
-    // 	new StackViewer(this, result.err.stack).openIn(lively.morphic.World.current(), pt(1,1));
-    // 	Config.debugExtras = false;
-    // },
-
     testReturnCurrentContextWhenFail: function() {
         var testCase = new this.constructor();
         var originalSource = testCase.a.toString();

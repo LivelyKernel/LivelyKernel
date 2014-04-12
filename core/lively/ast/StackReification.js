@@ -83,6 +83,10 @@ Object.extend(lively.ast.StackReification, {
     enableDebugSupport: function(astRegistry) {
         // FIXME currently only takes care of Array
         try {
+            if (!this.hasOwnProperty('configOption')) {
+                this.configOption = lively.Config.enableDebuggerStatements;
+                lively.Config.enableDebuggerStatements = true;
+            }
             var replacements = lively.ast.StackReification.debugReplacements;
             for (var method in replacements.Array) {
                 if (!replacements.Array.hasOwnProperty(method)) continue;
@@ -98,6 +102,10 @@ Object.extend(lively.ast.StackReification, {
     },
 
     disableDebugSupport: function() {
+        if (this.hasOwnProperty('configOption')) {
+            lively.Config.enableDebuggerStatements = this.configOption;
+            delete this.configOption;
+        }
         var replacements = lively.ast.StackReification.debugReplacements;
         for (var method in replacements.Array) {
             var spec = replacements.Array[method],

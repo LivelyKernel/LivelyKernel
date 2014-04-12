@@ -3488,7 +3488,7 @@ Object.subclass('lively.morphic.TextEmphasis',
     asSpec: function() {
         var spec = {};
         Properties.forEachOwn(this.styleAttributes, function(name, attr) {
-            var val = attr.get.call(this);
+            var val = this.hasOwnProperty(name) ? attr.get.call(this) : undefined;
             if (val !== undefined) spec[name] = val;
         }, this);
         return spec;

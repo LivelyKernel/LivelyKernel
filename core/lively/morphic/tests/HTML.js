@@ -155,7 +155,7 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.Positioning',
         this.worldExtent = world.getExtent();
         this.worldScale = world.getScale();
         this.scroll = world.getScrollOffset();
-        Global.scrollTo(pt(0,0));
+        Global.scrollTo(0,0);
         thenDo.delay(0);
     },
     tearDown: function() {

@@ -562,6 +562,34 @@ Object.extend(Array.prototype, {
             shuffled[shuffledIndex] = ea;
             return shuffled;
         }, Array(this.length));
+    },
+
+    histogram: function(binSpec) {
+        var data = this;
+
+        if (typeof binSpec === 'undefined' || typeof binSpec === 'number') {
+            var binNumber = binSpec || (function sturge() {
+                return Math.ceil(Math.log(data.length) / Math.log(2) + 1);
+            })(data);
+            var binSize = Math.ceil(Math.round(data.length / binNumber));
+            return Array.range(0, binNumber-1).map(function(i) {
+                return data.slice(i*binSize, (i+1)*binSize);
+            });
+        } else if (binSpec instanceof Array) {
+            // bins specifies n threshold values that will create n-1 bins.
+            // Each data value d is placed inside a bin i if:
+            // threshold[i] >= d && threshold[i+1] < d
+            var thresholds = binSpec;
+            return data.reduce(function(bins, d) {
+                if (d < thresholds[1]) { bins[0].push(d); return bins; }
+                for (var i = 1; i < thresholds.length; i++) {
+                    if (d >= thresholds[i] && (!thresholds[i+1] || d <= thresholds[i+1])) {
+                        bins[i].push(d); return bins;
+                    }
+                }
+                throw new Error(Strings.format('Histogram creation: Cannot group data %s into thresholds %o', d, thresholds));
+            }, Array.range(1,thresholds.length).map(function() { return []; }))
+        }
     }
 
 });

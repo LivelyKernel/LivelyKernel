@@ -429,6 +429,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervalTest', {
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
+
     testWithout: function() {
         var arr = ["a"];
         this.assertEqualState([], arr.without("a"));
@@ -436,12 +437,14 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         delete arr[0];
         this.assertEqualState([], arr.without("a"));
     },
+
     testMutableCompact: function() {
         var arr = ["a", "b", "c", undefined];
         delete arr[1];
         arr.mutableCompact();
         this.assertEqualState(["a", "c", undefined], arr);
     },
+
     testMin: function() {
         var arr = [{x:2,y:12},{x:5,y:6},{x:9,y:4}];
         this.assertEquals(2, arr.pluck('x').min());
@@ -449,6 +452,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertEqualState({x:2,y:12}, arr.min(function(ea) { return ea.x }));
         this.assertEqualState({x:9,y:4}, arr.min(function(ea) { return ea.y }));
     },
+
     testMax: function() {
         var arr = [{x:2,y:12},{x:5,y:6},{x:9,y:4}];
         this.assertEquals(9, arr.pluck('x').max());
@@ -456,11 +460,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertEqualState({x:9,y:4}, arr.max(function(ea) { return ea.x }));
         this.assertEqualState({x:2,y:12}, arr.max(function(ea) { return ea.y }));
     },
+
     testInspect: function() {
         var obj = {a: 23, inspect: function() { return "<" + this.a + ">"; }};
         var arr = ["foo", obj, 42];
         this.assertEquals('[foo, <23>, 42]', arr.inspect());
     },
+
     testSwap: function() {
         var arr = ['a', 'b', 'c', 'd', 'e'];
         arr.swap(1,4);
@@ -468,6 +474,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         arr.swap(0, -1)
         this.assertEquals(arr, ['b', 'e', 'c', 'd', 'a']);
     },
+
     testRotate: function() {
         var arr = ['a', 'b', 'c', 'd', 'e'];
         arr = arr.rotate();
@@ -475,6 +482,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         arr = arr.rotate(2);
         this.assertEquals(arr, ['d', 'e', 'a', 'b', 'c']);
     },
+
     testGroupBy: function() {
         var elts = [{a: 'foo', b: 1},
                     {a: 'bar', b: 2},
@@ -498,12 +506,14 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         var mapGroupResult = group.map(function(groupName, groupEl) { return groupEl.b; });
         this.assertEqualState({foo: [1,3,5], bar: [2,6], baz: [4]}, mapGroupResult, 'mapGroupResult');
     },
+
     testUniqBy: function() {
         var arr = [{x:33}, {x: 1}, {x: 2}, {x: 3}, {x: 99}, {x: 1}, {x: 2}, {x:1}, {x: 1}],
             result = arr.uniqBy(function(a,b) { return a.x === b.x; }).pluck('x'),
             expected = [33, 1,2,3,99];
         this.assertEquals(expected, result);
     },
+
     testMask: function() {
         var arr = Array.range(1,4),
             mask = [false, true, false, true];
@@ -542,8 +552,24 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
             sizes = [1,4,2,3];
         this.assertRaises(function() { sizes.batchify(batchConstrained); },
             'batchify endless recursion?');
-    }
+    },
 
+    testHistogram: function(binSize) {
+        var data = [0,1,2,3,7,2,1,3,9];
+
+        var hist = data.histogram();
+        this.assertEquals([[0,1], [2,3], [7,2], [1,3], [9]], hist);
+
+        var hist = data.histogram(3); // 3 bins
+        this.assertEquals([[0,1,2],[3,7,2],[1,3,9]], hist, Strings.print(hist));
+
+        var hist = data.histogram([0,3,6]); // 3 bins
+        this.assertEquals([[0,1,2,2,1],[3,3],[7,9]], hist, Strings.print(hist));
+
+        var data = [1,2,3,4];
+        var hist = data.histogram([0,3,6]); // 3 bins
+        this.assertEquals([[1,2],[3,4],[]], hist, Strings.print(hist));
+    }
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.GridTest', {

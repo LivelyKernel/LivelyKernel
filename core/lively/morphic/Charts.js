@@ -3032,17 +3032,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
                 _this.addElement(datum, canvasMorph);
             });
         } else if (Object.isObject(data) && data.morphs) {
-            var margin = 20;
-            if (data.scaleX) {
-                this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x - 2 * margin, data.scaleX);
-                this.scaleX.setPosition(this.innerBounds().bottomLeft().addPt(pt(margin, -margin)));
-                canvasMorph.addMorph(this.scaleX);
-            }
-            if (data.scaleY) {
-                this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y - 2 * margin, data.scaleY);
-                this.scaleY.setPosition(pt(margin, margin));
-                canvasMorph.addMorph(this.scaleY);
-            }
+            this.addScales(data, canvasMorph);
             data.morphs.each(function(datum){
                 _this.addElement(datum, canvasMorph);
             });
@@ -3052,6 +3042,20 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         this.addMorph(canvasMorph);
 
         return data;
+    },
+    addScales: function(data, container) {
+        var margin = 92;
+
+        if (data.scaleX) {
+            this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x - 2 * margin, data.scaleX);
+            this.scaleX.setPosition(this.innerBounds().bottomLeft().addPt(pt(margin, -margin)));
+            container.addMorph(this.scaleX);
+        }
+        if (data.scaleY) {
+            this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y - 2 * margin, data.scaleY);
+            this.scaleY.setPosition(pt(margin, margin));
+            container.addMorph(this.scaleY);
+        }
     },
 
     addElement: function(element, container) {
@@ -4700,15 +4704,35 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         } else if (dimension == "y") {
             $super([pt(0, length), pt(0, 0)]);
         }
-
+        
+        this.addDescription();
         this.createArrowHeadEnd();
     },
-    addPitchlines: function(min, max) {
-        var tickCount = Math.ceil(this.length / 20) - 1;
-        var tickRange = this.calculateTickRange(max - min, tickCount);
+    addDescription: function() {
+        var description = lively.morphic.Text.makeLabel(this.property);
         
-        this.min = tickRange * Math.floor(min / tickRange);
-        this.max = tickRange * Math.ceil(1 + max / tickRange);
+        var _this = this;
+        if (this.dimension == "x") {
+            setTimeout(function () {
+                description.setOrigin(pt(description.getBounds().right() / 2, 0));
+                description.setPosition(pt(_this.getExtent().x / 2, _this.getExtent().y).addPt(pt(0, 25)));
+            }, 0);
+        } else if (this.dimension == "y") {
+            setTimeout(function () {
+                description.setOrigin(pt(description.getBounds().right() / 2, 0));
+                description.rotateBy(-Math.PI / 2);
+                description.setPosition(pt(-70, _this.getExtent().y / 2));
+            }, 0);
+        }
+        
+        this.addMorph(description);
+    },
+    addPitchlines: function() {
+        var tickCount = Math.ceil(this.length / 20) - 1;
+        var tickRange = this.calculateTickRange(this.max - this.min, tickCount);
+        
+        this.min = tickRange * Math.floor(this.min / tickRange);
+        this.max = tickRange * Math.ceil(1 + this.max / tickRange);
         
         if (this.fixedMin != undefined)
             this.fixedMin = this.min;
@@ -4718,13 +4742,16 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         // fight rounding errors
         var epsilon = 0.01;
         for (var absValue = 0, i = 0; absValue < (this.length - epsilon); absValue += this.length / tickCount, i++) {
-            this.addPitchlineAt(absValue, i % 5 == 0);
+            this.addPitchlineAt(absValue, this.min + i * tickRange, i % 5 == 0);
         }
         console.log("tickRange: " + tickRange + " lower: " + this.min + " upper: " + this.max);
     },
-    addPitchlineAt: function(absValue, isMajor) {
+    addPitchlineAt: function(absValue, value, isMajor) {
         var pitchlineLength = isMajor ? 10 : 5;
         var borderWidth = this.getBorderWidth();
+        if (isMajor) {
+            this.addLabel(absValue, value, pitchlineLength);
+        }
         if (this.dimension == "x") {
             var line = new lively.morphic.Path([
                 pt(absValue, 0),
@@ -4738,6 +4765,45 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         }
         this.addMorph(line);
     },
+    addLabel: function(absValue, value, pitchlineLength) {
+        var pitchlineLength = pitchlineLength || 10;
+        var borderWidth = this.getBorderWidth();
+        var label = lively.morphic.Text.makeLabel((value || 0).toLocaleString());
+        if (this.dimension == "x") {
+            setTimeout(function () {
+                label.setOrigin(pt(label.getBounds().right() / 2, 0));
+                label.setPosition(pt(absValue, pitchlineLength));
+            }, 0);
+        } else if (this.dimension == "y") {
+            var _this = this;
+            setTimeout(function () {
+                label.setOrigin(pt(label.getBounds().right(), label.getBounds().bottom() / 2));
+                label.setPosition(pt(-pitchlineLength, _this.length - absValue - borderWidth))
+            }, 0);
+        }
+        this.addMorph(label);
+        return label;
+    },
+    addMarker: function(evt) {
+        var morph = evt.getTargetMorph();
+        var labelValue = morph["property" + this.dimension.toUpperCase()];
+        if (this.dimension == "x") {
+            var absValue = morph.getPosition().x - this.getPosition().x;
+        } else if (this.dimension == "y") {
+            var absValue = this.length - (morph.getPosition().y - this.getPosition().y);
+        }
+        this.marker = this.addLabel(absValue, labelValue);
+        this.marker.setFill(Color.white);
+        this.marker.setBorderColor(Color.rgbHex("#f0ad4e"));
+        this.marker.setBorderWidth(1);
+        this.marker.setBorderRadius(5);
+    },
+    removeMarker: function() {
+        if (this.marker) {
+            this.marker.remove();
+        }
+    },
+
     calculateTickRange: function(range, tickCount) {
         var unroundedTickSize = range /(tickCount - 1);
         var x = Math.ceil(Math.log(unroundedTickSize, 10) / Math.LN10 - 1);
@@ -4748,13 +4814,15 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     
     update: function(data) {
         this.length = this.getExtent()[this.dimension];
+        
         var values = data.pluck(this.property).filter(function (ea) { return ea !== undefined});
-        var max = (this.fixedMax != undefined) ? this.fixedMax : Math.max.apply(null, values);
-        var min = (this.fixedMin != undefined) ? this.fixedMin : Math.min.apply(null, values);
+        this.max = (this.fixedMax != undefined) ? this.fixedMax : Math.max.apply(null, values);
+        this.min = (this.fixedMin != undefined) ? this.fixedMin : Math.min.apply(null, values);
 
-        if (max != this.max || min != this.min) {
+        if (!this.hasPitchlines) {
+            this.hasPitchlines = true;
             // addPitchlines will set this.min and this.max
-            this.addPitchlines(min, max);
+            this.addPitchlines();
         }
             
         this.positionMorphs(data, this.min, this.max);
@@ -4767,12 +4835,41 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
             var absValue = relValue * _this.length;
             var scalePosition = _this.getPosition();
             var newPosition = ea.morph.getPosition();
-            if (_this.dimension == "x")
+            if (_this.dimension == "x") {
+                ea.morph.propertyX = ea[_this.property];
                 newPosition.x = absValue + scalePosition.x;
-            else
+                if (!ea.morph.scaleXListenersAttached) {
+                    _this.attachListener(ea.morph, absValue);
+                }
+            } else {
+                ea.morph.propertyY = ea[_this.property];
                 newPosition.y = _this.length - absValue + scalePosition.y;
+                if (!ea.morph.scaleYListenersAttached) {
+                    _this.attachListener(ea.morph, absValue);
+                }
+            }
             ea.morph.setPosition(newPosition);
         });
+    },
+    attachListener: function(morph, absValue) {
+        // if (this.dimension == "x") {
+        //     morph.scaleXListenersAttached = true;
+        // } else if (this.dimension == "y") {
+        //     morph.scaleYListenersAttached = true;
+        // }
+        var _this = this;
+        var oldMouseOver = morph.onMouseOver;
+        morph.onMouseOver = function (evt) {
+            if (oldMouseOver)
+                oldMouseOver.apply(morph, arguments);
+            _this.addMarker(evt);
+        }
+        var oldMouseOut = morph.onMouseOut;
+        morph.onMouseOut = function (evt) {
+            if (oldMouseOut)
+                oldMouseOut.apply(morph, arguments);
+            _this.removeMarker(evt);
+        }
     },
     createArrow: function () {
         var arrowHead = new lively.morphic.Path([pt(0,0), pt(10,4.5), pt(0,9)]);

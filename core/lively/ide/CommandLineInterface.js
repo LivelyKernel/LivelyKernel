@@ -693,15 +693,16 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (path.length && !path.endsWith('/')) path += '/';
         var rootDirectory = lively.ide.CommandLineInterface.rootDirectory,
             fullPath = rootDirectory ? rootDirectory + path : path;
-        if (!fullPath.length) fullPath = '.';
+        if (!fullPath.length) fullPath = './core/';
         if (fullPath.endsWith('/')) fullPath = fullPath.slice(0,-1);
         var excludes = "-iname " + lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname '),
-            baseCmd = 'find %s ( %s ) -prune -o \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -exec grep -inH %s "{}" ; ',
+            baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -print0 | xargs -0 grep -inH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
             platform = lively.ide.CommandLineInterface.getServerPlatform();
         if (platform !== 'win32') {
             baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
         }
-        var cmd = Strings.format(baseCmd, fullPath, excludes, string);
+        var charsBefore = 80, charsAfter = 80;
+        var cmd = Strings.format(baseCmd, fullPath, excludes, charsBefore, string, charsAfter);
         lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
             if (r.wasKilled()) return;
             lively.ide.CommandLineSearch.lastGrep = null;
@@ -789,7 +790,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             commandString = timeFormatFix + Strings.format(
                 "env TZ=GMT LANG=en_US.UTF-8 "
               + "find %s %s \\( %s \\) -prune -o "
-              + "%s %s -exec ls -lLd \"$timeformat\" {} \\;",
+              + "%s %s | xargs ls -lLd \"$timeformat\"",
                 rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth);
         return commandString;
     },

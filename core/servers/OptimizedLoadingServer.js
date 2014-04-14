@@ -19,7 +19,7 @@ function determineCoreFiles() {
         'core/lively/ModuleSystem.js'
     ];
     // bootstrap.js - bootstrapModules
-    var bootstrapModules = ['lively.ChangeSets', 'lively.lang.Closure', 'lively.lang.UUID', 'lively.bindings', 'lively.Main'];
+    var bootstrapModules = ['lively.ChangeSets', 'lively.lang.Closure', 'lively.bindings', 'lively.Main'];
     // defaultconfig.js - modulesBeforeWorldLoad
     bootstrapModules.push('lively.morphic.HTML');
     // defaultconfig.js - modulesOnWorldLoad

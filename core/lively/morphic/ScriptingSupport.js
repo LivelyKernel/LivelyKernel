@@ -33,7 +33,11 @@ lively.morphic.Morph.addMethods(
             return this.getMorphNamed(name) || this.getBreadthFirstUpwards(name);
         } catch(e) {
             if (e.constructor == RangeError && e.message == "Maximum call stack size exceeded") {
-                e.message = "'get' failed due to a stack overflow. The most likely source of the problem is using 'get' as part of toString, because 'get' calls 'getBreadthFirstUpwards', which calls 'toString' on this. Try using 'getMorphNamed' instead, which only searches in this' children.";
+                e = new Error("'get' failed due to a stack overflow. The most\n"
+                    + "likely source of the problem is using 'get' as part of\n"
+                    + "toString, because 'get' calls 'getBreadthFirstUpwards', which\n"
+                    + "calls 'toString' on this. Try using 'getMorphNamed' instead,\n"
+                    + "which only searches in this' children.");
             }
             throw e
         }
@@ -41,9 +45,14 @@ lively.morphic.Morph.addMethods(
     getMorphNamed: function (name) {
         if (name == "") return null;
         if (!this.submorphs) return null;
+        var isRe = Object.isRegExp(name);
         for (var i = 0; i < this.submorphs.length; i++) {
             var morph = this.submorphs[i];
-            if (morph.getName() === name || morph.toString() === name) return morph;
+            if (isRe) {
+                if (name.test(morph.getName()) || name.test(morph.toString())) return morph;
+            } else {
+                if (morph.getName() === name || morph.toString() === name) return morph;
+            }
         }
         for (var i = 0; i < this.submorphs.length; i++)  {
             var morph = this.submorphs[i].getMorphNamed(name);
@@ -53,17 +62,27 @@ lively.morphic.Morph.addMethods(
     },
     getBreadthFirstUpwards: function (name) {
         // prioritize this over other siblings
-        if (this.getName() === name || this.toString() === name) return this;
-        
+        var isRe = Object.isRegExp(name);
+        if (isRe) {
+            if (name.test(this.getName()) || name.test(this.toString())) return this;
+        } else {
+            if (this.getName() === name || this.toString() === name) return this;
+        }
+
         var owner = this.owner;
         if (!owner) return null;
         for (var i = 0; i < owner.submorphs.length; i++) {
             var morph = owner.submorphs[i];
             if (morph === this) continue;
-            if (morph.getName() === name || morph.toString() === name) return morph;
+            if (isRe) {
+                if (name.test(morph.getName()) || name.test(morph.toString())) return morph;
+            } else {
+                if (morph.getName() === name || morph.toString() === name) return morph;
+            }
             var foundInMorph = morph.getMorphNamed(name);
             if (foundInMorph) return foundInMorph;
         }
+
         return this.owner.getBreadthFirstUpwards(name);
     },
 },

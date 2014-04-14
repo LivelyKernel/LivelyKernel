@@ -1,7 +1,9 @@
 module('lively.morphic.tests.ScriptingSupport').requires('lively.TestFramework').toRun(function() {
 
-TestCase.subclass('lively.morphic.tests.ScriptingSupport.Morph', 'testing', {
-    test01get: function() {
+TestCase.subclass('lively.morphic.tests.ScriptingSupport.Morph',
+'testing', {
+
+    test01Get: function() {
         var morph = new lively.morphic.Morph(),
             content = new lively.morphic.Morph(),
             thrown = false;
@@ -20,6 +22,15 @@ TestCase.subclass('lively.morphic.tests.ScriptingSupport.Morph', 'testing', {
             this.assert(e.message == "'get' failed due to a stack overflow. The most likely source of the problem is using 'get' as part of toString, because 'get' calls 'getBreadthFirstUpwards', which calls 'toString' on this. Try using 'getMorphNamed' instead, which only searches in this' children.", "wrong error thrown")
         }
     },
+
+    test02GetSupportsRegexp: function() {
+        var morph = new lively.morphic.Morph(),
+            content = new lively.morphic.Morph();
+        morph.addMorph(content);
+        content.setName('content');
+        this.assertIdentity(content, morph.get(/ent$/));
+        this.assert(!morph.get(/^ent/));
+    }
 })
 
 }) // end of module

@@ -13,6 +13,7 @@ Object.subclass('lively.morphic.Morph',
 },
 'initializing', {
     idCounter: 0,
+
     initialize: function(shape) {
         this.submorphs = [];
         this.scripts = [];
@@ -21,6 +22,7 @@ Object.subclass('lively.morphic.Morph',
         this.setNewId();
         this.applyStyle(this.getStyle());
     },
+
     setNewId: function(optId) {
         if (this.derivationIds === undefined) this.derivationIds = [];
         if (this.id) this.derivationIds.push(this.id);
@@ -28,7 +30,7 @@ Object.subclass('lively.morphic.Morph',
     },
 
     defaultShape: function(optBounds) {
-        return new lively.morphic.Shapes.Rectangle(optBounds || new Rectangle(0,0,0,0));
+        return new lively.morphic.Shapes.Rectangle(optBounds || new lively.Rectangle(0,0,0,0));
     },
 
     defaultRenderContext: function() { return new lively.morphic.HTML.RenderContext() }
@@ -222,9 +224,11 @@ Object.subclass('lively.morphic.Morph',
 
 },
 'accessing -- morphic relationship', {
+
     world: function() {
         return this.owner ? this.owner.world() : null;
     },
+
     hand: function() {
         var world = this.world();
         return world && world.firstHand();
@@ -288,6 +292,7 @@ Object.subclass('lively.morphic.Morph',
 
         return morph;
     },
+
     withAllSubmorphsDo: function(func, context, depth) {
         if (!depth) depth = 0;
         var result = [func.call(context || Global, this, depth)];
@@ -296,6 +301,7 @@ Object.subclass('lively.morphic.Morph',
         }
         return result;
     },
+
     withAllSubmorphsSelect: function(func, context, depth) {
         if (!depth) depth = 0;
         var res = [];
@@ -305,6 +311,7 @@ Object.subclass('lively.morphic.Morph',
         }
         return res;
     },
+
     selectSubmorphs: function(spec) {
         // return all submorphs (recursively) that fulfill spec
         var props = Properties.own(spec);
@@ -488,7 +495,7 @@ Object.subclass('lively.morphic.Morph',
         if (!funcOrString) return false;
         var func = Function.fromString(funcOrString);
         return func.asScriptOf(this, optName, optMapping);
-    },
+    }
 
 },
 'scripting', {
@@ -518,6 +525,7 @@ Object.subclass('lively.morphic.Morph',
     suspendSteppingAll: function() {
         this.withAllSubmorphsDo(function(ea) { ea.suspendStepping() });
     },
+
     resumeStepping: function() {
         this.scripts.invoke('resume');
     },
@@ -525,6 +533,7 @@ Object.subclass('lively.morphic.Morph',
     resumeSteppingAll: function() {
         this.withAllSubmorphsDo(function(ea) { ea.scripts.invoke('resume') });
     },
+
     removeEqualScripts: function(script) {
         var equal = this.scripts.select(function(ea) { return ea.equals(script) });
         this.stopScripts(equal);
@@ -539,10 +548,12 @@ Object.subclass('lively.morphic.Morph',
         for (var i = 1; i<=nSteps; i++) { loc = loc.addPt(delta); path.unshift(loc); }
         this.animatedFollowPath(path, msPer, callBackFn, scaleDelta);
     },
+
     animatedFollowPath: function(path, msPer, callBackFn, scaleDelta) {
         var spec = {path: path.clone(), callBack: callBackFn, scaleDelta: scaleDelta};
         spec.action = this.startStepping(msPer, 'animatedPathStep', spec);
     },
+
     animatedPathStep: function(spec, scaleDelta) {
         if (spec.path.length >= 1){
             this.setScale(this.getScale() - spec.scaleDelta);
@@ -551,7 +562,7 @@ Object.subclass('lively.morphic.Morph',
         if (spec.path.length >= 1) return
         this.stopSteppingScriptNamed('animatedPathStep');
         spec.callBack.call(this);
-    },
+    }
 },
 'styling', {
     getStyle: function() {
@@ -653,18 +664,21 @@ Object.subclass('lively.morphic.Morph',
 
 },
 'debugging', {
+
     toString: function() {
         var name = this.getName();
-        return '<' + this.constructor.type + '#' + (this.id+"").truncate(8) + (name ? ' - ' + name : '') + '>'
+        return Strings.format('<%s#%s%s>',
+            this.constructor.type,
+            String(this.id).truncate(8),
+            name ? ' - ' + name : '');
     },
+
     isAncestorOf: function(aMorph) {
         // check if aMorph is somewhere in my submorph graph
-        var found = false;
-        this.withAllSubmorphsDo(function(grandchild) {
-            if (grandchild === aMorph) {
-                found = true;}});
-        return found;
-    },
+        return this.withAllSubmorphsDetect(function(ea) {
+            return ea === aMorph; });
+    }
+
 },
 'jquery', {
     jQueryNode: function() {

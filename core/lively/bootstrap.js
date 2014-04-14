@@ -1002,7 +1002,6 @@
             var requiredModulesForWorldStart = [
                 'lively.ChangeSets',
                 'lively.lang.Closure',
-                'lively.lang.UUID',
                 'lively.bindings',
                 'lively.Main'];
 
@@ -1275,7 +1274,6 @@
             'lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
         var bootstrapModules = [
             'lively.lang.Closure',
-            'lively.lang.UUID',
             'lively.bindings',
             'lively.Main'
         ];

@@ -266,7 +266,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         this.showAll = false;
     }
 },
-'accssing', {
+'accessing', {
     childNodes: function() {
         var acceptedTypes = ['klassDef', 'klassExtensionDef', 'functionDef', 'objectDef',
                              'copDef', 'traitDef', 'buildspecDef' /*,'propertyDef'*/],
@@ -297,6 +297,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         this.loadModule();
         return this.target.getFileString();
     },
+
     getSourceCodeMode: function() {
         var ff = this.browser.selectedNode().target;
         var fileName = ff.getFileName && ff.getFileName();
@@ -304,7 +305,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         if (!fileName) return 'text';
         if (fileName.match(/\.js$/)) return 'javascript';
         return 'text';
-    },
+    }
 
 },
 'conversion', {
@@ -795,9 +796,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         return string;
     },
 
-    getSourceCodeMode: function() {
-        return 'javascript:LabeledStatement';
-    }
+    getSourceCodeMode: function() { return 'javascript:LabeledStatement'; }
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.FunctionFragmentNode', {
@@ -855,11 +854,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CopRefineFragmentNode', {
         }.bind(this));
         this.statusMessage('Successfully evaled ' + this.asString(), Color.green, 3)
         return true;
-    },
-
-
+    }
 
 });
+
 lively.ide.FileFragmentNode.subclass('lively.ide.CopMemberFragmentNode', {
 
     isMemberNode: true,
@@ -869,6 +867,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CopMemberFragmentNode', {
         return true;
     },
 
+    getSourceCodeMode: function() { return 'javascript:LabeledStatement'; }
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.TraitFragmentNode', {
@@ -905,6 +904,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.TraitElemFragmentNode', {
         return true;
     },
 
+    getSourceCodeMode: function() { return 'javascript:LabeledStatement'; }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -912,24 +912,15 @@ lively.ide.FileFragmentNode.subclass('lively.ide.TraitElemFragmentNode', {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteCSSFragmentNode', {
 
-    menuSpec: function($super) {
-        return [];
-    },
+    menuSpec: function($super) { return []; },
 
-    childNodes: function() {
-        return [];
-    },
+    childNodes: function() { return []; },
 
-    evalSource: function(newSource) {
-        return false;
-    },
+    evalSource: function(newSource) { return false; },
 
     getSourceCodeMode: function() { return 'css'; },
 
-    onSelect: function($super) {
-        this.browser.currentModuleName = null;
-        $super();
-    }
+    onSelect: function($super) { this.browser.currentModuleName = null; $super(); }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -958,9 +949,7 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteSnippet', {
         return menu;
     },
 
-    childNodes: function() {
-        return [];
-    },
+    childNodes: function() { return []; },
 
     evalSource: function(newSource) {
         var url = this.target.fileURL();

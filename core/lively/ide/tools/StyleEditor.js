@@ -1021,7 +1021,6 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
 
     },
         setBorderMode: function setBorderMode(override) {
-
         if (this.target) {
 
         var direct =[
@@ -1032,18 +1031,10 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
             "StyleBorderColorField",
             "borderRadiusSlider",
             "borderWidthSlider",
-            "borderStyleList"
-        ];
-        var css =[
-            "StyleEditorBorderMsg"
-        ];
+            "borderStyleList"];
+        var css =["StyleEditorBorderMsg"];
 
-        if (override){
-            this.setMorphsVisibility(direct, css);
-        }
-        else {
-            this.setMorphsVisibility(css, direct);
-        }
+        this.setMorphsVisibility(override ? direct : css, override ? css: direct);
 
         if (this.target.setBorderStylingMode) {
             this.target.setBorderStylingMode(!override);
@@ -1088,7 +1079,6 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
     },
         setTarget: function setTarget(morph) {
         if (this.dontUpdate || !morph) return;
-    	this.target = morph;
     	this.get('StyleFillColorField').setColor(morph.getFill());
     	this.get('StyleBorderColorField').setColor(morph.getBorderColor());
 
@@ -1134,6 +1124,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
             if (morph.isText) {
                 this.addTextStylerFor(morph);
             }
+        	this.target = morph;
     },
         addTextStylerFor: function addTextStylerFor(morph) {
 

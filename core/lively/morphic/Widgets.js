@@ -3058,29 +3058,28 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     isEpiMorph: true,
     doNotRemove: true,
     propagate: true,
-    isSelection: true,
-
+    isSelection: true
 },
 'initializing', {
+
     initialize: function($super, initialBounds) {
-        $super(initialBounds);
-        this.applyStyle(this.style);
         this.selectedMorphs = [];
         this.selectionIndicators = [];
+        $super(initialBounds);
+        this.applyStyle(this.style);
         this.setBorderStylingMode(true);
         this.setAppearanceStylingMode(true);
-    },
+    }
+
 },
 'propagation', {
+
     withoutPropagationDo: function(func) {
-        // emulate COP
         this.propagate = false;
-        func.call(this);
-        this.propagate = true;
+        try { func.call(this); } finally { this.propagate = true; }
     },
-    isPropagating: function() {
-        return this.propagate
-    },
+
+    isPropagating: function() { return !!this.propagate; },
 },
 'menu', {
     morphMenuItems: function($super) {
@@ -3088,7 +3087,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         if (this.selectedMorphs.length === 1) {
             var self = this;
             items.push(["open ObjectEditor for selection", function(){
-                $world.openObjectEditorFor(self.selectedMorphs[0])
+                $world.openObjectEditorFor(self.selectedMorphs[0]);
             }])
         }
         items.push(["align vertically", this.alignVertically.bind(this)]);
@@ -3113,12 +3112,13 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         var selOwner = this.owner, copied;
         try { copied = this.addSelectionWhile($super); } finally { this.isEpiMorph = true }
         this.reset();
-        this.selectedMorphs = copied.selectedMorphs.clone();
+        this.selectMorphs(copied.selectedMorphs.clone());
         copied.reset();
         return this;
     },
 },
 'selection handling', {
+
     addSelectionWhile: function(func) {
         // certain operations require selected morphs to be added to selection frame
         // e.g. for transformations or copying
@@ -3138,46 +3138,54 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     },
 },
 'removing', {
+
     remove: function() {
         if (this.isPropagating())
             this.selectedMorphs.invoke('remove');
         this.removeOnlyIt();
     },
+
     removeOnlyIt: function() {
         if (this.myWorld == null) {
             this.myWorld = this.world();
         }
-        // this.myWorld.currentSelection = null;
         lively.Class.getSuperPrototype(this).remove.call(this);
-    },
+    }
 },
 'accessing', {
 
     world: function($super) {
         return $super() || this.owner || this.myWorld
-    },
+    }
+
+},
+'isolating effects', {
 
     adaptBorders: function($super) {
         return this.withoutPropagationDo($super);
     },
 
+    adjustOrigin: function($super, origin) {
+        this.withoutPropagationDo(function() { return $super(origin); });
+    }
+
+},
+'propagating effects -- morphic', {
+
     setBorderWidth: function($super, width) {
         if (!this.selectedMorphs  || !this.isPropagating()) $super(width);
-        else this.selectedMorphs.invoke('withAllSubmorphsDo',
-            function(ea) { ea.setBorderWidth(width)});
+        else this.applyStyle({fillOpacity: width});
     },
 
     setFill: function($super, color) {
         if (!this.selectedMorphs || !this.isPropagating())
             $super(color);
-        else this.selectedMorphs.invoke('withAllSubmorphsDo',
-            function(ea) { ea.setFill(color)});
+        else this.applyStyle({fill: color});
     },
 
     setBorderColor: function($super, color) {
         if (!this.selectedMorphs || !this.isPropagating())  $super(color);
-        else this.selectedMorphs.invoke('withAllSubmorphsDo',
-            function(ea) { ea.setBorderColor(color)});
+        else this.applyStyle({borderColor: color});
     },
 
     shapeRoundEdgesBy: function($super, r) {
@@ -3187,31 +3195,42 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     },
 
     setFillOpacity: function($super, op) {
-        if (!this.selectedMorphs  || !this.isPropagating())  $super(op);
-        else this.selectedMorphs.invoke('withAllSubmorphsDo',
-            function(ea) { ea.setFillOpacity(op)});
+        if (!this.selectedMorphs  || !this.isPropagating()) $super(op);
+        else this.applyStyle({fillOpacity: op});
     },
 
     setStrokeOpacity: function($super, op) {
         if (!this.selectedMorphs  || !this.isPropagating()) $super(op);
-        else this.selectedMorphs.invoke('callOnAllSubmorphs',
-            function(ea) { ea.setStrokeOpacity(op)});
+        else this.applyStyle({strokeOpacity: op});
     },
 
-    setTextColor: function(c) {
-        if (!this.selectedMorphs  || !this.isPropagating()) return;
-        this.selectedMorphs.forEach( function(m) { if (m.setTextColor) m.setTextColor(c); });
-    },
+    applyStyle: function($super, style) {
+        if (!this.selectedMorphs  || !this.isPropagating()) $super(style);
+        else this.selectedMorphs.invoke('applyStyle', style);
+    }
 
-    setFontSize: function(c) {
-        if (!this.selectedMorphs  || !this.isPropagating()) return;
-        this.selectedMorphs.forEach( function(m) { if (m.setFontSize) m.setFontSize(c); });
-    },
+},
+'propagating effects -- text', {
 
-    setFontFamily: function(c) {
-        if (!this.selectedMorphs  || !this.isPropagating()) return;
-        this.selectedMorphs.forEach( function(m) { if (m.setFontFamily) m.setFontFamily(c); });
-    },
+    setFixedWidth:         function($super, val) { this.applyStyle({fixedWidth: val}); },
+    setFixedHeight:        function($super, val) { this.applyStyle({fixedHeight: val}); },
+    setFontFamily:         function($super, val) { this.applyStyle({fontFamily: val}); },
+    setFontSize:           function($super, val) { this.applyStyle({fontSize: val}); },
+    setTextColor:          function($super, val) { this.applyStyle({textColor: val}); },
+    setFontWeight:         function($super, val) { this.applyStyle({fontWeight: val}); },
+    setFontStyle:          function($super, val) { this.applyStyle({fontStyle: val}); },
+    setTextDecoration:     function($super, val) { this.applyStyle({textDecoration: val}); },
+    setPadding:            function($super, val) { this.applyStyle({padding: val}); },
+    setAlign:              function($super, val) { this.applyStyle({align: val}); },
+    setVerticalAlign:      function($super, val) { this.applyStyle({verticalAlign: val}); },
+    setLineHeight:         function($super, val) { this.applyStyle({lineHeight: val}); },
+    setDisplay:            function($super, val) { this.applyStyle({display: val}); },
+    setWhiteSpaceHandling: function($super, val) { this.applyStyle({whiteSpaceHandling: val}); },
+    setWordBreak:          function($super, val) { this.applyStyle({wordBreak: val}); },
+    setTextStylingMode:    function($super, val) { this.applyStyle({cssStylingMode: val}); }
+
+},
+'transformation', {
 
     setRotation: function($super, theta) {
         this.addSelectionWhile($super.curry(theta));
@@ -3219,19 +3238,13 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
 
     setScale: function($super, scale) {
         this.addSelectionWhile($super.curry(scale));
-    },
-    adjustOrigin: function($super, origin) {
-        this.withoutPropagationDo(function() {
-            return $super(origin)
-        });
-    },
+    }
 
 },
 'aligning', {
-    // Note: the next four methods should be removed after we have gridding, i think (DI)
+
     alignVertically: function() {
         // Align all morphs to same left x as the top one.
-//console.log("this=" + Object.inspect(this)); if(true) return;
         var morphs = this.selectedMorphs.slice(0).sort(function(m,n) {return m.getPosition().y - n.getPosition().y});
         var minX = morphs[0].getPosition().x;    // align to left x of top morph
         morphs.forEach(function(m) { m.setPosition(pt(minX,m.getPosition().y)) });
@@ -3287,6 +3300,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             x += m.innerBounds().width + separation;
         });
     },
+
     alignToGrid: function() {
         this.selectedMorphs.forEach(function(ea) {
             ea.setPosition(ea.getPosition().roundTo(10));
@@ -3303,58 +3317,65 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             }
         })
     },
+
     dropOn: function(morph) {
         this.withoutPropagationDo(function() {
-            morph.addMorph(this);
+            morph.world().addMorph(this);
             for (var i = 0; i < this.selectedMorphs.length; i++) {
                 morph.addMorph(this.selectedMorphs[i]);
             }
+            this.fitSelectionIndicators();
+            this.owner.addMorphFront(this);
         });
-    },
+    }
 
 },
 'geometry', {
+
     moveBy: function($super, delta) {
-        // Jens: I would like to express this in a layer...
-        if (this.isPropagating()) {
-            for (var i = 0; i < this.selectedMorphs.length; i++ )
-                this.selectedMorphs[i].moveBy(delta);
-        }
-        $super(delta);
+        if (this.isPropagating() && this.selectedMorphs.length) {
+            this.withoutPropagationDo(function() {
+                this.selectedMorphs.invoke('moveBy', delta);
+            });
+            this.fitSelectionIndicators();
+        } else $super(delta);
     },
+
     setPosition: function($super, pos) {
-        var delta = pos.subPt(this.getPosition())
-        // Jens: I would like to express this in a layer...
-        if (this.isPropagating() && this.selectedMorphs) {
-            for (var i = 0; i < this.selectedMorphs.length; i++ ) {
-                // alertOK("set pos move " + printStack())
-                this.selectedMorphs[i].moveBy(delta);
-            }
-        }
-        return $super(pos);
+        if (this.isPropagating() && this.selectedMorphs.length) {
+            var delta = pos.subPt(this.getPosition());
+            this.moveBy(delta)
+        } else $super(pos);
+        return pos;
     },
+
+    setExtent: function($super, ext) {
+        if (this.isPropagating() && this.selectedMorphs.length) {
+            this.selectedMorphs.invoke('resizeBy', ext.subPt(this.getExtent()));
+            this.fitSelectionIndicators();
+        } else $super(ext);
+        return ext;
+    }
 
 },
 'world', {
     reset: function() {
         this.selectedMorphs = [];
-        this.setRotation(0)
-        this.setScale(1)
-        this.removeOnlyIt();
+        this.setRotation(0);
+        this.setScale(1);
         this.removeSelectionIndicators();
         this.adjustOrigin(pt(0,0));
+        this.setExtent(pt(0,0));
+        this.submorphs.invoke('remove');
     },
 
     selectMorphs: function(selectedMorphs) {
         if (!this.owner) lively.morphic.World.current().addMorph(this);
         this.selectedMorphs = selectedMorphs;
-
         // add selection indicators for all selected morphs
         this.removeSelectionIndicators();
         selectedMorphs.forEach(function(ea) {
-            var innerBounds = ea.getTransform().inverse().transformRectToRect(ea.bounds().insetBy(-4)),
-                bounds = ea.getTransform().transformRectToRect(innerBounds),
-                selectionIndicator = new lively.morphic.Morph.makeRectangle(innerBounds);
+            var selectionIndicator = lively.morphic.Morph.makeRectangle(0,0,10,10);
             this.withoutPropagationDo(function() {
                 selectionIndicator.name = 'Selection of ' + ea;
                 selectionIndicator.isEpiMorph = true;
@@ -3367,11 +3388,24 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             this.selectionIndicators.push(selectionIndicator);
         }, this);
 
-        // resize selection morphs so ot fits selection indicators
-        var bnds = this.selectionIndicators.invoke('globalBounds'),
-            selBounds = bnds.slice(1).inject(bnds[0], function(bounds, selIndicatorBounds) {
-                return bounds.union(selIndicatorBounds); });
-        this.withoutPropagationDo(function() { this.setBounds(selBounds); });
+        this.fitSelectionIndicators();
+    },
+
+    fitSelectionIndicators: function() {
+        // resize selection morphs so that it fits selection indicators
+        if (!this.selectionIndicators.length) return;
+        this.withoutPropagationDo(function() {
+            this.selectionIndicators.forEach(function(ea) {
+                if (!ea.owner) return;
+                var bounds = ea.owner.innerBounds();
+                // var bounds = ea.owner.getTransform().inverse().transformRectToRect(ea.owner.bounds());
+                ea.setBounds(bounds.insetBy(-4));
+            });
+            var bnds = this.selectionIndicators.invoke('globalBounds'),
+                selBounds = bnds.reduce(function(bounds, selIndicatorBounds) {
+                    return bounds.union(selIndicatorBounds); });
+             this.setBounds(selBounds);
+        });
     },
 
     removeSelectionIndicators: function() {
@@ -3379,16 +3413,17 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             this.selectionIndicators.invoke('remove');
         this.selectionIndicators.clear();
     },
+
     makeGroup: function() {
         if (!this.selectedMorphs) return;
         var group = new lively.morphic.Box(this.bounds());
         group.isGroup = true;
         this.owner.addMorph(group);
-        this.selectedMorphs.forEach(function(ea) {
-            group.addMorph(ea); });
+        this.selectedMorphs.forEach(group.addMorph.bind(group));
         this.selectMorphs([group]);
         return group;
     },
+
     unGroup: function() {
         if (!this.selectedMorphs || this.selectedMorphs.length !== 1) return;
         var group =  this.selectedMorphs[0]
@@ -3397,7 +3432,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             this.owner.addMorph(ea)
         }.bind(this))
         this.selectMorphs(all)
-    },
+    }
 
 },
 'keyboard events', {
@@ -3438,9 +3473,7 @@ Trait('SelectionMorphTrait',
         }
 
         this.resetSelection()
-
-        if (this.selectionMorph.owner !== this)
-            this.addMorph(this.selectionMorph);
+        this.addMorphFront(this.selectionMorph);
 
         var pos = this.localize(this.eventStartPos || evt.getPosition());
         this.selectionMorph.withoutPropagationDo(function() {
@@ -3459,9 +3492,7 @@ Trait('SelectionMorphTrait',
         var topLeft = pt(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y))
         var bottomRight = pt(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y))
 
-
-        this.selectionMorph.setPosition(topLeft);
-        this.selectionMorph.setExtent(bottomRight.subPt(topLeft));
+        this.selectionMorph.setBounds(lively.rect(topLeft, bottomRight));
     },
     onDragEnd: function(evt) {
         var self = this;
@@ -3469,15 +3500,15 @@ Trait('SelectionMorphTrait',
         var selectionBounds = self.selectionMorph.bounds();
         var selectedMorphs  = this.submorphs
             .reject(function(ea){
-                return ea === self || ea.isEpiMorph || ea instanceof lively.morphic.HandMorph
+                return ea === self || ea.isEpiMorph || ea instanceof lively.morphic.HandMorph;
             })
-            .select(function(m) {
-                return selectionBounds.containsRect(m.bounds())})
-            .reverse()
+            .select(function(m) { return selectionBounds.containsRect(m.bounds()); })
+            .reverse();
 
         this.selectionMorph.selectedMorphs = selectedMorphs;
         if (selectedMorphs.length == 0) {
             this.selectionMorph.removeOnlyIt();
+            this.selectionMorph.reset();
             return
         }
 
@@ -3489,7 +3520,7 @@ Trait('SelectionMorphTrait',
 
     resetSelection: function() {
         if (!this.selectionMorph || !this.selectionMorph.isSelection)
-            this.selectionMorph = new lively.morphic.Selection(new Rectangle(0,0,0,0))
+            this.selectionMorph = new lively.morphic.Selection(new lively.Rectangle(0,0,0,0))
         this.selectionMorph.reset();
     },
 })

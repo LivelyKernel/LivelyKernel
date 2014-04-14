@@ -377,7 +377,7 @@ Config.addOptions(
 
 'lively.morphic', [
     ['isNewMorphic', true, 'Deprecated option, defaults to true. Used in 2011 when Lively2 was being developed.'],
-    ['shiftDragForDup', true, 'Allows easy object duplication using the Shift key.'],
+    ['shiftDragForDup', false, 'Allows easy object duplication using the Shift key.'],
     ["usePieMenus", UserAgent.isTouch],
     ["useTransformAPI", (!UserAgent.isOpera) && UserAgent.usableTransformAPI, "Use the browser's affine transforms"],
 

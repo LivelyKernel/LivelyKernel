@@ -1066,6 +1066,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
         this.assertEqualsEpsilon(pt(40, 18), this.text.getTextExtent(), "text extent didn't grow");
     },
 
+    test04bMinTextWidthAndHeightIsRespected: function() {
+        this.epsilon = 4;
+        this.text.applyStyle({fontFamily: 'Courier', fontSize: 12,
+                              fixedWidth: false, fixedHeight: false});
+        this.text.setTextString('a');
+        this.text.setMinTextWidth(100);
+        this.text.fit();
+        this.assertEqualsEpsilon(pt(100, 18), this.text.getTextExtent(), 'width');
+        this.text.setMinTextHeight(50);
+        this.assertEqualsEpsilon(pt(100, 50), this.text.getTextExtent(), 'height');
+    },
+
     test05FillWithBigAndThenWithSmallTextResizesTextBounds: function() {
         this.epsilon = 2;
         this.text.applyStyle({fontFamily: 'Courier', fontSize: 12,

@@ -437,7 +437,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     },
     setMaxTextWidth: function(value) { this.morphicSetter('MaxTextWidth', value); },
     setMaxTextHeight: function(value) { this.morphicSetter('MaxTextHeight', value) },
+    getMinTextWidth: function() { return this.morphicGetter('MinTextWidth'); },
     setMinTextWidth: function(value) { this.morphicSetter('MinTextWidth', value) },
+    getMinTextHeight: function() { return this.morphicGetter('MinTextHeight'); },
     setMinTextHeight: function(value) { this.morphicSetter('MinTextHeight', value) },
     setTextExtent: function(value) { this.morphicSetter('TextExtent', value) },
     getTextNode: function() { return this.renderContext().textNode },
@@ -529,7 +531,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 newWidth = prefix + 'calc(100% - ' + paddingWidth + 'px)';
             style.minWidth = newWidth;
         } else {
-            style.minWidth = null;
+            var minWidth = this.getMinTextWidth()
+            style.minWidth = minWidth ? minWidth + 'px' : null;
         }
 
         if (fixedHeight) {
@@ -537,7 +540,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 newHeight = prefix + 'calc(100% - ' + paddingHeight + 'px)';
             style.minHeight = newHeight;
         } else {
-            style.minHeight = null;
+            var minHeight = this.getMinTextHeight();
+            style.minHeight = minHeight ? minHeight + 'px' : null;
         }
     },
 

@@ -148,9 +148,18 @@ Object.extend(lively.ide.commands.byName, {
     'lively.morphic.Morph.openObjectEditor': {
         description: 'open ObjectEditor for focused Morph',
         isActive: lively.ide.commands.helper.noCodeEditorActive,
-        exec: function() {
-            var morph = $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
+        exec: function(target) {
+            var morph = target || $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
             $world.openObjectEditorFor(morph);
+            return true;
+        }
+    },
+    'lively.morphic.Morph.openStyleEditor': {
+        description: 'open StyleEditor for focused Morph',
+        isActive: lively.ide.commands.helper.noCodeEditorActive,
+        exec: function(target) {
+            var morph = target || $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
+            $world.openStyleEditorFor(morph);
             return true;
         }
     },
@@ -784,7 +793,8 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
-    'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-y",
+    'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-shift-y",
+    'lively.morphic.Morph.openStyleEditor': "cmd-y",
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},
     'lively.morphic.List.selectItem': "m-space",
     'lively.ide.CommandLineInterface.doGrepSearch': {mac: ["Command-Shift-C", "Command-Shift-G"], win: ["Control-Shift-C", 'Control-Shift-G']},

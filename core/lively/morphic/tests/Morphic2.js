@@ -128,6 +128,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 'running', {
+
     setUp: function($super) {
         $super();
         this.epsilon = 0.0001;
@@ -139,39 +140,44 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 
         this[this.currentSelector] = this[realSelector].curry(useClipping);
     },
+
     tearDown: function($super) {
         $super();
         delete this[this.currentSelector];
     },
+
     allTestSelectors: function($super) {
-        var methodNames = $super();
-        return []
-            .concat(methodNames.collect(function(ea) { return ea + '$WITHOUT_CLIPPING'}))
-            .concat(methodNames.collect(function(ea) { return ea + '$WITH_CLIPPING'}));
-    },
+        return $super().reduce(function(selectors, sel) {
+            return selectors.concat([sel + '$WITHOUT_CLIPPING', sel + '$WITH_CLIPPING'])
+        }, []);
+    }
+
 },
 'testing', {
+
     test01OriginAffectsInnerBoundsButNotBounds: function(useClipping) {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
-        this.assertEquals(new Rectangle(0, 0, 100, 20), morph.bounds(), 'bounds before')
-        this.assertEquals(new Rectangle(0, 0, 100, 20), morph.innerBounds(), 'innerbounds before');
+        this.assertEquals(lively.rect(0, 0, 100, 20), morph.bounds(), 'bounds before')
+        this.assertEquals(lively.rect(0, 0, 100, 20), morph.innerBounds(), 'innerbounds before');
 
-        if (useClipping)
-            morph.applyStyle({clipMode : 'hidden'})
+        if (useClipping) morph.applyStyle({clipMode : 'hidden'})
 
         morph.adjustOrigin(pt(10,10));
-        this.assertEquals(new Rectangle(0, 0, 100, 20), morph.bounds(), 'bounds after')
-        this.assertEquals(new Rectangle(-10, -10, 100, 20), morph.innerBounds(), 'innerbounds after');
+        this.assertEquals(lively.rect(0, 0, 100, 20), morph.bounds(), 'bounds after')
+        this.assertEquals(lively.rect(-10, -10, 100, 20), morph.innerBounds(), 'innerbounds after');
     },
-    test02OriginAffectsTransform: function(useClipping) {
-        var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
 
-        if (useClipping)
-            morph.applyStyle({clipMode : 'hidden'})
+    test02OriginAffectsTransform: function(useClipping) {
+        var owner = lively.morphic.Morph.makeRectangle(0, 0, 100, 100);
+        var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
+        owner.addMorph(morph);
+
+        if (useClipping) morph.applyStyle({clipMode : 'hidden'})
 
         morph.adjustOrigin(pt(50,10));
         this.assertEquals(pt(50,10), morph.getTransform().transformPoint(pt(0,0)));
     },
+
     test02bOriginDoesNotAffectGlobalPositionOfSubmorphs: function(useClipping) {
         var morph1 = lively.morphic.Morph.makeRectangle(10, 10, 100, 20),
             morph2 = lively.morphic.Morph.makeRectangle(10, 10, 10, 10);
@@ -180,8 +186,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         this.assertEquals(pt(10,10), morph1.worldPoint(pt(0,0)));
         this.assertEquals(pt(20,20), morph2.worldPoint(pt(0,0)));
 
-        if (useClipping)
-            morph1.applyStyle({clipMode : 'hidden'})
+        if (useClipping) morph1.applyStyle({clipMode : 'hidden'})
 
         morph1.adjustOrigin(pt(50,10));
         // pos of morph with origin is affected
@@ -194,20 +199,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
         this.world.addMorph(morph);
 
-        if (useClipping)
-            morph.applyStyle({clipMode : 'hidden'});
+        if (useClipping) morph.applyStyle({clipMode : 'hidden'});
 
         morph.adjustOrigin(pt(50, 10));
         morph.rotateBy((90).toRadians());
 
         this.assertEquals(rect(pt(40, -40), pt(60, 60)), morph.bounds());
     },
+
     test03bRotateadjustOriginRotateAgain: function(useClipping) {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
         this.world.addMorph(morph);
 
-        if (useClipping)
-            morph.applyStyle({clipMode : 'hidden'});
+        if (useClipping) morph.applyStyle({clipMode : 'hidden'});
 
         morph.setRotation((90).toRadians()); // apply some transformation
         morph.adjustOrigin(pt(50, 10)); // coordinates local to morph
@@ -217,12 +221,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 
         this.assertEquals(pt(-60, 40).extent(pt(100,20)), morph.bounds());
     },
+
     test04ModifyOriginWithScale: function(useClipping) {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 50, 10);
         this.world.addMorph(morph);
 
-        if (useClipping)
-            morph.applyStyle({clipMode : 'hidden'});
+        if (useClipping) morph.applyStyle({clipMode : 'hidden'});
 
         morph.setScale(2)
         morph.adjustOrigin(pt(25, 5)); // set origin is in local shape coordinates
@@ -230,6 +234,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 
         this.assertEquals(rect(pt(40, -40), pt(60, 60)), morph.getBounds());
     },
+
     test05aAddMorphWithModifiedOrigin: function(useClipping) {
         var m1 = new lively.morphic.Morph.makeRectangle(0,0,50,50),
             m2 = new lively.morphic.Morph.makeRectangle(10,10,40,40);
@@ -237,8 +242,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         this.world.addMorph(m2);
 
         m1.adjustOrigin(pt(25,25));
-        if (useClipping)
-            m1.setClipMode('hidden');
+        if (useClipping) m1.setClipMode('hidden');
 
         // tets if transformForNewOwner works correctly
         m1.addMorph(m2);
@@ -246,9 +250,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         // new spec by Dan: if you add m2 to m1, it should keep its position relative to $world
         this.assertEquals(pt(-15,-15), m2.getPosition(), 'submorph should not have been moved');
     },
+
     test06addRectangleToEllipse: function(useClipping) {
-        var ellipse = new lively.morphic.Morph.makeEllipse(new Rectangle(0,0,100,100));
-        var rectangle = new lively.morphic.Morph.makeRectangle(new Rectangle(0,0,100,100));
+        var ellipse = new lively.morphic.Morph.makeEllipse(lively.rect(0,0,100,100));
+        var rectangle = new lively.morphic.Morph.makeRectangle(lively.rect(0,0,100,100));
         ellipse.addMorph(rectangle);
         rectangle.setPosition(pt(0,0));
 
@@ -256,6 +261,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         var ePos = ellipse.getPositionInWorld().addPt(ellipse.getOrigin());
         this.assertEquals(rPos.x, ePos.x);
         this.assertEquals(rPos.y, ePos.y);
+    },
+
+    test07ChangingOriginOfMorphWithoutOwnerShouldNotMoveIt: function(useClipping) {
+        var owner = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var morph = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        morph.setOrigin(pt(0, 100));
+        owner.addMorph(morph);
+        this.assertEquals(pt(0,0), morph.getPosition());
     }
 
 });

@@ -152,11 +152,14 @@ Object.extend(lively.morphic, {
         options = options || {};
         var klass = options.klass || lively.morphic.Box,
             pos = options.position || pt(0,0),
+            origin = options.origin,
             extent = options.extent || pt(100,100),
             bounds = options.bounds || pos.extent(extent),
             style = options.style || {fill: Color.gray},
             args = options.args || [bounds],
             morph = new klass(args[0], args[1], args[2], args[3], args[4], args[5]);
+        if (origin) morph.setOrigin(origin);
+        if (options.name) morph.setName(options.name);
         return morph.applyStyle(style);
     }
 

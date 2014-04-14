@@ -53,6 +53,29 @@ Global.Numbers = {
         return Math.round(Math.random() * (max-min) + min)
     },
 
+    normalRandom: (function(mean, stdDev) {
+        // var stdNormalDist = Numbers.random(-1,1) + Numbers.random(-1,1) + Numbers.random(-1,1);
+        // return Math.round(stdNormalDist * stdDev + mean);
+        var spare, isSpareReady = false;
+        return function(mean, stdDev) {
+            if (isSpareReady) {
+                isSpareReady = false;
+                return spare * stdDev + mean;
+            } else {
+                var u, v, s;
+                do {
+                    u = Math.random() * 2 - 1;
+                    v = Math.random() * 2 - 1;
+                    s = u * u + v * v;
+                } while (s >= 1 || s == 0);
+                var mul = Math.sqrt(-2.0 * Math.log(s) / s);
+                spare = v * mul;
+                isSpareReady = true;
+                return mean + stdDev * u * mul;
+            }
+        }
+    })(),
+
     humanReadableByteSize: function(n) {
         function round(n) { return Math.round(n * 100) / 100 }
         if (n < 1000) return String(round(n)) + 'B'

@@ -4,7 +4,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PlusButton",
 {
     initialize: function($super, droppingArea, optColor) {
         $super();
-        
         var width = 10;
         var height = 10;
         // Bootstrap-blue as default
@@ -137,6 +136,12 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.PrototypeArea
                 name: "Text",
                 create: function() {
                     return lively.morphic.Text.makeLabel("Label");
+                }
+            }, 
+            {
+                name: "Piesector",
+                create: function() {
+                    return new lively.morphic.Charts.PieSector();
                 }
             }
         ];
@@ -1025,6 +1030,7 @@ getHeaderCSS: function() {
     }";
 }
 });
+<<<<<<< HEAD
 
 Object.subclass('lively.morphic.Charts.ExcelConverter',
 'default category', {
@@ -1376,9 +1382,95 @@ Object.subclass('lively.morphic.Charts.MrDataConverter',
         
         }
         
-        return CSVParser;
+        return CSVParser;        
     },
 });
+
+lively.morphic.Path.subclass('lively.morphic.Charts.PieSector',
+'default category', {
+    initialize: function($super, degree, radius, optCenter) {
+        if (!degree) degree = 45;
+        if (!radius) radius = 100;
+        if (!optCenter) optCenter = pt(0,0);
+        this.exactness = 1;
+    
+        var points = [optCenter];
+        for (var i = 15; i <= degree; i += this.exactness){
+            var radianMeasure = i / 360 * 2 * Math.PI;
+            var x = Math.cos(radianMeasure) * radius + optCenter.x;
+            var y = Math.sin(radianMeasure) * radius + optCenter.y;
+            points.push(pt(x,y));
+        }
+        points.push(optCenter);
+       
+        $super(points);
+        this.setOrigin(pt(0,0));
+        
+        // save parameter to pie createPieSector
+        this.center = optCenter;
+        this.radius = radius;
+        this.degree = degree;
+        this.originalVertices = this.vertices();
+        return this;
+    },
+    
+    setScale: function(absoluteFactor) {
+        var oldVertices = this.originalVertices;
+        var newVertices = oldVertices.map(function(ea) { return ea.scaleBy(absoluteFactor) });
+     
+        this.setVertices(newVertices);
+        this.cachedBounds = null;
+        this._savedScale = absoluteFactor;
+        this.center = newVertices[0];
+        this.radius = (newVertices[0] - newVertices[1]).length;
+    },
+    setDegree: function(degree) {
+        // calculate new vertices and discard old vertices
+        var points = [this.center];
+        for (var i = 0; i <= degree; i += this.exactness){
+            var radianMeasure = i / 360 * 2 * Math.PI;
+            var x = Math.cos(radianMeasure) * this.radius + this.center.x;
+            var y = Math.sin(radianMeasure) * this.radius + this.center.y;
+            points.push(pt(x,y));
+        }
+        points.push(this.center);
+        
+        this = new lively.morphic.Path(points);
+        this.degree = degree;
+        this.originalVertices = points;
+        this._savedScale = 1;
+        //this.cachedBounds = null;
+       
+    },
+    setMappedProperty: function(value) {
+        this.mappedProperty = value;
+    },
+    
+    scaleBy: function(factor) {
+        if (isNaN(factor))
+            return;
+        this.setScale((this._savedScale || 1) * factor);
+    },
+    
+    setRadius: function(radius) {
+        var vertices = this.vertices();
+        
+        // iterate over vertices but ignore first and last one because these are center points
+        for (var i = 1; i < vertices.length - 1; i++){
+            var radianMeasure = i*10 / 360 * 2 * Math.PI;
+            var x = Math.cos(radianMeasure) * radius + this.center.x;
+            var y = Math.sin(radianMeasure) * radius + this.center.y;
+            vertices[i] = pt(x,y);
+        }
+        
+        this.setVertices(vertices);
+        this.originalVertices = vertices;
+        this.radius = radius;
+        this._savedScale = 1;
+        //this.cachedBounds = null;
+    },
+});
+
 lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
     
     initialize: function($super) {
@@ -1588,7 +1680,7 @@ Object.extend(lively.morphic.Charts.Utils, {
             }, pt(0, 0));
             center = pt(10 + maxOrigin.x + radius, 10 + maxOrigin.y + radius);
         }
-
+        
         var path = [];
         var curId = 0;
         for (var i = -90; i <= 270; i = i + 360.0 / (data.length - 1)){
@@ -3340,6 +3432,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 create: function() {
                     return lively.morphic.Text.makeLabel("Label");
                 }
+            }, 
+            {
+                name: "Piesector",
+                create: function() {
+                    return new lively.morphic.Charts.PieSector();
+                }
             }
         ];
         
@@ -3392,10 +3490,27 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             // ensure that each datum is a object (primitives will get wrapped here)
             ea = ({}).valueOf.call(ea);
             ea.morph = prototypeInstance;
+            
             return ea;
         });
         
+        // if pie chart, calculate arg
+        if (prototypeMorph instanceof lively.morphic.Charts.PieSector) {
+            this.calculatePieChart(data);
+        }
+        
         return data;
+    },
+    calculatePieChart: function(data) {
+        var mappedPropertySum = data.filter(function(ea){return ea.morph.mappedProperty}).sum();
+        var rotation = 0;
+        data.each(function(ea){
+            ea.morph.setPosition(pt(220, 300));
+            ea.morph.setOrigin(ea.morph.center);
+            ea.morph.setDegree(ea.morph.mappedProperty / mappedPropertySum * 360);
+            rotation += ea.morph.mappedProperty / mappedPropertySum;
+            ea.morph.setRotation((1 - rotation) * 2 * Math.PI);
+        });
     },
     
     smartBulkCopy: function(prototypeMorph, amount) {

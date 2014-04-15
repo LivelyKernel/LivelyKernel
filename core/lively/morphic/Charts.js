@@ -5168,47 +5168,102 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     
     onHTML5Drop: function(evt) {
         evt.stop();
-    	var files = evt.dataTransfer.files;
-    	var convertedData = [];
-    	var _this = this;
     	
     	// clear fileList
     	var fileList = this.fileList;
     	while (fileList.itemList.length) {
-    	    debugger;
     	    fileList.removeItemOrValue(fileList.itemList[0]);
     	}
+
+    	var files = evt.dataTransfer.files;
+    	var strings = evt.dataTransfer.items;
+    	var dataPromises = this.processDroppedFiles(files).concat(this.processDroppedStrings(strings));
     	
-    	for (var i = 0; i < files.length; i++) {
-    	    var eachFile = files[i];
-    	    var fileType = eachFile.name.split(".").last();
-    	    var successfullyAdded = true;
-    		switch(fileType) {
-    		    case "xls":
-                    var converter = new lively.morphic.Charts.ExcelConverter();
-                    convertedData.push(converter.convertFromFile(eachFile));
-    		        break;
-    		    case "json":
-    		        var jsonConversionPromise = _this.convertBlobToString(eachFile).then(function(jsonString) {
-    		            return JSON.parse(jsonString);
-    		        })
-    		        convertedData.push(jsonConversionPromise);
-    		        break;
-    		    default:
-    		        alert("Unrecognized filetype.");
-    		        successfullyAdded = false;
-    		}
-    		
-    		if (successfullyAdded) {
-    		    this.fileList.addItem(eachFile.name);
-    		}
-    	};
-        
-        
-        this.data = $.when.apply(null, convertedData).then(function() {
+        this.data = $.when.apply(null, dataPromises).then(function() {
             return Array.prototype.slice.apply(arguments);
         });
         this.component.notify();
+    },
+    
+    processDroppedFiles: function(fileList) {
+        var _this = this;
+        var dataPromises = [];
+        for (var i = 0; i < fileList.length; i++) {
+            var eachFile = fileList[i];
+            var fileType = eachFile.name.split(".").last();
+            var successfullyAdded = true;
+            switch(fileType) {
+                case "xls":
+                    var converter = new lively.morphic.Charts.ExcelConverter();
+                    dataPromises.push(converter.convertFromFile(eachFile));
+                    break;
+                case "json":
+                    var jsonConversionPromise = _this.convertBlobToString(eachFile).then(function(jsonString) {
+                        return JSON.parse(jsonString);
+                    });
+                    dataPromises.push(jsonConversionPromise);
+                    break;
+                default:
+                    alert("Unrecognized filetype.");
+                    successfullyAdded = false;
+            }
+            
+            if (successfullyAdded) {
+                this.fileList.addItem(eachFile.name);
+            }
+    	};
+    	return dataPromises;
+    },
+    processDroppedStrings: function(stringList) {
+        var dataPromises = [];
+        for (var i = 0; i < stringList.length; i++) {
+            dataPromises.push(this.extractDataFromStringItem(stringList[i]));
+        }
+        return dataPromises;
+    },
+    getValidJSONFromString: function(str) {
+        try {
+            var jsonObj = JSON.parse(str);
+            if (jsonObj && typeof jsonObj === "object" && jsonObj !== null) {
+                return jsonObj;
+            }
+        } catch (e) { }
+        return false;
+    },
+    extractDataFromStringItem: function(stringItem) {
+        var deferred = new $.Deferred();
+        var _this = this;
+        
+        stringItem.getAsString(function(str) {
+            var jsonObj = _this.getValidJSONFromString(str);
+
+            if (jsonObj) {
+                deferred.resolve(jsonObj);
+                _this.fileList.addItem("JSON: " + str.replace(/\n/g, "").slice(0, 20) + " ...");
+            } else if (_this.isAValidURL(str)) {
+                // fetch url
+                
+                _this.getBlobFromURL(str).done(function(blob) {
+                    blob.name = str;
+                    var filePromise = _this.processDroppedFiles([blob])[0];
+                    filePromise.done(function(result) {
+                        deferred.resolve(result);
+                    }).fail(function(status) {
+                        deferred.reject(status);
+                    })
+                })
+            } else {
+                alert("Dragged string is neither proper JSON nor a valid URL")
+                deferred.reject();
+            }
+        });
+        
+        return deferred.promise();
+    },
+    
+    isAValidURL: function(str) {
+        var regexp = /((ftp|http|https):\/\/)?(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+        return regexp.test(str);
     },
     
     convertBlobToString: function(blob) {
@@ -5225,6 +5280,25 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     
     update: function() {
         return this.data;
+    },
+    
+    getBlobFromURL: function(filePath) {
+        var deferred = new $.Deferred();
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', filePath, true);
+        xhr.responseType = 'blob';
+        
+        xhr.onload = function(e) {
+            if (this.status == 200) {
+                deferred.resolve(this.response);
+            } else {
+                deferred.reject(this.status);
+          }
+        };
+        
+        xhr.send();
+        return deferred;
     }
 });
 

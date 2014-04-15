@@ -3126,7 +3126,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
             // data ist just an array of data containing morphs
             
             data.each(function(datum){
-                _this.addElement(datum, this.canvasMorph);
+                _this.addElement(datum, _this.canvasMorph);
             });
         } else if (Object.isObject(data) && data.morphs) {
             // data contains morphs as well as scale information
@@ -4866,6 +4866,10 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     },
     addDescription: function() {
         var description = lively.morphic.Text.makeLabel(this.property);
+        description.setFill(Color.white);
+        description.setBorderColor(Color.rgbHex("#f0ad4e"));
+        description.setBorderWidth(1);
+        description.setBorderRadius(5);
         
         var _this = this;
         if (this.dimension == "x") {
@@ -4941,7 +4945,9 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     addLabel: function(absValue, value, pitchlineLength) {
         var pitchlineLength = pitchlineLength || 10;
         var borderWidth = this.getBorderWidth();
-        var label = lively.morphic.Text.makeLabel((value || 0).toLocaleString());
+        value = (value || 0).toLocaleString();
+        var label = lively.morphic.Text.makeLabel(value);
+        label.setToolTip(value);
         
         if (this.dimension == "x") {
             setTimeout(function () {

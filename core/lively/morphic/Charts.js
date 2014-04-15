@@ -901,7 +901,20 @@ Object.extend(lively.morphic.Charts.Component, {
         return new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts[componentName]());
     },
     getComponentNames: function() {
-        return ["Script", "FanOut", "FanIn", "JsonViewer", "LinearLayout", "MorphCreator", "JsonFetcher", "FreeLayout", "Table", "EntityViewer", "InteractionPanel"];
+        return [
+            "Script",
+            "FanOut",
+            "FanIn",
+            "JsonViewer",
+            "LinearLayout",
+            "MorphCreator",
+            "JsonFetcher",
+            "FreeLayout",
+            "Table",
+            "EntityViewer",
+            "InteractionPanel",
+            "DataImporter"
+        ];
     }
 });
 
@@ -1033,8 +1046,17 @@ getHeaderCSS: function() {
 
 Object.subclass('lively.morphic.Charts.ExcelConverter',
 'default category', {
-    convert: function(filePath) {
-        this.deferred = new $.Deferred();
+    convertFromFile: function(file) {
+        var deferred = new $.Deferred();
+        var _this = this;
+        this.ensureXLSisLoaded().then(function() {
+            _this.processBlob(file, deferred);  
+        });
+        return deferred.promise();
+    },
+    
+    convertFromFilePath: function(filePath) {
+        var deferred = new $.Deferred();
         var _this = this;
         this.ensureXLSisLoaded().then(function() {
             var xhr = new XMLHttpRequest();
@@ -1043,18 +1065,18 @@ Object.subclass('lively.morphic.Charts.ExcelConverter',
             
             xhr.onload = function(e) {
               if (this.status == 200) {
-                _this.processBlob(this.response);
+                _this.processBlob(this.response, deferred);
               } else {
-                  this.deferred.reject(this.status);
+                  deferred.reject(this.status);
               }
             };
             
             xhr.send();
         });
         
-        return this.deferred.promise();
+        return deferred.promise();
     },
-    processBlob: function(blob) {
+    processBlob: function(blob, deferred) {
         var reader = new FileReader();
         var _this = this;
         reader.onload = function(e) {
@@ -1062,7 +1084,8 @@ Object.subclass('lively.morphic.Charts.ExcelConverter',
         	var wb = XLS.read(data, {type:'binary'});
         	
         	var xlsAsJson = _this.convertWorkbookToJson(wb);
-        	_this.deferred.resolve(xlsAsJson);
+        	console.log("xlsAsJson", xlsAsJson);
+        	deferred.resolve(xlsAsJson);
         };
         reader.readAsBinaryString(blob);
     },
@@ -2099,10 +2122,11 @@ Object.extend(lively.morphic.Charts.Utils, {
         return parser.parse(csvString, true, "	", true, false);
     },
     
-    loadXls: function(filePath) {
+    loadXlsFromPath: function(filePath) {
         var converter = new lively.morphic.Charts.ExcelConverter()
-        return converter.convert(filePath);
-    }
+        return converter.convertFromFilePath(filePath);
+    },
+
     
 });
 
@@ -5059,6 +5083,148 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         arrowHead.applyStyle({borderWidth: 1, borderColor: Color.black})
         arrowHead.adjustOrigin(pt(10, 6));
         return arrowHead;
+    }
+});
+
+lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
+    initialize: function($super) {
+        $super();
+        this.description = "Data Importer";
+        this.extent = pt(400, 200);
+        
+        if (!this.getLayouter()) {
+            this.setLayouter(new lively.morphic.Layout.HorizontalLayout());
+        }
+        
+        this.fileList = this.createFileList();
+        var dropArea = this.createDropArea();
+
+        this.addMorph(this.fileList);
+        this.addMorph(dropArea);
+    },
+    
+    createDropArea: function() {
+        var grey = Color.rgb(201,201,201);
+        var dropArea = new lively.morphic.Morph();
+        dropArea.setBorderStyle("dashed");
+        dropArea.setBorderWidth(2.5);
+        dropArea.setBorderColor(grey);
+        dropArea.setFill(Color.white);
+        dropArea.layout = {
+          adjustForNewBounds: true,
+          moveHorizontal: true,
+          resizeHeight: true
+        };
+        dropArea.setExtent(this.extent.scaleBy(0.5, 0.8));
+        dropArea.setPosition(pt(0, 10));
+        
+        this.boundOnHTML5Drop = this.onHTML5Drop.bind(this);
+        dropArea.registerForEvent('drop', this, 'boundOnHTML5Drop', true);
+    
+        
+        var text = new lively.morphic.Text();
+        text.setName("DropHereLabel");
+        text.setFillOpacity(0);
+        
+        text.setFixedHeight(false);
+        text.setFixedWidth(false);
+        
+        text.setBorderWidth(0);
+        text.ignoreEvents();
+        text.setTextColor(grey);
+        text.setFontSize(20);
+        text.setWhiteSpaceHandling("nowrap");
+        text.setTextString("Drop files here");
+        text.setPosition(pt(5, 15));
+        text.layout = {
+          centeredHorizontal: true,
+          centeredVertical: true
+        }
+        
+        dropArea.addMorph(text);
+    
+        return dropArea;
+    },
+    
+    createFileList: function() {
+        var fileList = new lively.morphic.List()
+
+        fileList.setBorderStyle("solid")
+        fileList.setExtent(this.extent.scaleBy(0.45, 0.8));  
+        fileList.setClipMode({x: 'hidden', y: 'auto'});
+        
+        fileList.layout = {
+          adjustForNewBounds: true,
+          resizeWidth: true,
+          resizeHeight: true
+        };
+        
+        return fileList;
+    },
+    
+    removalNeeedsConfirmation: function() {
+        return true;
+    },
+    
+    onHTML5Drop: function(evt) {
+        evt.stop();
+    	var files = evt.dataTransfer.files;
+    	var convertedData = [];
+    	var _this = this;
+    	
+    	// clear fileList
+    	var fileList = this.fileList;
+    	while (fileList.itemList.length) {
+    	    debugger;
+    	    fileList.removeItemOrValue(fileList.itemList[0]);
+    	}
+    	
+    	for (var i = 0; i < files.length; i++) {
+    	    var eachFile = files[i];
+    	    var fileType = eachFile.name.split(".").last();
+    	    var successfullyAdded = true;
+    		switch(fileType) {
+    		    case "xls":
+                    var converter = new lively.morphic.Charts.ExcelConverter();
+                    convertedData.push(converter.convertFromFile(eachFile));
+    		        break;
+    		    case "json":
+    		        var jsonConversionPromise = _this.convertBlobToString(eachFile).then(function(jsonString) {
+    		            return JSON.parse(jsonString);
+    		        })
+    		        convertedData.push(jsonConversionPromise);
+    		        break;
+    		    default:
+    		        alert("Unrecognized filetype.");
+    		        successfullyAdded = false;
+    		}
+    		
+    		if (successfullyAdded) {
+    		    this.fileList.addItem(eachFile.name);
+    		}
+    	};
+        
+        
+        this.data = $.when.apply(null, convertedData).then(function() {
+            return Array.prototype.slice.apply(arguments);
+        });
+        this.component.notify();
+    },
+    
+    convertBlobToString: function(blob) {
+        var reader = new FileReader();
+        var _this = this;
+        var deferred = new $.Deferred();
+        reader.onload = function(e) {
+        	deferred.resolve(e.target.result);
+        };
+        reader.readAsBinaryString(blob);
+        
+        return deferred.promise();
+    },
+    
+    update: function() {
+        return this.data;
     }
 });
 

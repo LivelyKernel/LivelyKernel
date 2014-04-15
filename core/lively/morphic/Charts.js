@@ -3077,11 +3077,15 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
             this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x - 2 * margin, data.scaleX);
             this.scaleX.setPosition(this.innerBounds().bottomLeft().addPt(pt(margin, -margin)));
             container.addMorph(this.scaleX);
+        } else {
+            delete this.scaleX;
         }
         if (data.scaleY) {
             this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y - 2 * margin, data.scaleY);
             this.scaleY.setPosition(pt(margin, margin));
             container.addMorph(this.scaleY);
+        } else {
+            delete this.scaleY;
         }
     },
 

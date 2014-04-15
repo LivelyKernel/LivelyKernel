@@ -1030,7 +1030,6 @@ getHeaderCSS: function() {
     }";
 }
 });
-<<<<<<< HEAD
 
 Object.subclass('lively.morphic.Charts.ExcelConverter',
 'default category', {

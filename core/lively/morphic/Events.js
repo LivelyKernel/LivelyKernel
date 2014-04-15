@@ -772,7 +772,7 @@ lively.morphic.Morph.addMethods(
 handleOnCapture);
         if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
         if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
-        if (this.onHTML5DragEnter) this.registerForEvent('drageEnter', this, 'onHTML5DragEnter', handleOnCapture);
+        if (this.onHTML5DragEnter) this.registerForEvent('dragenter', this, 'onHTML5DragEnter', handleOnCapture);
         if (this.onHTML5DragOver) this.registerForEvent('dragover', this, 'onHTML5DragOver', handleOnCapture);
         if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);
         if (this.onHTML5Drop) this.registerForEvent('drop', this, 'onHTML5Drop', handleOnCapture);
@@ -1689,8 +1689,15 @@ lively.morphic.World.addMethods(
     onHTML5DragOver: function(evt) { evt.stop(); return true; },
 
     onHTML5Drop: function(evt) {
-        lively.morphic.Clipboard.handleItemOrFileImport(evt);
-        evt.stop(); return true;
+        var morphStack = this.morphsContainingPoint(evt.getPosition());
+        var dropTarget = morphStack.detect(function(ea) {
+                return !ea.eventsAreIgnored && ea.eventHandler && ea.eventHandler.dispatchTable["drop"];
+        });
+        if (!dropTarget || dropTarget == this) {
+            lively.morphic.Clipboard.handleItemOrFileImport(evt);
+            evt.stop();
+            return true;
+        }
     }
 },
 'window related', {

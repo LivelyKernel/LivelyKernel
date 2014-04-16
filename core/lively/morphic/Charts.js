@@ -1884,6 +1884,26 @@ Object.extend(lively.morphic.Charts.Utils, {
             ea.morph.setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
         });
     },
+    addLegend: function(entries, startPt) {
+        // entries is array of {name: "", color: xyz} and startPt is optional
+        if(!startPt) startPt = pt(0, 0);
+        var container = [];
+        
+        entries.each(function(eachEntry){
+           var rectangle = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,20));
+           rectangle.setBorderWidth(0);
+           rectangle.setFill(eachEntry.color);
+           
+           var text = lively.morphic.Text.makeLabel(eachEntry.name);
+           text.setPosition(pt(25, 0))
+           text.setExtent(pt(200, 20));
+           
+           rectangle.addMorph(text);
+           container.push({morph: rectangle});
+        });
+        this.arrangeOnPath([startPt, startPt.addPt(pt(0, 20 * entries.length))], container);
+        return container;
+    },
     arrangeVertical: function(morphs, x, height) {
         if (!Object.isNumber(x)) {
             var maxX = morphs.pluck("morph").reduce(function (max, el) {
@@ -2695,8 +2715,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     onContentChanged: function() {
-        this.notify();
-        this.notifyDashboard();
+        if (this.arrows.some(function(eachArrow){ return eachArrow.isActive(); })) {
+            this.notify();
+            this.notifyDashboard();
+        }
     },
     
     notifyDashboard: function() {
@@ -3139,7 +3161,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
 
     update: function(data) {
         // create linear layout containing rects from data
-        this.clear();
+        this.clearAndRemoveContainer();
         var _this = this;
         
         // create container for visual elements, if it does not exist yet
@@ -3149,9 +3171,12 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         if (Object.isArray(data)) {
             // data ist just an array of data containing morphs
             
+            console.time("addElements in Canvas");
             data.each(function(datum){
                 _this.addElement(datum, _this.canvasMorph);
             });
+            console.timeEnd("addElements in Canvas");
+            
         } else if (Object.isObject(data) && data.morphs) {
             // data contains morphs as well as scale information
             
@@ -3275,7 +3300,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         this.scale();
     },
     
-    clear: function(){
+    clearAndRemoveContainer: function(){
         if (!this.submorphs[0]) return;
         
         // delete all PrototypeMorphs
@@ -3286,6 +3311,9 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         prototypeMorphs.each(function(ea) {
             ea.remove();
         });
+        
+        //remove canvasMorph from component
+        this.submorphs[0].remove();
     }
     
 } );

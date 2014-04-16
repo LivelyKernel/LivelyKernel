@@ -226,9 +226,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 },
 'scoping', {
 
-    enterScope: function(isWith) {
-        isWith = isWith == null ? false : !!isWith;
-        return this.scopes.push({localVars: [], computationProgress: [], isWithScope: isWith});
+    enterScope: function(additionals) {
+        additionals = additionals || {};
+        return this.scopes.push(Object.extend(additionals, {localVars: [], computationProgress: []}));
     },
 
     exitScope: function() {
@@ -236,7 +236,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     lastFunctionScopeId: function() {
-        return this.scopes.pluck('isWithScope').lastIndexOf(false);
+        return this.scopes.map(function(scope) {
+            return !!(scope.isWithScope || scope.isCatchScope);
+        }).lastIndexOf(false);
     },
 
     registerVars: function(varIdentifiers) {
@@ -1356,7 +1358,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             paramIndex = n.param.astIndex,
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
 
-        var scopeIdx = rewriter.enterScope() - 1,
+        var scopeIdx = rewriter.enterScope({ isCatchScope: true }) - 1,
             catchParam = rewriter.registerVars([n.param]),
             body = this.accept(n.body, rewriter);
         if (paramIndex) {
@@ -1437,7 +1439,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitWithStatement: function(n, rewriter) {
         // object is a node of type Expression
         // body is a node of type Statement
-        var scopeIdx = rewriter.enterScope(true) - 1,
+        var scopeIdx = rewriter.enterScope({ isWithScope: true }) - 1,
             lastFnScopeIdx = rewriter.lastFunctionScopeId(),
             block = this.accept(n.body, rewriter);
         rewriter.exitScope();

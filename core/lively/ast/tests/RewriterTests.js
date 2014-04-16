@@ -20,8 +20,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 },
 'matching code', {
 
-    tryCatch: function(level, varMapping, inner) {
+    tryCatch: function(level, varMapping, inner, optOuterLevel) {
         level = level || 0;
+        optOuterLevel = !isNaN(optOuterLevel) ? optOuterLevel : (level - 1);
         return Strings.format("try {\n"
             + "var _ = {}, lastNode = undefined, debugging = false, __%s = [], _%s = %s;\n"
             + "__%s.push(_, _%s, %s);\n"
@@ -32,7 +33,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "    throw ex;\n"
             + "}\n",
             level, level, generateVarMappingString(), level, level,
-            level-1 < 0 ? 'Global' : '__' + (level-1),
+            optOuterLevel < 0 ? 'Global' : '__' + optOuterLevel,
             inner, level, "__/[0-9]+/__");
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         function generateVarMappingString() {
@@ -89,7 +90,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             "}\n";
     },
 
-    closureWrapper: function(level, name, args, innerVarDecl, inner) {
+    closureWrapper: function(level, name, args, innerVarDecl, inner, optInnerLevel) {
         // something like:
         // __createClosure(333, __0, function () {
         //     try {
@@ -98,10 +99,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         //     } catch (e) {...}
         // })
         var argDecl = innerVarDecl || {};
+        optInnerLevel = !isNaN(optInnerLevel) ? optInnerLevel : (level + 1);
         args.forEach(function(argName) { argDecl[argName] = argName; });
         return Strings.format(
             "__createClosure(__/[0-9]+/__, __%s, function %s(%s) {\n"
-          + this.tryCatch(level+1, argDecl, inner)
+          + this.tryCatch(optInnerLevel, argDecl, inner, level)
           + "})", level, name, args.join(', '));
     },
 
@@ -559,6 +561,23 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         this.assertASTMatchesCode(result, expected);
     },
 
+    test29cTryCatchAndFunctionDecl: function() {
+        var src = 'try { debugger; } catch (e) { (function() { e; }); }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                'try {\n' +
+                this.debuggerThrow() +
+                '} catch (e) {\n' +
+                this.catchIntro(1, 'e') +
+                this.intermediateResult(this.closureWrapper(0, '', [], {},
+                    this.getVar(1, 'e') + ';\n', 2) + ';\n') + '\n' +
+                this.catchOutro(1) +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
     test30aWithStatement: function() {
         var src = 'var a = 1; with ({ a: 2 }) { a; }',
             ast = this.parser.parse(src),
@@ -769,6 +788,19 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
             var obj = new klass(), x = 1;
             with (obj) {
                 return x;
+            }
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test05aTryCatchAndFunctionDecl: function() {
+        function code() {
+            try {
+                throw new Error('foo');
+            } catch (e) {
+                return (function() { return e.message + 'bar'; })('bar');
             }
         }
         var src = Strings.format('(%s)();', code),

@@ -5126,12 +5126,13 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     initialize: function($super) {
         $super();
+        this.promises = [];
+        
         this.description = "Data Importer";
         this.extent = pt(400, 200);
         
-        if (!this.getLayouter()) {
-            this.setLayouter(new lively.morphic.Layout.HorizontalLayout());
-        }
+        this.setLayouter(new lively.morphic.Layout.HorizontalLayout());
+        this.setClipMode("hidden");
         
         this.fileList = this.createFileList();
         var dropArea = this.createDropArea();
@@ -5139,8 +5140,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
         this.addMorph(this.fileList);
         this.addMorph(dropArea);
         
-        this.promises = [];
-    },
+        
+        this.setUpPasteHandling();
+},
     
     createDropArea: function() {
         var grey = Color.rgb(201,201,201);
@@ -5174,7 +5176,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
         text.setFontSize(20);
         text.setWhiteSpaceHandling("nowrap");
         text.setTextString("Drop files here");
-        text.setPosition(pt(5, 15));
+        // text.setPosition(pt(5, 15));
         text.layout = {
           centeredHorizontal: true,
           centeredVertical: true
@@ -5235,10 +5237,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     
     onHTML5Drop: function(evt) {
         evt.stop();
+    	var dataSource = evt.dataTransfer || evt.clipboardData;
     	
-    	var fileList = this.fileList;
-    	var files = evt.dataTransfer.files;
-    	var strings = evt.dataTransfer.items;
+    	var files = dataSource.files;
+    	var strings = dataSource.items;
     	this.promises = this.promises.concat(this.processDroppedFiles(files), this.processDroppedStrings(strings));
     	
     	this.pipePromisesToData();
@@ -5305,7 +5307,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
                 // fetch url
                 
                 _this.getBlobFromURL(str).done(function(blob) {
-                    blob.name = str;
+                    blob.name = str.split("/").last();
                     var filePromise = _this.processDroppedFiles([blob])[0];
                     filePromise.done(function(result) {
                         deferred.resolve(result);
@@ -5366,6 +5368,29 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
         this.data = $.when.apply(null, this.promises).then(function() {
             return Array.prototype.slice.apply(arguments);
         });
+    },
+    
+    setUpPasteHandling: function() {
+        // TODO: Why doesn't this work?
+        // this.renderContext().morphNode.addEventListener("paste", this.onHTML5Drop.bind(this));
+        
+        var pasteHandler = this.onHTML5Drop.bind(this);
+        var oldOnFocus = this.onFocus,
+            oldOnBlur = this.onBlur;
+        
+        var _this = this;
+        
+        this.onFocus = function (evt) {
+            oldOnFocus.call(_this, evt);
+            window.addEventListener("paste", pasteHandler);
+        }
+        
+        this.onBlur = function (evt) {
+            oldOnBlur.call(_this, evt);
+            setTimeout(function() {
+                window.removeEventListener("paste", pasteHandler);
+            }, 1000);
+        }
     }
 });
 

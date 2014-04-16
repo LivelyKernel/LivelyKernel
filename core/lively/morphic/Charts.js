@@ -3200,22 +3200,28 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
         this.redrawScales = false;
 
         if (data.scaleX) {
-            var key = data.scaleX.key;
-            var from = data.scaleX.from;
-            var to = data.scaleX.to;
-            var sectors = data.scaleX.sectors;
-            this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x - 2 * margin, key, from, to, sectors);
+            var spec = {
+                key: data.scaleX.key,
+                from: data.scaleX.from,
+                to: data.scaleX.to,
+                sectors: data.scaleX.sectors,
+                labels: data.scaleX.labels
+            }
+            this.scaleX = new lively.morphic.Charts.Scale("x", this.getExtent().x - 2 * margin, spec);
             this.scaleX.setPosition(this.innerBounds().bottomLeft().addPt(pt(margin, -margin)));
             container.addMorph(this.scaleX);
         } else {
             delete this.scaleX;
         }
         if (data.scaleY) {
-            var key = data.scaleY.key;
-            var from = data.scaleY.from;
-            var to = data.scaleY.to;
-            var sectors = data.scaleX.sectors;
-            this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y - 2 * margin, key, from, to, sectors);
+            var spec = {
+                key: data.scaleY.key,
+                from: data.scaleY.from,
+                to: data.scaleY.to,
+                sectors: data.scaleY.sectors,
+                labels: data.scaleY.labels
+            }
+            this.scaleY = new lively.morphic.Charts.Scale("y", this.getExtent().y - 2 * margin, spec);
             this.scaleY.setPosition(pt(margin, margin));
             container.addMorph(this.scaleY);
         } else {
@@ -4892,12 +4898,13 @@ Object.subclass('lively.morphic.Charts.EntityFactory',
 });
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
-    initialize: function($super, dimension, length, property, from, to, sectors) {
+    initialize: function($super, dimension, length, spec) {
         this.dimension = dimension;
-        this.property = property;
-        this.fixedMin = from;
-        this.fixedMax = to;
-        this.tickCount = sectors;
+        this.property = spec.key;
+        this.fixedMin = spec.from;
+        this.fixedMax = spec.to;
+        this.tickCount = spec.sectors;
+        this.labelFrequency = spec.labels;
         this.pitchlines = [];
         this.labels = [];
 
@@ -4947,7 +4954,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         // delete all pitchlines and redraw them with the updated range
         this.clearPitchlines();
         for (var absValue = 0, i = 0; i < this.tickCount; absValue += this.length / this.tickCount, i++) {
-            this.pitchlines.push(this.addPitchlineAt(absValue, this.min + i * this.tickRange, i % 5 == 0));
+            this.pitchlines.push(this.addPitchlineAt(absValue, this.min + i * this.tickRange, i % this.labelFrequency == 0));
         }
         
         this.description.bringToFront();
@@ -4961,6 +4968,8 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         
         if (this.tickCount == undefined)
                 this.tickCount = Math.ceil(this.length / 20) - 1;
+        
+        this.labelFrequency = this.labelFrequency || 5;
         
         if (this.fixedMin != undefined || this.fixedMax != undefined) {
             this.tickRange = (this.max - this.min) / this.tickCount;

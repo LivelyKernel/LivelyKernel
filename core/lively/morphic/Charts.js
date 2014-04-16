@@ -5138,6 +5138,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
 
         this.addMorph(this.fileList);
         this.addMorph(dropArea);
+        
+        this.promises = [];
     },
     
     createDropArea: function() {
@@ -5196,7 +5198,35 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
           resizeHeight: true
         };
         
+        var _this = this;
+
+        fileList.onKeyDown = this.handleKeyDownInFileList.bind(this);
+
         return fileList;
+    },
+    
+    handleKeyDownInFileList: function(evt) {
+        var fileList = this.fileList;
+        
+        if (evt.which == 46) {
+            // "DEL" key
+            
+            var selectedIndexes = fileList.getSelectedIndexes().slice();
+            selectedIndexes.each(function(index) {
+                fileList.removeItemOrValue(fileList.itemList[index])
+            });
+
+            if (this.promises) {
+                // remove selected items from our promise list
+                this.promises = this.promises.filter(function(_, index) { return !selectedIndexes.include(index); });
+                this.pipePromisesToData();
+            }
+            
+            this.component.notify();
+            return true;
+        }
+        
+        return false;
     },
     
     removalNeeedsConfirmation: function() {
@@ -5206,19 +5236,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     onHTML5Drop: function(evt) {
         evt.stop();
     	
-    	// clear fileList
     	var fileList = this.fileList;
-    	while (fileList.itemList.length) {
-    	    fileList.removeItemOrValue(fileList.itemList[0]);
-    	}
-
     	var files = evt.dataTransfer.files;
     	var strings = evt.dataTransfer.items;
-    	var dataPromises = this.processDroppedFiles(files).concat(this.processDroppedStrings(strings));
+    	this.promises = this.promises.concat(this.processDroppedFiles(files), this.processDroppedStrings(strings));
     	
-        this.data = $.when.apply(null, dataPromises).then(function() {
-            return Array.prototype.slice.apply(arguments);
-        });
+    	this.pipePromisesToData();
         this.component.notify();
     },
     
@@ -5254,7 +5277,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     processDroppedStrings: function(stringList) {
         var dataPromises = [];
         for (var i = 0; i < stringList.length; i++) {
-            dataPromises.push(this.extractDataFromStringItem(stringList[i]));
+            if (stringList[i].kind === "string")
+                dataPromises.push(this.extractDataFromStringItem(stringList[i]));
         }
         return dataPromises;
     },
@@ -5336,6 +5360,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
         
         xhr.send();
         return deferred;
+    },
+    
+    pipePromisesToData: function() {
+        this.data = $.when.apply(null, this.promises).then(function() {
+            return Array.prototype.slice.apply(arguments);
+        });
     }
 });
 

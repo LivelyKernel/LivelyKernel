@@ -2208,8 +2208,9 @@ Object.extend(lively.morphic.Charts.Utils, {
     convertCSVtoJSON: function(csvString) {
         var parser = new lively.morphic.Charts.MrDataConverter;
         parser = parser.getParser();
-        
-        return parser.parse(csvString, true, "	", true, false);
+        if (csvString.length > 0)
+            return parser.parse(csvString, true, "	", true, false);
+        return null;
     },
     
     loadXlsFromPath: function(filePath) {
@@ -5343,8 +5344,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
           resizeHeight: true
         };
         
-        var _this = this;
-
         fileList.onKeyDown = this.handleKeyDownInFileList.bind(this);
 
         return fileList;
@@ -5355,7 +5354,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
         
         if (evt.which == 46) {
             // "DEL" key
-            
             var selectedIndexes = fileList.getSelectedIndexes().slice();
             selectedIndexes.each(function(index) {
                 fileList.removeItemOrValue(fileList.itemList[index])
@@ -5384,12 +5382,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     	
     	var files = dataSource.files;
     	var strings = dataSource.items;
+    	
     	this.promises = this.promises.concat(this.processDroppedFiles(files), this.processDroppedStrings(strings));
     	
     	this.pipePromisesToData();
         this.component.notify();
     },
-    
     processDroppedFiles: function(fileList) {
         var _this = this;
         var dataPromises = [];
@@ -5414,15 +5412,19 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
             }
             
             if (successfullyAdded) {
-                this.fileList.addItem(eachFile.name);
+                this.addItem(eachFile.name);
             }
     	};
     	return dataPromises;
     },
+    addItem: function(str) {
+        var number = this.fileList.itemList.length + 1;
+        this.fileList.addItem(number + " " + str);
+    },
     processDroppedStrings: function(stringList) {
         var dataPromises = [];
         for (var i = 0; i < stringList.length; i++) {
-            if (stringList[i].kind === "string")
+            if (stringList[i].kind === "string" && stringList[i].type == "text/plain")
                 dataPromises.push(this.extractDataFromStringItem(stringList[i]));
         }
         return dataPromises;
@@ -5440,28 +5442,49 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
         var deferred = new $.Deferred();
         var _this = this;
         
+        var getAbbreviatedString = function(str) {
+            return str.replace(/\n/g, "").slice(0, 20) + " ...";
+        }
+        
         stringItem.getAsString(function(str) {
             var jsonObj = _this.getValidJSONFromString(str);
 
             if (jsonObj) {
                 deferred.resolve(jsonObj);
-                _this.fileList.addItem("JSON: " + str.replace(/\n/g, "").slice(0, 20) + " ...");
-            } else if (_this.isAValidURL(str)) {
+                _this.addItem(getAbbreviatedString(str) + " (JSON)");
+                return;
+            }
+            
+            var csvObj = lively.morphic.Charts.Utils.convertCSVtoJSON(str);
+            
+            // for now, just assume it is proper CSV if there is more than one header
+            var validCsv = csvObj.headerNames.length > 1;
+            if (validCsv) {
+                deferred.resolve(csvObj);
+                _this.addItem(getAbbreviatedString(str) + " (CSV)");
+                return;
+            }
+
+            if (_this.isAValidURL(str)) {
                 // fetch url
-                
                 _this.getBlobFromURL(str).done(function(blob) {
                     blob.name = str.split("/").last();
                     var filePromise = _this.processDroppedFiles([blob])[0];
                     filePromise.done(function(result) {
                         deferred.resolve(result);
                     }).fail(function(status) {
-                        deferred.reject(status);
+                        alert("Error when reading file: " + status);
+                        deferred.resolve(null);
                     })
-                })
-            } else {
-                alert("Dragged string is neither proper JSON nor a valid URL")
-                deferred.reject();
+                }).fail(function(status) {
+                    alert("Error when retrieving Data from URL: " + status);
+                    deferred.resolve(null);
+                });
+                
+                return;
             }
+            alert("Dragged string is neither proper JSON nor a valid URL")
+            deferred.resolve();
         });
         
         return deferred.promise();
@@ -5495,15 +5518,26 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
         xhr.open('GET', filePath, true);
         xhr.responseType = 'blob';
         
+        var handleError = function(e) {
+            alert("Error when loading blob", e);
+            deferred.reject();
+        }
+        
         xhr.onload = function(e) {
             if (this.status == 200) {
                 deferred.resolve(this.response);
             } else {
-                deferred.reject(this.status);
-          }
+                handleError(e);
+            }
         };
         
-        xhr.send();
+        xhr.onerror = handleError;
+        try {
+            xhr.send();
+        } catch (e) {
+            handleError();
+        }
+        
         return deferred;
     },
     

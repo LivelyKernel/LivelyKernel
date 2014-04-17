@@ -1,5 +1,74 @@
 module('lively.morphic.Charts').requires('lively.morphic.Core', 'lively.ide.CodeEditor', 'lively.morphic.Widgets', 'cop.Layers').toRun(function() {
     
+lively.morphic.Path.subclass("lively.morphic.Charts.VariableBox",
+{
+    initialize: function($super, extent, text, alwaysResize) {
+        var arrowHeight = 5;
+        extent = extent || pt(0, 0);
+        this.alwaysResize = alwaysResize;
+        var verticies = [
+            pt(0, 0),
+            pt(extent.x, 0),
+            pt(extent.x, extent.y - arrowHeight),
+            pt(extent.x / 2 + arrowHeight, extent.y - arrowHeight),
+            pt(extent.x / 2, extent.y),
+            pt(extent.x / 2 - arrowHeight, extent.y - arrowHeight),
+            pt(0, extent.y - arrowHeight),
+            pt(0, 0)
+        ];
+        
+        $super(verticies);
+        this.setBorderWidth(2);
+        this.setBorderColor(Color.rgbHex("f0ad4e"));
+        this.setFill(Color.white);
+        
+        if (text) {
+            this.setTextString(text);
+            this.adjustExtent();
+        }
+        
+        
+        
+    },
+    setTextString: function(string) {
+        if (!this.textBox) {
+            this.textBox = new lively.morphic.Text();
+            this.textBox.setExtent(pt(50, 24));
+            this.textBox.setFillOpacity(0);
+            this.textBox.setBorderWidth(0);
+            this.textBox.setFontSize(11);
+            this.textBox.setWhiteSpaceHandling("nowrap");
+            this.textBox.setFixedWidth(false);
+            this.textBox.setFixedHeight(false);
+            
+            if (this.alwaysResize)
+                connect(this.textBox, "textString", this, "adjustExtent", {});
+            
+            this.addMorph(this.textBox);
+        }
+        
+        this.textBox.setTextString(string);
+    },
+    adjustExtent: function() {
+        var _this = this;
+        setTimeout(function() {
+            _this.setExtent(_this.textBox.getExtent());
+        }, 0);
+    },
+    setExtent: function($super, extent) {
+        // a super call has strange effects on the shape
+        var topRight = this.controlPoints[1];
+        var arrowHeight = 5;
+        
+        this.controlPoints[1].setPos(pt(extent.x, 0));
+        this.controlPoints[2].setPos(pt(extent.x, extent.y));
+        this.controlPoints[3].setPos(pt(extent.x / 2 + arrowHeight, extent.y));
+        this.controlPoints[4].setPos(pt(extent.x / 2, extent.y + arrowHeight));
+        this.controlPoints[5].setPos(pt(extent.x / 2 - arrowHeight, extent.y));
+        this.controlPoints[6].setPos(pt(0, extent.y));
+    }
+});
+    
 lively.morphic.Morph.subclass("lively.morphic.Charts.PlusButton",
 {
     initialize: function($super, droppingArea, optColor) {
@@ -565,7 +634,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             {
                 name: "spinner",
                 create: function() {
-                    var part = $world.loadPartItem("Spinner", "PartsBin/Inputs");
+                    var part = $world.loadPartItem("Spinner", "PartsBin/BP2013H2");
                     part.connectionAttribute = "value";
                     return part;
                 },
@@ -614,6 +683,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.layout = {adjustForNewBounds: true};
         this.wasDragged = false;
         this.interactionVariables = [];
+        this.interactionVariableFields = [];
         
         this.minimizeOnHeaderClick();
         this.makeReframeHandles();
@@ -2232,16 +2302,59 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     updateComponent : function() {
         // refresh interactionVariables array
-        this.interactionVariables = []
+        this.interactionVariables = [];
         window.activeComponent = this;
         var newData = this.content.update(this.data);
         window.activeComponent = null;
+        // this.drawVariableBoxes();
         // check whether the return value already was a promise
         if (newData && typeof newData.done == "function") {
             return newData;
         } else {
             return new $.Deferred().resolve(newData);
         }
+    },
+    drawVariableBoxes: function() {
+        var position = this.description.getBounds().topRight();
+        var _this = this;
+        
+        // remove the existing ones
+        // this.interactionVariableFields.each(function(ea) {
+        //     ea.remove();
+        // });
+        
+        // draw the new ones
+        this.interactionVariables.each(function(ea) {
+            if (_this.get("var_" + ea))
+                return;
+                
+            var box = new lively.morphic.Charts.VariableBox();
+            box.setName("var_" + ea);
+            box.varName = ea;
+            box.setPosition(position)
+            box.setExtent(pt(50, 24));
+            box.setFillOpacity(0);
+            box.setBorderWidth(0);
+            box.ignoreEvents();
+            box.setTextColor(Color.white);
+            box.setFontSize(11);
+            box.setWhiteSpaceHandling("nowrap");
+            box.setTextString(ea);
+            box.highlight = function(value) {
+                this.setTextString(value);
+                var _this = this;
+                setTimeout(function() {
+                    _this.setTextString(_this.varName);
+                }, 1000);
+            };
+            
+            connect($morph("Dashboard").env.interaction, ea, label, "highlight");
+        
+            _this.interactionVariableFields.push(label);
+            _this.componentHeader.addMorph(label);
+            
+            position = position.addPt(pt(box.getExtent().x, 0));
+        });
     },
     
     getComponentInDirection : function($super, direction) {
@@ -5007,7 +5120,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         if (this.fixedMin == undefined)
             this.min = this.tickRange * Math.floor(this.min / this.tickRange);
         if (this.fixedMax == undefined)
-            this.max = this.tickRange * this.tickCount;
+            this.max = this.tickRange * this.tickCount + this.min;
     },
     clearPitchlines: function() {
         this.pitchlines.each(function(ea) {
@@ -5099,14 +5212,14 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         this.addPitchlines();
         this.positionMorphs(data, this.min, this.max);
     },
-    positionMorphs: function(data, min, max) {
+    positionMorphs: function(data) {
         var _this = this;
         data.each(function (ea) {
             // calculate relative position on scale, LINEAR
-            var relValue = ((ea[_this.property] || 0) - min) / (max - min);
+            var relValue = ((ea[_this.property] || 0) - _this.min) / (_this.max - _this.min);
             var absValue = relValue * _this.length;
             var scalePosition = _this.getPosition();
-            var newPosition = ea.morph.getPosition();
+            var newPosition = ea.morph.getPosition().copy();
             if (_this.dimension == "x") {
                 ea.morph.propertyX = ea[_this.property];
                 newPosition.x = absValue + scalePosition.x;

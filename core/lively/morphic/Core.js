@@ -675,7 +675,7 @@ Object.subclass('lively.morphic.Morph',
 
     isAncestorOf: function(aMorph) {
         // check if aMorph is somewhere in my submorph graph
-        return this.withAllSubmorphsDetect(function(ea) {
+        return !!this.withAllSubmorphsDetect(function(ea) {
             return ea === aMorph; });
     }
 

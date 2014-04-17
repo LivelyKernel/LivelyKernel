@@ -2828,10 +2828,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     onContentChanged: function() {
-        if (this.arrows.some(function(eachArrow){ return eachArrow.isActive(); })) {
-            this.notify();
-            this.notifyDashboard();
-        }
+        this.notify();
+        this.notifyDashboard();
     },
     
     notifyDashboard: function() {
@@ -3295,6 +3293,10 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
             
             if (JSON.stringify(data.scaleX) !== JSON.stringify(this.priorSpecX) || JSON.stringify(data.scaleY) !== JSON.stringify(this.priorSpecY))
                 this.redrawScales = true;
+                
+            // if the scales are not in the data anymore, reset the prior specs
+            if (!data.scaleX) this.priorSpecX = undefined;
+            if (!data.scaleY) this.priorSpecY = undefined;
             
             // scales do not exist or need to be redrawn
             if (!(this.scaleX || this.scaleY) || this.redrawScales)

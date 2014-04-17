@@ -800,7 +800,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
             try {
                 throw new Error('foo');
             } catch (e) {
-                return (function() { return e.message + 'bar'; })('bar');
+                return (function(arg) { return e.message + arg; })('bar');
             }
         }
         var src = Strings.format('(%s)();', code),

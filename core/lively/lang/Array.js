@@ -555,6 +555,13 @@ Object.extend(Array.prototype, {
         return this.select(function(_, i) { return !!arr[i]; });
     },
 
+    toTuples: function(tupleLength) {
+        tupleLength = tupleLength || 1;
+        return Array.range(0,Math.ceil(this.length/tupleLength)-1).map(function(n) {
+            return this.slice(n*tupleLength, n*tupleLength+tupleLength);
+        }, this);
+    },
+
     shuffle: function() {
         var unusedIndexes = Array.range(0, this.length-1);
         return this.reduce(function(shuffled, ea, i) {

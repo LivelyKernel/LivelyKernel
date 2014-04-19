@@ -2133,17 +2133,27 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             }
         },
         onKeyDown: function onKeyDown(evt) {
-        var keys = evt.getKeyString();
-        switch (keys) {
-            case 'Command-Shift-R': case 'Control-Shift-R':
-                this.runScript();
-                evt.stop(); return true;
-            case 'Command-Shift-+': case 'Control-Shift-+':
-                this.newScript();
-                evt.stop(); return true;
-        }
-        return $super(evt);
-    },
+    var keys = evt.getKeyString();
+    switch (keys) {
+        case 'Command-Shift-R': case 'Control-Shift-R':
+            this.runScript();
+            evt.stop(); return true;
+        case 'Command-Shift-+': case 'Control-Shift-+':
+            this.newScript();
+            evt.stop(); return true;
+        case 'Alt-Shift-T':
+            var self = this;
+            lively.ide.tools.SelectionNarrowing.chooseOne(
+                this.sortedScriptNamesOfObj(this.target),
+                function(err, candidate) {
+                    if (err) return show('%s', err);
+                    self.get('ObjectEditorScriptList').setSelection(candidate);
+                },
+                {});
+            evt.stop(); return true;
+    }
+    return $super(evt);
+},
         onWindowGetsFocus: function onWindowGetsFocus() {
                     this.get('ObjectEditorScriptPane').focus();
                 },

@@ -1,24 +1,33 @@
 module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'lively.morphic.Grid', 'lively.morphic.TabMorphs').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
+'settings', {
+
+    defaultExtent: pt(300, 300)
+    
+},
 'canvas', {
-    defaultExtent: pt(300, 300),
+
     initialize: function($super, optExtent) {
         $super(this.createShape());
         this.setExtent(optExtent || this.defaultExtent);
         this.disableDropping();    // because children are not shown
     },
+
     createShape: function() {
         var node = this.renderContextDispatch('createCanvasNode');
         return new lively.morphic.Shapes.External(node);
     },
+
     getContext: function(optContext) {
         return this.renderContextDispatch('getContext', optContext);
     },
+
     setExtent: function($super, extent) {
         $super(extent);
         this.renderContextDispatch('adaptCanvasSize', extent);
     },
+
     clear: function() {
         var ctx = this.getContext(),
             extent = this.getExtent(),
@@ -31,6 +40,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
             ctx.restore();
         }
     },
+
     onCanvasChanged: function() {
         // canvas created or loaded or size changed, need to redraw contents
     }
@@ -78,6 +88,40 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
 
     toImageDataArray: function(optBounds) {
         return Array.from(this.getImageData(optBounds).data);
+    },
+
+    sampleImageData2: function(sparseness) { // downscales data...
+        var d = this.getImageData(),
+            rows = this.getRows(d.width, d.height, d.data),
+            newRows = rows.reduce(function(newRows, row, j) {
+            return j % sparseness === 0 ? newRows.concat(row.reduce(function(newCols, col, i) {
+                return i % sparseness === 0 ? newCols.concat(col) : newCols;
+            }, [])) : newRows;
+        }, []);
+        return {
+            width: Math.ceil(d.width/sparseness),
+            height: Math.ceil(d.height/sparseness),
+            data: newRows
+        };
+    },
+
+    sampleImageData: function(sparseness) {
+        // show non-transparent points of an image:
+        // show(
+        // that.sampleImageData(15)
+        //     .filter(function(ea) { return !ea[1].equals(Color.rgba(0,0,0,0)); })
+        //     .pluck(0)
+        //     .map(function(ea) { return that.getGlobalTransform().transformPoint(ea); }))
+        sparseness = sparseness || 1;
+        var d = this.getImageData();
+        return Array.from(d.data).toTuples(4).toTuples(d.width).reduce(function(rows, row, j) {
+            if (j % sparseness !== 0) return rows;
+            return rows.concat(row.reduce(function(posAndColors, color, i) {
+                return i % sparseness === 0 ?
+                    posAndColors.concat([[pt(i,j), Color.fromTuple8Bit(color)]]) :
+                    posAndColors;
+                }, []));
+        }, []);
     }
 
 },
@@ -270,8 +314,8 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
                 imgData = this.getImageData();
             $node.attr('width', x);
             $node.attr('height', y);
-            this.onCanvasChanged();
             this.putImageData(imgData, x, y);
+            this.onCanvasChanged();
         } finally {
             this._adaptCanvasSizeHTMLInProgress = false;
         }
@@ -294,6 +338,15 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
                 }, Strings.print(replacementColor));
             },
             function(next) { self.replaceColor(colorToReplace, replacementColor); }].doAndContinue();
+        }]);
+        items.push(['crop by color', function() {
+            var colorToCrop = [255,255,255,255];
+            [function(next) {
+                self.world().prompt('Crop color', function(input) {
+                    try { colorToCrop = eval(input); next(); } catch (e) { show(e); }
+                }, Strings.print(colorToCrop));
+            },
+            function(next) { self.cropColor(colorToCrop); }].doAndContinue();
         }]);
         items.push(['pick color', function() { self._pickColorOnNextClick = true; }]);
         return items;

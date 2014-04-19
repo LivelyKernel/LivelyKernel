@@ -116,7 +116,63 @@ AsyncTestCase.subclass("lively.morphic.tests.CanvasAccessTest",
         this.assertEquals([190,190,190,255], cvs.positionToColor(pt(2,1)));
         this.assertEquals([0,0,0,255], cvs.positionToColor(pt(3,2)));
         this.done();
+    },
+
+    testCreateSample: function() {
+        var width = 7, height = 5, y = Color.yellow, r = Color.red,
+            testCanvasData = [y,r,r,y,y,r,r,
+                              r,y,y,r,r,y,y,
+                              y,r,r,y,y,r,r,
+                              r,y,y,r,r,y,y,
+                              y,r,r,y,y,r,r],
+            expected1 = [[pt(0,0),y],[pt(1,0),r],[pt(2,0),r],[pt(3,0),y],[pt(4,0),y],[pt(5,0),r],[pt(6,0),r],
+                         [pt(0,1),r],[pt(1,1),y],[pt(2,1),y],[pt(3,1),r],[pt(4,1),r],[pt(5,1),y],[pt(6,1),y],
+                         [pt(0,2),y],[pt(1,2),r],[pt(2,2),r],[pt(3,2),y],[pt(4,2),y],[pt(5,2),r],[pt(6,2),r],
+                         [pt(0,3),r],[pt(1,3),y],[pt(2,3),y],[pt(3,3),r],[pt(4,3),r],[pt(5,3),y],[pt(6,3),y],
+                         [pt(0,4),y],[pt(1,4),r],[pt(2,4),r],[pt(3,4),y],[pt(4,4),y],[pt(5,4),r],[pt(6,4),r]],
+            expected2 = [[pt(0,0),y],[pt(3,0),y],[pt(6,0),r],
+                         [pt(0,3),r],[pt(3,3),r],[pt(6,3),y]],
+            data = testCanvasData.invoke('toTuple8Bit').flatten(),
+            sut = this.sut = new lively.morphic.CanvasMorph();
+        this.sut.putImageData(data, width, height);
+        this.delay(function() {
+            var result = sut.sampleImageData();
+            this.assertEqualState(expected1, result);
+            var result = sut.sampleImageData(3)
+            this.assertEqualState(expected2, result);
+            this.done();
+        }, 0);
+
+    },
+
+    testCreateSample2: function() {
+        var width = 4, height = 5,
+            testCanvasData = [
+                0,0,0,255, 0,0,0,255,       0,0,0,255,       0,0,0,255,
+                0,0,0,255, 200,200,200,255, 190,190,190,255, 0,0,0,255,
+                0,0,0,255, 200,200,200,255, 190,190,190,255, 0,0,0,255,
+                0,0,0,255, 200,200,200,255, 190,190,190,255, 1,2,3,255,
+                0,0,0,255, 0,0,0,255,       0,0,0,255,       0,0,0,255];
+
+        var sut = this.sut = new lively.morphic.CanvasMorph();
+        this.sut.putImageData(testCanvasData, width, height);
+        var expected = {
+            width: 2, height: 3,
+            data: new Uint8ClampedArray([
+                0,0,0,255, 0,0,0,255,
+                0,0,0,255, 190,190,190,255,
+                0,0,0,255, 0,0,0,255      ])
+        }
+
+        this.delay(function() {
+            // downscales image
+            var result = sut.sampleImageData2(2);
+            this.assertEqualState(expected, result);
+            this.done();
+        }, 0);
+
     }
+
 });
 
 }) // end of module

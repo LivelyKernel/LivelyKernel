@@ -1201,6 +1201,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     setTabSize: function(tabSize) {
         return this.withAceDo(function(ed) { return ed.session.setTabSize(tabSize); });
     },
+    guessTabSize: function() {
+        return this.withAceDo(function(ed) {
+            var tabSize = ed.session.getLines(0, 100)
+                .map(function(l) { return l.match(/^\s+/)})
+                .compact().flatten().pluck('length')
+                .filter(function(length) { return length % 2 === 0}).min();
+            return tabSize;
+        });
+    },
+    guessAndSetTabSize: function() {
+        this.setTabSize(this.guessTabSize());
+    },
 
     setAutocompletionEnabled: function(bool) {
         this.withAceDo(function(ed) { ed.setOption("enableBasicAutocompletion", bool); });
@@ -1339,7 +1351,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowIndents", menuString: "show indents"}, settingsItems);
         boolItem({name: "SoftTabs", menuString: "use soft tabs"}, settingsItems);
         settingsItems.push(['Change tab width', function() {
-            $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.getTabSize())
+            $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
         }]);
         boolItem({name: "LineWrapping", menuString: "line wrapping"}, settingsItems);
         settingsItems.push(['Change line ending mode', function() {

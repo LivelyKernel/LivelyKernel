@@ -597,14 +597,15 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         if (!size) { show("not a valid tab size: %s", size); return; }
                         ed.$morph.setTabSize(size);
                         $world.confirm('Set tab size to ' + newTabSize + ' for all editors?', function(input) {
-                            if (!input) return;
+                            if (!input) { ed.$morph.focus(); return; }
                             lively.Config.set("defaultTabSize", newTabSize);
                             lively.morphic.CodeEditor.prototype.style.tabSize = Config.get('defaultTabSize');
                             $world.withAllSubmorphsDo(function(ea) { return ea.isCodeEditor && ea.setTabSize(size); });
                             alertOK('Changed global tab size to ' + newTabSize);
+                            ed.$morph.focus();
                         });
                         ed.$morph.focus();
-                    }, ed.$morph.getTabSize() || lively.Config.defaultTabSize);
+                    }, ed.$morph.guessTabSize() || ed.$morph.getTabSize() || lively.Config.defaultTabSize);
                  }
             }, {
                 name: "set line ending mode",

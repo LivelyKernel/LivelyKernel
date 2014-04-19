@@ -649,6 +649,18 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "openWorkspaceForSelectedSession", {});
         }
+        }, {
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(100.0,20.0),
+            _Position: lively.pt(290.0,10.0),
+            className: "lively.morphic.Button",
+            label: "visit world",
+            name: "VisitWorldButton",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "visitWorldOfSelectedSession", {});
+        }
         }],
         zoom: 1,
         getLocalSession: function getLocalSession() {
@@ -819,6 +831,10 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 workspace.get('ConnectionInput').setSelection(sel);
             }).delay(.5);
         }).delay(0);
+    },
+        visitWorldOfSelectedSession: function visitWorldOfSelectedSession() {
+        var sel = this.get("SessionList").selection;
+        sel && sel.worldURL && window.open(sel.worldURL);
     },
         setWorkspaceTarget: function setWorkspaceTarget(session) {
 

@@ -552,9 +552,8 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 dashboard.env.interaction[name] = this[attribute];
                 this.interactionConnections = [];
                 
-                // update the interaction variable value when the attribute is changed and vice versa
+                // update the interaction variable value when the attribute is changed
                 this.interactionConnections.push(connect(this, attribute, dashboard.env.interaction, name));
-                this.interactionConnections.push(connect(dashboard.env.interaction, "_" + name, this, attribute));
                 
                 // update all components that use this interaction variable
                 this.interactionConnections.push(connect(this, attribute, this, "updateObservers"));
@@ -581,6 +580,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         }
     },
     updateObservers: function(value, key) {
+        console.log("Update observers");
         this.getObservers(key).each(function (ea) {
             ea.onContentChanged();
         })
@@ -3272,6 +3272,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     },
 
     update: function(data) {
+        console.log("FreeLayout update");
         // create linear layout containing rects from data
         this.clearAndRemoveContainer();
         var _this = this;
@@ -5087,7 +5088,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     },
     addPitchlines: function() {
         // add pitchlines if neccessary
-      
+        
         // if the range did't change, do not refresh the lines
         if (this.min == this.priorMin && this.max == this.priorMax)
             return;
@@ -5211,6 +5212,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     },
     
     update: function(data) {
+        console.log("Scale update");
         this.determineSpec(data);
         this.addPitchlines();
         this.positionMorphs(data, this.min, this.max);

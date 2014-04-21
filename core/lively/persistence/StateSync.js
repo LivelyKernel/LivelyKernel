@@ -392,11 +392,12 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             this.form.handle.get(this.form.cb);
         }
     },
+    
 }, 'model Synchronization', {
     save: function(value, source, connection) {
         if (this.noSave) return;
         this.changeTime = Date.now();
-        var model = this.asModel();
+        var model = this.getModelData();
         this.synchronizationHandles &&
         this.synchronizationHandles.forEach(function(handle) {
             handle.overwriteWith(model, function(error, val) {  }, this.synchronizationGet)
@@ -426,22 +427,18 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         }, someValue)
         this.noSave = false;
     },
-    asModel: function() {
-        var obj = this.recursivelyWalk({
-            text: function() { 
-                return {string: this.textString}; }, 
-            base: function(functions) {
-                var obj = {};
-                this.submorphs.forEach(function(morph) {
-                    if (morph.getName()) {
-                        // only named morphs are candidates for fields
-                        if (morph.getModelData) obj[morph.name] = morph.getModelData()
-                        else obj[morph.name] = functions.walk.call(morph, functions)
-                    }
-                });
-                return obj;
-            },
-        })
+    getModelData: function() {
+        var obj = (function walkRecursively() {
+            var obj = {};
+            this.submorphs.forEach(function(morph) {
+                if (morph.getName()) {
+                    // only named morphs are candidates for fields
+                    if (morph.getModelData) obj[morph.name] = morph.getModelData()
+                    else obj[morph.name] = walkRecursively.call(morph)
+                }
+            });
+            return obj;
+        }).call(this)
         obj.shortString = this.toString();
         obj.changeTime = this.changeTime || 0;
         return obj
@@ -570,7 +567,7 @@ function mixInto(aMorph, morphHandle, saveForm) {
 
     };
     if (morphHandle.isRoot())
-        morphHandle.child(aMorph.name).push(aMorph.asModel(), thenDoFirst);
+        morphHandle.child(aMorph.name).push(aMorph.getModelData(), thenDoFirst);
     else
         thenDoFirst(null, morphHandle)
     

@@ -79,7 +79,7 @@ var subscribe = function(sender, path, subscribers) {
 
 var retry = function(connection, msg) {
     store.read(storeName, msg.data.path, function(err, val) {
-        console.log("Unsuccessfully tried to store '" + msg.data.newValue + "' in stead of '" + msg.data.oldValue + "', while the current value is '" + val + "'")
+        // console.log("Unsuccessfully tried to store '" + msg.data.newValue + "' in stead of '" + msg.data.oldValue + "', while the current value is '" + val + "'")
         connection.send({
             action: msg.action + 'Result',
             inResponseTo: msg.messageId,

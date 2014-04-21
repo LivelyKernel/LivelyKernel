@@ -179,7 +179,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
 
         var self = this;
         this.handle.child(gunieaPig.name).push(
-            gunieaPig.asModel(),
+            gunieaPig.getModelData(),
             function(err, handle, curV) {
                 gunieaPig.synchronizationHandles.push(handle);
                 self.assertEquals(gunieaPig.synchronizationHandles.length, 2);
@@ -206,7 +206,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
         var syncHandle = this.startSynchronizing(gunieaPig);
         
         gunieaPig.mergeWithModelData = function(newV) {
-            if (Objects.equal(newV, this.asModel())) return;
+            if (Objects.equal(newV, this.getModelData())) return;
             self.assertEquals("endIt", newV, "wrong value supplied");
             (thenDo && thenDo()) || self.done()};
         
@@ -227,7 +227,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
         debugger;
         syncHandle.get(function(err, value) {
             if (value == "endIt") return self.done();
-            var model = gunieaPig.asModel();
+            var model = gunieaPig.getModelData();
             self.assert(Objects.equal(value, model), "The saved value is not equal to the model: " + Objects.inspect(value) + Objects.inspect(model));
         });
         var foo = new lively.morphic.Morph();
@@ -236,7 +236,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
         gunieaPig.addMorph(foo);
         this.assertEquals(gunieaPig.submorphs[0], foo, "morph not added to scenegraph");
 
-        var model = gunieaPig.asModel();
+        var model = gunieaPig.getModelData();
         this.assert(model.foo && model.foo == "foo", 'foo is not available in the model');
         syncHandle.overwriteWith("endIt")
     },
@@ -262,25 +262,25 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
     },
 },
 'tests', {
-    testAsModel: function( thenDo ) {
+    testGetModelData: function( thenDo ) {
         // background morph named stickyNote with one text submorph named content
         var gunieaPig = this.getStickyNote();
         gunieaPig.submorphs[0].textString = "some text";
         this.startSynchronizing(gunieaPig);
         
-        var model = gunieaPig.asModel();
+        var model = gunieaPig.getModelData();
         this.assert(model.content && Object.isNumber(model.changeTime), "for texts, there is no change changeTime-ing");
         model.changeTime = 10;
-        this.assertEqualState(model, {changeTime: 10, content: {string: "some text"}, shortString: model.shortString}, "model generation not successful");
+        this.assertEqualState(model, {changeTime: 10, content: "some text", shortString: model.shortString}, "model generation not successful");
         
         (thenDo && thenDo.call(this, gunieaPig)) || this.done()
     },
-    testAsModelConnections: function() {
-        this.testAsModel(function(gunieaPig) {
+    testGetModelDataConnections: function() {
+        this.testGetModelData(function(gunieaPig) {
         
         gunieaPig.submorphs[0].textString = "some different text";
-        var model = gunieaPig.asModel()
-        this.assertEqualState(model, {changeTime: gunieaPig.changeTime || 0, content: {string: "some different text"}, shortString: model.shortString}, "model not updated successful")
+        var model = gunieaPig.getModelData()
+        this.assertEqualState(model, {changeTime: gunieaPig.changeTime || 0, content: "some different text", shortString: model.shortString}, "model not updated successful")
         
         this.epsilon = 100
         this.assertEqualsEpsilon(model.changeTime, Date.now(), "changing the text should change the last update timestamp")

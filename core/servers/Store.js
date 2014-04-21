@@ -65,19 +65,19 @@ function retrieveChanges(since, requestingClientId, callback) {
     Object.keys(changes).forEach(function(time) {
         time = Number(time);
         var change = changes[time];
-        console.log('Store: testing for %s for client %s', i(change), requestingClientId);
+        // console.log('Store: testing for %s for client %s', i(change), requestingClientId);
         if (time < result.startTime || time > result.endTime) return;
-        console.log('Store: time ok');
+        // console.log('Store: time ok');
         if (pathsRead.indexOf(change.path) >= 0) return;
-        console.log('Store: not yet added');
+        // console.log('Store: not yet added');
         if (requestingClientId && change.hasOwnProperty("originClientId")
          && requestingClientId == change.originClientId) return;
-        console.log('Store: change from a different client');
-        console.log('Store: adding %s', i(change));
+        // console.log('Store: change from a different client');
+        // console.log('Store: adding %s', i(change));
         result.changes.push(change);
         pathsRead.push(change.path);
     });
-    console.log("Store: changes: %s, result: %s", i(changes), i(result));
+    // console.log("Store: changes: %s, result: %s", i(changes), i(result));
     callback(null, result);
 }
 
@@ -107,9 +107,9 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
     if (!err) {
         changes[Date.now()] = {path: String(path), originClientId: clientId};
         path.set(inMemoryStores, value);
-        console.log('Store: stored %s in %s', i(value), path);
+        // console.log('Store: stored %s in %s', i(value), path);
         fs.writeFile(folder + '/' + storeName + fileStoreSuffix, JSON.stringify(storePath.get(inMemoryStores)), function(err) { if(err) { console.warn(err); } });
-    } else {
+    } else { 
         console.warn('Store: could not store %s in %s, error: %s', value, path, i(err));
     }
     thenDo(err);
@@ -139,7 +139,7 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
 function read(storeName, pathString, thenDo) {
     var path = lively.PropertyPath(pathString),
         val = path.isRoot() ? inMemoryStores[storeName] : path.get(inMemoryStores[storeName]);
-    console.log('read %s: %s', path, i(val));
+    // console.log('read %s: %s', path, i(val));
     thenDo(null, val);
 }
 
@@ -172,7 +172,7 @@ module.exports = function(route, app) {
             value = req.body && req.body.data,
             clientId = req.body && req.body.clientId,
             precondition = req.body && req.body.precondition;
-        console.log('storeing from %s', clientId);
+        // console.log('storeing from %s', clientId);
         write(store, path, value, precondition, clientId, function(err) {
             var status = 200;
             if (err) { status = err.type && err.type === 'precondition' ? 412 : 400; }

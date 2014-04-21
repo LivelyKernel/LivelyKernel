@@ -113,7 +113,7 @@ var stateSynchronizationServices = {
         // answer current value
         // register callback
         subscribe(msg.sender, global.lively.PropertyPath(msg.data), subscribers);
-        store.read(storeName, msg.data, function(err, val) {
+        store.read(storeName, msg.data, function(error, val) {
             connection.send({
                 action: msg.action + 'Result',
                 inResponseTo: msg.messageId,

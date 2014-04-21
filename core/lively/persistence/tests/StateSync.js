@@ -89,8 +89,20 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
             });
         })
     },
+    test05falseContent: function() {
+        var c = this._root.child("falseTest"),
+            self = this;
+        c.get(function(err, newV) {
+            if (newV === undefined) return;
+            if (newV === false){
+                self.done()
+            } else {
+                self.assertEquals(newV, false, "Value not updated.")
+            }
+        });
+        c.overwriteWith(false);
+    },
 })
-
 lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.tests.StateSync.L2LHandle', 
 'preparation', {
     setUp: function($super) {

@@ -400,7 +400,9 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         var model = this.getModelData();
         this.synchronizationHandles &&
         this.synchronizationHandles.forEach(function(handle) {
-            handle.overwriteWith(model, function(error, val) {  }, this.synchronizationGet)
+            handle.set(function(old, val, mergedFn) {
+                if (!old || old.changeTime <= val.changeTime) mergedFn(val)
+            }, function(error, val) {  }, model, this.synchronizationGet)
         })
     },
     mergeWithModelData: function merge(someValue) {

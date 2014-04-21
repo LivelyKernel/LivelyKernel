@@ -88,6 +88,68 @@ var retry = function(connection, msg) {
     })
 };
 
+var searchForIn = function(searchStrings, object, initialPath) {
+        searchInString = (function searchInString(string) {
+            return searchStrings.all(function(searchString) { 
+                return searchString.test(string)});
+        }),
+        searchInObject = (function searchInObject(object) {
+            return Object.getOwnPropertyNames(object).any(function(name) {
+                if (searchInString(name)) {
+                    return true
+                } else {
+                    if (typeof object[name] === 'string') {
+                        return searchInString(object[name])
+                    } else if (typeof object[name] === 'object') {
+                        return searchInObject(object[name])
+                    } else {
+                        return false
+                    }
+                }
+            })
+        })
+    var result = [];
+    // search through the contents of the db and remember all paths which had searchString in them or 
+    (function search(object, path) {
+        if(object.hasOwnProperty("length")) {
+            for(var i = 0; i < object.length; i++){
+                if (searchInObject(object[i]))
+                    result.push({path: path.concat(i + ""), 
+                                shortString: object[i].shortString})
+            }
+        } else {
+            try {
+                Object.getOwnPropertyNames(object).forEach(function(name) {
+                    search(object[name], path.concat(name))
+                })
+            }
+            catch (e){ /* stop recursion */ }
+        }
+    })(object, global.lively.PropertyPath(initialPath || ""));
+    return result
+};
+
+(function testSearchForIn() {
+    var assert = require('assert'),
+        pp = global.lively.PropertyPath,
+        result = searchForIn([new RegExp("ab", "im")], {
+            stickyNote: { length: 6,
+                "0": {content: "a"}, 
+                "1": {content: "ab"}, 
+                "2": {content: "b"}, 
+                "3": {content: "lalelu ab"}, 
+                "4": {content: "ab lalelu"}, 
+                "5": {content: "laleablu"}},
+            artificialTestForm: { ".form": "ab", 
+                "0": {ab: "cd"}, length: 1}});
+    assert.ok(result.length == 5, "Not enough results found");
+    assert.ok(result[0].path.equals(pp("stickyNote.1")), "Element missing from results 1.");
+    assert.ok(result[1].path.equals(pp("stickyNote.3")), "Element missing from results 2.");
+    assert.ok(result[2].path.equals(pp("stickyNote.4")), "Element missing from results 3.");
+    assert.ok(result[3].path.equals(pp("stickyNote.5")), "Element missing from results 4.");
+    assert.ok(result[4].path.equals(pp("artificialTestForm.0")), "Element missing from results 5.");
+})()
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 var stateSynchronizationServices = {
@@ -118,7 +180,23 @@ var stateSynchronizationServices = {
                 action: msg.action + 'Result',
                 inResponseTo: msg.messageId,
                 data: val,
-                error: err
+                error: error
+            })
+        })
+    },
+    syncSearch: function(sessionServer, connection, msg) {
+        if (typeof msg.data !== "string") connection.send({
+                action: msg.action + "Result",
+                inResponseTo: msg.messageId,
+                error: "Can search but for strings... (" + (typeof msg.data) + ")"
+            })
+        // console.log("Searching for '" + msg.data + "'");
+        store.read(storeName, '', function(error, val) {
+            connection.send({
+                action: msg.action + "Result",
+                inResponseTo: msg.messageId,
+                data: searchForIn(msg.data.split(/\s/).collect(function(ea) { return new RegExp(ea, "im")}), val),
+                error: error
             })
         })
     },

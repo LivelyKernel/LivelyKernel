@@ -406,25 +406,18 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     mergeWithModelData: function merge(someValue) {
         this.noSave = true;
         if (this.changeTime && this.changeTime > someValue.changeTime)
-            return alertOK("Change ignored due to never changes in this world.");
-        this.recursivelyWalk({
-            text: function(functions, values) {
-                if (values.string && this.textString !== values.string) {
-                    this.textString = this.savedTextString = values.string;
+            return;// alertOK("Change ignored due to newer changes in this world.");
+        (function walkRecursively(values) {
+            if (!Object.isObject(values)) return
+            this.submorphs.forEach(function(morph) {
+                if (morph.name) {
+                    // only named morphs are candidates for fields
+                    if (morph.mergeWithModelData && values[morph.name] !== undefined)
+                        morph.mergeWithModelData(values[morph.name], someValue.changeTime)
+                    else walkRecursively.call(morph, values[morph.name])
                 }
-            },
-            base: function(functions, values) {
-                if (!Object.isObject(values)) return
-                this.submorphs.forEach(function(morph) {
-                    if (morph.name) {
-                        // only named morphs are candidates for fields
-                        if (morph.mergeWithModelData && values[morph.name])
-                            morph.mergeWithModelData(values[morph.name])
-                        else functions.walk.call(morph, functions, values[morph.name])
-                    }
-                });
-            },
-        }, someValue)
+            });
+        }).call(this, someValue)
         this.noSave = false;
     },
     getModelData: function() {
@@ -442,15 +435,6 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         obj.shortString = this.toString();
         obj.changeTime = this.changeTime || 0;
         return obj
-    },
-    recursivelyWalk: function(functions) {
-        functions.walk = functions.walk || arguments.callee;
-        // text case (duck typing)
-        if (functions.text && (this.hasOwnProperty("textString") || this.__lookupGetter__("textString")))
-            return functions.text.apply(this, arguments);
-
-        // base case
-        return functions.base.apply(this, arguments);
     },
 }, 'form synchronization', {
     saveForm: function() {
@@ -481,36 +465,27 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     //     if (aMorph.owner == this && !aMorph.isPlaceholder) this.saveForm();
     //     return result;
     // },
-})
+});
 
 Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
 function connectSavingProperties(anObject, options) {
     // if there is another implementation of save, don't connect to it, rely on the user to do the connecting.
     if ((options && options.forceConnecting) || anObject.hasOwnProperty("save")) return;
-    anObject.recursivelyWalk({
-        text: function(functions, syncMorph) {
-            connect(this, this.isCodeEditor ? "savedTextString" : "textString", 
-                    syncMorph, "save", {
-                updater: function($upd, value) {
-                    this.sourceObj.changeTime = Date.now();
-                    if (typeof this.targetObj[this.targetMethodName] == "function")
-                        $upd(value, this.sourceObj, this);
-                }});
-        }, 
-        base: function(functions, syncMorph) {
-            this.submorphs.forEach(function(morph) {
-                if (morph.name)
-                    if (morph.connectTo)
-                        morph.connectTo(syncMorph, "save", {
-                            updater: function($upd, value) {
-                                this.sourceObj.changeTime = Date.now();
-                                if (typeof this.targetObj[this.targetMethodName] == "function")
-                                    $upd(value, this.sourceObj, this);
-                        }});
-                    else functions.walk.call(morph, functions, syncMorph)
-            });
-        },}, anObject)
-})
+    (function walkRecursively(syncMorph) {
+        this.submorphs.forEach(function(morph) {
+            if (morph.name)
+                if (morph.connectTo)
+                    morph.connectTo(syncMorph, "save", {
+                        updater: function($upd, value) {
+                            this.sourceObj.changeTime = Date.now();
+                            if (typeof this.targetObj[this.targetMethodName] == "function")
+                                $upd(value, this.sourceObj, this);
+                    }});
+                else walkRecursively.call(morph, syncMorph)
+        });
+    }).call(anObject, anObject)
+});
+
 Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
 function openMorphFor(modelPath, rootHandle, noMorphCb) {
     var path = lively.PropertyPath(modelPath),
@@ -593,5 +568,95 @@ function formUpdate(me, error, value) {
     }
     // me.setPosition(me.getPosition().addXY(newMe.getExtent().x, 0));
 });
+
+Trait("lively.persistence.StateSync.SynchronizedTextMixin",
+'modelCreation', {
+    connectTo: function(targetObj, targetMethodName, options) {
+        connect(this, "textString", targetObj, targetMethodName, options);
+    },
+    getModelData: function() {
+        this.changeTime = Date.now();
+        return this.textString;
+    },
+    mergeWithModelData: function(newText, changeTime) {
+        if (typeof newText == "string" && this.textString !== newText && this.changeTime < changeTime) {
+            this.textString = this.savedTextString = newText;
+        }
+    },
+});
+Trait("lively.persistence.StateSync.SynchronizedTextMixin").mixin().applyTo(lively.morphic.Text);
+
+Trait("lively.persistence.StateSync.SynchronizedListMixin",
+'modelCreation', {
+    connectTo: function(targetObj, targetMethodName, options) {
+        connect(this, "itemList", targetObj, targetMethodName, options)
+    },
+    getModelData: function() {
+        return this.itemList
+    },
+    mergeWithModelData: function(newValues, changeTime) {
+        var self = this;
+        lively.bindings.noUpdate(function() {
+            self.setList(newValues);
+        });
+    },
+});
+Trait("lively.persistence.StateSync.SynchronizedListMixin").mixin().applyTo(lively.morphic.List);
+
+Trait("lively.persistence.StateSync.SynchronizedSliderMixin",
+'modelCreation', {
+    connectTo: function(targetObj, targetMethodName, options) {
+        connect(this, "value", targetObj, targetMethodName, options)
+    },
+    getModelData: function() {
+        this.changeTime = Date.now();
+        return this.value
+    },
+    mergeWithModelData: function(newValue, changeTime) {
+        if (typeof newValue == "number" && this.value !== newValue && this.changeTime < changeTime) {
+            this.value = newValue;
+        }
+    },
+});
+Trait("lively.persistence.StateSync.SynchronizedSliderMixin").mixin().applyTo(lively.morphic.Slider);
+
+
+Trait("lively.persistence.StateSync.SynchronizedCheckBoxMixin",
+'modelCreation', {
+    connectTo: function(targetObj, targetMethodName, options) {
+        connect(this, "checked", targetObj, targetMethodName, options)
+    },
+    getModelData: function() {
+        this.changeTime = Date.now();
+        return this.checked
+    },
+    mergeWithModelData: function(newValue, changeTime) {
+        if (typeof newValue == "boolean" && this.value !== newValue && this.changeTime < changeTime) {
+            this.setChecked(newValue);
+        }
+    },
+});
+Trait("lively.persistence.StateSync.SynchronizedCheckBoxMixin").mixin().applyTo(lively.morphic.CheckBox);
+
+Trait("lively.persistence.StateSync.SynchronizedImageMixin",
+'modelCreation', {
+    connectTo: function(targetObj, targetMethodName, options) {
+        this.addScript(function setImageURL(url, keepOriginalExtent) {
+            $super(url, keepOriginalExtent);
+            if (typeof targetObj[targetMethodName] === "function")
+                targetObj[targetMethodName](url, this, null);
+        }, undefined, {targetObj: targetObj, targetMethodName: targetMethodName})
+    },
+    getModelData: function() {
+        return this.getImageURL()
+    },
+    mergeWithModelData: function(newImageURL, changeTime) {
+        // there is the conscious decision to not synchronize the image extent, because it would break layouting of the forms.
+        if (typeof newImageURL == "string") {
+            this.setImageURL(newImageURL);
+        }
+    },
+});
+Trait("lively.persistence.StateSync.SynchronizedImageMixin").mixin().applyTo(lively.morphic.Image);
 
 }) // end of module

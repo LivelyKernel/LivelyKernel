@@ -9,8 +9,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
  *     create intermediate steps when browsing a whole path - yes,
  *         because that relieves us of book keeping when creating subsequent children, and 
  *         updating their parents, with minimal costs
- * Design Decision or Implementation pending/:
- *     How to abort a merge? -> throw "up"
+ * Design Decision or Implementation pending:
  */
 'settings', {
     path: lively.PropertyPath("")
@@ -27,7 +26,13 @@ Object.subclass('lively.persistence.StateSync.Handle',
     get: function(thenDo) {
         // get the value in the database, and call thenDo with it
         // also call on every update change
-        // return thenDo!!
+        // returns thenDo!
+        throw dbgOn(new Error('To be implemented from subclass'));
+    },
+
+    getOnce: function(thenDo) {
+        // get the value in the database, and call thenDo with it
+        // returns thenDo!
         throw dbgOn(new Error('To be implemented from subclass'));
     },
 
@@ -117,7 +122,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
 },
 'debugging', {
     toString: function() {
-        return 'Handle(to ' + this._path + ')'
+        return 'Handle(to ' + this.fullPath() + ')'
     }
 })
 
@@ -136,15 +141,21 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
     get: function(thenDo) {
         // get the value in the database, and call thenDo with it
         // also call on every update change
-        this._store.get(this.fullPath(), function(path, value) {
-            thenDo(null, value)
-        })
+        this.getOnce(thenDo);
         if (!this._callbacks) {
             this._store.addSubscriber(this);
             this._callbacks = [thenDo]
         } else {
             this._callbacks.push(thenDo)
         }
+        return thenDo
+    },
+
+    getOnce: function(thenDo) {
+        // get the value in the database, and call thenDo with it
+        this._store.get(this.fullPath(), function(path, value) {
+            thenDo(null, value)
+        });
         return thenDo
     },
 
@@ -237,13 +248,16 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         // also call on every update change
         
         if (!this._callbacks) {
-            // this._store.addSubscriber(this);
             this._callbacks = [thenDo]
         } else {
             this._callbacks.push(thenDo)
         }
+        return this.getOnce(thenDo);
+    },
+
+    getOnce: function(thenDo) {
+        // get the value in the database, and call thenDo with it
         var sess = lively.net.SessionTracker.getSession();
-        // TODO?: in case we dont have a session, should we try anything else?
         if (!sess) return alert("Session lost. Getting aborted.")
         sess.sendTo(sess.trackerId, 'syncGet', this.fullPath().toString(), function(msg) {
             thenDo(msg.error, msg.data)
@@ -268,7 +282,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
                 }
             })
         }
-        if (!sess) alert("Connection not available. Setting aborted.")
+        if (!sess) alert("Connection not available. Setting aborted.");
         else send(newV, oldV);
     },
 
@@ -435,7 +449,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             return obj;
         }).call(this)
         obj.shortString = this.toString();
-        obj.changeTime = this.changeTime || 0;
+        obj.changeTime = this.changeTime || Date.now();
         return obj
     },
 }, 'form synchronization', {
@@ -495,8 +509,8 @@ function openMorphFor(modelPath, rootHandle, noMorphCb) {
         trait = this;
     
     var formHandle = rootHandle.child(path).parent().child(".form");
-    // FIXME: a hack to get the stored value exactly once
-    formHandle.set(function(formJSON, _, __) {
+    formHandle.getOnce(function(err, formJSON) {
+        if (err) return alert(err);
         if (formJSON === "" || formJSON === undefined) return noMorphCb(modelPath);
         var part = lively.persistence.Serializer.deserialize(formJSON),
             handle = rootHandle.child(modelPath);
@@ -504,7 +518,7 @@ function openMorphFor(modelPath, rootHandle, noMorphCb) {
         trait.mixInto(part, handle, false);
         part.setPosition(pt(0, 0))
         part.openInHand();
-    }, Functions.Empty)
+    });
 });
 
 Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 

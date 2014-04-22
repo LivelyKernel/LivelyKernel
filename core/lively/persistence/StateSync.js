@@ -684,4 +684,23 @@ Trait("lively.persistence.StateSync.SynchronizedImageMixin",
 });
 Trait("lively.persistence.StateSync.SynchronizedImageMixin").mixin().applyTo(lively.morphic.Image);
 
+Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
+'modelCreation', {
+    connectTo: function(targetObj, targetMethodName, options) {
+        connect(this, "savedTextString", targetObj, targetMethodName, options)
+    },
+    getModelData: function() {
+        return {content: this.savedTextString, mode: this.getTextMode()};
+    },
+    mergeWithModelData: function(newContent, changeTime) {
+        if (newContent.content !== this.savedTextString) {
+            this.savedTextString = newContent.content;
+            this.textString = newContent.content;
+        }
+        if (newContent.mode !== this.getTextMode())
+            this.setTextMode(newContent.mode);
+    },
+});
+Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin").mixin().applyTo(lively.morphic.CodeEditor);
+
 }) // end of module

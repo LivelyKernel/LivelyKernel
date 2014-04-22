@@ -410,7 +410,12 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             this.form.handle.get(this.form.cb);
         }
     },
-    
+    toString: function() {
+        if (this.constructor.prototype.toString !== lively.morphic.Morph.prototype.toString)
+            return this.constructor.prototype.toString.call(this);
+        var title = this.getMorphNamed("title");
+        return this.getName() + "(" + (title && title.textString ? title.textString : '...') + ")";
+    },
 }, 'model Synchronization', {
     save: function(value, source, connection) {
         if (this.noSave) return;

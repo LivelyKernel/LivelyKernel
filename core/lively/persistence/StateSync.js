@@ -106,6 +106,10 @@ Object.subclass('lively.persistence.StateSync.Handle',
         if (this.isRoot()) return this._path
         else return this.parent().fullPath().concat(this._path)
     },
+    root: function() {
+        if (this.isRoot()) return this
+        else return this.parent().root();
+    },
     // remove?
     
 },

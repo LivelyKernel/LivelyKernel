@@ -526,10 +526,18 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
             container.addMorph(valueField);
             container.addMorph(this);
             
+            // don't let submorphs overlap the right border
+            container.setExtent(pt(
+                container.getBounds().width + container.layout.layouter.verticalBorderSpace() / 2,
+                container.getExtent().y
+            ));
+
+            
             var oldRemove = container.remove;
             
+            var _this = this;
             container.remove = function() {
-                interactionArea.removeVariable(name);
+                interactionArea.removeVariable(_this.getName());
                 oldRemove.apply(container, arguments);
             }
             
@@ -644,6 +652,14 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 create: function() {
                     var part = $world.loadPartItem("CheckBox", "PartsBin/Inputs");
                     part.connectionAttribute = "checked";
+                    return part;
+                },
+            },
+            {
+                name: "startStopSlider",
+                create: function() {
+                    var part = $world.loadPartItem("StartStopSlider", "PartsBin/BP2013H2");
+                    part.connectionAttribute = "value";
                     return part;
                 },
             },

@@ -380,6 +380,12 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             delete copy.changeTime;
             delete copy.form;
             copy.setName(this.getName());
+            (function walk(aMorph) {
+                if (aMorph.getName()){
+                    delete aMorph.changeTime;
+                    aMorph.submorphs.forEach(walk)
+                }
+            })(copy)
         }
         return copy;
     },

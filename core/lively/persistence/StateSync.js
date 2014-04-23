@@ -607,11 +607,15 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin",
     },
     getModelData: function() {
         this.changeTime = Date.now();
-        return this.textString;
+        return this.getRichTextMarkup();
     },
     mergeWithModelData: function(newText, changeTime) {
-        if (typeof newText == "string" && this.textString !== newText && this.changeTime < changeTime) {
-            this.textString = this.savedTextString = newText;
+        if (!this.changeTime || this.changeTime < changeTime) {
+            // backward compatibility
+            if (typeof newText == "string")
+                this.textString = newText
+            else
+                this.setRichTextMarkup(newText)
         }
     },
 });

@@ -373,6 +373,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
         }
         var viewer = lively.morphic.Charts.Component.createWindow(content);
         viewer.envKey = envKey;
+        viewer.setName(envKey + "Viewer");
         viewer.setExtent(pt(this.getExtent().x - 40, viewer.getExtent().y));
         viewer.setPosition(pt(20, 20));
         viewer.description.setTextString(viewer.description.getTextString() + " - " + envKey);
@@ -568,6 +569,9 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                 
                 interactionArea.overrideGetter(dashboard.env.interaction, aMorph.getName());
             }
+            
+            // set the name of the Container
+            this.owner.setName(name + "Container");
         }
         
         // if all the listeners are forced to reattach, overrideGetters again

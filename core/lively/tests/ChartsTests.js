@@ -16,6 +16,10 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         }).each(function(ea) {
             ea.remove();
         });
+        
+        // delete the dashboard, if it exists
+        var dashboard = $morph("Dashboard");
+        if (dashboard) dashboard.remove();
     },
 }, 'component functionality', {
     
@@ -528,6 +532,7 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
     
     tearDown: function($super) {
         $super();
+        
         // delete all dataflow components
         // this fixes the problem that a failing test leaves components behind and affects other tests
         $world.withAllSubmorphsSelect(function(el) {
@@ -535,6 +540,10 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
         }).each(function(ea) {
             ea.remove();
         });
+        
+        // delete the dashboard, if it exists
+        var dashboard = $morph("Dashboard");
+        if (dashboard) dashboard.remove();
     },
 }, 
 'script',{
@@ -551,6 +560,7 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
             components[0].content.codeEditor.withAceDo(function() { inited = true; });
         }, 100);
         
+        // wait for the code editor to be initialized
         this.waitFor(function() { return inited }, 10, function() {
             components[0].onContentChanged();
             
@@ -561,7 +571,7 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
     }
     
 });
-Object.subclass('lively.tests.ChartsTests.Helper',
+TestCase.subclass('lively.tests.ChartsTests.Helper',
 'default category', {
     createComponents: function(amount, optPositions, optClass) {
         // optPositions = pt(0, 0), pt(0, 1), pt(0, 2) would lead to three components in a column
@@ -618,7 +628,27 @@ Object.subclass('lively.tests.ChartsTests.Helper',
         components.each(function(each) {
             each.remove();
         });
-    }
+    },
+    getAndDropWidget: function() {
+        var interactionArea = $world.get("InteractionArea");
+        var targetPos = interactionArea.getPositionInWorld().addPt(pt(50, 50));
+        
+        // open the first widget in hand
+        var widget = interactionArea.getContextMenuComponents()[0].create();
+        widget.openInHand();
+        
+        // drag and drop the widget into the InteractionArea
+        this.doMouseEvent({type: 'mousemove', pos: targetPos, target: $world});
+        this.doMouseEvent({type: 'mouseup', pos: targetPos, target: $world});
+        
+        return widget;
+    },
+    createDashboard: function() {
+        var dashboard = new lively.morphic.Charts.Dashboard({}).openInWorld();
+        dashboard.update();
+        return dashboard;
+    },
+
 });
 
 TestCase.subclass('lively.tests.ChartsTests.UtilsTest',
@@ -867,4 +897,208 @@ TestCase.subclass('lively.tests.ChartsTests.EntityTest',
     }
     
 });
+
+AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
+'creation', {
+    
+    testCreateDashboard: function() {
+        var script = this.helper.createComponent();
+        script.content.codeEditor.setTextString("env.db = \"test\"");
+        
+        var inited = false;
+        var _this = this;
+        setTimeout(function() {
+            script.content.codeEditor.withAceDo(function() { inited = true; });
+        }, 100);
+        
+        // wait for the code editor to be initialized
+        this.waitFor(function() { return inited }, 10, function() {
+            script.onContentChanged();
+            
+            // test that dashboard exists
+            var dashboard = $morph("Dashboard");
+            _this.assert(dashboard != undefined);
+            _this.done();
+        });
+    },
+    testCreateViewer: function() {
+        var script = this.helper.createComponent();
+        script.content.codeEditor.setTextString("env.db = \"test\"");
+        
+        var inited = false;
+        var _this = this;
+        setTimeout(function() {
+            script.content.codeEditor.withAceDo(function() { inited = true; });
+        }, 100);
+        
+        // wait for the code editor to be initialized
+        this.waitFor(function() { return inited }, 10, function() {
+            script.onContentChanged();
+            
+            // test that a viewer for env.db exists
+            var viewer = $world.get("dbViewer");
+            _this.assert(viewer != undefined);
+            _this.done();
+        });
+    },
+    testComponentNotification: function() {
+        // create a dashboard and an interaction variable
+        var dashboard = this.helper.createDashboard();
+        var widget = this.helper.getAndDropWidget();
+        var varName = widget.getName();
+        
+        // create a script that uses this variable
+        var script = this.helper.createComponent();
+        script.content.codeEditor.setTextString(varName);
+        
+        var inited = false;
+        var _this = this;
+        setTimeout(function() {
+            script.content.codeEditor.withAceDo(function() { inited = true; });
+        }, 100);
+        
+        // wait for the code editor to be initialized
+        this.waitFor(function() { return inited }, 10, function() {
+            // update the script once to register the variable usage
+            script.onContentChanged();
+            script.notified = false;
+            
+            // override onContentChanged to notice the notification
+            var oldOnContentChanged = script.onContentChanged;
+            script.onContentChanged = function() {
+                oldOnContentChanged.apply(script, arguments);
+                this.notified = true;
+            }
+            // set the widgets value to change the interaction variable
+            widget.setValue(1);
+            
+            // test that the script was notified
+            _this.assert(script.notified);
+            
+            // do not use the variable anymore
+            script.content.codeEditor.setTextString("");
+            script.onContentChanged();
+            
+            // reset notification flag
+            script.notified = false;
+            
+            // set the widgets value to change the interaction variable
+            widget.setValue(0);
+            
+            // test that the script was not notified this time
+            _this.assert(!script.notified);
+            
+            _this.done();
+        });
+    },
+    testAppropriateViewerSelection: function() {
+        var script = this.helper.createComponent();
+        script.content.codeEditor.setTextString("env.db = \"test\"; env.canvas = [];");
+        
+        var inited = false;
+        var _this = this;
+        setTimeout(function() {
+            script.content.codeEditor.withAceDo(function() { inited = true; });
+        }, 100);
+        
+        // wait for the code editor to be initialized
+        this.waitFor(function() { return inited }, 10, function() {
+            script.onContentChanged();
+            
+            var db = $world.get("dbViewer");
+            var canvas = $world.get("canvasViewer");
+            var interaction = $world.get("interactionViewer");
+            
+            _this.assert(db.content instanceof lively.morphic.Charts.JsonViewer, "Not a JsonViewer");
+            _this.assert(canvas.content instanceof lively.morphic.Charts.FreeLayout, "Not a FreeLayout");
+            _this.assert(interaction.content instanceof lively.morphic.Charts.InteractionPanel, "Not an InteractionPanel");
+            _this.done();
+        });
+    }
+    
+}, 'setup/teardown', {
+    setUp: function() {
+		this.helper = new lively.tests.ChartsTests.Helper();
+    },
+    
+    tearDown: function() {
+        
+        // delete all dataflow components
+        // this fixes the problem that a failing test leaves components behind and affects other tests
+        $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.Charts.Component;
+        }).each(function(ea) {
+            ea.remove();
+        });
+        
+        // delete the dashboard, if it exists
+        var dashboard = $morph("Dashboard");
+        if (dashboard) dashboard.remove();
+    },
+});
+
+TestCase.subclass('lively.tests.ChartsTests.DashboardTest',
+'creation', {
+    testCreateInteractionPanel: function() {
+        var dashboard = this.helper.createDashboard();
+        
+        // test that interaction area is created
+        var interactionArea = dashboard.get("interactionViewer");
+        this.assert(interactionArea != undefined);
+    },
+    testInteractionVariableLifecycle: function() {
+        var dashboard = this.helper.createDashboard();
+        var widget = this.helper.getAndDropWidget();
+        var varName = widget.getName();
+        
+        // test that the appropriate variable has been created
+        this.assert(dashboard.env.interaction[varName] != undefined);
+        
+        // remove the container of the widget
+        var container = dashboard.get(varName + "Container");
+        container.remove();
+        
+        // test that the variable is being removed
+        this.assert(dashboard.env.interaction[varName] == undefined);
+    },
+    testInteractionVariableRenaming: function() {
+        var dashboard = this.helper.createDashboard();
+        var widget = this.helper.getAndDropWidget();
+        var varName = widget.getName();
+        
+        // test that the appropriate variable exists
+        this.assert(dashboard.env.interaction[varName] != undefined);
+        
+        var newVarName = "newName";
+        widget.setName(newVarName);
+        
+        // test that the old variable was removed
+        this.assert(dashboard.env.interaction[varName] == undefined);
+        
+        // test that the renamed variable exists
+        this.assert(dashboard.env.interaction[newVarName] != undefined);
+        
+    },
+    
+}, 'setup/teardown', {
+    setUp: function() {
+		this.helper = new lively.tests.ChartsTests.Helper();
+    },
+    
+    tearDown: function() {
+        
+        // delete all dataflow components
+        // this fixes the problem that a failing test leaves components behind and affects other tests
+        $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.Charts.Component;
+        }).each(function(ea) {
+            ea.remove();
+        });
+        
+        // delete the dashboard, if it exists
+        var dashboard = $morph("Dashboard");
+        if (dashboard) dashboard.remove();
+    },
+});
+
 }) // end of module

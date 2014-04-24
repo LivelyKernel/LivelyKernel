@@ -762,6 +762,30 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
+    // javascript
+    'prettyPrintJSON': {
+        description: 'pretty print JSON',
+        exec: function(json) {
+            var ed;
+            if (!json) {
+                var morph = lively.ide.commands.helper.focusedMorph();
+                if (morph.isCodeEditor || morph.isText) {
+                    ed = morph;
+                    json = ed.getTextRange();
+                }
+            }
+            if (typeof json === "string") json = eval('(' + json + ')');
+            var prettyJSON = JSON.stringify(json, null, 2);
+            if (!ed) {
+                ed = $world.addCodeEditor({title: "prettyPrinted", textMode: 'json', content: prettyJSON})
+            } else {
+                ed.replace(ed.getSelectionRangeAce(), prettyJSON);
+            }
+            return true;
+        }
+    },
+
     // meta
     'disabled': {
         isActive: lively.ide.commands.helper.noCodeEditorActive,

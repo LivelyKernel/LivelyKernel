@@ -1840,9 +1840,8 @@ lively.morphic.World.addMethods(
                     return components.map(function(name){
                         return [name, function(evt){ require("lively.morphic.Charts").toRun( function (){
                             var component = new lively.morphic.Charts.Component.create(name);
-                            component.setPosition(pt(25, 25));
-                            component.setPosition(evt.getPosition());
-                            $world.addMorph(component);
+                            component.wasDragged = true;
+                            component.openInHand();
                         }); }]
                     })
                 })()

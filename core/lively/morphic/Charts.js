@@ -2510,16 +2510,16 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
 
     
     notifyNeighborsOfDragEnd: function() {
-        var neighbor;
-        
         var _this = this;
         this.arrows.each(function (arrow){
-            neighbor = _this.getComponentInDirection(1, arrow.getPositionInWorld());
+            var neighbor = _this.getComponentInDirection(1, arrow.getPositionInWorld());
             if (neighbor) {
                 neighbor.notify();
             }
             
-            _this.neighbors.invoke("notify");
+            if (_this.neighbors && _this.neighbors.length) {
+                _this.neighbors.invoke("notify");
+            }
         });
     },
     
@@ -4615,18 +4615,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
     },
     
     getDefaultCodeString: function() {
-        // get all Scriptcomponents
-        var existingScript = $world.submorphs.find(function (eachMorph){
-            if (eachMorph instanceof lively.morphic.Charts.DataFlowComponent 
-                && eachMorph.content instanceof lively.morphic.Charts.Script)
-                return true;
-            return false;
-        });
-        
-        if (existingScript)
-            return "data";
-            
-        return "[1, 2, 3, 4]";
+        var existingScripts = lively.morphic.Charts.DataFlowComponent.getAllComponents();
+        return existingScripts.length ? "data" : "[1, 2, 3, 4]";
     }
 });
 lively.morphic.Charts.Script.subclass('lively.morphic.Charts.JsonFetcher', {

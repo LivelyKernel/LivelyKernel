@@ -30,9 +30,10 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         scriptComponent.data = [10];
         scriptComponent.notifyNextComponent();
         
+        var morph = morphCreator.data[0].morphs[Properties.own(morphCreator.data[0].morphs)[0]];
         this.assertEquals(scriptComponent.data[0], 10);
         this.assertEquals(morphCreator.data[0], 10);
-        this.assert(morphCreator.data[0].morph instanceof lively.morphic.Morph);
+        this.assert(morph instanceof lively.morphic.Morph);
     }
     
 }, 'connection line', {
@@ -494,25 +495,27 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
     
     testFreeLayoutCreatesMorphs: function() {
 		var component = this.helper.createComponent();
-        $world.addMorph(component);
+	
+		$world.addMorph(component);
+        component.arrows[0].activate();
         
-	    component.arrows[0].activate();
-        var data = [{Test: 10}]
-	    data[0].morph = new lively.morphic.Box(new rect(0, 0, 10, 10));
-	    data[0].morph.setFill(Color.red);
-	    data[0].morph.setPosition(pt(132, 56));
-	    component.data = data;
-	    
-	    var freeLayout = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts.FreeLayout());
-	    freeLayout.setPosition(pt(10, 400));
+		var morph = new lively.morphic.Box(new rect(0, 0, 10, 10));
+		morph.setFill(Color.red);
+		morph.setPosition(pt(132, 56));
+		var data = [{test: 10, morphs: {morph: morph}}]
+		component.data = data;
+		
+	    var freeLayout = new lively.morphic.Charts.DataFlowComponent(new lively.morphic.Charts.Canvas());
+	    freeLayout.setPosition(pt(10, 250));
 	    $world.addMorph(freeLayout);
 	    
 	    component.notifyNextComponent();
 	    
+	    var morph = freeLayout.data[0].morphs[Properties.own(freeLayout.data[0].morphs)[0]];
         this.assertEquals(component.data[0], data[0]);
         this.assertEquals(freeLayout.data[0], data[0]);
-        this.assert(freeLayout.data[0].morph instanceof lively.morphic.Morph);
-        this.assertEquals(freeLayout.data[0].morph.getPosition(), pt(132, 56));
+        this.assert(morph instanceof lively.morphic.Morph);
+        this.assertEquals(morph.getPosition(), pt(132, 56));
     },
 });
 AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',

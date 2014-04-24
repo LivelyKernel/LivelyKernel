@@ -367,7 +367,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
             content = "InteractionPanel";
         } else if (envKey.indexOf("canvas") != -1){
             // envKey contains "canvas"
-            content = "FreeLayout";
+            content = "Canvas";
         } else {
             content = "JsonViewer";
         }
@@ -995,7 +995,7 @@ Object.extend(lively.morphic.Charts.Component, {
             "LinearLayout",
             "MorphCreator",
             "JsonFetcher",
-            "FreeLayout",
+            "Canvas",
             "Table",
             "EntityViewer",
             "InteractionPanel",
@@ -1778,10 +1778,21 @@ Object.subclass('lively.morphic.Charts.Utils',
 });
 
 Object.extend(lively.morphic.Charts.Utils, {
-    arrangeOnCircle : function(data, radius, center) {
+    arrangeOnCircle : function(data, radius, center, morphName) {
+        // define morphs as array of all morphs which should be arranged
+        var morphs = [];
+        data.each(function (eachDatum){
+            if (morphName)    
+                morphs.push(eachDatum.morphs[morphName]);
+            else 
+                Properties.own(eachDatum.morphs).each(function (eachMorph){
+                    morphs.push(eachDatum.morphs[eachMorph]);
+                });
+        });
+        
         // determine the margin, dependent of the maximum extent of all elements and the radius
         if (!Object.isObject(center)) {
-            var maxOrigin = data.pluck("morph").reduce(function (max, el) {
+            var maxOrigin = morphs.reduce(function (max, el) {
                 var origin = el.getPosition().subPt(el.bounds().topLeft());
                 var maxValue = Math.max(origin.x, origin.y);
                 return pt(Math.max(maxValue, max.x), Math.max(maxValue, max.y));
@@ -1791,8 +1802,8 @@ Object.extend(lively.morphic.Charts.Utils, {
         
         var path = [];
         var curId = 0;
-        for (var i = -90; i <= 270; i = i + 360.0 / (data.length - 1)){
-            var morph = data[curId].morph;
+        for (var i = -90; i <= 270; i = i + 360.0 / (morphs.length - 1)){
+            var morph = morphs[curId];
             var radianMeasure = i / 360 * 2 * Math.PI;
             var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
             morph.setPosition(newPt);
@@ -1802,13 +1813,23 @@ Object.extend(lively.morphic.Charts.Utils, {
             curId++;
         }
     },
-    arrangeOnPath: function(path, entity, rotateElements) {
+    arrangeOnPath: function(path, entity, rotateElements, morphName) {
         
         function sign(x) {
             return x ? x < 0 ? -1 : 1 : 0;
         }
         
-    	var morphs = entity.pluck("morph");
+        var morphs = [];
+    	var morphObjects = entity.pluck("morphs");
+    	morphObjects.each(function (eachMorphObject){
+    	    if (morphName){
+    	        morphs.push(eachMorphObject[morphName])
+    	    } else {
+    	        Properties.own(eachMorphObject).each(function(eachMorphName){
+    	            morphs.push(eachMorphObject[eachMorphName]);
+    	        })
+    	    }
+    	});
 	
     	if (!morphs.length)
     	    return;
@@ -1934,7 +1955,8 @@ Object.extend(lively.morphic.Charts.Utils, {
             }
         });
     },
-    arrangeHorizontal: function(morphs, y, width) {
+    arrangeHorizontal: function(morphs, y, width, morphName) {
+        console.log(morphs)
         if (!Object.isNumber(y)) {
             var maxY = morphs.pluck("morph").reduce(function (max, el) {
                 var origin = el.getPosition().subPt(el.bounds().topLeft());
@@ -1946,11 +1968,13 @@ Object.extend(lively.morphic.Charts.Utils, {
             width = this.defaultWidth;
         }
         
-        var x = 10 + morphs[0].morph.getOrigin().x;
+        var originX = morphs[0].morphs[Properties.own(morphs[0].morphs)[0]].getOrigin().x;
+        if (morphName) originX = morphs[0].morphs[morphName].getOrigin().x;
+        var x = 10 + originX;
         this.arrangeOnPath([pt(x, y), pt(x + width, y)], morphs);
     },
     defaultWidth: 350,
-    arrange2D: function(data, propertyX, propertyY, rect) {
+    arrange2D: function(data, propertyX, propertyY, rect, morphName) {
         // TODO: smart margin
         var bounds = rect || lively.rect(10, 10, 500, 500);
 
@@ -1967,7 +1991,13 @@ Object.extend(lively.morphic.Charts.Utils, {
         data.each(function (ea) {
             var x = (ea[propertyX] - xMin) / (xMax - xMin);
             var y = (ea[propertyY] - yMin) / (yMax - yMin);
-            ea.morph.setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
+            
+            if (morphName)
+                ea.morphs[morphName].setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
+            else
+                Properties.own(ea.morphs).each(function (morphName){
+                   ea.morphs[morphName].setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
+                });
         });
     },
     addLegend: function(entries, startPt) {
@@ -1976,7 +2006,7 @@ Object.extend(lively.morphic.Charts.Utils, {
         var container = [];
         
         entries.each(function(eachEntry){
-           var rectangle = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,20));
+           var rectangle = lively.morphic.Morph.makeRectangle(lively.rect(0, 0, 20, 20));
            rectangle.setBorderWidth(0);
            rectangle.setFill(eachEntry.color);
            
@@ -1990,7 +2020,7 @@ Object.extend(lively.morphic.Charts.Utils, {
         this.arrangeOnPath([startPt, startPt.addPt(pt(0, 20 * entries.length))], container);
         return container;
     },
-    arrangeVertical: function(morphs, x, height) {
+    arrangeVertical: function(morphs, x, height, morphName) {
         if (!Object.isNumber(x)) {
             var maxX = morphs.pluck("morph").reduce(function (max, el) {
                 var origin = el.getPosition().subPt(el.bounds().topLeft());
@@ -2003,7 +2033,9 @@ Object.extend(lively.morphic.Charts.Utils, {
         }
 
         // add margin
-        var y = 10 + morphs[0].morph.getOrigin().y;
+        var originY = morphs[0].morphs[Properties.own(morphs[0].morphs)[0]].getOrigin().y;
+        if (morphName) originY = morphs[0].morphs[morphName].getOrigin().y;
+        var y = 10 + originY;
         this.arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
     },
     hashStringToColor: function(str) {
@@ -2307,7 +2339,6 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
 
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponent", {
     initialize: function($super, content) {
-        
         $super(content);
         var arrow = new lively.morphic.Charts.Arrow(this);
         this.arrows = [arrow];
@@ -2826,7 +2857,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             _this.called = 0;
         },10000);
         console.log(this.called);
-
+        
         this.arrows.each(function (arrow){
             if (arrow.isActive()) {
                 if (arrow.connectionLine) {
@@ -3272,7 +3303,7 @@ cop.create('FixLoadingLayer').refineClass(lively.morphic.Layout.TileLayout, {
     }}
 ).beGlobal();
 
-lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
+lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
     
     initialize: function($super) {
         $super();
@@ -3288,7 +3319,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     },
 
     update: function(data) {
-        console.log("FreeLayout update");
+        console.log("Canvas update");
         // create linear layout containing rects from data
         this.clearAndRemoveContainer();
         var _this = this;
@@ -3388,17 +3419,21 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.FreeLayout", {
     },
 
     addElement: function(element, container) {
-		var morph;
-        if (element.morph) {
-            morph = element.morph;
+		var morphs = {};
+        if (element.morphs) {
+            morphs = element.morphs;
         } else {
-            morph = element;
+            morphs["morph"] = element;
         }
-        container.addMorph(morph);
+        Properties.own(morphs).each(function (eachMorph){
+            container.addMorph(morphs[eachMorph]);
+        });
         setTimeout(function() {
-            if (morph.__dirtyFixTheBorderWidthFlag) {
-                morph.setBorderWidth(morph.getBorderWidth());
-            }
+            Properties.own(morphs).each(function (eachMorph){
+                if (morphs[eachMorph].__dirtyFixTheBorderWidthFlag) {
+                    morphs[eachMorph].setBorderWidth(morphs[eachMorph].getBorderWidth());
+                } 
+            });
         }, 0);
 
     },
@@ -3589,17 +3624,24 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.extent = pt(400, 200);
         this.setExtent(this.extent);
         this.layout = {adjustForNewBounds: true};
+        this.setPosition(pt(0, 0));
+
+        //add mappingInput
+        var inputHeight = 28;
+        this.addMorph(this.createMappingInput(inputHeight));
 
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
         this.codeEditor.setName("CodeEditor");
-        this.codeEditor.setTextString("function map(morph, datum) {\n\tvar e = morph.getExtent(); \n\tmorph.setExtent(pt(e.x, datum * 100))\n}");
+        var morphName = this.morphInput.getTextString();
+        this.codeEditor.setTextString("var e = " + morphName + ".getExtent(); \n" + morphName + ".setExtent(pt(e.x, datum * 100))");
+        this.codeEditor.setPosition(pt(0, inputHeight));
         this.codeEditor.layout = {resizeWidth: true, resizeHeight: true};
-        this.codeEditor.setExtent(pt(this.extent.x / 3 * 2, this.extent.y));
+        this.codeEditor.setExtent(pt(this.extent.x / 3 * 2, this.extent.y - inputHeight));
         this.addMorph(this.codeEditor);
         
         this.prototypeArea = new lively.morphic.Charts.PrototypeArea(pt(this.extent.x / 3 * 1, this.extent.y));
         this.prototypeArea.setName("PrototypeArea");
-        this.prototypeArea.setPosition(this.codeEditor.getBounds().topRight());
+        this.prototypeArea.setPosition(pt(this.codeEditor.getBounds().topRight().x, 0));
         this.prototypeArea.layout.resizeHeight = true;
         this.prototypeArea.layout.moveHorizontal = true;
         this.addMorph(this.prototypeArea);
@@ -3612,6 +3654,27 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         prototypeMorph.setPosition(position);
         this.prototypeArea.addMorph(prototypeMorph);
         this.prototypeArea.attachListener(prototypeMorph);
+    },
+    createMappingInput: function(inputHeight) {
+        var mappingInput = new lively.morphic.Morph.makeRectangle(lively.rect(0, 0, this.extent.x / 3 * 2 - 3, inputHeight - 3));
+        mappingInput.setFill(Color.white);
+        mappingInput.setBorderRadius(5);
+        mappingInput.setBorderColor(Color.rgb(66, 139, 202));
+        mappingInput.layout = {resizeWidth: true};
+        mappingInput.layout.layouter = new lively.morphic.Layout.TightHorizontalLayout(mappingInput);
+        mappingInput.layout.layouter.spacing = 4;
+        mappingInput.layout.layouter.borderSize = 2; 
+        this.datumInput = this.createInputField("datum");
+        mappingInput.addMorph(this.datumInput);
+        
+        if (!lively.morphic.Charts.MorphCreator.counter) lively.morphic.Charts.MorphCreator.counter = 1;
+        var currentID = lively.morphic.Charts.MorphCreator.counter;
+        lively.morphic.Charts.MorphCreator.counter++;
+        this.morphInput = this.createInputField("morph" + currentID);
+        mappingInput.addMorph(this.morphInput);
+        
+        mappingInput.addMorph(lively.morphic.Text.makeLabel("mappingInput:"));
+        return mappingInput;
     },
     createPlusButton: function() {
         var componentNames = [
@@ -3675,9 +3738,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         }
         
         var mappingFunction;
+        var morphName = this.morphInput.getTextString();
         this.codeEditor.doitContext = this;
         var ctx = this.codeEditor.getDoitContext() || this.codeEditor;
-        var codeStr = "mappingFunction = " + this.codeEditor.getTextString();
+        var codeStr = "mappingFunction = function(" + morphName + ", " + this.datumInput.getTextString() + ") {" + this.codeEditor.getTextString() + "}";
         eval(this.codeEditor.createEvalStatement(ctx, codeStr));
         
         var bulkCopy = this.smartBulkCopy(prototypeMorph, data.totalLength || data.length);
@@ -3698,7 +3762,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             mappingFunction(prototypeInstance, ea);
             // ensure that each datum is a object (primitives will get wrapped here)
             ea = ({}).valueOf.call(ea);
-            ea.morph = prototypeInstance;
+            if (!ea.morphs) ea.morphs = {};
+            ea.morphs[morphName] = prototypeInstance;
             
             return ea;
         });
@@ -3775,6 +3840,17 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             copiedMorphs: copiedMorphs,
             cloned: cloned,
         };
+    },
+    createInputField: function(text) {
+        var input = $world.loadPartItem("InputField", "PartsBin/Inputs");
+        input.setTextString(text);
+        input.setName(text);
+        input.setExtent(pt(70, 20));
+        input.setBorderWidth(0);
+        input.setBorderRadius(0);
+        input.setFill(Color.rgb(66, 139, 202));
+        input.setOpacity(0.5);
+        return input;
     },
     
     wantsDroppedMorph: function(aMorph) {

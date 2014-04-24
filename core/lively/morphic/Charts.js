@@ -1785,9 +1785,7 @@ Object.extend(lively.morphic.Charts.Utils, {
             if (morphName)    
                 morphs.push(eachDatum.morphs[morphName]);
             else 
-                Properties.own(eachDatum.morphs).each(function (eachMorph){
-                    morphs.push(eachDatum.morphs[eachMorph]);
-                });
+                morphs = morphs.concat(Properties.ownValues(eachDatum.morphs));
         });
         
         // determine the margin, dependent of the maximum extent of all elements and the radius
@@ -1807,7 +1805,7 @@ Object.extend(lively.morphic.Charts.Utils, {
             var radianMeasure = i / 360 * 2 * Math.PI;
             var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
             morph.setPosition(newPt);
-            if (morph.oldRotation) morph.setRotation(morph.oldRotation);
+            if (morph.oldRotation !== undefined) morph.setRotation(morph.oldRotation);
             morph.oldRotation = morph.getRotation();
             morph.rotateBy(Math.PI / 2.0 + radianMeasure);
             curId++;
@@ -1825,9 +1823,7 @@ Object.extend(lively.morphic.Charts.Utils, {
     	    if (morphName){
     	        morphs.push(eachMorphObject[morphName])
     	    } else {
-    	        Properties.own(eachMorphObject).each(function(eachMorphName){
-    	            morphs.push(eachMorphObject[eachMorphName]);
-    	        })
+    	        morphs = morphs.concat(Properties.ownValues(eachMorphObject));
     	    }
     	});
 	

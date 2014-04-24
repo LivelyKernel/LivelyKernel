@@ -1592,7 +1592,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
             pc;
         frame.setThis(thiz);
-        frame.setArguments(args);
+        if (frame.func.node && frame.func.node.type != 'Program')
+            frame.setArguments(args);
         frame.setAlreadyComputed(alreadyComputed);
         if (!this.top) {
             pc = this.error && this.error.astIndex ?

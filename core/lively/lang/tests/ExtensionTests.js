@@ -554,7 +554,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
             'batchify endless recursion?');
     },
 
-    testHistogram: function(binSize) {
+    testHistogram: function() {
         var data = [0,1,2,3,7,2,1,3,9];
 
         var hist = data.histogram();
@@ -838,6 +838,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
             this.done();
         });
     },
+
     testThrottleCommand: function() {
         var called = 0, result = [];
         Array.range(1,4).forEach(function(i) {
@@ -855,6 +856,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
             this.done();
         }, 120);
     },
+
     testCompose: function() {
         function mult(a,b) { return a * b; }
         function add1(a) { return a + 1; }
@@ -863,11 +865,13 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         this.assert("23" === result, 'compose not OK: ' + Strings.print(result));
         this.done();
     },
+
     testFlip: function() {
         function foo(a,b,c) { return '' + a + b + c; }
         this.assertEquals('213', Functions.flip(foo)(1,2,3));
         this.done();
     },
+
     testWaitFor: function() {
         var x = 0, wasCalled, startTime = Date.now(), endTime, timeout;
         Functions.waitFor(200, function() { return x === 1; }, function(_timeout) {
@@ -882,6 +886,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
                 this.done();
             });
     },
+
     testWaitForTimeout: function() {
         var x = 0, wasCalled, startTime = Date.now(), endTime, timeout;
         Functions.waitFor(200, function() { return x === 1; /*will never be true*/ },

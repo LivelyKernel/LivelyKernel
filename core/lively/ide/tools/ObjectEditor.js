@@ -1232,23 +1232,24 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 }
             },
             sortedScriptNamesOfObj: function sortedScriptNamesOfObj(obj) {
-            
-                if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
-            
-                var selectedScripts = Functions.own(obj).
-                select(function(name) { return obj[name].getOriginal().hasLivelyClosure }).
-                sortBy(function(name) { return name.toLowerCase() });
-            
-                if (!this.currentTag) return selectedScripts;
-            
-                var that = this;
-                selectedScripts = selectedScripts.select(function(scriptName) {
-                    return obj[scriptName].tags && 
-                        obj[scriptName].tags.indexOf(that.currentTag) !== -1;
-                });
-            
-                return selectedScripts;
-            },
+        
+            if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
+        
+            var selectedScripts = Functions.own(obj)
+                .select(function(name) { return obj[name].getOriginal().hasLivelyClosure; })
+                .reject(function(name) { return name.startsWith('$$'); })
+                .sortBy(function(name) { return name.toLowerCase() });
+        
+            if (!this.currentTag) return selectedScripts;
+        
+            var that = this;
+            selectedScripts = selectedScripts.select(function(scriptName) {
+                return obj[scriptName].tags && 
+                    obj[scriptName].tags.indexOf(that.currentTag) !== -1;
+            });
+        
+            return selectedScripts;
+        },
             update: function update() {
                 // alias to conform to convention
                 this.updateLists();
@@ -1796,23 +1797,24 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 }
             },
             sortedScriptNamesOfObj: function sortedScriptNamesOfObj(obj) {
-            
-                if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
-            
-                var selectedScripts = Functions.own(obj).
-                select(function(name) { return obj[name].getOriginal().hasLivelyClosure }).
-                sortBy(function(name) { return name.toLowerCase() });
-            
-                if (!this.currentTag) return selectedScripts;
-            
-                var that = this;
-                selectedScripts = selectedScripts.select(function(scriptName) {
-                    return obj[scriptName].tags && 
-                        obj[scriptName].tags.indexOf(that.currentTag) !== -1;
-                });
-            
-                return selectedScripts;
-            },
+        
+            if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
+        
+            var selectedScripts = Functions.own(obj)
+                .select(function(name) { return obj[name].getOriginal().hasLivelyClosure; })
+                .reject(function(name) { return name.startsWith('$$'); })
+                .sortBy(function(name) { return name.toLowerCase() });
+        
+            if (!this.currentTag) return selectedScripts;
+        
+            var that = this;
+            selectedScripts = selectedScripts.select(function(scriptName) {
+                return obj[scriptName].tags && 
+                    obj[scriptName].tags.indexOf(that.currentTag) !== -1;
+            });
+        
+            return selectedScripts;
+        },
             update: function update() {
                 // alias to conform to convention
                 this.updateLists();
@@ -2278,9 +2280,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         
             if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
         
-            var selectedScripts = Functions.own(obj).
-            select(function(name) { return obj[name].getOriginal().hasLivelyClosure }).
-            sortBy(function(name) { return name.toLowerCase() });
+            var selectedScripts = Functions.own(obj)
+                .select(function(name) { return obj[name].getOriginal().hasLivelyClosure; })
+                .reject(function(name) { return name.startsWith('$$'); })
+                .sortBy(function(name) { return name.toLowerCase() });
         
             if (!this.currentTag) return selectedScripts;
         

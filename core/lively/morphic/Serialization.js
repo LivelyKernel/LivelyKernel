@@ -240,6 +240,12 @@ lively.morphic.World.addMethods(
     },
 
     saveWorldAs: function (url, checkForOverwrites, bootstrapModuleURL) {
+        try {
+            url = new URL(url)
+        } catch (e) {
+            throw new Error('Cannot save world, not a valid URL: ' + url);
+        }
+
         // FIXME: this should go somewhere else or actually not be necessary at
         // all... cleanup, removing junk css defs
         lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this);

@@ -191,12 +191,12 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                     + new Date(sel.date).format('yy/mm/dd hh:MM:ss') + '?';
             $world.confirm(prompt, function(input) {
                 if (!input) { $world.alertOK('Revert aborted.'); return; }
-                getURL.asWebResource().beAsync().get().whenDone(function(content, status) {
+                getURL.asWebResource().createProgressBar('getting reverted content ...').enableShowingProgress().beAsync().get().whenDone(function(content, status) {
                     if (!status.isSuccess()) {
                         $world.alert('Revert failed.\nCould not read version: ' + status);
                         return;
                     }
-                    putURL.asWebResource().beAsync().put(content).whenDone(function(_, status) {
+                    putURL.asWebResource().createProgressBar('reverting ...').enableShowingProgress().beAsync().put(content).whenDone(function(_, status) {
                         if (!status.isSuccess()) {
                             $world.alert('Revert failed.\nCould not write version: ' + status);
                             return;

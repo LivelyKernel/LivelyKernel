@@ -1101,4 +1101,21 @@ TestCase.subclass('lively.tests.ChartsTests.DashboardTest',
     },
 });
 
+TestCase.subclass('lively.tests.ChartsTests.CoordinateSystemTest',
+'transformation', {
+    testTransformationFunction: function() {
+        var coordinateSystem = new lively.morphic.Charts.CoordinateSystem(lively.rect(0, 0, 200, 200));
+        var element = new lively.morphic.Box(lively.rect(0, 0, 20, 20));
+        // set the position explicitely
+        element.setPosition(pt(0, 0));
+        
+        // add the element to the coordinate system
+        coordinateSystem.addElement(element);
+        
+        // test that the element is positioned in the bottom left corner
+        this.assert(element.getPosition().equals(pt(0, 200)));
+    }
+});
+    
+
 }) // end of module

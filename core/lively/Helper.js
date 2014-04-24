@@ -168,8 +168,8 @@ Object.subclass('lively.Helper.XMLConverter', {
 
 lively.test = {
 
-    run: function(testFuncOrFunctions) {
-        return this.basicRun({tests: testFuncOrFunctions, callback: null});
+    run: function(testFuncOrFunctions, thenDo) {
+        return this.basicRun({tests: testFuncOrFunctions, callback: thenDo});
     },
 
     runAndLog: function(testFunc) {

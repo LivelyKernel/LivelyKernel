@@ -232,6 +232,10 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 fixedHeight: true,
                 name: "FrameSource",
                 lastSaveSource: '',
+                layout: {
+                    resizeWidth: true,
+                    resizeHeight: true
+                },
                 sourceModule: "lively.ide.CodeEditor",
                 boundEval: function boundEval(str) {
               var frame = this.get("Debugger").currentFrame;
@@ -311,7 +315,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     borderSize: 1.325,
                     extentWithoutPlaceholder: lively.pt(657.6,94.3),
                     resizeHeight: true,
-                    resizeWidth: false,
+                    moveHorizontal: true,
                     spacing: 0,
                     type: "lively.morphic.Layout.VerticalLayout"
                 },

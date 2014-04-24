@@ -2,6 +2,20 @@ module('lively.morphic.Preview').requires().requiresLib({url: Config.codeBase + 
 
 Object.extend(lively.morphic.Preview, {
 
+    withMorphNodeInDOMDo: function(morph, doFunc) {
+            var node = morph.renderContext().shapeNode, cleanup;
+            if (!morph.world()) {
+                node = node.cloneNode(true);
+                document.body.appendChild(node);
+                cleanup = function() { document.body.removeChild(node); };
+            } else {
+                cleanup = function() {};
+            }
+            try {
+                doFunc.call(this, node, cleanup);
+            } catch (e) { cleanup(); throw e; }
+    },
+
     renderNode: function(node, options, thenDo) {
         var w = typeof lively !== 'undefined'
              && lively.morphic
@@ -17,15 +31,24 @@ Object.extend(lively.morphic.Preview, {
         html2canvas(node, options);
     },
 
+    renderNodeAsDataURI: function(node, options, thenDo) {
+        options = options || {};
+        this.renderNode(node, options, function(err, canvas) {
+            thenDo(err, canvas && canvas.toDataURL());
+        });
+    },
+
     renderNodeToImage: function(node, image, options, thenDo) {
         options = options || {};
         var extent = image.getExtent();
         // options.width = extent.x;
         // options.height = extent.y;
-        this.renderNode(node, options, function(err, canvas) {
-            if (canvas) {
-                image.setImageURL(canvas.toDataURL(), false);
-                if (!options.fullSize) image.resampleImageToFitBounds();
+        this.renderNodeAsDataURI(node, options, function(err, dataURI) {
+            if (dataURI) {
+                image.setImageURL(dataURI, false);
+                if (!options.fullSize) image.whenLoaded(function() {
+                    image.resampleImageToFitBounds();
+                });
             }
             thenDo(err, image);
         });
@@ -39,13 +62,30 @@ Object.extend(lively.morphic.Preview, {
     },
 
     renderMorphToNewImage: function(morph, options, thenDo) {
-        if (!morph.world()) { thenDo(new Error('Morph must be in world')); return; }
-        this.renderNodeToNewImage(morph.renderContext().shapeNode, options, thenDo);
+        this.withMorphNodeInDOMDo(morph, function(node, cleanup) {
+            this.renderNodeToNewImage(node, options, function(err, image) {
+                cleanup();
+                thenDo(err, image);
+            });
+        });
     },
 
     renderMorphToImage: function(morph, image, options, thenDo) {
-        if (!morph.world()) { thenDo(new Error('Morph must be in world')); return; }
-        this.renderNodeToImage(morph.renderContext().shapeNode, image, options, thenDo);
+        this.withMorphNodeInDOMDo(morph, function(node, cleanup) {
+            this.renderNodeToImage(node, image, options, function(err, image) {
+                cleanup();
+                thenDo(err, image);
+            });
+        });
+    },
+
+    renderMorphToDataURI: function(morph, options, thenDo) {
+        this.withMorphNodeInDOMDo(morph, function(node, cleanup) {
+            this.renderNodeAsDataURI(node, options, function(err, arg) {
+                cleanup();
+                thenDo(err, arg);
+            });
+        });
     }
 
 });

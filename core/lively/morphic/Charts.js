@@ -592,10 +592,10 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
         }
     },
     updateObservers: function(value, key) {
-        console.log("Update observers");
         this.getObservers(key).each(function (ea) {
             ea.onContentChanged();
-        })
+            ea.highlight();
+        });
     },
     renameVariable: function(oldName, inputMorph) {
         this.removeVariable(oldName);
@@ -2362,6 +2362,22 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             return new $.Deferred().resolve(newData);
         }
     },
+    highlight: function() {
+        var header = $(this.componentHeader.renderContext().shapeNode);
+        var body = $(this.componentBody.renderContext().shapeNode);
+        if (!header.hasClass("highlighted")) {
+            header.addClass("highlighted");
+            header.one("transitionend", function () {
+                $(this).removeClass("highlighted");
+            });
+        }
+        if (!body.hasClass("highlighted")) {
+            body.addClass("highlighted");
+            body.one("transitionend", function () {
+                $(this).removeClass("highlighted");
+            });
+        }
+    },
     drawVariableBoxes: function() {
         var position = this.description.getBounds().topRight();
         var _this = this;
@@ -2442,6 +2458,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     errorColor: Color.rgb(210, 172, 172),
+    backgroundColor: Color.rgb(66, 139, 202),
     
     notifyNeighborsOfDragStart: function() {
         this.neighbors = [];
@@ -3087,12 +3104,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
 
     getBodyCSS : function() {
+        var color = this.backgroundColor.toString();
         return ".ComponentBody {\
             background-color: rgb(255, 255, 255) !important;\
             border-bottom-left-radius: 5px !important;\
             border-bottom-right-radius: 5px !important;\
             border-width: 1px !important;\
-            border-color: rgb(66, 139, 202) !important;\
+            border-color: " + color + " !important;\
             display: block !important;\
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
             font-size: 14px !important;\
@@ -3109,6 +3127,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
             -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
             box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
+            transition: all 0.3s ease-in-out !important;\
+        }\
+        .ComponentBody.highlighted { \
+            border-color: rgb(192, 223, 250) !important;\
         }";
     },
     
@@ -3140,8 +3162,9 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     
     getHeaderCSS: function() {
+        var color = this.backgroundColor.toString();
         return	".ComponentHeader { \
-            background-color: rgb(66, 139, 202); !important; \
+            background-color: " + color + "; !important; \
             color: white !important; \
             border-top-left-radius: 4px !important; \
             border-top-right-radius: 4px !important;\
@@ -3150,7 +3173,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             background-image: none !important;\
             background-origin: padding-box !important;\
             background-size: auto !important;\
-            border-bottom-color: rgb(66, 139, 202) !important;\
+            border-bottom-color: " + color + " !important;\
             border-bottom-style: solid !important;\
             border-bottom-width: 1px !important;\
             border-image-outset: 0px !important;\
@@ -3158,13 +3181,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             border-image-slice: 100% !important;\
             border-image-source: none !important;\
             border-image-width: 1 !important;\
-            border-left-color: rgb(66, 139, 202) !important;\
+            border-left-color: " + color + " !important;\
             border-left-style: solid !important;\
             border-left-width: 1px !important;\
-            border-right-color: rgb(66, 139, 202) !important;\
+            border-right-color: " + color + " !important;\
             border-right-style: solid !important;\
             border-right-width: 1px !important;\
-            border-top-color: rgb(66, 139, 202) !important;\
+            border-top-color: " + color + " !important;\
             border-top-style: solid !important;\
             border-top-width: 1px !important;\
             box-sizing: border-box !important;\
@@ -3186,6 +3209,11 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             -webkit-box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
             box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
             border-width: 1px !important;\
+            transition: all 0.3s ease-in-out !important;\
+        }\
+        .ComponentHeader.highlighted { \
+            background-color: rgb(192, 223, 250) !important;\
+            border-color: rgb(192, 223, 250) !important;\
         }";
     },
     

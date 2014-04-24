@@ -3,6 +3,7 @@ module('lively.ide.commands.default').requires().toRun(function() {
 Object.extend(lively.ide.commands, {
     byName: {},
     defaultBindings: {},
+
     exec: function(commandName, arg1, arg2, arg3, arg4) {
         var cmd = lively.ide.commands.byName[commandName];
         try {
@@ -13,20 +14,35 @@ Object.extend(lively.ide.commands, {
             return false;
         }
     },
+
     addCommand: function(name, command) {
         if (!command) delete lively.ide.commands.byName[name];
         else lively.ide.commands.byName[name] = command;
     },
+
     getKeyboardBindings: function() { return this.defaultBindings; },
+
     helper: {
         noCodeEditorActive: function() {
             var f = lively.morphic.Morph.focusedMorph();
             return f && !f.isCodeEditor;
-        }
+        },
+
+        focusedMorph: function() {
+            var focused = lively.morphic.Morph.focusedMorph();
+            if (focused && focused.isCodeEditor) {
+                if (focused.owner && focused.owner.isNarrowingList)
+                    focused = focused.owner.state.focusedMorph;
+            }
+            return focused || $world;
+        },
+
     }
+
 });
 
 Object.extend(lively.ide.commands.byName, {
+
     // world
     'lively.morphic.World.escape': {
         description: 'escape',
@@ -69,6 +85,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'reset world scale',
         exec: function() { $world.setScale(1); }
     },
+
     // morphic
     'lively.morphic.Halos.show': {
         description: 'show halo',
@@ -163,6 +180,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     // lists
     'lively.morphic.List.selectItem': {
         exec: function() {
@@ -184,6 +202,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     // windows
     'lively.morphic.Window.rename': {
         description: 'rename active window',
@@ -274,6 +293,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     // commands
     'lively.ide.commands.keys.reset': {
         description: 'reset key bindings',
@@ -285,6 +305,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         },
     },
+
     'lively.ide.codeditor.installCompletions': {
         description: 'install code editor completions',
         exec: function() {
@@ -294,6 +315,23 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         },
     },
+
+    'lively.ide.codeditor.addCompletions': {
+        description: 'add completions from string',
+        exec: function(string) {
+            if (!string) {
+                var morph = lively.ide.commands.helper.focusedMorph();
+                if (morph.isCodeEditor || morph.isText) string = morph.textString;
+            }
+            string = string || '';
+            require('lively.ide.codeeditor.Completions').toRun(function() {
+                var words = lively.ide.codeeditor.Completions.addWordsFromString(string);
+                alertOK('added words');
+            });
+            return true;
+        },
+    },
+
     'lively.ide.tools.SelectionNarrowing.activateLastActive': {
         description: 'open last active selection narrower',
         exec: function() {
@@ -341,6 +379,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     // javascript
     'lively.ide.evalJavaScript': {
         description: 'eval JavaScript',
@@ -353,6 +392,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     // browsing
     'lively.ide.SystemCodeBrowser.openUserConfig': {
         description: 'browse user config.js',
@@ -461,6 +501,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     // search
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
@@ -674,6 +715,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     // tools
     'lively.ide.openWorkspace': {description: 'open Workspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openWorkspace(); return true; }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemBrowser(); return true; }},
@@ -705,6 +747,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openPresentationController': {description: 'open presentation controller', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openPresentationController(); return true; }},
     'lively.PartsBin.open': {description: 'open PartsBin', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openPartsBin(); return true; }},
     'lively.Config.openPreferences': {description: 'customize user preferences and config options', exec: function() { $world.openPreferences(); return true; }},
+
     // network helper
     'lively.net.loadJavaScriptFile': {
         description: 'load JavaScript file',

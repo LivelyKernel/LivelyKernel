@@ -898,6 +898,15 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
         if (browser.isNavigationCollapsed) {
             browser.expandNavigation();
         }
+    },
+
+    onWindowExpand: function() {
+        var sourcePane = this.sourcePane;
+        var ext = sourcePane.getExtent();
+        if (ext.x < 20) {
+            var newExtent = this.getExtent().subPt(sourcePane.getPosition());
+            sourcePane.setExtent(newExtent);
+        }
     }
 
 });

@@ -3540,10 +3540,11 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
     },
     
     clearAndRemoveContainer: function(){
-        if (!this.submorphs[0]) return;
+        var container = this.submorphs[0];
+        if (!container) return;
         
         // delete all PrototypeMorphs
-        var prototypeMorphs = this.submorphs[0].submorphs.filter(function(ea) {
+        var prototypeMorphs = container.submorphs.filter(function(ea) {
             var name = ea.getName() || "";
             return name.indexOf("PrototypeMorph") != -1;
         });
@@ -3552,7 +3553,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
         });
         
         //remove canvasMorph from component
-        this.submorphs[0].remove();
+        container.remove();
     }
     
 } );
@@ -5754,6 +5755,38 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.WebPage', {
                 resizeHeight : true
             };
         }, 0);
+    }
+});
+
+lively.morphic.Box.subclass("lively.morphic.Charts.CoordinateSystem",
+{
+    initialize: function($super, extent) {
+        $super(extent);
+        
+        this.setFill(Color.white);
+        this.setName("CoordinateSystem");
+        this.setClipMode("hidden");
+    },
+    addElement: function(element) {
+        if (!element.listenersAttached)
+            this.attachListeners(element);
+            
+        var prevPos = element.getPosition();
+        this.addMorph(element);
+        element.setPosition(this.transformPosition(prevPos));
+    },
+
+    attachListeners: function(element) {
+        element.listenersAttached = true;
+        
+        var _this = this;
+        element.setTransformedPosition = function(pos) {
+            this.setPosition(_this.transformPosition(pos));
+        }
+    },
+    transformPosition: function(pos) {
+        var height = this.getExtent().y;
+        return pt(pos.x, height - pos.y);
     }
 });
 

@@ -5,6 +5,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.VariableBox",
     initialize: function($super, extent, text, alwaysResize) {
         var arrowHeight = 5;
         extent = extent || pt(0, 0);
+        this.maximumExtent = extent;
         this.alwaysResize = alwaysResize;
         var verticies = [
             pt(0, 0),
@@ -32,40 +33,57 @@ lively.morphic.Path.subclass("lively.morphic.Charts.VariableBox",
     },
     setTextString: function(string) {
         if (!this.textBox) {
-            this.textBox = new lively.morphic.Text();
-            this.textBox.setExtent(pt(50, 24));
-            this.textBox.setFillOpacity(0);
-            this.textBox.setBorderWidth(0);
-            this.textBox.setFontSize(11);
-            this.textBox.setWhiteSpaceHandling("nowrap");
-            this.textBox.setFixedWidth(false);
-            this.textBox.setFixedHeight(false);
+            var textBox = new lively.morphic.Text();
+            this.textBox = textBox;
+            
+            textBox.setExtent(this.maximumExtent);
+            textBox.setFillOpacity(0);
+            textBox.setBorderWidth(0);
+            textBox.setFontSize(11);
+            // textBox.setWhiteSpaceHandling("nowrap");
+            textBox.setClipMode("auto");
+            // textBox.setFixedWidth(false);
+            // textBox.setFixedHeight(false);
             
             if (this.alwaysResize)
-                connect(this.textBox, "textString", this, "adjustExtent", {});
+                connect(textBox, "textString", this, "adjustExtent", {});
             
-            this.addMorph(this.textBox);
+            this.addMorph(textBox);
         }
         
         this.textBox.setTextString(string);
     },
     adjustExtent: function() {
-        var _this = this;
-        setTimeout(function() {
-            _this.setExtent(_this.textBox.getExtent());
-        }, 0);
+        if (this.getControlPoints()) {
+            var clampPt = function(pt1, pt2) {
+                return pt(
+                    pt1.x < pt2.x ? pt1.x : pt2.x,
+                    pt1.y < pt2.y ? pt1.y : pt2.y
+                )
+            }
+            
+            var textBounds = this.textBox.computeRealTextBounds();
+            var textExtent = pt(textBounds.width, textBounds.height);
+            this.setExtent(clampPt(textExtent, this.maximumExtent));
+        } else {
+            console.log("deferring with this", this);
+            this.tries = (this.tries || 0) + 1;
+            if (this.tries < 10)
+                setTimeout(this.adjustExtent.bind(this), 200);
+        }
     },
     setExtent: function($super, extent) {
         // a super call has strange effects on the shape
-        var topRight = this.controlPoints[1];
+        var controlPoints = this.getControlPoints();
+        var topRight = controlPoints[1];
         var arrowHeight = 5;
         
-        this.controlPoints[1].setPos(pt(extent.x, 0));
-        this.controlPoints[2].setPos(pt(extent.x, extent.y));
-        this.controlPoints[3].setPos(pt(extent.x / 2 + arrowHeight, extent.y));
-        this.controlPoints[4].setPos(pt(extent.x / 2, extent.y + arrowHeight));
-        this.controlPoints[5].setPos(pt(extent.x / 2 - arrowHeight, extent.y));
-        this.controlPoints[6].setPos(pt(0, extent.y));
+        controlPoints[1].setPos(pt(extent.x, 0));
+        controlPoints[2].setPos(pt(extent.x, extent.y));
+        controlPoints[3].setPos(pt(extent.x / 2 + arrowHeight, extent.y));
+        controlPoints[4].setPos(pt(extent.x / 2, extent.y + arrowHeight));
+        controlPoints[5].setPos(pt(extent.x / 2 - arrowHeight, extent.y));
+        controlPoints[6].setPos(pt(0, extent.y));
     }
 });
     
@@ -1003,7 +1021,8 @@ Object.extend(lively.morphic.Charts.Component, {
             "Table",
             "EntityViewer",
             "InteractionPanel",
-            "DataImporter"
+            "DataImporter",
+            "WebPage"
         ];
     }
 });
@@ -2265,8 +2284,32 @@ Object.extend(lively.morphic.Charts.Utils, {
         var converter = new lively.morphic.Charts.ExcelConverter()
         return converter.convertFromFilePath(filePath);
     },
-
-    
+    getWikiHTML: function(query) {
+        var url = "http://en.wikipedia.org/w/api.php?action=parse&page=" + query + "&format=json&prop=text&section=0"
+        var htmlDeferred = new $.Deferred;
+        $.ajax({
+            url: url,
+            dataType: "jsonp",
+            success: function(response) {
+                htmlDeferred.resolve(response.parse.text["*"]);
+            },
+            error: function() { htmlDeferred.reject(arguments) }
+        })
+        return htmlDeferred.promise();
+    },
+    showWikiToolTip: function(query) {
+        // this.getWikiHTML(query).done(function(wikiHTML) {
+        //     var wikiText = $(wikiHTML);
+        //     wikiText = wikiText.children(undefined, "p").text();
+        //     var v = new lively.morphic.Charts.VariableBox(pt(500, 500), wikiText, true);
+        //     $world.addMorph(v);
+        //     setTimeout(v.adjustExtent.bind(v), 500);
+        // });
+        var url = "http://de.m.wikipedia.org/w/index.php?search=" + query;
+        var wikiPage = new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts.WebPage(url));
+        
+        $world.addMorph(wikiPage);
+    }
 });
 
 lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
@@ -5691,6 +5734,26 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
                 window.removeEventListener("paste", pasteHandler);
             }, 1000);
         }
+    }
+});
+
+lively.morphic.Charts.Content.subclass('lively.morphic.Charts.WebPage', {
+    initialize: function($super, url) {
+        $super();
+        this.description = "Web Page";
+        this.extent = pt(400, 400);
+        this.setClipMode("hidden");
+        
+        url = url || "http://en.m.wikipedia.org/wiki/Hasso_Plattner";
+        var iframe = lively.morphic.World.loadInIFrame(url, lively.rect(0, 0, this.extent.x - 10, this.extent.y));
+        this.addMorph(iframe);
+        
+        setTimeout(function() {
+            iframe.layout = {
+                resizeWidth : true,
+                resizeHeight : true
+            };
+        }, 0);
     }
 });
 

@@ -540,6 +540,7 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
 
         components[0].arrows[0].activate();
         components[0].content.codeEditor.setTextString("data='testdata'");
+        components[1].content.codeEditor.setTextString("data");
         
         var inited = false;
         var _this = this;

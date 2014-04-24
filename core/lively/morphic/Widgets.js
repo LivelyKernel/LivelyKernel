@@ -1838,11 +1838,10 @@ lively.morphic.World.addMethods(
                     module("lively.morphic.Charts").load();
                     var components = lively.morphic.Charts.Component.getComponentNames();
                     return components.map(function(name){
-                        return [name, function(){ require("lively.morphic.Charts").toRun(function() {
+                        return [name, function(evt){ require("lively.morphic.Charts").toRun( function (){
                             var component = new lively.morphic.Charts.Component.create(name);
                             component.setPosition(pt(25, 25));
-                            if (name == "Script")
-                                component.content.codeEditor.setTextString("[1, 2, 3, 4]");
+                            component.setPosition(evt.getPosition());
                             $world.addMorph(component);
                         }); }]
                     })

@@ -312,7 +312,6 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 
 });
 
-
 lively.morphic.Morph.subclass('lively.morphic.Image',
 'properties', {
     isImage: true
@@ -332,6 +331,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 'accessing', {
     setImageURL: function(url, useNativeExtent) {
         if (!url) return null;
+        this.shape.isLoaded = false;
         if (useNativeExtent) {
             connect(this.shape, 'isLoaded', this, 'setNativeExtent',
                     {removeAfterUpdate: true});
@@ -351,6 +351,27 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         if (ext.y < 10) ext.y = 10;
         return this.setExtent(ext);
     },
+
+    whenLoaded: function(cb) {
+        if (this.shape && this.shape.isLoaded) { cb.call(this); return this; }
+        if (this._whenLoadedCallbacks) {
+            this._whenLoadedCallbacks.push(cb);
+            return this;
+        }
+        this.doNotSerialize = (this.doNotSerialize || []);
+        this.doNotSerialize.pushIfNotIncluded('_whenLoadedCallbacks');
+        this._whenLoadedCallbacks = [cb];
+        var self = this;
+        function whenLoaded() {
+            var cbs = self._whenLoadedCallbacks;
+            delete self._whenLoadedCallbacks;
+            var cb; while (cbs && (cb = cbs.shift())) cb.bind(self).delay(0);
+        }
+        lively.bindings.connect(this.shape, 'isLoaded', {run: whenLoaded}, 'run', {
+            removeAfterUpdate: true});
+        return this;
+    }
+
 },
 'halos', {
     getHaloClasses: function($super) {

@@ -78,6 +78,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     evalEnabled: true,
     isAceEditor: true,
     isCodeEditor: true,
+    isText: true,
     showsMorphMenu: true,
     connections: {textChange: {}, textString: {}, savedTextString: {}}
 },

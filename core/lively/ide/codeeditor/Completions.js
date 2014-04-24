@@ -1,6 +1,22 @@
 module('lively.ide.codeeditor.Completions').requires('lively.ide.codeeditor.ace').toRun(function() {
 
 Object.extend(lively.ide.codeeditor.Completions, {
+
+    addWordsFromString: function(string) {
+        var splitRegex = /[^a-zA-Z_0-9\$\-]+/,
+            words = lively.ide.WordCompleter ? lively.ide.WordCompleter.wordsFromFiles : {};
+        string.split(splitRegex)
+            .filter(function(w) { return !!w.length })
+            .uniq()
+            .forEach(function(word) {
+                var first = word[0].toLowerCase()
+                if (!words[first]) words[first] = {};
+                if (!words[first][word]) words[first][word] = 0;
+                words[first][word]++;
+            });
+        return words;
+    },
+
     setupCompletions: function(thenDo) {
         module('lively.ide');
     

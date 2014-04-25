@@ -2,9 +2,9 @@ module('lively.store.SQLiteInterface').requires('lively.Network').toRun(function
 
 Object.extend(lively.store.SQLiteInterface, {
 
-    ensureDB: function(name, thenDo) {
+    ensureDB: function(name, fileName, thenDo) {
         URL.nodejsBase.withFilename('SQLiteServer/ensureDB').asWebResource()
-            .beAsync().post(JSON.stringify({ dbAccessor: name }), 'application/json')
+            .beAsync().post(JSON.stringify({dbAccessor: name, fileName: fileName}), 'application/json')
             .whenDone(function(content, status) {
                 thenDo(status.isSuccess() ? null : content || status, content);
             });

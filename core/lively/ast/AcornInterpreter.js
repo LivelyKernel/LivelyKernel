@@ -1032,7 +1032,17 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     },
 
     getSource: function() {
-        return this.getAst().source || escodegen.generate(this.getAst());;
+        var source = this.getAst().source;
+        if (source) return source;
+
+        var ast = this.getAst();
+        if (ast.sourceFile) {
+            source = new WebResource(URL.root.withFilename(ast.sourceFile)).get().content;
+            if (source)
+                return source.substring(ast.start, ast.end);
+        }
+
+        return escodegen.generate(this.getAst());;
     }
 
 },

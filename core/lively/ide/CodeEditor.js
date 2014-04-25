@@ -675,9 +675,24 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     tryBoundEval: function(string) {
         // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
+        if (lively.Config.get('loadRewrittenCode')) {
+            module('lively.ast.AcornInterpreter').load(true); // also loads lively.ast.Rewriting
+            var node = lively.ast.acorn.parseFunction('function() {' + string + '}');
+            node.source = string;
+            node.start += 13; // fix offset for debugger
+            node = lively.ast.Rewriting.rewriteFunction(node, LivelyDebuggingASTRegistry);
+            string = '(' + escodegen.generate(node) + ')();';
+        }
         try {
             return this.boundEval(string);
         } catch(e) {
+            // mr 2014-04-16: e.unwindException has to be used because e is unwrapped when rewritten
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.unwindException.isUnwindException) {
+                require('lively.ast.StackReification', 'lively.ast.Debugging').toRun(function() {
+                    var cont = lively.ast.Continuation.fromUnwindException(e.unwindException);
+                    lively.ast.openDebugger(cont.currentFrame, e.message);
+                });
+            }
             return e;
         }
     },
@@ -696,7 +711,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off")
                 lively.ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
-        } catch(e) {throw e}
+        } catch(e) {
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                throw e.unwindException;
+            else
+                throw e;
+        }
     },
 
     evalSelection: function(printIt) {

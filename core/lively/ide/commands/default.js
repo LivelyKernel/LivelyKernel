@@ -181,6 +181,16 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
+    'lively.morphic.Morph.alignFlapsInWorld': {
+        description: 'align flaps in world',
+        exec: function() {
+            $world.submorphs
+                .filter(function(ea) { return ea.hasFixedPosition() && ea.alignInWorld; })
+                .invoke('alignInWorld');
+            return true;
+        },
+    },
+
     // lists
     'lively.morphic.List.selectItem': {
         exec: function() {

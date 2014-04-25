@@ -1237,13 +1237,13 @@ lively.morphic.Morph.addMethods(
             }
         }
 
-        if (this.isFixed) {
+        if (this.hasFixedPosition()) {
             morphicMenuItems[1].push(["set unfixed", function() {
-                self.setFixed(false);
+                self.disableFixedPositioning();
             }]);
         } else {
             morphicMenuItems[1].push(["set fixed", function() {
-                self.setFixed(true);
+                self.enableFixedPositioning()
             }]);
         }
 
@@ -1436,8 +1436,8 @@ lively.morphic.World.addMethods(
         return lively.BuildSpec('lively.ide.tools.ObjectEditor').createMorph().openInWorldCenter();
     },
     openTerminal: function() {
-        require('lively.ide.tools.Terminal').toRun(function() {
-            lively.BuildSpec('lively.ide.tools.Terminal').createMorph().openInWorldCenter().comeForward(); });
+        require('lively.ide.commands.default').toRun(function() {
+            lively.ide.commands.exec('lively.ide.execShellCommandInWindow') });
     },
     openObjectEditorFor: function(morph) {
         var objectEditor = this.openObjectEditor(),

@@ -674,6 +674,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'text morph eval interface', {
 
     tryBoundEval: function(string) {
+        // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
         try {
             return this.boundEval(string);
         } catch(e) {

@@ -1795,7 +1795,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         } catch(e) {throw e}
     },
     tryBoundEval: function(str) {
-        try { return this.boundEval(str) } catch(e) { this.showError(e); return null }
+        // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
+        try {
+            return this.boundEval(str);
+        } catch(e) {
+            this.showError(e);
+            return null;
+        }
     },
 
     getDoitContext: function() { return this.doitContext }
@@ -1822,7 +1828,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 },
 'debugging', {
     showError: function (e, offset) {
-
         offset = offset || 0;
         var msg = "" + e + "\n" +
             "Line: " + e.line + "\n" +
@@ -1845,7 +1850,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             alert("Error " + e + "on line " + e.line + " offset " + offset)
         }
         if (world)
-            world.logError(e)
+            world.logError(e);
     },
 
     textNodeString: function() {

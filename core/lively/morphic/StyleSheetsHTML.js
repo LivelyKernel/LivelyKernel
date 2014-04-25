@@ -55,26 +55,27 @@ lively.morphic.Text.addMethods('Stylesheets', {
 
 Trait('StyleSheetsHTMLShapeTrait',
 'updating', {
-    setFillHTML: lively.morphic.Shapes.Shape.prototype.setFillHTML.wrap(function (proceed, ctx, value) {
-        proceed(ctx, this.shapeGetter('AppearanceStylingMode') ? null : value);
-    }),
+    setFillHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLShapeTrait').getOriginalMethodFor(lively.morphic.Shapes.Shape, "setFillHTML").call(this, ctx, this.shapeGetter('AppearanceStylingMode') ? null : value);
+    },
 
-    setOpacityHTML: lively.morphic.Shapes.Shape.prototype.setOpacityHTML.wrap(function (proceed, ctx, value) {
-        proceed(ctx, this.shapeGetter('AppearanceStylingMode') ? null : value);
-    }),
+    setOpacityHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLShapeTrait').getOriginalMethodFor(lively.morphic.Shapes.Shape, "setOpacityHTML").call(this, ctx, this.shapeGetter('AppearanceStylingMode') ? null : value);
+    },
 
-    setBorderStyleHTML: lively.morphic.Shapes.Shape.prototype.setBorderStyleHTML.wrap(function (proceed, ctx, value) {
-        proceed(ctx, ctx.shapeNode && this.shapeGetter('BorderStylingMode') ? null : value);
-    }),
+    setBorderStyleHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLShapeTrait').getOriginalMethodFor(lively.morphic.Shapes.Shape, "setBorderStyleHTML").call(this, ctx, ctx.shapeNode && this.shapeGetter('BorderStylingMode') ? null : value);
+    },
 
-    setBorderHTML: lively.morphic.Shapes.Shape.prototype.setBorderHTML.wrap(function (proceed, ctx, width, fill, opacity) {
+    setBorderHTML: function (ctx, width, fill, opacity) {
         if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
             ctx.shapeNode.style['border'] = null;
             this.compensateShapeNode(ctx);
         } else {
-            proceed(ctx, width, fill, opacity);
+            return Trait('StyleSheetsHTMLShapeTrait').getOriginalMethodFor(lively.morphic.Shapes.Shape, "setBorderHTML").call(this, ctx, width, fill, opacity);
         }
-    }),
+    },
+
     setBorderWidthHTML: function(ctx, width) {
         if (this.getBorderStylingMode()) {
             ctx.shapeNode.style.border = '';
@@ -87,6 +88,7 @@ Trait('StyleSheetsHTMLShapeTrait',
         this.setExtentHTML(ctx, this.getExtent());
         return width;
     }
+
 }).applyTo(lively.morphic.Shapes.Shape, {
     override: ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML',
                'setBorderWidthHTML', 'setBorderHTML']
@@ -94,67 +96,67 @@ Trait('StyleSheetsHTMLShapeTrait',
 
 Trait('StyleSheetsHTMLExternalShapeTrait',
 'updating', {
-    setOpacityHTML: lively.morphic.Shapes.External.prototype.setOpacityHTML.wrap(function(proceed, ctx, value) {
-        return proceed(ctx, this.shapeGetter('AppearanceStylingMode') ? null : value);
-    })
+    setOpacityHTML: function(ctx, value) {
+        return Trait('StyleSheetsHTMLExternalShapeTrait').getOriginalMethodFor(lively.morphic.Shapes.External, "setOpacityHTML").call(this, ctx, this.shapeGetter('AppearanceStylingMode') ? null : value);
+    }
 }).applyTo(lively.morphic.Shapes.External, {
     override: ['setOpacityHTML']
 });
 
 Trait('StyleSheetsHTMLRectangleTrait',
 'updating', {
-    setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, ctx.shapeNode && this.shapeGetter('BorderStylingMode') ? null : value);
-    })
+    setBorderRadiusHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLRectangleTrait').getOriginalMethodFor(lively.morphic.Shapes.Rectangle, "setBorderRadiusHTML").call(this, ctx, ctx.shapeNode && this.shapeGetter('BorderStylingMode') ? null : value);
+    }
 }).applyTo(lively.morphic.Shapes.Rectangle, {
     override: ['setBorderRadiusHTML']
 });
 
 Trait('StyleSheetsHTMLTextTrait',
 'accessing', {
-    setAlignHTML: lively.morphic.Text.prototype.setAlignHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
-    }),
+    setAlignHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setAlignHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    },
 
-    setFontFamilyHTML: lively.morphic.Text.prototype.setFontFamilyHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
-    }),
+    setFontFamilyHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setFontFamilyHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    },
 
-    setFontSizeHTML: lively.morphic.Text.prototype.setFontSizeHTML.wrap(function (proceed, ctx, value) {
+    setFontSizeHTML: function (ctx, value) {
         if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
             return ctx.textNode.style.fontSize = null;
         } else {
-            return proceed(ctx, value || null);
+            return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setFontSizeHTML").call(this, ctx, value || null);
         }
-    }),
-    setFontStyleHTML: lively.morphic.Text.prototype.setFontStyleHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
-    }),
-    setFontWeightHTML: lively.morphic.Text.prototype.setFontWeightHTML.wrap(function (proceed, ctx, value) {
-        return  proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
-    }),
-    setTextColorHTML: lively.morphic.Text.prototype.setTextColorHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
-    }),
-    setTextDecorationHTML: lively.morphic.Text.prototype.setTextDecorationHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
-    }),
-    setVerticalAlignHTML: lively.morphic.Text.prototype.setVerticalAlignHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
-    }),
-    setLineHeightHTML: lively.morphic.Text.prototype.setLineHeightHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
-    }),
-    setDisplayHTML: lively.morphic.Text.prototype.setDisplayHTML.wrap(function (proceed, ctx, value) {
-        return proceed(ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
-    }),
-    setWordBreakHTML: lively.morphic.Text.prototype.setWordBreakHTML.wrap(function (proceed, ctx, value) {
+    },
+    setFontStyleHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setFontStyleHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    },
+    setFontWeightHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setFontWeightHTML").call(this,  ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    },
+    setTextColorHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setTextColorHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? null : value || null);
+    },
+    setTextDecorationHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setTextDecorationHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    },
+    setVerticalAlignHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setVerticalAlignHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    },
+    setLineHeightHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setLineHeightHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    },
+    setDisplayHTML: function (ctx, value) {
+        return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setDisplayHTML").call(this, ctx, this.morphicGetter('TextStylingMode') ? 'inherit' : value || null);
+    },
+    setWordBreakHTML: function (ctx, value) {
         if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
             ctx.textNode.style.wordBreak = 'inherit';
         } else {
-            return proceed(ctx, value || null);
+            return Trait('StyleSheetsHTMLTextTrait').getOriginalMethodFor(lively.morphic.Text, "setWordBreakHTML").call(this, ctx, value || null);
         }
-    })
+    }
 }).applyTo(lively.morphic.Text, {
     override: ['setAlignHTML',  'setFontFamilyHTML',
         'setFontSizeHTML', 'setFontStyleHTML', 'setFontWeightHTML', 'setTextColorHTML',
@@ -164,8 +166,9 @@ Trait('StyleSheetsHTMLTextTrait',
 
 Trait('StyleSheetsHTMLTrait',
 'initializing', {
-    appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function (proceed, ctx, optMorphAfter) {
-        proceed(ctx, optMorphAfter);
+
+    appendHTML: function (ctx, optMorphAfter) {
+        Trait('StyleSheetsHTMLTrait').getOriginalMethodFor(lively.morphic.Morph, "appendHTML").call(this, ctx, optMorphAfter);
         this.prepareDOMForStyleSheetsHTML(ctx);
         this.setStyleSheetHTML(ctx, this.getParsedStyleSheet());
 
@@ -182,13 +185,14 @@ Trait('StyleSheetsHTMLTrait',
 
         // Check if the css border changed
         this.adaptBorders();
-    }),
-    setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
-        proceed(optId);
-        if (this.isRendered()) {
-            this.renderContextDispatch('setNodeMorphId');
-        }
-    })
+    },
+
+    setNewId: function (optId) {
+        var result = Trait('StyleSheetsHTMLTrait').getOriginalMethodFor(lively.morphic.Morph, "setNewId").call(this, optId);
+        if (this.isRendered()) this.renderContextDispatch('setNodeMorphId');
+        return result;
+    }
+
 }).applyTo(lively.morphic.Morph, {
     override: ['appendHTML', 'setNewId']
 });
@@ -461,7 +465,6 @@ lively.morphic.Morph.addMethods(
         return domClassString.trim() === '' ? [] : domClassString.trim().split(/\s+/);
     },
 
-
     setNodeMorphIdHTML: function(ctx) {
         $(ctx.shapeNode).attr('data-lively-morphid', this.id);
     },
@@ -473,10 +476,10 @@ lively.morphic.Morph.addMethods(
     getIdsForSelector: function(selector) {
         return this.cssSelectMorphs(selector).collect(function(m) { return m.id; });
     },
+
     cssSelectMorphs: function(cssSelector) {
         return new lively.morphic.Sizzle().select(cssSelector, this);
     }
-
 
 });
 

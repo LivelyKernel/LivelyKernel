@@ -27,12 +27,25 @@ Object.subclass('RealTrait',
     }
 },
 'accessing', {
+
     optionsConfForObj: function(obj) {
         var confs = this.extendedObjectsAndOptions.objects;
         return confs.detect(function(conf) { return conf.object === obj }) || {object: obj};
+    },
+
+    optionsConfForClass: function(klass) {
+        var name = klass.type || klass.name;
+        return name ? this.extendedObjectsAndOptions.classes[name] : null;
+    },
+
+    getOriginalMethodFor: function(objOrClass, methodName) {
+        var conf = this.optionsConfForClass(objOrClass) || this.optionsConfForObj(objOrClass);
+        return conf && conf.originalMethods ? conf.originalMethods[methodName] : null;
     }
+
 },
 'manipulating', {
+
     extend: function(category, def) {
         if (!def) return null;
         this.removeFromDependents();
@@ -49,6 +62,7 @@ Object.subclass('RealTrait',
 
         return this;
     },
+
     mixin: function() {
         var mixinTrait = this.derive({});
 

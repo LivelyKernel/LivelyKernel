@@ -1596,9 +1596,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             frame.setArguments(args);
         frame.setAlreadyComputed(alreadyComputed);
         if (!this.top) {
-            pc = this.error && this.error.astIndex ?
-                acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), this.error.astIndex) :
-                null;
+            pc = this.error && acorn.walk.findNodeByAstIndex(frame.getOriginalAst(),
+                this.error.astIndex ? this.error.astIndex : lastNodeAstIndex);
         } else {
             if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
             pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);

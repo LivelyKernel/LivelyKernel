@@ -1263,6 +1263,29 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assert(result.top.getParentFrame(), 'new frame does not have parent frame');
         this.assertEquals(ast.body.body[3].argument.right, result.top.getParentFrame().getPC(),
             'parent frame does not have the right PC')
+    },
+
+    test19SimpleError: function() {
+        function code() {
+            var x = 2;
+            throw new Error();
+            return x + 4;
+        }
+
+        var expected = { isContinuation: true },
+            runResult;
+        try {
+            lively.ast.StackReification.run(code, this.astRegistry);
+            this.assert(false, 'Error was not detected and triggered!');
+        } catch (e) {
+            runResult = lively.ast.Continuation.fromUnwindException(e.unwindException);
+        }
+        var frame = runResult.frames().first();
+        this.assert(runResult.isContinuation, 'no continuation');
+
+        var capturedAst = frame.getOriginalAst();
+        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), capturedAst);
+        this.assertIdentity(capturedAst.body.body[1].argument, frame.getPC(), 'pc');
     }
 
 });

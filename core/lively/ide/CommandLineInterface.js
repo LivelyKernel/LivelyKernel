@@ -464,6 +464,15 @@ Object.extend(lively.ide.CommandLineInterface, {
         return cmd;
     },
 
+    diffIgnoringWhiteSpace: function(string1, string2, thenDo) {
+        return lively.ide.CommandLineInterface.runAll([
+            {command: 'mkdir -p diff-tmp/'},
+            {writeFile: 'diff-tmp/a', content: string1},
+            {writeFile: 'diff-tmp/b', content: string2},
+            {name: 'diff', command: 'git diff -w --no-index --histogram diff-tmp/a diff-tmp/b'},
+            {command: 'rm -rfd diff-tmp/'}
+        ], function(result) { thenDo(result.diff.resultString(true)); });
+    },
     diff: function(string1, string2, thenDo) {
         return lively.ide.CommandLineInterface.runAll([
             {command: 'mkdir -p diff-tmp/'},

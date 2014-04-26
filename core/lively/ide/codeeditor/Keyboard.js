@@ -491,6 +491,11 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: function(ed) { ed.$morph.searchWithPrompt(); },
                 readOnly: true
             }, {
+                name: "codeSearch",
+                bindKey: {win: "Ctrl-Shift-F", mac: "Command-Shift-F"},
+                exec: function(ed) { lively.ide.commands.exec('lively.ide.codeSearch', ed.$morph.getSelectionOrLineString()); },
+                readOnly: true
+            }, {
                 name: "findnext",
                 bindKey: {win: "Ctrl-K", mac: "Command-G"},
                 exec: function(ed) { ed.$morph.findNext(); },
@@ -514,11 +519,6 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     lively.ide.CommandLineSearch.doGrepFromWorkspace(ed.$morph.getSelectionOrLineString());
                 },
                 multiSelectAction: 'forEach'
-            }, {
-                name: 'doBrowseImplementors',
-                bindKey: {win: 'Ctrl-Shift-F', mac: 'Command-Shift-F'},
-                exec: function(ed) { ed.$morph.doBrowseImplementors(); },
-                readOnly: true
             }]);
     },
 

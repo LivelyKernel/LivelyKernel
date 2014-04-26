@@ -866,6 +866,31 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         this.done();
     },
 
+    testComposeAsync: function() {
+        var result, err, test1;
+        function mult(a,b, thenDo) { thenDo(null, a * b); }
+        function add1(a, thenDo) { thenDo(null, a + 1); }
+        var composed = Functions.composeAsync(mult, add1);
+        composed(11, 2, function(err, _result) { result = _result; });
+        this.waitFor(function() { return !!result; }, 10, function() {
+            this.assertEquals(23, result, 'composeAsync not OK: ' + Strings.print(result));
+            result = null;
+            test1 = true;
+        });
+
+        this.waitFor(function() { return !!test1; }, 10, function() {
+            function a(a,b, thenDo) { thenDo(new Error('ha ha'), a * b); }
+            function b(a, thenDo) { thenDo(null, a); }
+            var composed = Functions.composeAsync(a, b);
+            composed(11, 2, function(_err, _result) { err = _err; result = _result; });
+            this.waitFor(function() { return !!err || !!result; }, 10, function() {
+                this.assert(!result, 'composeAsync result when error expected?: ' + Strings.print(result));
+                this.assert(err, 'no error? ' + Strings.print(err));
+                this.done();
+            });
+        });
+    },
+
     testFlip: function() {
         function foo(a,b,c) { return '' + a + b + c; }
         this.assertEquals('213', Functions.flip(foo)(1,2,3));

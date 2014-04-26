@@ -453,7 +453,7 @@ Object.extend(lively.morphic.Image, {
 lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 'properties', {
     connections: {
-        setChecked: {}
+        checked: {}
     }
 },
 'initializing', {

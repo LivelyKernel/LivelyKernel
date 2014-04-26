@@ -1,6 +1,6 @@
 module('lively.morphic.tools.LoadingIndicator').requires('lively.persistence.BuildSpec').toRun(function() {
 
-m=lively.BuildSpec('lively.morphic.LoadingIndicator', {
+lively.BuildSpec('lively.morphic.LoadingIndicator', {
     _FixedPosition: true,
     _Extent: lively.pt(128.0,128.0),
     _Fill: Color.rgba(131,131,131,0.95),

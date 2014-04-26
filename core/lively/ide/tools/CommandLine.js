@@ -5,6 +5,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     className: "lively.morphic.CodeEditor",
     theme: Config.get('aceDefaultTheme'),
     _ShowGutter: false,
+    _LineWrapping: false,
     style: {
         gutter: false,
         enableGrabbing: false,
@@ -71,8 +72,10 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     },
 
     setInput: function setInput(text) {
+        var input = text;
         if (this.labelString) text = this.labelString + text;
-        return this.textString = text;
+        this.textString = text;
+        return input;
     },
 
     initializeAce: function initializeAce() {
@@ -182,6 +185,12 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         this.reset();
+        lively.bindings.noUpdate(function() {
+            if (this.labelString) this.setLabel(this.labelString);
+        }.bind(this));
+        lively.bindings.connect(this, 'textString', this, 'inputChange', {
+            converter: function() { return this.sourceObj.getInput(); }
+        });
     }
 });
 

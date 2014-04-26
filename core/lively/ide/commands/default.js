@@ -513,6 +513,43 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     // search
+    'lively.ide.codeSearch': {
+        description: 'code search',
+        exec: function(optSource) {
+            var source = optSource;
+
+            function doSearch(source, thenDo) {
+                lively.require('lively.ide.tools.CodeSearch').toRun(function() {
+                    thenDo(null, lively.ide.tools.CodeSearch.doSearch(source));
+                })
+            }
+
+            function askForSource(thenDo) {
+                $world.prompt('Enter query for code search', function(input) {
+                    if (!input) thenDo('aborted');
+                    else thenDo(null, input);
+                }, {historyId: 'lively.ide.codeSearchQuery'});
+            }
+
+            var run;
+
+            if (source) run = doSearch.curry(source);
+            else {
+                var m = lively.ide.commands.helper.focusedMorph();
+                if (m && m.isCodeEditor) {
+                    source = m.getSelectionOrLineString();
+                    run = doSearch.curry(source);
+                } else {
+                    run = Functions.composeAsync(askForSource, doSearch)
+                }
+            }
+            
+            run(function(err, searchWindow) { if (err) show(err); });
+
+            return true;
+        }
+    },
+
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
         exec: function() {
@@ -874,7 +911,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Morph.openStyleEditor': "cmd-y",
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},
     'lively.morphic.List.selectItem': "m-space",
-    'lively.ide.CommandLineInterface.doGrepSearch': {mac: ["Command-Shift-C", "Command-Shift-G"], win: ["Control-Shift-C", 'Control-Shift-G']},
+    'lively.ide.codeSearch': {mac: ["Command-Shift-C", "Command-Shift-G"], win: ["Control-Shift-C", 'Control-Shift-G']},
     'lively.ide.execShellCommandInWindow': "m-s-!",
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
     'lively.ide.commands.execute': "m-x",

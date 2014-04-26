@@ -736,7 +736,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         var modWrapper = lively.ide.sourceDB().addModule(spec.fileName),
             ff = modWrapper.ast();
         if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
-        ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
+        return ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
     },
 
     extractBrowseRefFromGrepLine: function(line, baseDir) {
@@ -759,8 +759,9 @@ Object.extend(lively.ide.CommandLineSearch, {
         var spec = this.extractBrowseRefFromGrepLine(grepString, baseDir);
         if (!spec) {
             show("cannot extract browse ref from %s", grepString);
+            return false;
         } else {
-            this.doBrowse(spec);
+            return this.doBrowse(spec);
         }
     },
 

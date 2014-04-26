@@ -664,18 +664,21 @@ lively.morphic.Text.subclass('lively.morphic.FrameRateMorph', {
 
 lively.morphic.Box.subclass('lively.morphic.Menu',
 'settings', {
+
     style: {
         fill: Color.white,
         borderColor: Color.gray.lighter(),
         borderWidth: 1,
         borderRadius: 4,
-        opacity: 0.95
+        opacity: 0.95,
+        clipMode: 'visible'
     },
-    paddingLeft: 20,
 
+    paddingLeft: 20,
     isEpiMorph: true,
     isMenu: true,
     removeOnMouseOut: false
+
 },
 'initializing', {
     initialize: function($super, title, items) {
@@ -703,14 +706,41 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     }
 },
 'mouse events', {
-    onMouseOut: function() {
-        if (this.removeOnMouseOut) {
-            this.remove()
-        };
+
+    onMouseOver: function($super, evt) {
+        // this logic is to ensure that if this is a submenu and the selected
+        // item morph of the owner has chnaged but the user is still hovering over
+        // me the item morph which selected me will be reselected.
+        // (deselecting my item morph can happen when quickly swooping over menus)
+
+        if (this.mouseHoveredBefore || this.subMenu) return $super();
+        var owner = this.ownerMenu, myItemInOwner = this.ownerItemMorph;
+
+        (function() {
+            var handInMe = this.fullContainsWorldPoint(this.world().hand().getPosition());
+            if(!handInMe && owner && myItemInOwner !== owner.overItemMorph) {
+                owner.removeSubMenu();
+                return;
+            }
+            if (handInMe && owner && myItemInOwner && !myItemInOwner.isSelected) {
+                owner.overItemMorph && owner.overItemMorph.deselect();
+                myItemInOwner.select();
+            }
+            this.mouseHoveredBefore = true;
+        }).bind(this).delay(0.3);
+        // evt.stop();
+        return $super(evt);
+    },
+
+    onMouseOut: function(evt) {
+        this.mouseHoveredBefore = false;
+        if (evt.getTargetMorph().isAncestorOf(this)) return false;
+        if (this.removeOnMouseOut) this.remove();
         return this.removeOnMouseOut;
     }
 },
 'opening', {
+
     openIn: function(parentMorph, pos, remainOnScreen, captionIfAny) {
         this.setPosition(pos || pt(0,0));
 
@@ -728,14 +758,15 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         owner.addMorph(this);
         this.fitToItems.bind(this).delay(0);
 
-        this.offsetForWorld(pos);
+        // this.offsetForWorld(pos);
         // delayed because of fitToItems
         // currently this is deactivated because the initial bounds are correct
         // for our current usage
-        // this.offsetForWorld.curry(pos).bind(this).delay(0);
+        this.offsetForWorld.curry(pos).bind(this).delay(0);
 
         return this;
-    },
+    }
+
 },
 'item management', {
     removeAllItems: function() {
@@ -760,11 +791,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var result = [], self = this;
         items.forEach(function(item, i) {
             if (item.isMenuItem) { item.idx = i; result.push(item); return };
+
             // item = [name, callback]
             if (Object.isArray(item) && Object.isFunction(item[1])) {
                 result.push(createItem(String(item[0]), item[0], i, item[1]))
                 return;
             }
+
             // item = [name, target, methodName, args...]
             if (Object.isArray(item) && Object.isString(item[2])) {
                 result.push(createItem(String(item[0]), item[0], i, function(evt) {
@@ -774,6 +807,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     method.apply(receiver, args) }))
                 return;
             }
+
             // sub menu item = [name, [sub elements]]
             if (Object.isArray(item) && Object.isArray(item[1])) {
                 var name = item[0], subItems = item[1];
@@ -798,14 +832,16 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             // item = "some string"
             result.push(createItem(String(item), item, i, function() { alert('clicked ' + self.idx) }));
         });
+
         return result;
+
     },
 
     addItems: function(items) {
         this.removeAllItems();
         this.items = this.createMenuItems(items);
         var y = this.yStartForItems(), x = 0;
-        
+
         this.items.forEach(function(item) {
             var itemMorph = new lively.morphic.MenuItem(item);
             this.itemMorphs.push(this.addMorph(itemMorph));
@@ -817,23 +853,49 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     }
 },
 'sub menu', {
-    openSubMenu: function(evt, name, items) {
-        var m = new lively.morphic.Menu(null, items);
-        this.addMorph(m);
-        m.setVisible(false); //To avoid flickering
-        m.fitToItems.bind(m).delay(0);
-        this.subMenu = m;
-        m.ownerMenu = this;
 
-        // delayed so we can use the real text extent
-        (function() {
-            if (!m.ownerMenu) return; // we might have removed that submenu already again
-            m.offsetForOwnerMenu();
-            m.setVisible(true);
-        }).delay(0);
+    openSubMenu: function(evt, name, items) {
+        var itemMorph = this.overItemMorph;
+
+        var m = new lively.morphic.Menu(null, items);
+        m.ownerItemMorph = itemMorph;
+
+        // only open a new submenu after a certain delay to reduce the
+        // impression of "flickering" menus and to be less annoying when trying to
+        // move over a menu and leaving the bounds of the item morph that opened it
+        this.openingSubMenuProcess && Global.clearTimeout(this.openingSubMenuProcess);
+        this.openingSubMenuProcess = Global.setTimeout(function() {
+
+            if (!itemMorph.isSelected) return;
+            var existingSubMenu = this.subMenu;
+
+            if (existingSubMenu) {
+                if (existingSubMenu.ownerItemMorph === itemMorph) return;
+                if (this.morphsContainingPoint(this.world().hand().getPosition()).include(existingSubMenu)) {
+                    return;
+                }
+                this.removeSubMenu();
+            }
+
+            this.addMorph(m);
+            m.setVisible(false); //To avoid flickering
+            m.fitToItems.bind(m).delay(0);
+            this.subMenu = m;
+            m.ownerMenu = this;
+            var evtTarget = evt.getTargetMorph();
+            if (evtTarget.isMenuItemMorph) m.ownerItemMorph = this.overItemMorph;
+
+            // delayed so we can use the real text extent
+            (function() {
+                if (!m.ownerMenu) return; // we might have removed that submenu already again
+                m.offsetForOwnerMenu();
+                m.setVisible(true);
+            }).delay(0);
+        }.bind(this), .2*1000);
 
         return m;
     },
+
     removeSubMenu: function() {
         if (!this.subMenu) return;
         var m = this.subMenu;
@@ -841,12 +903,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.subMenu = null;
         m.remove();
     },
+
     removeOwnerMenu: function() {
         if (!this.ownerMenu) return;
         var m = this.ownerMenu;
         this.ownerMenu = null;
         m.remove();
-    },
+    }
 },
 'removal', {
     remove: function($super) {
@@ -857,6 +920,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     }
 },
 'bounds calculation', {
+
     moveBoundsForVisibility: function(menuBounds, visibleBounds) {
         var offsetX = 0,
             offsetY = 0;
@@ -881,6 +945,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 
         return menuBounds.translatedBy(pt(offsetX, offsetY));
     },
+
     moveSubMenuBoundsForVisibility: function(subMenuBnds, mainMenuItemBnds, visibleBounds, direction) {
         // subMenuBnds is bounds to  be transformed, mainMenuItemBnds is the bounds of the menu
         // item that caused the submenu to appear, visbleBounds is the bounds that the submenu
@@ -889,6 +954,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             direction = mainMenuItemBnds.right() + subMenuBnds.width > visibleBounds.right() ?
                 'left' : 'right';
         }
+
         var extent = subMenuBnds.extent();
         if (direction === 'left') {
             subMenuBnds = mainMenuItemBnds.topLeft().addXY(-extent.x, 0).extent(extent);
@@ -913,35 +979,53 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     offsetForWorld: function(pos) {
         var bounds = this.innerBounds().translatedBy(pos);
         if (this.owner.visibleBounds) {
-            bounds = this.moveBoundsForVisibility(bounds, this.owner.visibleBounds());
+            var worldBounds = this.owner.visibleBounds();
+            bounds = this.clipForVisibility(
+                this.moveBoundsForVisibility(bounds, worldBounds),
+                worldBounds);
         }
         this.setBounds(bounds);
     },
+
     yStartForItems: function() {
         return this.title ? this.title.getExtent().y : 0
     },
-
 
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
             visibleBounds = this.world().visibleBounds(),
             localVisibleBounds = owner.getGlobalTransform().inverse().transformRectToRect(visibleBounds),
-            newBounds = this.moveSubMenuBoundsForVisibility(
-                this.innerBounds(),
-                owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
-                localVisibleBounds);
+            newBounds = this.clipForVisibility(
+                this.moveSubMenuBoundsForVisibility(
+                    this.innerBounds(),
+                    owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
+                    localVisibleBounds), visibleBounds);
         this.setBounds(newBounds);
     },
 
+    clipForVisibility: function(bounds, worldBounds) {
+        bounds = bounds || this.bounds();
+        worldBounds = worldBounds || this.world().visibleBounds();
+        var globalBounds = this.owner.getTransform().transformRectToRect(bounds),
+            overlapping = !worldBounds.containsRect(globalBounds.insetBy(5));
+        if (overlapping) {
+            bounds = bounds.withExtent(pt(this.getScrollBarExtent().x + 5 + bounds.width, worldBounds.height));
+            this.beClip('auto');
+        }
+        return bounds;
+    },
+
     fitToItems: function() {
-        var paddingLeft = (new lively.morphic.MenuItem({})).getPadding().left();
-        var offset = 10 + 20,
+        var paddingLeft = (new lively.morphic.MenuItem({})).getPadding().left(),
+            offset = 10 + 20,
             morphs = this.itemMorphs;
         if (this.title) morphs = morphs.concat([this.title]);
+
         var widths = morphs.invoke('getTextExtent').pluck('x'),
             width = Math.max.apply(Global, widths) + offset + paddingLeft,
             newExtent = this.getExtent().withX(width);
         this.setExtent(newExtent);
+
         morphs.forEach(function(ea) {
             ea.setExtent(ea.getExtent().withX(newExtent.x));
             if (ea.submorphs.length > 0) {
@@ -949,6 +1033,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 arrow.setPosition(arrow.getPosition().withX(newExtent.x-17 - paddingLeft));
             }
         });
+
     }
 
 });
@@ -966,6 +1051,7 @@ Object.extend(lively.morphic.Menu, {
 
 lively.morphic.Text.subclass("lively.morphic.MenuItem",
 'settings', {
+    isMenuItemMorph: true,
     style: {
         clipMode: 'hidden',
         fixedHeight: true,
@@ -999,6 +1085,18 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
     }
 },
 'mouse events', {
+
+    onMouseOver: function(evt) {
+        // Selects a new menu option
+        this.owner.overItemMorph = this;
+        this.owner.itemMorphs.without(this).invoke('deselect');
+        if (this.isSelected) return false;
+        this.select();
+        this.item.onMouseOverCallback && this.item.onMouseOverCallback(evt);
+        evt.stop();
+        return true;
+    },
+
     onMouseUp: function($super, evt) {
         if (evt.world.clickedOnMorph !== this && (Date.now() - evt.world.clickedOnMorphTime < 500)) {
             return false; // only a click
@@ -1008,44 +1106,6 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         if (!this.owner.remainOnScreen) this.owner.remove(); // remove the menu
         evt.stop();
         return true;
-    },
-    
-    onMouseOver: function(evt) {
-        //Selects a new menu option
-        //Allows user to move from a menu item with a submenu to the elements
-        //of its submenu while passing over other elements, but without 
-        //selecting them.
-        if (!this.owner.mouseoverPoint || this.newSelectionWanted(evt)) {
-            //Only set up submenu selection if this menuItem has a submenu
-            if(this.isSubMenu) {
-                this.owner.mouseoverPoint = evt.getPosition();
-                this.owner.mouseoverTime = new Date();
-            } else {
-                this.owner.mouseoverPoint = null;
-            }
-            this.select();
-            this.item.onMouseOverCallback && this.item.onMouseOverCallback(evt);
-            evt.stop();
-            return true;
-        }
-        evt.stop();
-        return true;
-    },
-    
-    newSelectionWanted: function(evt) {
-        //Returns whether the user probably wants to pick something new in the menu,
-        //given that the mouse is above a new menu item.
-        //Returns true if the cursor is under BOUNDARY pixels to the right of
-        //the original mouseover position.
-        //Returns true if the total time since the user moused over exceeds WAIT ms
-        //Returns false if the slope of the line connecting the current mouse position
-        //the original mouseover position is within SLOPE from due right of the 
-        //original mouseover point, true otherwise
-        var BOUNDARY = 5, SLOPE = 1.0, WAIT = 900;
-        return (evt.getPosition().x < this.owner.mouseoverPoint.x + BOUNDARY) ||
-               (new Date() - this.owner.mouseoverTime > WAIT) ||
-               (Math.abs((evt.getPosition().y - this.owner.mouseoverPoint.y)
-                  / (evt.getPosition().x - this.owner.mouseoverPoint.x)) > SLOPE);
     },
 
     onMouseWheel: function(evt) {
@@ -1058,7 +1118,6 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
 
     select: function(evt) {
         this.isSelected = true;
-        this.owner.itemMorphs.without(this).invoke('deselect');
         this.applyStyle({
             fill: new lively.morphic.LinearGradient([
                 {offset: 0, color: Color.rgb(43, 88, 255)},
@@ -1073,8 +1132,6 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
             arrow.applyStyle({textColor: Color.white});
         }
 
-        this.owner.overItemMorph = this;
-        this.owner.removeSubMenu();
         return true;
     },
 
@@ -1457,18 +1514,18 @@ lively.morphic.World.addMethods(
             objectEditorPane = textMorph.objectEditorPane,
             scripts = textMorph.scripts,
             codeMorph = new lively.morphic.CodeEditor(bounds, textString || '');
-    
+
         lively.bindings.connect(codeMorph, 'textString',
                                 owner.get('ChangeIndicator'), 'indicateUnsavedChanges');
         codeMorph.setName(name);
         codeMorph.objectEditorPane = objectEditorPane;
         codeMorph.applyStyle({resizeWidth: true, resizeHeight: true});
         codeMorph.accessibleInInactiveWindow = true;
-    
+
         Functions.own(textMorph).forEach(function(scriptName) {
             textMorph[scriptName].asScriptOf(codeMorph);
         });
-    
+
         codeMorph.addScript(function displayStatus(msg, color, delay) {
             if (!this.statusMorph) {
                 this.statusMorph = new lively.morphic.Text(pt(100,25).extentAsRectangle());
@@ -1484,11 +1541,11 @@ lively.morphic.World.addMethods(
             this.addMorph(this.statusMorph);
             (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
         });
-    
+
         objectEditor.targetMorph.addScript(function onWindowGetsFocus() {
             this.get('ObjectEditorScriptPane').focus();
         });
-    
+
         objectEditor.addScript(function onKeyDown(evt) {
             var sig = evt.getKeyString(),
                 scriptList = this.get('ObjectEditorScriptList'),
@@ -1499,7 +1556,7 @@ lively.morphic.World.addMethods(
                 default: $super(evt);
             }
         });
-    
+
         owner.addMorphBack(codeMorph);
         lively.bindings.disconnectAll(textMorph);
         textMorph.remove();
@@ -1740,7 +1797,7 @@ lively.morphic.World.addMethods(
     },
 
     debuggingMenuItems: function(world) {
-        
+
         var items = [
             ['Reset world scale', this.resetScale.bind(this)],
             ['Check app cache', this.checkApplicationCache.bind(this)],
@@ -2056,7 +2113,7 @@ lively.morphic.World.addMethods(
     checkApplicationCache: function() {
         var cache = lively.ApplicationCache,
             pBar = this.addProgressBar(null, 'app cache'),
-            handlers = {    
+            handlers = {
                 onProgress: function(progress) {
                     pBar && pBar.setValue(progress.evt.loaded/progress.evt.total);
                 },
@@ -2184,9 +2241,9 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
             extent = lively.pt(optWidth || length, length);
         var button = this.addMorph(
                 new lively.morphic.WindowControl(
-                        lively.rect(lively.pt(0, 0), extent), 
-                        this.controlSpacing, 
-                        label, 
+                        lively.rect(lively.pt(0, 0), extent),
+                        this.controlSpacing,
+                        label,
                         optLabelOffset || pt(0,0)));
         return button;
     },
@@ -2195,7 +2252,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         return this.addNewButtonAt(pos, label, optLabelOffset, optWidth);
     },
     addNewButtonAt: function(pos, label, optLabelOffset, optWidth) {
-        var button = this.createNewButton(label, optLabelOffset, optWidth);   
+        var button = this.createNewButton(label, optLabelOffset, optWidth);
         this.buttons.pushAt(button, pos);
         this.adjustElementPositions();
         return button;
@@ -2212,15 +2269,15 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     adjustElementPositions: function() {
         var innerBounds = this.innerBounds(),
             sp = this.controlSpacing;
-        
+
         var buttonLocation = this.innerBounds().topRight().subXY(sp, -sp);
-                
+
         this.buttons.forEach(function(ea) {
             buttonLocation = buttonLocation.subXY(ea.shape.getBounds().width, 0);
             ea.setPosition(buttonLocation);
             buttonLocation = buttonLocation.subXY(sp, 0)
         });
-        
+
         if (this.label) {
             var start = this.innerBounds().topLeft().addXY(sp, sp),
                 end = lively.pt(buttonLocation.x,
@@ -2306,16 +2363,16 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     makeTitleBar: function(titleString, width, optSuppressControls) {
         var titleBar = new lively.morphic.TitleBar(titleString, width, this);
         if (optSuppressControls) return titleBar;
-        
+
         this.closeButton = titleBar.addNewButton("X", pt(0,-1));
         this.closeButton.addStyleClassName('close');
         this.collapseButton = titleBar.addNewButton("–", pt(0,1));
         this.menuButton = titleBar.addNewButton("Menu", null, 40);
-        
+
         connect(this.closeButton, 'fire', this, 'initiateShutdown');
         connect(this.menuButton, 'fire', this, 'showTargetMorphMenu');
         connect(this.collapseButton, 'fire', this, 'toggleCollapse');
-        
+
         return titleBar;
     },
 
@@ -2335,7 +2392,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             this.remove(); // this will be removed from the owner and it will loose its owner
             if (owner.activateTopMostWindow) owner.activateTopMostWindow();
         }.bind(this);
-        
+
         if (this.targetMorph && this.targetMorph.ifOkToShutdownDo) {
             this.targetMorph.ifOkToShutdownDo(shutdownCallback);
         } else {
@@ -2387,7 +2444,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 },
 'menu', {
     showTargetMorphMenu: function() {
-        
+
         var target = this.targetMorph || this, itemFilter;
         if (this.targetMorph) {
             var self = this;
@@ -2423,13 +2480,13 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                 return items;
             }
         }
-        
+
         var menu = target.createMorphMenu(itemFilter);
         var menuBtnTopLeft = this.menuButton.bounds().topLeft();
         var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
         menu.openIn(
-            lively.morphic.World.current(), 
-            this.getGlobalTransform().transformPoint(menuTopLeft), 
+            lively.morphic.World.current(),
+            this.getGlobalTransform().transformPoint(menuTopLeft),
             false);
     },
     morphMenuItems: function($super) {
@@ -2540,7 +2597,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         // compute the unified bounds of the titlebar buttons and "put" it right
         // next to the label. This plus some spacing is the boudns we really
         // need to display the titlebar
-        var buttonBounds = win.titleBar.buttons.invoke('bounds') 
+        var buttonBounds = win.titleBar.buttons.invoke('bounds')
         var leftMostButtonPosX = buttonBounds.pluck('x').min();
         var buttonOffset = pt(leftMostButtonPosX,0);
         var offset = buttonOffset.negated().addPt(labelTopRight);
@@ -2988,7 +3045,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
         input.addScript(function onKeyDown(evt) {
             switch (evt.getKeyString()) {
                 case 'Alt-H': this.browseHistory(); evt.stop(); return true;
-                default: return $super(evt);        
+                default: return $super(evt);
             }
         });
         input.addScript(function browseHistory() {
@@ -4088,7 +4145,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 var more = {name: Strings.format("[... show more (%s total)]",
                                     this.item.children.length),
                             style: {color: Color.web.darkgray},
-                            onSelect: this.showMoreChildren.bind(this)}; 
+                            onSelect: this.showMoreChildren.bind(this)};
                 this.showMoreNode = this.createNodeBefore(more);
             }
         });

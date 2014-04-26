@@ -240,7 +240,15 @@ lively.morphic.Window.addMethods(
         reframeHandle: {exclude: true},
         bottomReframeHandle: {exclude: true},
         rightReframeHandle: {exclude: true},
-        targetMorph: {exclude: true}
+        targetMorph: {exclude: true},
+        cameForward: {exlcude: true},
+        collapsedExtent: {exlcude: true},
+        collapsedTransform: {exlcude: true},
+        expandedExtent: {exlcude: true},
+        expandedTransform: {exlcude: true},
+        highlighted: {exlcude: true},
+        ignoreEventsOnExpand: {exlcude: true},
+        contentOffset: {exlcude: true}
     },
 
     onFromBuildSpecCreated: function($super) {

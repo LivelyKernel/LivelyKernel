@@ -35,6 +35,7 @@ m=lively.BuildSpec('lively.morphic.LoadingIndicator', {
             this.setPositionCentered(this.world().visibleBounds().extent().scaleBy(0.5));
         });
     },
+    setLabel: function setLabel(text) { this.get('Text').textString = text; }
 });
 
 Object.extend(lively.morphic.tools.LoadingIndicator, {

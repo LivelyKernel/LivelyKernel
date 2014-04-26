@@ -467,8 +467,37 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
+    'lively.ide.SystemCodeBrowser.browseModule': {
+        description: 'open module in SystemCodeBrowser',
+        exec: function(moduleNameOrFileOrURL) {
+            if (moduleNameOrFileOrURL) doBrowse(moduleNameOrFileOrURL);
+            else doPrompt(doBrowse);
+
+            function doPrompt(thenDo) {
+                $world.prompt('Which module to browse?', function(name) {
+                    thenDo(name);
+                }, {historyId: 'lively.ide.SystemCodeBrowser.browseModule', input: 'lively.Base'});
+            }
+
+            function doBrowse(moduleNameOrFileOrURL) {
+                if (URL.isURL(moduleNameOrFileOrURL)) {
+                    lively.ide.browse(moduleNameOrFileOrURL);
+                } else if (moduleNameOrFileOrURL.endsWith('.js') || moduleNameOrFileOrURL.include('/')) {
+                    var wrapper = lively.ide.ModuleWrapper.forFile(moduleNameOrFileOrURL),
+                        fn = wrapper.fileName();
+                    lively.ide.browse(fn);
+                } else {
+                    lively.ide.browse(module(moduleNameOrFileOrURL).uri());
+                }
+            }
+
+            return true;
+        }
+    },
+
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {
-        description: 'browse module',
+        description: 'browse module structure',
         exec: function() {
             var win = $world.getActiveWindow(),
                 widget = win && win.targetMorph && win.targetMorph.ownerWidget,

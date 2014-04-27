@@ -536,6 +536,15 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
         this.shape.setVertices(newVertices);
     }
 
+},
+'events', {
+    onMouseUp: function($super, evt) {
+        if (evt.isCommandKey() || evt.isRightMouseButtonDown())
+            return $super(evt);
+
+        this.showControlPointsHalos();
+        return true;
+    }
 });
 
 Object.subclass('lively.morphic.ControlPoint',

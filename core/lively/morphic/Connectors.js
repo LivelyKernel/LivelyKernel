@@ -150,91 +150,6 @@ Object.subclass('lively.morphic.MagnetSet',
     },
 });
 
-require('lively.LayerableMorphs').toRun(function() {
-
-cop.create('lively.morphic.VisualBindingsLayer')
-.refineClass(lively.morphic.World, {
-    morphMenuItems: function() {
-        var items = cop.proceed(),
-            debugging = items.detect(function(ea) { return ea[0] == "Debugging"}),
-            world = this;
-        if (debugging) {
-            debugging[1].splice(4, 0, ["Show connectors",
-                function() {
-                    world.submorphs.forEach(function(ea) {
-                        if (ea.isPath && ea.con) ea.owner.addMorph(ea);
-                    });
-                }]);
-        }
-        return items;
-    }
-})
-.refineClass(lively.morphic.Morph, {
-    morphMenuItems: function() {
-        var morph = this,
-            connectioNames = Properties.own(this.getConnectionPoints()),
-            connectionItems = connectioNames.collect(function(name) {
-                return [name, function() {
-                    var builder = morph.getVisualBindingsBuilderFor(name)
-                    builder.openInHand();
-                    builder.setPosition(pt(0,0));
-                }]
-            }).concat([['Custom ...', function() {
-                morph.world().prompt('Name of custom connection start?', function(name) {
-                    if (!name) return;
-                    var builder = morph.getVisualBindingsBuilderFor(name)
-                    builder.openInHand();
-                    builder.setPosition(pt(0,0));
-                })
-            }]])
-        return cop.proceed().concat([["Connect ...", connectionItems]]);
-    }
-})
-.beGlobal();
-
-// cop.create('NoMagnetsLayer')
-// .refineClass(lively.morphic.Morph, {
-//     getMagnets: function() { return []; }
-// })
-// .refineClass(lively.morphic.Text, {
-//     getMagnets: function() { return []; }
-// })
-// .refineClass(lively.morphic.Halo, {
-//     getMagnets: function() { return []; }
-// })
-// .refineClass(lively.morphic.HandMorph, {
-//     getMagnets: function() { return []; }
-// })
-
-// lively.morphic.HandMorph.addMethods({
-//     withLayers: [] // NoMagnetsLayer
-// });
-
-// lively.morphic.Halo.addMethods({
-//     withLayers: [NoMagnetsLayer]
-// });
-
-// lively.morphic.Window.addMethods({
-//     // withLayers: [NoMagnetsLayer]
-// });
-
-cop.create('ConnectorLayer').refineClass(lively.morphic.Path, {
-    onMouseUp: function(evt) {
-        var result
-        cop.withoutLayers([ConnectorLayer], function() {
-            result = cop.proceed(evt);
-        })
-        if (evt.isCommandKey() || evt.isRightMouseButtonDown())
-            return result;
-
-        this.showControlPointsHalos()
-
-        return true
-    }
-}).beGlobal();
-
-});  // end of require LayerableMorphs
-
 lively.morphic.Morph.addMethods(
 'visual connectors', {
   morphsContainingPointInExtendedBounds: function (point, outset, list) {
@@ -378,7 +293,7 @@ lively.morphic.World.addMethods(
 
 lively.morphic.Path.addMethods(
 'visual connectors', {
-    withLayers: [], // withLayers: [cop.create('NoMagnetsLayer2')],
+
     disconnectFromMagnets: function() {
         this.getControlPoints().forEach(function(ctrlPt) {
             if (ctrlPt.connectedMagnet) ctrlPt.setConnectedMagnet(null);

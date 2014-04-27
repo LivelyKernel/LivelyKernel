@@ -1812,6 +1812,12 @@ lively.morphic.World.addMethods(
                     text.setFontSize(9);
                 })}]];
 
+        items.push(["Show connectors", function() {
+                    world.submorphs.forEach(function(ea) {
+                        if (ea.isPath && ea.con) ea.owner.addMorph(ea);
+                    }); }
+        ]);
+
         // world requirements
         var worldRequirements = world.getWorldRequirements(),
             removeRequirement = function(name) {

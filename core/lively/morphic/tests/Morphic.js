@@ -823,13 +823,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
     }
 });
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
+AsyncTestCase.subclass('lively.morphic.tests.MenuTests',
 'testing', {
     testWrongSubMenuItems: function() {
         var menu = lively.morphic.Menu.openAt(pt(0,0), 'test', [['foo', ['bar']], ['foo2', ['bar2']]]),
             item = menu.submorphs[1]; // 0 is title, 1 is first item
         this.doMouseEvent({type: 'mouseover', pos: pt(5,5), target: item.renderContext().getMorphNode()});
-        this.assertEquals('bar', menu.subMenu.items[0].string, 'sub menu is wrong');
+        this.delay(function() {
+            this.assertEquals('bar', menu.subMenu.items[0].string, 'sub menu is wrong');
+            this.done();
+        }, 200)
     },
 
     testTransformMenuBoundsForVisibility: function() {
@@ -853,6 +856,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         expected = menuBounds.translatedBy(pt(0,-10));
         result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
         this.assertEquals(expected, result, 3);
+        this.done();
     },
 
     testTransformSubMenuBoundsForVisibility: function() {
@@ -890,6 +894,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
             subMenuBounds, mainMenuItemBounds, ownerBounds);
         this.assertEquals(expected, result, 4);
+        this.done();
     },
 
     testTransformMenuBoundsForVisibility: function() {
@@ -899,7 +904,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
             expected = new Rectangle(1,0, 30, 30),
             result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds);
         this.assertEquals(expected, result, 'transformed when onerBounds smaller');
-    },
+        this.done();
+    }
 
 });
 

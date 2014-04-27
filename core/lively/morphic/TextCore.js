@@ -734,7 +734,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 case "d": { this.doDebugit(); return true; }
                 case "p": { this.doListProtocol(); return true; }
                 case "r": { this.doBrowseReferences(); return true; }
-                case "f": { this.doBrowseImplementors(); return true; }
+                case "f": { this.doCodeSearch(); return true; }
                 case "b": { this.doBrowseClass(); return true; }
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
@@ -887,6 +887,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     doEdit: function() {
         var obj = this.evalSelection();
         if (obj) this.world().openObjectEditorFor(obj);
+    },
+    doCodeSearch: function() {
+        lively.ide.commands.exec('lively.ide.codeSearch', this.getSelectionOrLineString());
     },
     doBrowseSenders: function() {
         this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__sender')

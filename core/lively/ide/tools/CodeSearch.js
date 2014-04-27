@@ -475,6 +475,8 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
     // this.reset(); this.get('filter').setInput('indica'); this.inputChange()
     false && show('doing search');
 
+    if (!searchTerm || searchTerm === '') { this.reset(); return; }
+
     var self = this,
         isLoaded = false,
         loadingIndicator = this.getMorphNamed('LoadingIndicator'),
@@ -564,6 +566,20 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
 
             if (!obj) return;
 
+            if (type === 'namespace' && matchesSearch(obj.namespaceIdentifier)) {
+                found.push({
+                    object: obj,
+                    objectName: obj.namespaceIdentifier,
+                    type: type,
+                    selector: '',
+                    methodSource: '',
+                    parent: optParent
+                });
+            }
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // searches through code:
+
             // we get this already with initialize
             if (methodName === 'constructor' && lively.Class.isClass(obj)) return;
 
@@ -594,11 +610,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             methodName = String(methodName);
             var source = lively.Class.isClass(obj) ? name : String(obj[methodName]);
 
-            var matched = [name, methodName, source].some(function(ea) {
-                return ea.toLowerCase().include(searchString.toLowerCase());
-            });
-
-            if (!matched) return;
+            if (![name, methodName, source].some(matchesSearch)) return;
 
             found.push({
                 object: obj,
@@ -626,6 +638,11 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             //     }
             // }
 
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // helper
+            function matchesSearch(string) {
+                return string.toLowerCase().include(searchString.toLowerCase());
+            }
         },
 
         function(err) {
@@ -634,6 +651,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             var re = new RegExp('.{0,20}' + searchString + '.{0,20}', 'i');
 
             found = found.map(function(found) {
+
                 try {
                     var nameMatch = found.objectName.match(re);
                     if (nameMatch && nameMatch[0]) {
@@ -671,10 +689,10 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
                 try {
                     return {
                         isListItem: true,
-                        string: Strings.format("[%s] %s>>%s%s",
+                        string: Strings.format("[%s] %s%s%s",
                             found.type,
                             found.objectName,
-                            found.selector,
+                            found.selector.length ? '>>' + found.selector : '',
                             found.matchedAs === 'sourceMatch' ?
                                 ' ("' + found.match.trim() + '")' : ''),
                         value: found
@@ -705,10 +723,11 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         });
     });
 
-    allNamespaces.forEach(function(ea) {
-        Functions.own(ea).forEach(function(eaMethod) {
-            !lively.Class.isClass(ea[eaMethod]) && func(ea, eaMethod, 'extend')
+    allNamespaces.forEach(function(ns) {
+        Functions.own(ns).forEach(function(methodName) {
+            !lively.Class.isClass(ns[methodName]) && func(ns, methodName, 'extend')
         });
+        func(ns, '', 'namespace');
     });
 
     Global.classes(true).uniq().forEach(function(eaClass) {
@@ -782,6 +801,11 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        if (find.type === 'namespace') {
+            lively.ide.browse(null, null, find.objectName);
+            return;
+        }
 
         if (find.type === 'script') {
             var ed = $world.openObjectEditorFor(find.object);

@@ -586,7 +586,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _Position: lively.pt(10.0,35.0),
             _StyleClassNames: ["SessionList"],
             _StyleSheet: ".List {\n\
-        	border: 1px solid #DDD;\n\
+        	border: 1px solid #DDD !important;\n\
         }",
             className: "lively.morphic.List",
             droppingEnabled: true,
@@ -840,29 +840,41 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
 
                 },
         updateSessions: function updateSessions() {
-            // lively.net.SessionTracker.closeSessions()
-            var sessionListMorph = this.get('SessionList');
-            var self = this;
-            var localSession = this.getLocalSession();
-            if (localSession.isConnected()) {
-                localSession.getSessions(function(remotes) {
-                    var items = Object.keys(remotes).map(function(trackerId) {
-                        return Object.keys(remotes[trackerId]).map(function(sessionId) {
-                            var sess = remotes[trackerId][sessionId];
-                            return {isListItem: true, string: self.getSessionTitle(sess), value: sess};
-                        });
-                    }).flatten();
-                    var id = sessionListMorph.selection && sessionListMorph.selection.id;
-                    sessionListMorph.setList(items);
-                    var prevSel  = sessionListMorph.itemList.detect(function(item) { return item.value.id === id; })
-                    sessionListMorph.setSelection(prevSel);
-                });
-            } else {
-                sessionListMorph.setList([]);
-                sessionListMorph.selection = null;
-                // thi.get('Title').textString = 'not connected';
-            }
+        // lively.net.SessionTracker.closeSessions()
+
+        var sessionListMorph = this.get('SessionList'),
+            self = this,
+            localSession = this.getLocalSession();
+
+        if (!localSession.isConnected()) {
+            sessionListMorph.setList([]);
+            sessionListMorph.selection = null;
+            // thi.get('Title').textString = 'not connected';
+            return;
         }
+
+        localSession.getSessions(function(remotes) {
+
+            var items = Object.keys(remotes).map(function(trackerId) {
+                return Object.keys(remotes[trackerId]).map(function(sessionId) {
+                    var sess = remotes[trackerId][sessionId];
+                    return {isListItem: true, string: self.getSessionTitle(sess), value: sess};
+                });
+            }).flatten();
+
+            var sorted = items
+                .groupBy(function(ea) { return ea.value.user })
+                .mapGroups(function(_, group) {
+                    return group.sortBy(function(ea) { return ea.value.lastActivity; }).reverse(); })
+                .toArray().flatten();
+
+            var id = sessionListMorph.selection && sessionListMorph.selection.id;
+            sessionListMorph.setList(sorted);
+            var prevSel  = sessionListMorph.itemList.detect(function(item) { return item.value.id === id; })
+            sessionListMorph.setSelection(prevSel);
+        });
+
+    }
     }],
     titleBar: "Lively2LivelyInspector",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {

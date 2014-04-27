@@ -1,57 +1,24 @@
-module('lively.ide.codeeditor.Completions').requires('lively.ide.codeeditor.ace').toRun(function() {
+module('lively.ide.codeeditor.Completions').requires('lively.ide.codeeditor.ace', 'lively.Network').toRun(function() {
 
 Object.extend(lively.ide.codeeditor.Completions, {
 
-    addWordsFromString: function(string) {
-        var splitRegex = /[^a-zA-Z_0-9\$\-]+/,
-            words = lively.ide.WordCompleter ? lively.ide.WordCompleter.wordsFromFiles : {};
-        string.split(splitRegex)
-            .filter(function(w) { return !!w.length })
-            .uniq()
-            .forEach(function(word) {
-                var first = word[0].toLowerCase()
-                if (!words[first]) words[first] = {};
-                if (!words[first][word]) words[first][word] = 0;
-                words[first][word]++;
-            });
-        return words;
-    },
-
     setupCompletions: function(thenDo) {
-        module('lively.ide');
-    
-        var words = {};
+        console.log('setup code completions');
+
+        [wordsFromFiles, installCompleter, done].doAndContinue(null, thenDo);
+
+        var words;
         function wordsFromFiles(next) {
-            Functions.forkInWorker(
-                function(whenDone, options) {
-                    module('lively.lang.Closure').load();
-                    module('lively.ide.CommandLineInterface').load();
-                    function wordsFromFiles() {
-                        var files = lively.ide.CommandLineSearch.findFiles('*js', {sync:true}),
-                            livelyJSFiles = files.grep('core/'),
-                            urls = livelyJSFiles.map(function(fn) { return URL.root.withFilename(fn).withRelativePartsResolved(); }),
-                            splitRegex = /[^a-zA-Z_0-9\$\-]+/,
-                            words = {}, parseTimes = {};
-                        urls.forEach(function(url) {
-                            var t1 = new Date(),
-                                content = url.asWebResource().get().content,
-                                wordsInFile = content.split(splitRegex);
-                            wordsInFile.forEach(function(word) {
-                                if (word.length === 0) return;
-                                var first = word[0].toLowerCase();
-                                if (!words[first]) words[first] = {};
-                                if (!words[first][word]) words[first][word] = 0;
-                                words[first][word]++;
-                            });
-                            parseTimes[url] = (new Date() - t1);
-                        });
-                        return words;
-                    }
-                    try { whenDone(null, wordsFromFiles()); } catch(e) { whenDone(e.stack, null); }
-                }, {args: [], whenDone: function(err, result) { if (err) show(err); words = result; next(); }
+            var ideSupportServer = URL.nodejsBase.withFilename('IDESupportServer/indexedLivelyWords')
+                .asWebResource().beAsync();
+            ideSupportServer.get().withJSONWhenDone(function(json, s) {
+                var err = (json && json.error) || (!s.isSuccess() && s);
+                if (err) {
+                    console.error('Error in ide code completion preparation: %s', s);
+                } else { words = json; next(); }
             });
         }
-    
+
         function installCompleter(next) {
             // 1) define completer
             lively.ide.WordCompleter = {wordsFromFiles: words};
@@ -79,8 +46,6 @@ Object.extend(lively.ide.codeeditor.Completions, {
         }
     
         function done(next) { alertOK('Word completion installed!'); next(); }
-    
-        [wordsFromFiles, installCompleter, done].doAndContinue(null, thenDo);
     }
 });
 

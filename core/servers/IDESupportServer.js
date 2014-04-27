@@ -21,7 +21,7 @@ function wordParser(options) {
     }
 
     var counter = new stream.Transform(options);
-    
+
     counter._transform = function (chunk, enc, next) {
         var string = fixLastWordProblem(String(chunk)),
             words = splitString(chunk);
@@ -63,13 +63,13 @@ function wordCounter(options) {
     };
 
     counter.consume = function(readStream) {
-        var pipeline = readStream.pipe(this, {end: false});
+        var pipeline = readStream.pipe(wordCounter()).pipe(this, {end: false});
         waitForStreams.push(readStream);
         readStream.on('end', function() {
             waitForStreams = waitForStreams.filter(function(ea) {
                 return ea !== readStream; });
         });
-        return this;
+        return pipeline;
     }
 
     counter.isWaitingOnReadStream = function() { return !!waitForStreams.length; };
@@ -93,11 +93,16 @@ function countWordsInFiles(files, thenDo) {
 
     counter.setMaxListeners(files.length + 10);
 
-    files.map(function(fn) { return fs.createReadStream(fn).pipe(wordParser()); })
-         .forEach(counter.consume.bind(counter));
+    // on Mac OS you are only allowed to open a limited amount of files at the
+    // same time so we have to use a queue here
+    async.queue(function (fn, next) {
+        var rs = fs.createReadStream(fn);
+        rs.on('end', function() { next(); });
+        counter.consume(rs);
+    }, 15).push(files);
 
     var timeoutDelay = 60*1000, startTime = Date.now();
-    (function waitForReadStreams() {
+    setTimeout(function waitForReadStreams() {
         // clearTimeout(global.waiting);
         try {
         var timeout = Date.now() > startTime + timeoutDelay;
@@ -114,7 +119,7 @@ function countWordsInFiles(files, thenDo) {
             counter.end();
         }
         } catch (e) { console.error(e); }
-    })();
+    }, 500);
 
 }
 
@@ -145,22 +150,22 @@ function getCachedGatherWordsFunction(dir, freshnessTimeout) {
     freshnessTimeout = freshnessTimeout || 1000 * 60 * 30;
 
     return function gatherWordsFromFilesRecursivelyCached(thenDo) {
-    
+
         // 1. cache use
         if (cachedResult && lastGatherTime && lastGatherTime + freshnessTimeout > Date.now()) {
             console.log('using cache');
             thenDo(null, cachedResult);
             return;
         }
-    
+
         console.log('not using cache');
         // 2. schedule callback
         gatherRequests.push(thenDo);
-    
+
         // 3. gather in progress? wait
         if (gatherInProgress) return;
         gatherInProgress = true;
-    
+
         gatherWordsFromFilesRecursively(dir, function(err, words) {
             gatherInProgress = false;
             lastGatherTime = Date.now();
@@ -229,7 +234,7 @@ false && (function testWordsFromDir() {
                 setTimeout(next, 1000*10);
             });
         }
-        
+
     ], function() { console.log('done'); })
 
 })();

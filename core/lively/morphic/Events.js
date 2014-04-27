@@ -1511,7 +1511,8 @@ lively.morphic.World.addMethods(
             return true;
         }
 
-        if (!evt.isRightMouseButtonDown()) evt.hand.removeOpenMenu(evt);
+        if (this.currentMenu && !evt.isRightMouseButtonDown() && !evt.getTargetMorph().isMenuItemMorph)
+            evt.hand.removeOpenMenu(evt);
 
         if (!evt.isCommandKey() && (!evtTarget || !evtTarget.isHalo) && !this.ignoreHalos) {
             this.removeHalosOfCurrentHaloTarget();

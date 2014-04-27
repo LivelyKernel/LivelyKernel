@@ -717,7 +717,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var owner = this.ownerMenu, myItemInOwner = this.ownerItemMorph;
 
         (function() {
-            var handInMe = this.fullContainsWorldPoint(this.world().hand().getPosition());
+            var w = this.world();
+            var handInMe = w && this.fullContainsWorldPoint(w.hand().getPosition());
             if(!handInMe && owner && myItemInOwner !== owner.overItemMorph) {
                 owner.removeSubMenu();
                 return;
@@ -890,6 +891,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 if (!m.ownerMenu) return; // we might have removed that submenu already again
                 m.offsetForOwnerMenu();
                 m.setVisible(true);
+                m.ownerMenu.setClipMode('visible');
             }).delay(0);
         }.bind(this), .2*1000);
 

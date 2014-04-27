@@ -1100,6 +1100,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
     },
 
     onMouseUp: function($super, evt) {
+// show(this)
         if (evt.world.clickedOnMorph !== this && (Date.now() - evt.world.clickedOnMorphTime < 500)) {
             return false; // only a click
         }
@@ -1238,6 +1239,23 @@ lively.morphic.Morph.addMethods(
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // lively bindings
+        var connectionNames = Properties.own(this.getConnectionPoints());
+        items.push(["Connect ...", connectionNames.collect(function(name) {
+                return [name, function() {
+                    var builder = self.getVisualBindingsBuilderFor(name);
+                    builder.openInHand();
+                    builder.setPosition(pt(0,0));
+                }]
+            }).concat([['Custom ...', function() {
+                world.prompt('Name of custom connection start?', function(name) {
+                    if (!name) return;
+                    var builder = self.getVisualBindingsBuilderFor(name);
+                    builder.openInHand();
+                    builder.setPosition(pt(0,0));
+                }); 
+            }]])
+        ]);
+
         items.push(["Connections...", {
             getConnections: function() {
                 if (!this.connections) {

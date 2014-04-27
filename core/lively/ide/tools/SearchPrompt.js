@@ -246,6 +246,7 @@ lively.BuildSpec("lively.ide.tools.SearchPrompt", {
     var searchTerm = ed.getCurrentSearchTerm();
     this.get('searchInput').textString = Object.isRegExp(searchTerm) ?
         searchTerm = searchTerm.source : searchTerm;
+    this.get('searchInput').selectAll();
     this.setCodeEditor(ed);
 },
     reset: function reset() {

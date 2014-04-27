@@ -69,8 +69,8 @@ module.exports = function(route, app) {
             res.status(400).json({error: 'Need query.getRecordsB!'});
         } else {
 
-            var isJSON = query.isJSON;
-            var isLivelyWorld = query.isLivelyWorld;
+            var isJSON = query.isJSON === 'true';
+            var isLivelyWorld = query.isLivelyWorld === 'true';
 
             async.parallel([
                 function(next) { withRecordsDo(query.getRecordsA, next); },
@@ -86,16 +86,19 @@ module.exports = function(route, app) {
 
                 var contentA = a.content;
                 var contentB = b.content;
+
                 if (isLivelyWorld) {
                     var roughly = contentA.slice(contentA.indexOf('<script type="text/x-lively-world"')+6, contentA.lastIndexOf("</script>"));
                     contentA = roughly.slice(roughly.indexOf('{'));
                     var roughly = contentB.slice(contentB.indexOf('<script type="text/x-lively-world"')+6, contentB.lastIndexOf("</script>"));
                     contentB = roughly.slice(roughly.indexOf('{'));
                 }
+
                 if (isJSON) {
                     try { contentA = JSON.stringify(JSON.parse(contentA), null, 2); } catch (e) { console.log('Cannot parse content a: ' + e + '\n' + contentA.slice(0,250)); }
                     try { contentB = JSON.stringify(JSON.parse(contentB), null, 2); } catch (e) { console.log('Cannot parse content b: ' + e + '\n' + contentB.slice(0,250)); }
                 }
+
                 var diffResult = 'nothing yet';
                 async.series([
                     function(next) { exec('mkdir -p diff-tmp/', next); },
@@ -109,7 +112,7 @@ module.exports = function(route, app) {
                             else { diffResult = out +'\n' + err; next(); }
                         });
                     },
-                    function(next) { exec('rm -rfd diff-tmp/', next); },
+                    function(next) { exec('rm -rfd diff-tmp/', next); }
                 ], function(err) {
                     if (err) {
                         console.error(err);

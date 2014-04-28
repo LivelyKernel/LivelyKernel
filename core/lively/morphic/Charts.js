@@ -5354,19 +5354,18 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         var label = lively.morphic.Text.makeLabel(value);
         label.setToolTip(value);
         
-        if (this.dimension == "x") {
-            setTimeout(function () {
+        var _this = this;
+        setTimeout(function () {
+            if (_this.dimension == "x") {
                 label.setOrigin(pt(label.getBounds().right() / 2, 0));
                 label.setPosition(pt(absValue, pitchlineLength));
-            }, 0);
-        } else if (this.dimension == "y") {
-            var _this = this;
-            setTimeout(function () {
+            } else if (_this.dimension == "y") {
                 label.setOrigin(pt(label.getBounds().right(), label.getBounds().bottom() / 2));
                 label.setPosition(pt(-pitchlineLength, _this.length - absValue - borderWidth))
-            }, 0);
-        }
-        
+            }
+            label.setOpacity(1);
+        }, 0);
+        label.setOpacity(0);
         this.labels.push(label)
         this.addMorph(label);
         return label;

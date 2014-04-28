@@ -2222,14 +2222,23 @@ Object.extend(lively.morphic.Charts.Utils, {
     
     animateOpacity: function(morphOrMorphs, value) {
         var time = 1000;
+        var doneCallback;
         if (Object.isArray(morphOrMorphs)) {
             morphOrMorphs.each(function(eachMorph) {
-                eachMorph.setOpacityAnimated(value, time);
+                if (value > 0)
+                    eachMorph.setVisible(true);
+                else
+                    doneCallback = function () { eachMorph.setVisible(false) };
+                eachMorph.setOpacityAnimated(value, time, doneCallback);
             })
         } else {
             var morph = morphOrMorphs;
-            morph.setOpacityAnimated(value, time);
-        }   
+            if (value > 0)
+                morph.setVisible(true);
+            else
+                doneCallback = function () { morph.setVisible(false) };
+            morph.setOpacityAnimated(value, time, doneCallback);
+        }
     },
     
     join: function(options) {
@@ -3395,8 +3404,8 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
         // create linear layout containing rects from data
         this.clearAndRemoveContainer();
         
-        if (data == null) return;
-        
+        if (data === null) return;
+
         var _this = this;
         
         // create container for visual elements, if it does not exist yet
@@ -3494,6 +3503,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
     },
 
     addElement: function(element, container) {
+
 		var morphs = {};
         if (element.morphs) {
             morphs = element.morphs;
@@ -5404,25 +5414,27 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     positionMorphs: function(data) {
         var _this = this;
         data.each(function (ea) {
+            // TODO select the correct morph
+            var morph = ea.morphs[Object.keys(ea.morphs)[0]];
             // calculate relative position on scale, LINEAR
             var relValue = ((ea[_this.property] || 0) - _this.min) / (_this.max - _this.min);
             var absValue = relValue * _this.length;
             var scalePosition = _this.getPosition();
-            var newPosition = ea.morph.getPosition().copy();
+            var newPosition = morph.getPosition().copy();
             if (_this.dimension == "x") {
-                ea.morph.propertyX = ea[_this.property];
+                morph.propertyX = ea[_this.property];
                 newPosition.x = absValue + scalePosition.x;
-                if (!ea.morph.scaleXListenersAttached) {
-                    _this.attachListener(ea.morph, absValue);
+                if (!morph.scaleXListenersAttached) {
+                    _this.attachListener(morph, absValue);
                 }
             } else {
-                ea.morph.propertyY = ea[_this.property];
+                morph.propertyY = ea[_this.property];
                 newPosition.y = _this.length - absValue + scalePosition.y;
-                if (!ea.morph.scaleYListenersAttached) {
-                    _this.attachListener(ea.morph, absValue);
+                if (!morph.scaleYListenersAttached) {
+                    _this.attachListener(morph, absValue);
                 }
             }
-            ea.morph.setPosition(newPosition);
+            morph.setPosition(newPosition);
         });
     },
     attachListener: function(morph, absValue) {

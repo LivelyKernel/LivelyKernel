@@ -3966,9 +3966,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     },
     
     pruneOldMorphName: function(morphObjects, oldMorphName) {
-        debugger;
         morphObjects.each(function(eachMorphObject) {
-            if (eachMorphObject[oldMorphName]) {
+            if (eachMorphObject && eachMorphObject[oldMorphName]) {
                 delete eachMorphObject[oldMorphName];
             }
         })

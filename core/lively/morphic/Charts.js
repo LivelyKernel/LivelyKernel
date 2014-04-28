@@ -1692,7 +1692,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         this.addStyleClassName('dataflow-clickable');
         this.positionAtMorph(positionX);
         this.setBorderWidth(1);
-        this.deactivate();
+        this.deactivate(true);
     },
     
     getTipPosition: function() {
@@ -1762,10 +1762,12 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         this.componentMorph.onArrowActivated(this);
     },
     
-    deactivate: function() {
+    deactivate: function(optPreventPropagation) {
         this.activated = false;
         this.setBorderStyle('dotted');
-        this.componentMorph.onArrowDeactivated(this);
+        if (!optPreventPropagation) {
+            this.componentMorph.onArrowDeactivated(this);
+        }
     },
     
     onMouseUp: function(e) {
@@ -3498,8 +3500,8 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
         } else {
             morphs["morph"] = element;
         }
-        Properties.own(morphs).each(function (eachMorph){
-            container.addMorph(morphs[eachMorph]);
+        Object.values(morphs).each(function (eachMorph){
+            container.addMorph(eachMorph);
         });
         setTimeout(function() {
             Properties.own(morphs).each(function (eachMorph){
@@ -3707,6 +3709,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.codeEditor = new lively.morphic.Charts.CodeEditor();
         this.codeEditor.setName("CodeEditor");
         var morphName = this.morphInput.getTextString();
+        this.savedMorphName = morphName;
         this.codeEditor.setTextString("var e = " + morphName + ".getExtent(); \n" + morphName + ".setExtent(pt(e.x, datum * 100))");
         this.codeEditor.setPosition(pt(0, inputHeight));
         this.codeEditor.layout = {resizeWidth: true, resizeHeight: true};
@@ -3813,6 +3816,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         var mappingFunction;
         var morphName = this.morphInput.getTextString();
+        
+        if (this.savedMorphName !== morphName) {
+            this.pruneOldMorphName(data.pluck("morphs"), this.savedMorphName);
+            this.savedMorphName = morphName;
+        }
+        
         this.codeEditor.doitContext = this;
         var ctx = this.codeEditor.getDoitContext() || this.codeEditor;
         var codeStr = "mappingFunction = function(" + morphName + ", " + this.datumInput.getTextString() + ") {" + this.codeEditor.getTextString() + "}";
@@ -3946,6 +3955,14 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         return true;
     },
     
+    pruneOldMorphName: function(morphObjects, oldMorphName) {
+        debugger;
+        morphObjects.each(function(eachMorphObject) {
+            if (eachMorphObject[oldMorphName]) {
+                delete eachMorphObject[oldMorphName];
+            }
+        })
+    }
 
 });
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {

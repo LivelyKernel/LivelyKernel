@@ -1252,7 +1252,7 @@ lively.morphic.Morph.addMethods(
                     var builder = self.getVisualBindingsBuilderFor(name);
                     builder.openInHand();
                     builder.setPosition(pt(0,0));
-                }); 
+                });
             }]])
         ]);
 
@@ -1621,8 +1621,12 @@ lively.morphic.World.addMethods(
     },
 
     openVersionViewer: function(evt) {
-        return this.openPartItem('VersionViewer', 'PartsBin/Wiki');
+       require('lively.net.tools.Wiki').toRun(function() {
+           var versionViewer = lively.BuildSpec('lively.wiki.VersionViewer').createMorph().openInWorldCenter();
+           versionViewer.setPath(URL.source.relativePathFrom(URL.root));
+        });
     },
+
     openTestRunner: function() {
         var m = this.openPartItem('TestRunner', 'PartsBin/Tools');
         m.align(m.bounds().topCenter().addPt(pt(0,-20)), this.visibleBounds().topCenter());
@@ -1954,7 +1958,7 @@ lively.morphic.World.addMethods(
             ['Wiki', [
                 // ['About this wiki', this.openAboutBox.bind(this)],
                 // ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
-                // ['View versions of this world', this.openVersionViewer.bind(this)],
+                ['View versions of this world', this.openVersionViewer.bind(this)],
                 ['Download world', function() {
                     require('lively.persistence.StandAlonePackaging').toRun(function() {
                         lively.persistence.StandAlonePackaging.packageCurrentWorld();

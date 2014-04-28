@@ -167,21 +167,23 @@ lively.morphic.Morph.addMethods(
             list.push(this);
         return list;
     },
+
     getMagnets: function() {
-        if (!this.magnets)
-            this.magnets = [
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().topLeft()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().topCenter()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().topRight()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().rightCenter()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomRight()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomCenter()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().bottomLeft()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().leftCenter()),
-                new lively.morphic.RelativeMagnet(this, this.innerBounds().center())
-            ]
-        return this.magnets
+        return this.magnets || (this.magnets = [
+            "topLeft",
+            "topCenter",
+            "topRight",
+            "rightCenter",
+            "bottomRight",
+            "bottomCenter",
+            "bottomLeft",
+            "leftCenter",
+            "center"].map(function(pos) {
+                return new lively.morphic.RelativeMagnet(
+                    this, this.innerBounds()[pos]());
+            }, this));
     },
+
     showMagnets: function() {
         this.getMagnets().invoke('setVisible', true)
     },
@@ -428,7 +430,7 @@ Object.extend(lively.bindings, {
         con.visualConnector = visualConnector;
         con.visualConnector.con = con; // FIXME
         visualConnector.showsMorphMenu = true; // FIX ... MEE !!!!!
-        
+
         visualConnector.hidePermanently = function() {
             this.hide && this.hide();
             this.con.autoShowAndHideConnections && this.con.autoShowAndHideConnections.invoke('disconnect');

@@ -63,7 +63,7 @@ function wordCounter(options) {
     };
 
     counter.consume = function(readStream) {
-        var pipeline = readStream.pipe(wordCounter()).pipe(this, {end: false});
+        var pipeline = readStream.pipe(wordParser()).pipe(this, {end: false});
         waitForStreams.push(readStream);
         readStream.on('end', function() {
             waitForStreams = waitForStreams.filter(function(ea) {
@@ -201,7 +201,7 @@ false && (function testMultipleFileCounts() {
 })();
 
 false && (function testWordsFromDir() {
-    gatherWordsFromFilesRecursively(process.env.WORKSPACE_LK + '/core', function(err, words) {
+    gatherWordsFromFilesRecursively(process.env.WORKSPACE_LK + '/core/lively/ide/tools', function(err, words) {
         if (err) console.error(err);
         else console.log(Numbers.humanReadableByteSize(JSON.stringify(words).length));
     });

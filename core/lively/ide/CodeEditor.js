@@ -675,20 +675,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     tryBoundEval: function(string) {
         // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
-        if (lively.Config.get('loadRewrittenCode')) {
-            module('lively.ast.AcornInterpreter').load(true); // also loads lively.ast.Rewriting
-            var node = lively.ast.acorn.parseFunction('function() {' + string + '}');
-            node.source = string;
-            node.start += 13; // fix offset for debugger
-            node = lively.ast.Rewriting.rewriteFunction(node, LivelyDebuggingASTRegistry);
-            string = '(' + escodegen.generate(node) + ')();';
-        }
         try {
             return this.boundEval(string);
         } catch(e) {
             // mr 2014-04-16: e.unwindException has to be used because e is unwrapped when rewritten
             if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.unwindException.isUnwindException) {
                 require('lively.ast.StackReification', 'lively.ast.Debugging').toRun(function() {
+                    // TODO: pop boundEval & interactiveEval from stack?
                     var cont = lively.ast.Continuation.fromUnwindException(e.unwindException);
                     lively.ast.openDebugger(cont.currentFrame, e.message);
                 });
@@ -703,10 +696,23 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var ctx = this.getDoitContext() || this,
             str,
             interactiveEval = function() {
-                try { return eval(str = "("+__evalStatement+")")} catch (e) { return eval(str = __evalStatement) }
-                };
+                try {
+                    return eval(str = '(' + __evalStatement + ')');
+                } catch (e) {
+                    return eval(str = __evalStatement);
+                }
+            },
+            interactiveDebugEval = function(ctx) {
+                module('lively.ast.AcornInterpreter').load(true); // also loads lively.ast.Rewriting
+                var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+                try {
+                    return interpreter.runWithContext(lively.ast.acorn.parse(str = '(' + __evalStatement + ')'), ctx);
+                } catch (e) {
+                    return interpreter.runWithContext(lively.ast.acorn.parse(str = __evalStatement), ctx);
+                }
+            };
         try {
-            var result = interactiveEval.call(ctx);
+            var result = !lively.Config.get('loadRewrittenCode') ? interactiveEval.call(ctx) : interactiveDebugEval(ctx);
             if (Config.changesetsExperiment && $world.getUserName() && 
         localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off")
                 lively.ChangeSet.logDoit(str, ctx.lvContextPath());

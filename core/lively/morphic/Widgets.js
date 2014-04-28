@@ -1973,6 +1973,7 @@ lively.morphic.World.addMethods(
                 ["More ...", function() { window.open('http://lively-web.org/documentation/'); }]
             ]],
             ['Report a bug', this.bugReport.bind(this)],
+            ['Run command...', function() { lively.ide.commands.exec('lively.ide.commands.execute'); }],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
             ['Save world', this.saveWorld.bind(this), 'synchron']
         ];

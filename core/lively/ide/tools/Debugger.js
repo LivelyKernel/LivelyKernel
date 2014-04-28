@@ -213,7 +213,6 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 _LineWrapping: true,
                 _InputAllowed: false,
                 _Position: lively.pt(1.0,1.1),
-                _PointerEvents: 'none',
                 _ShowActiveLine: true,
                 _ShowErrors: false,
                 _ShowGutter: true,
@@ -237,6 +236,22 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     resizeHeight: true
                 },
                 sourceModule: "lively.ide.CodeEditor",
+                submorphs: [{
+                    _BorderStyle: "none",
+                    _BorderWidth: 1,
+                    _Extent: lively.pt(684.0,504.0),
+                    _Fill: Color.rgba(0,0,204,0),
+                    className: "lively.morphic.Box",
+                    droppingEnabled: false,
+                    grabbingEnabled: false,
+                    halosEnabled: false,
+                    layout: {
+                        resizeHeight: true,
+                        resizeWidth: true
+                    },
+                    name: "DoNotRemoveSelection",
+                    sourceModule: "lively.morphic.Core"
+                }],
                 boundEval: function boundEval(str) {
               var frame = this.get("Debugger").currentFrame;
               if (!frame) return;
@@ -288,14 +303,9 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     this.setSelectionRange(start, end);
                 }
             },
-                reset: function reset() {
-                lively.bindings.disconnectAll(this);
-                this.textString = '';
-                this.savedTextString = '';
-                this.submorphs[0].textString = '';
-                this.setExtent(pt(100,100));
-            },
                 showSource: function showSource(frame) {
+                // FIXME: make additional morph obsolete by restricting user selection
+                this.addMorph(this.get('DoNotRemoveSelection'));
                 this.textString = (frame && frame.func) ? frame.func.getSource() : '';
             }
             },{

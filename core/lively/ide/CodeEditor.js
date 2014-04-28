@@ -706,9 +706,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 module('lively.ast.AcornInterpreter').load(true); // also loads lively.ast.Rewriting
                 var interpreter = new lively.ast.AcornInterpreter.Interpreter();
                 try {
-                    return interpreter.runWithContext(lively.ast.acorn.parse(str = '(' + __evalStatement + ')'), ctx);
+                    return interpreter.runWithContext(lively.ast.acorn.parse(str = '(' + __evalStatement + ')'), ctx, Global);
                 } catch (e) {
-                    return interpreter.runWithContext(lively.ast.acorn.parse(str = __evalStatement), ctx);
+                    return interpreter.runWithContext(lively.ast.acorn.parse(str = __evalStatement), ctx, Global);
                 }
             };
         try {

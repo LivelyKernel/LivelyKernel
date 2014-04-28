@@ -10,6 +10,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     interpret: function(node, optMapping) {
         var interpreter = new lively.ast.AcornInterpreter.Interpreter();
         return interpreter.run(node, optMapping);
+    },
+
+    interpretWithContext: function(node, ctx, optMapping) {
+        var interpreter = new lively.ast.AcornInterpreter.Interpreter();
+        return interpreter.runWithContext(node, ctx, optMapping);
     }
 
 },
@@ -622,6 +627,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     test44cWithStatementWithDelete: function() {
         var node = this.parse('var obj = { a: 1 }; with(obj) { delete obj.a; a; }');
         this.assertRaises(this.interpret.curry(node));
+    },
+
+    test45InterpretWithContext: function() {
+        var node = this.parse('this');
+        this.assertEquals(42, this.interpretWithContext(node, 42));
     }
 
 });

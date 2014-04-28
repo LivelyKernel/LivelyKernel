@@ -30,6 +30,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         return this.runWithFrameAndResult(node, frame, undefined);
     },
 
+    runWithContext: function(node, ctx, optMapping) {
+        var program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program, optMapping);
+        program.lexicalScope = frame.getScope(); // FIXME
+        frame.setThis(ctx);
+        return this.runWithFrameAndResult(node, frame, undefined);
+    },
+
     runWithFrame: function(node, frame) {
         if (node.type == 'FunctionDeclaration' || node.type =='FunctionExpression')
             node = node.body;

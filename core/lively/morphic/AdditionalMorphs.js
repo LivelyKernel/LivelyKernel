@@ -380,8 +380,11 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
 },
 'initializing', {
     initialize: function($super, vertices) {
-        var shape = new lively.morphic.Shapes.Path(vertices);
+        var shape = this.defaultShape(null, vertices);
         $super(shape);
+    },
+    defaultShape: function(bounds, vertices) {
+        return new lively.morphic.Shapes.Path(vertices || [pt(0,0)]);
     }
 },
 'accessing', {

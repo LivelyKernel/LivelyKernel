@@ -1033,7 +1033,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     initialize: function($super, content) {
         $super(content);
     
-        this.setExtent(pt(400, 300));
         this.isDragged = true;
         this.position = this.getPositionInWorld();
     },
@@ -3393,6 +3392,9 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
         console.log("Canvas update");
         // create linear layout containing rects from data
         this.clearAndRemoveContainer();
+        
+        if (data == null) return;
+        
         var _this = this;
         
         // create container for visual elements, if it does not exist yet
@@ -5746,7 +5748,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.WebPage', {
         this.setClipMode("hidden");
         
         url = url || "http://en.m.wikipedia.org/wiki/Hasso_Plattner";
-        var iframe = lively.morphic.World.loadInIFrame(url, lively.rect(0, 0, this.extent.x - 10, this.extent.y));
+        var iframe = lively.morphic.World.loadInIFrame(url, lively.rect(0, 0, this.extent.x - 10, this.extent.y - 30));
         this.addMorph(iframe);
         
         setTimeout(function() {

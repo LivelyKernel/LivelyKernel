@@ -1010,7 +1010,7 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
             var interaction = $world.get("interactionViewer");
             
             _this.assert(db.content instanceof lively.morphic.Charts.JsonViewer, "Not a JsonViewer");
-            _this.assert(canvas.content instanceof lively.morphic.Charts.FreeLayout, "Not a FreeLayout");
+            _this.assert(canvas.content instanceof lively.morphic.Charts.Canvas, "Not a FreeLayout");
             _this.assert(interaction.content instanceof lively.morphic.Charts.InteractionPanel, "Not an InteractionPanel");
             _this.done();
         });

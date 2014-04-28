@@ -54,7 +54,7 @@ lively.morphic.EventHandler.addMethods(
 lively.morphic.Morph.addMethods(
 'serialization', {
 
-    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent', 'cachedBounds'],
+    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent', 'cachedBounds', 'magnets'],
 
     onrestore: function() {
         // when classes of morphs during object deserialization cannot be found

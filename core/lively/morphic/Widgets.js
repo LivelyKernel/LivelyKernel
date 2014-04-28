@@ -1755,11 +1755,7 @@ lively.morphic.World.addMethods(
     },
 
     openFileTree: function() {
-        require('lively.ide.tools.FileTree').toRun(function() {
-            var fTree = lively.BuildSpec('lively.ide.tools.FileTree').createMorph().openInWorldCenter();
-            fTree.targetMorph.update();
-            fTree.comeForward();
-        });
+        lively.ide.commands.exec('lively.ide.openDirViewer');
     },
 
     openPresentationController: function() {

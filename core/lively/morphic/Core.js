@@ -323,7 +323,6 @@ Object.subclass('lively.morphic.Morph',
         return this.withAllSubmorphsSelect(matches);
     },
 
-
     withAllSubmorphsDetect: function(func, context, depth) {
         if (!depth) depth = 0;
         var res = [];
@@ -335,6 +334,10 @@ Object.subclass('lively.morphic.Morph',
         return null;
     },
 
+    getMorphById: function(id) {
+        return this.withAllSubmorphsDetect(function(morph) { return morph.id === id; });
+    },
+
     submorphBounds: function(tfm) {
         var subBounds;
         for (var i = 0; i < this.submorphs.length; i++) {
@@ -343,6 +346,7 @@ Object.subclass('lively.morphic.Morph',
         }
         return subBounds ? tfm.transformRectToRect(subBounds) : null;
     },
+
     morphsContainingPoint: function(point, list) {
         // if morph1 visually before morph2 than list.indexOf(morph1) < list.indexOf(morph2)
         if (!list) list = [];
@@ -353,6 +357,7 @@ Object.subclass('lively.morphic.Morph',
         if (this.innerBoundsContainsWorldPoint(point)) list.push(this);
         return list;
     },
+
     morphBeneath: function(pos) {
         var someOwner = this.world() || this.owner;
         if (!someOwner) return null;

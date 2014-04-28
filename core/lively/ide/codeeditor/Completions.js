@@ -55,7 +55,9 @@ Object.extend(lively.ide.codeeditor.Completions, {
      || !lively.Config.get('computeCodeEditorCompletionsOnStartup'))
      return;
 
-    lively.ide.codeeditor.Completions.setupCompletions();
+    (function() {
+        lively.ide.codeeditor.Completions.setupCompletions();
+    }).delay(5);
 })();
 
 }) // end of module

@@ -531,7 +531,7 @@ Config.addOptions(
 ],
 
 "Wiki", [
-    ['showWikiToolFlap', true, 'Show tool flap that gives access to wiki tools.']
+    ['showWikiToolFlap', false, 'Show tool flap that gives access to wiki tools.']
 ],
 
 'lively.Worker', [
@@ -539,7 +539,7 @@ Config.addOptions(
 ],
 
 "Changesets", [
-    ['changesetsExperiment', true, 'track changes and provide a UI for a changesets-based worlkflow'],
+    ['changesetsExperiment', false, 'track changes and provide a UI for a changesets-based worlkflow'],
     ['automaticChangesReplay', true, 'restore changes automatically on world load']
 ]
 );

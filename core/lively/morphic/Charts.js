@@ -335,6 +335,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
             || ea == this
             || ea.isMetaTool
             || ea instanceof lively.morphic.Window
+            || !ea.dashboardLayoutable()
         }, this).sortBy(function(ea) {
             return ea.bounds().topLeft().y
         })
@@ -960,6 +961,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
 
         return $super(target);
     },
+    dashboardLayoutable: function() {
+        return this.content.dashboardLayoutable;
+    },
     remove: function($super) {
         $super();
 
@@ -1053,6 +1057,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
         this.data = data;
         this.content.update(data);
     },
+
 
 
     onDrag: function($super, evt) {
@@ -1611,6 +1616,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
     update: function(data) {
         // abstract
     },
+    dashboardLayoutable: true,
 
     throwError: function(error) {
         this.component.throwError(error);
@@ -5768,6 +5774,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.WebPage', {
     initialize: function($super, url) {
         $super();
+
         this.description = "Web Page";
         this.extent = pt(400, 400);
         this.setClipMode("hidden");
@@ -5782,7 +5789,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.WebPage', {
                 resizeHeight : true
             };
         }, 0);
-    }
+    },
+    dashboardLayoutable: false,
 });
 
 lively.morphic.Box.subclass("lively.morphic.Charts.CoordinateSystem",

@@ -2319,6 +2319,7 @@ Object.extend(lively.morphic.Charts.Utils, {
         var wikiPage = new lively.morphic.Charts.WindowComponent(new lively.morphic.Charts.WebPage(url));
         
         $world.addMorph(wikiPage);
+        return wikiPage;
     }
 });
 

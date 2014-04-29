@@ -3510,7 +3510,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
         } else {
             morphs["morph"] = element;
         }
-        Object.values(morphs).each(function (eachMorph){
+        Properties.ownValues(morphs).each(function (eachMorph){
             container.addMorph(eachMorph);
         });
         setTimeout(function() {

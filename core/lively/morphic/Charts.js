@@ -2035,7 +2035,7 @@ Object.extend(lively.morphic.Charts.Utils, {
            text.setExtent(pt(200, 20));
            
            rectangle.addMorph(text);
-           container.push({morph: rectangle});
+           container.push({morphs: { legend: rectangle}});
         });
         this.arrangeOnPath([startPt, startPt.addPt(pt(0, 20 * entries.length))], container);
         return container;
@@ -3935,14 +3935,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         };
     },
     createInputField: function(text) {
-        var input = $world.loadPartItem("InputField", "PartsBin/Inputs");
-        input.setTextString(text);
+        var input = lively.morphic.Text.makeLabel(text);
         input.setName(text);
-        input.setExtent(pt(70, 20));
-        input.setBorderWidth(0);
-        input.setBorderRadius(0);
-        input.setFill(Color.rgb(66, 139, 202));
-        input.setOpacity(0.5);
+        input.setInputAllowed(true)
+        input.setExtent(pt(80, 20));
+        input.setFontSize(10);
         return input;
     },
     

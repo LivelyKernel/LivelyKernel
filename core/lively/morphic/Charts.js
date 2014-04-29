@@ -1824,9 +1824,9 @@ Object.extend(lively.morphic.Charts.Utils, {
         
         var path = [];
         var curId = 0;
-        for (var i = -90; i <= 270; i = i + 360.0 / (morphs.length - 1)){
+        for (var i = -90; i <= 270; i = i + 360.0 / (morphs.length)){
             var morph = morphs[curId];
-            var radianMeasure = i / 360 * 2 * Math.PI;
+            var radianMeasure = +(i / 360 * 2 * Math.PI).toFixed(4);
             var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
             morph.setPosition(newPt);
             if (morph.oldRotation !== undefined) morph.setRotation(morph.oldRotation);

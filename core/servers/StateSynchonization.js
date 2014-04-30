@@ -182,7 +182,22 @@ var stateSynchronizationServices = {
                 data: val,
                 error: error
             })
+        });
+    },
+    syncRemove: function(sessionServer, connection, msg) {
+        var path = global.lively.PropertyPath(msg.data);
+        store.write(storeName, msg.data, undefined, false, msg.sender, function(err) {
+            if (err) {
+                console.warn("StateSynchronization: syncRemove failed because of " + err);
+                return retry(connection, msg)
+            }
+            connection.send({
+                action: msg.action + 'Result',
+                inResponseTo: msg.messageId,
+                data: { successful: true }
+            });
         })
+        informSubscribers(msg.data, undefined)
     },
     syncSearch: function(sessionServer, connection, msg) {
         if (typeof msg.data !== "string") connection.send({

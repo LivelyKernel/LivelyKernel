@@ -75,8 +75,14 @@ Object.subclass('lively.persistence.StateSync.Handle',
             cb && cb(error, self.child((length - 1).toString()), curV[length - 1]);
         })
     },
+    remove: function(cb) {
+        // removes this path from the db.
+        // call cb function(err) afterwards
+        throw dbgOn(new Error('To be implemented from subclass'));
+    },
 
     drop: function(thenDo) {
+        // drop the callback that is specified by the argument
         throw dbgOn(new Error('To be implemented from subclass'));
     },
 },
@@ -112,7 +118,6 @@ Object.subclass('lively.persistence.StateSync.Handle',
         else return this.parent().root();
     },
     // remove?
-    
 },
 'testing', {
     isRoot: function() {
@@ -205,6 +210,9 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
             return this._callbacks.length < cbs.length
         }
     },
+    remove: function(cb) {
+        this.overwriteWith(undefined, cb)
+    },
 },
 'accessing derived', {
     onValueChanged: function(value, path) {
@@ -266,7 +274,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         if (!sess) return alert("Session lost. Getting aborted.")
         sess.sendTo(sess.trackerId, 'syncGet', this.fullPath().toString(), function(msg) {
             thenDo(msg.error, msg.data)
-        })
+        });
         return thenDo
     },
 
@@ -321,6 +329,17 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
             this.child(next).propagateChange(path.slice(1), next.get(value))
         }
     },
+    remove: function(thenDo) {
+        var sess = lively.net.SessionTracker.getSession();
+        if (!sess) return alert("Session lost. Removing aborted.")
+        sess.sendTo(sess.trackerId, 'syncRemove', this.fullPath().toString(), function(msg) {
+            if (!msg.successfull) {
+                thenDo && thenDo("Removing the value was not successfull. Something happened on the server. Look at the server log.")
+            } else thenDo && thenDo(null)
+        });
+    },
+},
+'accessing derived', {
 },
 'testing', {
     isHandleForSameStoreAs: function(aHandle) {

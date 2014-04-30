@@ -102,6 +102,34 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
         });
         c.overwriteWith(false);
     },
+    test06remove: function() {
+        var c = this._root.child("falseTest"),
+            self = this;
+        c.overwriteWith(1, function(err, val) {
+            self.assert(!err && val == 1, "value-to-be-deleted not saved");
+            c.get(function(err, val) {
+                self.assert(!err && val == 1 || val == undefined, "retrieving value-to-be-deleted failed");
+                if (val !== undefined)
+                    c.remove();
+                // test will timeout if the value is not deleted
+                if (val == undefined)
+                    self.done()
+            })
+        });
+    },
+    test07push: function() {
+        var c = this._root.child("pushTest"),
+            self = this;
+        c.remove(function(err) {
+            // an error most likely indicates that there was nothing to remove.
+            c.push("1", function(err, handle, val) {
+                self.assert(!err, "pushing onto an empty field should not result in an error")
+                self.assert(val == "1", "not set to the correct value");
+                self.assert(handle._path._path != "NaN");
+                self.done()
+            })
+        })
+    },
 })
 lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.tests.StateSync.L2LHandle', 
 'preparation', {
@@ -129,19 +157,27 @@ lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.test
             
             c1.get(function(err, value) {
                 if (err) self.assert(false, "Get: There should be no error when being informed of changes...");
-                self.recordedValues.push(value)
+                self.recordedValues.pushIfNotIncluded(value);
                 if (self.recordedValues.length == 2) {
                     self.assertEquals(self.recordedValues, [0, 10])
                     self.done()
                 }
-            });
-            c1.overwriteWith(10, function(err, value) { 
-                if (err) self.assert(false)
-                self.assertEquals(10, value)
+                if (self.recordedValues.length == 1){
+                    c1.overwriteWith(10, function(err, value) { 
+                        if (err) self.assert(false)
+                        self.assertEquals(10, value)
+                    });
+                }
             });
         });
     },
     test04SettingAndIgnoringCallbacks: function($super) {
+        $super();
+    },
+    test06remove: function($super) {
+        $super();
+    },
+    test07push: function($super) {
         $super();
     },
 })

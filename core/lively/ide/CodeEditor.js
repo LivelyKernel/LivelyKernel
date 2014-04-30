@@ -708,11 +708,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     ast;
                 try {
                     ast = lively.ast.acorn.parse(str = '(' + __evalStatement + ')');
-                    ast.source = str;
+                    acorn.walk.addSource(ast, str, true);
                     return interpreter.runWithContext(ast, ctx, Global);
                 } catch (e) {
                     ast = lively.ast.acorn.parse(str = __evalStatement);
-                    ast.source = str;
+                    acorn.walk.addSource(ast, str, true);
                     return interpreter.runWithContext(ast, ctx, Global);
                 }
             };

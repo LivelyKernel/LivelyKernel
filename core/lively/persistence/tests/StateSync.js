@@ -78,7 +78,7 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
                 if (values.length == 3) {
                     self.assertEquals(values[0], 2, "get should be called with the initial value, which was not set, yet");
                     self.assert(values[1] != 4, "this value might be 3 or 5, depending on the scheduling sequence, but not 4");
-                    self.assertEquals(values[2], 5, "reported too many values");
+                    self.assertEquals(values[2], 5, "reported too many values" + values);
                     self.done();
                 }
             });
@@ -318,7 +318,7 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         var model = gunieaPig.getModelData();
         this.assert(model.content && Object.isNumber(model.changeTime), "for texts, there is no change changeTime-ing");
         model.changeTime = 10;
-        this.assertEqualState(model, {changeTime: 10, content: "some text", shortString: model.shortString}, "model generation not successful");
+        this.assertEqualState(model, {changeTime: 10, content: [["some text", model.content[0][1]]], shortString: model.shortString}, "model generation not successful");
         
         (thenDo && thenDo.call(this, gunieaPig)) || this.done()
     },
@@ -327,7 +327,7 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         
         gunieaPig.submorphs[0].textString = "some different text";
         var model = gunieaPig.getModelData()
-        this.assertEqualState(model, {changeTime: gunieaPig.changeTime || 0, content: "some different text", shortString: model.shortString}, "model not updated successful")
+        this.assertEqualState(model, {changeTime: gunieaPig.changeTime || 0, content: [["some different text", model.content[0][1]]], shortString: model.shortString}, "model not updated successful")
         
         this.epsilon = 100
         this.assertEqualsEpsilon(model.changeTime, Date.now(), "changing the text should change the last update timestamp")

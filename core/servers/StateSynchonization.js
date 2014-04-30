@@ -94,6 +94,7 @@ var searchForIn = function(searchStrings, object, initialPath) {
                 return searchString.test(string)});
         }),
         searchInObject = (function searchInObject(object) {
+            if (!object) return false;
             return Object.getOwnPropertyNames(object).any(function(name) {
                 if (searchInString(name)) {
                     return true
@@ -115,7 +116,8 @@ var searchForIn = function(searchStrings, object, initialPath) {
             for(var i = 0; i < object.length; i++){
                 if (searchInObject(object[i]))
                     result.push({path: path.concat(i + ""), 
-                                shortString: object[i].shortString})
+                                shortString: object[i].shortString,
+                                changeTime: object[i].changeTime})
             }
         } else {
             try {
@@ -158,6 +160,8 @@ var stateSynchronizationServices = {
         // if old == current, then current = new
         // else notify failure and proivde current
 
+        // why is this line here? undefined newValues should be just like remove, shouldn't they?
+        // no they should not. If you set and definitely want to merge, you don't supply an argument for the value.
         if (msg.data.newValue === undefined) return retry(connection, msg)
         store.write(storeName, msg.data.path, msg.data.newValue, {type: 'equality', value: msg.data.oldValue}, msg.sender, function(err) {
             if (err) {

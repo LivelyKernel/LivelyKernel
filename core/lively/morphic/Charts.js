@@ -5864,6 +5864,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
                 _this.focusPreviousInput(this);
             else
                 _this.focusNextInput(this);
+            evt.stop();
         }
         
         this.addMorph(valueField);
@@ -5885,6 +5886,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
                 _this.focusPreviousInput(this);
             else
                 _this.focusNextInput(this);
+            evt.stop();
         }
         
         this.addMorph(attributeField);
@@ -5892,17 +5894,25 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         return attributeField;
     },
     focusNextInput: function(sender) {
-        if (sender == this.attributeField)
+        if (sender == this.attributeField) {
             this.valueField.focus();
+            this.valueField.selectAll();
+        }
         else {
-            // TODO switch to next line
+            var nextLine = this.container.getNextLine(this);
+            nextLine.attributeField.focus();
+            nextLine.attributeField.selectAll();
         }
     },
     focusPreviousInput: function(sender) {
-        if (sender == this.valueField)
+        if (sender == this.valueField) {
             this.attributeField.focus();
+            this.attributeField.selectAll();
+        }
         else {
-            // TODO switch to previous line
+            var prevLine = this.container.getPreviousLine(this);
+            prevLine.valueField.focus();
+            prevLine.valueField.selectAll();
         }
     },
     
@@ -5934,6 +5944,40 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         var layout = new lively.morphic.Layout.VerticalLayout();
         layout.setSpacing(7.5);
         this.setLayouter(layout);
+    },
+    getNextLine: function(sender) {
+        var senderPos = sender.getPosition();
+        var closest
+        var allFollowing = this.submorphs.select(function(ea) {
+            return ea.getPosition().y > senderPos.y;
+        });
+        
+        var next = undefined;
+        var minY = Number.MAX_VALUE;
+        allFollowing.each(function(ea) {
+            if (ea.getPosition().y < minY)
+                next = ea;
+        });
+        
+        // if no next line was found, return the sender
+        return next ? next : sender;
+    },
+    getPreviousLine: function(sender) {
+        var senderPos = sender.getPosition();
+        var closest
+        var allPrevious = this.submorphs.select(function(ea) {
+            return ea.getPosition().y < senderPos.y;
+        });
+        
+        var previous = undefined;
+        var maxY = 0;
+        allPrevious.each(function(ea) {
+            if (ea.getPosition().y > maxY)
+                previous = ea;
+        });
+        
+        // if no previous line was found, return the sender
+        return previous ? previous : sender;
     },
     createEmptyLine: function() {
         var line = new lively.morphic.Charts.MappingLine(lively.rect(0, 0, this.getExtent().x, 20), this);

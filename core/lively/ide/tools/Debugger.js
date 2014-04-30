@@ -516,20 +516,30 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         }
     },
         setTopFrame: function setTopFrame(topFrame) {
-        this.topFrame = topFrame;
         var frames = [];
         var frame = topFrame;
         do {
-            var name = frame.func.name() || '(anonymous function)';
-            frames.push({
-                isListItem: true,
-                string: frame.isResuming() ? name : name + " [native]",
-                value: frame
+            // Filter rewriting, interpreter and editor frames (optionally show them)
+            var modulesToHide = [
+                    lively.ast.AcornInterpreter,
+                    lively.ide.CodeEditor
+                ], filenames;
+            filenames = modulesToHide.map(function(m) {
+                return new URL(m.uri()).relativePathFrom(URL.root);
             });
+            if (!filenames.member(frame.func.getAst().sourceFile)) {
+                var name = frame.func.name() || '(anonymous function)';
+                frames.push({
+                    isListItem: true,
+                    string: frame.isResuming() ? name : name + " [native]",
+                    value: frame
+                });
+            }
         } while (frame = frame.getParentFrame());
+        this.topFrame = frames[0] ? frames[0].value : topFrame;
         this.get("FrameList").updateList(frames);
-        this.get("FrameList").setSelection(topFrame);
-        this.setCurrentFrame(topFrame);
+        this.get("FrameList").setSelection(this.topFrame);
+        this.setCurrentFrame(this.topFrame);
         return true;
     },
         stepInto: function stepInto() {

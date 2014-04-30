@@ -3746,7 +3746,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.prototypeArea.attachListener(prototypeMorph);
     },
     createPrototypeArea: function() {
-        this.prototypeArea = new lively.morphic.Charts.PrototypeArea(pt(this.extent.x / 3 * 1 - 20, this.extent.y));
+        this.prototypeArea = new lively.morphic.Charts.PrototypeArea(pt(this.extent.x / 3 * 1, this.extent.y));
         this.prototypeArea.setName("PrototypeArea");
         this.prototypeArea.setPosition(pt(this.mappingContainer.getBounds().topRight().x + 6, 0));
         this.prototypeArea.layout.resizeHeight = true;
@@ -3758,7 +3758,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     },
     createMappingArea: function() {
         // create container for all lines
-        var extent = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y - 30);
+        var extent = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y);
         this.mappingContainer = new lively.morphic.Charts.MappingLineContainer(extent);
         
         // create the initial mapping line
@@ -5856,25 +5856,30 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         $super(extent);
         this.container = container;
         
-        // create layout to order the input fields
-        var layout = new lively.morphic.Layout.HorizontalLayout();
-        layout.borderSize = 0;
-        this.setLayouter(layout);
+        this.layout = {
+            adjustForNewBounds: true,
+            resizeWidth: true
+        }
         
         this.attributeField = this.createAttributeField();
         this.valueField = this.createValueField();
         
-        // setup connections to notice if new this is required
+        // setup connections to notice if new line is required
         connect(this.attributeField, "textString", this, "checkIfEmpty", {});
         connect(this.valueField, "textString", this, "checkIfEmpty", {});
     },
     createValueField: function() {
-        var valueField = new lively.morphic.Text(lively.rect(0, 0, 100, 25), "");
-        valueField.setPosition(pt(140, 0));
+        var offset = 120;
+        var valueField = new lively.morphic.Text(lively.rect(offset, 0, this.getExtent().x - offset, 20), "");
         valueField.setFill(Color.white);
         valueField.setBorderWidth(1);
         valueField.setBorderStyle("dashed");
         valueField.setBorderRadius(8);
+        valueField.layout = {
+            resizeWidth: true
+        }
+        
+        valueField.setStyleSheet(this.getFieldCSS());
         
         this.valueField = valueField;
         
@@ -5892,11 +5897,17 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         return valueField;
     },
     createAttributeField: function() {
-        var attributeField = new lively.morphic.Text(lively.rect(0, 0, 100, 25), "");
+        var maxWidth = 100;
+        var attributeField = new lively.morphic.Text(lively.rect(0, 0, maxWidth, 20), "");
         attributeField.setBorderWidth(0);
         attributeField.setBorderRadius(8);
         attributeField.setFill(Color.rgb(161, 197, 229));
         attributeField.setTextColor(Color.white);
+        attributeField.setFixedWidth(false);
+        attributeField.setMinTextWidth(30);
+        attributeField.setMaxTextWidth(maxWidth);
+        
+        attributeField.setStyleSheet(this.getFieldCSS());
 
         this.attributeField = attributeField;
         
@@ -5912,6 +5923,15 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         this.addMorph(attributeField);
         
         return attributeField;
+    },
+    getFieldCSS: function() {
+        return ".Text {\
+        	padding-bottom: 5px !important;\
+        	padding-top: 0px !important;\
+        }\
+        .Text :focus {\
+            outline: none;\
+        }";
     },
     focusNextInput: function(sender) {
         if (sender == this.attributeField) {
@@ -5959,6 +5979,11 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
     initialize: function($super, extent) {
         $super(extent);
         this.setFill(Color.white);
+        this.layout = {
+            adjustForNewBounds: true,
+            resizeWidth: true,
+            resizeHeight: true
+        }
         
         // layout for layouting the lines vertically
         var layout = new lively.morphic.Layout.VerticalLayout();

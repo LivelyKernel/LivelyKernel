@@ -616,6 +616,7 @@ function formUpdate(me, error, value) {
     newMe.synchronizationHandles = me.synchronizationHandles;
     this.mixInto(newMe, me.synchronizationHandles[0], false);
     newMe.form.json = value;
+    newMe.mergeWithModelData(me.getModelData());
     if (me.owner) {
         newMe.setPosition(me.getPosition());
         me.owner.addMorph(newMe, me);

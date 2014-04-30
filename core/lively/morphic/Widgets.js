@@ -3649,9 +3649,12 @@ Object.extend(lively.ide, {
 
 lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
 'settings', {
+
     style: {fill: Color.gray, enableDragging: true},
+
 },
 'initializing', {
+
     initialize: function($super, bounds) {
         $super(bounds);
         this.fixed = [];
@@ -3660,12 +3663,15 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
         this.minHeight = 20;
         this.pointerConnection = null;
     },
+
 },
 'mouse events', {
+
     onDragStart: function(evt) {
         this.oldPoint = evt.getPosition();
         return true;
     },
+
     onDrag: function(evt) {
         var p1 = this.oldPoint,
             p2 = evt.getPosition(),
@@ -3676,6 +3682,7 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
     },
 
     correctForDragOffset: Functions.False
+
 },
 'internal slider logic', {
 
@@ -3726,8 +3733,8 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
     },
 
     resizeIsSave: function(deltaY) {
-        return this.scalingAbove.all(function(m) { return (m.getExtent().y + deltaY) >= this.minHeight }, this)
-            && this.scalingBelow.all(function(m) { return (m.getExtent().y - deltaY) >= this.minHeight }, this);
+        return this.scalingAbove.all(function(m) { return (m.getExtent().y + deltaY) >= this.minHeight; }, this)
+            && this.scalingBelow.all(function(m) { return (m.getExtent().y - deltaY) >= this.minHeight; }, this);
     },
 
     addFixed: function(m) { if (!this.fixed.include(m)) this.fixed.push(m); },
@@ -3735,6 +3742,105 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
     addScalingAbove: function(m) { this.scalingAbove.push(m); },
 
     addScalingBelow: function(m) { this.scalingBelow.push(m); }
+
+});
+
+lively.morphic.Box.subclass('lively.morphic.VerticalDivider',
+'settings', {
+
+    style: { fill: Color.gray, enableDragging: true },
+
+},
+'initializing', {
+
+    initialize: function($super, bounds) {
+        $super(bounds);
+        this.fixed = [];
+        this.scalingLeft = [];
+        this.scalingRight = [];
+        this.minWidth = 20;
+        this.pointerConnection = null;
+    },
+
+},
+'mouse events', {
+
+    onDragStart: function(evt) {
+        this.oldPoint = evt.getPosition();
+        return true;
+    },
+
+    onDrag: function(evt) {
+        var p1 = this.oldPoint,
+            p2 = evt.getPosition(),
+            deltaX = p2.x - p1.x;
+        this.oldPoint = p2;
+        this.movedHorizontallyBy(deltaX);
+        return true;
+    },
+
+    correctForDragOffset: Functions.False
+
+},
+'internal slider logic', {
+
+    divideRelativeToParent: function(ratio) {
+        // 0 <= ratio <= 1. Set divider so that it divides its owner by ration.
+        // |-------|          |-------|           |<=====>|
+        // |   ^   |          |       ^           ^       |
+        // |   |   |          |       |           |       |
+        // |   |   |  = 0.5   |       |  = 1      |       |  = 0
+        // |   |   |          |       |           |       |
+        // |   v   |          |       v           v       |
+        // |-------|          |-------|           |-------|
+        if (!this.owner || !Object.isNumber(ratio) || ratio < 0 || ratio > 1) return;
+        var ownerWidth = this.owner.getExtent().x - this.getExtent().x;
+        if (ownerWidth < 0) return;
+        var currentRatio = this.getRelativeDivide(),
+            deltaRation = ratio - currentRatio,
+            deltaX = ownerWidth * deltaRation;
+        this.movedHorizontallyBy(deltaX);
+    },
+
+    getRelativeDivide: function(ratio) {
+        var bounds = this.bounds(),
+            myLeft = bounds.left(),
+            myWidth = bounds.width,
+            ownerWidth = this.owner.getExtent().x - myWidth;
+        if (ownerWidth < 0) return NaN;
+        return myLeft / ownerWidth;
+    },
+
+    movedHorizontallyBy: function(deltaX) {
+        if (!this.resizeIsSave(deltaX)) return;
+
+        var morphsForPosChange = this.fixed.concat(this.scalingRight);
+        morphsForPosChange.forEach(function(m) {
+            var pos = m.getPosition();
+            m.setPosition(pt(pos.x + deltaX, pos.y));
+        });
+        this.scalingLeft.forEach(function(m) {
+            var ext = m.getExtent();
+            m.setExtent(pt(ext.x + deltaX, ext.y));
+        });
+        this.scalingRight.forEach(function(m) {
+            var ext = m.getExtent();
+            m.setExtent(pt(ext.x - deltaX, ext.y));
+        });
+        this.setPosition(this.getPosition().addPt(pt(deltaX, 0)));
+    },
+
+    resizeIsSave: function(deltaX) {
+        return this.scalingLeft.all(function(m) { return (m.getExtent().x + deltaX) >= this.minWidth; }, this)
+            && this.scalingRight.all(function(m) { return (m.getExtent().x - deltaX) >= this.minWidth; }, this);
+    },
+
+    addFixed: function(m) { if (!this.fixed.include(m)) this.fixed.push(m); },
+
+    addScalingLeft: function(m) { this.scalingLeft.push(m); },
+
+    addScalingRight: function(m) { this.scalingRight.push(m); }
+
 });
 
 lively.morphic.Box.subclass('lively.morphic.Slider',

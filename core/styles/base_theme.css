@@ -147,7 +147,11 @@
 }
 
 .HorizontalDivider {
-	cursor: n-resize;
+	cursor: ns-resize;
+}
+
+.VerticalDivider {
+	cursor: ew-resize;
 }
 
 .Slider {

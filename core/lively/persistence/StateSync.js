@@ -359,6 +359,10 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         return 'L2LHandle(to ' + this._path + ')'
     }
 });
+var handles = [];
+if (lively.persistence && lively.persistence.StateSync && lively.persistence.StateSync.L2LHandle && lively.persistence.StateSync.L2LHandle.rootHandles) {
+    handles = lively.persistence.StateSync.L2LHandle.rootHandles;
+}
 Object.extend(lively.persistence.StateSync.L2LHandle, {
     ensureCallback: function(handle) {
         if (!lively.net.SessionTracker.defaultActions.syncValueChanged){
@@ -389,7 +393,9 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     reset: function() {
         this.rootHandles = [];
     },
-})
+});
+// keeping the root handles when this file is modified and reloaded.
+lively.persistence.StateSync.L2LHandle.rootHandles = handles;
 
 // Although there is the ability to have more than one synchronizationHandle, for the time being we assume there is exactly one, and the DB morph should be refactored so that that assumption is true
 Trait('lively.persistence.StateSync.SynchronizedMorphMixin', 

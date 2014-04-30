@@ -2709,6 +2709,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
 
     
     onDragStart: function($super, evt) {
+        var _this = this;
         this.wasDragged = true;
         $super(evt);
         this.removeAllConnectionLines();
@@ -2719,13 +2720,16 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
 
         this.savedUpperNeighbors = this.getComponentsInDirection(-1);
         
+        this.savedUpperNeighbors.each(function (ea) {
+            ea.handleLowerNeighborMoved(_this);
+        })
+        
         this.addPreviewMorph();
         this.setOpacity(0.7);
         this.notifyNeighborsOfDragStart();
         
         // take the dragged component out of the layout
         var componentsBelow = this.getComponentsInDirection(1);
-        var _this = this;
         componentsBelow.each(function (c) {
             c.move(-_this.getExtent().y - _this.componentOffset);
         });
@@ -2737,6 +2741,10 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         // trigger this once to avoid flickering
         this.onDrag();
+    },
+    handleLowerNeighborMoved: function(component) {
+        // should be overridden by FanOut
+        return;
     },
     
     onDragEnd: function($super, evt) {
@@ -2781,11 +2789,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
 
     removeArrowFromArray: function(arrow) {
-        
-        var index = this.arrows.indexOf(arrow);
-        if (index > -1) {
-            this.arrows.splice(index, 1);
-        }
+        this.arrows.remove(arrow);
     },
 
     realignAllComponents : function() {
@@ -4880,25 +4884,26 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         if (componentAbove)
             this.data = componentAbove.getData(this);
     },
-    switchFlow: function() {
-        if (this.activeArrowNumber == undefined) { 
-            this.activeArrowNumber = 0; 
+    handleLowerNeighborMoved: function(component) {
+        var arrowToTarget = this.getArrowToTarget(component);
+        if (arrowToTarget) {
+            this.removeArrowFromArray(arrowToTarget);
+            arrowToTarget.remove();
         } else {
-            this.arrows[this.activeArrowNumber].deactivate();
-            this.activeArrowNumber = (this.activeArrowNumber + 1) % this.arrows.length;
+            alert("Found no arrow for component below FanOut");
         }
-        this.arrows[this.activeArrowNumber].activate();
-        
-        
-        
+    },
+    getArrowToTarget: function(target) {
+        return this.arrows.detect(function (arrow){
+            var arrowX =  arrow.getTipPosition().x;
+            return target.getPositionInWorld().x <= arrowX &&
+                arrowX <= target.getPositionInWorld().x + target.getExtent().x;
+        });
     },
 
+
     getData : function(target){
-        var arrowToTarget = this.arrows.detect(function (arrow){
-            var arrowX =  arrow.getTipPosition().x;
-            return target.getPosition().x <= arrowX &&
-                arrowX <= target.getPosition().x + target.getExtent().x;
-        });
+        var arrowToTarget = this.getArrowToTarget(target);
         
         if (!arrowToTarget){
             //create new arrow for this target

@@ -2720,6 +2720,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
 
         this.savedUpperNeighbors = this.getComponentsInDirection(-1);
         
+        // fanOut reacts to this and temporarily removes the arrow
         this.savedUpperNeighbors.each(function (ea) {
             ea.handleLowerNeighborMoved(_this);
         })
@@ -2773,7 +2774,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             });
 
             componentsAbove.each(function (c){
-                c.refreshConnectionLines();
+                // if there is a component below, reuse the connection line
+                // otherwise delete the whole arrow
+                if (componentsBelow.length) {
+                    c.refreshConnectionLines();
+                } else {
+                    c.handleLowerNeighborMoved(_this);
+                }
             });
 
             this.notifyNextComponent();

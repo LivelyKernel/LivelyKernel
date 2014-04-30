@@ -3947,9 +3947,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         };
     },
     createInputField: function(text) {
-        var input = lively.morphic.Text.makeLabel(text);
+        var input = $world.loadPartItem("InputField", "PartsBin/Inputs");
+        input.setTextString(text);
         input.setName(text);
-        input.setInputAllowed(true)
+        input.setBorderColor(Color.white)
+        input.setBorderRadius(0);
         input.setExtent(pt(80, 20));
         input.setFontSize(10);
         return input;

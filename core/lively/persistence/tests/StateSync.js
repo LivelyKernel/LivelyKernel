@@ -236,7 +236,6 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.MorphMixin',
             self = this;
         gunieaPig.setName("gunieaPig");
         var syncHandle = this.startSynchronizing(gunieaPig);
-        debugger;
         syncHandle.get(function(err, value) {
             if (value == "endIt") return self.done();
             var model = gunieaPig.getModelData();
@@ -313,7 +312,6 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
                 test.assert(form.handle && form.handle.parent() === note.synchronizationHandles[0].parent(), "note is interesseted in the wrong form...");
                 test.done();
         }, varMapping: {note: note}});
-        debugger;
         note.saveForm();
     },
 })

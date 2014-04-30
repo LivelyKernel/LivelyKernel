@@ -71,7 +71,8 @@ Object.subclass('lively.persistence.StateSync.Handle',
             updated[updated.length - 1] = value;
             cb(updated);
         }, function(error, curV) {
-            cb && cb(error, self.child((length - 1).toString()), curV);
+            if (error) return cb && cb(error)
+            cb && cb(error, self.child((length - 1).toString()), curV[length - 1]);
         })
     },
 

@@ -66,6 +66,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
                 e.top = e.top || frame;
             }
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
             throw e;
         }
         // finished execution, remove break
@@ -317,9 +319,16 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this['visit' + node.type](node, state);
         } catch (e) {
-            if (e.isUnwindException && e.last != frame) {
-                frame.setPC(node);
-                e.shiftFrame(frame);
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
+            if (e.isUnwindException) {
+                var frames = [e.top];
+                while (frames.last().parentFrame)
+                    frames.push(frames.last().parentFrame);
+                if (!frames.member(frame)) {
+                    frame.setPC(node);
+                    e.shiftFrame(frame);
+                }
             }
             throw e;
         }
@@ -937,7 +946,10 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         } catch (e) {
             if (e.toString() == 'Break')
                 state.currentFrame.setPC(node);
-            throw e;
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                throw e.unwindException;
+            else
+                throw e;
         }
     },
 
@@ -1083,7 +1095,9 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // of the interpreter is stopped, there is no top frame anymore.
             return interpreter.runWithFrame(this.node, frame);
         } catch (ex) {
-            if (ex.isUnwindException) {
+            if (lively.Config.get('loadRewrittenCode') && ex.unwindException)
+                ex = ex.unwindException;
+            if (ex.isUnwindException && !frame.getPC()) {
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
                 frame.setPC(pc);
                 ex.shiftFrame(frame);

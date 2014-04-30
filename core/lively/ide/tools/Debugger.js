@@ -325,8 +325,12 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     // var style = { backgroundColor: Color.rgb(255,255,127) };
                     // target.emphasize(style, frame.pc.pos[0], frame.pc.pos[1]);
                     var context = frame.func.getAst(),
-                        start = frame.pc.start - context.start,
-                        end = frame.pc.end - context.start;
+                        start = frame.pc.start,
+                        end = frame.pc.end;
+                    if (context.type != 'Program') {
+                        start -= context.start;
+                        end -= context.start;
+                    }
                     this.setSelectionRange(start, end);
                 }
             },

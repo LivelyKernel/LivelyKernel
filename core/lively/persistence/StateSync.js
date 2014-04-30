@@ -319,6 +319,8 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         }
     },
     propagateChange: function(path, value) {
+        // if (path.isRoot())
+        //     alertOK(path + " " + Objects.inspect(value));
         this._callbacks && this._callbacks.filter(function(ea) {
             var ignoreCb = this._ignoreCbs.detect(function(ignore) { 
                 return ignore.cb === ea && Objects.equal(ignore.value, value)});
@@ -366,7 +368,7 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     },
     informHandles: function(changedPath, valuePath, value) {
         // path = lively.PropertyPath(path);
-        // alert("We got a new value for " + changedPath + ": " + value)
+        // alert("We got a new value for " + changedPath + ": " + Objects.inspect(value))
         this.rootHandles.forEach(function(ea) {
             ea.child(valuePath).propagateChange(lively.PropertyPath(changedPath), value);
         })
@@ -433,7 +435,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             // (re-)added and should therefore start getting updates again
             var aMorph = this;
             this.synchronizationGet = this.synchronizationGet || (function(error, val) {
-                if (val !== undefined) aMorph.mergeWithModelData(val)
+                aMorph.mergeWithModelData(val)
             });
             this.synchronizationHandles.forEach(function(handle) {
                 handle.get(this.synchronizationGet)
@@ -460,9 +462,24 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         })
     },
     mergeWithModelData: function merge(someValue) {
-        this.noSave = true;
+        if (someValue === undefined) {
+            var self = this,
+                dialog = new lively.morphic.ConfirmDialog("Somebody somewhere deleted this model. To you want to keep it nevertheless?",
+                function(answer) {
+                    if (answer) {
+                        self.save();
+                    } else {
+                        var newMe = self.copy();
+                        self.owner.addMorph(newMe, self);
+                        self.remove();
+                    }
+                });
+            dialog.openIn(self, lively.pt(0, 0));
+            $world.addModal(dialog.panel, self);
+        }
         if (this.changeTime && this.changeTime > someValue.changeTime)
             return;// alertOK("Change ignored due to newer changes in this world.");
+        this.noSave = true;
         (function walkRecursively(values) {
             if (!Object.isObject(values)) return
             this.submorphs.forEach(function(morph) {

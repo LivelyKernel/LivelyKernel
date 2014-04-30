@@ -94,20 +94,19 @@ var searchForIn = function(searchStrings, object, initialPath) {
                 return searchString.test(string)});
         }),
         searchInObject = (function searchInObject(object) {
-            if (!object) return false;
-            return Object.getOwnPropertyNames(object).any(function(name) {
-                if (searchInString(name)) {
-                    return true
-                } else {
-                    if (typeof object[name] === 'string') {
-                        return searchInString(object[name])
-                    } else if (typeof object[name] === 'object') {
-                        return searchInObject(object[name])
+            if (typeof object === 'string') {
+                return searchInString(object)
+            } else if (typeof object === 'object') {
+                return Object.getOwnPropertyNames(object).any(function(name) {
+                    if (searchInString(name)) {
+                        return true
                     } else {
-                        return false
+                        return searchInObject(object[name])
                     }
-                }
-            })
+                })
+            } else {
+                return false
+            }
         })
     var result = [];
     // search through the contents of the db and remember all paths which had searchString in them or 

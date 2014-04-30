@@ -649,8 +649,9 @@ function formUpdate(me, error, value) {
     // me.setPosition(me.getPosition().addXY(newMe.getExtent().x, 0));
 });
 
-Trait("lively.persistence.StateSync.SynchronizedTextMixin",
-'modelCreation', {
+// Object.extend(lively.morphic.Text.prototype,
+Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
+{
     connectTo: function(targetObj, targetMethodName, options) {
         connect(this, "textString", targetObj, targetMethodName, options);
     },

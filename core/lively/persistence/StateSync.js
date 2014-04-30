@@ -252,7 +252,12 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
             this.constructor.ensureCallback(this);
         }
         this._ignoreCbs = []
-    }
+    },
+    onrestore: function($super) {
+        if (this._path === '' || this._path.isRoot()) {
+            this.constructor.ensureCallback(this);
+        }
+    },
 },
 'accessing', {
 

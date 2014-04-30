@@ -3714,22 +3714,20 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.setPosition(pt(0, 0));
 
         //add mappingInput
-        var inputHeight = 28;
-        this.addMorph(this.createMappingInput(inputHeight));
-
-        this.codeEditor = new lively.morphic.Charts.CodeEditor();
-        this.codeEditor.setName("CodeEditor");
-        var morphName = this.morphInput.getTextString();
-        this.savedMorphName = morphName;
-        this.codeEditor.setTextString("var e = " + morphName + ".getExtent(); \n" + morphName + ".setExtent(pt(e.x, datum * 100))");
-        this.codeEditor.setPosition(pt(0, inputHeight));
-        this.codeEditor.layout = {resizeWidth: true, resizeHeight: true};
-        this.codeEditor.setExtent(pt(this.extent.x / 3 * 2, this.extent.y - inputHeight));
-        this.addMorph(this.codeEditor);
+        var inputHeight = 0;
+        this.morphInput =  lively.morphic.Text.makeLabel("morph");
+        
+        this.mappingContainer = new lively.morphic.Box(lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y - 30));
+        this.mappingContainer.setFill(Color.white);
+        var layout = new lively.morphic.Layout.VerticalLayout();
+        this.mappingContainer.setLayouter(layout);
+        layout.spacing  = 7.5;
+        this.emptyLine = this.addEmptyLine();
+        this.addMorph(this.mappingContainer);
         
         this.prototypeArea = new lively.morphic.Charts.PrototypeArea(pt(this.extent.x / 3 * 1, this.extent.y));
         this.prototypeArea.setName("PrototypeArea");
-        this.prototypeArea.setPosition(pt(this.codeEditor.getBounds().topRight().x, 0));
+        this.prototypeArea.setPosition(pt(this.mappingContainer.getBounds().topRight().x + 6, 0));
         this.prototypeArea.layout.resizeHeight = true;
         this.prototypeArea.layout.moveHorizontal = true;
         this.addMorph(this.prototypeArea);
@@ -3742,6 +3740,46 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         prototypeMorph.setPosition(position);
         this.prototypeArea.addMorph(prototypeMorph);
         this.prototypeArea.attachListener(prototypeMorph);
+    },
+    addEmptyLine: function() {
+        var line = new lively.morphic.Box(lively.rect(0, 0, this.mappingContainer.getExtent().x, 20));
+        var lineLayout = new lively.morphic.Layout.HorizontalLayout();
+        lineLayout.borderSize = 0;
+        line.setLayouter(lineLayout);
+        
+        var attributeField = new lively.morphic.Text(lively.rect(0, 0, 100, 25), "");
+        attributeField.setBorderWidth(0);
+        attributeField.setBorderRadius(8);
+        attributeField.setFill(Color.rgb(161, 197, 229));
+        attributeField.setTextColor(Color.white);
+        line.attributeField = attributeField;
+        line.addMorph(attributeField);
+       
+        var valueField = new lively.morphic.Text(lively.rect(0, 0, 100, 25), "");
+        valueField.setPosition(pt(140, 0));
+        valueField.setFill(Color.white);
+        valueField.setBorderWidth(0);
+        line.valueField = valueField;
+        line.addMorph(valueField);
+        
+        this.mappingContainer.addMorph(line);
+        
+        connect(attributeField, "textString", line, "checkIfEmpty", {});
+        connect(valueField, "textString", line, "checkIfEmpty", {});
+        
+        var _this = this;
+        line.checkIfEmpty = function(){
+            if (line.attributeField.getTextString() == "" &&
+                    line.valueField.getTextString() == ""){
+                if (_this.emptyLine != line) _this.emptyLine.remove();
+                _this.emptyLine = line;
+            } else if (_this.emptyLine == line) {
+                _this.addEmptyLine();
+            }
+        };
+        
+        this.emptyLine = line;
+        return line;
     },
     createMappingInput: function(inputHeight) {
         var mappingInput = new lively.morphic.Morph.makeRectangle(lively.rect(0, 0, this.extent.x / 3 * 2 - 3, inputHeight - 3));

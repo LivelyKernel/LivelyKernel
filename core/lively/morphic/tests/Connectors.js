@@ -173,7 +173,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         this.world.addMorph(morph);
         this.world.addMorph(line);
         var copy = morph.copy(),
-            copiedControlPoint = copy.magnets.detect(function(ea) {
+            copiedControlPoint = copy.getMagnets().detect(function(ea) {
                 return ea.getConnectedControlPoints().length > 0; });
         this.assert(!copiedControlPoint, "there should be no copied control point");
     }

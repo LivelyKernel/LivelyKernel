@@ -3520,7 +3520,9 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         var group = new lively.morphic.Box(this.bounds());
         group.isGroup = true;
         this.owner.addMorph(group);
-        this.selectedMorphs.forEach(group.addMorph.bind(group));
+        this.selectedMorphs.forEach(function(ea) {
+            group.addMorph(ea);
+        });
         this.selectMorphs([group]);
         return group;
     },

@@ -430,6 +430,7 @@ Object.extend(lively.bindings, {
         con.visualConnector = visualConnector;
         con.visualConnector.con = con; // FIXME
         visualConnector.showsMorphMenu = true; // FIX ... MEE !!!!!
+        visualConnector.name = con.sourceAttrName + ' ->' + con.targetMethodName;
 
         visualConnector.hidePermanently = function() {
             this.hide && this.hide();

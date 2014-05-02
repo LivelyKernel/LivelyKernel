@@ -813,8 +813,8 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openFileTree': {description: 'open file tree', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openFileTree(); return true; }},
     'lively.ide.openDirViewer': {
         description: 'open directory viewer',
-        isActive: true,
-        exec: function(directory) {
+        isActive: Functions.True,
+        exec: function() {
             require('lively.ide.tools.DirViewer').toRun(function() {
                 lively.BuildSpec('lively.ide.tools.DirViewer').createMorph().openInWorldCenter().comeForward();
             });

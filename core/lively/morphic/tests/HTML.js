@@ -171,10 +171,10 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.Positioning',
             world = lively.morphic.World.current(),
             winBounds = world.windowBounds();
         this.onTearDown(function() { m.remove(); });
-        Global.scrollTo(pt(0,0));
+        Global.scrollTo(0,0);
         world.setExtent(winBounds.extent().addXY(100,100));
         m.openInWorld(pt(5, 10));
-        m.setFixed(true);
+        m.enableFixedPositioning();
         // delays are needed so that the set scroll can take effect
         this.delay(function() {
             var expectedBounds = lively.rect(5,10,20,30);
@@ -183,15 +183,15 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.Positioning',
             this.delay(function() {
                 this.assertEquals(lively.rect(105,110,20,30), m.bounds());
                 this.done();
-            }, 0);
-        }, 0);
+            }, 100);
+        }, 100);
     },
     testFixedPositingAlsoFixesScale: function() {
         var m = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,30)),
             world = lively.morphic.World.current(),
             winBounds = world.windowBounds();
         this.onTearDown(function() { m.remove(); });
-        Global.scrollTo(pt(0,0));
+        Global.scrollTo(0,0);
         world.setExtent(winBounds.extent().addXY(100,100));
         world.setScale(1.2);
         m.openInWorld(pt(5, 10));
@@ -201,7 +201,7 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.Positioning',
             var expectedBounds = pt(5,10).scaleBy(1/1.2).extent(pt(20,30).scaleBy(1/1.2));
             this.assertEquals(expectedBounds, m.bounds());
             this.done();
-        }, 0);
+        }, 100);
     },
     testFixedPositingRemove: function() {
         var m = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,30)),

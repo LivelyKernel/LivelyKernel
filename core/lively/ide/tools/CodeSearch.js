@@ -4,6 +4,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
     _BorderColor: null,
     _Extent: lively.pt(714.0,503.0),
     className: "lively.morphic.Window",
+    contentOffset: lively.pt(3.0,22.0),
     draggingEnabled: true,
     droppingEnabled: false,
     layout: { adjustForNewBounds: true },
@@ -601,7 +602,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
                 name = name + "(obj)"
 
             if (proto !== obj && obj.isMorph)
-                name = obj.name ? obj.name + "(" + obj.id.truncate(12) + ")" : String(obj);
+                name = obj.name ? obj.name + "(" + String(obj.id).truncate(12) + ")" : String(obj);
 
             if (obj === Global)
                 name = "Global";

@@ -310,6 +310,12 @@ Object.extend(lively.ide, {
                 objectName = objectName.replace(/^Global\./,"");
             }
 
+            if (moduleName === 'Global') {
+                alert("could not browse " + methodName + " in " + objectName + "\nb/c its sourceModule is \"Global\"");
+                rootNode.browseIt({browser: browser});
+                return false;
+            }
+
             var relative = module(moduleName).relativePath(moduleType),
                 moduleNode = lively.ide.startSourceControl().addModule(relative),
                 rootNode = moduleNode.ast(),

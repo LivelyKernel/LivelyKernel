@@ -1100,7 +1100,6 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
     },
 
     onMouseUp: function($super, evt) {
-// show(this)
         if (evt.world.clickedOnMorph !== this && (Date.now() - evt.world.clickedOnMorphTime < 500)) {
             return false; // only a click
         }
@@ -2071,7 +2070,7 @@ lively.morphic.World.addMethods(
         var focusedMorph = lively.morphic.Morph.focusedMorph(),
             win = this.getActiveWindow();
         dialog.openIn(this, this.visibleBounds().topLeft(), focusedMorph);
-        this.addModal(dialog.panel, win ? win : this);
+        this.addModal(dialog.panel, win && !win.isCollapsed() ? win : this);
         return dialog;
     },
     confirm: function (message, callback) {

@@ -14,7 +14,7 @@ var actions = {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // register routes
 module.exports = function(route, app, subserver) {
-    webSocketHandler = new WebSocketServer();
+    var webSocketHandler = new WebSocketServer();
     webSocketHandler.debug = true; // logs infos
     webSocketHandler.listen({
         route: route + 'connect',

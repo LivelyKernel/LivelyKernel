@@ -384,7 +384,7 @@ lively.morphic.Morph.addMethods(
             for (var i = 0; i < submorphs.length; i++) {
                 var m = submorphs[i],
                     mCtx = m.renderContext();
-                if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
+                if (mCtx.styleNode && mCtx.styleNode.parentNode && mCtx.styleNode !== styleNode) {
                     mCtx.styleNode.parentNode.insertBefore(styleNode, mCtx.styleNode);
                     return;
                 }

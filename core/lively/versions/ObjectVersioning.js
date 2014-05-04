@@ -280,43 +280,42 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // === helpers ===
             isProxy: function() { return true },
-            proxyTarget: function() { return this.targetObject() },
+            proxyTarget: function() { return this.currentVersion(); },
             
-            targetObject: function() {
-                return this.targetObjectInVersion(lively.CurrentVersion);
+            currentVersion: function() {
+                return this.versionFor(lively.CurrentVersion);
             },
-            targetObjectInVersion: function(version) {
-                var targetObject;
+            versionFor: function(systemVersion) {
+                var objectVersion;
                 
-                while(!targetObject && version) {
-                    targetObject = this.__targetVersions[version.ID];
-                    version = version.previousVersion;
+                while(!objectVersion && systemVersion) {
+                    objectVersion = this.__targetVersions[systemVersion.ID];
+                    systemVersion = systemVersion.previousVersion;
                 }
                 
-                // FIXME: why is this necessary? is this only necessary for
-                // certain kinds of objects as, for example, for DOM Nodes
-                // and CSSStyleDeclarations?
-                if (!targetObject) {
-                    version = lively.CurrentVersion;
+                // FIXME: why is it necessary to seach in future versions as well?
+                // is this only necessary for certain kinds of objects as, for example,
+                // for DOM Nodes and CSSStyleDeclarations?
+                if (!objectVersion) {
+                    systemVersion = lively.CurrentVersion;
                     
-                    while(!targetObject && version) {
-                        targetObject = this.__targetVersions[version.ID];
-                        version = version.nextVersion;
+                    while(!objectVersion && systemVersion) {
+                        objectVersion = this.__targetVersions[systemVersion.ID];
+                        systemVersion = systemVersion.nextVersion;
                     }
                     
                 }
                 
-                return targetObject;
+                return objectVersion;
             },
-            targetObjectForWriteAccess: function() {
+            versionForWriteAccess: function() {
+                var latestVersion = this.currentVersion();
                 
-                var targetObject = this.targetObject();
-                
-                if (this.shouldObjectBeCopiedBeforeWrite(targetObject)) {
-                    targetObject = this.createNewVersion();
+                if (this.shouldObjectBeCopiedBeforeWrite(latestVersion)) {
+                    latestVersion = this.createNewVersion();
                 }
                 
-                return targetObject;
+                return latestVersion;
             },
             ensureProxied: function(obj) {
                 if (!Object.isPrimitiveObject(obj) &&
@@ -419,7 +418,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return funcWillModifyTargetArray && thisArg.__shouldVersion;
             },
             createNewVersion: function() {
-                var latestVersion = this.targetObject(),
+                var latestVersion = this.currentVersion(),
                     newVersion;
                     
                 newVersion = Object.copyObject(latestVersion);
@@ -445,25 +444,25 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // === proxy handler traps ===
             set: function(dummyTarget, name, value, receiver) {
-                var targetObject, setter, copy;
+                var version, setter, copy;
                 
-                targetObject = this.targetObjectForWriteAccess();
+                version = this.versionForWriteAccess();
                 
                 // special cases
                 if (name === '__proto__') {
                     if (Object.isProxy(value)) {
                         
-                        Object.defineProperty(targetObject, '__protoProxy', {
+                        Object.defineProperty(version, '__protoProxy', {
                             value: value,
                             writable: true
                         });
-                        targetObject.__proto__ = value.proxyTarget();
+                        version.__proto__ = value.proxyTarget();
                     } else {
-                        Object.defineProperty(targetObject, '__protoProxy', {
+                        Object.defineProperty(version, '__protoProxy', {
                             value: null,
                             writable: true
                         });
-                        targetObject.__proto__ = value;
+                        version.__proto__ = value;
                     }
                     return true;
                 }
@@ -475,14 +474,14 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 if (name === 'onreadystatechange' && Object.isProxy(value) &&
-                    targetObject.constructor.name === 'XMLHttpRequest') {
+                    version.constructor.name === 'XMLHttpRequest') {
                     value = value.proxyTarget();
                 }
                 
                 descriptor =
-                    Object.getOwnPropertyDescriptor(targetObject, name);
+                    Object.getOwnPropertyDescriptor(version, name);
                 setter = (descriptor && descriptor.set) ||
-                    Object.prototype.__lookupSetter__.call(targetObject, name);
+                    Object.prototype.__lookupSetter__.call(version, name);
                 if (setter) {
                     // setting the slot triggers an accessor function, in which
                     // case the target should be proxied
@@ -493,12 +492,12 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 // default handling
-                targetObject[name] = value;
+                version[name] = value;
                 
                 return true;
             },
             get: function(dummyTarget, name, receiver) {
-                var result, nextAncestor, proto, targetObject, copy,
+                var result, nextAncestor, proto, version, copy,
                     descriptor, getter, OV = lively.versions.ObjectVersioning;
                 
                 // proxy meta-information
@@ -512,14 +511,14 @@ Object.extend(lively.versions.ObjectVersioning, {
                     return this.__shouldVersion;
                 }
                 
-                targetObject = this.targetObject();
+                version = this.currentVersion();
                 
                 // special cases
                 if (name === '__proto__') {
-                    if (targetObject.__protoProxy) {
-                        return targetObject.__protoProxy;
+                    if (version.__protoProxy) {
+                        return version.__protoProxy;
                     } else {
-                        proto = targetObject.__proto__;
+                        proto = version.__proto__;
                         if (Object.isPrimitiveObject(proto) ||
                             Object.isRootPrototype(proto)) {
                                 return proto;
@@ -528,9 +527,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                             }
                     }
                 }
-                if (name === 'prototype' && Object.isFunction(targetObject)) {
+                if (name === 'prototype' && Object.isFunction(version)) {
                     // prototype is already proxied or a root prototype
-                    return targetObject.prototype;
+                    return version.prototype;
                 }
                 
                 if (name === '__createNewVersionOfTarget') {
@@ -538,9 +537,9 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 descriptor =
-                    Object.getOwnPropertyDescriptor(targetObject, name);
+                    Object.getOwnPropertyDescriptor(version, name);
                 getter = (descriptor && descriptor.get) ||
-                    Object.prototype.__lookupGetter__.call(targetObject, name);
+                    Object.prototype.__lookupGetter__.call(version, name);
                 if (getter) {
                     // getting the slot triggers an accessor function, in which
                     // case the target should be proxied
@@ -549,13 +548,13 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 // default handling
-                if (({}).hasOwnProperty.call(targetObject, name)) {
-                    result = targetObject[name];
+                if (({}).hasOwnProperty.call(version, name)) {
+                    result = version[name];
                 } else {
-                    if (targetObject.__protoProxy === null) {
-                        var proto = targetObject.__proto__;
+                    if (version.__protoProxy === null) {
+                        var proto = version.__proto__;
                     } else {
-                        var proto = targetObject.__protoProxy;
+                        var proto = version.__protoProxy;
                     }
                     result = proto ? proto[name] : undefined;
                 }
@@ -565,9 +564,9 @@ Object.extend(lively.versions.ObjectVersioning, {
             apply: function(dummyTarget, suppliedThisArg, suppliedArgs) {
                 var result,
                     thisArg = suppliedThisArg,
-                    targetObject = suppliedThisArg,
+                    version = suppliedThisArg,
                     args = suppliedArgs,
-                    func = this.targetObject(),
+                    func = this.currentVersion(),
                     copy;
                 
                 // when aFunc is Function.prototype.apply or .call, normalize
@@ -581,7 +580,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                         func = thisArg.proxyTarget();
                     
                         thisArg = originalArgs[0];
-                        targetObject = originalArgs[0];
+                        version = originalArgs[0];
                     
                         if (originalFunc === Function.prototype.apply) {
                             args = originalArgs[1];
@@ -614,7 +613,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 if (!this.canFunctionHandleProxies(func)) {
                     
                     if (thisArg && thisArg.isProxy()) {
-                        targetObject = thisArg.proxyTarget();
+                        version = thisArg.proxyTarget();
                     }
                     
                     if (this.shouldArgumentsBeUnwrappedRecursively(func)) {
@@ -636,7 +635,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 try {
                     
-                    result = func.apply(targetObject, args);
+                    result = func.apply(version, args);
                     
                 } catch (e) {
                     // FIXME: temporary to ease debugging - remove this later
@@ -652,7 +651,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                         
                         // debugger;
                         
-                        // result = func.apply(targetObject, args);
+                        // result = func.apply(version, args);
                     }
                     
                     throw e;
@@ -661,7 +660,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return this.ensureProxied(result);
             },
             construct: function(dummyTarget, args) {
-                var OriginalConstructor = this.targetObject(),
+                var OriginalConstructor = this.currentVersion(),
                     name = OriginalConstructor.name,
                     proto = OriginalConstructor.prototype,
                     newInstance, constructorReturnValue;
@@ -707,47 +706,47 @@ Object.extend(lively.versions.ObjectVersioning, {
                     lively.proxyFor(constructorReturnValue) : newInstance;
             },
             getPrototypeOf: function(dummyTarget) {
-                var protoProxy = this.targetObject().__protoProxy;
+                var protoProxy = this.currentVersion().__protoProxy;
                 
                 if (protoProxy) {
                     return protoProxy;
                 } else {
-                    return Object.getPrototypeOf(this.targetObject());
+                    return Object.getPrototypeOf(this.currentVersion());
                 }
             },
             has: function(dummyTarget, name) {
-                var targetObject = this.targetObject();
-                if (({}).hasOwnProperty.call(targetObject, name)) {
+                var version = this.currentVersion();
+                if (({}).hasOwnProperty.call(version, name)) {
                     return true;
                 } else {
-                    if (targetObject.__protoProxy === null) {
-                        var proto = targetObject.__proto__;
+                    if (version.__protoProxy === null) {
+                        var proto = version.__proto__;
                     } else {
-                        var proto = targetObject.__protoProxy;
+                        var proto = version.__protoProxy;
                     }
                     return proto ? name in proto : false;
                 }
             },
             hasOwn: function(dummyTarget, name) {
-                return ({}).hasOwnProperty.call(this.targetObject(), name);
+                return ({}).hasOwnProperty.call(this.currentVersion(), name);
             },
             getOwnPropertyDescriptor: function(dummyTarget, name) {
-                return Object.getOwnPropertyDescriptor(this.targetObject(), name);
+                return Object.getOwnPropertyDescriptor(this.currentVersion(), name);
             },
             getOwnPropertyNames: function(dummyTarget) {
-                return Object.getOwnPropertyNames(this.targetObject());
+                return Object.getOwnPropertyNames(this.currentVersion());
             },
             enumerate: function(dummyTarget) {
-                var targetObject = this.targetObject(),
+                var version = this.currentVersion(),
                     enumerableProps = [],
                     nextAncestor;
                 
-                for (var prop in targetObject) {
+                for (var prop in version) {
                     enumerableProps.push(prop);
                 }
                 
-                nextAncestor = targetObject.__protoProxy ?
-                    targetObject.__protoProxy.proxyTarget() : null;
+                nextAncestor = version.__protoProxy ?
+                    version.__protoProxy.proxyTarget() : null;
                 while (nextAncestor) {
                     for (var prop in nextAncestor) {
                         if (!enumerableProps.include(prop))
@@ -760,41 +759,41 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return enumerableProps;
             },
             keys: function(dummyTarget) {
-                return Object.keys(this.targetObject());
+                return Object.keys(this.currentVersion());
             },
             freeze: function(dummyTarget) {
-                var targetObject = this.targetObjectForWriteAccess();
+                var version = this.versionForWriteAccess();
                 
-                return Object.freeze(targetObject);
+                return Object.freeze(version);
             },
             isFrozen: function(dummyTarget) {
-                return Object.isFrozen(this.targetObject());
+                return Object.isFrozen(this.currentVersion());
             },
             seal: function(dummyTarget) {
-                var targetObject = this.targetObjectForWriteAccess();
+                var version = this.versionForWriteAccess();
                 
-                return Object.seal(targetObject);
+                return Object.seal(version);
             },
             isSealed: function(dummyTarget) {
-                return Object.isSealed(this.targetObject());
+                return Object.isSealed(this.currentVersion());
             },
             preventExtensions: function(dummyTarget) {
-                var targetObject = this.targetObjectForWriteAccess();
+                var version = this.versionForWriteAccess();
                 
-                return Object.preventExtensions(targetObject);
+                return Object.preventExtensions(version);
             },
             isExtensible: function(dummyTarget) {
-                return Object.isExtensible(this.targetObject());
+                return Object.isExtensible(this.currentVersion());
             },
             defineProperty: function(dummyTarget, name, desc) {
-                var targetObject = this.targetObjectForWriteAccess();
+                var version = this.versionForWriteAccess();
                 
-                return Object.defineProperty(targetObject, name, desc);
+                return Object.defineProperty(version, name, desc);
             },
             deleteProperty: function(dummyTarget, name) {
-                var targetObject = this.targetObjectForWriteAccess();
+                var version = this.versionForWriteAccess();
                 
-                return delete targetObject[name];
+                return delete version[name];
             }
         }
     },

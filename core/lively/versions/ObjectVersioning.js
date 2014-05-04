@@ -308,6 +308,16 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return targetObject;
             },
+            targetObjectForWriteAccess: function() {
+                
+                var targetObject = this.targetObject();
+                
+                if (this.shouldObjectBeCopiedBeforeWrite(targetObject)) {
+                    targetObject = this.createNewVersion();
+                }
+                
+                return targetObject;
+            },
             ensureProxied: function(obj) {
                 if (!Object.isPrimitiveObject(obj) &&
                     !Object.isProxy(obj) &&
@@ -408,6 +418,17 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 return funcWillModifyTargetArray && thisArg.__shouldVersion;
             },
+            createNewVersion: function() {
+                var latestVersion = this.targetObject(),
+                    newVersion;
+                    
+                newVersion = Object.copyObject(latestVersion);
+                this.__targetVersions[lively.CurrentVersion.ID] = newVersion;
+                
+                lively.ProxyTable.set(newVersion, lively.ProxyTable.get(latestVersion));
+                    
+                return newVersion;
+            },
             canFunctionHandleProxies: function(func) {
                 // note, however: the following [native code]-check also
                 // incorrectly matches functions that have been bound
@@ -424,21 +445,9 @@ Object.extend(lively.versions.ObjectVersioning, {
             
             // === proxy handler traps ===
             set: function(dummyTarget, name, value, receiver) {
-                var targetObject, newObject, setter, copy;
+                var targetObject, setter, copy;
                 
-                targetObject = this.targetObject();
-                
-                // copy-on-write: create and work on a new version of the target
-                // when target was commited with a previous version
-                if (this.shouldObjectBeCopiedBeforeWrite(targetObject) &&
-                    name !== '__newVersionOfTarget') {
-                    
-                    copy = Object.copyObject(targetObject);
-                    this.__targetVersions[lively.CurrentVersion.ID] = copy;
-                    lively.ProxyTable.set(copy, receiver);
-                    
-                    targetObject = copy;
-                }
+                targetObject = this.targetObjectForWriteAccess();
                 
                 // special cases
                 if (name === '__proto__') {
@@ -525,13 +534,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 }
                 
                 if (name === '__createNewVersionOfTarget') {
-                    return (function() {
-                        copy = Object.copyObject(targetObject);
-                        
-                        this.__targetVersions[lively.CurrentVersion.ID] = copy;
-                    
-                        lively.ProxyTable.set(copy, receiver);
-                    }).bind(this);
+                    return this.createNewVersion.bind(this);
                 }
                 
                 descriptor =
@@ -760,29 +763,37 @@ Object.extend(lively.versions.ObjectVersioning, {
                 return Object.keys(this.targetObject());
             },
             freeze: function(dummyTarget) {
-                return Object.freeze(this.targetObject());
+                var targetObject = this.targetObjectForWriteAccess();
+                
+                return Object.freeze(targetObject);
             },
             isFrozen: function(dummyTarget) {
                 return Object.isFrozen(this.targetObject());
             },
             seal: function(dummyTarget) {
-                return Object.seal(this.targetObject());
+                var targetObject = this.targetObjectForWriteAccess();
+                
+                return Object.seal(targetObject);
             },
             isSealed: function(dummyTarget) {
                 return Object.isSealed(this.targetObject());
             },
             preventExtensions: function(dummyTarget) {
-                return Object.preventExtensions(this.targetObject());
+                var targetObject = this.targetObjectForWriteAccess();
+                
+                return Object.preventExtensions(targetObject);
             },
             isExtensible: function(dummyTarget) {
                 return Object.isExtensible(this.targetObject());
             },
             defineProperty: function(dummyTarget, name, desc) {
-                Object.defineProperty(this.targetObject(), name, desc);
-                return true;
+                var targetObject = this.targetObjectForWriteAccess();
+                
+                return Object.defineProperty(targetObject, name, desc);
             },
             deleteProperty: function(dummyTarget, name) {
-                var targetObject = this.targetObject();
+                var targetObject = this.targetObjectForWriteAccess();
+                
                 return delete targetObject[name];
             }
         }

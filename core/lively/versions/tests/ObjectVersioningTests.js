@@ -405,7 +405,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
     },
 },
 'testing', {
-    test01VersionsOfObject: function() {
+    test01aVersionsOfObject: function() {
         var person, versionBefore;
         
         person = lively.proxyFor({});
@@ -416,10 +416,39 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         person.age = 24;
         person.age = 25;
         
-        // in the previous version:
         this.assertInVersion(function() {return person.age === 23}, versionBefore);
-        // currently:
         this.assertInVersion(function() {return person.age === 25}, lively.CurrentVersion);
+    },
+    test01bVersionsOfAnObject_PropertyConfiguration: function() {
+        var versionBefore, expectedPropertyDescriptor,
+            person = lively.proxyFor({age : 24});
+        
+        versionBefore = lively.commitVersion();
+        
+        // forever 25 !
+        Object.defineProperty(person, "age", {
+            configurable: false,
+            writable: false,
+            value: 25
+        });
+        
+        this.assertInVersion(function() {return person.age === 24}, versionBefore);
+        
+        expectedPropertyDescriptor = {enumerable: true, configurable: false, value: 25, writable: false};
+        this.assertEqualState(Object.getOwnPropertyDescriptor(person, 'age'), expectedPropertyDescriptor);
+    },
+    test01cVersionsOfAnObject_PropertyDeletion: function() {
+        var person, versionBefore;
+        
+        person = lively.proxyFor({});
+        person.name = 'L';
+        
+        versionBefore = lively.commitVersion();
+        
+        delete person.name;
+        
+        this.assertInVersion(function() {return person.name === 'L'}, versionBefore);
+        this.assertInVersion(function() {return person.name === undefined}, lively.CurrentVersion);
     },
     test02aVersionsOfAnArray_DirectAccess: function() {
         var arr, versionBefore;
@@ -544,6 +573,48 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         this.assertEquals(Object.getPrototypeOf(descendant), Object.prototype);
         this.assert(!descendant.method);
+    },
+    test06aObjectCanBeExtendedInVersionsBeforeExtensionsWerePrevented: function() {
+        var person, versionBefore;
+        
+        person = lively.proxyFor({name: 'L'});
+        
+        versionBefore = lively.commitVersion();
+        
+        Object.preventExtensions(person);
+
+        this.assertInVersion(function() {
+            person.age = 25;
+            return person.age === 25;
+        }, versionBefore);
+    },
+    test06ObjectsPropertiesCanBeReconfiguredInVersionsBeforeItWasSealed: function() {
+        var person, versionBefore;
+        
+        person = lively.proxyFor({name: 'L'});
+        
+        versionBefore = lively.commitVersion();
+        
+        Object.seal(person);
+
+        this.assertInVersion(function() {
+            Object.defineProperty(person, 'age', {writable: false});
+            return Object.getOwnPropertyDescriptor(person, 'age').writable === false;
+        }, versionBefore);
+    },
+    test06cFrozenObjectCanBeWrittenInVersionsWhereItWasntFrozen: function() {
+        var person, versionBefore;
+        
+        person = lively.proxyFor({name: 'L'});
+        
+        versionBefore = lively.commitVersion();
+        
+        Object.freeze(person);
+
+        this.assertInVersion(function() {
+            person.name = 'LT';
+            return person.name === 'LT';
+        }, versionBefore);
     },
 });
 

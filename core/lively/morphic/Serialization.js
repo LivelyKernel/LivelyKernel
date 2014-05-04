@@ -230,7 +230,7 @@ lively.morphic.World.addMethods(
             if (!input) return;
             var url = input.startsWith('http') ?
                 new URL(input) : URL.source.withFilename(input);
-            if (!new WebResource(url).exists()) {
+            if (!url.eqDomain(URL.root) || !new WebResource(url).exists()) {
                 world.saveWorldAs(url, true);
             } else {
                 world.confirm(url.toString() + ' already exists. Overwrite?',
@@ -244,6 +244,20 @@ lively.morphic.World.addMethods(
             url = new URL(url)
         } catch (e) {
             throw new Error('Cannot save world, not a valid URL: ' + url);
+        }
+
+        // save world to a different domain / server
+        if (!url.eqDomain(URL.root) && !bootstrapModuleURL) {
+            function transformRootURLToBootstrapURL(urlString) {
+                return urlString.replace(/\/+$/, '') + '/core/lively/bootstrap.js';
+            }
+            $world.prompt(
+                'You are saving ' + url.filename() + ' to a different Lively server.\n'
+              + 'Please enter the root URL of that Lively server', function(input) {
+                  if (!input) alert("save aborted, no input");
+                  else $world.saveWorldAs(url, false, transformRootURLToBootstrapURL(input));
+              }, String(url.withPath('/')));
+            return;
         }
 
         // FIXME: this should go somewhere else or actually not be necessary at

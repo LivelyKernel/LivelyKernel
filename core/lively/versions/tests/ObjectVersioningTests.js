@@ -301,6 +301,16 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxyObjectTests'
         
         this.assertEquals(Object.isExtensible(proxy), false);
         this.assertEquals(Object.isExtensible(obj), false);
+    },
+    test32GetOwnPropertyDescriptorFromProxiedObject: function() {
+        var obj = {prop: 2},
+            proxy = lively.proxyFor(obj),
+            expected = {enumerable: true, configurable: true, value: 2, writable: true},
+            actual;
+            
+        actual = Object.getOwnPropertyDescriptor(proxy, 'prop');
+        
+        this.assertEqualOwnState(actual, expected);
     }
 });
 

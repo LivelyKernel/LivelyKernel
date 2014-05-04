@@ -728,6 +728,9 @@ Object.extend(lively.versions.ObjectVersioning, {
             hasOwn: function(dummyTarget, name) {
                 return ({}).hasOwnProperty.call(this.targetObject(), name);
             },
+            getOwnPropertyDescriptor: function(dummyTarget, name) {
+                return Object.getOwnPropertyDescriptor(this.targetObject(), name);
+            },
             getOwnPropertyNames: function(dummyTarget) {
                 return Object.getOwnPropertyNames(this.targetObject());
             },

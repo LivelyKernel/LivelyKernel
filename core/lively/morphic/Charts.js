@@ -1006,12 +1006,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     
     applyErrorStyle: function() {
         
+        var errorColor = Color.rgb(169, 68, 66);
+        // It seems as the color cannot be set via CSS?
+        this.description.setTextColor(errorColor);
+        this.errorText.setTextColor(errorColor);
+        
         this.componentHeader.setStyleSheet(this.getErrorHeaderCSS());
         this.componentBody.setStyleSheet(this.getErrorBodyCSS());
         
-        this.description.setTextColor(Color.rgb(169, 68, 66));
         
-        this.errorText.setTextColor(Color.rgb(169, 68, 66));
+        
         var minimizer = this.getSubmorphsByAttribute("name", "Minimizer");
         if (minimizer.length)
         {
@@ -2505,9 +2509,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         
         this.data = null;
     },
-    
-
-    
     updateComponent : function() {
         // refresh interactionVariables array
         this.interactionVariables = [];
@@ -3391,7 +3392,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     getErrorHeaderCSS: function() {
         return	".ComponentHeader { \
             background-color: rgb(235, 204, 209); !important; \
-            color: white !important; \
             border-top-left-radius: 4px !important; \
             border-top-right-radius: 4px !important;\
             background-attachment: scroll !important;\
@@ -3417,7 +3417,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             border-top-style: solid !important;\
             border-top-width: 1px !important;\
             box-sizing: border-box !important;\
-            color: rgb(255, 255, 255) !important;\
             cursor: auto !important;\
             display: block !important;\
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
@@ -4093,12 +4092,24 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 }
             };
             
-            return attributeMap[eachMapping.attribute].bind(null, valueFn);
+            var setterFn = attributeMap[eachMapping.attribute];
+            if (setterFn) {
+                return setterFn.bind(null, valueFn);
+            } else {
+                return null;
+            }
         });
         
+        var _this = this;
         var combinedMappingFunction = function(morph, datum) {
-            mappingFunctions.each(function(eachMappingFunction) {
-                eachMappingFunction(morph, datum);
+            mappingFunctions.each(function(eachMappingFunction, index) {
+                try {
+                    eachMappingFunction(morph, datum);
+                    _this.mappingContainer.hideErrorAt(index);
+                } catch (e) {
+                    _this.mappingContainer.showErrorAt(index);
+                }
+                
             });
         };
         
@@ -6112,13 +6123,28 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
     },
     ACTIVE_COLOR: Color.rgbHex("4C5E70"),
     INACTIVE_COLOR: Color.rgb(166, 175, 184),
+    ERROR_COLOR: Color.rgb(169, 68, 66),
+    ERROR_BACKGROUND_COLOR: Color.rgb(235, 204, 209),
     getMapping: function() {
         return {
             attribute: this.attributeField.getTextString(),
             value: this.valueField.getTextString()
         }
     },
-    
+    showError: function() {
+        this.attributeField.setFill(this.ERROR_BACKGROUND_COLOR);
+        this.valueField.setBorderColor(this.ERROR_BACKGROUND_COLOR);
+        
+        this.attributeField.setTextColor(this.ERROR_COLOR);
+        this.valueField.setTextColor(this.ERROR_COLOR);
+    },
+    hideError: function() {
+        this.attributeField.setFill(this.ACTIVE_COLOR);
+        this.valueField.setBorderColor(this.ACTIVE_COLOR);
+        
+        this.attributeField.setTextColor(Color.white);
+        this.valueField.setTextColor(Color.black);
+    },
     handleMappingChange: function() {
         this.ensureNewLine();
         this.owner.owner.component.onContentChanged();
@@ -6155,6 +6181,12 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         });
         
         return mappings;
+    },
+    showErrorAt: function(mappingIndex) {
+        this.submorphs[mappingIndex].showError();
+    },
+    hideErrorAt: function(mappingIndex) {
+        this.submorphs[mappingIndex].hideError();
     },
     getNextLine: function(sender) {
         var senderPos = sender.getPosition();

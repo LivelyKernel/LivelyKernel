@@ -328,6 +328,38 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         
         this.assertEquals(components[2].data, 8);
     },
+    testFanOutArrows: function() {
+        
+        var fanOut = new lively.morphic.Charts.FanOut();
+        $world.addMorph(fanOut);
+        fanOut.setPosition(pt(0,200));
+        fanOut.onResizeStart();
+        fanOut.setExtent(pt(1000, fanOut.getExtent().y));
+        fanOut.onResizeEnd();
+
+        var components = this.helper.createComponents(3, [pt(0,2), pt(1,2), pt(2,2)]);
+        
+        // drag componentBottom to create and active arrow of FanOut
+        components[0].refreshData();
+        components[1].refreshData();
+        components[2].refreshData();
+
+        components[0].remove();
+        
+        this.assertEquals(fanOut.arrows.length, 2);
+
+        // move component[1] away
+        this.drag([pt(10, 10), pt(1500,0)], components[1]);
+        
+        this.assertEquals(fanOut.arrows.length, 1);
+        
+        // resize fanOut so that component[2] is no longer below it
+        fanOut.onResizeStart();
+        fanOut.setExtent(pt(500, fanOut.getExtent().y));
+        fanOut.onResizeEnd();
+        
+        this.assertEquals(fanOut.arrows.length, 0);
+    },
     
 }, 'notification', {
     

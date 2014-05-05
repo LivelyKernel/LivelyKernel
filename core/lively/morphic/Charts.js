@@ -3888,7 +3888,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             this.throwError(new Error("No morph with name 'PrototypeMorph' found"));
         }
         
-        var mappingFunction;
         var morphName = this.morphInput.getTextString();
         
         if (this.savedMorphName !== morphName) {
@@ -3896,16 +3895,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             this.savedMorphName = morphName;
         }
         
-        this.codeEditor.doitContext = this;
-        var ctx = this.codeEditor.getDoitContext() || this.codeEditor;
-        var codeStr = "mappingFunction = function(" + morphName + ", " + this.datumInput.getTextString() + ") {" + this.codeEditor.getTextString() + "}";
-        eval(this.codeEditor.createEvalStatement(ctx, codeStr));
+        var mappings = this.mappingContainer.getAllMappings();
+        var mappingFunction = this.generateMappingFunction(mappings);
         
         var bulkCopy = this.smartBulkCopy(prototypeMorph, data.totalLength || data.length);
         var copiedMorphs = bulkCopy.copiedMorphs;
         this.copiedMorphs = copiedMorphs;
         data = data.map(function(ea, index) {
             var prototypeInstance = copiedMorphs[index];
+            prototypeInstance.mappings = mappings;            
             // if the morphs weren't cloned, replay the actions which were applied on the PrototypeMorph
             if (!bulkCopy.cloned) {
                 if (prototypeMorph.__appliedCommands) {
@@ -3915,8 +3913,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                     }
                 }
             }
-            
             mappingFunction(prototypeInstance, ea);
+            
             // ensure that each datum is a object (primitives will get wrapped here)
             ea = ({}).valueOf.call(ea);
             if (!ea.morphs) ea.morphs = {};
@@ -4036,58 +4034,62 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         })
     },
     
-    getMappingObjects: function() {
-        
-        
-        // var mappings = ... getAllMappings();
-        var mappings = [{
-          attribute: "height",
-          value: "10px"
-        },{
-          attribute: "width",
-          value: "this"
-        }];
+    generateMappingFunction: function(mappingObjects) {
         
         var attributeMap = {
-            extent: function(value) {
-                return function(morph) { morph.setExtent(value); };
+            extent: function(valueFn, morph, datum) {
+                morph.setExtent(valueFn(datum));
             },
-            height: function(value) {
-                return function(morph) { morph.setExtent(lively.pt(morph.getExtent().x, value)); };
+            height: function(valueFn, morph, datum) {
+                morph.setExtent(lively.pt(morph.getExtent().x, valueFn(datum)));
             },
-            width: function(value) {
-                return function(morph) { morph.setExtent(lively.pt(value, morph.getExtent().y)); }
+            width: function(valueFn, morph, datum) {
+                morph.setExtent(lively.pt(valueFn(datum), morph.getExtent().y));
             },
-            color: function(value) {
-                return function(morph) { morph.setFill(value); };
+            color: function(valueFn, morph, datum) {
+                morph.setFill(valueFn(datum));
             },
-            rotation: function(value) {
-                return function(morph) { morph.setRotation(value); };
+            rotation: function(valueFn, morph, datum) {
+                morph.setRotation(valueFn(datum), morph);
             },
-            position: function(value) {
-                return function(morph) { morph.setPosition(value); };
+            position: function(valueFn, morph, datum) {
+                morph.setPosition(valueFn(datum), morph);
             },
-            x: function(value) {
-                return function(morph) { morph.setPosition(lively.pt(value, morph.getPosition().y)); };
+            x: function(valueFn, morph, datum) {
+                morph.setPosition(lively.pt(valueFn(datum), morph.getPosition().y));
             },
-            y: function(value) {
-                return function(morph) { morph.setPosition(lively.pt(morph.getPosition().x), value); };
+            y: function(valueFn, morph, datum) {
+                morph.setPosition(lively.pt(morph.getPosition().x, valueFn(datum)));
             },
-            borderWidth: function(value) {
-                return function(morph) { morph.setBorderWidth(value); };
+            borderWidth: function(valueFn, morph, datum) {
+                morph.setBorderWidth(valueFn(datum));
             },
-            borderColor: function(value) {
-                return function(morph) { morph.setBorderColor(value); };
+            borderColor: function(valueFn, morph, datum) {
+                morph.setBorderColor(valueFn(datum));
             }
-        }
+        };
         
-        var mappingObjects = mappings.map(function(eachMapping) {
+        // holds an array of functions where each accepts a morph and sets the specified property to the result of the specified expression
+        var mappingFunctions = mappingObjects.map(function(eachMapping) {
+            var valueFn = function(datum) {
+                var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
+                with (env.interaction)
+                with (lively.morphic.Charts.Utils)
+                with (datum) {
+                    return eval(eachMapping.value);
+                }
+            };
             
-            
-            
+            return attributeMap[eachMapping.attribute].bind(null, valueFn);
         });
         
-        return mappingObjects;
+        var combinedMappingFunction = function(morph, datum) {
+            mappingFunctions.each(function(eachMappingFunction) {
+                eachMappingFunction(morph, datum);
+            });
+        };
+        
+        return combinedMappingFunction;
     }
 
 });
@@ -5954,8 +5956,8 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         this.valueField = this.createValueField();
         
         // setup connections to notice if new line is required
-        connect(this.attributeField, "textString", this, "checkIfEmpty", {});
-        connect(this.valueField, "textString", this, "checkIfEmpty", {});
+        connect(this.attributeField, "textString", this, "handleMappingChange", {});
+        connect(this.valueField, "textString", this, "handleMappingChange", {});
     },
     createValueField: function() {
         var offset = 120;
@@ -6063,7 +6065,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         }
     },
     
-    checkIfEmpty: function() {
+    ensureNewLine: function() {
         if (this.isEmpty()){
             // do not remove ourself
             if (this.container.emptyLine != this) {
@@ -6098,6 +6100,11 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
             attribute: this.attributeField.getTextString(),
             value: this.valueField.getTextString()
         }
+    },
+    
+    handleMappingChange: function() {
+        this.ensureNewLine();
+        this.owner.owner.component.onContentChanged();
     }
     
 });

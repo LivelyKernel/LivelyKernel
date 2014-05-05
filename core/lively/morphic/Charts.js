@@ -197,6 +197,17 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         this.setBorderRadius(5);
         
         this.createSampleProtoypes();
+        
+        // add morph name
+        var x = 45, y = 20;
+        this.morphName = new lively.morphic.Text(lively.rect(this.getExtent().x / 2 - x / 2, this.getExtent().y - y - 2, x, y), "morph");
+        this.morphName.setFill(Color.white);
+        this.morphName.setBorderWidth(0);
+        this.morphName.layout = {
+            centeredHorizontal: true,
+            moveVertical: true
+        };
+        this.addMorph(this.morphName);
     },
 
 
@@ -221,7 +232,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         // add prototype components
         var showedMorphs = 5;
         this.getPrototypeComponents().reverse().each(function(eachCreateFunction, index){
-            console.log(eachCreateFunction.create);
             if (index <= showedMorphs) {
                 var morph = eachCreateFunction.create();
                 container.addMorph(morph);
@@ -302,6 +312,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                     var text = lively.morphic.Text.makeLabel("A");
                     text.bigExtent = pt(17, 24);
                     text.eventsAreIgnored = false;
+                    text.setTextColor(Color.rgb(66, 139, 202));
                     text.onMouseDown = onMouseDown;
                     return text;
                 }

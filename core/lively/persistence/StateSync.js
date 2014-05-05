@@ -644,6 +644,7 @@ function formUpdate(me, error, value) {
         newMe.setPosition(me.getPosition());
         me.owner.addMorph(newMe, me);
         newMe.setPosition(me.getPosition());
+        newMe.setExtent(me.getExtent());
         me.remove();
     }
     // me.setPosition(me.getPosition().addXY(newMe.getExtent().x, 0));

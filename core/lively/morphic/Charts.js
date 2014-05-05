@@ -3993,6 +3993,60 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 delete eachMorphObject[oldMorphName];
             }
         })
+    },
+    
+    getMappingObjects: function() {
+        
+        
+        // var mappings = ... getAllMappings();
+        var mappings = [{
+          attribute: "height",
+          value: "10px"
+        },{
+          attribute: "width",
+          value: "this"
+        }];
+        
+        var attributeMap = {
+            extent: function(value) {
+                return function(morph) { morph.setExtent(value); };
+            },
+            height: function(value) {
+                return function(morph) { morph.setExtent(lively.pt(morph.getExtent().x, value)); };
+            },
+            width: function(value) {
+                return function(morph) { morph.setExtent(lively.pt(value, morph.getExtent().y)); }
+            },
+            color: function(value) {
+                return function(morph) { morph.setFill(value); };
+            },
+            rotation: function(value) {
+                return function(morph) { morph.setRotation(value); };
+            },
+            position: function(value) {
+                return function(morph) { morph.setPosition(value); };
+            },
+            x: function(value) {
+                return function(morph) { morph.setPosition(lively.pt(value, morph.getPosition().y)); };
+            },
+            y: function(value) {
+                return function(morph) { morph.setPosition(lively.pt(morph.getPosition().x), value); };
+            },
+            borderWidth: function(value) {
+                return function(morph) { morph.setBorderWidth(value); };
+            },
+            borderColor: function(value) {
+                return function(morph) { morph.setBorderColor(value); };
+            }
+        }
+        
+        var mappingObjects = mappings.map(function(eachMapping) {
+            
+            
+            
+        });
+        
+        return mappingObjects;
     }
 
 });

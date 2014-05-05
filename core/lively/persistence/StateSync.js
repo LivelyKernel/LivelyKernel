@@ -470,14 +470,14 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     mergeWithModelData: function merge(someValue) {
         if (someValue === undefined) {
             var self = this,
-                dialog = new lively.morphic.ConfirmDialog("Somebody somewhere deleted this model. To you want to keep it nevertheless?",
+                dialog = new lively.morphic.ConfirmDialog("Somebody somewhere deleted the model displayed in this form. Are you okay with that?",
                 function(answer) {
                     if (answer) {
-                        self.save();
-                    } else {
                         var newMe = self.copy();
                         self.owner.addMorph(newMe, self);
                         self.remove();
+                    } else {
+                        self.save();
                     }
                 });
             dialog.openIn(self, lively.pt(0, 0));

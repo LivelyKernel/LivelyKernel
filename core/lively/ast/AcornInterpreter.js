@@ -479,7 +479,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             hasError = true;
             err = e;
         }
-        if (frame.isResuming() && (node.handler !== null)  && !frame.isAlreadyComputed(node.handler)) {
+        if (frame.isResuming() && !(err && err.unwindException) && (node.handler !== null)  && !frame.isAlreadyComputed(node.handler)) {
             hasError = true;
             err = frame.alreadyComputed[node.handler.param.astIndex];
         }
@@ -505,7 +505,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     visitCatchClause: function(node, state) {
         var frame = state.currentFrame;
-        if (!frame.isResuming()) {
+        if (!frame.isResuming() || (state.error && state.error.unwindException)) {
             var catchScope = frame.newScope();
             catchScope.set(node.param.name, state.error);
             frame.setScope(catchScope);

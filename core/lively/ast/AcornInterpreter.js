@@ -322,9 +322,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             if (lively.Config.get('loadRewrittenCode') && e.unwindException)
                 e = e.unwindException;
             if (e.isUnwindException) {
-                var frames = [e.top];
-                while (frames.last().parentFrame)
-                    frames.push(frames.last().parentFrame);
+                var frames = [e.top],
+                    lastFrame = frames.last();
+                while (lastFrame && lastFrame != e.last && lastFrame.parentFrame) {
+                    lastFrame = frames.last().parentFrame;
+                    frames.push(lastFrame);
+                }
                 if (!frames.member(frame)) {
                     frame.setPC(node);
                     e.shiftFrame(frame);

@@ -185,45 +185,126 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.DroppingArea", {
     
 });
 
-lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.PrototypeArea", {
+lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
     
     initialize: function($super, extent) {
-        $super(extent);
+        $super();
+        this.setExtent(extent);
+        this.setFill(Color.white);
+        this.setBorderWidth(1);
+        this.layout = {adjustForNewBounds: true};
         this.setBorderColor(Color.rgb(66, 139, 202));
         this.setBorderRadius(5);
+        
+        this.createSampleProtoypes();
     },
 
-    getContextMenuComponents: function() {
+
+    createSampleProtoypes: function(){
+        var container = new lively.morphic.Morph.makeRectangle(lively.rect(1, 1, this.getExtent().x - 2, this.getExtent().y / 7));
+        container.setFill(Color.white);
+        container.setBorderWidth(0);
+        container.setBorderRadius(5);
+        var containerLayout = new lively.morphic.Layout.HorizontalLayout();
+        containerLayout.setSpacing(4);
+        containerLayout.borderSize = 4;
+        container.setLayouter(containerLayout);
+        container.disableDropping();
+        container.disableGrabbing();
+        this.addMorph(container);
+        
+        // add border line
+        var line = new lively.morphic.Path([pt(0, this.getExtent().y / 7), pt(this.getExtent().x, this.getExtent().y / 7)]);
+        line.setBorderColor(Color.rgb(66, 139, 202));
+        this.addMorph(line);
+            
+        // add prototype components
+        var showedMorphs = 4;
+        this.getPrototypeComponents().each(function(eachCreateFunction, index){
+            if (index < showedMorphs) {
+                var morph = eachCreateFunction.create();
+                container.addMorph(morph);
+            }
+        });
+        
+        // add ... for more prototype components
+        var moreContainer = new lively.morphic.Morph.makeRectangle(lively.rect(50, 10, 20, 20));
+        moreContainer.setFill(Color.white);
+        moreContainer.setBorderWidth(0);
+        moreContainer.disableGrabbing();
+        for (var index = 0; index < 3; index++){
+            var circle = lively.morphic.Morph.makeCircle(pt(0, 0), 2, 0, Color.black, Color.black);
+            circle.setPosition(pt(index * 5 + 2, 8));
+            circle.eventsAreIgnore = true;
+            circle.disableGrabbing();
+            moreContainer.addMorph(circle);
+        };
+        
+        // add menu to moreContainer
+        var _this = this;
+        moreContainer.onMouseUp = function(){
+            var items = _this.getPrototypeComponents().splice(showedMorphs, _this.getPrototypeComponents().length - showedMorphs)
+                .map(function(ea) {
+                return [ea.name, function() {
+                    var morph = ea.create();
+                    morph.openInHand();
+                }];
+            });
+            var menu = new lively.morphic.Menu("Add prototype morph", items);
+            menu.openIn($world, this.getPositionInWorld());
+        }
+        container.addMorph(moreContainer);
+        
+        // update container Layout
+        setTimeout(function(){container.getLayouter().layout(container, container.submorphs);}.bind(this), 1);
+    },
+    
+    getPrototypeComponents: function() {
+        var onMouseDown = function(evt) {
+            var prototype = this.copy();
+            prototype.setPosition(pt(-4, -4));
+            prototype.setExtent(this.bigExtent || pt(20, 20));
+            prototype.setName("PrototypeMorph");
+            prototype.openInHand();
+        };
+        
         var componentNames = [
             {
-                name: "Rectangle", 
                 create: function() {
-                    var tmp = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,60));
+                    var tmp = lively.morphic.Morph.makeRectangle(lively.rect(0, 0, 10, 20));
                     tmp.setBorderWidth(0);
                     tmp.setFill(Color.rgb(66, 139, 202));
+                    tmp.bigExtent = pt(20, 60);
+                    tmp.onMouseDown = onMouseDown;
                     return tmp;
                 }
             },
             {
-                name: "Circle",
                 create: function() {
-                    return lively.morphic.Morph.makeCircle(pt(0,0), 25, 0, Color.black, Color.rgb(66, 139, 202));
+                    var circle = lively.morphic.Morph.makeCircle(pt(0, 10), 5, 0, Color.black, Color.rgb(66, 139, 202));
+                    circle.bigExtent = pt(50, 50);
+                    circle.onMouseDown = onMouseDown;
+                    return circle;
                 }
             },
             {
-                name: "Line",
                 create: function() {
-                    return lively.morphic.Morph.makeLine([pt(0,0), pt(50,50)], 2, Color.rgb(66, 139, 202));
+                    var line = lively.morphic.Morph.makeLine([pt(0, 0), pt(10, 20)], 2, Color.rgb(66, 139, 202));
+                    line.onMouseDown = onMouseDown;
+                    return line;
                 }
             },
             {
-                name: "Text",
-                create: function() {
-                    return lively.morphic.Text.makeLabel("Label");
+                create: function(){
+                    var text = lively.morphic.Text.makeLabel("Text");
+                    text.bigExtent = pt(33, 24);
+                    text.eventsAreIgnored = false;
+                    text.onMouseDown = onMouseDown;
+                    return text;
                 }
             }, 
-            {
-                name: "Piesector",
+            {   
+                name: "PieSector",
                 create: function() {
                     return new lively.morphic.Charts.PieSector();
                 }
@@ -232,6 +313,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.PrototypeArea
         
         return componentNames;
     },
+
     attachListener: function attachListener(aMorph, force) {
         var _this = this;
         if (!force && aMorph.listenersAttached)
@@ -3786,56 +3868,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         mappingInput.addMorph(lively.morphic.Text.makeLabel("mappingInput:"));
         return mappingInput;
     },
-    createPlusButton: function() {
-        var componentNames = [
-            {
-                name: "Rectangle", 
-                create: function() {
-                    var tmp = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,60));
-                    tmp.setBorderWidth(0);
-                    tmp.setFill(Color.rgb(66, 139, 202));
-                    return tmp;
-                }
-            },
-            {
-                name: "Circle",
-                create: function() {
-                    return lively.morphic.Morph.makeCircle(pt(0,0), 25, 0, Color.black, Color.rgb(66, 139, 202));
-                }
-            },
-            {
-                name: "Line",
-                create: function() {
-                    return lively.morphic.Morph.makeLine([pt(0,0), pt(50,50)], 2, Color.rgb(66, 139, 202));
-                }
-            },
-            {
-                name: "Text",
-                create: function() {
-                    return lively.morphic.Text.makeLabel("Label");
-                }
-            }, 
-            {
-                name: "Piesector",
-                create: function() {
-                    return new lively.morphic.Charts.PieSector();
-                }
-            }
-        ];
-        
-        var contextItems = componentNames.map(function(ea) {
-            return [ea.name, function() {
-                var morph = ea.create();
-                morph.openInHand();
-            }];
-        });
-        
-        this.addButton = new lively.morphic.Charts.PlusButton(contextItems);
-        this.addButton.layout = {moveVertical: true};
-        this.prototypeArea.addMorph(this.addButton);
-        var position = pt(4, this.prototypeArea.getExtent().y - this.addButton.getExtent().y - 4);
-        this.addButton.setPosition(position);
-    },
+
 
     update : function($super, data) {
         if (!data) {

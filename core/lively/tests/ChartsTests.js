@@ -1165,6 +1165,25 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         // The additional line should be gone
         this.assertEquals(mappingContainer.submorphs.length, 1, "unused line was not removed");
     },
+    testReOrdering: function() {
+        var creator = this.helper.createComponent("MorphCreator");
+        var mappingContainer = creator.content.mappingContainer;
+        var lines = mappingContainer.submorphs;
+        
+        // create 3 lines
+        for (var i = 0; i < 3; i++) {
+            lines[i].attributeField.setTextString("attr" + i);
+        }
+        
+        // clear the first line
+        var empty = lines[0];
+        lines[0].attributeField.setTextString("");
+        
+        var last = mappingContainer.getLastLine();
+        
+        // the empty line should now be the last one
+        this.assertEquals(empty, last, "re-ordering failed");
+    },
     testGetMappings: function() {
         var component = this.helper.createComponent("MorphCreator");
         var mappingContainer = component.content.mappingContainer;

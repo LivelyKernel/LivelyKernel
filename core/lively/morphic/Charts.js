@@ -5929,6 +5929,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         valueField.layout = {
             resizeWidth: true
         }
+        valueField.setWordBreak("break-word");
         
         valueField.setStyleSheet(this.getFieldCSS());
         valueField.setWhiteSpaceHandling("normal");
@@ -6029,6 +6030,16 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
                 this.container.emptyLine = this;
                 this.attributeField.setFill(this.INACTIVE_COLOR);
                 this.valueField.setBorderColor(this.INACTIVE_COLOR);
+                var lastLine = this.container.getLastLine();
+                
+                // to always have the empty line as last line, re-add this line
+                if (lastLine != this) {
+                    // save the focused field to set the focus after re-adding the line
+                    var focused = this.attributeField.isFocused() ? this.attributeField : this.valueField;
+                    this.remove();
+                    this.container.addMorph(this);
+                    focused.focus();
+                }
             }
         } else if (this.container.emptyLine == this) {
             // this line is not empty anymore, but was before,
@@ -6099,6 +6110,19 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         
         // if no next line was found, return the sender
         return next ? next : sender;
+    },
+    getLastLine: function() {
+        var maxY = 0;
+        var last;
+        this.submorphs.each(function(ea) {
+            var posY = ea.getPosition().y;
+            if (posY > maxY) {
+                last = ea;
+                maxY = posY;
+            }
+        });
+        
+        return last;
     },
     getPreviousLine: function(sender) {
         var senderPos = sender.getPosition();

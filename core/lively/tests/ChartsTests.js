@@ -527,6 +527,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assertEquals(morph.getPosition(), pt(132, 56));
     },
 });
+
 AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
 'setup/teardown', {
     
@@ -1119,6 +1120,76 @@ TestCase.subclass('lively.tests.ChartsTests.CoordinateSystemTest',
         
         // test that the element is positioned in the bottom left corner
         this.assert(element.getPosition().equals(pt(0, 200)));
+    }
+});
+
+TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
+'setup/teardown', {
+    
+    setUp: function() {
+		this.helper = new lively.tests.ChartsTests.Helper();
+    },
+    
+    tearDown: function() {
+        
+        // delete all dataflow components
+        // this fixes the problem that a failing test leaves components behind and affects other tests
+        $world.withAllSubmorphsSelect(function(el) {
+            return el instanceof lively.morphic.Charts.Component;
+        }).each(function(ea) {
+            ea.remove();
+        });
+        
+        // delete the dashboard, if it exists
+        var dashboard = $morph("Dashboard");
+        if (dashboard) dashboard.remove();
+    },
+    
+    testLineManagement: function() {
+        var creator = this.helper.createComponent("MorphCreator");
+        var mappingContainer = creator.content.mappingContainer;
+        var lines = mappingContainer.submorphs;
+        
+        // There should be only one initial line
+        this.assertEquals(mappingContainer.submorphs.length, 1, "More than one initial mapping line");
+        
+        // Setup one mapping
+        lines[0].attributeField.setTextString("height");
+        
+        // Now there should be a new line
+        this.assertEquals(mappingContainer.submorphs.length, 2, "no new line was created");
+        
+        // Clear the first line
+        lines[0].attributeField.setTextString("");
+        
+        // The additional line should be gone
+        this.assertEquals(mappingContainer.submorphs.length, 1, "unused line was not removed");
+    },
+    testGetMappings: function() {
+        var component = this.helper.createComponent("MorphCreator");
+        var mappingContainer = component.content.mappingContainer;
+        var lines = mappingContainer.submorphs;
+        
+        // fill the fields with some mapping values
+        for (var i = 0; i < 4; i++) {
+            lines[i].attributeField.setTextString("attr" + i);
+            lines[i].valueField.setTextString("value" + i);
+        }
+        
+        // create an array with the expected mappings
+        var expected = [];
+        for (var i = 0; i < 4; i++) {
+            expected.push({
+                attribute: "attr" + i,
+                value: "value" + i
+            });
+        }
+        
+        // get the real mappings
+        var mappings = mappingContainer.getAllMappings();
+        
+        // those should equal the expected ones
+        this.assertEquals(JSON.stringify(mappings), JSON.stringify(expected));
     }
 });
     

@@ -5850,16 +5850,20 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
     },
     createValueField: function() {
         var offset = 120;
-        var valueField = new lively.morphic.Text(lively.rect(offset, 0, this.getExtent().x - offset, 20), "");
+        var valueField = new lively.morphic.Text(lively.rect(offset, 0, this.getExtent().x - offset, 14), "");
         valueField.setFill(Color.white);
+        valueField.setTextColor(this.INACTIVE_COLOR);
+        valueField.setBorderColor(this.INACTIVE_COLOR);
         valueField.setBorderWidth(1);
         valueField.setBorderStyle("dashed");
         valueField.setBorderRadius(8);
+        valueField.setFixedHeight(false);
         valueField.layout = {
             resizeWidth: true
         }
         
         valueField.setStyleSheet(this.getFieldCSS());
+        valueField.setWhiteSpaceHandling("normal");
         
         this.valueField = valueField;
         
@@ -5872,16 +5876,24 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
             evt.stop();
         }
         
+        // fit the height when the valueField resizes
+        connect(valueField.shape, "_Extent", this, "fitHeight", {});
+        
         this.addMorph(valueField);
         
         return valueField;
+    },
+    fitHeight: function() {
+        var newExtent = lively.pt(this.getExtent().x, this.valueField.getExtent().y);
+        this.setExtent(newExtent);
+        this.container.refreshLayout();
     },
     createAttributeField: function() {
         var maxWidth = 100;
         var attributeField = new lively.morphic.Text(lively.rect(0, 0, maxWidth, 20), "");
         attributeField.setBorderWidth(0);
         attributeField.setBorderRadius(8);
-        attributeField.setFill(Color.rgb(161, 197, 229));
+        attributeField.setFill(this.INACTIVE_COLOR);
         attributeField.setTextColor(Color.white);
         attributeField.setFixedWidth(false);
         attributeField.setMinTextWidth(30);
@@ -5915,14 +5927,19 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
     },
     focusNextInput: function(sender) {
         if (sender == this.attributeField) {
+            // jump to next field in the same line
             this.valueField.focus();
             this.valueField.selectAll();
         }
         else {
+            // jump to the first field in the next line
             var nextLine = this.container.getNextLine(this);
             nextLine.attributeField.focus();
             nextLine.attributeField.selectAll();
         }
+    },
+    isEmpty: function() {
+        return this.attributeField.getTextString() == "" && this.valueField.getTextString() == "";
     },
     focusPreviousInput: function(sender) {
         if (sender == this.valueField) {
@@ -5937,18 +5954,29 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
     },
     
     checkIfEmpty: function() {
-        if (this.attributeField.getTextString() == "" && this.valueField.getTextString() == ""){
-            // this line is empty
-            
+        if (this.isEmpty()){
             // do not remove ourself
             if (this.container.emptyLine != this) {
                 this.container.emptyLine.remove();
                 this.container.emptyLine = this;
+                this.attributeField.setFill(this.INACTIVE_COLOR);
+                this.valueField.setBorderColor(this.INACTIVE_COLOR);
             }
         } else if (this.container.emptyLine == this) {
             // this line is not empty anymore, but was before,
             // so create a new empty one
             this.container.createEmptyLine();
+            this.attributeField.setFill(this.ACTIVE_COLOR);
+            this.valueField.setTextColor(this.ACTIVE_COLOR);
+            this.valueField.setBorderColor(this.ACTIVE_COLOR);
+        }
+    },
+    ACTIVE_COLOR: Color.rgbHex("4C5E70"),
+    INACTIVE_COLOR: Color.rgb(166, 175, 184),
+    getMapping: function() {
+        return {
+            attribute: this.attributeField.getTextString(),
+            value: this.valueField.getTextString()
         }
     }
     
@@ -5970,9 +5998,23 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         layout.setSpacing(7.5);
         this.setLayouter(layout);
     },
+    refreshLayout: function() {
+        this.getLayouter().layout(this, this.submorphs);
+    },
+    getAllMappings: function() {
+        var mappings = [];
+        
+        this.submorphs.each(function(mappingLine) {
+            if (!mappingLine.isEmpty()) {
+                mappings.push(mappingLine.getMapping());
+            }
+        });
+        
+        return mappings;
+    },
     getNextLine: function(sender) {
         var senderPos = sender.getPosition();
-        var closest
+        var closest;
         var allFollowing = this.submorphs.select(function(ea) {
             return ea.getPosition().y > senderPos.y;
         });
@@ -5980,8 +6022,11 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         var next = undefined;
         var minY = Number.MAX_VALUE;
         allFollowing.each(function(ea) {
-            if (ea.getPosition().y < minY)
+            var posY = ea.getPosition().y;
+            if (posY < minY) {
                 next = ea;
+                minY = posY;
+            }
         });
         
         // if no next line was found, return the sender
@@ -5997,8 +6042,11 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         var previous = undefined;
         var maxY = 0;
         allPrevious.each(function(ea) {
-            if (ea.getPosition().y > maxY)
+            var posY = ea.getPosition().y;
+            if (posY > maxY) {
                 previous = ea;
+                maxY = posY;
+            }
         });
         
         // if no previous line was found, return the sender

@@ -974,15 +974,17 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
 
     
-    makeReframeHandles: function (optMorph) {
-        var context = optMorph || this;
+    makeReframeHandles: function () {
+        var context = this;
         context.spacing = 4;
         // create three reframe handles (bottom, right, and bottom-right) and align them to the window
         var e = context.getExtent();
         context.reframeHandle = context.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+        context.reframeHandle.setName("ReframeHandle");
         context.rightReframeHandle = context.addMorph(new lively.morphic.ReframeHandle('right', e.withX(context.spacing)));
+        context.rightReframeHandle.setName("RightReframeHandle");
         context.bottomReframeHandle = context.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(context.spacing)));
-        context.alignAllHandles = this.alignAllHandles;
+        context.bottomReframeHandle.setName("BottomReframeHandle");
         context.alignAllHandles();
     },
     
@@ -3275,7 +3277,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             padding-top: 2px !important;\
             position: relative !important;\
             text-decoration: none solid rgb(255, 255, 255) !important;\
-            z-index: 2 !important;\
+            z-index: 0 !important;\
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;\
             -webkit-box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
             box-shadow: 0 -1px 5px rgba(0,0,0,.2) !important;\
@@ -4755,18 +4757,11 @@ lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
     
     initialize : function($super, content){
         $super(content);
-        // delete Minimizer
-        var minimizer = this.getSubmorphsByAttribute("name", "Minimizer");
-        if (minimizer.length)
-        {
-            minimizer[0].remove();
-        }
-        // delete componentBody
-        var componentBody = this.getSubmorphsByAttribute("name", "ComponentBody");
-        if (componentBody.length)
-        {
-            componentBody[0].remove();
-        }
+        this.removeSubmorph("Minimizer");
+        this.removeSubmorph("ComponentBody");
+        this.removeSubmorph("Swapper");
+        this.removeSubmorph("BottomReframeHandle");
+        this.removeSubmorph("ReframeHandle");
     },
 
     calculateSnappingPosition: function() {
@@ -4834,14 +4829,17 @@ lively.morphic.Charts.DataFlowComponent.subclass('lively.morphic.Charts.Fan',
         // nothing needs to be done, just resolve with the old data
         return new $.Deferred().resolve(this.data);
     },
-    
-    makeReframeHandles: function ($super) {
-        $super(this.componentHeader);
+    removeSubmorph: function(name) {
+        var submorphs = this.getSubmorphsByAttribute("name", name);
+        if (submorphs.length)
+        {
+            submorphs[0].remove();
+        }
     },
     
-    alignAllHandles: function ($super) {
-        $super(this.componentHeader);
-    },
+
+    
+
 });
 
 lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanIn',
@@ -4891,13 +4889,21 @@ lively.morphic.Charts.Fan.subclass('lively.morphic.Charts.FanOut',
         if (componentAbove)
             this.data = componentAbove.getData(this);
     },
+    onResizeEnd: function($super) {
+        $super();
+        var _this = this;
+        this.arrows.each(function (ea) {
+            if (_this.getPosition().x + _this.getExtent().x < ea.target.getPosition().x) {
+                _this.removeArrowFromArray(ea);
+                ea.remove();
+            }
+        })
+    },
     handleLowerNeighborMoved: function(component) {
         var arrowToTarget = this.getArrowToTarget(component);
         if (arrowToTarget) {
             this.removeArrowFromArray(arrowToTarget);
             arrowToTarget.remove();
-        } else {
-            alert("Found no arrow for component below FanOut");
         }
     },
     getArrowToTarget: function(target) {

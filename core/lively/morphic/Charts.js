@@ -201,31 +201,37 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
 
 
     createSampleProtoypes: function(){
-        var container = new lively.morphic.Morph.makeRectangle(lively.rect(1, 1, this.getExtent().x - 2, this.getExtent().y / 7));
+        var container = new lively.morphic.Morph.makeRectangle(lively.rect(1, 1, this.getExtent().x - 2, this.getExtent().y / 6));
         container.setFill(Color.white);
         container.setBorderWidth(0);
         container.setBorderRadius(5);
         var containerLayout = new lively.morphic.Layout.HorizontalLayout();
-        containerLayout.setSpacing(4);
-        containerLayout.borderSize = 4;
+        containerLayout.setSpacing(10);
+        containerLayout.borderSize = 7;
         container.setLayouter(containerLayout);
         container.disableDropping();
         container.disableGrabbing();
         this.addMorph(container);
         
         // add border line
-        var line = new lively.morphic.Path([pt(0, this.getExtent().y / 7), pt(this.getExtent().x, this.getExtent().y / 7)]);
+        var line = new lively.morphic.Path([pt(0, this.getExtent().y / 6), pt(this.getExtent().x, this.getExtent().y / 6)]);
         line.setBorderColor(Color.rgb(66, 139, 202));
         this.addMorph(line);
-            
+        
         // add prototype components
-        var showedMorphs = 4;
-        this.getPrototypeComponents().each(function(eachCreateFunction, index){
-            if (index < showedMorphs) {
+        var showedMorphs = 5;
+        this.getPrototypeComponents().reverse().each(function(eachCreateFunction, index){
+            console.log(eachCreateFunction.create);
+            if (index <= showedMorphs) {
                 var morph = eachCreateFunction.create();
                 container.addMorph(morph);
             }
         });
+        
+        // update container Layout
+        setTimeout(function(){container.getLayouter().layout(container, container.submorphs);}.bind(this), 1);
+        
+        if (showedMorphs <= this.getPrototypeComponents().length) return;
         
         // add ... for more prototype components
         var moreContainer = new lively.morphic.Morph.makeRectangle(lively.rect(50, 10, 20, 20));
@@ -254,9 +260,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
             menu.openIn($world, this.getPositionInWorld());
         }
         container.addMorph(moreContainer);
-        
-        // update container Layout
-        setTimeout(function(){container.getLayouter().layout(container, container.submorphs);}.bind(this), 1);
     },
     
     getPrototypeComponents: function() {
@@ -271,17 +274,17 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         var componentNames = [
             {
                 create: function() {
-                    var tmp = lively.morphic.Morph.makeRectangle(lively.rect(0, 0, 10, 20));
-                    tmp.setBorderWidth(0);
-                    tmp.setFill(Color.rgb(66, 139, 202));
-                    tmp.bigExtent = pt(20, 60);
-                    tmp.onMouseDown = onMouseDown;
-                    return tmp;
+                    var rectangle = lively.morphic.Morph.makeRectangle(lively.rect(0, 0, 10, 20));
+                    rectangle.setBorderWidth(0);
+                    rectangle.setFill(Color.rgb(66, 139, 202));
+                    rectangle.bigExtent = pt(20, 60);
+                    rectangle.onMouseDown = onMouseDown;
+                    return rectangle;
                 }
             },
             {
                 create: function() {
-                    var circle = lively.morphic.Morph.makeCircle(pt(0, 10), 5, 0, Color.black, Color.rgb(66, 139, 202));
+                    var circle = lively.morphic.Morph.makeCircle(pt(0, 0), 5, 0, Color.black, Color.rgb(66, 139, 202));
                     circle.bigExtent = pt(50, 50);
                     circle.onMouseDown = onMouseDown;
                     return circle;
@@ -296,17 +299,19 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
             },
             {
                 create: function(){
-                    var text = lively.morphic.Text.makeLabel("Text");
-                    text.bigExtent = pt(33, 24);
+                    var text = lively.morphic.Text.makeLabel("A");
+                    text.bigExtent = pt(17, 24);
                     text.eventsAreIgnored = false;
                     text.onMouseDown = onMouseDown;
                     return text;
                 }
             }, 
             {   
-                name: "PieSector",
                 create: function() {
-                    return new lively.morphic.Charts.PieSector();
+                    var pieSector = new lively.morphic.Charts.PieSector(45, 20);
+                    pieSector.bigExtent = pt(90, 90);
+                    pieSector.onMouseDown = onMouseDown;
+                    return pieSector;
                 }
             }
         ];
@@ -1604,7 +1609,7 @@ lively.morphic.Path.subclass('lively.morphic.Charts.PieSector',
 'default category', {
     initialize: function($super, degree, radius, optCenter) {
         if (!degree) degree = 45;
-        if (!radius) radius = 100;
+        if (!radius) radius = 20;
         if (!optCenter) optCenter = pt(0,0);
         this.exactness = 1;
     
@@ -1624,6 +1629,8 @@ lively.morphic.Path.subclass('lively.morphic.Charts.PieSector',
         this.center = optCenter;
         this.radius = radius;
         this.degree = degree;
+        this.setFill(Color.rgb(66, 139, 202));
+        this.setBorderWidth(0);
         this.originalVertices = this.vertices();
         return this;
     },
@@ -1638,6 +1645,7 @@ lively.morphic.Path.subclass('lively.morphic.Charts.PieSector',
         this.center = newVertices[0];
         this.radius = (newVertices[0] - newVertices[1]).length;
     },
+
     setDegree: function(degree) {
         // calculate new vertices and discard old vertices
         var points = [this.center];

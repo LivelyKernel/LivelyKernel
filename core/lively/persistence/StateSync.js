@@ -502,11 +502,15 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     getModelData: function() {
         var obj = (function walkRecursively() {
             var obj = {};
-            this.submorphs.forEach(function(morph) {
+            this.submorphs.forEach(function(morph, idx) {
                 if (morph.getName()) {
-                    // only named morphs are candidates for fields
-                    if (morph.getModelData) obj[morph.name] = morph.getModelData()
-                    else obj[morph.name] = walkRecursively.call(morph)
+                    if (morph.synchronizationHandles && morph.synchronizationHandles.length > 0) {
+                        // stop adding to the model
+                    } else {
+                        // only named morphs are candidates for fields
+                        if (morph.getModelData) obj[morph.name] = morph.getModelData()
+                        else obj[morph.name] = walkRecursively.call(morph)
+                    }
                 }
             });
             return obj;

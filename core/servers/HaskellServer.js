@@ -20,11 +20,13 @@ function ensureHaskell(thenDo) {
     proc.on('exit', function() { haskellState.process = null; });
     // debug && haskellState.process.stdout.pipe(process.stdout)
     // debug && haskellState.process.stderr.pipe(process.stdout) 
-    ensureHaskellWithListeners(function(data) {console.log("%s", data);}, function(err) {}, function(err, proc, uninstall) {
-        if (err) { thenDo(err); uninstall && uninstall(); return }
-        proc.stdin.write(":set prompt >>>\n");
-        setTimeout(function() { uninstall && uninstall(); thenDo(null, proc); }, 400);
-    });
+    ensureHaskellWithListeners(
+        function(data) { debug && console.log("%s", data); },
+        function(err) {}, function(err, proc, uninstall) {
+            if (err) { thenDo(err); uninstall && uninstall(); return; }
+            proc.stdin.write(":set prompt >>>\n");
+            setTimeout(function() { uninstall && uninstall(); thenDo(null, proc); }, 400);
+        });
 }
 
 function ensureHaskellWithListeners(onData, onError, thenDo) {
@@ -45,24 +47,28 @@ function ensureHaskellWithListeners(onData, onError, thenDo) {
 }
 
 function haskellEval(expr, thenDo) {
-    debug && console.log('Haskel eval %s', expr);
+    debug && console.log('Haskell eval %s', expr);
     var output = new Buffer(''), sentinel, error, uninstallListeners;
+
     function checkForOutputAndClose() {
         clearTimeout(sentinel);
         uninstallListeners && uninstallListeners();
         thenDo(error, output.toString());
     }
+
     function onError(err) {
         console.log('Haskell error: ', err);
         error = err;
         checkForOutputAndClose();
     }
+
     function onData(data) {
-        debug && console.log('Haskel output %s', expr);
+        debug && console.log('Haskell output %s', expr);
         output = Buffer.concat([output, data]);
         if (sentinel) clearTimeout(sentinel);
         sentinel = setTimeout(checkForOutputAndClose, 200);
     }
+
     ensureHaskellWithListeners(onData, onError, function(err, haskellProc, uninstall) {
         uninstallListeners = uninstall;
         if (err) { thenDo(err); return; }

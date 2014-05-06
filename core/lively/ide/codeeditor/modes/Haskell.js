@@ -5,8 +5,11 @@ var HaskellMode = lively.ide.ace.require('ace/mode/haskell').Mode
 HaskellMode.addMethods({
 
     commands: {test: {exec: function(ed) { show(123); }}},
+
     keybindings: {"Alt-a": "test"},
+
     keyhandler: null,
+
     initKeyHandler: function() {
         var h = this.keyhandler = lively.ide.ace.createKeyHandler({
             keyBindings: this.keybindings,

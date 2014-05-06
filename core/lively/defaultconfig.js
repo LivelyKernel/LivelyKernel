@@ -456,7 +456,7 @@ Config.addOptions(
     ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
     ["loadRewrittenCode", false, "Is currently running code rewritten?"],
     ["enableDebuggerStatements", false, "Whether to throw Debugger exceptions in rewritten code"],
-    ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html", "Where to report bugs"]
+    ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html?openCreateIssuePrompt=true", "Where to report bugs"]
 ],
 
 'lively.morphic.Text', [

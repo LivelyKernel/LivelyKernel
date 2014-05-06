@@ -1442,6 +1442,16 @@ lively.morphic.World.addMethods(
             self.onWindowScroll(evt);
         };
         this.registerForVisibilityChange(false);
+        this.registerForBrowserSpecificEvents(false);
+    },
+    registerForBrowserSpecificEvents: function(capturing) {
+        var world = this;
+        function handler(evt) {
+            evt = evt || window.event;
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            return world.onHashChange(evt);
+        }
+        window.onhashchange = handler;
     },
     registerForVisibilityChange: function(capturing) {
         var world = this;
@@ -1711,6 +1721,11 @@ lively.morphic.World.addMethods(
         // "hidden", "prerender"
         // * currently this attribute is only accessible via browser vendor
         // * specific prefixes: document[lively.Config.get('browserPrefix') + 'VisibilityState'];
+    },
+
+    onHashChange: function(evt) {
+        // see https://developer.mozilla.org/en-US/docs/Web/API/Window.onhashchange
+        // evt object should have fields newURL and oldURL
     },
 
     onWindowScroll: function(evt) {

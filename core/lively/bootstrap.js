@@ -1271,7 +1271,7 @@
     function initNodejsBootstrap() {
         // remove libs, JSON:
         Global.LivelyLoader.bootstrapFiles = [
-            'lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
+            'core/lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
         var bootstrapModules = [
             'lively.lang.Closure',
             'lively.bindings',

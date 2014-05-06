@@ -1737,7 +1737,7 @@ lively.morphic.World.addMethods(
     openSubserverViewer: function(doFunc) {
         require('lively.ide.tools.SubserverViewer').toRun(function() {
             var subserver = lively.BuildSpec('lively.ide.tools.SubserverViewer').createMorph().openInWorldCenter().comeForward();
-            doFunc && doFunc(null, subserver);
+            Object.isFunction(doFunc) && doFunc(null, subserver);
         });
     },
 

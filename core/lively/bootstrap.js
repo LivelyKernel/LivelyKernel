@@ -1285,7 +1285,7 @@
                 loader.systemStart(document);
                 console.log('bootstrap done');
             } + ')');
-            lively.require(bootstrapModules).toRun(finished);
+            Global.lively.require(bootstrapModules).toRun(finished);
         });
         module.exports.Global = Global;
     }

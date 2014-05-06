@@ -570,7 +570,7 @@ function connectSavingProperties(anObject, options) {
 });
 
 Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
-function openMorphFor(modelPath, rootHandle, noMorphCb) {
+function openMorphFor(modelPath, rootHandle, noMorphCb, thenDo) {
     var path = lively.PropertyPath(modelPath),
         name = path.parts()[path.parts().length - 2],
         trait = this;
@@ -583,8 +583,12 @@ function openMorphFor(modelPath, rootHandle, noMorphCb) {
             handle = rootHandle.child(modelPath);
         part.setName(name);
         trait.mixInto(part, handle, false);
-        part.setPosition(pt(0, 0))
-        part.openInHand();
+        if (thenDo) {
+            thenDo(null, part);
+        } else {
+            part.setPosition(pt(0, 0))
+            part.openInHand();
+        }
     });
 });
 

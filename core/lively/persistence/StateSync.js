@@ -686,10 +686,44 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
     mergeWithModelData: function(newText, changeTime) {
         if (!this.changeTime || this.changeTime < changeTime) {
             // backward compatibility
-            if (typeof newText == "string")
-                this.textString = newText
-            else
-                this.setRichTextMarkup(newText)
+            if (typeof newText == "string") {
+                if (this.textString !== newText) {
+                    this.textString = newText;
+                } else return
+            } else {
+                if (!Objects.equal(newText, Object.deepCopy(this.getRichTextMarkup()))){
+                    this.setRichTextMarkup(newText);
+                } else return
+            }
+            // visualize change
+            if (this.changeVisualizationTime !== undefined) {
+                // there might be a problem with serialization ...
+                this.changeVisualizationTime = 10;
+                return
+            }
+            var color = this.getBorderColor(),
+                width = this.getBorderWidth(),
+                self = this;
+            this.setBorderColor(Color.tangerine);
+            if (width == 0) {
+                this.setBorderWidth(2);
+                color = color.withA(0);
+            };
+            self.changeVisualizationTime = 10;
+            window.setTimeout(function ticking() {
+                self.changeVisualizationTime -= 1;
+                if (self.changeVisualizationTime <= 0) {
+                    self.withCSSTransitionDo(function() {
+                        this.setBorderColor(color)
+                    }, 500, function() {
+                        this.setBorderWidth(width);
+                        delete this.changeVisualizationTime
+                    })
+                } else {
+                    window.setTimeout(ticking, 1000)
+                }
+            }, 1000)
+            return true;
         }
     },
 });
@@ -705,9 +739,40 @@ Trait("lively.persistence.StateSync.SynchronizedListMixin",
     },
     mergeWithModelData: function(newValues, changeTime) {
         var self = this;
-        lively.bindings.noUpdate(function() {
-            self.setList(newValues);
-        });
+        if (!Objects.equal(newValues, this.itemList)){
+            lively.bindings.noUpdate(function() {
+                self.setList(newValues);
+            });
+            // visualize change
+            if (this.changeVisualizationTime !== undefined) {
+                // there might be a problem with serialization ...
+                this.changeVisualizationTime = 10;
+                return
+            }
+            var color = this.getBorderColor(),
+                width = this.getBorderWidth(),
+                self = this;
+            this.setBorderColor(Color.tangerine);
+            if (width == 0) {
+                this.setBorderWidth(2);
+                color = color.withA(0);
+            };
+            self.changeVisualizationTime = 10;
+            window.setTimeout(function ticking() {
+                self.changeVisualizationTime -= 1;
+                if (self.changeVisualizationTime <= 0) {
+                    self.withCSSTransitionDo(function() {
+                        this.setBorderColor(color)
+                    }, 500, function() {
+                        this.setBorderWidth(width);
+                        delete this.changeVisualizationTime
+                    })
+                } else {
+                    window.setTimeout(ticking, 1000)
+                }
+            }, 1000)
+            return true;
+        }
     },
 });
 Trait("lively.persistence.StateSync.SynchronizedListMixin").mixin().applyTo(lively.morphic.List);
@@ -724,6 +789,29 @@ Trait("lively.persistence.StateSync.SynchronizedSliderMixin",
     mergeWithModelData: function(newValue, changeTime) {
         if (typeof newValue == "number" && this.value !== newValue && this.changeTime < changeTime) {
             this.value = newValue;
+            // visualize change
+            if (this.changeVisualizationTime !== undefined) {
+                // there might be a problem with serialization ...
+                this.changeVisualizationTime = 10;
+                return
+            }
+            var color = this.sliderKnob.getFill(),
+                self = this;
+            this.sliderKnob.setFill(Color.tangerine);
+            self.changeVisualizationTime = 10;
+            window.setTimeout(function ticking() {
+                self.changeVisualizationTime -= 1;
+                if (self.changeVisualizationTime <= 0) {
+                    self.sliderKnob.withCSSTransitionDo(function() {
+                        this.setFill(color)
+                    }, 500, function() {
+                        delete this.changeVisualizationTime
+                    })
+                } else {
+                    window.setTimeout(ticking, 1000)
+                }
+            }, 1000)
+            return true;
         }
     },
 });
@@ -742,6 +830,7 @@ Trait("lively.persistence.StateSync.SynchronizedCheckBoxMixin",
     mergeWithModelData: function(newValue, changeTime) {
         if (typeof newValue == "boolean" && this.value !== newValue && this.changeTime < changeTime) {
             this.setChecked(newValue);
+            return true;
         }
     },
 });
@@ -777,12 +866,47 @@ Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
         return {content: this.savedTextString, mode: this.getTextMode()};
     },
     mergeWithModelData: function(newContent, changeTime) {
+        var changed = false;
         if (newContent.content !== this.savedTextString) {
             this.savedTextString = newContent.content;
             this.textString = newContent.content;
+            changed = true;
         }
-        if (newContent.mode !== this.getTextMode())
+        if (newContent.mode !== this.getTextMode()) {
             this.setTextMode(newContent.mode);
+            changed = true;
+        }
+        if (changed) {
+            // visualize change
+            if (this.changeVisualizationTime !== undefined) {
+                // there might be a problem with serialization ...
+                this.changeVisualizationTime = 10;
+                return
+            }
+            var color = this.getBorderColor(),
+                width = this.getBorderWidth(),
+                self = this;
+            this.setBorderColor(Color.tangerine);
+            if (width == 0) {
+                this.setBorderWidth(2);
+                color = color.withA(0);
+            };
+            self.changeVisualizationTime = 10;
+            window.setTimeout(function ticking() {
+                self.changeVisualizationTime -= 1;
+                if (self.changeVisualizationTime <= 0) {
+                    self.withCSSTransitionDo(function() {
+                        this.setBorderColor(color)
+                    }, 500, function() {
+                        this.setBorderWidth(width);
+                        delete this.changeVisualizationTime
+                    })
+                } else {
+                    window.setTimeout(ticking, 1000)
+                }
+            }, 1000)
+        }
+        return changed;
     },
 });
 Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin").mixin().applyTo(lively.morphic.CodeEditor);

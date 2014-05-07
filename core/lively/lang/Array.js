@@ -298,7 +298,7 @@ Object.extend(Array.prototype, {
                     continue;
                 }
             }
-            if (this[i] != otherArray[i]) return false;
+            if (!Objects.equal(this[i], otherArray[i])) return false;
         }
         return true;
     },

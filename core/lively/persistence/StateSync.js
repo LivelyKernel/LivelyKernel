@@ -503,7 +503,11 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
                 if (morph.name) {
                     // only named morphs are candidates for fields
                     if (morph.mergeWithModelData && values[morph.name] !== undefined)
-                        morph.mergeWithModelData(values[morph.name], someValue.changeTime)
+                        try {
+                            morph.mergeWithModelData(values[morph.name], someValue.changeTime)
+                        } catch (e) {
+                            alert("Error while merging changes into " + this + ": " + e)
+                        }
                     else walkRecursively.call(morph, values[morph.name])
                 }
             });

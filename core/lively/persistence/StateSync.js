@@ -441,13 +441,24 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             // (re-)added and should therefore start getting updates again
             var aMorph = this;
             this.synchronizationGet = this.synchronizationGet || (function(error, val) {
-                aMorph.mergeWithModelData(val)
+                if (aMorph.mergeWithModelData(val)) {
+                    aMorph.indicateUpdate();
+                }
             });
             this.synchronizationHandles.forEach(function(handle) {
                 handle.get(this.synchronizationGet)
             }, this);
             this.form.handle.get(this.form.cb);
         }
+    },
+    indicateUpdate: function () {
+        // var changeIndicator = new lively.morphic.Box(lively.rect(0, 0, 10, 10));
+        // changeIndicator.openInWorld();
+        // changeIndicator.setPosition(this.getPosition().plusXY(this.getExtent().x - 10, 0));
+        // changeIndicator.setFill(Color.tangerine);
+        // changeIndicator.setBorderWidth(0);
+        // window.setTimeout(function() {changeIndicator.remove()}, 10)
+        // connect(this, "position", changeIndicator, "remove", {removeAfterUpdate: true)
     },
     toString: function() {
         if (this.constructor.prototype.toString !== lively.morphic.Morph.prototype.toString)

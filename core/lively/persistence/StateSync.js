@@ -677,13 +677,7 @@ function formUpdate(me, error, value) {
 Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
 {
     connectTo: function(targetObj, targetMethodName, options) {
-        connect(this, "textString", targetObj, targetMethodName, {updater: 
-        function ($upd, value, oldValue) {
-            if (value == oldValue) return
-            this.sourceObj.changeTime = Date.now();
-            if (typeof this.targetObj[this.targetMethodName] == "function")
-                $upd(value, this.sourceObj, this);
-        }});
+        connect(this, "textString", targetObj, targetMethodName, options);
     },
     getModelData: function() {
         this.changeTime = Date.now();

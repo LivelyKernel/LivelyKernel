@@ -350,6 +350,19 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         }, varMapping: {note: note}});
         note.saveForm();
     },
+    testTextStringThrottleDebounce: function() {
+        var self = this,
+            s = {b:0},
+            t = {c: function(c) { self.assertEquals(c, 2, "should notify with the newer value"); self.done(); }};
+        connect(s, "b", t, "c", {
+            updater: function($upd, val) {
+                Functions.debounceNamed("debounceTest", 10, $upd)(val)
+                // Functions.throttleNamed("debounceTest", 10, $upd)(val)
+            },
+        })
+        s.b = 1;
+        window.setTimeout(function() {s.b = 2}, 4)
+    },
 })
 
 }) // end of module

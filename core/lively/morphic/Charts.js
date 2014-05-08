@@ -4223,8 +4223,13 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
         // publicly exposed utils functions
         this.public = {
             range: function(property, samples) {
+                var sampleValues = samples;
+                if (!Object.isArray(samples)) {
+                    // put all arguments but the first one into an array
+                    sampleValues = Array.prototype.slice.call(arguments).slice(1, arguments.length);
+                }
                 if (!_this.ranges[property]) {
-                    _this.ranges[property] = { samples : samples, values: [] };
+                    _this.ranges[property] = { samples : sampleValues, values: [] };
                 }
                 return function(value) {
                     _this.ranges[property].values.push(value);
@@ -6482,7 +6487,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         this.submorphs[mappingIndex].showError();
     },
     getIndexOf: function(attribute) {
-        var index = -1;debugger
+        var index = -1;
         this.submorphs.each(function(mappingLine, i) {
             if (mappingLine.getMapping().attribute == attribute) {
                 index = i;

@@ -52,6 +52,7 @@ Object.subclass('lively.ide.CodeEditor.DocumentChangeHandler',
             codeEditor: codeEditor,
             session: codeEditor.getSession()});
     }
+
 },
 'plugins', {
     invokePlugins: function(methodName, evt) {
@@ -194,7 +195,7 @@ Object.subclass('lively.ide.CodeEditor.CodeMarker',
                 start = session.doc.indexToPosition(range.start);
                 end = session.doc.indexToPosition(range.end);
             } else if ("startPos" in range && "endPos" in range) {
-                start = range.startPos; 
+                start = range.startPos;
                 end = range.endPos;
             } else {
                 console.warn('lively.morphic.CodeMarker cannot render %s', range);

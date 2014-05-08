@@ -453,6 +453,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 },
                 readOnly: true
             }, {
+
                 name: 'gotoPrevParagraph',
                 bindKey: 'Ctrl-Up',
                 exec: function(ed) {

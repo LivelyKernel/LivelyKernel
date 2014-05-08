@@ -2882,10 +2882,9 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
 
             componentsAbove.each(function (c){
                 // if there is a component below, reuse the connection line
-                // otherwise delete the whole arrow
-                if (componentsBelow.length) {
-                    c.refreshConnectionLines();
-                } else {
+                // otherwise FanOut deletes the whole arrow
+                c.refreshConnectionLines();
+                if (!componentsBelow.length) {
                     c.handleLowerNeighborMoved(_this);
                 }
             });
@@ -3952,9 +3951,16 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var _this = this;
         data.each(function(ea, index) {
             Properties.own(_this.morphCreatorUtils.ranges).each(function (key) {
+                var lineIndex = _this.mappingContainer.getIndexOf(key);
                 var setterFn = attributeMap[key];
                 if (setterFn) {
-                    setterFn(_this.morphCreatorUtils.interpolate.bind(_this.morphCreatorUtils, key), ea, index);
+                    try {
+                        setterFn(_this.morphCreatorUtils.interpolate.bind(_this.morphCreatorUtils, key), ea, index);
+                        _this.mappingContainer.hideErrorAt(lineIndex);
+                    } catch (e) {
+                        _this.mappingContainer.showErrorAt(lineIndex);
+                        console.log(e);
+                    }
                 }
             });
         });
@@ -4109,7 +4115,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                     _this.mappingContainer.hideErrorAt(index);
                 } catch (e) {
                     _this.mappingContainer.showErrorAt(index);
-                    console.error(e);
+                    console.log(e);
                 }
                 
             });
@@ -4136,7 +4142,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             var identifiers = _this.gatherIdentifiers(ast)
                 .uniq()
                 .filter(function(anIdentifier) {
-                    debugger
                     if (anIdentifier == "datum") return true;
                     return Object.isObject(sampleDatum) && anIdentifier in sampleDatum;
                 })
@@ -4268,8 +4273,22 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
         
         return interpolationFunction(intervalStart, intervalEnd, scaledIntervalValue);
     },
+    interpolatePoint: function(start, end, value) {
+        return pt(
+            start.x + value * (end.x - start.x),
+            start.y + value * (end.y - start.y)
+        )
+    },
     interpolateNumber: function(start, end, value) {
         return start + value * (end - start);
+    },
+    interpolateColor: function(start, end, value) {
+        return new Color(
+            start.r + value * (end.r - start.r),
+            start.g + value * (end.g - start.g),
+            start.b + value * (end.b - start.b),
+            start.a + value * (end.a - start.a)
+        );
     },
 });
 
@@ -6340,6 +6359,15 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
     },
     showErrorAt: function(mappingIndex) {
         this.submorphs[mappingIndex].showError();
+    },
+    getIndexOf: function(attribute) {
+        var index = -1;debugger
+        this.submorphs.each(function(mappingLine, i) {
+            if (mappingLine.getMapping().attribute == attribute) {
+                index = i;
+            }
+        });
+        return index;
     },
     hideErrorAt: function(mappingIndex) {
         this.submorphs[mappingIndex].hideError();

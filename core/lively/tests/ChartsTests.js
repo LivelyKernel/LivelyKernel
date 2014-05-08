@@ -1209,6 +1209,41 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         
         // those should equal the expected ones
         this.assertEquals(JSON.stringify(mappings), JSON.stringify(expected));
+    },
+    testExtractMappings: function() {
+        
+        var creator = this.helper.createComponent("MorphCreator").content;
+        var sampleData = {
+            population: 100,
+            hiv: 2,
+            caption: "Caption",
+            complex: {anAttribute: 1234}
+        };
+        
+        var mappings = [
+            {attribute: "x", value: "population"},
+            {attribute: "y", value: "Math.sqrt(hiv)"},
+            {attribute: "height", value: "complex.anAttribute + 100"},
+            {attribute: "width", value: "population + Math.sqrt(hiv) + complex.anAttribute + 100 * population"},
+            {attribute: "label", value: "caption + '!'"},
+            {attribute: "position", value: "notExistentAttribute"},
+        ];
+
+        var dependencies = creator.extractDependencies(mappings, sampleData).pluck("dependentAttributes");
+        
+        var expectedDependencies = [
+            ["population"],
+            ["hiv"],
+            ["complex"],
+            ["population", "hiv", "complex"],
+            ["caption"],
+            []
+        ];
+        
+        var _this = this;
+        expectedDependencies.map(function(dependency, index) {
+            _this.assertEquals(JSON.stringify(dependency), JSON.stringify(dependencies[index]));
+        });
     }
 });
     

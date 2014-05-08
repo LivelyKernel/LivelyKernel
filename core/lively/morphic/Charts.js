@@ -4136,15 +4136,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             try {
                 var ast = lively.ast.acorn.parse(expressionString);
             } catch (e) {
-                // this error will reoccur and propagate when evaluating it in generateMappingFunction's function
+                // this error will reoccur and propagate when evaluating it
+                // in generateMappingFunction's function
                 return;
             }
-            
-            
+
             var identifiers = _this.gatherIdentifiers(ast)
                 .uniq()
                 .filter(function(anIdentifier) {
-                    return anIdentifier in sampleDatum;
+                    return anIdentifier == "datum" || anIdentifier in sampleDatum;
                 })
             
             aMapping.dependentAttributes = identifiers;

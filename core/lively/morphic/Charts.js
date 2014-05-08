@@ -3913,6 +3913,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             this.morphInput.cachedName = morphName;
         }
         
+        this.morphCreatorUtils = new lively.morphic.Charts.MorphCreatorUtils();
+        
         var mappings = this.mappingContainer.getAllMappings();
         mappings = this.extractDependencies(mappings, data[0]);
         
@@ -3945,10 +3947,24 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             return returnValue;
         });
         
+        // deferred evaluation of all mappings that used range
+        var attributeMap = this.getAttributeMap();
+        var _this = this;
+        data.each(function(ea, index) {
+            Properties.own(_this.morphCreatorUtils.ranges).each(function (key) {
+                var setterFn = attributeMap[key];
+                if (setterFn) {
+                    setterFn(_this.morphCreatorUtils.interpolate.bind(_this.morphCreatorUtils, key), ea, index);
+                }
+            });
+        });
+        
         // if pie chart, calculate arg
         if (prototypeMorph instanceof lively.morphic.Charts.PieSector) {
             this.calculatePieChart(data);
         }
+        
+        delete this.morphCreatorUtils;
         
         return data;
     },
@@ -4058,7 +4074,104 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     
     generateMappingFunction: function(mappingObjects) {
         
-        var attributeMap = {
+        var attributeMap = this.getAttributeMap();
+        
+        // holds an array of functions where each accepts a morph and sets the specified property to the result of the specified expression
+        var _this = this;
+        var mappingFunctions = mappingObjects.map(function(eachMapping) {
+            var morphCreatorUtils = {
+                range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute)
+            }
+            
+            var valueFn = function(datum) {
+                var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
+                with (env.interaction)
+                with (lively.morphic.Charts.Utils)
+                with (datum)
+                with (morphCreatorUtils) {
+                    return eval(eachMapping.value);
+                }
+            };
+            
+            var setterFn = attributeMap[eachMapping.attribute];
+            if (setterFn) {
+                return setterFn.bind(null, valueFn);
+            } else {
+                return null;
+            }
+        });
+        
+        var _this = this;
+        var combinedMappingFunction = function(morph, datum) {
+            mappingFunctions.each(function(eachMappingFunction, index) {
+                try {
+                    eachMappingFunction(morph, datum);
+                    _this.mappingContainer.hideErrorAt(index);
+                } catch (e) {
+                    _this.mappingContainer.showErrorAt(index);
+                    console.error(e);
+                }
+                
+            });
+        };
+        
+        return combinedMappingFunction;
+    },
+    
+    extractDependencies: function(mappings, sampleDatum) {
+        // We assume that sampleDatum is a good representation for all datum-elements.
+        // If a property exists in sampleDatum, it hopefully exists in the remaining datum-elements.
+        
+        var _this = this;
+        mappings.each(function(aMapping) {
+            var expressionString = aMapping.value;
+            try {
+                var ast = lively.ast.acorn.parse(expressionString);
+            } catch (e) {
+                // this error will reoccur and propagate when evaluating it
+                // in generateMappingFunction's function
+                return;
+            }
+
+            var identifiers = _this.gatherIdentifiers(ast)
+                .uniq()
+                .filter(function(anIdentifier) {
+                    debugger
+                    if (anIdentifier == "datum") return true;
+                    return Object.isObject(sampleDatum) && anIdentifier in sampleDatum;
+                })
+            
+            aMapping.dependentAttributes = identifiers;
+        });
+        
+        return mappings;
+    },
+    
+    gatherIdentifiers: function(subTree) {
+        var _this = this;
+        var badKeys = "property";
+        var identifiers = [];
+        
+        if (subTree.type === "Identifier") {
+            identifiers.push(subTree.name);
+        }
+        
+        Properties.own(subTree).each(function(attr) {
+            if (badKeys.include(attr)) {
+                return;
+            }
+    
+            var el = subTree[attr];
+            if (Object.isObject(el)) {
+                identifiers = identifiers.concat(_this.gatherIdentifiers(el));
+            }
+        });
+        
+        return identifiers;
+    },
+
+    getAttributeMap: function() {
+        return {
             extent: function(valueFn, morph, datum) {
                 morph.setExtent(valueFn(datum));
             },
@@ -4090,93 +4203,68 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 morph.setBorderColor(valueFn(datum));
             }
         };
-        
-        // holds an array of functions where each accepts a morph and sets the specified property to the result of the specified expression
-        var mappingFunctions = mappingObjects.map(function(eachMapping) {
-            var valueFn = function(datum) {
-                var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
-                with (env.interaction)
-                with (lively.morphic.Charts.Utils)
-                with (datum) {
-                    return eval(eachMapping.value);
-                }
-            };
-            
-            var setterFn = attributeMap[eachMapping.attribute];
-            if (setterFn) {
-                return setterFn.bind(null, valueFn);
-            } else {
-                return null;
-            }
-        });
-        
-        var _this = this;
-        var combinedMappingFunction = function(morph, datum) {
-            mappingFunctions.each(function(eachMappingFunction, index) {
-                try {
-                    eachMappingFunction(morph, datum);
-                    _this.mappingContainer.hideErrorAt(index);
-                } catch (e) {
-                    _this.mappingContainer.showErrorAt(index);
-                }
-                
-            });
-        };
-        
-        return combinedMappingFunction;
-    },
-    
-    extractDependencies: function(mappings, sampleDatum) {
-        // We assume that sampleDatum is a good representation for all datum-elements.
-        // If a property exists in sampleDatum, it hopefully exists in the remaining datum-elements.
-        
-        var _this = this;
-        mappings.each(function(aMapping) {
-            var expressionString = aMapping.value;
-            try {
-                var ast = lively.ast.acorn.parse(expressionString);
-            } catch (e) {
-                // this error will reoccur and propagate when evaluating it
-                // in generateMappingFunction's function
-                return;
-            }
-
-            var identifiers = _this.gatherIdentifiers(ast)
-                .uniq()
-                .filter(function(anIdentifier) {
-                    return anIdentifier == "datum" || anIdentifier in sampleDatum;
-                })
-            
-            aMapping.dependentAttributes = identifiers;
-        });
-        
-        return mappings;
-    },
-    
-    gatherIdentifiers: function(subTree) {
-        var _this = this;
-        var badKeys = "property";
-        var identifiers = [];
-        
-        if (subTree.type === "Identifier") {
-            identifiers.push(subTree.name);
-        }
-        
-        Properties.own(subTree).each(function(attr) {
-            if (badKeys.include(attr)) {
-                return;
-            }
-    
-            var el = subTree[attr];
-            if (Object.isObject(el)) {
-                identifiers = identifiers.concat(_this.gatherIdentifiers(el));
-            }
-        });
-        
-        return identifiers;
     }
 
 });
+
+Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
+'default category', {
+    initialize: function() {
+        this.ranges = {};
+        var _this = this;
+        // publicly exposed utils functions
+        this.public = {
+            range: function(property, samples) {
+                if (!_this.ranges[property]) {
+                    _this.ranges[property] = { samples : samples, values: [] };
+                }
+                return function(value) {
+                    _this.ranges[property].values.push(value);
+                }
+            }
+        }
+    },
+    interpolate: function(property, index) {
+        var samples = this.ranges[property].samples;
+        var values = this.ranges[property].values;
+        var value = values[index];
+        var min = values.min();
+        var max = values.max();
+        
+        if (samples.length == 1) return samples[0];
+        
+        // scale value to interval [0,1]
+        var scaledValue = (value - min) / ((max - min) || 1);
+        
+        // select the right interval from the samples array
+        // 0.55 would fall into the 2nd interval from [1, 10, 100]
+        var intervalStartIndex = Math.floor(scaledValue * (samples.length - 1));
+        if (intervalStartIndex == samples.length - 1) {
+            intervalStartIndex -= 1;
+        }
+        
+        var interpolationFunction;
+        switch(true) {
+            case Object.isNumber(samples[0]):
+                interpolationFunction = this.interpolateNumber;
+                break;
+            case samples[0] instanceof Color:
+                interpolationFunction = this.interpolateColor;
+                break;
+            case samples[0] instanceof lively.Point:
+                interpolationFunction = this.interpolatePoint;
+                break;
+            default:
+                interpolationFunction = function() { return null; };
+        }
+        
+        return interpolationFunction(samples[intervalStartIndex], samples[intervalStartIndex + 1], scaledValue);
+    },
+    interpolateNumber: function(start, end, value) {
+        return start + value * (end - start);
+    },
+});
+
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     
     initialize : function($super){

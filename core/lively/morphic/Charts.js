@@ -4233,15 +4233,23 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
         
         if (samples.length == 1) return samples[0];
         
+        var intervalCount = samples.length - 1;
+        
         // scale value to interval [0,1]
         var scaledValue = (value - min) / ((max - min) || 1);
         
         // select the right interval from the samples array
         // 0.55 would fall into the 2nd interval from [1, 10, 100]
-        var intervalStartIndex = Math.floor(scaledValue * (samples.length - 1));
-        if (intervalStartIndex == samples.length - 1) {
+        var intervalStartIndex = Math.floor(scaledValue * intervalCount);
+        if (intervalStartIndex == intervalCount) {
             intervalStartIndex -= 1;
         }
+        
+        var intervalStart = samples[intervalStartIndex];
+        var intervalEnd = samples[intervalStartIndex + 1]
+        
+        // the scaled value needs to be adapted to the new interval with this magic formula
+        var scaledIntervalValue = (scaledValue - intervalStartIndex / intervalCount) * intervalCount;
         
         var interpolationFunction;
         switch(true) {
@@ -4258,7 +4266,7 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
                 interpolationFunction = function() { return null; };
         }
         
-        return interpolationFunction(samples[intervalStartIndex], samples[intervalStartIndex + 1], scaledValue);
+        return interpolationFunction(intervalStart, intervalEnd, scaledIntervalValue);
     },
     interpolateNumber: function(start, end, value) {
         return start + value * (end - start);

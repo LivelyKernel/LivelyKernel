@@ -972,6 +972,9 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         
         return header;
     },
+    setDescription: function(string) {
+        this.description.setTextString(string);
+    },
     
     createErrorText: function() {
         var t = new lively.morphic.Text();
@@ -4322,7 +4325,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             var spec = {};
             spec.showColHeads = true;
             spec.showRowHeads = false;
-                
+            
             table = new lively.morphic.DataGrid(columnCount, rowCount, spec);
             table.setFill(Color.white);
             
@@ -4336,8 +4339,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             }
         }
         
-        //set gridmode of table cells to hidden
-        //set colors of cells
+        // set gridmode of table cells to hidden
+        // set colors of cells
+        var _this = this;
+        this.colHeadCells = [];
         table.rows.each(function(column){
             column.each(function(ea, index){
                 if (column[0] instanceof lively.morphic.DataGridColHead){
@@ -4346,6 +4351,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                     } else {
                         ea.setFill(Color.rgbHex("D6E6F4"));
                     }
+                    // attach the handler to bring up the context menu on ColHead-cells
+                    _this.attachListeners(ea);
+                    
+                    // save the colHeadCells to re-attach the listeners on reload
+                    _this.colHeadCells.push(ea);
                 }
                 else 
                     ea.setFill(Color.white)
@@ -4355,6 +4365,117 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             });
         });
         return table;
+    },
+    onRestore: function($super) {
+        $super();
+        // re-attach the handlers for the context menu on the appropriate cells
+        if (this.colHeadCells) {
+            var _this = this;
+            this.colHeadCells.each(function(ea) {
+                _this.attachListeners(ea);
+            });
+        }
+    },
+    attachListeners: function(cell) {
+        var oldMouseUp = cell.onMouseUp;
+        // to get the hand morph
+        cell.addStyleClassName('dataflow-clickable');
+        var table = this;
+        cell.onMouseUp = function(evt) {
+            if (evt.isRightMouseButtonDown()) {
+                // activate the cell, just for "beauty"-reasons
+                this.activate();
+                table.showContextMenu(this);
+            } else if (evt.isLeftMouseButtonDown()) {
+                table.handleClick(cell, "Sort");
+            } else {
+                // else apply the old method
+                oldMouseUp.apply(cell, arguments);
+            }
+        }
+    },
+    showContextMenu: function(cell) {
+        var _this = this;
+        var itemNames = this.getContextMenuItems();
+        
+        var items = itemNames.map(function(ea) {
+            return [ea, function() {
+                _this.handleClick(cell, ea);
+            }]
+        });
+        
+        var menu = new lively.morphic.Menu("Select action", items);
+        menu.openIn($world, cell.getPositionInWorld());
+    },
+    getContextMenuItems: function() {
+        return [
+            "Statistics",
+            "Sort"
+            ];
+    },
+    handleClick: function(cell, method) {
+        var attribute = cell.getTextString();
+        
+        switch(method) {
+            case "Statistics":
+                var statistics = this.calculateStatistics(attribute);
+                var inspector = lively.morphic.Charts.Component.createWindow("Table");
+                inspector.setDescription("Statistics - " + attribute);
+                inspector.openInWorld(cell.getPositionInWorld());
+                inspector.update(statistics);
+                break;
+            case "Sort":
+                var data = this.component.data;
+                data.sort(function(a, b) {
+                    if (cell.sortedAsc) {
+                        // sort descending
+                        return a[attribute] < b[attribute];
+                    } else {
+                        // sort ascending
+                        return a[attribute] > b[attribute];
+                    }
+                });
+                cell.sortedAsc = !cell.sortedAsc;
+                var scrollPosition = this.table.getScroll();
+                this.component.onContentChanged();
+                var _this = this;
+                this.table.setScroll(scrollPosition[0], scrollPosition[1]);
+                break;
+        }
+    },
+    calculateStatistics: function(attribute) {
+        var data = this.component.data.pluck(attribute);
+        
+        var result = [];
+        var heuristics = this.getStatisticFunctions();
+        
+        heuristics.each(function(ea) {
+            result.push({heuristic: ea.name, value: ea.calculation.apply(data)});
+        });
+        
+        return result;
+    },
+    getStatisticFunctions: function() {
+        
+        // calculate the average value
+        var avg = function() {
+            var sum = 0;
+            var count = 0;
+            this.each(function(ea) {
+                if (Number.isFinite(ea)) {
+                    sum += ea;
+                    count++;
+                }
+            });
+            
+            return sum / count;
+        }
+        
+        return [
+            {name: "min", calculation: Array.prototype.min},
+            {name: "max", calculation: Array.prototype.max},
+            {name: "avg", calculation: avg}
+        ];
     },
     
     updateTable : function(){

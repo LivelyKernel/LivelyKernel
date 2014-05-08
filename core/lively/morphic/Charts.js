@@ -199,15 +199,21 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         this.createSampleProtoypes();
         
         // add morph name
+        this.morphName = this.createMorphName();
+        this.addMorph(this.morphName);
+    },
+    createMorphName: function() {
         var x = 45, y = 20;
-        this.morphName = new lively.morphic.Text(lively.rect(this.getExtent().x / 2 - x / 2, this.getExtent().y - y - 2, x, y), "morph");
-        this.morphName.setFill(Color.white);
-        this.morphName.setBorderWidth(0);
-        this.morphName.layout = {
+        var morphName = new lively.morphic.Text(lively.rect(this.getExtent().x / 2 - x / 2, this.getExtent().y - y - 2, x, y), "morph");
+        morphName.setFill(Color.white);
+        morphName.setBorderWidth(0);
+        morphName.layout = {
             centeredHorizontal: true,
             moveVertical: true
         };
-        this.addMorph(this.morphName);
+        morphName.cachedName = morphName.getTextString();
+        
+        return morphName;
     },
 
 
@@ -3827,9 +3833,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.layout = {adjustForNewBounds: true};
         this.setPosition(pt(0, 0));
 
-        // add mappingInput
-        this.morphInput = lively.morphic.Text.makeLabel("morph");
-        
         this.createMappingArea();
         this.createPrototypeArea();    
     },
@@ -3850,10 +3853,13 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.prototypeArea.layout.resizeHeight = true;
         this.prototypeArea.layout.moveHorizontal = true;
         
+        this.morphInput = this.prototypeArea.morphName;
+         
         this.createPrototypeMorph();
         
         this.addMorph(this.prototypeArea);
     },
+
     createMappingArea: function() {
         // create container for all lines
         var extent = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y);
@@ -3900,9 +3906,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         var morphName = this.morphInput.getTextString();
         
-        if (this.savedMorphName !== morphName) {
-            this.pruneOldMorphName(data.pluck("morphs"), this.savedMorphName);
-            this.savedMorphName = morphName;
+        if (this.morphInput.cachedName !== morphName) {
+            this.pruneOldMorphName(data.pluck("morphs"), this.morphInput.cachedName);
+            this.morphInput.cachedName = morphName;
         }
         
         var mappings = this.mappingContainer.getAllMappings();
@@ -3927,10 +3933,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             
             // ensure that each datum is a object (primitives will get wrapped here)
             ea = ({}).valueOf.call(ea);
-            if (!ea.morphs) ea.morphs = {};
-            ea.morphs[morphName] = prototypeInstance;
             
-            return ea;
+            var returnValue = prototypeInstance;
+            returnValue.datum = ea;
+            returnValue.datum[morphName] = prototypeInstance;
+            
+            return returnValue;
         });
         
         // if pie chart, calculate arg

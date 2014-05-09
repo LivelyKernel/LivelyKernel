@@ -56,6 +56,13 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
         this.assertEquals(18, nav.forwardSexp(src, 18));
     },
 
+    testForwardSexpInlcudesSiblings: function() {
+        var src = "function foo() {\nvar x;\nvar y;\n}\n";
+        var nav = this.sut;
+        this.assertEquals(23, nav.forwardSexp(src, 18)); // "function foo() {\n|var x;\nvar y;\n}\n" -> "function foo() {\nvar x;|\nvar y;\n}\n"
+        this.assertEquals(24, nav.forwardSexp(src, 23)); // "function foo() {\nvar x;|\nvar y;\n}\n" -> "function foo() {\nvar x;\n|var y;\n}\n"
+    },
+
     testBackwardSexp: function() {
         var src = "this.foo(bar, 23);";
         // this.foo(bar, 23);
@@ -68,6 +75,12 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
         this.assertEquals(0, nav.backwardSexp(src, 4));
         this.assertEquals(0, nav.backwardSexp(src, 17));
         // this.assertEquals(12, nav.backwardSexp(src, 14));
+    },
+
+    testBackwardSexpIncludesSiblings: function() {
+        var src = "function foo() {\nvar x;\nvar y;\n}\n";
+        var nav = this.sut;
+        this.assertEquals(23, nav.backwardSexp(src, 24)); // "function foo() {\nvar x;|\nvar y;\n}\n" -> "function foo() {\nvar x;\n|var y;\n}\n"
     },
 
     testForwardDownSexp: function() {

@@ -350,7 +350,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         if (thenDo) options.whenDone = thenDo;
         var session = lively.net.SessionTracker.getSession(),
             lively2LivelyShellAvailable = session && session.isConnected(),
-            commandClass = lively2LivelyShellAvailable ?
+            commandClass = lively2LivelyShellAvailable && !options.sync ?
                 lively.ide.CommandLineInterface.PersistentCommand :
                 lively.ide.CommandLineInterface.Command,
             cmd = new commandClass(commandString, options);

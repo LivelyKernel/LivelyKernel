@@ -690,11 +690,12 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
     },
     mergeWithModelData: function(newText, changeTime) {
         if (!this.changeTime || this.changeTime < changeTime) {
+            var self = this;
             // backward compatibility
             if (typeof newText == "string") {
                 if (this.textString !== newText) {
                     lively.bindings.noUpdate(function() {
-                        this.textString = newText;
+                        self.textString = newText;
                     });
                 } else return
             } else {
@@ -716,7 +717,7 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
                 }
                 if (!equal(newText, this.getRichTextMarkup())){
                     lively.bindings.noUpdate(function() {
-                        this.setRichTextMarkup(newText);
+                        self.setRichTextMarkup(newText);
                     });
                 } else return
             }
@@ -733,7 +734,7 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
                 this.setBorderWidth(2);
                 color = color.withA(0);
             };
-            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+            self.changeVisualizationEnd = Functions.debounce(10 * 1000, function () {
                 self.withCSSTransitionDo(function() {
                     this.setBorderColor(color)
                 }, 500, function() {
@@ -775,7 +776,7 @@ Trait("lively.persistence.StateSync.SynchronizedListMixin",
                 this.setBorderWidth(2);
                 color = color.withA(0);
             };
-            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+            self.changeVisualizationEnd = Functions.debounce(10 * 1000, function () {
                 self.withCSSTransitionDo(function() {
                     this.setBorderColor(color)
                 }, 500, function() {
@@ -810,7 +811,7 @@ Trait("lively.persistence.StateSync.SynchronizedSliderMixin",
             var color = this.sliderKnob.getFill(),
                 self = this;
             this.sliderKnob.setFill(Color.tangerine);
-            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+            self.changeVisualizationEnd = Functions.debounce(10 * 1000, function () {
                 self.sliderKnob.withCSSTransitionDo(function() {
                     this.setFill(color)
                 }, 500, function() {
@@ -897,7 +898,7 @@ Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
                 this.setBorderWidth(2);
                 color = color.withA(0);
             };
-            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+            self.changeVisualizationEnd = Functions.debounce(10 * 1000, function () {
                 self.withCSSTransitionDo(function() {
                     this.setBorderColor(color)
                 }, 500, function() {

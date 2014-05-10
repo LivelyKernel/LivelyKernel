@@ -693,17 +693,36 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
             // backward compatibility
             if (typeof newText == "string") {
                 if (this.textString !== newText) {
-                    this.textString = newText;
+                    lively.bindings.noUpdate(function() {
+                        this.textString = newText;
+                    });
                 } else return
             } else {
-                if (!Objects.equal(newText, Object.deepCopy(this.getRichTextMarkup()))){
-                    this.setRichTextMarkup(newText);
+                var equal = function equal(a, b) {
+                    switch (a.constructor) {
+                        case String:
+                        case Date:
+                        case Boolean:
+                        case Number: return a == b;
+                    };
+                    if (Array.isArray(a)) {
+                        return Array.isArray(b) && a.length === b.length && a.all(function(ea, id) {
+                            return equal(ea, b[id])
+                        });
+                    } else if (typeof a === "object") {
+                        return typeof b === "object" && Object.keys(a).sort().equals(Object.keys(b).sort())
+                            && Object.keys(a).all(function(key) { return equal(a[key], b[key])})
+                    } else return false;
+                }
+                if (!equal(newText, this.getRichTextMarkup())){
+                    lively.bindings.noUpdate(function() {
+                        this.setRichTextMarkup(newText);
+                    });
                 } else return
             }
             // visualize change
-            if (this.changeVisualizationTime !== undefined) {
-                // there might be a problem with serialization ...
-                this.changeVisualizationTime = 10;
+            if (this.changeVisualizationEnd !== undefined) {
+                this.changeVisualizationEnd();
                 return
             }
             var color = this.getBorderColor(),
@@ -714,20 +733,15 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
                 this.setBorderWidth(2);
                 color = color.withA(0);
             };
-            self.changeVisualizationTime = 10;
-            window.setTimeout(function ticking() {
-                self.changeVisualizationTime -= 1;
-                if (self.changeVisualizationTime <= 0) {
-                    self.withCSSTransitionDo(function() {
-                        this.setBorderColor(color)
-                    }, 500, function() {
-                        this.setBorderWidth(width);
-                        delete this.changeVisualizationTime
-                    })
-                } else {
-                    window.setTimeout(ticking, 1000)
-                }
-            }, 1000)
+            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+                self.withCSSTransitionDo(function() {
+                    this.setBorderColor(color)
+                }, 500, function() {
+                    this.setBorderWidth(width);
+                    delete this.changeVisualizationEnd
+                })
+            });
+            self.changeVisualizationEnd();
             return true;
         }
     },
@@ -749,9 +763,8 @@ Trait("lively.persistence.StateSync.SynchronizedListMixin",
                 self.setList(newValues);
             });
             // visualize change
-            if (this.changeVisualizationTime !== undefined) {
-                // there might be a problem with serialization ...
-                this.changeVisualizationTime = 10;
+            if (this.changeVisualizationEnd !== undefined) {
+                this.changeVisualizationEnd();
                 return
             }
             var color = this.getBorderColor(),
@@ -762,20 +775,15 @@ Trait("lively.persistence.StateSync.SynchronizedListMixin",
                 this.setBorderWidth(2);
                 color = color.withA(0);
             };
-            self.changeVisualizationTime = 10;
-            window.setTimeout(function ticking() {
-                self.changeVisualizationTime -= 1;
-                if (self.changeVisualizationTime <= 0) {
-                    self.withCSSTransitionDo(function() {
-                        this.setBorderColor(color)
-                    }, 500, function() {
-                        this.setBorderWidth(width);
-                        delete this.changeVisualizationTime
-                    })
-                } else {
-                    window.setTimeout(ticking, 1000)
-                }
-            }, 1000)
+            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+                self.withCSSTransitionDo(function() {
+                    this.setBorderColor(color)
+                }, 500, function() {
+                    this.setBorderWidth(width);
+                    delete this.changeVisualizationEnd
+                })
+            });
+            self.changeVisualizationEnd();
             return true;
         }
     },
@@ -795,27 +803,21 @@ Trait("lively.persistence.StateSync.SynchronizedSliderMixin",
         if (typeof newValue == "number" && this.value !== newValue && this.changeTime < changeTime) {
             this.value = newValue;
             // visualize change
-            if (this.changeVisualizationTime !== undefined) {
-                // there might be a problem with serialization ...
-                this.changeVisualizationTime = 10;
+            if (this.changeVisualizationEnd !== undefined) {
+                this.changeVisualizationEnd();
                 return
             }
             var color = this.sliderKnob.getFill(),
                 self = this;
             this.sliderKnob.setFill(Color.tangerine);
-            self.changeVisualizationTime = 10;
-            window.setTimeout(function ticking() {
-                self.changeVisualizationTime -= 1;
-                if (self.changeVisualizationTime <= 0) {
-                    self.sliderKnob.withCSSTransitionDo(function() {
-                        this.setFill(color)
-                    }, 500, function() {
-                        delete this.changeVisualizationTime
-                    })
-                } else {
-                    window.setTimeout(ticking, 1000)
-                }
-            }, 1000)
+            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+                self.sliderKnob.withCSSTransitionDo(function() {
+                    this.setFill(color)
+                }, 500, function() {
+                    delete this.changeVisualizationEnd
+                })
+            });
+            self.changeVisualizationEnd();
             return true;
         }
     },
@@ -883,9 +885,8 @@ Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
         }
         if (changed) {
             // visualize change
-            if (this.changeVisualizationTime !== undefined) {
-                // there might be a problem with serialization ...
-                this.changeVisualizationTime = 10;
+            if (this.changeVisualizationEnd !== undefined) {
+                this.changeVisualizationEnd();
                 return
             }
             var color = this.getBorderColor(),
@@ -896,20 +897,15 @@ Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
                 this.setBorderWidth(2);
                 color = color.withA(0);
             };
-            self.changeVisualizationTime = 10;
-            window.setTimeout(function ticking() {
-                self.changeVisualizationTime -= 1;
-                if (self.changeVisualizationTime <= 0) {
-                    self.withCSSTransitionDo(function() {
-                        this.setBorderColor(color)
-                    }, 500, function() {
-                        this.setBorderWidth(width);
-                        delete this.changeVisualizationTime
-                    })
-                } else {
-                    window.setTimeout(ticking, 1000)
-                }
-            }, 1000)
+            self.changeVisualizationEnd = Functions.debouncefunction (10 * 1000, function () {
+                self.withCSSTransitionDo(function() {
+                    this.setBorderColor(color)
+                }, 500, function() {
+                    this.setBorderWidth(width);
+                    delete this.changeVisualizationEnd
+                })
+            });
+            self.changeVisualizationEnd();
         }
         return changed;
     },

@@ -395,13 +395,13 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.ProxiesMeetNative
 TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
 'helpers', {
     assertInVersion: function(func, version) {
-        var previousVersion = lively.CurrentVersion;
+        var predecessor = lively.CurrentVersion;
         
         lively.CurrentVersion = version;
         
         this.assert(func.apply());
         
-        lively.CurrentVersion = previousVersion;
+        lively.CurrentVersion = predecessor;
     },
 },
 'testing', {
@@ -411,7 +411,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         person = lively.proxyFor({});
         person.age = 23;
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         person.age = 24;
         person.age = 25;
@@ -423,7 +423,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         var versionBefore, expectedPropertyDescriptor,
             person = lively.proxyFor({age : 24});
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         // forever 25 !
         Object.defineProperty(person, "age", {
@@ -443,7 +443,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         person = lively.proxyFor({});
         person.name = 'L';
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         delete person.name;
         
@@ -457,7 +457,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         arr[0] = 1;
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         arr[0] = 2;
         arr[1] = 2;
@@ -476,7 +476,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         arr[0] = 1;
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         arr.push(2);
         
@@ -489,7 +489,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         var app = lively.proxyFor({});
         app.counter = 1;
         
-        lively.commitVersion();
+        lively.commit();
         
         app.counter = 2;
         
@@ -502,7 +502,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         app.view = lively.proxyFor({});
         app.view.color = 'red';
         
-        lively.commitVersion();
+        lively.commit();
         
         app.view.color = 'green';
         
@@ -513,7 +513,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
     test03cChangesCanBeUndone: function() {
         var obj = lively.proxyFor({});
         
-        lively.commitVersion();
+        lively.commit();
         
         obj.isPropertyDefined = true;
         
@@ -526,7 +526,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         address.street = 'Meanstreet';
         address.city = 'Chicago';
         
-        lively.commitVersion();
+        lively.commit();
         
         lively.versions.ObjectVersioning.undo();
         lively.versions.ObjectVersioning.redo();
@@ -535,9 +535,9 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
     },
     test04bUndoneChangesCanBeRedone: function() {
         var address = lively.proxyFor({});
-        lively.commitVersion();
+        lively.commit();
         address.street = 'Meanstreet';
-        lively.commitVersion();
+        lively.commit();
         address.city = 'Chicago';
         
         lively.versions.ObjectVersioning.undo();
@@ -556,11 +556,11 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
             }),
             descendant = lively.proxyFor({});
         
-        lively.commitVersion();
+        lively.commit();
         
         descendant.__proto__ = originalPrototype;
         
-        lively.commitVersion();
+        lively.commit();
         
         descendant.__proto__ = otherPrototype;
         
@@ -579,7 +579,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         person = lively.proxyFor({name: 'L'});
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         Object.preventExtensions(person);
 
@@ -593,7 +593,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         person = lively.proxyFor({name: 'L'});
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         Object.seal(person);
 
@@ -607,7 +607,7 @@ TestCase.subclass('lively.versions.tests.ObjectVersioningTests.VersionsTests',
         
         person = lively.proxyFor({name: 'L'});
         
-        versionBefore = lively.commitVersion();
+        versionBefore = lively.commit();
         
         Object.freeze(person);
 

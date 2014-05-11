@@ -290,7 +290,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                 
                 while(!objectVersion && systemVersion) {
                     objectVersion = this.__targetVersions[systemVersion.ID];
-                    systemVersion = systemVersion.previousVersion;
+                    systemVersion = systemVersion.predecessor;
                 }
                 
                 // FIXME: why is it necessary to seach in future versions as well?
@@ -301,7 +301,7 @@ Object.extend(lively.versions.ObjectVersioning, {
                     
                     while(!objectVersion && systemVersion) {
                         objectVersion = this.__targetVersions[systemVersion.ID];
-                        systemVersion = systemVersion.nextVersion;
+                        systemVersion = systemVersion.successor;
                     }
                     
                 }
@@ -914,8 +914,8 @@ Object.extend(lively.versions.ObjectVersioning, {
         if (!lively.CurrentVersion) {
             lively.CurrentVersion = {
                 ID: 0,
-                previousVersion: null,
-                nextVersion: null
+                predecessor: null,
+                successor: null
             };
         }
         if (!lively.ProxyTable) {
@@ -923,25 +923,22 @@ Object.extend(lively.versions.ObjectVersioning, {
         }
     },
     
-    commitVersion: function() {
-        var previousVersion = lively.CurrentVersion,
+    commit: function() {
+        var predecessor = lively.CurrentVersion,
             newVersion;
         
         newVersion = {
-            ID: previousVersion.ID + 1,
-            previousVersion: previousVersion,
-            nextVersion: null
+            ID: predecessor.ID + 1,
+            predecessor: predecessor,
+            successor: null
         };
-        
-        previousVersion.nextVersion = newVersion;
+        predecessor.successor = newVersion;
         
         lively.CurrentVersion = newVersion;
         
-        return previousVersion; 
+        return predecessor; 
     },
     moveTo: function(version, callback) {
-        var oldCurrent = lively.CurrentVersion;
-        
         lively.CurrentVersion = version;
         
         if (callback) callback();
@@ -949,7 +946,7 @@ Object.extend(lively.versions.ObjectVersioning, {
         return version;
     },
     undo: function(callback) {
-        var predecessor = this.previousVersion();
+        var predecessor = lively.CurrentVersion.predecessor;
         
         if (!predecessor) {
             throw new Error('Can\'t undo: No previous version.');
@@ -958,19 +955,13 @@ Object.extend(lively.versions.ObjectVersioning, {
         return this.moveTo(predecessor, callback);
     },
     redo: function(callback) {
-        var successor = this.followingVersion();
+        var successor = lively.CurrentVersion.successor;
         
         if (!successor) {
             throw new Error('Can\'t redo: No next version.');
         }
         
 	    return this.moveTo(successor, callback);
-    },
-    previousVersion: function() {
-        return lively.CurrentVersion.previousVersion;
-    },
-    followingVersion: function() {
-       return lively.CurrentVersion.nextVersion;
     },
     wrapObjectCreate: function() {
         var create = Object.create;
@@ -1145,14 +1136,14 @@ Object.extend(lively.versions.ObjectVersioning, {
             refineClass(lively.morphic.CodeEditor, {
                 boundEval: function(__evalStatement) {
                     
-                    lively.commitVersion();
+                    lively.commit();
                     
                     return cop.proceed(__evalStatement);
                 }
             }).
             refineClass(lively.morphic.Halo, {
                 onMouseDown: function(evt) {
-                    lively.commitVersion();
+                    lively.commit();
                     
                     return cop.proceed(evt);
                 },
@@ -1235,7 +1226,7 @@ var redrawWorld = function() {
 }
 
 lively.proxyFor = livelyOV.proxyFor.bind(livelyOV);
-lively.commitVersion = livelyOV.commitVersion.bind(livelyOV);
+lively.commit = livelyOV.commit.bind(livelyOV);
 
 lively.undo = livelyOV.undo.bind(livelyOV).curry(function() {
     lively.killScriptsFromTheFuture();

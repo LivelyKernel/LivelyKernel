@@ -279,13 +279,16 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
     },
     
     getPrototypeComponents: function() {
-        var onMouseDown = function(evt) {
-            var prototype = this.copy();
-            prototype.setPosition(pt(-4, -4));
-            prototype.setExtent(this.bigExtent || pt(20, 20));
-            prototype.setName("PrototypeMorph");
-            prototype.openInHand();
-        };
+        var createOnMouseDownFor = function(morphName) {
+            return function(evt) {
+                var prototype = this.copy();
+                prototype.setPosition(pt(-4, -4));
+                prototype.setExtent(this.bigExtent || pt(20, 20));
+                prototype.setName(morphName);
+                prototype.isPrototypeMorph = true;
+                prototype.openInHand();
+            };
+        }
         
         var componentNames = [
             {
@@ -294,7 +297,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                     rectangle.setBorderWidth(0);
                     rectangle.setFill(Color.rgb(66, 139, 202));
                     rectangle.bigExtent = pt(20, 60);
-                    rectangle.onMouseDown = onMouseDown;
+                    rectangle.onMouseDown = createOnMouseDownFor("rectangle");
                     return rectangle;
                 }
             },
@@ -302,14 +305,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                 create: function() {
                     var circle = lively.morphic.Morph.makeCircle(pt(0, 0), 5, 0, Color.black, Color.rgb(66, 139, 202));
                     circle.bigExtent = pt(50, 50);
-                    circle.onMouseDown = onMouseDown;
+                    circle.onMouseDown = createOnMouseDownFor("circle");
                     return circle;
                 }
             },
             {
                 create: function() {
                     var line = lively.morphic.Morph.makeLine([pt(0, 0), pt(10, 20)], 2, Color.rgb(66, 139, 202));
-                    line.onMouseDown = onMouseDown;
+                    line.onMouseDown = createOnMouseDownFor("line");;
                     return line;
                 }
             },
@@ -319,7 +322,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                     text.bigExtent = pt(17, 24);
                     text.eventsAreIgnored = false;
                     text.setTextColor(Color.rgb(66, 139, 202));
-                    text.onMouseDown = onMouseDown;
+                    text.onMouseDown = createOnMouseDownFor("text");
                     return text;
                 }
             }, 
@@ -327,7 +330,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                 create: function() {
                     var pieSector = new lively.morphic.Charts.PieSector(45, 20);
                     pieSector.bigExtent = pt(90, 90);
-                    pieSector.onMouseDown = onMouseDown;
+                    pieSector.onMouseDown = createOnMouseDownFor("pieSector");;
                     return pieSector;
                 }
             }
@@ -347,7 +350,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         }
         aMorph.layout.adjustForNewBounds = true;
 
-        aMorph.setName("PrototypeMorph");
+        aMorph.isPrototypeMorph = true;
         
         var methods = ["setExtent", "setFill", "setRotation", "setOrigin"];
         
@@ -3684,8 +3687,7 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
         
         // delete all PrototypeMorphs
         var prototypeMorphs = container.submorphs.filter(function(ea) {
-            var name = ea.getName() || "";
-            return name.indexOf("PrototypeMorph") != -1;
+            return ea.isPrototypeMorph;
         });
         prototypeMorphs.each(function(ea) {
             ea.remove();
@@ -3844,7 +3846,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var prototypeMorph = lively.morphic.Morph.makeRectangle(lively.rect(0,0,20,60));
         prototypeMorph.setFill(Color.rgb(66, 139, 202));
         prototypeMorph.setBorderWidth(0);
-        prototypeMorph.setName("PrototypeMorph");
+        prototypeMorph.setName("rectangle");
         var position = this.prototypeArea.getExtent().scaleBy(0.5).subPt(prototypeMorph.getExtent().scaleBy(0.5));
         prototypeMorph.setPosition(position);
         this.prototypeArea.addMorph(prototypeMorph);
@@ -3903,9 +3905,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             return;
         }
         
-        var prototypeMorph = this.getSubmorphsByAttribute("name", "PrototypeMorph")[0];
+        var prototypeMorph = this.getSubmorphsByAttribute("isPrototypeMorph", true)[0];
         if (!prototypeMorph) {
-            this.throwError(new Error("No morph with name 'PrototypeMorph' found"));
+            this.throwError(new Error("No prototype morph found"));
         }
         
         var morphName = this.morphInput.getTextString();
@@ -4061,8 +4063,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     
     migrateFromPart: function(oldComponent) {
         this.codeEditor.setTextString(oldComponent.content.codeEditor.getTextString());
-        var newPrototype = this.getSubmorphsByAttribute("name","PrototypeMorph")[0];
-        var oldPrototype = oldComponent.getSubmorphsByAttribute("name","PrototypeMorph")[0];
+        var newPrototype = this.getSubmorphsByAttribute("isPrototypeMorph", true)[0];
+        var oldPrototype = oldComponent.getSubmorphsByAttribute("isPrototypeMorph", true)[0];
         var componentBody = this.component.getSubmorphsByAttribute("name","ComponentBody")[0];
         
         newPrototype.remove();
@@ -4085,7 +4087,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         var attributeMap = this.getAttributeMap();
         
-        // holds an array of functions where each accepts a morph and sets the specified property to the result of the specified expression
+        // holds an array of functions where each accepts a morph and sets the specified
+        // property to the result of the specified expression
         var _this = this;
         var mappingFunctions = mappingObjects.map(function(eachMapping) {
             var morphCreatorUtils = {
@@ -4118,7 +4121,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                     _this.mappingContainer.hideErrorAt(index);
                 } catch (e) {
                     _this.mappingContainer.showErrorAt(index);
-                    console.log(e);
+                    console.warn(e);
                 }
                 
             });

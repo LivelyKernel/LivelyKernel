@@ -1179,29 +1179,29 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
     
     testLineManagement: function() {
         var creator = this.helper.createComponent("MorphCreator");
-        var mappingContainer = creator.content.mappingContainer;
-        var lines = mappingContainer.submorphs;
+        var mappingCategory = creator.content.getMappingCategoryFor();
+        var lines = mappingCategory.mappingLines;
         
         // There should be only one initial line
-        this.assertEquals(mappingContainer.submorphs.length, 1, "More than one initial mapping line");
+        this.assertEquals(mappingCategory.mappingLines.length, 1, "More than one initial mapping line");
         
         // Setup one mapping
         lines[0].attributeField.setTextString("height");
         
         // Now there should be a new line
-        this.assertEquals(mappingContainer.submorphs.length, 2, "no new line was created");
+        this.assertEquals(mappingCategory.mappingLines.length, 2, "no new line was created");
         
         // Clear the first line
         lines[0].attributeField.setTextString("");
         
         // The additional line should be gone
-        this.assertEquals(mappingContainer.submorphs.length, 1, "unused line was not removed");
+        this.assertEquals(mappingCategory.mappingLines.length, 1, "unused line was not removed");
     },
     testReOrdering: function() {
         var creator = this.helper.createComponent("MorphCreator");
-        var mappingContainer = creator.content.mappingContainer;
-        var lines = mappingContainer.submorphs;
-        
+        var mappingCategory = creator.content.getMappingCategoryFor();
+        var lines = mappingCategory.mappingLines;
+        debugger;
         // create 3 lines
         for (var i = 0; i < 3; i++) {
             lines[i].attributeField.setTextString("attr" + i);
@@ -1211,15 +1211,15 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         var empty = lines[0];
         lines[0].attributeField.setTextString("");
         
-        var last = mappingContainer.getLastLine();
+        var last = mappingCategory.getLastLine();
         
         // the empty line should now be the last one
         this.assertEquals(empty, last, "re-ordering failed");
     },
     testGetMappings: function() {
         var component = this.helper.createComponent("MorphCreator");
-        var mappingContainer = component.content.mappingContainer;
-        var lines = mappingContainer.submorphs;
+        var mappingCategory = component.content.getMappingCategoryFor();
+        var lines = mappingCategory.mappingLines;
         
         // fill the fields with some mapping values
         for (var i = 0; i < 4; i++) {
@@ -1237,7 +1237,7 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         }
         
         // get the real mappings
-        var mappings = mappingContainer.getAllMappings();
+        var mappings = mappingCategory.getAllMappings();
         
         // those should equal the expected ones
         this.assertEquals(JSON.stringify(mappings), JSON.stringify(expected));

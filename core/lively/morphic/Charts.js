@@ -3869,11 +3869,14 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     createMappingArea: function() {
         // create container for all lines
         var extent = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y);
-        this.mappingContainer = new lively.morphic.Charts.MappingLineContainer(extent);
         
-        // create the initial mapping line
-        this.mappingContainer.createEmptyLine();
-    
+        
+        
+        this.mappingContainer = new lively.morphic.Box(extent);
+        
+        var mappingCategory = new lively.morphic.Charts.MappingLineCategory(extent);
+        
+        this.mappingContainer.addMorph(mappingCategory);
         this.addMorph(this.mappingContainer);
     },
 
@@ -3919,7 +3922,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         this.morphCreatorUtils = new lively.morphic.Charts.MorphCreatorUtils();
         
-        var mappings = this.mappingContainer.getAllMappings();
+        var mappings = this.getAllMappings();
+        
+        // TODO: handle multiple categories appropriately
+        mappings = Properties.ownValues(mappings).first();
+        
         mappings = this.extractDependencies(mappings, data[0]);
         
         var mappingFunction = this.generateMappingFunction(mappings);
@@ -3956,14 +3963,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var _this = this;
         data.each(function(ea, index) {
             Properties.own(_this.morphCreatorUtils.ranges).each(function (key) {
-                var lineIndex = _this.mappingContainer.getIndexOf(key);
+                var mappingCategory = _this.getMappingCategoryFor();
+                var lineIndex = mappingCategory.getIndexOf(key);
                 var setterFn = attributeMap[key];
                 if (setterFn) {
                     try {
                         setterFn(_this.morphCreatorUtils.interpolate.bind(_this.morphCreatorUtils, key), ea, index);
-                        _this.mappingContainer.hideErrorAt(lineIndex);
+                        mappingCategory.hideErrorAt(lineIndex);
                     } catch (e) {
-                        _this.mappingContainer.showErrorAt(lineIndex);
+                        mappingCategory.showErrorAt(lineIndex);
                         console.log(e);
                     }
                 }
@@ -3978,6 +3986,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         delete this.morphCreatorUtils;
         
         return data;
+    },
+    getMappingCategoryFor: function(morphName) {
+        // TODO: return right category
+        // TODO: check caller
+        return this.mappingContainer.submorphs[0];
     },
     calculatePieChart: function(data) {
         var mappedPropertySum = data.filter(function(ea){return ea.morph.mappedProperty}).sum();
@@ -4116,11 +4129,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var _this = this;
         var combinedMappingFunction = function(morph, datum) {
             mappingFunctions.each(function(eachMappingFunction, index) {
+                var mappingCategory = _this.getMappingCategoryFor();
                 try {
                     eachMappingFunction(morph, datum);
-                    _this.mappingContainer.hideErrorAt(index);
+                    mappingCategory.hideErrorAt(index);
                 } catch (e) {
-                    _this.mappingContainer.showErrorAt(index);
+                    mappingCategory.showErrorAt(index);
                     console.warn(e);
                 }
                 
@@ -4214,6 +4228,17 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 morph.setBorderColor(valueFn(datum));
             }
         };
+    },
+    
+    getAllMappings: function() {
+        var mappings = {};
+        
+        this.mappingContainer.submorphs.each(function(category) {
+            var name = category.categoryName;
+            mappings[name] = category.getAllMappings();
+        });
+        
+        return mappings;
     }
 
 });
@@ -6342,6 +6367,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         attributeField.setFixedWidth(false);
         attributeField.setMinTextWidth(30);
         attributeField.setMaxTextWidth(maxWidth);
+        attributeField.setPadding(lively.rect(8,2,0,0));
         
         attributeField.setStyleSheet(this.getFieldCSS());
 
@@ -6412,7 +6438,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
                     // save the focused field to set the focus after re-adding the line
                     var focused = this.attributeField.isFocused() ? this.attributeField : this.valueField;
                     this.remove();
-                    this.container.addMorph(this);
+                    this.container.addLine(this);
                     focused.focus();
                 }
             }
@@ -6451,15 +6477,21 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
     },
     handleMappingChange: function() {
         this.ensureNewLine();
-        this.owner.owner.component.onContentChanged();
+        // TODO: find a better way to do this
+        this.owner.owner.owner.component.onContentChanged();
+    },
+    remove: function($super) {
+        this.container.removeLineFromList(this);
+        $super();
     }
     
 });
 
-lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
+lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
 {
     initialize: function($super, extent) {
         $super(extent);
+        this.mappingLines = [];
         this.setFill(Color.white);
         this.layout = {
             adjustForNewBounds: true,
@@ -6471,6 +6503,16 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         var layout = new lively.morphic.Layout.VerticalLayout();
         layout.setSpacing(7.5);
         this.setLayouter(layout);
+        
+        // add category name
+        var text = lively.morphic.Text.makeLabel("Category 1");
+        text.bigExtent = pt(17, 24);
+        text.eventsAreIgnored = true;
+        this.addMorph(text);
+        
+        
+        // create the initial mapping line
+        this.createEmptyLine();
     },
     refreshLayout: function() {
         this.getLayouter().layout(this, this.submorphs);
@@ -6478,7 +6520,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
     getAllMappings: function() {
         var mappings = [];
         
-        this.submorphs.each(function(mappingLine) {
+        this.mappingLines.each(function(mappingLine) {
             if (!mappingLine.isEmpty()) {
                 mappings.push(mappingLine.getMapping());
             }
@@ -6487,11 +6529,11 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         return mappings;
     },
     showErrorAt: function(mappingIndex) {
-        this.submorphs[mappingIndex].showError();
+        this.mappingLines[mappingIndex].showError();
     },
     getIndexOf: function(attribute) {
         var index = -1;
-        this.submorphs.each(function(mappingLine, i) {
+        this.mappingLines.each(function(mappingLine, i) {
             if (mappingLine.getMapping().attribute == attribute) {
                 index = i;
             }
@@ -6499,12 +6541,12 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         return index;
     },
     hideErrorAt: function(mappingIndex) {
-        this.submorphs[mappingIndex].hideError();
+        this.mappingLines[mappingIndex].hideError();
     },
     getNextLine: function(sender) {
         var senderPos = sender.getPosition();
         var closest;
-        var allFollowing = this.submorphs.select(function(ea) {
+        var allFollowing = this.mappingLines.select(function(ea) {
             return ea.getPosition().y > senderPos.y;
         });
         
@@ -6524,7 +6566,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
     getLastLine: function() {
         var maxY = 0;
         var last;
-        this.submorphs.each(function(ea) {
+        this.mappingLines.each(function(ea) {
             var posY = ea.getPosition().y;
             if (posY > maxY) {
                 last = ea;
@@ -6537,7 +6579,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
     getPreviousLine: function(sender) {
         var senderPos = sender.getPosition();
         var closest
-        var allPrevious = this.submorphs.select(function(ea) {
+        var allPrevious = this.mappingLines.select(function(ea) {
             return ea.getPosition().y < senderPos.y;
         });
         
@@ -6558,9 +6600,16 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineContainer",
         var line = new lively.morphic.Charts.MappingLine(lively.rect(0, 0, this.getExtent().x, 20), this);
         
         this.emptyLine = line;
-        this.addMorph(line);
+        this.addLine(line);
         
         return line;
+    },
+    removeLineFromList: function(line) {
+        this.mappingLines.remove(line);
+    },
+    addLine: function(line) {
+        this.mappingLines.push(line);
+        this.addMorph(line);
     }
 });
 

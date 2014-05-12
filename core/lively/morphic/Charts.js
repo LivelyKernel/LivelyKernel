@@ -3908,6 +3908,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         }
         
         var mappings = this.mappingContainer.getAllMappings();
+        mappings = this.extractDependencies(mappings, data[0]);
+        
         var mappingFunction = this.generateMappingFunction(mappings);
         
         var bulkCopy = this.smartBulkCopy(prototypeMorph, data.totalLength || data.length);
@@ -4116,6 +4118,56 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         };
         
         return combinedMappingFunction;
+    },
+    
+    extractDependencies: function(mappings, sampleDatum) {
+        // We assume that sampleDatum is a good representation for all datum-elements.
+        // If a property exists in sampleDatum, it hopefully exists in the remaining datum-elements.
+        
+        var _this = this;
+        mappings.each(function(aMapping) {
+            var expressionString = aMapping.value;
+            try {
+                var ast = lively.ast.acorn.parse(expressionString);
+            } catch (e) {
+                // this error will reoccur and propagate when evaluating it in generateMappingFunction's function
+                return;
+            }
+            
+            
+            var identifiers = _this.gatherIdentifiers(ast)
+                .uniq()
+                .filter(function(anIdentifier) {
+                    return anIdentifier in sampleDatum;
+                })
+            
+            aMapping.dependentAttributes = identifiers;
+        });
+        
+        return mappings;
+    },
+    
+    gatherIdentifiers: function(subTree) {
+        var _this = this;
+        var badKeys = "property";
+        var identifiers = [];
+        
+        if (subTree.type === "Identifier") {
+            identifiers.push(subTree.name);
+        }
+        
+        Properties.own(subTree).each(function(attr) {
+            if (badKeys.include(attr)) {
+                return;
+            }
+    
+            var el = subTree[attr];
+            if (Object.isObject(el)) {
+                identifiers = identifiers.concat(_this.gatherIdentifiers(el));
+            }
+        });
+        
+        return identifiers;
     }
 
 });

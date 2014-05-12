@@ -62,12 +62,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node, state);
         } catch (e) {
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
             if (e.isUnwindException && !frame.isResuming()) {
                 frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.error.astIndex));
                 e.shiftFrame(frame);
             }
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
-                e = e.unwindException;
             throw e;
         }
         // finished execution, remove break

@@ -1223,13 +1223,15 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(3, frame.lookup('y'), 'did not initialize y correctly');
 
         result = interpreter.stepToNextStatement(frame); // step over debugger statement
-        this.assertEquals('Break', result.toString(), 'did not stop after debugger');
-        this.assertEquals(ast.body.body[3], result.top.getPC(), 'did not stop before return');
+        this.assertEquals('Break', result && result.toString(), 'did not stop after debugger');
+        this.assertEquals(ast.body.body[3], result.unwindException.top.getPC(),
+            'did not stop before return');
 
         result = interpreter.stepToNextCallOrStatement(frame);
-        this.assertEquals('Break', result.toString(), 'did not stop at call');
-        this.assertEquals(ast.body.body[1].body.body[0], result.top.getPC(), 'did not step into f()');
-        this.assertEquals(undefined, result.top.lookup('x'), 'no new scope was created');
+        this.assertEquals('Break', result && result.toString(), 'did not stop at call');
+        this.assertEquals(ast.body.body[1].body.body[0], result.unwindException.top.getPC(),
+            'did not step into f()');
+        this.assertEquals(undefined, result.unwindException.top.lookup('x'), 'no new scope was created');
     },
 
     test18bStepOverWithDebuggerAfterContinuation: function() {
@@ -1253,8 +1255,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(3, frame.lookup('y'), 'did not initialize y correctly');
 
         result = interpreter.stepToNextStatement(frame); // step over debugger statement
-        this.assertEquals('Break', result.toString(), 'did not stop after debugger');
-        this.assertEquals(ast.body.body[3], result.top.getPC(), 'did not stop before return');
+        this.assertEquals('Break', result && result.toString(), 'did not stop after debugger');
+        this.assertEquals(ast.body.body[3], result.unwindException.top.getPC(),
+            'did not stop before return');
 
         result = interpreter.stepToNextStatement(frame); // UnwindException
         this.assert(result.isUnwindException, 'no UnwindException');

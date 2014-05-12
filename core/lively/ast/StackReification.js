@@ -251,6 +251,9 @@ Object.subclass('lively.ast.Continuation',
                 return result;
             }
 
+            // disconnect frames to ensure correct reconnection later
+            frame.parentFrame = null;
+
             if (result.hasOwnProperty('val'))
                 frame.alreadyComputed[frame.pc.astIndex] = result.val;
 

@@ -62,9 +62,9 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node, state);
         } catch (e) {
-            if (e.toString() == 'Break' && !frame.isResuming()) {
-                frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
-                e.top = e.top || frame;
+            if (e.isUnwindException && !frame.isResuming()) {
+                frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.error.astIndex));
+                e.shiftFrame(frame);
             }
             if (lively.Config.get('loadRewrittenCode') && e.unwindException)
                 e = e.unwindException;
@@ -208,6 +208,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 this.runWithFrame(frame.getOriginalAst(), frame);
         } catch (e) {
             // TODO: create continuation
+            if (e.isUnwindException && e.error.toString() == 'Break')
+                e = e.error;
             return e;
         }
     },
@@ -284,11 +286,11 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     accept: function(node, state) {
         function throwBreak() {
-            throw {
+            throw new UnwindException({
                 toString: function() { return 'Break'; },
                 astIndex: node.astIndex,
                 lastResult: state.result
-            };
+            });
         }
 
         var frame = state.currentFrame;
@@ -321,18 +323,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         } catch (e) {
             if (lively.Config.get('loadRewrittenCode') && e.unwindException)
                 e = e.unwindException;
-            if (e.isUnwindException) {
-                var frames = [e.top],
-                    lastFrame = frames.last();
-                while (lastFrame && lastFrame != e.last && lastFrame.parentFrame) {
-                    lastFrame = frames.last().parentFrame;
-                    frames.push(lastFrame);
-                }
-                if (!frames.member(frame)) {
-                    frame.setPC(node);
-                    e.shiftFrame(frame);
-                }
-            }
             throw e;
         }
     },
@@ -477,17 +467,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.block, state);
         } catch (e) {
             hasError = true;
-            err = e;
+            state.error = err = e;
         }
-        if (frame.isResuming() && !(err && err.unwindException) && (node.handler !== null)  && !frame.isAlreadyComputed(node.handler)) {
+        if (!hasError && frame.isResuming() && (node.handler !== null)  && !frame.isAlreadyComputed(node.handler))
             hasError = true;
-            err = frame.alreadyComputed[node.handler.param.astIndex];
-        }
 
         try {
             if (hasError && (node.handler !== null)) {
                 hasError = false;
-                state.error = err;
                 this.accept(node.handler, state);
                 delete state.error;
             }
@@ -505,7 +492,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     visitCatchClause: function(node, state) {
         var frame = state.currentFrame;
-        if (!frame.isResuming() || (state.error && state.error.unwindException)) {
+        if (!frame.isResuming() || state.hasOwnProperty('error')) {
             var catchScope = frame.newScope();
             catchScope.set(node.param.name, state.error);
             frame.setScope(catchScope);
@@ -947,12 +934,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
         } catch (e) {
-            if (e.toString() == 'Break')
-                state.currentFrame.setPC(node);
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
-                throw e.unwindException;
-            else
-                throw e;
+            if (e.isUnwindException) {
+                e.shiftFrame(state.currentFrame);
+                e = e.error;
+            }
+            state.result = e;
+            state.currentFrame.setPC(node);
+            throw e.unwindException || e;
         }
     },
 

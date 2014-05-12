@@ -831,10 +831,12 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
         var result = interpreter.stepToNextStatement(frame);
         this.assertEquals('Break', result && result.toString(), 'did not halt before next statement');
         this.assertEquals(1, frame.getScope().get('x'), 'did not execute first statement');
+        this.assertEquals(node.body[1], frame.getPC(), 'PC was not set to second statement');
 
         result = interpreter.stepToNextStatement(frame);
         this.assertEquals('Break', result && result.toString(), 'did not halt after second statement');
         this.assertEquals(2, result && result.lastResult, 'did not return last statements result');
+        this.assertEquals(node.body[2], frame.getPC(), 'PC was not set to third statement');
         this.assertEquals(3, interpreter.runFromPC(frame), 'did not finish resume');
     },
 
@@ -875,12 +877,13 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
             result;
 
         result = interpreter.stepToNextStatement(frame);
-        this.assertEquals('Break', result.toString(), 'first step');
+        this.assertEquals('Break', result && result.toString(), 'first step');
         this.assertEquals(node.body[1], frame.getPC(), 'did not halt at initial position');
 
         result = interpreter.stepToNextCallOrStatement(frame);
-        this.assertEquals('Break', result.toString(), 'second step');
-        this.assertEquals(node.body[0].body.body[0], result.top.getPC(), 'no new top frame returned');
+        this.assertEquals('Break', result && result.toString(), 'second step');
+        this.assertEquals(node.body[0].body.body[0], result.unwindException.top.getPC(),
+            'no new top frame returned');
         this.assertEquals(undefined, frame.getScope().get('x'), 'did not halt at call');
         this.assertEquals(node.body[1].declarations[0].init, frame.getPC(),
             'parent frame does not have correct PC');

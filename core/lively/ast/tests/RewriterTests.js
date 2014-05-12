@@ -875,8 +875,10 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assert(runResult.isContinuation, 'no continuation');
 
         // can we access the original ast, needed for resuming?
-        var capturedAst = frame.getOriginalAst();
-        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), capturedAst);
+        var capturedAst = frame.getOriginalAst(),
+            generatedAst = lively.ast.acorn.parseFunction(String(code));
+        generatedAst.type = capturedAst.type;
+        this.assertAstNodesEqual(generatedAst, capturedAst);
 
         // where did the execution stop?
         // this.assertIdentity(5, frame.getPC(), 'pc');
@@ -1286,8 +1288,10 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var frame = runResult.frames().first();
         this.assert(runResult.isContinuation, 'no continuation');
 
-        var capturedAst = frame.getOriginalAst();
-        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), capturedAst);
+        var capturedAst = frame.getOriginalAst(),
+            generatedAst = lively.ast.acorn.parseFunction(String(code));
+        generatedAst.type = capturedAst.type;
+        this.assertAstNodesEqual(generatedAst, capturedAst);
         this.assertIdentity(capturedAst.body.body[1].argument, frame.getPC(), 'pc');
     }
 

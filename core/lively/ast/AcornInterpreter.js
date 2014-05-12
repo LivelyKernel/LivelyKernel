@@ -318,13 +318,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             throwBreak();
         }
 
-        try {
-            this['visit' + node.type](node, state);
-        } catch (e) {
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
-                e = e.unwindException;
-            throw e;
-        }
+        this['visit' + node.type](node, state);
     },
 
     visitProgram: function(node, state) {

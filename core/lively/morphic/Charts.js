@@ -3937,15 +3937,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         data = data.map(function(ea, index) {
             var prototypeInstance = copiedMorphs[index];
             prototypeInstance.mappings = mappings;            
-            // if the morphs weren't cloned, replay the actions which were applied on the PrototypeMorph
-            if (!bulkCopy.cloned) {
-                if (prototypeMorph.__appliedCommands) {
-                    for (var commandName in prototypeMorph.__appliedCommands) {
-                        var command = prototypeMorph.__appliedCommands[commandName];
-                        command.fn.apply(prototypeInstance, command.args);
-                    }
-                }
-            }
             mappingFunction(prototypeInstance, ea);
             
             // ensure that each datum is a object (primitives will get wrapped here)

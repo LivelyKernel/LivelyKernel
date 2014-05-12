@@ -289,7 +289,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                 prototype.openInHand();
             };
         }
-        
         var componentNames = [
             {
                 create: function() {
@@ -1727,10 +1726,37 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
     initialize: function($super) {
         $super();
         this.setClipMode("auto");
+        this.isAutoEvalActive = true;
     },
 
     update: function(data) {
         // abstract
+    },
+    adaptBackgroundColor: function() {
+        var backgroundColor = Color.white;
+        if (!this.isAutoEvalActive) {
+            backgroundColor = Color.rgbHex("EFEFEF");
+        }
+        this.submorphs[0].setFill(backgroundColor);
+    },
+    onKeyUp: function(evt) {
+        if (evt.keyCode == 27) {
+            // esc was pressed
+            this.toggleAutoEvaluation();
+        }
+        
+        if (this.isAutoEvalActive !== false) {
+            this.component.onContentChanged();
+        }
+    },
+    toggleAutoEvaluation: function() {
+        // switch is used to avoid reinitialization of existing scenarios
+        if (typeof this.isAutoEvalActive == "boolean") {
+            this.isAutoEvalActive = !this.isAutoEvalActive;
+        } else {
+            this.isAutoEvalActive = false;
+        }
+        this.adaptBackgroundColor();
     },
     dashboardLayoutable: true,
 
@@ -3076,8 +3102,13 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     onContentChanged: function() {
-        this.notify();
-        this.notifyDashboard();
+        if (this.content.isAutoEvalActive !== false){
+            var _this = this;
+            Functions.debounceNamed(this.id, 300, function() {
+                _this.notify();
+                _this.notifyDashboard();
+            })();
+        }
     },
     
     notifyDashboard: function() {
@@ -3704,7 +3735,6 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     initialize: function($super) {
         $super();
         this.disableGutter();
-        this.isAutoEvalActive = true;
     },
     
     boundEval: function(codeStr) {
@@ -3790,41 +3820,6 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();
         return result;
-    },
-    
-    onKeyUp: function(evt) {
-        var forceEvaluation = false;
-        if (evt.keyCode == 27) {
-            // esc was pressed
-            this.toggleAutoEvaluation();
-            forceEvaluation = true;
-        }
-        
-        if (this.isAutoEvalActive !== false) {
-            // deliver CodeEditor context to onChanged
-            var _this = evt.getTargetMorph();
-            Functions.debounceNamed(_this.id, 500, function() {
-                _this.onChanged.call(_this, forceEvaluation);
-            })();
-        }
-    },
-    
-    toggleAutoEvaluation: function() {
-        // switch is used to avoid reinitialization of existing scenarios
-        if (typeof this.isAutoEvalActive == "boolean") {
-            this.isAutoEvalActive = !this.isAutoEvalActive;
-        } else {
-            this.isAutoEvalActive = false;
-        }
-        this.adaptBackgroundColor();
-    },
-    
-    adaptBackgroundColor: function() {
-        var backgroundColor = Color.white;
-        if (!this.isAutoEvalActive) {
-            backgroundColor = Color.rgbHex("EFEFEF");
-        }
-        this.setFill(backgroundColor);
     }
 });
 
@@ -3869,9 +3864,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     createMappingArea: function() {
         // create container for all lines
         var extent = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y);
-        
-        
-        
+
         this.mappingContainer = new lively.morphic.Box(extent);
         
         var mappingCategory = new lively.morphic.Charts.MappingLineCategory(extent);
@@ -3937,6 +3930,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         data = data.map(function(ea, index) {
             var prototypeInstance = copiedMorphs[index];
             prototypeInstance.mappings = mappings;            
+
             mappingFunction(prototypeInstance, ea);
             
             // ensure that each datum is a object (primitives will get wrapped here)
@@ -5143,7 +5137,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Script',
             resizeHeight: true
         };
         this.addMorph(this.codeEditor);
-
     },
     
     setExtent: function($super, newExtent) {

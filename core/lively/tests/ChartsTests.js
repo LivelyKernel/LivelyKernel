@@ -600,7 +600,8 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
         
         // wait for the code editor to be initialized
         this.waitFor(function() { return inited }, 10, function() {
-            components[0].onContentChanged();
+            
+            components[0].notify();
             
             _this.assertEquals(components[0].data, "testdata");
             _this.assertEquals(components[1].data, "testdata");
@@ -951,7 +952,8 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
         
         // wait for the code editor to be initialized
         this.waitFor(function() { return inited }, 10, function() {
-            script.onContentChanged();
+            script.notify();
+            script.notifyDashboard();
             
             // test that dashboard exists
             var dashboard = $morph("Dashboard");
@@ -971,7 +973,8 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
         
         // wait for the code editor to be initialized
         this.waitFor(function() { return inited }, 10, function() {
-            script.onContentChanged();
+            script.notify();
+            script.notifyDashboard();
             
             // test that a viewer for env.db exists
             var viewer = $world.get("dbViewer");
@@ -998,7 +1001,8 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
         // wait for the code editor to be initialized
         this.waitFor(function() { return inited }, 10, function() {
             // update the script once to register the variable usage
-            script.onContentChanged();
+            script.notify();
+            script.notifyDashboard();
             script.notified = false;
             
             // override onContentChanged to notice the notification
@@ -1007,26 +1011,33 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
                 oldOnContentChanged.apply(script, arguments);
                 this.notified = true;
             }
+            
             // set the widgets value to change the interaction variable
             widget.setValue(1);
             
-            // test that the script was notified
-            _this.assert(script.notified);
-            
-            // do not use the variable anymore
-            script.content.codeEditor.setTextString("");
-            script.onContentChanged();
-            
-            // reset notification flag
-            script.notified = false;
-            
-            // set the widgets value to change the interaction variable
-            widget.setValue(0);
-            
-            // test that the script was not notified this time
-            _this.assert(!script.notified);
-            
-            _this.done();
+            // wait some seconds because setValue calls onContentChanged and this is asynchronous
+            setTimeout(function(){
+                // test that the script was notified
+                _this.assert(script.notified);
+               
+                // do not use the variable anymore
+                script.content.codeEditor.setTextString("");
+                script.notify();
+                script.notifyDashboard();
+                
+                // reset notification flag
+                script.notified = false;
+                // set the widgets value to change the interaction variable
+                widget.setValue(0);
+                
+                // wait some seconds because setValue calls onContentChanged and this is asynchronous
+                setTimeout(function() {
+                    // test that the script was not notified this time
+                    _this.assert(!script.notified);
+                    
+                    _this.done();
+                }, 30);
+            }, 30);
         });
     },
     testAppropriateViewerSelection: function() {
@@ -1041,7 +1052,8 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
         
         // wait for the code editor to be initialized
         this.waitFor(function() { return inited }, 10, function() {
-            script.onContentChanged();
+            script.notify();
+            script.notifyDashboard();
             
             var db = $world.get("dbViewer");
             var canvas = $world.get("canvasViewer");
@@ -1189,7 +1201,7 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         lines[0].attributeField.setTextString("height");
         
         // Now there should be a new line
-        this.assertEquals(mappingCategory.mappingLines.length, 2, "no new line was created");
+		this.assertEquals(mappingCategory.mappingLines.length, 2, "no new line was created");
         
         // Clear the first line
         lines[0].attributeField.setTextString("");
@@ -1201,7 +1213,7 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         var creator = this.helper.createComponent("MorphCreator");
         var mappingCategory = creator.content.getMappingCategoryFor();
         var lines = mappingCategory.mappingLines;
-        debugger;
+
         // create 3 lines
         for (var i = 0; i < 3; i++) {
             lines[i].attributeField.setTextString("attr" + i);
@@ -1212,7 +1224,7 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         lines[0].attributeField.setTextString("");
         
         var last = mappingCategory.getLastLine();
-        
+       
         // the empty line should now be the last one
         this.assertEquals(empty, last, "re-ordering failed");
     },

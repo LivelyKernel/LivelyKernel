@@ -285,8 +285,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'visiting', {
 
     accept: function(node, state) {
-        function throwBreak() {
-            throw new UnwindException({
+        function throwableBreak() {
+            return new UnwindException({
                 toString: function() { return 'Break'; },
                 astIndex: node.astIndex,
                 lastResult: state.result
@@ -303,7 +303,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 frame.resumesNow();
                 if (this.breakOnResume) {
                     this.breakOnResume = false;
-                    throwBreak();
+                    throw throwableBreak();
                 }
             }
             if (frame.isAlreadyComputed(node.astIndex)) {
@@ -315,7 +315,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 frame.alreadyComputed[node.astIndex] = undefined;
             this.breakAtStatement = false;
             this.breakAtCall = false;
-            throwBreak();
+            throw throwableBreak();
         }
 
         this['visit' + node.type](node, state);

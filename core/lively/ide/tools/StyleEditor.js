@@ -187,6 +187,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,20.0),
                     className: "lively.morphic.Text",
                     name: "adjustForNewBoundsLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "inform submorphs"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -195,6 +196,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,40.0),
                     className: "lively.morphic.Text",
                     name: "resizeWidthLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "resize width"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -203,6 +205,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,60.0),
                     className: "lively.morphic.Text",
                     name: "resizeHeightLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "resize height"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -211,6 +214,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,80.0),
                     className: "lively.morphic.Text",
                     name: "moveVerticalLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "move vertical"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -219,6 +223,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,100.0),
                     className: "lively.morphic.Text",
                     name: "moveHorizontalLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "move horizontal"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -227,6 +232,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,120.0),
                     className: "lively.morphic.Text",
                     name: "centeredHorizontalLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "center horizontally"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -235,6 +241,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,140.0),
                     className: "lively.morphic.Text",
                     name: "centeredVerticalLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "center vertically"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -243,6 +250,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,160.0),
                     className: "lively.morphic.Text",
                     name: "scaleHorizontalLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "scale horizontally"
                 },{
                     _Extent: lively.pt(100,15.0),
@@ -251,6 +259,7 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
                     _Position: lively.pt(20.0,180.0),
                     className: "lively.morphic.Text",
                     name: "scaleVerticalLabel",
+                    _WhiteSpaceHandling: "nowrap",
                     textString: "scale vertically"
                 },{
                     _BorderColor: Color.rgb(204,0,0),

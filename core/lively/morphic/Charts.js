@@ -3886,13 +3886,18 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     },
     createMappingArea: function() {
         // create container for all lines
-        var bounds = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y);
+        var bounds = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y * 0.7);
         this.mappingContainer = new lively.morphic.Box(bounds);
-        this.mappingContainer.setLayouter(new lively.morphic.Layout.VerticalLayout());
+        
+        var layout = new lively.morphic.Layout.VerticalLayout();
+        layout.setSpacing(0);
+        this.mappingContainer.setLayouter(layout);
+        
         this.addMorph(this.mappingContainer);
     },
     addCategoryFor: function(aMorph) {
         var bounds = this.mappingContainer.bounds();
+        bounds = lively.rect(0, 0, 200, 50);
         var mappingCategory = new lively.morphic.Charts.MappingLineCategory(bounds, aMorph);
         this.mappingContainer.addMorph(mappingCategory);
     },
@@ -6515,8 +6520,8 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         this.owner.owner.owner.component.onContentChanged();
     },
     remove: function($super) {
-        this.container.removeLineFromList(this);
         $super();
+        this.container.removeLineFromList(this);
     }
     
 });
@@ -6639,10 +6644,20 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
     },
     removeLineFromList: function(line) {
         this.mappingLines.remove(line);
+        this.owner.applyLayout();
+        
+        var x = this.getExtent().x;
+        this.setExtent(pt(x, this.submorphBounds(this.getTransform()).height));
+        
+        var owner = this.owner;
+        x = owner.getExtent().x;
+        owner.setExtent(pt(x, owner.submorphBounds(owner.getTransform()).extent()));
     },
     addLine: function(line) {
         this.mappingLines.push(line);
         this.addMorph(line);
+        if (this.owner)
+            this.owner.applyLayout();
     }
 });
 

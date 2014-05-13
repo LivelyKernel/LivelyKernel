@@ -547,7 +547,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
 
         // now update all other versions of this form
         this.form.handle.set(function(old, newV, thenDo) {
-            if (self.form.json !== "" && confirm("There seem to have been changes to the form elsewhere. Are you sure you want to overwrite those changes?")) {
+            if (self.form.json === "" || confirm("There seem to have been changes to the form elsewhere. Are you sure you want to overwrite those changes?")) {
                 self.form.json = old;
                 thenDo(newV);
             } else {

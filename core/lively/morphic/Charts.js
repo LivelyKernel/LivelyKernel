@@ -4165,7 +4165,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             if (setterFn) {
                 return setterFn.bind(null, valueFn);
             } else {
-                return null;
+                return function(morph, datum) {
+                    morph[eachMapping.attribute] = valueFn(datum);
+                }
             }
         });
         

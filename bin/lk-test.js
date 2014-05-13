@@ -44,7 +44,7 @@ var platformConf = config.platformConfigs[process.platform],
         ['--test-script FILE', "Script file that is sent to the browser and "
                              + "runs the tests. If not specified then \""
                              + env.LK_TEST_WORLD_SCRIPT + "\" is used."],
-        ['--nodejs', "Runs the nodejs test suite instead of the browser tests"]];
+        ['--nodejs', "Runs the nodejs test suite instead of the browser tests"]],
     parser = new optparse.OptionParser(switches);
 
 
